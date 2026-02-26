@@ -1,5 +1,5 @@
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const REDIS_URL = (process.env.UPSTASH_REDIS_REST_URL || "").replace(/^["']|["']$/g, "").trim();
+const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || "").replace(/^["']|["']$/g, "").trim();
 const INDEX_KEY = "prop_calc_index";
 
 var H = {
@@ -30,6 +30,8 @@ exports.handler = async function(event) {
   if (!REDIS_URL || !REDIS_TOKEN) {
     return { statusCode: 500, headers: H, body: JSON.stringify({ error: "UPSTASH env vars not set" }) };
   }
+
+  console.log("[redis] URL:", REDIS_URL);
 
   if (event.httpMethod === "GET") {
     try {
