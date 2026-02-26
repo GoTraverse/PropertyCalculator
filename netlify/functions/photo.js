@@ -4,7 +4,7 @@ const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 var H = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*"
-};
+}
 
 exports.handler = async function(event) {
   if (event.httpMethod === "OPTIONS") {
