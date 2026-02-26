@@ -15,8 +15,13 @@ exports.handler = async function(event) {
     return { statusCode: 400, headers: H, body: JSON.stringify({ error: "missing id" }) };
   }
   try {
-    var r = await fetch(REDIS_URL + "/get/" + encodeURIComponent("prop_photo_" + id), {
-      headers: { "Authorization": "Bearer " + REDIS_TOKEN }
+    var r = await fetch(REDIS_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + REDIS_TOKEN,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(["GET", "prop_photo_" + id])
     });
     var j = await r.json();
     var photoSrc = j.result;
