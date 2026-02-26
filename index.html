@@ -1943,12 +1943,16 @@
     if(ON_NETLIFY){
       try{
         const r = await fetch('/.netlify/functions/scenarios');
-        console.log('[storage] GET scenarios status:', r.status);
-        if(r.ok) return await r.json();
-        const txt = await r.text();
-        console.error('[storage] GET failed:', r.status, txt);
+        if(r.ok){
+          const data = await r.json();
+          // Mirror to localStorage — survives Netlify rebuilds as a fallback
+          if(data.length) lsSet(STORAGE_KEY, JSON.stringify(data));
+          return data;
+        }
+        console.error('[storage] GET failed:', r.status, await r.text());
       }catch(e){ console.error('[storage] GET exception:', e.message); }
     }
+    // Fallback: localStorage (browser-side, survives all rebuilds)
     try{ return JSON.parse(lsGet(STORAGE_KEY)||'[]'); }catch(e){ return []; }
   }
 
@@ -1963,6 +1967,8 @@
         });
         console.log('[storage] POST scenarios status:', r.status);
         if(r.ok){
+          // Mirror updated list to localStorage immediately (belt-and-suspenders)
+          getAllScenarios().then(latest => { if(latest.length) lsSet(STORAGE_KEY, JSON.stringify(latest)); }).catch(()=>{});
           // Upload full photo separately in background (don't await — user sees success immediately)
           if(photoSrc){
             fetch('/.netlify/functions/scenarios', {
