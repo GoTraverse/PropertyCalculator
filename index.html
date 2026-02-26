@@ -198,6 +198,10 @@
   .section{display:none;animation:fadeUp 0.3s ease;}
   .section.active{display:block;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @-webkit-keyframes spin{0%{-webkit-transform:rotate(0deg);transform:rotate(0deg)}100%{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}
+  @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+  .spinner{display:inline-block;flex-shrink:0;width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(201,168,76,0.25);border-top-color:var(--gold);-webkit-animation:spin 0.75s linear infinite;animation:spin 0.75s linear infinite;}
+  .spinner-sm{display:inline-block;vertical-align:middle;width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;-webkit-animation:spin 0.75s linear infinite;animation:spin 0.75s linear infinite;}
 
   .sl{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--slate);margin-bottom:18px;display:flex;align-items:center;gap:12px;}
   .sl::after{content:'';flex:1;height:1px;background:rgba(28,28,30,0.12);}
@@ -291,6 +295,30 @@
   .cal-mortgage{background:var(--sky);color:white;}
   .cal-free{background:rgba(28,28,30,0.06);color:var(--slate);}
 
+  /* ── LIBRARY FILTER BUTTONS ── */
+  .lib-filter{padding:4px 10px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:12px;font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.5);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+  .lib-filter:hover{background:rgba(255,255,255,0.12);color:rgba(245,240,232,0.8);}
+  .lib-filter.active{background:rgba(201,168,76,0.2);border-color:var(--gold);color:var(--gold);}
+  /* ── LIBRARY LIST ROW ── */
+  .lib-row{display:flex;align-items:center;gap:14px;padding:13px 14px;background:white;border:1px solid rgba(28,28,30,0.08);border-radius:5px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;}
+  .lib-row:hover{box-shadow:0 3px 14px rgba(0,0,0,0.1);border-color:rgba(28,28,30,0.16);transform:translateY(-1px);}
+  .lib-thumb{width:62px;height:62px;border-radius:4px;flex-shrink:0;background:var(--charcoal-soft);display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;}
+  .lib-thumb img{width:100%;height:100%;object-fit:cover;}
+  .lib-info{flex:1;min-width:0;}
+  .lib-info{flex:1;min-width:0;}
+  .lib-addr{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--charcoal);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lib-meta{font-size:12px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lib-price{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--sage);flex-shrink:0;}
+  .lib-meta{font-size:12px;color:var(--slate);}
+  .lib-price{font-family:'DM Mono',monospace;font-size:16px;font-weight:600;color:var(--sage);flex-shrink:0;}
+  .lib-ts{font-family:'DM Mono',monospace;font-size:10px;color:rgba(28,28,30,0.3);flex-shrink:0;}
+  .lib-del{background:none;border:none;color:rgba(196,90,90,0.4);cursor:pointer;font-size:16px;padding:4px 6px;flex-shrink:0;line-height:1;border-radius:3px;transition:all 0.15s;}
+  .lib-del:hover{color:var(--risk-red);background:rgba(196,90,90,0.1);}
+  .lib-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:10px;flex-shrink:0;white-space:nowrap;}
+  .lib-del{background:none;border:none;color:rgba(196,90,90,0.4);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0;}
+  .lib-del:hover{color:var(--risk-red);}
+  .lib-ts{font-family:'DM Mono',monospace;font-size:10px;color:rgba(28,28,30,0.3);flex-shrink:0;white-space:nowrap;}
+
   /* ── STATUS BADGES (item 2) ── */
   .status-btn{padding:7px 12px;border-radius:20px;border:2px solid rgba(28,28,30,0.12);background:rgba(28,28,30,0.04);font-size:12px;cursor:pointer;transition:all 0.2s;color:var(--slate);font-family:'DM Sans',sans-serif;}
   .status-btn:hover{border-color:var(--gold);color:var(--charcoal);}
@@ -322,33 +350,98 @@
   /* ── COMMS ADD FORM ── */
   #comms-add-form{background:rgba(28,28,30,0.04);border-radius:4px;padding:12px;border:1px solid rgba(28,28,30,0.1);margin-top:10px;}
 
-  /* ── MOBILE IMPROVEMENTS (item 4) ── */
+  /* ── ADDRESS AUTOCOMPLETE ── */
+  .addr-wrap{position:relative;}
+  .addr-suggestions{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid rgba(28,28,30,0.15);border-radius:0 0 4px 4px;box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:500;max-height:220px;overflow-y:auto;display:none;}
+  .addr-suggestion{padding:9px 12px;font-size:13px;color:var(--charcoal);cursor:pointer;border-bottom:1px solid rgba(28,28,30,0.06);line-height:1.4;}
+  .addr-suggestion:last-child{border-bottom:none;}
+  .addr-suggestion:hover{background:rgba(201,168,76,0.08);}
+  .addr-suggestion strong{color:var(--charcoal);font-weight:600;}
+  .addr-suggestion span{font-size:11px;color:var(--slate);}
+
+  /* ── MOBILE OVERHAUL ── */
   @media(max-width:600px){
+    /* Sidebar */
     #sidebar-close-btn{display:block!important;}
-    header{position:sticky;top:0;z-index:100;}
-    .header-inner{min-height:80px!important;}
-    .header-text{padding:12px 16px!important;}
-    h1{font-size:16px!important;}
-    .header-sub{display:none;}
-    .header-actions{gap:6px!important;}
-    .export-btn{padding:4px 8px!important;font-size:10px!important;}
-    .header-photo-wrap{width:80px!important;}
-    .app-body{grid-template-columns:1fr!important;height:auto!important;}
     .sidebar{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;border-radius:0;}
     .sidebar.mobile-open{display:block!important;}
-    nav{overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0;}
-    .tab{padding:10px 10px!important;font-size:10px!important;white-space:nowrap;flex-shrink:0;}
-    main{padding:14px 12px!important;}
-    .g2{grid-template-columns:1fr!important;}
+    #mobile-sidebar-btn{display:flex!important;}
+
+    /* Header — compact but clear */
+    header{position:sticky;top:0;z-index:100;}
+    .header-inner{min-height:auto!important;flex-wrap:wrap;}
+    .header-text{padding:10px 14px!important;flex:1 1 100%;}
+    h1{font-size:17px!important;line-height:1.2!important;}
+    #header-status-badge{font-size:10px!important;}
+    .header-sub{font-size:11px!important;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 28px);}
+    .header-actions{gap:5px!important;flex-wrap:nowrap!important;overflow-x:auto;}
+    .export-btn{padding:5px 8px!important;font-size:10px!important;white-space:nowrap;flex-shrink:0;}
+    .header-badge{font-size:10px!important;padding:4px 8px!important;}
+    .header-photo-wrap{display:none!important;}
+
+    /* Layout */
+    .app-body{grid-template-columns:1fr!important;height:auto!important;overflow:visible!important;}
+    .content{height:auto!important;overflow:visible!important;display:flex;flex-direction:column;}
+    body{overflow-x:hidden;}
+
+    /* Tabs — scrollable row */
+    nav{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding-bottom:1px;}
+    .tab{padding:12px 14px!important;font-size:12px!important;white-space:nowrap!important;flex-shrink:0!important;min-width:auto!important;}
+
+    /* Main content */
+    main{padding:14px 12px!important;overflow:visible!important;flex:1;}
+    .g2{grid-template-columns:1fr!important;gap:10px!important;}
     .rr-grid{grid-template-columns:1fr!important;}
-    .tiles{grid-template-columns:1fr 1fr!important;}
+    .tiles{grid-template-columns:1fr 1fr!important;gap:8px!important;}
     .rg{grid-template-columns:1fr 1fr!important;}
     .overlap-tiles{grid-template-columns:1fr 1fr!important;}
     .prop-type-grid{grid-template-columns:1fr 1fr!important;}
-    #mobile-sidebar-btn{display:flex!important;}
-    .content{height:auto!important;overflow:visible!important;}
-    .proj-controls{flex-direction:column!important;gap:12px!important;}
-    .status-btn{font-size:11px!important;padding:5px 10px!important;}
+    .proj-controls{flex-direction:column!important;gap:10px!important;}
+    .card{padding:14px 12px!important;margin-bottom:10px!important;}
+    h3{font-size:17px!important;}
+    .sl{font-size:11px!important;letter-spacing:2px!important;}
+
+    /* Inputs — 16px prevents iOS zoom-in on focus */
+    input[type="number"],input[type="text"],input[type="date"],textarea,select{font-size:16px!important;}
+    input[type="number"],input[type="text"]{padding:12px 8px 12px 26px!important;}
+    input[type="range"]{height:28px!important;margin-top:6px!important;}
+    .il{font-size:15px!important;}
+    .il span{font-size:15px!important;}
+    .dyn-cost-row input{font-size:14px!important;}
+
+    /* Status buttons — wrap nicely */
+    .status-btn{font-size:11px!important;padding:6px 10px!important;}
+
+    /* Tiles */
+    .tile{padding:14px 12px!important;}
+    .tile-val{font-size:22px!important;}
+    .tile-lbl{font-size:12px!important;}
+
+    /* Cost/list rows */
+    .cr{font-size:14px!important;padding:10px 0!important;}
+    .cr .am{font-size:14px!important;}
+    .li{font-size:14px!important;}
+    .bm{font-size:13px!important;}
+
+    /* Library modal full screen */
+    #scenarios-modal > div{width:100%!important;max-height:100%!important;top:0!important;left:0!important;transform:none!important;border-radius:0!important;height:100%!important;}
+    .lib-row{padding:14px 12px!important;}
+    .lib-addr{font-size:15px!important;line-height:1.3!important;}
+    .lib-meta{font-size:12px!important;}
+    .lib-ts{display:none!important;}
+    .lib-price{font-size:15px!important;}
+
+    /* Address suggestions */
+    .addr-suggestion{padding:12px!important;font-size:15px!important;}
+    .addr-suggestions{z-index:600;}
+
+    /* Timeline */
+    .tlt{font-size:15px!important;}
+    .tl-date,.tldesc{font-size:13px!important;}
+
+    /* Charts — allow horizontal scroll */
+    .chart-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;}
+    #proj-svg-wrap,#projection-chart{min-width:320px;}
   }
   #mobile-sidebar-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:3px;color:var(--cream);cursor:pointer;font-size:16px;flex-shrink:0;}
   #mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:190;}
@@ -543,27 +636,38 @@
 
   <!-- ══ SCENARIOS MODAL ══ -->
   <div id="scenarios-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);" onclick="if(event.target===this)closeScenariosModal()">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(900px,96vw);max-height:88vh;background:var(--warm-white);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
-      <div style="background:var(--charcoal);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(760px,96vw);max-height:90vh;background:var(--warm-white);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+
+      <!-- Header -->
+      <div style="background:var(--charcoal);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;">
         <div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:3px;">SAVED SCENARIOS</div>
-          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--cream);">Your Property Library</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:2px;">SAVED SCENARIOS</div>
+          <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--cream);">Property Library <span id="lib-count" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:400;color:rgba(245,240,232,0.4);margin-left:6px;"></span></div>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <div id="modal-view-toggle" style="display:flex;gap:4px;">
-            <button onclick="setScenariosView('grid')" id="view-grid" style="padding:5px 10px;background:rgba(201,168,76,0.2);border:1px solid var(--gold);border-radius:2px;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;">⊞ Grid</button>
-            <button onclick="setScenariosView('list')" id="view-list" style="padding:5px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:2px;color:rgba(245,240,232,0.5);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;">☰ List</button>
-          </div>
-          <button onclick="closeScenariosModal()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:var(--cream);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-        </div>
+        <button onclick="closeScenariosModal()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:var(--cream);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
       </div>
-      <div id="scenarios-list" style="overflow-y:auto;flex:1;padding:20px 24px;">
-        <div id="scenarios-empty" style="text-align:center;padding:48px 20px;color:var(--slate);">
-          <div style="font-size:48px;margin-bottom:12px;">🏠</div>
-          <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;">No saved scenarios yet</div>
-          <div style="font-size:13px;line-height:1.6;">Fill in your property details and click <strong>Save Scenario</strong> in the header to save your first property analysis.</div>
+
+      <!-- Filter bar -->
+      <div style="background:var(--charcoal-soft);padding:10px 20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.4);letter-spacing:1px;margin-right:2px;">FILTER:</span>
+        <button class="lib-filter active" data-filter="all" onclick="setLibFilter('all',this)">All</button>
+        <button class="lib-filter" data-filter="browsing" onclick="setLibFilter('browsing',this)">👀 Browsing</button>
+        <button class="lib-filter" data-filter="for-sale" onclick="setLibFilter('for-sale',this)">🏷 For Sale</button>
+        <button class="lib-filter" data-filter="auction" onclick="setLibFilter('auction',this)">🔨 Auction</button>
+        <button class="lib-filter" data-filter="offered" onclick="setLibFilter('offered',this)">📝 Offered</button>
+        <button class="lib-filter" data-filter="under-offer" onclick="setLibFilter('under-offer',this)">⏳ Under Offer</button>
+        <button class="lib-filter" data-filter="unconditional" onclick="setLibFilter('unconditional',this)">✅ Unconditional</button>
+        <button class="lib-filter" data-filter="sold" onclick="setLibFilter('sold',this)">🔴 Sold</button>
+      </div>
+
+      <!-- List -->
+      <div id="scenarios-list" style="overflow-y:auto;flex:1;padding:12px 20px;">
+        <div id="scenarios-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--slate);">
+          <div style="font-size:40px;margin-bottom:10px;">🏠</div>
+          <div style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:6px;">No saved scenarios yet</div>
+          <div style="font-size:13px;line-height:1.6;">Fill in your property details and click <strong>Save</strong> to save your first property.</div>
         </div>
-        <div id="scenarios-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
+        <div id="scenarios-grid"></div>
       </div>
     </div>
   </div>
@@ -631,7 +735,10 @@
             <h3>Address & Listing</h3>
             <div class="pd-field">
               <label class="pd-label">Street Address</label>
-              <input type="text" id="pd-address" value="" oninput="updatePropertyDetails()" placeholder="e.g. 54 Southampton St">
+              <div class="addr-wrap">
+                <input type="text" id="pd-address" value="" autocomplete="off" oninput="updatePropertyDetails();addrAutocomplete(this.value)" onblur="setTimeout(()=>hideAddrSuggestions(),200)" placeholder="e.g. 54 Southampton St">
+                <div id="addr-suggestions" class="addr-suggestions"></div>
+              </div>
             </div>
             <div class="g2" style="gap:10px;margin-top:10px;">
               <div class="pd-field">
@@ -1621,6 +1728,78 @@
     updatePropertyDetails();
   }
 
+  // ══════════════════════════════════════════════
+  // ADDRESS AUTOCOMPLETE — QLD Open Data CKAN API
+  // Free, no sign-up, no API key required.
+  // Falls back gracefully if unavailable.
+  // ══════════════════════════════════════════════
+  let _addrTimer = null;
+  let _lastAddrQuery = '';
+
+  async function addrAutocomplete(val){
+    val = val.trim();
+    if(val.length < 4){ hideAddrSuggestions(); return; }
+    if(val === _lastAddrQuery) return;
+    _lastAddrQuery = val;
+    clearTimeout(_addrTimer);
+    _addrTimer = setTimeout(async () => {
+      try {
+        // Nominatim (OpenStreetMap) — free, no auth, covers all of Australia
+        const url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=au&limit=6&q=' + encodeURIComponent(val);
+        const r = await fetch(url, {
+          headers: {'Accept-Language':'en', 'User-Agent':'PropertyCalc/1.0'},
+          signal: AbortSignal.timeout(4000)
+        });
+        if(!r.ok) throw new Error('no response');
+        const j = await r.json();
+        if(!j.length){ hideAddrSuggestions(); return; }
+        const results = j.map(item => {
+          const a = item.address || {};
+          const road    = a.road || a.pedestrian || a.path || '';
+          const houseNo = a.house_number || '';
+          const street  = houseNo ? houseNo + ' ' + road : road;
+          const suburb  = a.suburb || a.neighbourhood || a.city_district || a.town || a.village || a.hamlet || '';
+          const state   = a.state_code || a.state || '';
+          const postcode = a.postcode || '';
+          // Use display_name if we couldn't parse well
+          const display = street || item.display_name.split(',')[0];
+          return { address: display, suburb, state: state.replace('State of ','').substring(0,3).toUpperCase() || 'QLD', postcode };
+        }).filter(r => r.address);
+        if(!results.length){ hideAddrSuggestions(); return; }
+        showAddrSuggestions(results);
+      } catch(e) {
+        hideAddrSuggestions();
+      }
+    }, 400);
+  }
+
+  function showAddrSuggestions(results){
+    const box = document.getElementById('addr-suggestions');
+    if(!box || !results.length){ hideAddrSuggestions(); return; }
+    box.innerHTML = results.map(r =>
+      `<div class="addr-suggestion" onmousedown="selectAddress(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+        <strong>${r.address}</strong><br><span>${r.suburb}${r.postcode ? ', '+r.postcode : ''} ${r.state}</span>
+      </div>`
+    ).join('');
+    box.style.display = 'block';
+  }
+
+  function hideAddrSuggestions(){
+    const box = document.getElementById('addr-suggestions');
+    if(box) box.style.display = 'none';
+  }
+
+  function selectAddress(r){
+    const addrEl   = document.getElementById('pd-address');
+    const suburbEl = document.getElementById('pd-suburb');
+    const stateEl  = document.getElementById('pd-state');
+    if(addrEl)   addrEl.value   = r.address || '';
+    if(suburbEl) suburbEl.value = r.suburb  || '';
+    if(stateEl)  stateEl.value  = r.state   || 'QLD';
+    hideAddrSuggestions();
+    updatePropertyDetails();
+  }
+
   function updatePropertyDetails(){
     const address = document.getElementById('pd-address').value;
     const suburb  = document.getElementById('pd-suburb').value;
@@ -1655,7 +1834,7 @@
     const STATUS_BADGE_COLORS = {'browsing':'#5B8FAB','auction':'#C4704A','for-sale':'#C9A84C','offered':'#7B9E87','under-offer':'#E8A882','unconditional':'#5A9E7B','sold':'#C45A5A'};
     const STATUS_BADGE_LABELS = {'browsing':'👀 Browsing','auction':'🔨 Auction','for-sale':'🏷 For Sale','offered':'📝 Offer Sent','under-offer':'⏳ Under Offer','unconditional':'✅ Unconditional','sold':'🔴 Sold'};
     let statusBadge = document.getElementById('header-status-badge');
-    if(!statusBadge){ statusBadge = document.createElement('span'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:3px 10px;border-radius:12px;font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;margin-left:8px;vertical-align:middle;'; document.getElementById('page-title')?.after(statusBadge); }
+    if(!statusBadge){ statusBadge = document.createElement('div'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:2px 10px;border-radius:10px;font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;white-space:nowrap;width:auto;max-width:none;align-self:flex-start;margin-top:4px;'; const h1=document.getElementById('page-title'); if(h1&&h1.parentNode) h1.parentNode.insertBefore(statusBadge, h1.nextSibling); }
     statusBadge.textContent = STATUS_BADGE_LABELS[statusVal] || statusVal;
     statusBadge.style.background = (STATUS_BADGE_COLORS[statusVal]||'#888') + '33';
     statusBadge.style.color = STATUS_BADGE_COLORS[statusVal] || '#888';
@@ -1839,7 +2018,7 @@
       state,
     };
     const saveBtns = document.querySelectorAll('button[onclick*="saveScenario"]');
-    saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div style="width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;"></div>';b.disabled=true;});
+    saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
     _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
     saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
@@ -1862,24 +2041,12 @@
     else ct.style.display='none';
   }
 
-  function setScenariosView(mode){
-    scenariosView = mode;
-    const ga = 'background:rgba(201,168,76,0.2);border:1px solid var(--gold);color:var(--gold);font-family:"DM Mono",monospace;font-size:10px;padding:5px 10px;border-radius:2px;cursor:pointer;';
-    const ia = 'background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(245,240,232,0.5);font-family:"DM Mono",monospace;font-size:10px;padding:5px 10px;border-radius:2px;cursor:pointer;';
-    const gb = document.getElementById('view-grid'), lb = document.getElementById('view-list');
-    if(gb) gb.style.cssText = mode==='grid' ? ga : ia;
-    if(lb) lb.style.cssText = mode==='list' ? ga : ia;
-    const container = document.getElementById('scenarios-grid');
-    if(container) container.style.gridTemplateColumns = mode==='grid' ? 'repeat(auto-fill,minmax(240px,1fr))' : '1fr';
-    // Use cache — no re-fetch just for view toggle
-    if(_scenariosCache !== null) { _renderScenariosToDOM(_scenariosCache); }
-    else { renderScenariosList(); }
-  }
+  function setScenariosView(mode){ /* grid view removed — list only */ }
 
   function openScenariosModal(){
     document.getElementById('scenarios-modal').style.display='block';
     document.body.style.overflow='hidden';
-    renderScenariosList(); // always fresh fetch when opening
+    renderScenariosList();
   }
   function closeScenariosModal(){
     document.getElementById('scenarios-modal').style.display='none';
@@ -1900,77 +2067,77 @@
     'unconditional':'✅ Unconditional','sold':'🔴 Sold/Passed'
   };
 
-  async function renderScenariosList(){
-    const grid  = document.getElementById('scenarios-grid');
-    const empty = document.getElementById('scenarios-empty');
-    if(!grid) return;
-    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:rgba(245,240,232,0.5);font-family:\'DM Mono\',monospace;font-size:11px;"><div style="width:18px;height:18px;border:2px solid rgba(201,168,76,0.3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>Loading properties…</div>';
+  let _libFilter = 'all';
 
+  function setLibFilter(f, btn){
+    _libFilter = f;
+    document.querySelectorAll('.lib-filter').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    _renderScenariosToDOM(_scenariosCache || []);
+  }
+
+  async function renderScenariosList(){
+    const grid = document.getElementById('scenarios-grid');
+    if(!grid) return;
+    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\'DM Mono\',monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
     _scenariosCache = await getAllScenarios();
     _renderScenariosToDOM(_scenariosCache);
   }
 
-  async function _renderScenariosToDOM(scenarios){
+  async function _renderScenariosToDOM(all){
     const grid  = document.getElementById('scenarios-grid');
     const empty = document.getElementById('scenarios-empty');
     if(!grid) return;
-    if(!scenarios || scenarios.length === 0){
-      if(empty) empty.style.display='block';
-      grid.innerHTML=''; return;
-    }
-    if(empty) empty.style.display='none';
-    const isGrid = scenariosView === 'grid';
 
-    const cards = await Promise.all(scenarios.map(async s => {
+    const scenarios = _libFilter === 'all' ? all : all.filter(s => (s.status||'browsing') === _libFilter);
+
+    if(!all || all.length === 0){
+      if(empty) empty.style.display = 'block';
+      grid.innerHTML = ''; return;
+    }
+    if(empty) empty.style.display = 'none';
+    const libCount = document.getElementById('lib-count');
+    if(libCount) libCount.textContent = all.length > 0 ? `(${all.length})` : '';
+
+    if(scenarios.length === 0){
+      grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--slate);font-size:13px;">No properties match this filter.</div>';
+      return;
+    }
+
+    // Render rows immediately without waiting for photos
+    const rows = scenarios.map(s => {
       const price  = s.price ? '$' + parseInt(s.price).toLocaleString() : '—';
       const stats  = [s.type||'House', s.bed?s.bed+' bed':null, s.bath?s.bath+' bath':null, s.car?s.car+' car':null].filter(Boolean).join(' · ');
-      const status = s.status||'browsing';
-      const sColor = STATUS_COLORS[status]||'#999';
-      const sLabel = STATUS_LABELS[status]||'👀';
-      // Load photo
-      let photo = null;
-      if(s.hasPhoto) photo = await getPhoto(s.id);
-      const photoHTML = photo
+      const status = s.status || 'browsing';
+      const sColor = STATUS_COLORS[status] || '#999';
+      const sLabel = STATUS_LABELS[status] || '👀';
+      return `
+        <div class="lib-row" onclick="promptLoadScenario('${s.id}')">
+          <div class="lib-thumb" id="thumb-${s.id}"><span style="font-size:24px;">🏠</span></div>
+          <div class="lib-info">
+            <div class="lib-addr">${s.fullAddr}</div>
+            <div class="lib-meta">${stats}</div>
+          </div>
+          <div class="lib-price">${price}</div>
+          <div class="lib-badge" style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}55;">${sLabel}</div>
+          <div class="lib-ts">${s.timestamp||''}</div>
+          <button class="lib-del" onclick="event.stopPropagation();deleteScenario('${s.id}')" title="Delete">✕</button>
+        </div>`;
+    });
+    grid.innerHTML = rows.join('');
 
-        ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">`
-        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--charcoal-soft);color:rgba(255,255,255,0.12);">🏠</div>`;
-      if(isGrid) return `
-        <div style="background:white;border-radius:4px;border:1px solid rgba(28,28,30,0.1);overflow:hidden;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:box-shadow 0.2s;" onmouseenter="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.14)'" onmouseleave="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.06)'">
-          <div style="height:130px;overflow:hidden;position:relative;" onclick="promptLoadScenario('${s.id}')">
-            ${photoHTML}
-            <div style="position:absolute;top:8px;right:8px;background:${sColor};color:white;font-size:9px;padding:3px 8px;border-radius:10px;font-family:'DM Mono',monospace;letter-spacing:0.5px;">${sLabel}</div>
-          </div>
-          <div style="padding:10px 12px;" onclick="promptLoadScenario('${s.id}')">
-            <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;margin-bottom:3px;color:var(--charcoal);line-height:1.3;">${s.fullAddr}</div>
-            <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--sage);margin-bottom:2px;">${price}</div>
-            <div style="font-size:10px;color:var(--slate);">${stats}</div>
-          </div>
-          <div style="padding:6px 12px;border-top:1px solid rgba(28,28,30,0.07);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(74,74,82,0.4);">${s.timestamp}</span>
-            <button onclick="event.stopPropagation();deleteScenario('${s.id}')" style="background:none;border:none;color:rgba(196,90,90,0.5);cursor:pointer;font-size:14px;padding:2px 6px;line-height:1;" title="Delete">✕</button>
-          </div>
-        </div>`;
-      else return `
-        <div style="background:white;border-radius:4px;border:1px solid rgba(28,28,30,0.1);overflow:hidden;cursor:pointer;display:flex;align-items:stretch;margin-bottom:8px;transition:box-shadow 0.2s;" onmouseenter="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'" onmouseleave="this.style.boxShadow='none'" onclick="promptLoadScenario('${s.id}')">
-          <div style="width:90px;flex-shrink:0;overflow:hidden;position:relative;">${photoHTML}<div style="position:absolute;bottom:4px;left:4px;background:${sColor};color:white;font-size:8px;padding:2px 5px;border-radius:8px;font-family:'DM Mono',monospace;">${sLabel}</div></div>
-          <div style="flex:1;padding:10px 12px;">
-            <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--charcoal);margin-bottom:3px;">${s.fullAddr}</div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sage);">${price}</span>
-              <span style="font-size:10px;color:var(--slate);">${stats}</span>
-            </div>
-          </div>
-          <div style="padding:10px 12px;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;flex-shrink:0;">
-            <button onclick="event.stopPropagation();deleteScenario('${s.id}')" style="background:none;border:none;color:rgba(196,90,90,0.45);cursor:pointer;font-size:14px;line-height:1;" title="Delete">✕</button>
-            <span style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(74,74,82,0.4);">${s.timestamp}</span>
-          </div>
-        </div>`;
-    }));
-    grid.innerHTML = cards.join('');
+    // Load photos lazily in background — no delay to render the list
+    scenarios.forEach(async s => {
+      if(!s.hasPhoto) return;
+      const thumb = document.getElementById('thumb-'+s.id);
+      if(!thumb) return;
+      const photo = await getPhoto(s.id);
+      if(photo && thumb) thumb.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;">`;
+    });
   }
 
   async function promptLoadScenario(id){
-    const scenarios = await getAllScenarios();
+    const scenarios = _scenariosCache || await getAllScenarios();
     const sc = scenarios.find(s => s.id === id);
     if(!sc) return;
     pendingLoadId = id;
@@ -1980,7 +2147,7 @@
 
   async function confirmLoad(){
     if(!pendingLoadId) return;
-    const scenarios = await getAllScenarios();
+    const scenarios = _scenariosCache || await getAllScenarios();
     const sc = scenarios.find(s => s.id === pendingLoadId);
     if(!sc || !sc.state){ pendingLoadId=null; closeConfirmModal(); return; }
     closeConfirmModal();
