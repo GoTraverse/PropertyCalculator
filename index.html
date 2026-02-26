@@ -148,7 +148,7 @@
 
 
 
-  .app-body{display:grid;grid-template-columns:340px 1fr;overflow:hidden;height:calc(100vh - 150px);}
+  .app-body{display:grid;grid-template-columns:340px 1fr;overflow:hidden;height:calc(100vh - 150px - 44px);}
 
   /* ── SIDEBAR ── */
   .sidebar{background:var(--charcoal-soft);color:var(--cream);padding:24px 20px;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.05);height:100%;}
@@ -459,36 +459,20 @@
     .overlap-tiles{grid-template-columns:1fr 1fr;}
   }
 
-  /* ── USER PROFILE ── */
-  #profile-btn{width:34px;height:34px;border-radius:50%;background:var(--gold);border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--charcoal);flex-shrink:0;overflow:hidden;transition:transform 0.15s;position:relative;}
-  #profile-btn:hover{transform:scale(1.08);}
-  #profile-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-  #profile-panel{position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--charcoal);z-index:5000;box-shadow:-8px 0 40px rgba(0,0,0,0.5);transition:right 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
-  #profile-panel.open{right:0;}
-  #profile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4999;backdrop-filter:blur(2px);}
-  #profile-overlay.open{display:block;}
-  .pp-header{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.04));padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.06);}
-  .pp-avatar-wrap{position:relative;width:72px;height:72px;margin-bottom:14px;}
-  .pp-avatar{width:72px;height:72px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:var(--charcoal);overflow:hidden;border:3px solid rgba(201,168,76,0.4);}
-  .pp-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-  .pp-avatar-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--charcoal);border:1.5px solid rgba(201,168,76,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;}
-  .pp-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--cream);margin-bottom:3px;}
-  .pp-role{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(245,240,232,0.4);text-transform:uppercase;}
-  .pp-section{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.05);}
-  .pp-section-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.35);margin-bottom:12px;}
-  .pp-field{margin-bottom:12px;}
-  .pp-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(245,240,232,0.45);margin-bottom:5px;display:block;}
-  .pp-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--cream);outline:none;transition:border-color 0.15s;}
-  .pp-input:focus{border-color:rgba(201,168,76,0.6);}
-  .pp-stat{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-  .pp-stat:last-child{border-bottom:none;}
-  .pp-stat-lbl{font-size:13px;color:rgba(245,240,232,0.5);}
-  .pp-stat-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);}
-  .pp-save-btn{margin:16px 24px;background:var(--gold);color:var(--charcoal);border:none;border-radius:3px;padding:11px;width:calc(100% - 48px);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;transition:opacity 0.15s;}
-  .pp-save-btn:hover{opacity:0.88;}
-  .pp-close{position:absolute;top:16px;right:16px;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:3px;color:var(--cream);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  .pp-login-note{margin:12px 24px;padding:12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:3px;font-size:12px;color:rgba(245,240,232,0.55);line-height:1.6;}
-  .pp-login-note strong{color:var(--gold);}
+
+  /* ── WELCOME SPLASH ── */
+  #welcome-splash{position:fixed;inset:0;z-index:8000;background:var(--charcoal);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity 0.4s;}
+  #welcome-splash.hiding{opacity:0;pointer-events:none;}
+  .splash-inner{text-align:center;padding:40px 24px;max-width:480px;}
+  .splash-logo{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0.7;}
+  .splash-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--cream);line-height:1.2;margin-bottom:10px;}
+  .splash-sub{font-size:15px;color:rgba(245,240,232,0.45);margin-bottom:40px;line-height:1.6;}
+  .splash-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .splash-btn{padding:14px 28px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;cursor:pointer;transition:transform 0.15s,opacity 0.15s;border:none;}
+  .splash-btn:hover{transform:translateY(-2px);opacity:0.9;}
+  .splash-btn-primary{background:var(--gold);color:var(--charcoal);font-weight:600;}
+  .splash-btn-secondary{background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.18)!important;}
+  .splash-deco{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 28px;}
 </style>
 </head>
 <body>
@@ -502,12 +486,14 @@
       <p class="header-sub" id="header-sub-text">Add property details in the Property tab to get started</p>
       <div class="header-actions">
         <button id="mobile-sidebar-btn" onclick="toggleMobileSidebar()" title="Open calculator">⚙</button>
-        <div id="storage-status" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.5);display:flex;align-items:center;gap:4px;"></div>
         <button id="profile-btn" onclick="openProfile()" title="User Profile"></button>
         <div id="unsaved-badge" style="display:none;align-items:center;gap:5px;background:rgba(196,112,74,0.25);border:1px solid rgba(196,112,74,0.5);border-radius:10px;padding:3px 9px;font-family:'DM Mono',monospace;font-size:10px;color:#E8956A;white-space:nowrap;cursor:default;" title="Unsaved changes">● Unsaved</div>
         <button class="export-btn" onclick="saveScenario()" title="Save scenario to library">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Save
+        </button>
+        <button class="export-btn" onclick="newScenario()" title="Start fresh new scenario" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">
+          ＋ New
         </button>
         <button class="export-btn" id="open-saved-btn" onclick="openScenariosModal()" title="Browse saved scenarios">
           📁 Library <span id="saved-count" style="display:none;background:var(--gold);color:var(--charcoal);border-radius:10px;padding:1px 6px;font-size:9px;margin-left:3px;vertical-align:middle;">0</span>
@@ -537,6 +523,16 @@
   </div>
 </header>
 
+  <nav>
+    <button class="tab active" onclick="showTab('property',this)">00 · Property</button>
+    <button class="tab" onclick="showTab('costs',this)">01 · Costs</button>
+    <button class="tab" id="tab-reno-btn" onclick="showTab('reno',this)">02 · Reno</button>
+    <button class="tab" onclick="showTab('repay',this)">03 · Repayments</button>
+    <button class="tab" onclick="showTab('overlap',this)">04 · Rent Overlap</button>
+    <button class="tab" onclick="showTab('time',this)">05 · Timeline</button>
+    <button class="tab" id="tab-risks-btn" onclick="showTab('risks',this)">06 · Risks</button>
+    <button class="tab" onclick="showTab('projection',this)">07 · Projection</button>
+  </nav>
 <div class="app-body">
 
 <!-- ══════ SIDEBAR ══════ -->
@@ -648,16 +644,6 @@
 
 <!-- ══════ CONTENT ══════ -->
 <div class="content">
-  <nav>
-    <button class="tab active" onclick="showTab('property',this)">00 · Property</button>
-    <button class="tab" onclick="showTab('costs',this)">01 · Costs</button>
-    <button class="tab" id="tab-reno-btn" onclick="showTab('reno',this)">02 · Reno</button>
-    <button class="tab" onclick="showTab('repay',this)">03 · Repayments</button>
-    <button class="tab" onclick="showTab('overlap',this)">04 · Rent Overlap</button>
-    <button class="tab" onclick="showTab('time',this)">05 · Timeline</button>
-    <button class="tab" id="tab-risks-btn" onclick="showTab('risks',this)">06 · Risks</button>
-    <button class="tab" onclick="showTab('projection',this)">07 · Projection</button>
-  </nav>
 
   <!-- ══ SCENARIOS MODAL ══ -->
   <div id="scenarios-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);" onclick="if(event.target===this)closeScenariosModal()">
@@ -724,9 +710,9 @@
       <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:20px;margin-bottom:14px;align-items:start;">
 
         <!-- Photo upload big zone -->
-        <div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
+        <div class="card" style="padding:0;overflow:hidden;">
           <div class="ca" style="background:var(--terracotta)"></div>
-          <div id="prop-photo-big-wrap" style="flex:1;position:relative;min-height:180px;background:var(--charcoal);cursor:pointer;"
+          <div id="prop-photo-big-wrap" style="position:relative;aspect-ratio:4/3;background:var(--charcoal);cursor:pointer;"
                onclick="document.getElementById('pd-file-input').click()"
                ondragover="event.preventDefault();this.classList.add('pd-drag')"
                ondragleave="this.classList.remove('pd-drag')"
@@ -1406,11 +1392,12 @@
   const DRAFT_KEY = 'propCalc_draft_v1';
   let _draftTimer = null;
   function autosaveDraft(){
+    if(_restoringDraft) return;
     clearTimeout(_draftTimer);
     _draftTimer = setTimeout(()=>{
       try{
         const state = collectCurrentState();
-        lsSet(DRAFT_KEY, JSON.stringify({state, photo: propPhotoDataUrl||'', thumb: propThumbDataUrl||''}));
+        lsSet(DRAFT_KEY, JSON.stringify({state, photo: propPhotoDataUrl||'', thumb: propThumbDataUrl||'', savedId: _lastSavedAddr||''}));
         _isDirty = true;
         updateUnsavedBadge();
       }catch(e){}
@@ -1422,6 +1409,7 @@
       if(!raw) return false;
       const draft = JSON.parse(raw);
       if(!draft || !draft.state) return false;
+      _restoringDraft = true;
       // Restore photo — only if it fits (skip silently if corrupt)
       if(draft.photo && draft.photo.startsWith('data:')){
         try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.thumb||''; applyPropPhoto(draft.photo); }catch(pe){}
@@ -1432,8 +1420,12 @@
       // Always land on property tab after restore
       const propTabBtn = document.querySelector('.tab[onclick*="property"]');
       if(propTabBtn) showTab('property', propTabBtn);
+      // Restore saved address so unsaved badge doesn't fire
+      if(draft.savedId) _lastSavedAddr = draft.savedId;
+      _restoringDraft = false;
+      _isDirty = false;
       return true;
-    }catch(e){ console.warn('restoreDraft failed:', e); return false; }
+    }catch(e){ console.warn('restoreDraft failed:', e); _restoringDraft = false; return false; }
   }
   function recalc(){
     autosaveDraft();
@@ -1705,7 +1697,8 @@
   // ── PROPERTY DETAILS ──
   let propPhotoDataUrl = '';
   let _lastSavedAddr = null;
-  let _isDirty = false; // true when any value changed since last save/load
+  let _isDirty = false;
+  let _restoringDraft = false; // suppresses autosaveDraft during restore
   let propThumbDataUrl = ''; // small thumbnail for library
 
   function handlePropPhotoDrop(e){
@@ -2796,36 +2789,20 @@
   .print-btn{position:fixed;top:16px;right:16px;background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:8px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;z-index:100;}
   @media print{.print-btn{display:none;}}
 
-  /* ── USER PROFILE ── */
-  #profile-btn{width:34px;height:34px;border-radius:50%;background:var(--gold);border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--charcoal);flex-shrink:0;overflow:hidden;transition:transform 0.15s;position:relative;}
-  #profile-btn:hover{transform:scale(1.08);}
-  #profile-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-  #profile-panel{position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--charcoal);z-index:5000;box-shadow:-8px 0 40px rgba(0,0,0,0.5);transition:right 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
-  #profile-panel.open{right:0;}
-  #profile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4999;backdrop-filter:blur(2px);}
-  #profile-overlay.open{display:block;}
-  .pp-header{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.04));padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.06);}
-  .pp-avatar-wrap{position:relative;width:72px;height:72px;margin-bottom:14px;}
-  .pp-avatar{width:72px;height:72px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:var(--charcoal);overflow:hidden;border:3px solid rgba(201,168,76,0.4);}
-  .pp-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-  .pp-avatar-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--charcoal);border:1.5px solid rgba(201,168,76,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;}
-  .pp-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--cream);margin-bottom:3px;}
-  .pp-role{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(245,240,232,0.4);text-transform:uppercase;}
-  .pp-section{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.05);}
-  .pp-section-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.35);margin-bottom:12px;}
-  .pp-field{margin-bottom:12px;}
-  .pp-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(245,240,232,0.45);margin-bottom:5px;display:block;}
-  .pp-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--cream);outline:none;transition:border-color 0.15s;}
-  .pp-input:focus{border-color:rgba(201,168,76,0.6);}
-  .pp-stat{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-  .pp-stat:last-child{border-bottom:none;}
-  .pp-stat-lbl{font-size:13px;color:rgba(245,240,232,0.5);}
-  .pp-stat-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);}
-  .pp-save-btn{margin:16px 24px;background:var(--gold);color:var(--charcoal);border:none;border-radius:3px;padding:11px;width:calc(100% - 48px);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;transition:opacity 0.15s;}
-  .pp-save-btn:hover{opacity:0.88;}
-  .pp-close{position:absolute;top:16px;right:16px;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:3px;color:var(--cream);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  .pp-login-note{margin:12px 24px;padding:12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:3px;font-size:12px;color:rgba(245,240,232,0.55);line-height:1.6;}
-  .pp-login-note strong{color:var(--gold);}
+
+  /* ── WELCOME SPLASH ── */
+  #welcome-splash{position:fixed;inset:0;z-index:8000;background:var(--charcoal);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity 0.4s;}
+  #welcome-splash.hiding{opacity:0;pointer-events:none;}
+  .splash-inner{text-align:center;padding:40px 24px;max-width:480px;}
+  .splash-logo{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0.7;}
+  .splash-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--cream);line-height:1.2;margin-bottom:10px;}
+  .splash-sub{font-size:15px;color:rgba(245,240,232,0.45);margin-bottom:40px;line-height:1.6;}
+  .splash-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .splash-btn{padding:14px 28px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;cursor:pointer;transition:transform 0.15s,opacity 0.15s;border:none;}
+  .splash-btn:hover{transform:translateY(-2px);opacity:0.9;}
+  .splash-btn-primary{background:var(--gold);color:var(--charcoal);font-weight:600;}
+  .splash-btn-secondary{background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.18)!important;}
+  .splash-deco{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 28px;}
 </style>
 </head>
 <body>
@@ -3170,10 +3147,17 @@
   updateSavedCount();
   setAppHeight();
   drawProjection();
-  showStorageStatus();
   loadProfile();
-  if(_hadDraft) setTimeout(()=>showToast('↩️ Draft restored from last session'),600);
-  else setTimeout(()=>showToast('👋 Fill in your property details in tab 00 · Property'),900);
+  if(_hadDraft){
+    setTimeout(()=>{
+      const addr = document.getElementById('pd-address')?.value?.trim();
+      showToast(addr ? '↩️ Restored: ' + addr : '↩️ Draft restored');
+    }, 600);
+  } else if(!lsGet(SPLASH_SEEN_KEY)) {
+    setTimeout(showWelcomeSplash, 200);
+  } else {
+    setTimeout(()=>showToast('👋 Fill in your property details to get started'), 900);
+  }
 
   // ══════════════════════════════════════════════
   // USER PROFILE
@@ -3295,7 +3279,130 @@
     document.getElementById('profile-overlay')?.classList.remove('open');
   }
 
+
+  // ══════════════════════════════════════════════
+  // NEW SCENARIO + WELCOME SPLASH
+  // ══════════════════════════════════════════════
+  function newScenario(){
+    if(_isDirty){
+      if(!confirm('Start a new scenario? Any unsaved changes will be lost.')) return;
+    }
+    const defaults = {
+      'inp-price':'650000','inp-savings':'40000','inp-depp':'2',
+      'inp-govt':'28.7','inp-rate':'6.2','inp-term':'30',
+      'inp-cont':'15','inp-rent':'450','inp-weeks':'4'
+    };
+    Object.entries(defaults).forEach(([id,val])=>{
+      const inp = document.getElementById(id);
+      const rng = document.getElementById(id.replace('inp-','rng-'));
+      if(inp) inp.value = val;
+      if(rng) rng.value = val;
+      rl(id.replace('inp-',''), parseFloat(val)||0);
+    });
+    ['pd-address','pd-suburb','pd-state','pd-url','pd-notes','pd-photo-url',
+     'ag-agency','ag-name','ag-phone','ag-email','inp-address'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.value='';
+    });
+    ['pd-bed','pd-bath','pd-car'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value='0'; });
+    ['pd-land','pd-house','pd-year'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    dynCosts=[]; renderDynCosts();
+    renoItems=[]; renderRenoItems();
+    keyDates=[]; renderKeyDates();
+    commsLog=[]; renderCommsLog();
+    const browsingBtn = document.querySelector('[data-status="browsing"]');
+    if(browsingBtn) setStatus('browsing', browsingBtn);
+    clearPropPhoto();
+    const houseBtn = document.querySelector('.prop-type-btn[onclick*="House"]');
+    if(houseBtn) setPropType(houseBtn,'House');
+    _lastSavedAddr = null;
+    _isDirty = false;
+    lsDel(DRAFT_KEY);
+    const propTabBtn = document.querySelector('.tab[onclick*=\'property\']');
+    if(propTabBtn) showTab('property', propTabBtn);
+    updateUnsavedBadge();
+    recalc();
+    showToast('✨ New scenario ready');
+  }
+
+  const SPLASH_SEEN_KEY = 'propCalc_splash_seen';
+  function showWelcomeSplash(){
+    const splash = document.getElementById('welcome-splash');
+    if(!splash) return;
+    splash.style.display = 'flex';
+  }
+  function hideSplash(){
+    const splash = document.getElementById('welcome-splash');
+    if(!splash) return;
+    splash.classList.add('hiding');
+    setTimeout(()=>{ splash.style.display='none'; splash.classList.remove('hiding'); }, 420);
+    lsSet(SPLASH_SEEN_KEY, '1');
+  }
+  function splashNewScenario(){
+    hideSplash();
+    const propTabBtn = document.querySelector('.tab[onclick*=\'property\']');
+    if(propTabBtn) showTab('property', propTabBtn);
+  }
+  function splashOpenLibrary(){
+    hideSplash();
+    setTimeout(()=>openScenariosModal(), 300);
+  }
+
 </script>
+
+<!-- ══ USER PROFILE PANEL ══ -->
+<div id="profile-overlay" onclick="closeProfile()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4999;backdrop-filter:blur(2px);"></div>
+<div id="profile-panel" style="position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--charcoal);z-index:5000;box-shadow:-8px 0 40px rgba(0,0,0,0.5);transition:right 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;">
+  <button class="pp-close" onclick="closeProfile()">✕</button>
+  <div class="pp-header">
+    <div class="pp-avatar-wrap">
+      <div class="pp-avatar" id="pp-avatar-display">?</div>
+      <label class="pp-avatar-edit" title="Change photo">📷<input type="file" accept="image/*" style="display:none" onchange="handleProfilePhoto(this)"></label>
+    </div>
+    <div class="pp-name" id="pp-name-display">Your Name</div>
+    <div class="pp-role">Property Investor</div>
+  </div>
+  <div class="pp-section">
+    <div class="pp-section-title">Profile Details</div>
+    <div class="pp-field">
+      <label class="pp-label">Display Name</label>
+      <input class="pp-input" id="pp-name-input" type="text" placeholder="e.g. Jamie Smith" oninput="previewProfileName(this.value)">
+    </div>
+    <div class="pp-field">
+      <label class="pp-label">Email (for future login)</label>
+      <input class="pp-input" id="pp-email-input" type="email" placeholder="you@email.com">
+    </div>
+  </div>
+  <div class="pp-section">
+    <div class="pp-section-title">Your Activity</div>
+    <div class="pp-stat"><span class="pp-stat-lbl">Properties saved</span><span class="pp-stat-val" id="pp-stat-saved">—</span></div>
+    <div class="pp-stat"><span class="pp-stat-lbl">Last active</span><span class="pp-stat-val" id="pp-stat-last">—</span></div>
+    <div class="pp-stat"><span class="pp-stat-lbl">Storage</span><span class="pp-stat-val" id="pp-stat-storage">Local</span></div>
+  </div>
+  <div class="pp-section">
+    <div class="pp-section-title">Avatar Colour</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="setProfileColor('#C9A84C')" style="width:28px;height:28px;border-radius:50%;background:#C9A84C;border:2px solid transparent;cursor:pointer;"></button>
+      <button onclick="setProfileColor('#5B8FAB')" style="width:28px;height:28px;border-radius:50%;background:#5B8FAB;border:2px solid transparent;cursor:pointer;"></button>
+      <button onclick="setProfileColor('#7B9E87')" style="width:28px;height:28px;border-radius:50%;background:#7B9E87;border:2px solid transparent;cursor:pointer;"></button>
+      <button onclick="setProfileColor('#C4704A')" style="width:28px;height:28px;border-radius:50%;background:#C4704A;border:2px solid transparent;cursor:pointer;"></button>
+      <button onclick="setProfileColor('#9B7EC8')" style="width:28px;height:28px;border-radius:50%;background:#9B7EC8;border:2px solid transparent;cursor:pointer;"></button>
+    </div>
+  </div>
+  <button class="pp-save-btn" onclick="saveProfile()">Save Profile</button>
+  <div class="pp-login-note"><strong>Coming soon:</strong> Full login with personal property libraries. For now, profile is saved in your browser.</div>
+</div>
+<!-- ══ WELCOME SPLASH ══ -->
+<div id="welcome-splash" style="display:none;">
+  <div class="splash-inner">
+    <div class="splash-logo">Property Finance Calculator</div>
+    <div class="splash-title">Where would you<br>like to start?</div>
+    <div class="splash-deco"></div>
+    <div class="splash-sub">Track, analyse and compare properties<br>with the Shared Equity Scheme</div>
+    <div class="splash-btns">
+      <button class="splash-btn splash-btn-primary" onclick="splashNewScenario()">＋ New Scenario</button>
+      <button class="splash-btn splash-btn-secondary" onclick="splashOpenLibrary()">📁 Open from Library</button>
+    </div>
+  </div>
+</div>
 </body>
-</html
->
+</html>
