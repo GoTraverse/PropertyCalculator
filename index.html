@@ -1822,10 +1822,10 @@
     const action = existIdx>=0 ? 'Updated' : 'Saved';
     if(usedCloud){
       showToast(`☁️ ${action} to cloud — visible on all devices`);
-    } else if(cloudConfigured()){
-      showToast(`⚠️ Cloud save failed — saved locally instead`);
+    } else if(ON_NETLIFY){
+      showToast(`⚠️ Cloud save failed — saved locally only. Check Netlify Functions.`);
     } else {
-      showToast(`💾 ${action} locally · Set up cloud sync for multi-device`);
+      showToast(`💾 ${action} locally (open via Netlify for shared sync)`);
     }
     updateSavedCount();
   }
