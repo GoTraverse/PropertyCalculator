@@ -324,6 +324,7 @@
 
   /* ── MOBILE IMPROVEMENTS (item 4) ── */
   @media(max-width:600px){
+    #sidebar-close-btn{display:block!important;}
     header{position:sticky;top:0;z-index:100;}
     .header-inner{min-height:80px!important;}
     .header-text{padding:12px 16px!important;}
@@ -414,14 +415,9 @@
 
 <!-- ══════ SIDEBAR ══════ -->
 <div class="sidebar">
-  <div class="sidebar-title">
-    ⚙ Scenario Calculator
-    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
-      <span style="font-size:11px;color:rgba(245,240,232,0.5);letter-spacing:1px;">RENO PLANNING</span>
-      <div id="reno-toggle" onclick="toggleReno()" style="width:38px;height:20px;background:var(--sage);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
-        <div id="reno-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
-      </div>
-    </div>
+  <div class="sidebar-title" style="display:flex;align-items:center;justify-content:space-between;">
+    <span>⚙ Scenario Calculator</span>
+    <button onclick="toggleMobileSidebar()" style="display:none;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:3px;color:var(--cream);font-size:18px;cursor:pointer;padding:2px 8px;line-height:1;" id="sidebar-close-btn">✕</button>
   </div>
 
   <div class="s-head">Quick Presets</div>
@@ -482,30 +478,17 @@
     <!-- All costs are now fully dynamic (item 14) — seeded in JS initPage() -->
   </div>
 
-  <div id="reno-sidebar-section">
-  <hr class="div">
-  <div class="s-head">Renovation</div>
-  <div style="font-size:11px;color:rgba(245,240,232,0.45);margin-bottom:8px;line-height:1.5;">Add/edit reno items in the <strong style="color:var(--sage)">Reno tab</strong>. Total shown below.</div>
-  <div class="ig" style="pointer-events:none;opacity:0.7;">
+  <div id="reno-sidebar-section" style="display:none;">
+  <div class="ig" style="pointer-events:none;opacity:0.7;display:none;">
     <div class="il">Reno Total <span id="lbl-reno-total">$21,000</span></div>
   </div>
-  <div class="ig">
+  <div class="ig" style="display:none;">
     <div class="il">Contingency % <span id="lbl-cont">15%</span></div>
     <div class="iw"><input type="number" class="pct" id="inp-cont" value="15" min="0" max="50" step="1" oninput="syncRange('cont');recalc()"><span class="isfx">%</span></div>
     <input type="range" id="rng-cont" min="0" max="50" step="1" value="15" oninput="syncInput('cont');recalc()">
   </div>
   </div>
 
-  <hr class="div">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-    <div class="s-head" style="margin-bottom:0;">Rent Overlap</div>
-    <div style="display:flex;align-items:center;gap:7px;">
-      <span style="font-size:10px;color:rgba(245,240,232,0.5);letter-spacing:1px;">ON</span>
-      <div id="rent-toggle" onclick="toggleRent()" style="width:38px;height:20px;background:var(--sky);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
-        <div id="rent-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
-      </div>
-    </div>
-  </div>
   <div id="rent-sidebar-section">
   <div class="ig">
     <div class="il">Current Rent/wk <span id="lbl-rent">$450</span></div>
@@ -519,6 +502,29 @@
   </div>
   </div>
 
+  <hr class="div">
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="s-head" style="margin-bottom:0;">🔨 Reno Tab</div>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <div id="reno-toggle" onclick="toggleReno()" style="width:38px;height:20px;background:var(--sage);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+          <div id="reno-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="s-head" style="margin-bottom:0;">🏠 Rent Overlap Tab</div>
+      <div id="rent-toggle" onclick="toggleRent()" style="width:38px;height:20px;background:var(--sky);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+        <div id="rent-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="s-head" style="margin-bottom:0;">⚠️ Risk Tab</div>
+      <div id="risk-toggle" onclick="toggleRisk()" style="width:38px;height:20px;background:var(--terracotta);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+        <div id="risk-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
+      </div>
+    </div>
+  </div>
   <div id="sidebar-alert"></div>
 </div>
 
@@ -531,7 +537,7 @@
     <button class="tab" onclick="showTab('repay',this)">03 · Repayments</button>
     <button class="tab" onclick="showTab('overlap',this)">04 · Rent Overlap</button>
     <button class="tab" onclick="showTab('time',this)">05 · Timeline</button>
-    <button class="tab" onclick="showTab('risks',this)">06 · Risks</button>
+    <button class="tab" id="tab-risks-btn" onclick="showTab('risks',this)">06 · Risks</button>
     <button class="tab" onclick="showTab('projection',this)">07 · Projection</button>
   </nav>
 
@@ -1078,13 +1084,7 @@
           </div>
           <div id="suburb-growth-hint" style="font-size:10px;color:var(--slate);margin-top:4px;font-style:italic;max-width:200px;"></div>
         </div>
-        <div>
-          <div style="font-size:11px;color:var(--slate);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Reno Uplift %</div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <input type="range" id="proj-uplift" min="0" max="20" step="1" value="8" oninput="document.getElementById('proj-uplift-lbl').textContent=parseFloat(this.value).toFixed(0)+'%';drawProjection()" style="width:110px;accent-color:var(--sage);">
-            <span id="proj-uplift-lbl" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--sage);min-width:38px;">8%</span>
-          </div>
-        </div>
+<!-- reno uplift removed (item 9) -->
         <div>
           <button id="fetch-growth-btn" onclick="fetchSuburbGrowth()" style="background:var(--charcoal);color:var(--gold);border:1px solid rgba(201,168,76,0.4);padding:7px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;">🔍 Look Up Suburb Growth</button>
           <div style="font-size:10px;color:var(--slate);margin-top:4px;font-style:italic;">Uses suburb from Property tab</div>
@@ -1105,7 +1105,6 @@
         <h3>30-Year Property Projection</h3>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:11px;">
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C9A84C;display:inline-block;border-radius:2px;"></span>Property Value</span>
-          <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#7B9E87;display:inline-block;border-radius:2px;"></span>Value + Reno</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #5B8FAB;display:inline-block;"></span>Loan Balance</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C4704A;display:inline-block;border-radius:2px;"></span>Govt Equity Owed</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#5A9E7B;display:inline-block;border-radius:2px;opacity:0.4;"></span>Your Equity</span>
@@ -1651,6 +1650,16 @@
     ].filter(Boolean);
     const headerSubEl = document.getElementById('header-sub-text');
     if(headerSubEl) headerSubEl.textContent = statParts.length ? statParts.join('  ·  ') : (address ? 'Edit values on the left — everything updates live' : 'Add property details in the Property tab to get started');
+    // Status badge in header
+    const statusVal = document.getElementById('pd-status')?.value || 'browsing';
+    const STATUS_BADGE_COLORS = {'browsing':'#5B8FAB','auction':'#C4704A','for-sale':'#C9A84C','offered':'#7B9E87','under-offer':'#E8A882','unconditional':'#5A9E7B','sold':'#C45A5A'};
+    const STATUS_BADGE_LABELS = {'browsing':'👀 Browsing','auction':'🔨 Auction','for-sale':'🏷 For Sale','offered':'📝 Offer Sent','under-offer':'⏳ Under Offer','unconditional':'✅ Unconditional','sold':'🔴 Sold'};
+    let statusBadge = document.getElementById('header-status-badge');
+    if(!statusBadge){ statusBadge = document.createElement('span'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:3px 10px;border-radius:12px;font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;margin-left:8px;vertical-align:middle;'; document.getElementById('page-title')?.after(statusBadge); }
+    statusBadge.textContent = STATUS_BADGE_LABELS[statusVal] || statusVal;
+    statusBadge.style.background = (STATUS_BADGE_COLORS[statusVal]||'#888') + '33';
+    statusBadge.style.color = STATUS_BADGE_COLORS[statusVal] || '#888';
+    statusBadge.style.border = '1px solid ' + (STATUS_BADGE_COLORS[statusVal]||'#888') + '66';
 
     const photoCap = document.getElementById('photo-caption');
     if(photoCap) photoCap.textContent = fullAddr;
@@ -1704,6 +1713,7 @@
   const PHOTO_PFX   = 'propCalc_v5_ph_';
   let scenariosView = 'grid';
   let pendingLoadId = null;
+  let _scenariosCache = null;
 
   function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
   function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
@@ -1807,8 +1817,12 @@
     const stateV   = state.values['pd-state']   || '';
     const fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ') || 'Unnamed Property';
     const now      = new Date();
-    const timestamp = now.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})
-                    + ' ' + now.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+    const dd = String(now.getDate()).padStart(2,'0');
+    const mm = String(now.getMonth()+1).padStart(2,'0');
+    const yyyy = now.getFullYear();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const min = String(now.getMinutes()).padStart(2,'0');
+    const timestamp = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
     const scenarios = await getAllScenarios();
     const addrKey  = fullAddr.toLowerCase().trim();
     const existIdx = scenarios.findIndex(s => (s.addrKey||'') === addrKey);
@@ -1824,7 +1838,11 @@
       hasPhoto: !!propPhotoDataUrl,
       state,
     };
+    const saveBtns = document.querySelectorAll('button[onclick*="saveScenario"]');
+    saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div style="width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;"></div>';b.disabled=true;});
+    _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
+    saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
     const action = existIdx>=0 ? 'Updated' : 'Saved';
     if(usedCloud){
       showToast(`☁️ ${action} to cloud — visible on all devices`);
@@ -1853,13 +1871,15 @@
     if(lb) lb.style.cssText = mode==='list' ? ga : ia;
     const container = document.getElementById('scenarios-grid');
     if(container) container.style.gridTemplateColumns = mode==='grid' ? 'repeat(auto-fill,minmax(240px,1fr))' : '1fr';
-    renderScenariosList();
+    // Use cache — no re-fetch just for view toggle
+    if(_scenariosCache !== null) { _renderScenariosToDOM(_scenariosCache); }
+    else { renderScenariosList(); }
   }
 
   function openScenariosModal(){
-    renderScenariosList();
     document.getElementById('scenarios-modal').style.display='block';
     document.body.style.overflow='hidden';
+    renderScenariosList(); // always fresh fetch when opening
   }
   function closeScenariosModal(){
     document.getElementById('scenarios-modal').style.display='none';
@@ -1884,10 +1904,17 @@
     const grid  = document.getElementById('scenarios-grid');
     const empty = document.getElementById('scenarios-empty');
     if(!grid) return;
-    grid.innerHTML = '<div style="color:rgba(245,240,232,0.4);font-family:\'DM Mono\',monospace;font-size:11px;padding:20px;text-align:center;">Loading…</div>';
+    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:rgba(245,240,232,0.5);font-family:\'DM Mono\',monospace;font-size:11px;"><div style="width:18px;height:18px;border:2px solid rgba(201,168,76,0.3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>Loading properties…</div>';
 
-    const scenarios = await getAllScenarios();
-    if(scenarios.length === 0){
+    _scenariosCache = await getAllScenarios();
+    _renderScenariosToDOM(_scenariosCache);
+  }
+
+  async function _renderScenariosToDOM(scenarios){
+    const grid  = document.getElementById('scenarios-grid');
+    const empty = document.getElementById('scenarios-empty');
+    if(!grid) return;
+    if(!scenarios || scenarios.length === 0){
       if(empty) empty.style.display='block';
       grid.innerHTML=''; return;
     }
@@ -1904,6 +1931,7 @@
       let photo = null;
       if(s.hasPhoto) photo = await getPhoto(s.id);
       const photoHTML = photo
+
         ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">`
         : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--charcoal-soft);color:rgba(255,255,255,0.12);">🏠</div>`;
       if(isGrid) return `
@@ -2015,6 +2043,7 @@
 
   async function deleteScenario(id){
     if(!confirm('Delete this scenario? This cannot be undone.')) return;
+    _scenariosCache = null;
     await deleteScenarioFromBackend(id);
     updateSavedCount();
     renderScenariosList();
@@ -2055,6 +2084,17 @@
 
   // ── RENT OVERLAP TOGGLE (item 12) ──
   let rentEnabled = true;
+  let riskEnabled = true;
+  function toggleRisk(){
+    riskEnabled = !riskEnabled;
+    const tog = document.getElementById('risk-toggle');
+    const knob = document.getElementById('risk-toggle-knob');
+    const tabBtn = document.getElementById('tab-risks-btn');
+    if(tog) tog.style.background = riskEnabled ? 'var(--terracotta)' : 'rgba(255,255,255,0.15)';
+    if(knob) knob.style.left = riskEnabled ? '20px' : '2px';
+    if(tabBtn) tabBtn.style.display = riskEnabled ? '' : 'none';
+    if(!riskEnabled){ const active = document.querySelector('.tab.active'); if(active && active.id==='tab-risks-btn') showTab('property', document.querySelector('.tab')); }
+  }
   function toggleRent(){
     rentEnabled = !rentEnabled;
     applyRentToggle(rentEnabled);
@@ -2099,7 +2139,7 @@
     const mRate = rate/100/12;
     for(let yr=0; yr<=years; yr++){
       const baseVal   = price * Math.pow(1+growthPct, yr);
-      const renoVal   = yr===0 ? price : price * (1+upliftPct) * Math.pow(1+growthPct, yr);
+      const renoVal   = yr===0 ? price : price * Math.pow(1+growthPct, yr); // reno uplift removed
       const govtOwed  = baseVal * govtPct;
       if(yr>0){
         for(let m=0;m<12;m++){
@@ -2593,6 +2633,11 @@
     if(d){ d[field]=val; syncKeyDatesToTimeline(); }
   }
 
+  function formatDate(iso){
+    if(!iso) return '';
+    const [y,m,d] = iso.split('-');
+    return d && m && y ? `${d}/${m}/${y}` : iso;
+  }
   function renderKeyDates(){
     const list  = document.getElementById('key-dates-list');
     const empty = document.getElementById('key-dates-empty');
