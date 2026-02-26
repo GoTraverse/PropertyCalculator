@@ -194,7 +194,7 @@
   .tab:hover{color:rgba(245,240,232,0.85);}
   .tab.active{color:var(--gold);border-bottom:3px solid var(--gold);}
 
-  main{padding:22px 26px;flex:1;overflow-y:auto;}
+  main{padding:26px 32px;flex:1;overflow-y:auto;}
   .section{display:none;animation:fadeUp 0.3s ease;}
   .section.active{display:block;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -203,49 +203,49 @@
   .spinner{display:inline-block;flex-shrink:0;width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(201,168,76,0.25);border-top-color:var(--gold);-webkit-animation:spin 0.75s linear infinite;animation:spin 0.75s linear infinite;}
   .spinner-sm{display:inline-block;vertical-align:middle;width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;-webkit-animation:spin 0.75s linear infinite;animation:spin 0.75s linear infinite;}
 
-  .sl{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--slate);margin-bottom:18px;display:flex;align-items:center;gap:12px;}
+  .sl{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--slate);margin-bottom:20px;display:flex;align-items:center;gap:12px;}
   .sl::after{content:'';flex:1;height:1px;background:rgba(28,28,30,0.12);}
-  .card{background:var(--warm-white);border-radius:4px;padding:20px;border:1px solid rgba(28,28,30,0.08);position:relative;margin-bottom:14px;}
+  .card{background:var(--warm-white);border-radius:4px;padding:24px;border:1px solid rgba(28,28,30,0.08);position:relative;margin-bottom:16px;}
   .ca{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px;}
   .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  h3{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:12px;}
+  h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:14px;}
 
   .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
   .tile{background:var(--charcoal);color:var(--cream);border-radius:4px;padding:18px;position:relative;overflow:hidden;}
   .tile::after{content:'';position:absolute;bottom:-14px;right:-14px;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.04);}
-  .tile-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;margin-bottom:2px;}
-  .tile-lbl{font-size:12px;color:rgba(245,240,232,0.38);}
+  .tile-val{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;margin-bottom:3px;}
+  .tile-lbl{font-size:13px;color:rgba(245,240,232,0.38);}
   .tile-dot{width:16px;height:3px;border-radius:2px;margin-bottom:9px;}
 
-  .cr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(28,28,30,0.07);font-size:15px;}
+  .cr{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(28,28,30,0.07);font-size:16px;}
   .cr .nm{color:var(--slate);}
-  .cr .am{font-family:'DM Mono',monospace;font-size:15px;}
+  .cr .am{font-family:'DM Mono',monospace;font-size:16px;}
   .cr.tot{border-top:2px solid var(--charcoal);border-bottom:none;margin-top:4px;padding-top:10px;}
   .cr.tot .nm{color:var(--charcoal);font-weight:500;}
 
   .bi{margin-bottom:10px;}
-  .bm{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;color:var(--slate);}
+  .bm{display:flex;justify-content:space-between;font-size:15px;margin-bottom:4px;color:var(--slate);}
   .bm span:last-child{font-family:'DM Mono',monospace;color:var(--charcoal);}
   .bt{height:6px;background:rgba(28,28,30,0.08);border-radius:3px;overflow:hidden;}
   .bf{height:100%;border-radius:3px;transition:width 0.6s cubic-bezier(0.16,1,0.3,1);}
 
   .dw{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-  .li{display:flex;align-items:center;gap:7px;margin-bottom:9px;font-size:15px;}
+  .li{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:16px;}
   .ld{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-  .lv{font-family:'DM Mono',monospace;font-size:14px;margin-left:auto;padding-left:12px;color:var(--slate);}
+  .lv{font-family:'DM Mono',monospace;font-size:15px;margin-left:auto;padding-left:12px;color:var(--slate);}
 
   .cb{background:var(--charcoal);color:var(--cream);border-radius:4px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:14px;}
   .cs{text-align:center;}
-  .cv{font-family:'DM Mono',monospace;font-size:26px;}
-  .clbl{font-size:11px;color:rgba(245,240,232,0.38);margin-top:2px;}
+  .cv{font-family:'DM Mono',monospace;font-size:30px;}
+  .clbl{font-size:13px;color:rgba(245,240,232,0.38);margin-top:2px;}
 
   .rg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;}
   .rc{background:var(--charcoal);color:var(--cream);border-radius:3px;padding:13px;text-align:center;}
-  .rv{font-family:'DM Mono',monospace;font-size:20px;margin-bottom:2px;}
-  .rl{font-size:11px;color:rgba(245,240,232,0.38);}
-  .rs{font-size:11px;color:var(--gold);margin-top:1px;font-family:'DM Mono',monospace;}
+  .rv{font-family:'DM Mono',monospace;font-size:22px;margin-bottom:2px;}
+  .rl{font-size:12px;color:rgba(245,240,232,0.38);}
+  .rs{font-size:12px;color:var(--gold);margin-top:1px;font-family:'DM Mono',monospace;}
 
-  .reno-row{display:flex;align-items:center;padding:8px 0;border-bottom:none;gap:7px;font-size:15px;}
+  .reno-row{display:flex;align-items:center;padding:9px 0;border-bottom:none;gap:8px;font-size:16px;}
   .ri{font-size:15px;width:20px;text-align:center;}
   .rn{flex:1;color:var(--slate);}
   .ra{font-family:'DM Mono',monospace;font-size:13px;min-width:52px;text-align:right;}
@@ -260,8 +260,8 @@
   .tl::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--gold),var(--sage));}
   .tli{position:relative;margin-bottom:20px;}
   .tld{position:absolute;left:-20px;top:4px;width:9px;height:9px;border-radius:50%;border:2px solid var(--warm-white);box-shadow:0 0 0 2px currentColor;}
-  .tlp{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
-  .tlt{font-size:15px;font-weight:500;margin-bottom:2px;}
+  .tlp{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
+  .tlt{font-size:17px;font-weight:500;margin-bottom:2px;}
   .tldesc{font-size:12px;color:var(--slate);line-height:1.6;}
   .tldr{display:inline-block;background:var(--charcoal);color:var(--cream);font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;margin-top:4px;}
 
@@ -836,7 +836,7 @@
           <div id="status-note-wrap" style="display:none;">
             <div class="pd-field">
               <label class="pd-label">Auction / Offer date</label>
-              <input type="date" id="pd-status-date" style="background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:8px 10px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;" oninput="syncKeyDatesFromStatus()">
+              <input type="date" id="pd-status-date" style="background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:8px 10px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;" oninput="syncKeyDatesFromStatus();document.getElementById('pd-status-date-display').textContent=this.value?formatDate(this.value):'';"><span id="pd-status-date-display" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate);margin-left:6px;"></span>
             </div>
           </div>
         </div>
@@ -2046,6 +2046,13 @@
   async function saveScenario(){
     const state    = collectCurrentState();
     const addr     = state.values['pd-address'] || '';
+    if(!addr.trim()){
+      showToast('⚠️ Please enter a property address before saving');
+      const addrEl = document.getElementById('pd-address');
+      if(addrEl){ addrEl.focus(); addrEl.style.borderColor='var(--terracotta)'; setTimeout(()=>addrEl.style.borderColor='',2500); }
+      showTab('property', document.querySelector('.tab'));
+      return;
+    }
     const suburb   = state.values['pd-suburb']  || '';
     const stateV   = state.values['pd-state']   || '';
     const fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ') || 'Unnamed Property';
@@ -2089,7 +2096,9 @@
   }
 
   async function updateSavedCount(){
+    // Warm the scenarios cache in the background so library opens instantly
     const arr = await getAllScenarios();
+    if(arr.length) _scenariosCache = arr; // cache so library opens without re-fetching
     const ct = document.getElementById('saved-count');
     if(!ct) return;
     if(arr.length > 0){ ct.textContent = arr.length; ct.style.display='inline'; }
@@ -2175,7 +2184,7 @@
           </div>
           <div class="lib-price">${price}</div>
           <div class="lib-badge" style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}55;">${sLabel}</div>
-          <div class="lib-ts">${s.timestamp||''}</div>
+          <div class="lib-ts">${(s.timestamp||'').replace(/(\d+)\s([A-Za-z]+)\s(\d{4})/,(_,d,mo,y)=>{const mn={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};return String(d).padStart(2,'0')+'/'+(mn[mo]||'01')+'/'+y;})}</div>
           <button class="lib-del" onclick="event.stopPropagation();deleteScenario('${s.id}')" title="Delete">✕</button>
         </div>`;
     });
