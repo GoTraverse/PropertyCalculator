@@ -377,6 +377,7 @@
       <p class="header-sub" id="header-sub-text">Add property details in the Property tab to get started</p>
       <div class="header-actions">
         <button id="mobile-sidebar-btn" onclick="toggleMobileSidebar()" title="Open calculator">⚙</button>
+        <div id="storage-status" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.5);display:flex;align-items:center;gap:4px;"></div>
         <button class="export-btn" onclick="saveScenario()" title="Save scenario to library">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Save
@@ -1695,85 +1696,79 @@
   function saveRenoNote(i, val){ renoNotes[i] = val; }
 
   // ══════════════════════════════════════════════
-  // SHARED STORAGE — Netlify Blobs via serverless function (item 10/15)
-  // Falls back to localStorage when running locally
+  // SHARED STORAGE — Netlify Functions + Blobs
+  // All visitors to the site share the same data.
+  // Falls back to localStorage when running locally.
   // ══════════════════════════════════════════════
-  const STORAGE_KEY   = 'propCalc_v5_index';
-  const PHOTO_PFX     = 'propCalc_v5_ph_';
-  let scenariosView   = 'grid';
-  let pendingLoadId   = null;
+  const STORAGE_KEY = 'propCalc_v5_index';
+  const PHOTO_PFX   = 'propCalc_v5_ph_';
+  let scenariosView = 'grid';
+  let pendingLoadId = null;
 
-  function lsGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
-  function lsSet(key,val){ try{ localStorage.setItem(key,val); return true; }catch(e){ return false; } }
-  function lsDel(key){ try{ localStorage.removeItem(key); }catch(e){} }
+  function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
+  function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
+  function lsDel(k){ try{localStorage.removeItem(k);}catch(e){} }
 
-  // Check if Netlify functions are available
-  async function isNetlifyAvailable(){
-    try{
-      const r = await fetch('/api/scenarios', {method:'GET', signal:AbortSignal.timeout(3000)});
-      return r.ok;
-    }catch(e){ return false; }
-  }
-  let _netlifyAvail = null;
-  async function checkNetlify(){
-    if(_netlifyAvail !== null) return _netlifyAvail;
-    _netlifyAvail = await isNetlifyAvailable();
-    return _netlifyAvail;
-  }
+  // Are we running on Netlify (not a local file)?
+  const ON_NETLIFY = window.location.protocol !== 'file:';
 
   async function getAllScenarios(){
-    if(await checkNetlify()){
+    if(ON_NETLIFY){
       try{
-        const r = await fetch('/api/scenarios');
+        const r = await fetch('/.netlify/functions/scenarios');
         if(r.ok) return await r.json();
-      }catch(e){ console.warn('API read failed, using localStorage'); }
+      }catch(e){ console.warn('Netlify read failed, using localStorage'); }
     }
-    try{
-      const raw = lsGet(STORAGE_KEY);
-      if(!raw) return [];
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
-    }catch(e){ return []; }
+    try{ return JSON.parse(lsGet(STORAGE_KEY)||'[]'); }catch(e){ return []; }
   }
 
   async function saveScenarioToBackend(record, photoSrc){
-    if(await checkNetlify()){
+    if(ON_NETLIFY){
       try{
-        const r = await fetch('/api/scenarios', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({record, photoSrc: photoSrc||null})
+        const r = await fetch('/.netlify/functions/scenarios', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ record, photoSrc: photoSrc||null })
         });
         if(r.ok) return true;
-      }catch(e){ console.warn('API save failed, using localStorage'); }
+      }catch(e){ console.warn('Netlify save failed, using localStorage'); }
     }
-    // localStorage fallback
-    if(photoSrc) lsSet(PHOTO_PFX + record.id, photoSrc);
-    let arr = [];
-    try{ const raw=lsGet(STORAGE_KEY); arr=raw?JSON.parse(raw):[];}catch(e){}
-    const idx = arr.findIndex(s=>s.id===record.id);
-    if(idx>=0) arr[idx]=record; else arr.unshift(record);
+    if(photoSrc) lsSet(PHOTO_PFX+record.id, photoSrc);
+    let arr=[]; try{ arr=JSON.parse(lsGet(STORAGE_KEY)||'[]'); }catch(e){}
+    const i=arr.findIndex(s=>s.id===record.id);
+    if(i>=0) arr[i]=record; else arr.unshift(record);
     lsSet(STORAGE_KEY, JSON.stringify(arr));
     return false;
   }
 
   async function deleteScenarioFromBackend(id){
-    if(await checkNetlify()){
-      try{ await fetch('/api/scenarios?id='+encodeURIComponent(id), {method:'DELETE'}); }catch(e){}
+    if(ON_NETLIFY){
+      try{ await fetch('/.netlify/functions/scenarios?id='+id, {method:'DELETE'}); }catch(e){}
     }
-    lsDel(PHOTO_PFX + id);
-    let arr=[];
-    try{ const raw=lsGet(STORAGE_KEY); arr=raw?JSON.parse(raw):[];}catch(e){}
-    lsSet(STORAGE_KEY, JSON.stringify(arr.filter(s=>s.id!==id)));
+    lsDel(PHOTO_PFX+id);
+    try{
+      const arr=JSON.parse(lsGet(STORAGE_KEY)||'[]').filter(s=>s.id!==id);
+      lsSet(STORAGE_KEY, JSON.stringify(arr));
+    }catch(e){}
   }
 
   async function getPhoto(id){
-    if(await checkNetlify()){
+    if(ON_NETLIFY){
       try{
-        const r = await fetch('/api/photo?id='+encodeURIComponent(id));
+        const r = await fetch('/.netlify/functions/photo?id='+id);
         if(r.ok){ const d=await r.json(); return d.photoSrc||null; }
       }catch(e){}
     }
-    return lsGet(PHOTO_PFX + id);
+    return lsGet(PHOTO_PFX+id);
+  }
+
+  function showStorageStatus(){
+    const el = document.getElementById('storage-status');
+    if(!el) return;
+    if(ON_NETLIFY){
+      el.innerHTML = '<span style="color:var(--sage-light)">☁ shared</span>';
+      el.title = 'Netlify shared storage — all visitors see the same properties';
+    }
   }
 
   function collectCurrentState(){
@@ -1823,9 +1818,15 @@
       hasPhoto: !!propPhotoDataUrl,
       state,
     };
-    const usedServer = await saveScenarioToBackend(record, propPhotoDataUrl||null);
-    const msg = existIdx>=0 ? 'Updated: ' : 'Saved: ';
-    showToast((usedServer ? '☁️ ' : '💾 ') + msg + fullAddr);
+    const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
+    const action = existIdx>=0 ? 'Updated' : 'Saved';
+    if(usedCloud){
+      showToast(`☁️ ${action} to cloud — visible on all devices`);
+    } else if(cloudConfigured()){
+      showToast(`⚠️ Cloud save failed — saved locally instead`);
+    } else {
+      showToast(`💾 ${action} locally · Set up cloud sync for multi-device`);
+    }
     updateSavedCount();
   }
 
@@ -2758,6 +2759,7 @@
   updateSavedCount();
   setAppHeight();
   drawProjection();
+  showStorageStatus();
   setTimeout(() => showToast('👋 Fill in your property details in tab 00 · Property'), 900);
 </script>
 </body>
