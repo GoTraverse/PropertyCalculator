@@ -1,31 +1,3 @@
-# netlify.toml — Configuration for Property Finance Calculator
-# Place this file in the ROOT of your repository alongside index.html
-
 [build]
-  publish = "."           # Deploy index.html from the root
-  functions = "netlify/functions"  # Serverless functions folder
-
-# Route /api/* to our serverless functions
-[[redirects]]
-  from = "/api/scenarios"
-  to   = "/.netlify/functions/scenarios"
-  status = 200
-
-[[redirects]]
-  from = "/api/scenarios/:splat"
-  to   = "/.netlify/functions/scenarios/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/photo"
-  to   = "/.netlify/functions/photo"
-  status = 200
-
-[dev]
-  autoLaunch = true
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
+  publish = "."
+  functions = "netlify/functions"
