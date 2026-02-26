@@ -1,149 +1,99 @@
-const { getStore } = require('@netlify/blobs');
-
-const H = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
-
-  const store = getStore({ name: 'proper// Uses Upstash Redis for shared storage.
-// Set these two env vars in Netlify dashboard → Site settings → Environment variables:
-//   UPSTASH_REDIS_REST_URL   (from your Upstash console)
-//   UPSTASH_REDIS_REST_TOKEN (from your Upstash console)
-// Free tier: 10,000 requests/day, 256MB storage — plenty for personal use.
-
-const REDIS_URL   = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
-const INDEX_KEY   = 'prop_calc_index';
+const INDEX_KEY = "prop_calc_index";
 
-const H = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+var H = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type"
 };
 
-async function redisCmd(...args) {
-  const r = await fetch(`${REDIS_URL}/${args.map(encodeURIComponent).join('/')}`, {
-    headers: { Authorization: `Bearer ${REDIS_TOKEN}` }
+async function redisGet(key) {
+  var r = await fetch(REDIS_URL + "/get/" + encodeURIComponent(key), {
+    headers: { "Authorization": "Bearer " + REDIS_TOKEN }
   });
-  const j = await r.json();
+  var j = await r.json();
   return j.result;
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
+async function redisSet(key, value) {
+  var r = await fetch(REDIS_URL + "/set/" + encodeURIComponent(key) + "/" + encodeURIComponent(value), {
+    headers: { "Authorization": "Bearer " + REDIS_TOKEN }
+  });
+  return r.ok;
+}
+
+async function redisDel(key) {
+  await fetch(REDIS_URL + "/del/" + encodeURIComponent(key), {
+    headers: { "Authorization": "Bearer " + REDIS_TOKEN }
+  });
+}
+
+exports.handler = async function(event) {
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: H, body: "" };
+  }
 
   if (!REDIS_URL || !REDIS_TOKEN) {
-    return { statusCode: 500, headers: H, body: JSON.stringify({ error: 'Redis env vars not set. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Netlify environment variables.' }) };
+    return { statusCode: 500, headers: H, body: JSON.stringify({ error: "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars not set in Netlify" }) };
   }
 
-  // GET — return all scenarios
-  if (event.httpMethod === 'GET') {
+  if (event.httpMethod === "GET") {
     try {
-      const raw = await redisCmd('GET', INDEX_KEY);
-      return { statusCode: 200, headers: H, body: raw || '[]' };
+      var raw = await redisGet(INDEX_KEY);
+      return { statusCode: 200, headers: H, body: raw || "[]" };
     } catch(e) {
-      return { statusCode: 200, headers: H, body: '[]' };
+      return { statusCode: 200, headers: H, body: "[]" };
     }
   }
 
-  // POST — save/update scenario
-  if (event.httpMethod === 'POST') {
+  if (event.httpMethod === "POST") {
     try {
-      const { record, photoSrc } = JSON.parse(event.body || '{}');
-      if (!record?.id) return { statusCode: 400, headers: H, body: JSON.stringify({ error: 'missing id' }) };
-
-      // Store photo separately (large base64 strings kept out of index)
-      if (photoSrc) await redisCmd('SET', 'prop_photo_' + record.id, photoSrc);
-
-      // Update index
-      let arr = [];
-      try { const raw = await redisCmd('GET', INDEX_KEY); arr = raw ? JSON.parse(raw) : []; } catch(e) {}
-      const slim = { ...record };
+      var body = JSON.parse(event.body || "{}");
+      var record = body.record;
+      var photoSrc = body.photoSrc;
+      if (!record || !record.id) {
+        return { statusCode: 400, headers: H, body: JSON.stringify({ error: "missing id" }) };
+      }
+      if (photoSrc) {
+        await redisSet("prop_photo_" + record.id, photoSrc);
+      }
+      var arr = [];
+      try {
+        var existing = await redisGet(INDEX_KEY);
+        arr = existing ? JSON.parse(existing) : [];
+      } catch(e2) { arr = []; }
+      var slim = Object.assign({}, record);
       slim.hasPhoto = !!(photoSrc || slim.hasPhoto);
-      const i = arr.findIndex(s => s.id === record.id);
-      if (i >= 0) arr[i] = slim; else arr.unshift(slim);
-      await redisCmd('SET', INDEX_KEY, JSON.stringify(arr));
-
+      var idx = arr.findIndex(function(s) { return s.id === record.id; });
+      if (idx >= 0) { arr[idx] = slim; } else { arr.unshift(slim); }
+      await redisSet(INDEX_KEY, JSON.stringify(arr));
       return { statusCode: 200, headers: H, body: JSON.stringify({ ok: true }) };
     } catch(e) {
       return { statusCode: 500, headers: H, body: JSON.stringify({ error: e.message }) };
     }
   }
 
-  // DELETE
-  if (event.httpMethod === 'DELETE') {
+  if (event.httpMethod === "DELETE") {
     try {
-      const id = (event.queryStringParameters || {}).id;
-      if (!id) return { statusCode: 400, headers: H, body: JSON.stringify({ error: 'missing id' }) };
-      try { await redisCmd('DEL', 'prop_photo_' + id); } catch(e) {}
-      let arr = [];
-      try { const raw = await redisCmd('GET', INDEX_KEY); arr = raw ? JSON.parse(raw) : []; } catch(e) {}
-      await redisCmd('SET', INDEX_KEY, JSON.stringify(arr.filter(s => s.id !== id)));
+      var delId = (event.queryStringParameters || {}).id;
+      if (!delId) {
+        return { statusCode: 400, headers: H, body: JSON.stringify({ error: "missing id" }) };
+      }
+      await redisDel("prop_photo_" + delId);
+      var delArr = [];
+      try {
+        var delRaw = await redisGet(INDEX_KEY);
+        delArr = delRaw ? JSON.parse(delRaw) : [];
+      } catch(e3) { delArr = []; }
+      delArr = delArr.filter(function(s) { return s.id !== delId; });
+      await redisSet(INDEX_KEY, JSON.stringify(delArr));
       return { statusCode: 200, headers: H, body: JSON.stringify({ ok: true }) };
     } catch(e) {
       return { statusCode: 500, headers: H, body: JSON.stringify({ error: e.message }) };
     }
   }
 
-  return { statusCode: 405, headers: H, body: JSON.stringify({ error: 'method not allowed' }) };
-};ty-calc', consistency: 'strong' });
-
-  // GET
-  if (event.httpMethod === 'GET') {
-    try {
-      const raw = await store.get('index', { type: 'text' });
-      return { statusCode: 200, headers: H, body: raw || '[]' };
-    } catch(e) {
-      return { statusCode: 200, headers: H, body: '[]' };
-    }
-  }
-
-  // POST
-  if (event.httpMethod === 'POST') {
-    try {
-      const { record, photoSrc } = JSON.parse(event.body || '{}');
-      if (!record?.id) return { statusCode: 400, headers: H, body: JSON.stringify({ error: 'missing id' }) };
-
-      if (photoSrc) await store.set('photo:' + record.id, photoSrc);
-
-      let arr = [];
-      try { const raw = await store.get('index', { type: 'text' }); arr = raw ? JSON.parse(raw) : []; } catch(e) {}
-
-      const slim = { ...record };
-      slim.hasPhoto = !!(photoSrc || slim.hasPhoto);
-      const i = arr.findIndex(s => s.id === record.id);
-      if (i >= 0) arr[i] = slim; else arr.unshift(slim);
-      await store.set('index', JSON.stringify(arr));
-
-      return { statusCode: 200, headers: H, body: JSON.stringify({ ok: true }) };
-    } catch(e) {
-      return { statusCode: 500, headers: H, body: JSON.stringify({ error: e.message }) };
-    }
-  }
-
-  // DELETE
-  if (event.httpMethod === 'DELETE') {
-    try {
-      const id = (event.queryStringParameters || {}).id;
-      if (!id) return { statusCode: 400, headers: H, body: JSON.stringify({ error: 'missing id' }) };
-
-      try { await store.delete('photo:' + id); } catch(e) {}
-
-      let arr = [];
-      try { const raw = await store.get('index', { type: 'text' }); arr = raw ? JSON.parse(raw) : []; } catch(e) {}
-      await store.set('index', JSON.stringify(arr.filter(s => s.id !== id)));
-
-      return { statusCode: 200, headers: H, body: JSON.stringify({ ok: true }) };
-    } catch(e) {
-      return { statusCode: 500, headers: H, body: JSON.stringify({ error: e.message }) };
-    }
-  }
-
-  return { statusCode: 405, headers: H, body: JSON.stringify({ error: 'method not allowed' }) };
+  return { statusCode: 405, headers: H, body: JSON.stringify({ error: "method not allowed" }) };
 };
