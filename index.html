@@ -1716,8 +1716,11 @@
     if(ON_NETLIFY){
       try{
         const r = await fetch('/.netlify/functions/scenarios');
+        console.log('[storage] GET scenarios status:', r.status);
         if(r.ok) return await r.json();
-      }catch(e){ console.warn('Netlify read failed, using localStorage'); }
+        const txt = await r.text();
+        console.error('[storage] GET failed:', r.status, txt);
+      }catch(e){ console.error('[storage] GET exception:', e.message); }
     }
     try{ return JSON.parse(lsGet(STORAGE_KEY)||'[]'); }catch(e){ return []; }
   }
@@ -1730,8 +1733,11 @@
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ record, photoSrc: photoSrc||null })
         });
+        console.log('[storage] POST scenarios status:', r.status);
         if(r.ok) return true;
-      }catch(e){ console.warn('Netlify save failed, using localStorage'); }
+        const txt = await r.text();
+        console.error('[storage] POST failed:', r.status, txt);
+      }catch(e){ console.error('[storage] POST exception:', e.message); }
     }
     if(photoSrc) lsSet(PHOTO_PFX+record.id, photoSrc);
     let arr=[]; try{ arr=JSON.parse(lsGet(STORAGE_KEY)||'[]'); }catch(e){}
