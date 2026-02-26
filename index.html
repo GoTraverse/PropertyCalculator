@@ -458,6 +458,37 @@
     .rg{grid-template-columns:1fr 1fr;}
     .overlap-tiles{grid-template-columns:1fr 1fr;}
   }
+
+  /* ── USER PROFILE ── */
+  #profile-btn{width:34px;height:34px;border-radius:50%;background:var(--gold);border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--charcoal);flex-shrink:0;overflow:hidden;transition:transform 0.15s;position:relative;}
+  #profile-btn:hover{transform:scale(1.08);}
+  #profile-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  #profile-panel{position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--charcoal);z-index:5000;box-shadow:-8px 0 40px rgba(0,0,0,0.5);transition:right 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+  #profile-panel.open{right:0;}
+  #profile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4999;backdrop-filter:blur(2px);}
+  #profile-overlay.open{display:block;}
+  .pp-header{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.04));padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .pp-avatar-wrap{position:relative;width:72px;height:72px;margin-bottom:14px;}
+  .pp-avatar{width:72px;height:72px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:var(--charcoal);overflow:hidden;border:3px solid rgba(201,168,76,0.4);}
+  .pp-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .pp-avatar-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--charcoal);border:1.5px solid rgba(201,168,76,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;}
+  .pp-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--cream);margin-bottom:3px;}
+  .pp-role{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(245,240,232,0.4);text-transform:uppercase;}
+  .pp-section{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.05);}
+  .pp-section-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.35);margin-bottom:12px;}
+  .pp-field{margin-bottom:12px;}
+  .pp-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(245,240,232,0.45);margin-bottom:5px;display:block;}
+  .pp-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--cream);outline:none;transition:border-color 0.15s;}
+  .pp-input:focus{border-color:rgba(201,168,76,0.6);}
+  .pp-stat{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+  .pp-stat:last-child{border-bottom:none;}
+  .pp-stat-lbl{font-size:13px;color:rgba(245,240,232,0.5);}
+  .pp-stat-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);}
+  .pp-save-btn{margin:16px 24px;background:var(--gold);color:var(--charcoal);border:none;border-radius:3px;padding:11px;width:calc(100% - 48px);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;transition:opacity 0.15s;}
+  .pp-save-btn:hover{opacity:0.88;}
+  .pp-close{position:absolute;top:16px;right:16px;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:3px;color:var(--cream);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .pp-login-note{margin:12px 24px;padding:12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:3px;font-size:12px;color:rgba(245,240,232,0.55);line-height:1.6;}
+  .pp-login-note strong{color:var(--gold);}
 </style>
 </head>
 <body>
@@ -472,6 +503,7 @@
       <div class="header-actions">
         <button id="mobile-sidebar-btn" onclick="toggleMobileSidebar()" title="Open calculator">⚙</button>
         <div id="storage-status" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.5);display:flex;align-items:center;gap:4px;"></div>
+        <button id="profile-btn" onclick="openProfile()" title="User Profile"></button>
         <div id="unsaved-badge" style="display:none;align-items:center;gap:5px;background:rgba(196,112,74,0.25);border:1px solid rgba(196,112,74,0.5);border-radius:10px;padding:3px 9px;font-family:'DM Mono',monospace;font-size:10px;color:#E8956A;white-space:nowrap;cursor:default;" title="Unsaved changes">● Unsaved</div>
         <button class="export-btn" onclick="saveScenario()" title="Save scenario to library">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -520,12 +552,12 @@
 
   <div class="ig">
     <div class="il">Purchase Price <span id="lbl-price">—</span></div>
-    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-price" value="" min="100000" max="700000" step="1000" placeholder="650000" oninput="syncRange('price');recalc()"></div>
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-price" value="650000" min="100000" max="700000" step="1000" placeholder="650000" oninput="syncRange('price');recalc()"></div>
     <input type="range" id="rng-price" min="300000" max="700000" step="5000" value="650000" oninput="syncInput('price');recalc()">
   </div>
   <div class="ig">
     <div class="il">Your Savings <span id="lbl-savings">—</span></div>
-    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-savings" value="" min="0" step="1000" placeholder="40000" oninput="syncRange('savings');recalc()"></div>
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-savings" value="40000" min="0" step="1000" placeholder="40000" oninput="syncRange('savings');recalc()"></div>
     <input type="range" id="rng-savings" min="0" max="200000" step="1000" value="40000" oninput="syncInput('savings');recalc()">
   </div>
 
@@ -689,7 +721,7 @@
       <div class="sl">Property Details</div>
 
       <!-- Photo upload + address card -->
-      <div class="g2" style="margin-bottom:14px;align-items:start;">
+      <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:20px;margin-bottom:14px;align-items:start;">
 
         <!-- Photo upload big zone -->
         <div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
@@ -813,7 +845,7 @@
         <div class="card">
           <div class="ca" style="background:var(--slate)"></div>
           <h3>Notes</h3>
-          <textarea id="pd-notes" oninput="updatePropertyDetails()" placeholder="Key observations, things to check, deal-breakers, pros/cons..." style="width:100%;height:90px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:3px;padding:10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.6;"></textarea>
+          <textarea id="pd-notes" oninput="updatePropertyDetails()" placeholder="Key observations, things to check, deal-breakers, pros/cons..." style="width:100%;height:120px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:3px;padding:10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.6;"></textarea>
         </div>
       </div>
 
@@ -1379,6 +1411,7 @@
       try{
         const state = collectCurrentState();
         lsSet(DRAFT_KEY, JSON.stringify({state, photo: propPhotoDataUrl||'', thumb: propThumbDataUrl||''}));
+        _isDirty = true;
         updateUnsavedBadge();
       }catch(e){}
     }, 800);
@@ -1389,15 +1422,21 @@
       if(!raw) return false;
       const draft = JSON.parse(raw);
       if(!draft || !draft.state) return false;
-      if(draft.photo){ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.thumb||''; applyPropPhoto(draft.photo); }
+      // Restore photo — only if it fits (skip silently if corrupt)
+      if(draft.photo && draft.photo.startsWith('data:')){
+        try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.thumb||''; applyPropPhoto(draft.photo); }catch(pe){}
+      } else if(draft.photo && draft.photo.startsWith('http')){
+        try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.photo; applyPropPhoto(draft.photo); }catch(pe){}
+      }
       applyScenarioState(draft.state, null);
       // Always land on property tab after restore
       const propTabBtn = document.querySelector('.tab[onclick*="property"]');
       if(propTabBtn) showTab('property', propTabBtn);
       return true;
-    }catch(e){ return false; }
+    }catch(e){ console.warn('restoreDraft failed:', e); return false; }
   }
   function recalc(){
+    autosaveDraft();
     const price   = v('inp-price');
     const savings = v('inp-savings');
     const depPct  = v('inp-depp');
@@ -1665,7 +1704,8 @@
 
   // ── PROPERTY DETAILS ──
   let propPhotoDataUrl = '';
-  let _lastSavedAddr = null; // tracks if current state matches a saved scenario
+  let _lastSavedAddr = null;
+  let _isDirty = false; // true when any value changed since last save/load
   let propThumbDataUrl = ''; // small thumbnail for library
 
   function handlePropPhotoDrop(e){
@@ -2096,7 +2136,7 @@
     _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
     saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
-    _lastSavedAddr = fullAddr; updateUnsavedBadge();
+    _lastSavedAddr = fullAddr; _isDirty = false; updateUnsavedBadge();
     const action = existIdx>=0 ? 'Updated' : 'Saved';
     if(usedCloud){
       showToast(`☁️ ${action} to cloud — visible on all devices`);
@@ -2233,7 +2273,7 @@
     closeScenariosModal();
     const photo = sc.hasPhoto ? await getPhoto(sc.id) : null;
     applyScenarioState(sc.state, photo);
-    _lastSavedAddr = sc.fullAddr; updateUnsavedBadge();
+    _lastSavedAddr = sc.fullAddr; _isDirty = false; updateUnsavedBadge();
     showToast('✓ Loaded: ' + sc.fullAddr);
     pendingLoadId = null;
   }
@@ -2299,10 +2339,10 @@
   function updateUnsavedBadge(){
     const badge = document.getElementById('unsaved-badge');
     if(!badge) return;
-    const addr = document.getElementById('pd-address')?.value?.trim() || '';
-    const hasContent = addr.length > 0;
-    const isSaved = _lastSavedAddr && addr && _lastSavedAddr.toLowerCase().startsWith(addr.toLowerCase());
-    if(hasContent && !isSaved){
+    const price = v('inp-price');
+    const addr  = document.getElementById('pd-address')?.value?.trim() || '';
+    const hasContent = price > 0 || addr.length > 0;
+    if(hasContent && _isDirty){
       badge.style.display = 'inline-flex';
       badge.title = 'You have unsaved changes — click Save to preserve them';
     } else {
@@ -2312,9 +2352,9 @@
 
   // Warn before closing/refreshing with unsaved address data
   window.addEventListener('beforeunload', function(e){
-    const addr = document.getElementById('pd-address')?.value?.trim() || '';
-    const isSaved = _lastSavedAddr && addr && _lastSavedAddr.toLowerCase().startsWith(addr.toLowerCase());
-    if(addr && !isSaved){
+    const price = v('inp-price');
+    const addr  = document.getElementById('pd-address')?.value?.trim() || '';
+    if((price > 0 || addr) && _isDirty){
       e.preventDefault();
       e.returnValue = 'You have unsaved changes. Refresh anyway?';
     }
@@ -2755,6 +2795,37 @@
   th:last-child,td:last-child{text-align:right;}
   .print-btn{position:fixed;top:16px;right:16px;background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:8px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;z-index:100;}
   @media print{.print-btn{display:none;}}
+
+  /* ── USER PROFILE ── */
+  #profile-btn{width:34px;height:34px;border-radius:50%;background:var(--gold);border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--charcoal);flex-shrink:0;overflow:hidden;transition:transform 0.15s;position:relative;}
+  #profile-btn:hover{transform:scale(1.08);}
+  #profile-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  #profile-panel{position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--charcoal);z-index:5000;box-shadow:-8px 0 40px rgba(0,0,0,0.5);transition:right 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+  #profile-panel.open{right:0;}
+  #profile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:4999;backdrop-filter:blur(2px);}
+  #profile-overlay.open{display:block;}
+  .pp-header{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.04));padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .pp-avatar-wrap{position:relative;width:72px;height:72px;margin-bottom:14px;}
+  .pp-avatar{width:72px;height:72px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:var(--charcoal);overflow:hidden;border:3px solid rgba(201,168,76,0.4);}
+  .pp-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .pp-avatar-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--charcoal);border:1.5px solid rgba(201,168,76,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;}
+  .pp-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--cream);margin-bottom:3px;}
+  .pp-role{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(245,240,232,0.4);text-transform:uppercase;}
+  .pp-section{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.05);}
+  .pp-section-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.35);margin-bottom:12px;}
+  .pp-field{margin-bottom:12px;}
+  .pp-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(245,240,232,0.45);margin-bottom:5px;display:block;}
+  .pp-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--cream);outline:none;transition:border-color 0.15s;}
+  .pp-input:focus{border-color:rgba(201,168,76,0.6);}
+  .pp-stat{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+  .pp-stat:last-child{border-bottom:none;}
+  .pp-stat-lbl{font-size:13px;color:rgba(245,240,232,0.5);}
+  .pp-stat-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);}
+  .pp-save-btn{margin:16px 24px;background:var(--gold);color:var(--charcoal);border:none;border-radius:3px;padding:11px;width:calc(100% - 48px);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;transition:opacity 0.15s;}
+  .pp-save-btn:hover{opacity:0.88;}
+  .pp-close{position:absolute;top:16px;right:16px;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:3px;color:var(--cream);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .pp-login-note{margin:12px 24px;padding:12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:3px;font-size:12px;color:rgba(245,240,232,0.55);line-height:1.6;}
+  .pp-login-note strong{color:var(--gold);}
 </style>
 </head>
 <body>
@@ -3100,8 +3171,130 @@
   setAppHeight();
   drawProjection();
   showStorageStatus();
+  loadProfile();
   if(_hadDraft) setTimeout(()=>showToast('↩️ Draft restored from last session'),600);
   else setTimeout(()=>showToast('👋 Fill in your property details in tab 00 · Property'),900);
+
+  // ══════════════════════════════════════════════
+  // USER PROFILE
+  // ══════════════════════════════════════════════
+  const PROFILE_KEY = 'propCalc_profile_v1';
+  let _profileData = { name: '', email: '', color: '#C9A84C', photo: '' };
+
+  function loadProfile(){
+    try{
+      const raw = lsGet(PROFILE_KEY);
+      if(raw) _profileData = Object.assign(_profileData, JSON.parse(raw));
+    }catch(e){}
+    renderProfileBtn();
+    renderProfilePanel();
+  }
+
+  function renderProfileBtn(){
+    const btn = document.getElementById('profile-btn');
+    if(!btn) return;
+    if(_profileData.photo){
+      btn.innerHTML = `<img src="${_profileData.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      btn.style.background = 'transparent';
+    } else {
+      const initials = _profileData.name
+        ? _profileData.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)
+        : '?';
+      btn.innerHTML = initials;
+      btn.style.background = _profileData.color || '#C9A84C';
+    }
+  }
+
+  function renderProfilePanel(){
+    const nameDisplay = document.getElementById('pp-name-display');
+    const nameInput   = document.getElementById('pp-name-input');
+    const emailInput  = document.getElementById('pp-email-input');
+    const avatarDisplay = document.getElementById('pp-avatar-display');
+    if(nameDisplay) nameDisplay.textContent = _profileData.name || 'Your Name';
+    if(nameInput)   nameInput.value   = _profileData.name || '';
+    if(emailInput)  emailInput.value  = _profileData.email || '';
+    if(avatarDisplay){
+      if(_profileData.photo){
+        avatarDisplay.innerHTML = `<img src="${_profileData.photo}">`;
+        avatarDisplay.style.background = 'transparent';
+      } else {
+        const initials = _profileData.name
+          ? _profileData.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)
+          : '?';
+        avatarDisplay.innerHTML = initials;
+        avatarDisplay.style.background = _profileData.color || '#C9A84C';
+      }
+    }
+    // Activity stats
+    const savedCount = document.getElementById('saved-count')?.textContent || '0';
+    const ppSaved = document.getElementById('pp-stat-saved');
+    if(ppSaved) ppSaved.textContent = savedCount === '0' ? '—' : savedCount;
+    const ppLast = document.getElementById('pp-stat-last');
+    if(ppLast){
+      const now = new Date();
+      ppLast.textContent = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+String(now.getFullYear()).slice(-2);
+    }
+    const ppStorage = document.getElementById('pp-stat-storage');
+    if(ppStorage) ppStorage.textContent = ON_NETLIFY ? '☁ Cloud + Local' : '💾 Local';
+  }
+
+  function previewProfileName(val){
+    const d = document.getElementById('pp-name-display');
+    if(d) d.textContent = val || 'Your Name';
+    const avd = document.getElementById('pp-avatar-display');
+    if(avd && !_profileData.photo){
+      const initials = val ? val.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?';
+      avd.innerHTML = initials;
+    }
+  }
+
+  function setProfileColor(color){
+    _profileData.color = color;
+    const avd = document.getElementById('pp-avatar-display');
+    if(avd && !_profileData.photo) avd.style.background = color;
+    renderProfileBtn();
+  }
+
+  function handleProfilePhoto(input){
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        const c = document.createElement('canvas');
+        c.width = 128; c.height = 128;
+        c.getContext('2d').drawImage(img, 0, 0, 128, 128);
+        _profileData.photo = c.toDataURL('image/jpeg', 0.85);
+        renderProfileBtn();
+        renderProfilePanel();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function saveProfile(){
+    _profileData.name  = document.getElementById('pp-name-input')?.value?.trim() || '';
+    _profileData.email = document.getElementById('pp-email-input')?.value?.trim() || '';
+    lsSet(PROFILE_KEY, JSON.stringify(_profileData));
+    renderProfileBtn();
+    renderProfilePanel();
+    closeProfile();
+    showToast('✓ Profile saved');
+  }
+
+  function openProfile(){
+    renderProfilePanel();
+    document.getElementById('profile-panel')?.classList.add('open');
+    document.getElementById('profile-overlay')?.classList.add('open');
+  }
+
+  function closeProfile(){
+    document.getElementById('profile-panel')?.classList.remove('open');
+    document.getElementById('profile-overlay')?.classList.remove('open');
+  }
+
 </script>
 </body>
 </html
