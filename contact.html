@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Contact &amp; Support — mypropertymate.app</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .contact-hero{background:var(--charcoal);padding:80px 0 60px;text-align:center;position:relative;overflow:hidden;}
+  .contact-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 30% 50%,rgba(91,143,171,0.07) 0%,transparent 65%);pointer-events:none;}
+  .contact-hero-inner{max-width:560px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+  .contact-hero h1{font-family:var(--font-display);font-size:clamp(34px,5vw,52px);font-weight:700;color:var(--cream);line-height:1.1;margin-bottom:14px;}
+  .contact-hero p{font-size:16px;color:rgba(245,240,232,0.5);line-height:1.6;}
+
+  .contact-body{background:var(--warm-white);padding:80px 0;}
+  .contact-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 1.5fr;gap:64px;align-items:start;}
+
+  /* Support options */
+  .support-options{display:flex;flex-direction:column;gap:16px;}
+  .support-card{background:white;border-radius:8px;padding:24px;border:1px solid rgba(28,28,30,0.08);display:flex;align-items:flex-start;gap:16px;transition:box-shadow 0.15s,transform 0.15s;}
+  .support-card:hover{box-shadow:var(--shadow-sm);transform:translateY(-2px);}
+  .support-card a{text-decoration:none;color:inherit;}
+  .support-icon{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .support-card-text h3{font-size:15px;font-weight:600;margin-bottom:4px;color:var(--charcoal);}
+  .support-card-text p{font-size:13px;color:var(--slate);line-height:1.5;}
+  .support-card-text .rt{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-top:6px;}
+
+  /* Contact form */
+  .contact-form-wrap{background:white;border-radius:10px;padding:36px;border:1px solid rgba(28,28,30,0.07);}
+  .contact-form-wrap h2{font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:6px;}
+  .contact-form-wrap p{font-size:14px;color:var(--slate);margin-bottom:24px;line-height:1.5;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .cf-field{margin-bottom:16px;}
+  .cf-label{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(28,28,30,0.45);margin-bottom:6px;display:block;}
+  .cf-input,.cf-select,.cf-textarea{width:100%;background:var(--warm-white);border:1px solid rgba(28,28,30,0.12);border-radius:4px;padding:12px 14px;font-family:var(--font-body);font-size:14px;color:var(--charcoal);outline:none;transition:border-color 0.15s;box-sizing:border-box;}
+  .cf-input:focus,.cf-select:focus,.cf-textarea:focus{border-color:rgba(201,168,76,0.6);background:white;}
+  .cf-textarea{resize:vertical;min-height:120px;}
+  .cf-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234A4A52' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+  .cf-submit{width:100%;background:var(--charcoal);color:var(--cream);border:none;border-radius:4px;padding:14px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:opacity 0.15s;}
+  .cf-submit:hover{opacity:0.85;}
+  .cf-submit:disabled{opacity:0.4;cursor:default;}
+  .cf-success{display:none;text-align:center;padding:32px;color:var(--reward-green);font-family:var(--font-mono);font-size:13px;}
+  .cf-success-icon{font-size:48px;margin-bottom:14px;}
+
+  /* FAQ */
+  .faq-section{background:var(--cream);padding:80px 0;}
+  .faq-inner{max-width:720px;margin:0 auto;padding:0 24px;}
+  .faq-item{border-bottom:1px solid rgba(28,28,30,0.1);}
+  .faq-q{width:100%;background:none;border:none;padding:18px 0;display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600;color:var(--charcoal);cursor:pointer;text-align:left;gap:16px;}
+  .faq-ico{font-size:20px;flex-shrink:0;transition:transform 0.2s;color:var(--gold);font-family:var(--font-mono);}
+  .faq-item.open .faq-ico{transform:rotate(45deg);}
+  .faq-ans{display:none;padding-bottom:20px;font-size:14px;color:var(--slate);line-height:1.7;}
+  .faq-item.open .faq-ans{display:block;}
+
+  @media(max-width:860px){.contact-inner{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="index.html" class="site-logo">
+      <div class="site-logo-mark">🏠</div>
+      <div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links">
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="contact.html" class="active">Support</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+    <div class="site-nav-actions" id="nav-actions">
+      <button class="btn-ghost" onclick="location.href='login.html'">Sign in</button>
+      <button class="btn-gold" onclick="location.href='login.html?tab=signup'">Get started free</button>
+    </div>
+    <button class="nav-hamburger" id="nav-ham">☰</button>
+  </div>
+</nav>
+
+<section class="contact-hero">
+  <div class="contact-hero-inner">
+    <div class="section-tag" style="color:var(--gold);">Support</div>
+    <h1>How can we help?</h1>
+    <p>We read every message ourselves and reply within 24 hours on weekdays. No bots, no auto-responses.</p>
+  </div>
+</section>
+
+<section class="contact-body" id="support">
+  <div class="contact-inner">
+
+    <!-- Support options -->
+    <div>
+      <div class="section-tag">Get help fast</div>
+      <h2 style="font-family:var(--font-display);font-size:26px;font-weight:700;margin-bottom:24px;line-height:1.2;">Support options</h2>
+      <div class="support-options">
+
+        <div class="support-card">
+          <div class="support-icon" style="background:rgba(201,168,76,0.12);">✉️</div>
+          <div class="support-card-text">
+            <h3>Email support</h3>
+            <p>Send us a message about anything — account, billing, a bug, or a feature idea.</p>
+            <p class="rt">Typical reply: &lt; 24 hours</p>
+          </div>
+        </div>
+
+        <div class="support-card">
+          <div class="support-icon" style="background:rgba(91,143,171,0.12);">💬</div>
+          <div class="support-card-text">
+            <h3>Live chat</h3>
+            <p>Available to Pro and Adviser subscribers during business hours (AEST Mon–Fri).</p>
+            <p class="rt">Pro plan feature</p>
+          </div>
+        </div>
+
+        <div class="support-card" style="cursor:pointer;" onclick="location.href='pricing.html#comparison'">
+          <div class="support-icon" style="background:rgba(123,158,135,0.12);">📖</div>
+          <div class="support-card-text">
+            <h3>Documentation</h3>
+            <p>Read how the shared equity calculator works, how scheme rules are applied, and how to interpret the 30-year chart.</p>
+            <p class="rt">Always available</p>
+          </div>
+        </div>
+
+        <div class="support-card">
+          <div class="support-icon" style="background:rgba(196,112,74,0.12);">🐛</div>
+          <div class="support-card-text">
+            <h3>Report a bug</h3>
+            <p>Found something broken? Use the form and select "Bug report" — we treat these as urgent and usually fix within 48 hours.</p>
+            <p class="rt">See the form →</p>
+          </div>
+        </div>
+
+        <div style="background:var(--charcoal);border-radius:8px;padding:24px;margin-top:8px;">
+          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Adviser plan</div>
+          <div style="font-size:14px;color:rgba(245,240,232,0.7);line-height:1.6;margin-bottom:14px;">Adviser subscribers get priority phone support. Contact us to discuss your account or escalate an issue.</div>
+          <a href="mailto:advisers@mypropertymate.app" style="font-family:var(--font-mono);font-size:11px;color:var(--gold);letter-spacing:0.5px;">advisers@mypropertymate.app →</a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Contact form -->
+    <div class="contact-form-wrap" id="contact-form-wrap">
+      <h2>Send us a message</h2>
+      <p>Use the form below for general enquiries, bug reports, feature requests, or anything else. We'll get back to you at the email address you provide.</p>
+
+      <div id="contact-form">
+        <div class="form-row">
+          <div class="cf-field"><label class="cf-label">First name</label><input class="cf-input" id="cf-fname" type="text" placeholder="Jamie"></div>
+          <div class="cf-field"><label class="cf-label">Last name</label><input class="cf-input" id="cf-lname" type="text" placeholder="Smith"></div>
+        </div>
+        <div class="cf-field"><label class="cf-label">Email</label><input class="cf-input" id="cf-email" type="email" placeholder="jamie@email.com"></div>
+        <div class="cf-field">
+          <label class="cf-label">Subject</label>
+          <select class="cf-select" id="cf-subject">
+            <option value="">Select a topic...</option>
+            <option value="general">General question</option>
+            <option value="bug">Bug report</option>
+            <option value="feature">Feature request</option>
+            <option value="billing">Billing / subscription</option>
+            <option value="calculator">Calculator question</option>
+            <option value="adviser">Adviser plan enquiry</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="cf-field"><label class="cf-label">Message</label><textarea class="cf-textarea" id="cf-message" placeholder="Tell us what's on your mind..."></textarea></div>
+        <div style="font-size:12px;color:var(--slate);margin-bottom:16px;line-height:1.5;">By submitting this form you agree to our <a href="#" style="color:var(--gold);">Privacy Policy</a>. We'll only use your email to respond to your enquiry.</div>
+        <button class="cf-submit" id="cf-submit" onclick="submitForm()">Send Message →</button>
+        <div style="font-size:12px;color:#E8956A;margin-top:8px;min-height:18px;font-family:var(--font-mono);" id="cf-error"></div>
+      </div>
+
+      <div class="cf-success" id="cf-success">
+        <div class="cf-success-icon">✅</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--charcoal);margin-bottom:8px;">Message sent!</div>
+        <div style="color:var(--slate);font-family:var(--font-body);font-size:14px;">We'll get back to you within 24 hours. While you wait, try the calculator →</div>
+        <button onclick="location.href='app.html'" style="margin-top:20px;background:var(--charcoal);color:var(--cream);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.5px;">Open Calculator →</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-inner">
+    <h2 style="font-family:var(--font-display);font-size:32px;font-weight:700;margin-bottom:48px;text-align:center;">Common questions</h2>
+
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How does the shared equity calculator work?<span class="faq-ico">+</span></button><div class="faq-ans">mypropertymate models the government's equity contribution based on the scheme rules for your state (QLD, NSW, or VIC). It calculates the government's percentage share, what you'll owe when you sell or buy out, and how that changes over time as property values grow. It uses the purchase price, your savings, and the applicable income/property caps to determine eligibility.</div></div>
+
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Is mypropertymate actually accurate?<span class="faq-ico">+</span></button><div class="faq-ans">Our calculations are based on publicly available scheme rules and standard mortgage calculations. They're designed to give you an accurate planning picture, not a legal quote. Always verify eligibility and final figures with a licensed mortgage broker or financial adviser before making any decisions.</div></div>
+
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">I'm having trouble logging in — what do I do?<span class="faq-ico">+</span></button><div class="faq-ans">Try clearing your browser cache and logging in again. If that doesn't work, use the "forgot password" option on the login page. If you're still stuck, send us a message using the form above with "Billing / subscription" selected and we'll sort it out promptly.</div></div>
+
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How do I cancel my subscription?<span class="faq-ico">+</span></button><div class="faq-ans">Go to Account Settings → Subscription → Cancel Plan. Your Pro access will continue until the end of the billing period. We don't charge cancellation fees. If you cancel mid-year on an annual plan and want a partial refund, contact us.</div></div>
+
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Can I use this on my phone?<span class="faq-ico">+</span></button><div class="faq-ans">Yes — mypropertymate is fully responsive and works well on iPhone and Android. You can also add it to your home screen as a PWA (Progressive Web App) for a native-app-like experience. On iPhone: tap Share → Add to Home Screen. On Android: tap the menu → Install App.</div></div>
+
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Do you have an API for developers?<span class="faq-ico">+</span></button><div class="faq-ans">An API is in our Q3 2025 roadmap, starting with the Adviser plan. If you have a specific integration in mind, send us a message — we'd love to hear what you're building.</div></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-grid">
+      <div class="footer-brand"><a href="index.html" class="site-logo" style="margin-bottom:14px;"><div class="site-logo-mark">🏠</div><div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div></a><p>Australia's smartest property finance calculator for first home buyers.</p></div>
+      <div class="footer-col"><h4>Product</h4><ul><li><a href="app.html">Calculator</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
+      <div class="footer-col"><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 mypropertymate.app · Not financial advice · ABN pending.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div></div>
+  </div>
+</footer>
+
+<script>
+  function submitForm(){
+    const fname=document.getElementById('cf-fname').value.trim();
+    const email=document.getElementById('cf-email').value.trim();
+    const subject=document.getElementById('cf-subject').value;
+    const msg=document.getElementById('cf-message').value.trim();
+    const errEl=document.getElementById('cf-error');
+    const btn=document.getElementById('cf-submit');
+    if(!fname||!email||!subject||!msg){ errEl.textContent='Please fill in all required fields.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errEl.textContent='Please enter a valid email address.'; return; }
+    errEl.textContent='';
+    btn.disabled=true; btn.textContent='Sending…';
+    // In production: POST to /.netlify/functions/contact
+    // For now simulate success
+    setTimeout(function(){
+      document.getElementById('contact-form').style.display='none';
+      document.getElementById('cf-success').style.display='block';
+    }, 1200);
+  }
+
+  document.getElementById('nav-ham').addEventListener('click',function(){
+    const l=document.querySelector('.site-nav-links');
+    l.style.cssText=l.style.display==='flex'?'':'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
+  });
+
+  // Session-aware nav
+  (function(){
+    const SK='propCalc_session_v1',PK='propCalc_profile_v1';
+    function gs(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):null;}catch(e){return null;}}
+    function gp(){try{const r=localStorage.getItem(PK);return r?JSON.parse(r):null;}catch(e){return null;}}
+    const sess=gs(),prof=gp(),el=document.getElementById('nav-actions');
+    if(!sess||!el)return;
+    const n=sess.name||sess.email||'U',ini=n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2),ph=prof&&prof.photo;
+    el.innerHTML=`<a href="app.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.55);padding:8px 14px;border-radius:3px;background:rgba(255,255,255,0.06);text-decoration:none;border:1px solid rgba(255,255,255,0.1);">Open App →</a><div class="nav-user-wrap" id="nuw"><button class="nav-user-btn" onclick="document.getElementById('nuw').classList.toggle('open')" title="${n}">${ph?'<img src="'+ph+'">':ini}</button><div class="nav-user-dropdown"><div class="nav-dropdown-header"><div class="nav-dropdown-name">${n}</div><div class="nav-dropdown-email">${sess.email||''}</div></div><div class="nav-dropdown-items"><a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a><a href="account.html" class="nav-dropdown-item">⚙ Account</a><button class="nav-dropdown-item danger" onclick="localStorage.removeItem('${SK}');location.reload()">Sign Out</button></div></div></div>`;
+    document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');});
+    // Pre-fill form email
+    const emailInput=document.getElementById('cf-email');
+    if(emailInput&&sess.email)emailInput.value=sess.email;
+    const fnameInput=document.getElementById('cf-fname');
+    if(fnameInput&&sess.name)fnameInput.value=sess.name.split(' ')[0];
+  })();
+</script>
+</body>
+</html>
