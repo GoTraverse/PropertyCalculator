@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PropCalc">
@@ -30,7 +30,15 @@
   .header-tag{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
   h1{font-family:'Playfair Display',serif;font-size:clamp(24px,3.5vw,40px);font-weight:900;line-height:1.1;margin-bottom:4px;}
   .header-sub{font-size:13px;color:rgba(245,240,232,0.45);font-weight:300;margin-bottom:14px;}
-  .header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .header-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0;}
+  /* Overflow menu */
+  .hdr-overflow-wrap{position:relative;display:none;}
+  .hdr-overflow-btn{font-size:18px!important;padding:4px 10px!important;letter-spacing:0;line-height:1;}
+  .hdr-overflow-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--charcoal-soft);border:1px solid rgba(255,255,255,0.12);border-radius:6px;min-width:180px;overflow:hidden;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+  .hdr-overflow-menu button{display:block;width:100%;padding:12px 16px;font-family:'DM Mono',monospace;font-size:12px;color:rgba(245,240,232,0.7);background:none;border:none;text-align:left;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.12s,color 0.12s;}
+  .hdr-overflow-menu button:last-child{border-bottom:none;}
+  .hdr-overflow-menu button:hover{background:rgba(255,255,255,0.06);color:var(--cream);}
+  .hdr-overflow-wrap.open .hdr-overflow-menu{display:block;}
   .header-badge{background:var(--gold);color:var(--charcoal);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:1px;padding:5px 12px;border-radius:2px;}
   .export-btn{display:flex;align-items:center;gap:6px;padding:6px 13px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:2px;font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;}
   .export-btn:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.35);}
@@ -383,8 +391,13 @@
     h1{font-size:17px!important;line-height:1.2!important;}
     #header-status-badge{font-size:10px!important;}
     .header-sub{font-size:11px!important;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 28px);}
-    .header-actions{gap:5px!important;flex-wrap:nowrap!important;overflow-x:auto;}
-    .export-btn{padding:5px 8px!important;font-size:10px!important;white-space:nowrap;flex-shrink:0;}
+    .header-actions{gap:5px!important;flex-wrap:nowrap!important;overflow:visible!important;}
+    .export-btn{padding:5px 9px!important;font-size:11px!important;white-space:nowrap;flex-shrink:0;}
+    .hdr-desktop-btn{display:none!important;}
+    .hdr-overflow-wrap{display:block!important;}
+    .hdr-save-label{display:none!important;}
+    #profile-btn{width:28px!important;height:28px!important;font-size:11px!important;}
+    #mobile-sidebar-btn{font-size:14px!important;padding:5px 8px!important;}
     .header-badge{font-size:10px!important;padding:4px 8px!important;}
     .header-photo-wrap{display:none!important;}
 
@@ -570,6 +583,22 @@
 <script src="auth-nav.js"></script>
 </head>
 <body>
+
+  // Block pinch-zoom in iOS PWA (standalone) mode
+  (function(){
+    if(window.navigator.standalone){
+      document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
+      document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, {passive:false});
+      document.addEventListener('gestureend', function(e){ e.preventDefault(); }, {passive:false});
+      var lastTouchEnd = 0;
+      document.addEventListener('touchend', function(e){
+        var now = Date.now();
+        if(now - lastTouchEnd < 300){ e.preventDefault(); }
+        lastTouchEnd = now;
+      }, {passive:false});
+    }
+  })();
+
 <div id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
 <header>
@@ -577,25 +606,37 @@
     <div class="header-text">
       <div class="header-tag"><a href="index.html" style="color:var(--gold);text-decoration:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;">mypropertymate.app</a></div>
       <h1 id="page-title">New Property</h1>
-      <p class="header-sub" id="header-sub-text">Add property details in the Property tab to get started</p>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0;">
+        <p class="header-sub" id="header-sub-text" style="margin:0;flex:1;">Add property details in the Property tab to get started</p>
+        <div id="unsaved-badge" style="display:none;align-items:center;gap:4px;background:rgba(196,112,74,0.25);border:1px solid rgba(196,112,74,0.5);border-radius:10px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:9px;color:#E8956A;white-space:nowrap;flex-shrink:0;" title="Unsaved changes">● Unsaved</div>
+      </div>
       <div class="header-actions">
         <button id="mobile-sidebar-btn" onclick="toggleMobileSidebar()" title="Open calculator">⚙</button>
         <button id="profile-btn" onclick="openProfile()" title="User Profile"></button>
-        <div id="unsaved-badge" style="display:none;align-items:center;gap:5px;background:rgba(196,112,74,0.25);border:1px solid rgba(196,112,74,0.5);border-radius:10px;padding:3px 9px;font-family:'DM Mono',monospace;font-size:10px;color:#E8956A;white-space:nowrap;cursor:default;" title="Unsaved changes">● Unsaved</div>
-        <button class="export-btn" onclick="saveScenario()" title="Save scenario to library">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Save
+        <button class="export-btn hdr-save-btn" onclick="saveScenario()" title="Save scenario to library">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span class="hdr-save-label">Save</span>
         </button>
-        <button class="export-btn" onclick="newScenario()" title="Start fresh new scenario" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">
+        <!-- Desktop-only action buttons -->
+        <button class="export-btn hdr-desktop-btn" onclick="newScenario()" title="Start fresh new scenario" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">
           ＋ New
         </button>
-        <button class="export-btn" id="open-saved-btn" onclick="openScenariosModal()" title="Browse saved scenarios">
+        <button class="export-btn hdr-desktop-btn" id="open-saved-btn" onclick="openScenariosModal()" title="Browse saved scenarios">
           📁 Library <span id="saved-count" style="display:none;background:var(--gold);color:var(--charcoal);border-radius:10px;padding:1px 6px;font-size:9px;margin-left:3px;vertical-align:middle;">0</span>
         </button>
-        <button class="export-btn" onclick="exportPDF()" title="Export to PDF">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export PDF
+        <button class="export-btn hdr-desktop-btn" onclick="exportPDF()" title="Export to PDF">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          PDF
         </button>
+        <!-- Mobile overflow menu -->
+        <div class="hdr-overflow-wrap" id="hdr-overflow-wrap">
+          <button class="export-btn hdr-overflow-btn" onclick="toggleHdrMenu()" title="More actions" id="hdr-more-btn">⋯</button>
+          <div class="hdr-overflow-menu" id="hdr-overflow-menu">
+            <button onclick="newScenario();closeHdrMenu()">＋ New scenario</button>
+            <button onclick="openScenariosModal();closeHdrMenu()">📁 Library <span id="saved-count-mob" style="background:var(--gold);color:var(--charcoal);border-radius:8px;padding:1px 5px;font-size:9px;margin-left:4px;display:none;">0</span></button>
+            <button onclick="exportPDF();closeHdrMenu()">⬇ Export PDF</button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="header-photo-wrap" id="photo-wrap">
@@ -3057,6 +3098,24 @@
   ` : ''}</div>
 </div>
 <script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
+<!-- ══ LOGIN GATE OVERLAY ══ -->
+<div id="login-gate" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--charcoal);flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;"></div>
+  <div style="position:relative;z-index:1;max-width:420px;width:100%;">
+    <div style="font-size:52px;margin-bottom:20px;">🏠</div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">mypropertymate.app</div>
+    <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:clamp(26px,6vw,38px);font-weight:700;color:var(--cream);line-height:1.15;margin-bottom:12px;">Sign in to access<br>the calculator.</h1>
+    <p style="font-size:14px;color:rgba(245,240,232,0.45);line-height:1.6;margin-bottom:32px;">Create a free account to get started — no credit card required.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="location.href='login.html?tab=signup'" style="background:var(--gold);color:var(--charcoal);border:none;padding:15px 24px;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;width:100%;">Create free account →</button>
+      <button onclick="location.href='login.html'" style="background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 24px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.5px;cursor:pointer;width:100%;">Sign in to existing account</button>
+      <a href="index.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.3);margin-top:8px;letter-spacing:0.5px;display:block;">← Back to mypropertymate.app</a>
+    </div>
+    <p style="font-size:11px;color:rgba(245,240,232,0.2);margin-top:24px;font-family:'DM Mono',monospace;line-height:1.6;">Free plan includes 1 saved property and all calculator features.</p>
+  </div>
+</div>
+
+
 </body></html>`;
 
     const blob = new Blob([html], {type:'text/html'});
@@ -3305,7 +3364,11 @@
   defaultReno.forEach(r => renoItems.push({id:'ri-'+renoItemId++, ...r}));
   renderRenoItems();
 
-  const PROFILE_KEY = 'propCalc_profile_v1';
+  const PROFILE_KEY_BASE = 'propCalc_profile_v1';
+  function getProfileKey(){
+    const uid = (_currentUser && (_currentUser.id || _currentUser.userId)) || 'guest';
+    return PROFILE_KEY_BASE + '_' + uid;
+  }
   const SESSION_KEY = 'propCalc_session_v1';
   let _profileData  = {name:'',email:'',color:'#C9A84C',photo:''};
   let _currentUser  = null; // null=guest, {name,email,id}=logged in
@@ -3318,6 +3381,20 @@
   setAppHeight();
   drawProjection();
   loadProfile();
+
+  // ── LOGIN GATE: require account to use calculator ─────────────
+  (function(){
+    const gate = document.getElementById('login-gate');
+    if(!gate) return;
+    if(!_currentUser){
+      // No session — show gate, hide app
+      gate.style.display = 'flex'; gate.style.flexDirection = 'column';
+      document.body.style.overflow = 'hidden';
+    } else {
+      gate.style.display = 'none';
+    }
+  })();
+
   if(_hadDraft){
     setTimeout(function(){
       var addr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
@@ -3346,10 +3423,15 @@
 
   function loadProfile(){
     try{
-      const raw = lsGet(PROFILE_KEY);
-      if(raw) _profileData = Object.assign({name:'',email:'',color:'#C9A84C',photo:''}, JSON.parse(raw));
+      // IMPORTANT: load session FIRST so getProfileKey() has the correct userId
       const sess = lsGet(SESSION_KEY);
       if(sess) _currentUser = JSON.parse(sess);
+      // Now load profile keyed to this specific user (not shared 'guest' key)
+      const raw = lsGet(getProfileKey());
+      if(raw) _profileData = Object.assign({name:'',email:'',color:'#C9A84C',photo:''}, JSON.parse(raw));
+      // Sync name/email from session if profile is blank
+      if(_currentUser && !_profileData.name) _profileData.name = _currentUser.name || '';
+      if(_currentUser && !_profileData.email) _profileData.email = _currentUser.email || '';
     } catch(e){}
     renderProfileBtn();
     renderProfilePanel();
@@ -3469,7 +3551,7 @@
   function saveProfile(){
     _profileData.name  = (document.getElementById('pp-name-input')  && document.getElementById('pp-name-input').value.trim())  || '';
     _profileData.email = (document.getElementById('pp-email-input') && document.getElementById('pp-email-input').value.trim()) || '';
-    lsSet(PROFILE_KEY, JSON.stringify(_profileData));
+    lsSet(getProfileKey(), JSON.stringify(_profileData));
     renderProfileBtn(); renderProfilePanel();
     closeProfile();
     showToast('✓ Profile saved');
@@ -3482,6 +3564,15 @@
     if(panel)   panel.classList.add('open');
     if(overlay) overlay.classList.add('open');
   }
+  function toggleHdrMenu(){
+    const wrap = document.getElementById('hdr-overflow-wrap');
+    if(wrap) wrap.classList.toggle('open');
+  }
+  function closeHdrMenu(){
+    const wrap = document.getElementById('hdr-overflow-wrap');
+    if(wrap) wrap.classList.remove('open');
+  }
+
   function closeProfile(){
     const panel   = document.getElementById('profile-panel');
     const overlay = document.getElementById('profile-overlay');
@@ -3522,8 +3613,8 @@
       lsSet(SESSION_KEY, JSON.stringify(_currentUser));
       _profileData.name  = _currentUser.name;
       _profileData.email = email;
-      lsSet(PROFILE_KEY, JSON.stringify(_profileData));
-      closeLoginModal(); renderProfileBtn(); renderProfilePanel();
+      lsSet(getProfileKey(), JSON.stringify(_profileData));
+      closeLoginModal(); renderProfileBtn(); renderProfilePanel(); hideAuthGate();
       // Reload library from user's personal cloud storage
       _scenariosCache = null;
       showToast('✓ Welcome back, ' + _currentUser.name + '!');
@@ -3532,7 +3623,7 @@
       if(res.error && res.error.indexOf('Network') >= 0){
         _profileData.name  = email.split('@')[0];
         _profileData.email = email;
-        lsSet(PROFILE_KEY, JSON.stringify(_profileData));
+        lsSet(getProfileKey(), JSON.stringify(_profileData));
         if(errEl) errEl.textContent = 'Auth backend not configured yet — saved locally';
         setTimeout(function(){ closeLoginModal(); renderProfileBtn(); renderProfilePanel(); }, 1400);
       } else {
@@ -3557,14 +3648,14 @@
       _currentUser = {id:res.id||email, name:name, email:email, token:res.token||null, plan:res.plan||'free'};
       lsSet(SESSION_KEY, JSON.stringify(_currentUser));
       _profileData.name = name; _profileData.email = email;
-      lsSet(PROFILE_KEY, JSON.stringify(_profileData));
-      closeLoginModal(); renderProfileBtn(); renderProfilePanel();
+      lsSet(getProfileKey(), JSON.stringify(_profileData));
+      closeLoginModal(); renderProfileBtn(); renderProfilePanel(); hideAuthGate();
       _scenariosCache = null;
       showToast('✓ Account created! Welcome, ' + name);
     } else {
       if(res.error && res.error.indexOf('Network') >= 0){
         _profileData.name = name; _profileData.email = email;
-        lsSet(PROFILE_KEY, JSON.stringify(_profileData));
+        lsSet(getProfileKey(), JSON.stringify(_profileData));
         if(errEl) errEl.textContent = 'Auth backend not deployed yet — saved locally';
         setTimeout(function(){ closeLoginModal(); renderProfileBtn(); renderProfilePanel(); }, 1500);
       } else {
@@ -3674,6 +3765,22 @@
 
 </script>
 
+
+<!-- ══ AUTH GATE ══ -->
+<div id="auth-gate" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--charcoal);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+  <div style="max-width:400px;width:100%;text-align:center;">
+    <div style="font-size:48px;margin-bottom:20px;">🏠</div>
+    <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--cream);margin-bottom:10px;line-height:1.2;">mypropertymate<span style="font-family:'DM Mono',monospace;color:var(--gold);font-size:18px;">.app</span></div>
+    <p style="font-size:14px;color:rgba(245,240,232,0.5);line-height:1.6;margin-bottom:32px;">Sign in to access your property calculator and personal library. Free accounts get full access to the core calculator.</p>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+      <button onclick="showLoginModal()" style="background:var(--gold);color:var(--charcoal);border:none;border-radius:4px;padding:14px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:opacity 0.15s;">Sign In →</button>
+      <button onclick="location.href='login.html?tab=signup'" style="background:rgba(255,255,255,0.08);color:var(--cream);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:14px 24px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:0.5px;cursor:pointer;">Create free account →</button>
+      <button onclick="dismissAuthGate()" style="background:none;color:rgba(245,240,232,0.3);border:none;padding:10px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">Continue as guest (data saved locally only)</button>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;color:rgba(245,240,232,0.2);text-transform:uppercase;">Free · No credit card · Cancel any time</div>
+  </div>
+</div>
+
 <!-- ══ USER PROFILE PANEL ══ -->
 <div id="profile-overlay" onclick="closeProfile()"></div>
 <div id="profile-panel">
@@ -3779,5 +3886,23 @@
     </div>
   </div>
 </div>
+<!-- ══ LOGIN GATE OVERLAY ══ -->
+<div id="login-gate" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--charcoal);flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;"></div>
+  <div style="position:relative;z-index:1;max-width:420px;width:100%;">
+    <div style="font-size:52px;margin-bottom:20px;">🏠</div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">mypropertymate.app</div>
+    <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:clamp(26px,6vw,38px);font-weight:700;color:var(--cream);line-height:1.15;margin-bottom:12px;">Sign in to access<br>the calculator.</h1>
+    <p style="font-size:14px;color:rgba(245,240,232,0.45);line-height:1.6;margin-bottom:32px;">Create a free account to get started — no credit card required.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="location.href='login.html?tab=signup'" style="background:var(--gold);color:var(--charcoal);border:none;padding:15px 24px;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;width:100%;">Create free account →</button>
+      <button onclick="location.href='login.html'" style="background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 24px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.5px;cursor:pointer;width:100%;">Sign in to existing account</button>
+      <a href="index.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.3);margin-top:8px;letter-spacing:0.5px;display:block;">← Back to mypropertymate.app</a>
+    </div>
+    <p style="font-size:11px;color:rgba(245,240,232,0.2);margin-top:24px;font-family:'DM Mono',monospace;line-height:1.6;">Free plan includes 1 saved property and all calculator features.</p>
+  </div>
+</div>
+
+
 </body>
 </html>
