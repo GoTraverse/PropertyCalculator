@@ -2106,7 +2106,9 @@
     if(ON_NETLIFY){
       try{
         const authH2 = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
-        const r = await fetch('/.netlify/functions/scenarios', {
+        const uid2   = getUserId();
+        const qs     = (!authH2 && uid2) ? '?userId='+encodeURIComponent(uid2) : '';
+        const r = await fetch('/.netlify/functions/scenarios'+qs, {
           headers: authH2 ? {'Authorization': authH2} : {}
         });
         if(r.ok){
@@ -2130,7 +2132,7 @@
         const r = await fetch('/.netlify/functions/scenarios', {
           method: 'POST',
           headers: Object.assign({'Content-Type':'application/json'}, authH ? {'Authorization': authH} : {}),
-          body: JSON.stringify({ action:'save', id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'' })
+          body: JSON.stringify({ action:'save', userId:getUserId(), id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'' })
         });
         console.log('[storage] POST scenarios status:', r.status);
         if(r.ok){
@@ -2141,7 +2143,7 @@
             fetch('/.netlify/functions/scenarios', {
               method: 'POST',
               headers: {'Content-Type':'application/json','Authorization': authH},
-              body: JSON.stringify({ action:'photo', id: record.id, photo: photoSrc })
+              body: JSON.stringify({ action:'photo', userId:getUserId(), id: record.id, photo: photoSrc })
             }).then(pr => console.log('[storage] photo upload:', pr.status))
               .catch(e => console.warn('[storage] photo upload failed:', e.message));
           }
@@ -2163,7 +2165,9 @@
     if(ON_NETLIFY){
       try{
         const authH3 = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
-        await fetch('/.netlify/functions/scenarios?id='+id, {
+        const uid3 = getUserId();
+        const deleteQs = '?id='+encodeURIComponent(id) + ((!authH3 && uid3) ? '&userId='+encodeURIComponent(uid3) : '');
+        await fetch('/.netlify/functions/scenarios'+deleteQs, {
           method:'DELETE',
           headers: authH3 ? {'Authorization': authH3} : {}
         });
@@ -2187,7 +2191,7 @@
           const r = await fetch('/.netlify/functions/scenarios', {
             method: 'POST',
             headers: {'Content-Type':'application/json', 'Authorization': authH},
-            body: JSON.stringify({action:'getPhoto', id})
+            body: JSON.stringify({action:'getPhoto', userId:getUserId(), id})
           });
           if(r.ok){ const d=await r.json(); if(d.photo){ _photoCache[id]=d.photo; return d.photo; } return null; }
         }
@@ -3355,6 +3359,11 @@
   function getAuthHeader(){
     if(_currentUser && _currentUser.token) return 'Bearer ' + _currentUser.token;
     return null;
+  }
+
+  // Returns current user ID for body-fallback auth (works even without token)
+  function getUserId(){
+    return (_currentUser && (_currentUser.id || _currentUser.userId)) || null;
   }
 
   function renderProfileBtn(){
