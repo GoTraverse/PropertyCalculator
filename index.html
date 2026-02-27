@@ -702,7 +702,7 @@
       <li><a href="contact.html">Support</a></li>
       <li><a href="about.html">About</a></li>
     </ul>
-    <div class="site-nav-actions">
+    <div class="site-nav-actions" id="nav-actions">
       <button class="btn-ghost" onclick="location.href='login.html'">Sign in</button>
       <button class="btn-gold" onclick="location.href='login.html?tab=signup'">Get started free</button>
     </div>
@@ -1079,6 +1079,7 @@
   </div>
 </footer>
 
+<script src="auth-nav.js"></script>
 <script>
   // Mobile nav toggle
   document.getElementById('nav-ham').addEventListener('click', function(){
@@ -1089,6 +1090,74 @@
       links.style.cssText = 'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
     }
   });
+
+// ── Session-aware nav (shared across all pages) ──
+(function(){
+  const SESSION_KEY = 'propCalc_session_v1';
+  const PROFILE_KEY = 'propCalc_profile_v1';
+
+  function getSession(){ try{ const r=localStorage.getItem(SESSION_KEY); return r?JSON.parse(r):null; }catch(e){return null;} }
+  function getProfile(){ try{ const r=localStorage.getItem(PROFILE_KEY); return r?JSON.parse(r):null; }catch(e){return null;} }
+
+  function renderNav(){
+    const sess    = getSession();
+    const profile = getProfile();
+    const actionsEl = document.getElementById('nav-actions');
+    if(!actionsEl) return;
+
+    if(sess){
+      const name   = sess.name || sess.email || 'User';
+      const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      const color  = (profile && profile.color) || '#C9A84C';
+      const photo  = profile && profile.photo;
+
+      actionsEl.innerHTML = `
+        <a href="app.html" style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.5px;color:rgba(245,240,232,0.55);padding:8px 14px;border-radius:3px;background:rgba(255,255,255,0.06);text-decoration:none;border:1px solid rgba(255,255,255,0.1);transition:all 0.15s;">Open App →</a>
+        <div class="nav-user-wrap" id="nav-user-wrap">
+          <button class="nav-user-btn" id="nav-user-btn" title="${name}" onclick="toggleNavDropdown()">${photo ? '<img src="'+photo+'">' : initials}</button>
+          <div class="nav-user-dropdown" id="nav-user-dropdown">
+            <div class="nav-dropdown-header">
+              <div class="nav-dropdown-name">${name}</div>
+              <div class="nav-dropdown-email">${sess.email||''}</div>
+            </div>
+            <div class="nav-dropdown-items">
+              <a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a>
+              <a href="account.html" class="nav-dropdown-item">⚙ Account Settings</a>
+              <button class="nav-dropdown-item danger" onclick="doNavLogout()">Sign Out</button>
+            </div>
+          </div>
+        </div>`;
+    } else {
+      actionsEl.innerHTML = `
+        <button class="btn-ghost" onclick="location.href='login.html'">Sign in</button>
+        <button class="btn-gold" onclick="location.href='login.html?tab=signup'">Get started free</button>`;
+    }
+  }
+
+  window.toggleNavDropdown = function(){
+    const wrap = document.getElementById('nav-user-wrap');
+    if(wrap) wrap.classList.toggle('open');
+  };
+
+  window.doNavLogout = function(){
+    localStorage.removeItem(SESSION_KEY);
+    location.reload();
+  };
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function(e){
+    const wrap = document.getElementById('nav-user-wrap');
+    if(wrap && !wrap.contains(e.target)) wrap.classList.remove('open');
+  });
+
+  // Run after DOM
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', renderNav);
+  } else {
+    renderNav();
+  }
+})();
+
 </script>
 </body>
 </html>
