@@ -3,14 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <script>
-  // Auth guard — runs before any rendering. Redirect immediately if not signed in.
+  // Auth guard — redirect to login only if no session exists at all.
+  // Be permissive: any non-empty session object is treated as valid.
+  // The server will reject bad tokens; this just prevents blank-slate access.
   (function(){
     try {
-      var sess = localStorage.getItem('propCalc_session_v1');
-      if (!sess) { location.replace('login.html'); return; }
-      var user = JSON.parse(sess);
-      if (!user || (!user.id && !user.email)) { location.replace('login.html'); return; }
+      var raw = localStorage.getItem('propCalc_session_v1');
+      if (!raw || raw === 'null' || raw === '{}') {
+        location.replace('login.html');
+        return;
+      }
+      var user = JSON.parse(raw);
+      // Accept if any identifying field is present
+      if (!user || (!user.id && !user.email && !user.name)) {
+        location.replace('login.html');
+      }
     } catch(e) {
+      // JSON parse failed — clear and redirect
+      try { localStorage.removeItem('propCalc_session_v1'); } catch(_){}
       location.replace('login.html');
     }
   })();
@@ -632,7 +642,6 @@
 <header>
   <div class="header-inner">
     <div class="header-text">
-      <div class="header-tag"><a href="index.html" style="color:var(--gold);text-decoration:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;">mypropertymate.app</a></div>
       <h1 id="page-title">New Property</h1>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0;">
         <p class="header-sub" id="header-sub-text" style="margin:0;flex:1;">Add property details in the Property tab to get started</p>
@@ -3935,7 +3944,7 @@
 
 
 <!-- ══ TOP-RIGHT PROFILE WIDGET (consistent across all pages) ══ -->
-<div id="app-profile-widget" style="position:fixed;top:14px;right:16px;z-index:5000;">
+<div id="app-profile-widget" style="position:fixed;top:max(14px, calc(env(safe-area-inset-top) + 10px));right:16px;z-index:5000;">
   <button id="app-profile-btn" onclick="toggleAppProfileMenu()" title="Account"
     style="width:38px;height:38px;border-radius:50%;background:var(--gold);
            border:2px solid rgba(201,168,76,0.4);color:var(--charcoal);
