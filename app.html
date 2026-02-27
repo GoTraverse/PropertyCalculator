@@ -581,6 +581,17 @@
   }
 </style>
 <script src="auth-nav.js"></script>
+<script>
+  // PWA back-swipe trap — push a state so iOS swipe-back stays in app
+  (function(){
+    if(window.history && window.history.pushState){
+      window.history.pushState({pwa:true}, document.title, window.location.href);
+    }
+    window.addEventListener('popstate', function(){
+      window.history.pushState({pwa:true}, document.title, window.location.href);
+    });
+  })();
+</script>
 </head>
 <body>
 
@@ -2541,15 +2552,7 @@
     }
   }
 
-  // Warn before closing/refreshing with unsaved address data
-  window.addEventListener('beforeunload', function(e){
-    const price = v('inp-price');
-    const addr  = document.getElementById('pd-address')?.value?.trim() || '';
-    if((price > 0 || addr) && _isDirty){
-      e.preventDefault();
-      e.returnValue = 'You have unsaved changes. Refresh anyway?';
-    }
-  });
+  // beforeunload dialog removed — saving is automatic
 
   function showToast(msg){
     const t = document.createElement('div');
@@ -3098,22 +3101,7 @@
   ` : ''}</div>
 </div>
 <script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
-<!-- ══ LOGIN GATE OVERLAY ══ -->
-<div id="login-gate" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--charcoal);flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
-  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;"></div>
-  <div style="position:relative;z-index:1;max-width:420px;width:100%;">
-    <div style="font-size:52px;margin-bottom:20px;">🏠</div>
-    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">mypropertymate.app</div>
-    <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:clamp(26px,6vw,38px);font-weight:700;color:var(--cream);line-height:1.15;margin-bottom:12px;">Sign in to access<br>the calculator.</h1>
-    <p style="font-size:14px;color:rgba(245,240,232,0.45);line-height:1.6;margin-bottom:32px;">Create a free account to get started — no credit card required.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <button onclick="location.href='login.html?tab=signup'" style="background:var(--gold);color:var(--charcoal);border:none;padding:15px 24px;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;width:100%;">Create free account →</button>
-      <button onclick="location.href='login.html'" style="background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 24px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.5px;cursor:pointer;width:100%;">Sign in to existing account</button>
-      <a href="index.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.3);margin-top:8px;letter-spacing:0.5px;display:block;">← Back to mypropertymate.app</a>
-    </div>
-    <p style="font-size:11px;color:rgba(245,240,232,0.2);margin-top:24px;font-family:'DM Mono',monospace;line-height:1.6;">Free plan includes 1 saved property and all calculator features.</p>
-  </div>
-</div>
+
 
 
 </body></html>`;
@@ -3745,6 +3733,14 @@
     setTimeout(openScenariosModal, 300);
   }
 
+  // Stub: showLoginModal redirects to login page
+  function showLoginModal(){ location.href = 'login.html'; }
+  // Stub: dismissAuthGate hides the overlay
+  function dismissAuthGate(){
+    const ag = document.getElementById('auth-gate');
+    if(ag) ag.style.display = 'none';
+  }
+
   // ── COLLAPSIBLE SIDEBAR ──
   var _sidebarCollapsed = false;
   function toggleSidebarCollapse(){
@@ -3773,7 +3769,7 @@
     <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--cream);margin-bottom:10px;line-height:1.2;">mypropertymate<span style="font-family:'DM Mono',monospace;color:var(--gold);font-size:18px;">.app</span></div>
     <p style="font-size:14px;color:rgba(245,240,232,0.5);line-height:1.6;margin-bottom:32px;">Sign in to access your property calculator and personal library. Free accounts get full access to the core calculator.</p>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
-      <button onclick="showLoginModal()" style="background:var(--gold);color:var(--charcoal);border:none;border-radius:4px;padding:14px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:opacity 0.15s;">Sign In →</button>
+      <button onclick="location.href='login.html'" style="background:var(--gold);color:var(--charcoal);border:none;border-radius:4px;padding:14px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:opacity 0.15s;">Sign In →</button>
       <button onclick="location.href='login.html?tab=signup'" style="background:rgba(255,255,255,0.08);color:var(--cream);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:14px 24px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:0.5px;cursor:pointer;">Create free account →</button>
       <button onclick="dismissAuthGate()" style="background:none;color:rgba(245,240,232,0.3);border:none;padding:10px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">Continue as guest (data saved locally only)</button>
     </div>
