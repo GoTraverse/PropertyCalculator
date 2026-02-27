@@ -78,7 +78,28 @@
 <div class="login-footer">
   <a href="index.html">← Back to home</a> &nbsp;·&nbsp; <a href="contact.html">Support</a> &nbsp;·&nbsp; <a href="#">Privacy</a>
 </div>
+<script src="auth-nav.js"></script>
 <script>
+  // Redirect if already logged in
+  (function(){
+    try{
+      const s = JSON.parse(localStorage.getItem('propCalc_session_v1'));
+      if(s && s.id){
+        const params = new URLSearchParams(location.search);
+        const next = params.get('next') || 'app.html';
+        location.href = next;
+      }
+    }catch(e){}
+  })();
+
+  // If already logged in, redirect
+  (function(){
+    try {
+      const sess = localStorage.getItem('propCalc_session_v1');
+      if(sess) { const u=JSON.parse(sess); if(u && u.email) location.replace('app.html'); }
+    } catch(e){}
+  })();
+
   // Read plan from URL
   const params = new URLSearchParams(location.search);
   if(params.get('tab') === 'signup') setTab('signup');
