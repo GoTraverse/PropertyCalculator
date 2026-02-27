@@ -1,15 +1,16 @@
 {
-  "name": "Property Finance Calculator",
-  "short_name": "PropCalc",
-  "description": "Track and analyse properties with the Shared Equity Scheme",
-  "start_url": "/",
+  "name": "mypropertymate",
+  "short_name": "PropMate",
+  "description": "Property finance calculator for Australian home buyers",
+  "start_url": "/app.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#1C1C1E",
   "theme_color": "#1C1C1E",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%231C1C1E'/><text y='360' x='256' text-anchor='middle' font-size='300' font-family='serif'>🏠</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%231C1C1E'/><text y='360' x='256' text-anchor='middle' font-size='300' font-family='serif'>\ud83c\udfe0</text></svg>",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
