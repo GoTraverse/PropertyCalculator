@@ -55,7 +55,7 @@
   .header-badge{background:var(--gold);color:var(--charcoal);font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:1px;padding:5px 12px;border-radius:2px;}
   .export-btn{display:flex;align-items:center;gap:6px;padding:6px 13px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:2px;font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;}
   .export-btn:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.35);}
-  .header-photo-wrap{width:280px;flex-shrink:0;position:relative;overflow:hidden;}
+  .header-photo-wrap{display:none!important;}
   .header-photo{width:100%;height:100%;object-fit:cover;display:block;opacity:0.88;}
   .photo-caption{position:absolute;bottom:0;left:0;right:0;padding:6px 10px;background:linear-gradient(transparent,rgba(0,0,0,0.65));font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.7);}
   .upload-zone{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border-left:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:background 0.2s;text-align:center;}
@@ -595,13 +595,15 @@
 </style>
 <script src="auth-nav.js"></script>
 <script>
-  // PWA back-swipe trap — push a state so iOS swipe-back stays in app
+  // PWA back-swipe trap — prevent iOS edge swipe from leaving the app
   (function(){
-    if(window.history && window.history.pushState){
-      window.history.pushState({pwa:true}, document.title, window.location.href);
-    }
-    window.addEventListener('popstate', function(){
-      window.history.pushState({pwa:true}, document.title, window.location.href);
+    if(!window.history || !window.history.pushState) return;
+    // Push two entries so there's always a forward state to return to
+    history.pushState({pwa:1}, '');
+    history.pushState({pwa:2}, '');
+    window.addEventListener('popstate', function(e){
+      // Immediately push forward again — traps the back gesture
+      history.pushState({pwa:2}, '');
     });
   })();
 </script>
@@ -638,7 +640,6 @@
       </div>
       <div class="header-actions">
         <button id="mobile-sidebar-btn" onclick="toggleMobileSidebar()" title="Open calculator">⚙</button>
-        <button id="profile-btn" onclick="openProfile()" title="User Profile"></button>
         <button class="export-btn hdr-save-btn" onclick="saveScenario()" title="Save scenario to library">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           <span class="hdr-save-label">Save</span>
@@ -3455,6 +3456,8 @@
       btn.style.padding = '';
       btn.innerHTML = initials;
     }
+    // Keep top-right widget in sync
+    renderAppProfileBtn();
   }
 
   function renderProfilePanel(){
@@ -3564,6 +3567,53 @@
     const wrap = document.getElementById('hdr-overflow-wrap');
     if(wrap) wrap.classList.remove('open');
   }
+
+  // ── TOP-RIGHT PROFILE WIDGET ──────────────────────────────────
+  function toggleAppProfileMenu(){
+    const menu = document.getElementById('app-profile-menu');
+    if(!menu) return;
+    const isOpen = menu.style.display === 'block';
+    menu.style.display = isOpen ? 'none' : 'block';
+  }
+  function closeAppProfileMenu(){
+    const menu = document.getElementById('app-profile-menu');
+    if(menu) menu.style.display = 'none';
+  }
+  function renderAppProfileBtn(){
+    const btn   = document.getElementById('app-profile-btn');
+    const nameEl  = document.getElementById('app-profile-name');
+    const emailEl = document.getElementById('app-profile-email');
+    if(!btn) return;
+    const name  = (_currentUser && _currentUser.name)  || _profileData.name  || '';
+    const email = (_currentUser && _currentUser.email) || _profileData.email || '';
+    const color = _profileData.color || '#C9A84C';
+    const photo = _profileData.photo || '';
+    if(photo){
+      btn.style.background = 'transparent';
+      btn.style.padding = '0';
+      btn.innerHTML = '<img src="' + photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    } else {
+      const ini = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+      btn.style.background = color;
+      btn.style.padding = '';
+      btn.innerHTML = ini;
+    }
+    if(nameEl)  nameEl.textContent  = name  || 'Account';
+    if(emailEl) emailEl.textContent = email || '';
+  }
+  function appSignOut(){
+    if(_currentUser && _currentUser.token){
+      fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'signout',token:_currentUser.token})}).catch(function(){});
+    }
+    localStorage.removeItem('propCalc_session_v1');
+    location.href = 'index.html';
+  }
+  // Close profile menu on outside click
+  document.addEventListener('click', function(e){
+    const widget = document.getElementById('app-profile-widget');
+    if(widget && !widget.contains(e.target)) closeAppProfileMenu();
+  });
 
   function closeProfile(){
     const panel   = document.getElementById('profile-panel');
@@ -3800,7 +3850,7 @@
       <input class="pp-input" id="pp-name-input" type="text" placeholder="e.g. Jamie Smith" oninput="previewProfileName(this.value)">
     </div>
     <div class="pp-field">
-      <label class="pp-label">Email (for future login)</label>
+      <label class="pp-label">Email</label>
       <input class="pp-input" id="pp-email-input" type="email" placeholder="you@email.com">
     </div>
   </div>
@@ -3821,7 +3871,7 @@
     </div>
   </div>
   <button class="pp-save-btn" onclick="saveProfile()">Save Profile</button>
-  <div class="pp-login-note"><strong>Coming soon:</strong> Full login with personal property libraries. For now, profile is saved in your browser.</div>
+  <a href="account.html" style="display:block;text-align:center;margin:0 22px 10px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.4);letter-spacing:0.5px;text-decoration:none;border:1px solid rgba(255,255,255,0.06);border-radius:3px;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">⚙ Full Account Settings →</a>
 </div>
 <!-- ══ WELCOME SPLASH ══ -->
 <div id="welcome-splash">
@@ -3883,6 +3933,32 @@
   </div>
 </div>
 
+
+<!-- ══ TOP-RIGHT PROFILE WIDGET (consistent across all pages) ══ -->
+<div id="app-profile-widget" style="position:fixed;top:14px;right:16px;z-index:5000;">
+  <button id="app-profile-btn" onclick="toggleAppProfileMenu()" title="Account"
+    style="width:38px;height:38px;border-radius:50%;background:var(--gold);
+           border:2px solid rgba(201,168,76,0.4);color:var(--charcoal);
+           font-family:'DM Mono',monospace;font-size:13px;font-weight:700;
+           cursor:pointer;display:flex;align-items:center;justify-content:center;
+           overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;
+           flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,0.4);">
+  </button>
+  <div id="app-profile-menu" style="display:none;position:absolute;top:46px;right:0;
+    background:#1C1C1E;border:1px solid rgba(255,255,255,0.1);
+    border-radius:6px;padding:6px;min-width:200px;
+    box-shadow:0 12px 40px rgba(0,0,0,0.6);z-index:5001;">
+    <div id="app-profile-header" style="padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;">
+      <div id="app-profile-name" style="font-size:13px;font-weight:600;color:#F5F0E8;"></div>
+      <div id="app-profile-email" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.35);margin-top:2px;"></div>
+    </div>
+    <div style="padding:2px 0;">
+      <button onclick="closeAppProfileMenu()" style="width:100%;text-align:left;display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;background:none;border:none;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''">🏠 Calculator</button>
+      <a href="account.html" onclick="closeAppProfileMenu()" style="display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;text-decoration:none;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''">⚙ Account Settings</a>
+      <button onclick="appSignOut()" style="width:100%;text-align:left;display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.45);font-size:13px;border-radius:4px;background:none;border:none;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">→ Sign Out</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
