@@ -595,6 +595,7 @@
 </head>
 <body>
 
+<script>
   // Block pinch-zoom in iOS PWA (standalone) mode
   (function(){
     if(window.navigator.standalone){
@@ -609,6 +610,7 @@
       }, {passive:false});
     }
   })();
+</script>
 
 <div id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
@@ -3371,17 +3373,18 @@
   loadProfile();
 
   // ── LOGIN GATE: require account to use calculator ─────────────
-  (function(){
+  // Runs after DOM is ready so getElementById works correctly
+  document.addEventListener('DOMContentLoaded', function(){
     const gate = document.getElementById('login-gate');
     if(!gate) return;
     if(!_currentUser){
-      // No session — show gate, hide app
-      gate.style.display = 'flex'; gate.style.flexDirection = 'column';
+      gate.style.display = 'flex';
+      gate.style.flexDirection = 'column';
       document.body.style.overflow = 'hidden';
     } else {
       gate.style.display = 'none';
     }
-  })();
+  });
 
   if(_hadDraft){
     setTimeout(function(){
