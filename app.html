@@ -565,6 +565,7 @@
     .sidebar.collapsed .sidebar-content{display:block!important;}
   }
 </style>
+<script src="auth-nav.js"></script>
 </head>
 <body>
 <div id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
@@ -1329,7 +1330,7 @@
         <div id="proj-svg-wrap" style="overflow:hidden;position:relative;width:100%;aspect-ratio:800/300;">
           <svg id="proj-chart" width="100%" height="100%" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;cursor:crosshair;"></svg>
           <!-- Click tooltip (item 6) -->
-          <div id="proj-tooltip" style="display:none;position:absolute;background:var(--charcoal);color:var(--cream);border-radius:4px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.35);border:1px solid rgba(201,168,76,0.3);min-width:180px;z-index:10;"></div>
+          <div id="proj-tooltip" style="display:none;position:absolute;background:var(--charcoal);color:var(--cream);border-radius:6px;padding:16px 22px;font-family:'DM Mono',monospace;font-size:13px;min-width:210px;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.35);min-width:210px;z-index:10;"></div>
         </div>
       </div>
 
@@ -1496,7 +1497,18 @@
       try{
         const state = collectCurrentState();
         lsSet(DRAFT_KEY, JSON.stringify({state, photo: propPhotoDataUrl||'', thumb: propThumbDataUrl||'', savedId: _lastSavedAddr||''}));
-        _isDirty = true;
+        // Only mark dirty if content has actually changed from last save.
+        // This prevents "Unsaved" showing after loading a saved property
+        // or after page load restoring a draft.
+        const currentAddr = (state.values && state.values['pd-address']) || '';
+        const savedAddr   = _lastSavedAddr || '';
+        // If a saved address exists and it still matches, don't mark dirty
+        if(savedAddr && currentAddr && savedAddr.toLowerCase().includes(currentAddr.toLowerCase().split(',')[0].trim().toLowerCase()) && !_forceDirty){
+          // No change to the address that identifies this save - stay clean
+        } else {
+          _isDirty = true;
+        }
+        _forceDirty = false;
         updateUnsavedBadge();
       }catch(e){}
     }, 800);
@@ -1526,6 +1538,7 @@
     }catch(e){ console.warn('restoreDraft failed:', e); _restoringDraft = false; return false; }
   }
   function recalc(){
+    if(!_restoringDraft) _forceDirty = true;
     autosaveDraft();
     const price   = v('inp-price');
     const savings = v('inp-savings');
@@ -1983,6 +1996,7 @@
   }
 
   function updatePropertyDetails(){
+    if(!_restoringDraft) _forceDirty = true;
     autosaveDraft();
     const address = document.getElementById('pd-address').value;
     const suburb  = document.getElementById('pd-suburb').value;
@@ -2087,7 +2101,10 @@
   async function getAllScenarios(){
     if(ON_NETLIFY){
       try{
-        const r = await fetch('/.netlify/functions/scenarios');
+        const authH2 = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
+        const r = await fetch('/.netlify/functions/scenarios', {
+          headers: authH2 ? {'Authorization': authH2} : {}
+        });
         if(r.ok){
           const data = await r.json();
           // Mirror to localStorage — survives Netlify rebuilds as a fallback
@@ -2105,9 +2122,10 @@
     if(ON_NETLIFY){
       try{
         // Send record first (fast — no photo payload). Photo uploads in background.
+        const authH = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
         const r = await fetch('/.netlify/functions/scenarios', {
           method: 'POST',
-          headers: {'Content-Type':'application/json'},
+          headers: Object.assign({'Content-Type':'application/json'}, authH ? {'Authorization': authH} : {}),
           body: JSON.stringify({ record, photoSrc: null }) // no photo in main call
         });
         console.log('[storage] POST scenarios status:', r.status);
@@ -2139,7 +2157,13 @@
 
   async function deleteScenarioFromBackend(id){
     if(ON_NETLIFY){
-      try{ await fetch('/.netlify/functions/scenarios?id='+id, {method:'DELETE'}); }catch(e){}
+      try{
+        const authH3 = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
+        await fetch('/.netlify/functions/scenarios?id='+id, {
+          method:'DELETE',
+          headers: authH3 ? {'Authorization': authH3} : {}
+        });
+      }catch(e){}
     }
     lsDel(PHOTO_PFX+id);
     try{
@@ -2371,11 +2395,21 @@
     closeConfirmModal();
     closeScenariosModal();
     const photo = sc.hasPhoto ? await getPhoto(sc.id) : null;
-    applyScenarioState(sc.state, photo);
     _restoringDraft = true;
-  _lastSavedAddr = sc.fullAddr; _isDirty = false; _restoringDraft = false; lsDel(DRAFT_KEY); updateUnsavedBadge();
+    applyScenarioState(sc.state, photo);
+    _lastSavedAddr = sc.fullAddr;
+    _isDirty = false;
+    _forceDirty = false;
+    lsDel(DRAFT_KEY);
+    updateUnsavedBadge();
     showToast('✓ Loaded: ' + sc.fullAddr);
     pendingLoadId = null;
+    // Keep _restoringDraft=true past the 800ms autosaveDraft timer (prevents dirty)
+    setTimeout(function(){
+      _restoringDraft = false;
+      _isDirty = false;   // re-confirm clean after timers have fired
+      updateUnsavedBadge();
+    }, 1400);
   }
 
   function applyScenarioState(state, photoSrc){
@@ -2684,13 +2718,13 @@
     const cx = padL+(yr/years)*cW;
     if(cross){ cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);cross.style.display=''; }
     // tooltip
-    tip.innerHTML=`<div style="font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:8px;">YEAR ${d.yr}</div>`
-      +`<div style="display:flex;flex-direction:column;gap:4px;font-size:11px;">`
-      +`<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:rgba(245,240,232,0.5);">Value</span><span style="color:#C9A84C;">${fmtK(d.baseVal)}</span></div>`
-      +`<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:rgba(245,240,232,0.5);">+Reno</span><span style="color:#7B9E87;">${fmtK(d.renoVal)}</span></div>`
-      +`<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:rgba(245,240,232,0.5);">Loan Bal</span><span style="color:#5B8FAB;">${fmtK(d.loanBal)}</span></div>`
-      +`<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:rgba(245,240,232,0.5);">Govt Owed</span><span style="color:#C4704A;">${fmtK(d.govtOwed)}</span></div>`
-      +`<div style="display:flex;justify-content:space-between;gap:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;"><span style="color:rgba(245,240,232,0.5);">Your Equity</span><span style="color:${d.yourEquity>0?'#5A9E7B':'#C45A5A'};font-weight:600;">${fmtK(d.yourEquity)}</span></div>`
+    tip.innerHTML=`<div style="font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:12px;font-weight:700;">YEAR ${d.yr}</div>`
+      +`<div style="display:flex;flex-direction:column;gap:9px;">`
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Value</span><span style="color:#C9A84C;font-size:19px;font-weight:700;">${fmtK(d.baseVal)}</span></div>`
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">+Reno</span><span style="color:#7B9E87;font-size:19px;font-weight:700;">${fmtK(d.renoVal)}</span></div>`
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Loan Bal</span><span style="color:#5B8FAB;font-size:19px;font-weight:700;">${fmtK(d.loanBal)}</span></div>`
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Govt Owed</span><span style="color:#C4704A;font-size:19px;font-weight:700;">${fmtK(d.govtOwed)}</span></div>`
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;border-top:1px solid rgba(255,255,255,0.14);padding-top:10px;margin-top:4px;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Your Equity</span><span style="color:${d.yourEquity>0?'#5A9E7B':'#C45A5A'};font-size:22px;font-weight:700;">${fmtK(d.yourEquity)}</span></div>`
       +'</div>';
     // position tooltip
     const px = e.clientX - rect.left;
