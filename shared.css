@@ -64,11 +64,12 @@ img { max-width: 100%; display: block; }
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
-  height: 64px;
+  min-height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  flex-wrap: nowrap;
 }
 .site-logo {
   display: flex;
@@ -287,14 +288,57 @@ img { max-width: 100%; display: block; }
   font-size: 18px;
 }
 @media(max-width: 768px) {
-  .site-nav-links { display: none; }
-  .nav-hamburger { display: flex; }
+  /* Never hide nav links behind hamburger — show them in a secondary row */
+  .site-nav-inner {
+    flex-wrap: wrap;
+    padding-bottom: 0;
+  }
+  .site-nav-links {
+    display: flex !important;
+    order: 3;
+    width: 100%;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 6px 16px;
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    margin: 0;
+  }
+  .site-nav-links::-webkit-scrollbar { display: none; }
+  .site-nav-links li { flex-shrink: 0; }
+  .site-nav-links a {
+    font-size: 12px;
+    padding: 8px 12px;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+  .site-nav-actions {
+    order: 2;
+    gap: 6px;
+  }
+  .btn-ghost {
+    padding: 7px 11px;
+    font-size: 10px;
+  }
+  .btn-gold {
+    padding: 7px 12px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .nav-hamburger { display: none !important; }
+  .site-nav { padding-bottom: 0; }
   .site-footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
   .footer-brand { grid-column: 1 / -1; }
 }
 @media(max-width: 480px) {
   .site-footer-grid { grid-template-columns: 1fr; }
-  .site-nav-inner { padding: 0 16px; }
+  .site-nav-inner { padding: 0 12px; gap: 8px; }
+  .site-nav-links a { font-size: 12px; padding: 8px 10px; }
+  .site-logo-name { font-size: 13px; }
+  .btn-ghost { padding: 6px 10px; font-size: 10px; }
+  .btn-gold  { padding: 6px 10px; font-size: 10px; max-width: none; overflow: visible; white-space: nowrap; }
 }
 
 /* ── Session-aware nav ── */
