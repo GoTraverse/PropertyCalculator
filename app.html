@@ -22,6 +22,8 @@
   html,body{overflow-x:hidden!important;}  body{background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--charcoal);min-height:100vh;overflow-x:hidden;font-size:17px;}
 
   header{background:var(--charcoal);color:var(--cream);padding:0;padding-top:env(safe-area-inset-top,0px);position:relative;overflow:hidden;}
+  header::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.028) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
+  .header-inner{position:relative;z-index:1;}
   header::before{content:'';position:absolute;top:-60px;left:-40px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.12) 0%,transparent 70%);pointer-events:none;}
   .header-inner{display:flex;align-items:stretch;min-height:150px;}
   .header-text{flex:1;padding:28px 36px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;}
@@ -393,7 +395,7 @@
 
     /* Tabs — scrollable row */
     nav{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding-bottom:1px;}
-    .tab{padding:12px 14px!important;font-size:12px!important;white-space:nowrap!important;flex-shrink:0!important;min-width:auto!important;}
+    .tab{padding:11px 16px!important;font-size:12px!important;white-space:nowrap!important;flex-shrink:0!important;min-width:auto!important;border-right:1px solid rgba(255,255,255,0.07)!important;}
 
     /* Main content */
     main{padding:14px 12px!important;overflow:visible!important;flex:1;}
@@ -1217,7 +1219,7 @@
           <div class="dual-breakdown">
             <div class="dual-row"><span class="dnm">Cash after settlement</span><span class="dam" id="ov-buf-start">$23,900</span></div>
             <div class="dual-row"><span class="dnm">Overlap cost</span><span class="dam" style="color:var(--risk-red)" id="ov-buf-overlap">−$4,332</span></div>
-            <div class="dual-row dtot"><span class="dnm">Cash remaining for reno</span><span class="dam" id="ov-buf-final">$19,568</span></div>
+            <div class="dual-row dtot"><span class="dnm">Cash after overlap &amp; reno</span><span class="dam" id="ov-buf-final">$19,568</span></div>
           </div>
           <div id="ov-advice" style="margin-top:12px;padding:9px 11px;border-radius:3px;font-size:11px;line-height:1.6;"></div>
         </div>
@@ -1691,14 +1693,16 @@
     set('ov-buf-start',fmt(remaining));
     set('ov-buf-overlap','−'+fmt(totalOverlap));
     const ovFinal=document.getElementById('ov-buf-final');
-    if(ovFinal){ovFinal.textContent=fmt(cashAfter);ovFinal.style.color=cashAfter<0?'var(--risk-red)':cashAfter<10000?'var(--terracotta)':'var(--reward-green)';}
+    // Match reno tab: cash after overlap AND reno budget spent
+    const cashAfterReno = cashAfter - renoTotal;
+    if(ovFinal){ovFinal.textContent=fmt(cashAfterReno);ovFinal.style.color=cashAfterReno<0?'var(--risk-red)':cashAfterReno<5000?'var(--terracotta)':'var(--reward-green)';}
 
     const advEl=document.getElementById('ov-advice');
     if(advEl){
       if(weeks===0)advEl.innerHTML=`<div class="alert alert-ok">✓ No overlap period — you move in straight after renovation. Maximum cash preserved.</div>`;
       else if(cashAfter<0)advEl.innerHTML=`<div class="alert alert-warn">⚠️ The overlap cost (${fmt(totalOverlap)}) exceeds your remaining cash. You'll need extra funds or to reduce the overlap period.</div>`;
-      else if(cashAfter<8000)advEl.innerHTML=`<div class="alert alert-warn">⚠️ Tight — only ${fmt(cashAfter)} left for reno. Consider reducing overlap weeks or the reno scope.</div>`;
-      else advEl.innerHTML=`<div class="alert alert-ok">✓ Manageable — ${fmt(cashAfter)} still available for renovations after the ${weeks}-week overlap.</div>`;
+      else if(cashAfterReno<5000)advEl.innerHTML=`<div class="alert alert-warn">⚠️ Tight — only ${fmt(cashAfterReno)} remaining after overlap &amp; reno. Consider reducing overlap weeks or reno scope.</div>`;
+      else advEl.innerHTML=`<div class="alert alert-ok">✓ Manageable — ${fmt(cashAfterReno)} remaining after reno &amp; ${weeks}-week overlap.</div>`;
     }
 
     // calendar grid
@@ -2126,18 +2130,18 @@
         const r = await fetch('/.netlify/functions/scenarios', {
           method: 'POST',
           headers: Object.assign({'Content-Type':'application/json'}, authH ? {'Authorization': authH} : {}),
-          body: JSON.stringify({ record, photoSrc: null }) // no photo in main call
+          body: JSON.stringify({ action:'save', id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'' })
         });
         console.log('[storage] POST scenarios status:', r.status);
         if(r.ok){
           // Mirror updated list to localStorage immediately (belt-and-suspenders)
           getAllScenarios().then(latest => { if(latest.length) lsSet(STORAGE_KEY, JSON.stringify(latest)); }).catch(()=>{});
           // Upload full photo separately in background (don't await — user sees success immediately)
-          if(photoSrc){
+          if(photoSrc && authH){
             fetch('/.netlify/functions/scenarios', {
               method: 'POST',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify({ record: {id: record.id}, photoSrc })
+              headers: {'Content-Type':'application/json','Authorization': authH},
+              body: JSON.stringify({ action:'photo', id: record.id, photo: photoSrc })
             }).then(pr => console.log('[storage] photo upload:', pr.status))
               .catch(e => console.warn('[storage] photo upload failed:', e.message));
           }
@@ -2177,8 +2181,16 @@
     if(_photoCache[id]) return _photoCache[id];
     if(ON_NETLIFY){
       try{
-        const r = await fetch('/.netlify/functions/photo?id='+id);
-        if(r.ok){ const d=await r.json(); if(d.photoSrc){ _photoCache[id]=d.photoSrc; return d.photoSrc; } return null; }
+        const authH = getAuthHeader();
+        if(!authH) { /* guest: use localStorage */ }
+        else {
+          const r = await fetch('/.netlify/functions/scenarios', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'Authorization': authH},
+            body: JSON.stringify({action:'getPhoto', id})
+          });
+          if(r.ok){ const d=await r.json(); if(d.photo){ _photoCache[id]=d.photo; return d.photo; } return null; }
+        }
       }catch(e){}
     }
     const local = lsGet(PHOTO_PFX+id);
@@ -3339,6 +3351,12 @@
     renderProfilePanel();
   }
 
+  // Returns Authorization header value for API calls, or null if guest
+  function getAuthHeader(){
+    if(_currentUser && _currentUser.token) return 'Bearer ' + _currentUser.token;
+    return null;
+  }
+
   function renderProfileBtn(){
     const btn = document.getElementById('profile-btn');
     if(!btn) return;
@@ -3491,12 +3509,14 @@
     if(errEl) errEl.textContent='';
     const res = await callAuthFn('signin', {email:email, password:password});
     if(res.ok){
-      _currentUser = {id:res.id||email, name:res.name||email.split('@')[0], email:email};
+      _currentUser = {id:res.id||email, name:res.name||email.split('@')[0], email:email, token:res.token||null, plan:res.plan||'free'};
       lsSet(SESSION_KEY, JSON.stringify(_currentUser));
       _profileData.name  = _currentUser.name;
       _profileData.email = email;
       lsSet(PROFILE_KEY, JSON.stringify(_profileData));
       closeLoginModal(); renderProfileBtn(); renderProfilePanel();
+      // Reload library from user's personal cloud storage
+      _scenariosCache = null;
       showToast('✓ Welcome back, ' + _currentUser.name + '!');
     } else {
       // Backend not deployed yet — save as local guest profile
@@ -3525,11 +3545,12 @@
     if(errEl) errEl.textContent='';
     const res = await callAuthFn('signup', {email:email, password:password, name:name});
     if(res.ok){
-      _currentUser = {id:res.id||email, name:name, email:email};
+      _currentUser = {id:res.id||email, name:name, email:email, token:res.token||null, plan:res.plan||'free'};
       lsSet(SESSION_KEY, JSON.stringify(_currentUser));
       _profileData.name = name; _profileData.email = email;
       lsSet(PROFILE_KEY, JSON.stringify(_profileData));
       closeLoginModal(); renderProfileBtn(); renderProfilePanel();
+      _scenariosCache = null;
       showToast('✓ Account created! Welcome, ' + name);
     } else {
       if(res.error && res.error.indexOf('Network') >= 0){
@@ -3550,7 +3571,12 @@
   }
 
   function signOut(){
+    // Revoke token on server (best effort)
+    if(_currentUser && _currentUser.token){
+      callAuthFn('signout', {token: _currentUser.token}).catch(()=>{});
+    }
     _currentUser = null;
+    _scenariosCache = null;
     lsDel(SESSION_KEY);
     closeProfile();
     renderProfileBtn();
