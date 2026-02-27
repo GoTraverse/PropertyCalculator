@@ -2,6 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+  // Auth guard — runs before any rendering. Redirect immediately if not signed in.
+  (function(){
+    try {
+      var sess = localStorage.getItem('propCalc_session_v1');
+      if (!sess) { location.replace('login.html'); return; }
+      var user = JSON.parse(sess);
+      if (!user || (!user.id && !user.email)) { location.replace('login.html'); return; }
+    } catch(e) {
+      location.replace('login.html');
+    }
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -3372,19 +3385,7 @@
   drawProjection();
   loadProfile();
 
-  // ── LOGIN GATE: require account to use calculator ─────────────
-  // Runs after DOM is ready so getElementById works correctly
-  document.addEventListener('DOMContentLoaded', function(){
-    const gate = document.getElementById('login-gate');
-    if(!gate) return;
-    if(!_currentUser){
-      gate.style.display = 'flex';
-      gate.style.flexDirection = 'column';
-      document.body.style.overflow = 'hidden';
-    } else {
-      gate.style.display = 'none';
-    }
-  });
+  // Auth guard handled in <head> script — redirects to login.html if not signed in
 
   if(_hadDraft){
     setTimeout(function(){
@@ -3833,10 +3834,6 @@
       <button class="splash-btn splash-btn-primary" onclick="splashNewScenario()">＋ New Scenario</button>
       <button class="splash-btn splash-btn-secondary" onclick="splashOpenLibrary()">📁 My Library</button>
     </div>
-    <div style="margin-top:28px;border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;">
-      <button onclick="hideSplash();openLoginModal();" style="background:none;border:none;color:rgba(245,240,232,0.35);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;text-decoration:underline;">
-        Sign in to your account
-      </button>
     </div>
   </div>
 </div>
@@ -3883,22 +3880,6 @@
       <div class="lm-divider">or continue without account</div>
       <button class="lm-guest" onclick="continueAsGuest()">Continue as Guest</button>
     </div>
-  </div>
-</div>
-<!-- ══ LOGIN GATE OVERLAY ══ -->
-<div id="login-gate" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--charcoal);flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
-  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;"></div>
-  <div style="position:relative;z-index:1;max-width:420px;width:100%;">
-    <div style="font-size:52px;margin-bottom:20px;">🏠</div>
-    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">mypropertymate.app</div>
-    <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:clamp(26px,6vw,38px);font-weight:700;color:var(--cream);line-height:1.15;margin-bottom:12px;">Sign in to access<br>the calculator.</h1>
-    <p style="font-size:14px;color:rgba(245,240,232,0.45);line-height:1.6;margin-bottom:32px;">Create a free account to get started — no credit card required.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <button onclick="location.href='login.html?tab=signup'" style="background:var(--gold);color:var(--charcoal);border:none;padding:15px 24px;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;width:100%;">Create free account →</button>
-      <button onclick="location.href='login.html'" style="background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 24px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.5px;cursor:pointer;width:100%;">Sign in to existing account</button>
-      <a href="index.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.3);margin-top:8px;letter-spacing:0.5px;display:block;">← Back to mypropertymate.app</a>
-    </div>
-    <p style="font-size:11px;color:rgba(245,240,232,0.2);margin-top:24px;font-family:'DM Mono',monospace;line-height:1.6;">Free plan includes 1 saved property and all calculator features.</p>
   </div>
 </div>
 
