@@ -2,6 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+  // In PWA standalone mode, index.html is never the right page — go straight to app
+  if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
+    window.location.replace('app.html');
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="mypropertymate — Australia's smartest property finance calculator. Model the Shared Equity Scheme, track renovation budgets, compare scenarios, and go from browsing to buying with confidence.">
 <meta name="theme-color" content="#1C1C1E">
