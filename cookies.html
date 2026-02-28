@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Cookie Policy — mypropertymate.app</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  body{background:var(--warm-white);}
+  .legal-hero{background:var(--charcoal);padding:72px 24px 48px;text-align:center;}
+  .legal-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+  .legal-title{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--cream);margin-bottom:12px;}
+  .legal-meta{font-family:var(--font-mono);font-size:11px;color:rgba(245,240,232,0.35);letter-spacing:1px;}
+  .legal-body{max-width:760px;margin:0 auto;padding:56px 24px 80px;}
+  .legal-section{margin-bottom:48px;scroll-margin-top:80px;}
+  .legal-section h2{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--charcoal);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(28,28,30,0.1);}
+  .legal-section h3{font-size:15px;font-weight:600;color:var(--charcoal);margin:20px 0 8px;}
+  .legal-section p{font-size:15px;line-height:1.75;color:rgba(28,28,30,0.75);margin-bottom:14px;}
+  .legal-section ul{padding-left:20px;margin-bottom:14px;}
+  .legal-section li{font-size:15px;line-height:1.75;color:rgba(28,28,30,0.75);margin-bottom:6px;}
+  .legal-section a{color:var(--gold);}
+  .legal-highlight{background:rgba(201,168,76,0.08);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;padding:14px 18px;margin:20px 0;font-size:14px;line-height:1.7;color:rgba(28,28,30,0.8);}
+  .cookie-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+  .cookie-table th{background:var(--charcoal);color:var(--cream);padding:10px 14px;text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+  .cookie-table td{padding:10px 14px;border-bottom:1px solid rgba(28,28,30,0.08);color:rgba(28,28,30,0.75);vertical-align:top;}
+  .cookie-table tr:last-child td{border-bottom:none;}
+  .cookie-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;}
+  .badge-essential{background:rgba(90,158,122,0.15);color:#5A9E7A;}
+  .badge-functional{background:rgba(201,168,76,0.15);color:#C9A84C;}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="index.html" class="site-logo"><div class="site-logo-mark">🏠</div><div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div></a>
+    <ul class="site-nav-links"><li><a href="pricing.html">Pricing</a></li><li><a href="contact.html">Support</a></li><li><a href="about.html">About</a></li></ul>
+    <div class="site-nav-actions"></div>
+  </div>
+</nav>
+<script src="auth-nav.js"></script>
+<div id="page-spinner"><div class="spinner-ring"></div></div>
+
+<section class="legal-hero">
+  <div class="legal-tag">Legal</div>
+  <h1 class="legal-title">Cookie Policy</h1>
+  <div class="legal-meta">Last updated: [DATE]</div>
+</section>
+
+<div class="legal-body">
+  <div class="legal-highlight">
+    mypropertymate.app uses minimal storage technologies. We do not use advertising cookies or cross-site tracking. This page explains exactly what we store and why.
+  </div>
+
+  <div class="legal-section">
+    <h2>What we use instead of cookies</h2>
+    <p>mypropertymate.app primarily uses browser <strong>localStorage</strong> rather than traditional HTTP cookies. localStorage stores data directly on your device and is never automatically sent to our servers with each request, unlike cookies.</p>
+    <p>We may also use <strong>sessionStorage</strong> for temporary in-session state. This is cleared automatically when you close your browser tab.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>What we store locally</h2>
+    <table class="cookie-table">
+      <thead><tr><th>Key</th><th>Purpose</th><th>Type</th><th>Expires</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>propCalc_session_v1</code></td>
+          <td>Stores your login session token so you stay signed in between visits.</td>
+          <td><span class="cookie-badge badge-essential">Essential</span></td>
+          <td>30 days or on sign-out</td>
+        </tr>
+        <tr>
+          <td><code>propCalc_profile_v1_*</code></td>
+          <td>Stores your display name, avatar colour, and profile preferences.</td>
+          <td><span class="cookie-badge badge-functional">Functional</span></td>
+          <td>Until account deletion</td>
+        </tr>
+        <tr>
+          <td><code>propCalc_scenarios_*</code></td>
+          <td>Cached property scenarios for offline access and faster loading.</td>
+          <td><span class="cookie-badge badge-functional">Functional</span></td>
+          <td>Until cleared or replaced</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legal-section">
+    <h2>Traditional cookies</h2>
+    <p>We do not set any traditional HTTP cookies for tracking or advertising purposes. Our hosting infrastructure (Netlify) may set technical cookies required for CDN and security functions. These are outside our control and governed by Netlify's own privacy and cookie policies.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Analytics</h2>
+    <p>We may use privacy-focused analytics tools to understand aggregate usage patterns (e.g. which features are most used). These tools are configured to:</p>
+    <ul>
+      <li>Not track individuals across sites.</li>
+      <li>Anonymise or hash IP addresses.</li>
+      <li>Not share data with advertising networks.</li>
+    </ul>
+    <p>[ANALYTICS PROVIDER, IF ANY, TO BE SPECIFIED HERE]</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>Managing storage</h2>
+    <p>You can clear all locally stored data at any time:</p>
+    <ul>
+      <li><strong>In your browser:</strong> Go to Settings → Privacy → Clear browsing data → Cached images and files / Site data.</li>
+      <li><strong>In the app:</strong> Sign out from your account — this removes your session token.</li>
+      <li><strong>Full deletion:</strong> Contact us at <a href="mailto:privacy@mypropertymate.app">privacy@mypropertymate.app</a> to delete your entire account and all associated data.</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>Changes</h2>
+    <p>We may update this Cookie Policy as our practices change. Material changes will be communicated via the Service. See our <a href="privacy.html">Privacy Policy</a> for broader information on how we handle your data.</p>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-col"><h4>Product</h4><ul><li><a href="login.html?tab=signup">Try Calculator Free</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
+    <div class="footer-col"><h4>Company</h4><ul><li><a href="about.html">About us</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+    <div class="footer-col"><h4>Legal</h4><ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms of Service</a></li><li><a href="cookies.html">Cookie Policy</a></li><li><a href="disclaimer.html">Disclaimer</a></li></ul></div>
+  </div>
+  <div class="footer-bottom"><span>© 2025 mypropertymate.app</span><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact</a></div>
+</footer>
+<style>#page-spinner{display:none;position:fixed;inset:0;z-index:99999;background:rgba(28,28,30,0.72);backdrop-filter:blur(4px);align-items:center;justify-content:center;}#page-spinner.show{display:flex;}.spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);border-top-color:#C9A84C;border-radius:50%;animation:spin 0.7s linear infinite;}@keyframes spin{to{transform:rotate(360deg)}}</style>
+<script>(function(){function showSpinner(){var s=document.getElementById('page-spinner');if(s)s.classList.add('show');}document.addEventListener('click',function(e){var a=e.target.closest('a[href]');if(!a)return;var href=a.getAttribute('href');if(!href||href.startsWith('#')||href.startsWith('mailto:')||href.startsWith('tel:'))return;if(a.target==='_blank')return;e.preventDefault();showSpinner();setTimeout(function(){location.href=href;},80);});window.goTo=function(url){showSpinner();setTimeout(function(){location.href=url;},80);};})();</script>
+</body>
+</html>
