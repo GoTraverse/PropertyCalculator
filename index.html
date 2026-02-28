@@ -688,11 +688,19 @@
     .steps { grid-template-columns: 1fr; }
     .hero-h1 { font-size: 36px; }
   }
+  /* Page transition spinner */
+  #page-spinner{display:none;position:fixed;inset:0;z-index:99999;background:rgba(28,28,30,0.72);
+    backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+  #page-spinner.show{display:flex;}
+  .spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);
+    border-top-color:#C9A84C;border-radius:50%;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
 <!-- ══ SITE NAV ══ -->
+<div id="page-spinner"><div class="spinner-ring"></div></div>
 <nav class="site-nav">
   <div class="site-nav-inner">
     <a href="index.html" class="site-logo">
@@ -728,7 +736,7 @@
       <h1 class="hero-h1">Property finance,<br><em>finally clear.</em></h1>
       <p class="hero-sub">Model the Shared Equity Scheme, track renovation budgets, compare scenarios side by side, and go from browsing to buying with total clarity — all in one place.</p>
       <div class="hero-ctas">
-        <button class="btn-hero-primary" onclick="location.href='app.html'">
+        <button class="btn-hero-primary" onclick="goTo('login.html?tab=signup')">
           Open the Calculator →
         </button>
         <button class="btn-hero-secondary" onclick="location.href='pricing.html'">
@@ -893,7 +901,16 @@
           <li><a href="#">Cookie Policy</a></li>
           <li><a href="#">Disclaimer</a></li>
         </ul>
-      </div>
+          <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms of Service</a></li>
+            <li><a href="cookies.html">Cookie Policy</a></li>
+            <li><a href="disclaimer.html">Disclaimer</a></li>
+          </ul>
+        </div>
+</div>
     </div>
     <div class="footer-bottom">
       <p>© 2025 mypropertymate.app · ABN pending · Not financial advice — always consult a licensed adviser.</p>
@@ -984,6 +1001,24 @@
   }
 })();
 
+</script>
+<script>
+  (function(){
+    function showSpinner(){ var s=document.getElementById('page-spinner'); if(s) s.classList.add('show'); }
+    // Intercept all internal <a> clicks
+    document.addEventListener('click', function(e){
+      var a = e.target.closest('a[href]');
+      if(!a) return;
+      var href = a.getAttribute('href');
+      if(!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      if(a.target === '_blank') return;
+      e.preventDefault();
+      showSpinner();
+      setTimeout(function(){ location.href = href; }, 80);
+    });
+    // Intercept location.href calls via buttons — handled by onclick goTo()
+    window.goTo = function(url){ showSpinner(); setTimeout(function(){ location.href=url; }, 80); };
+  })();
 </script>
 </body>
 </html>
