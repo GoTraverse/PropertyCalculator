@@ -42,7 +42,7 @@
     --terracotta-light:#E8A882;--gold:#C9A84C;--sky:#5B8FAB;--risk-red:#C45A5A;--reward-green:#5A9E7B;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
-  :root{--hdr-h-mobile:60px;}
+  :root{--hdr-h-mobile:60px;--hdr-h-desktop:150px;}
   @supports (padding-top: env(safe-area-inset-top)){
     :root{--hdr-h-mobile:calc(60px + env(safe-area-inset-top));}
   }
@@ -72,8 +72,8 @@
   /* ── PROPERTY DETAILS TAB ── */
   .pd-field{display:flex;flex-direction:column;gap:4px;}
   .pd-label{font-size:12px;color:var(--slate);font-family:'DM Mono',monospace;letter-spacing:0.5px;text-transform:uppercase;}
-  .pd-field input[type="text"],.pd-field input[type="number"]{background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);color:var(--charcoal);padding:9px 11px;font-size:14px;}
-  .pd-field input[type="text"]:focus,.pd-field input[type="number"]:focus{border-color:var(--gold);background:white;}
+  .pd-field input[type="text"],.pd-field input[type="number"],.pd-field input[type="tel"],.pd-field input[type="email"]{background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);color:var(--charcoal);padding:9px 11px;font-size:14px;}
+  .pd-field input[type="text"]:focus,.pd-field input[type="number"]:focus,.pd-field input[type="tel"]:focus,.pd-field input[type="email"]:focus{border-color:var(--gold);background:white;}
   .pd-stepper{display:flex;align-items:center;gap:0;}
   .pd-stepper button{width:34px;height:36px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.12);color:var(--charcoal);font-size:17px;cursor:pointer;transition:background 0.15s;flex-shrink:0;}
   .pd-stepper button:first-child{border-radius:3px 0 0 3px;}
@@ -186,7 +186,7 @@
 
 
 
-  .app-body{display:grid;grid-template-columns:340px 1fr;overflow:hidden;height:calc(100vh - 150px - 44px);transition:grid-template-columns 0.25s cubic-bezier(0.4,0,0.2,1);}
+  .app-body{display:grid;grid-template-columns:340px 1fr;overflow:hidden;height:calc(100vh - var(--hdr-h-desktop) - 44px);transition:grid-template-columns 0.25s cubic-bezier(0.4,0,0.2,1);}
 
   /* ── SIDEBAR ── */
   .sidebar{background:var(--charcoal-soft);color:var(--cream);padding:24px 20px;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.05);height:100%;}
@@ -226,7 +226,7 @@
 
   /* ── CONTENT ── */
   .content{overflow:hidden;display:flex;flex-direction:column;height:100%;}
-  nav{background:var(--charcoal);display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;position:sticky;top:0;z-index:150;}
+  nav{background:var(--charcoal);display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;position:sticky;top:var(--hdr-h-desktop);z-index:150;}
   nav::-webkit-scrollbar{display:none;}
   .tab{flex:1;min-width:110px;padding:14px 10px;font-family:'DM Mono',monospace;font-size:14px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:rgba(245,240,232,0.4);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;text-align:center;white-space:nowrap;border:none;background:none;}
   .tab:hover{color:rgba(245,240,232,0.85);}
@@ -601,10 +601,16 @@
 
   /* PWA / Add to Home Screen — prevent all rubber-band bounce */
   @media all and (display-mode: standalone) {
-    html, body { overscroll-behavior: none; position: relative; }
-    body { overflow: hidden; height: 100vh; }
-    /* Let the actual scroll container handle scrolling */
-    .content, main { overflow-y: auto; overscroll-behavior: none; }
+    html { overscroll-behavior: none; overscroll-behavior-y: none; }
+    body {
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+      -webkit-overflow-scrolling: auto; /* Disable momentum scrolling bounce */
+    }
+    /* Mobile: body is the scroller — keep overflow-y:auto but no bounce */
+    @media (max-width: 600px) {
+      body { overflow-y: auto; }
+    }
   }
 </style>
 <script src="auth-nav.js"></script>
@@ -621,6 +627,9 @@
     });
   })();
 </script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.svg">
+  <meta name="theme-color" content="#1C1C1E">
 </head>
 <body>
 
@@ -666,7 +675,7 @@
         <button class="export-btn hdr-desktop-btn" id="open-saved-btn" onclick="openScenariosModal()" title="Browse saved scenarios">
           📁 Library <span id="saved-count" style="display:none;background:var(--gold);color:var(--charcoal);border-radius:10px;padding:1px 6px;font-size:9px;margin-left:3px;vertical-align:middle;">0</span>
         </button>
-        <button class="export-btn hdr-desktop-btn" onclick="exportPDF()" title="Export to PDF">
+        <button class="export-btn hdr-desktop-btn" onclick="if(isPro()){exportPDF();}else{requirePro('PDF Export');}" title="Export to PDF (Pro)">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           PDF
         </button>
@@ -714,7 +723,7 @@
     <button class="tab" onclick="showTab('overlap',this)">04 · Rent Overlap</button>
     <button class="tab" onclick="showTab('time',this)">05 · Timeline</button>
     <button class="tab" id="tab-risks-btn" onclick="showTab('risks',this)">06 · Risks</button>
-    <button class="tab" onclick="showTab('projection',this)">07 · Projection</button>
+    <button class="tab" id="tab-projection-btn" onclick="if(isPro()){showTab('projection',this);}else{requirePro('30-Year Projection');}">07 · Projection <span id="proj-lock" style="font-size:10px;opacity:0.5;">🔒</span></button>
   </nav>
 <div class="app-body">
 
@@ -837,7 +846,7 @@
 
   <!-- ══ SCENARIOS MODAL ══ -->
   <div id="scenarios-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);justify-content:center;overflow-y:auto;" onclick="if(event.target===this)closeScenariosModal()">
-    <div style="position:relative;margin:max(8px,env(safe-area-inset-top,0px)) auto 24px;width:min(760px,96vw);max-height:90vh;background:var(--warm-white);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+    <div style="position:relative;margin:max(4px,env(safe-area-inset-top,4px)) auto 24px;width:min(760px,96vw);max-height:calc(100vh - max(8px,env(safe-area-inset-top,0px)) - 24px);background:var(--warm-white);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
 
       <!-- Header -->
       <div style="background:var(--charcoal);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;">
@@ -1076,15 +1085,13 @@
               <label class="pd-label">Agent Name</label>
               <input type="text" id="ag-name" placeholder="e.g. Jane Smith" oninput="markAgentDirty()">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <div class="pd-field">
-                <label class="pd-label">Phone</label>
-                <input type="tel" id="ag-phone" placeholder="04xx xxx xxx" oninput="markAgentDirty()">
-              </div>
-              <div class="pd-field">
-                <label class="pd-label">Email</label>
-                <input type="email" id="ag-email" placeholder="agent@agency.com" oninput="markAgentDirty()">
-              </div>
+            <div class="pd-field">
+              <label class="pd-label">Phone</label>
+              <input type="tel" id="ag-phone" placeholder="04xx xxx xxx" oninput="markAgentDirty()">
+            </div>
+            <div class="pd-field">
+              <label class="pd-label">Email</label>
+              <input type="email" id="ag-email" placeholder="agent@agency.com" oninput="markAgentDirty()">
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <a id="ag-call-link" href="#" style="display:none;background:var(--sage);color:white;padding:6px 12px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;">📞 Call</a>
@@ -1535,21 +1542,84 @@
 
   const RENO_EMOJIS=['🎨','🍳','🚿','🪵','💡','🌿','🪟','🚪','🧱','🛁','❄️','🔧','🏗','🏠','⚡','💧','🔨','🪴','✨','⚠️'];
 
-  function addRenoItem(name='New Item', amount=0, emoji='🔨', note=''){
+
+  // ── Reno row event helpers (called from dynamic HTML) ──
+  function _renoId(el){ return el.closest('[data-reno]').dataset.reno; }
+  function _renoEmoji(el,v){ updateRenoItem(_renoId(el),'emoji',v); renderRenoItems(); }
+  function _renoName(el,v){ updateRenoItem(_renoId(el),'name',v); }
+  function _renoNote(el,v){ updateRenoItem(_renoId(el),'note',v); el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+  function _renoAmt(el,v){ var id=_renoId(el); updateRenoItem(id,'amount',parseFloat(v)||0); recalc(); updateRenoBar(id,parseFloat(v)||0); }
+  function _renoNameKey(el,e){ if(e.key==='Enter'){e.preventDefault();var a=el.closest('[data-reno]').querySelector('input[type=number]');if(a){a.focus();a.select();}} }
+  function _renoAmtKey(el,e){ if(e.key==='Enter'){e.preventDefault();addRenoItem();} }
+  function _renoDel(el){ removeRenoItem(_renoId(el)); }
+
+  function addRenoItem(name,amount,emoji,note){
+    name  = name  || 'New Item';
+    amount= amount|| 0;
+    emoji = emoji || '🔨';
+    note  = note  || '';
     const id='ri-'+renoItemId++;
     renoItems.push({id, emoji, name, amount, note});
-    renderRenoItems();
     recalc();
-    // Scroll to the new item
-    setTimeout(function(){
-      var el=document.querySelector('[data-reno="'+id+'"]');
-      if(el){
-        el.scrollIntoView({behavior:'smooth',block:'nearest'});
-        // Focus amount field directly (user wants to type cost right away)
-        var amtField = el.querySelector('input[type="number"]');
-        if(amtField){ amtField.focus(); amtField.select(); }
+    // Append just the new row — NO full DOM rebuild (preserves iOS keyboard)
+    const list = document.getElementById('reno-items-list');
+    if(list){
+      const maxAmt = Math.max.apply(null, renoItems.map(function(r){ return parseFloat(r.amount)||0; }).concat([1]));
+      const pct = maxAmt>0 ? Math.min((amount||0)/maxAmt*100,100) : 0;
+      const emojiOpts = RENO_EMOJIS.map(function(e){
+        return '<option value="'+e+'"'+(e===emoji?' selected':'')+'>'+e+'</option>';
+      }).join('');
+      const div = document.createElement('div');
+      div.setAttribute('data-reno', id);
+      div.style.cssText = 'border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;';
+      // Use safe name (no double quotes)
+      const safeName = name.replace(/"/g,'&quot;');
+      div.innerHTML = [
+        '<div class="reno-row">',
+          '<select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" onchange="_renoEmoji(this,this.value)">'+emojiOpts+'</select>',
+          '<input type="text" value="'+safeName+'" placeholder="Item name" ',
+            'style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" ',
+            'oninput="_renoName(this,this.value)" ',
+            'onkeydown="_renoNameKey(this,event)">',
+          '<div class="rbt" style="max-width:60px;"><div class="rbf" style="width:'+pct+'%"></div></div>',
+          '<div style="display:flex;align-items:center;gap:2px;min-width:90px;">',
+            '<span style="font-size:14px;color:var(--slate);">$</span>',
+            '<input type="number" value="'+(amount||0)+'" min="0" step="100" id="reno-amt-'+id+'" ',
+              'style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:\"DM Mono\",monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" ',
+              'oninput="_renoAmt(this,this.value)" ',
+              'onkeydown="_renoAmtKey(this,event)">',
+          '</div>',
+          '<button class="kd-del" onclick="_renoDel(this)" title="Remove" style="flex-shrink:0;">✕</button>',
+        '</div>',
+        '<div class="reno-note-wrap" style="padding-left:44px;">',
+          '<textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" ',
+            'oninput="_renoNote(this,this.value)">'+(note||'')+'</textarea>',
+        '</div>'
+      ].join('');
+      list.appendChild(div);
+      // Add focus/blur styles via JS (avoids quote issues in HTML string)
+      var nameInp = div.querySelector('input[type="text"]');
+      if(nameInp){
+        nameInp.addEventListener('focus', function(){ this.style.borderColor='var(--sage)'; });
+        nameInp.addEventListener('blur',  function(){ this.style.borderColor='rgba(28,28,30,0.1)'; });
       }
-    },120);
+      var amtInp = div.querySelector('#reno-amt-'+id);
+      if(amtInp){
+        amtInp.addEventListener('focus', function(){ this.style.borderColor='var(--sage)'; });
+        amtInp.addEventListener('blur',  function(){ this.style.borderColor='rgba(28,28,30,0.1)'; });
+      }
+      div.scrollIntoView({behavior:'smooth', block:'nearest'});
+      // Focus the amount field after brief delay to allow scroll
+      setTimeout(function(){
+        var amtField = document.getElementById('reno-amt-'+id);
+        if(amtField){ amtField.focus(); amtField.select(); }
+      }, 100);
+    } else {
+      renderRenoItems();
+    }
+    // Update sidebar total
+    var stEl = document.getElementById('lbl-reno-total');
+    if(stEl){ var ct=v('inp-cont'); stEl.textContent=fmtK(getRenoTotal()*(1+ct/100)); }
   }
 
   function removeRenoItem(id){
@@ -2367,6 +2437,14 @@
       showTab('property', document.querySelector('.tab'));
       return;
     }
+    // Plan gate: free users limited to 1 saved scenario
+    if(!isPro()){
+      const existing = await getAllScenarios();
+      if(existing && existing.length >= 1){
+        showToast('🔒 Free plan allows 1 saved scenario. <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>', 6000);
+        return;
+      }
+    }
     const suburb   = state.values['pd-suburb']  || '';
     const stateV   = state.values['pd-state']   || '';
     const fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ') || 'Unnamed Property';
@@ -3177,6 +3255,145 @@
 
 
 
+
+<!-- ══ FLOATING ACCOUNT PANEL ══ -->
+<style>
+#account-panel-overlay{
+  display:none;position:fixed;inset:0;z-index:3000;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
+}
+#account-panel-overlay.open{display:block;}
+#account-panel{
+  position:fixed;top:0;right:-480px;width:min(480px,100vw);height:100vh;
+  background:var(--warm-white);z-index:3001;overflow-y:auto;
+  transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:-8px 0 40px rgba(0,0,0,0.3);
+  padding-top:env(safe-area-inset-top,0px);
+}
+#account-panel.open{right:0;}
+.ap-header{
+  background:var(--charcoal);color:var(--cream);
+  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:1;
+}
+.ap-header h2{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.7);margin:0;}
+.ap-close{width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--cream);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.ap-body{padding:24px;}
+.ap-section{margin-bottom:24px;}
+.ap-section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--slate);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.08);}
+.ap-card{background:white;border-radius:8px;border:1px solid rgba(28,28,30,0.08);padding:16px;margin-bottom:12px;}
+.ap-field{margin-bottom:12px;}
+.ap-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate);display:block;margin-bottom:5px;}
+.ap-input{width:100%;background:var(--warm-white);border:1px solid rgba(28,28,30,0.12);border-radius:4px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--charcoal);outline:none;box-sizing:border-box;}
+.ap-input:focus{border-color:rgba(201,168,76,0.6);background:white;}
+.ap-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ap-btn{padding:10px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.5px;cursor:pointer;border:none;font-weight:600;}
+.ap-btn-primary{background:var(--charcoal);color:var(--cream);}
+.ap-btn-primary:hover{opacity:0.85;}
+.ap-btn-gold{background:var(--gold);color:var(--charcoal);}
+.ap-btn-gold:hover{opacity:0.88;}
+.ap-btn-danger{background:transparent;border:1px solid rgba(196,90,90,0.4);color:var(--risk-red);}
+.ap-btn-danger:hover{background:rgba(196,90,90,0.06);}
+.ap-status{font-size:12px;margin-top:8px;padding:6px 10px;border-radius:3px;display:none;}
+.ap-status.ok{display:block;background:rgba(90,158,123,0.1);color:var(--reward-green);}
+.ap-status.err{display:block;background:rgba(196,90,90,0.08);color:var(--risk-red);}
+.ap-avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.ap-avatar{width:56px;height:56px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--charcoal);overflow:hidden;flex-shrink:0;}
+.ap-plan-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;border:1px solid rgba(201,168,76,0.3);background:rgba(201,168,76,0.08);color:var(--gold);}
+.ap-color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.ap-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s,border-color 0.15s;}
+.ap-swatch:hover,.ap-swatch.active{transform:scale(1.2);border-color:white;box-shadow:0 0 0 1px rgba(0,0,0,0.2);}
+</style>
+
+<div id="account-panel-overlay" onclick="closeAccountPanel()"></div>
+<div id="account-panel">
+  <div class="ap-header">
+    <h2>Account Settings</h2>
+    <button class="ap-close" onclick="closeAccountPanel()">✕</button>
+  </div>
+  <div class="ap-body">
+    
+    <!-- Profile -->
+    <div class="ap-section">
+      <div class="ap-section-title">Profile</div>
+      <div class="ap-card">
+        <div class="ap-avatar-row">
+          <div class="ap-avatar" id="ap-avatar">ES</div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--charcoal);" id="ap-name-display">Loading…</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate);margin-top:2px;" id="ap-email-display"></div>
+            <div class="ap-plan-badge" id="ap-plan-display" style="margin-top:8px;">Starter</div>
+          </div>
+        </div>
+        <div class="ap-field">
+          <label class="ap-label">Display Name</label>
+          <input class="ap-input" id="ap-name" type="text" placeholder="Your name">
+        </div>
+        <div class="ap-field">
+          <label class="ap-label">Avatar Colour</label>
+          <div class="ap-color-row" id="ap-colors"></div>
+        </div>
+        <div class="ap-field">
+          <label class="ap-label">Profile Photo</label>
+          <input type="file" id="ap-photo-input" accept="image/*" style="display:none" onchange="apLoadPhoto(this)">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="ap-btn ap-btn-primary" onclick="document.getElementById('ap-photo-input').click()">📷 Upload Photo</button>
+            <button class="ap-btn" style="background:rgba(196,90,90,0.08);color:var(--risk-red);border:1px solid rgba(196,90,90,0.2);" onclick="apRemovePhoto()">Remove</button>
+          </div>
+        </div>
+        <button class="ap-btn ap-btn-gold" onclick="apSaveProfile()">Save Profile</button>
+        <div class="ap-status" id="ap-profile-status"></div>
+      </div>
+    </div>
+
+    <!-- Plan -->
+    <div class="ap-section">
+      <div class="ap-section-title">Subscription</div>
+      <div class="ap-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--charcoal);" id="ap-plan-name">Starter (Free)</div>
+            <div style="font-size:12px;color:var(--slate);margin-top:3px;" id="ap-plan-desc">1 saved scenario · Core calculator</div>
+          </div>
+          <button class="ap-btn ap-btn-gold" id="ap-upgrade-btn" onclick="location.href='pricing.html'" style="display:none;">Upgrade to Pro →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="ap-section">
+      <div class="ap-section-title">Security</div>
+      <div class="ap-card">
+        <div class="ap-field">
+          <label class="ap-label">Current Password</label>
+          <input class="ap-input" id="ap-pw-current" type="password" placeholder="Enter current password" autocomplete="current-password">
+        </div>
+        <div class="ap-row">
+          <div class="ap-field">
+            <label class="ap-label">New Password</label>
+            <input class="ap-input" id="ap-pw-new" type="password" placeholder="8+ characters" autocomplete="new-password">
+          </div>
+          <div class="ap-field">
+            <label class="ap-label">Confirm New</label>
+            <input class="ap-input" id="ap-pw-confirm" type="password" placeholder="Repeat password" autocomplete="new-password">
+          </div>
+        </div>
+        <button class="ap-btn ap-btn-primary" onclick="apChangePassword()">Update Password</button>
+        <div class="ap-status" id="ap-pw-status"></div>
+      </div>
+    </div>
+
+    <!-- Danger -->
+    <div class="ap-section">
+      <div class="ap-section-title">Danger Zone</div>
+      <div class="ap-card">
+        <div style="font-size:12px;color:var(--slate);margin-bottom:12px;">Permanently delete your account and all saved scenarios. This cannot be undone.</div>
+        <button class="ap-btn ap-btn-danger" onclick="apDeleteAccount()">Delete My Account</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 </body></html>`;
 
     const blob = new Blob([html], {type:'text/html'});
@@ -3487,12 +3704,36 @@
     } catch(e){}
     renderProfileBtn();
     renderProfilePanel();
+    applyPlanUI();
   }
 
   // Returns Authorization header value for API calls, or null if guest
-  function getAuthHeader(){
+  function applyPlanUI(){
+    var pro = isPro();
+    // Hide projection lock icon for pro users
+    var lock = document.getElementById('proj-lock');
+    if(lock) lock.style.display = pro ? 'none' : 'inline';
+    // Show/hide upgrade banner in header if free
+    var plan = getUserPlan();
+    var badge = document.getElementById('plan-badge');
+    if(badge) badge.textContent = plan === 'free' ? 'Starter' : 'Pro';
+  }
+
+    function getAuthHeader(){
     if(_currentUser && _currentUser.token) return 'Bearer ' + _currentUser.token;
     return null;
+  }
+
+  function getUserPlan(){
+    return (_currentUser && _currentUser.plan) || 'free';
+  }
+  function isPro(){
+    return getUserPlan() === 'pro' || getUserPlan() === 'adviser';
+  }
+  function requirePro(featureName){
+    if(isPro()) return true;
+    showToast('🔒 ' + featureName + ' is a Pro feature — <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);
+    return false;
   }
 
   // Returns current user ID for body-fallback auth (works even without token)
@@ -3763,6 +4004,211 @@
       if(appBody) appBody.style.gridTemplateColumns = '';
     }
   }
+
+
+  // ═══════════════════════════════════════════════
+  // FLOATING ACCOUNT PANEL
+  // ═══════════════════════════════════════════════
+  const AP_COLORS = ['#C9A84C','#7B9E87','#5B8FAB','#C4704A','#C45A5A','#8B6FAE','#4A9E8A','#B0956E'];
+
+
+  // Handle URL params - auto-open panels
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    if(params.get('openAccount') === '1'){
+      // Remove param from URL without reload
+      var url = new URL(window.location);
+      url.searchParams.delete('openAccount');
+      window.history.replaceState({}, '', url);
+      // Open account panel after init
+      setTimeout(function(){
+        if(window.openAccountPanel) window.openAccountPanel();
+      }, 800);
+    }
+  })();
+
+    window.openAccountPanel = function(){
+    if(!_currentUser){ location.href='login.html'; return; }
+    document.getElementById('account-panel').classList.add('open');
+    document.getElementById('account-panel-overlay').classList.add('open');
+    document.body.style.overflow='hidden';
+    apRenderPanel();
+  };
+  window.closeAccountPanel = function(){
+    document.getElementById('account-panel').classList.remove('open');
+    document.getElementById('account-panel-overlay').classList.remove('open');
+    document.body.style.overflow='';
+  };
+
+  function apRenderPanel(){
+    var u = _currentUser;
+    var p = _profileData;
+    if(!u) return;
+    var name = u.name || p.name || 'User';
+    var email = u.email || p.email || '';
+    var plan = u.plan || 'free';
+    var color = p.color || '#C9A84C';
+    
+    // Avatar
+    var av = document.getElementById('ap-avatar');
+    if(av){
+      var parts = name.trim().split(/\s+/).filter(Boolean);
+      var ini = parts.length===1?parts[0][0].toUpperCase():(parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+      if(p.photo){
+        av.innerHTML='<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        av.style.background='transparent';
+      } else {
+        av.textContent=ini;
+        av.style.background=color;
+      }
+    }
+    
+    // Text fields
+    var nd = document.getElementById('ap-name-display');
+    var ed = document.getElementById('ap-email-display');
+    var ni = document.getElementById('ap-name');
+    if(nd) nd.textContent = name;
+    if(ed) ed.textContent = email;
+    if(ni) ni.value = name;
+    
+    // Plan
+    var pd = document.getElementById('ap-plan-display');
+    var pn = document.getElementById('ap-plan-name');
+    var pdesc = document.getElementById('ap-plan-desc');
+    var ub = document.getElementById('ap-upgrade-btn');
+    if(pd) pd.textContent = plan==='free'?'⭐ Starter':(plan==='pro'?'⚡ Pro':'👑 Adviser');
+    if(pn) pn.textContent = plan==='free'?'Starter (Free)':(plan==='pro'?'Pro — A$9/mo AUD':'Adviser — A$29/mo AUD');
+    if(pdesc) pdesc.textContent = plan==='free'?'1 saved scenario · Core calculator':'Unlimited scenarios · Cloud sync · PDF export · Projection chart';
+    if(ub) ub.style.display = plan==='free'?'':'none';
+    
+    // Color swatches
+    var cr = document.getElementById('ap-colors');
+    if(cr){
+      cr.innerHTML = AP_COLORS.map(function(c2){
+        return '<div class="ap-swatch'+(c2===color?' active':'')+'" style="background:'+c2+';" onclick="apSetColor(this,\''+c2+'\')"></div>';
+      }).join('');
+    }
+  }
+
+  function apSetColor(el, color){
+    document.querySelectorAll('.ap-swatch').forEach(function(s){s.classList.remove('active');});
+    el.classList.add('active');
+    _profileData.color = color;
+    var av = document.getElementById('ap-avatar');
+    if(av && !_profileData.photo) av.style.background = color;
+  }
+
+  function apLoadPhoto(input){
+    var file = input.files && input.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        var canvas = document.createElement('canvas');
+        var size = Math.min(img.width, img.height, 400);
+        canvas.width = size; canvas.height = size;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, size, size);
+        var data = canvas.toDataURL('image/jpeg', 0.8);
+        _profileData.photo = data;
+        var av = document.getElementById('ap-avatar');
+        if(av){ av.innerHTML='<img src="'+data+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; av.style.background='transparent'; }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function apRemovePhoto(){
+    _profileData.photo = '';
+    apRenderPanel();
+  }
+
+  async function apSaveProfile(){
+    var st = document.getElementById('ap-profile-status');
+    var nameVal = (document.getElementById('ap-name').value||'').trim();
+    if(!nameVal){ st.textContent='Name is required'; st.className='ap-status err'; return; }
+    st.textContent='Saving…'; st.className='ap-status ok';
+    _profileData.name = nameVal;
+    if(_currentUser) _currentUser.name = nameVal;
+    // Save to localStorage
+    lsSet(getProfileKey(), JSON.stringify(_profileData));
+    // Save to backend
+    try{
+      var authH = getAuthHeader();
+      if(authH){
+        var profileToSave = Object.assign({}, _profileData);
+        delete profileToSave.photo; // photos via separate endpoint
+        await fetch('/.netlify/functions/auth',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':authH},
+          body:JSON.stringify({action:'setProfile',profile:profileToSave})
+        });
+        if(_profileData.photo && authH){
+          await fetch('/.netlify/functions/auth',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':authH},
+            body:JSON.stringify({action:'setPhoto',photo:_profileData.photo})
+          });
+        }
+      }
+    } catch(e){}
+    st.textContent='✓ Profile saved';
+    renderProfileBtn();
+    renderAppProfileBtn && renderAppProfileBtn();
+    setTimeout(function(){ st.className='ap-status'; }, 3000);
+  }
+
+  async function apChangePassword(){
+    var cur = (document.getElementById('ap-pw-current').value||'').trim();
+    var nw  = document.getElementById('ap-pw-new').value;
+    var cf  = document.getElementById('ap-pw-confirm').value;
+    var st  = document.getElementById('ap-pw-status');
+    if(!cur||!nw){ st.textContent='Fill in all fields'; st.className='ap-status err'; return; }
+    if(nw.length<8){ st.textContent='New password must be 8+ characters'; st.className='ap-status err'; return; }
+    if(nw!==cf){ st.textContent="Passwords don't match"; st.className='ap-status err'; return; }
+    st.textContent='Updating…'; st.className='ap-status ok';
+    try{
+      var r = await fetch('/.netlify/functions/auth',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization': getAuthHeader()||''},
+        body:JSON.stringify({action:'changePassword', currentPassword:cur, newPassword:nw})
+      });
+      var d = await r.json();
+      if(d.ok){
+        st.textContent='✓ Password updated';
+        document.getElementById('ap-pw-current').value='';
+        document.getElementById('ap-pw-new').value='';
+        document.getElementById('ap-pw-confirm').value='';
+        setTimeout(function(){ st.className='ap-status'; }, 3000);
+      } else {
+        st.textContent = d.error||'Incorrect current password';
+        st.className='ap-status err';
+      }
+    } catch(e){ st.textContent='Network error'; st.className='ap-status err'; }
+  }
+
+  async function apDeleteAccount(){
+    var pw = prompt('Enter your password to permanently delete your account. This cannot be undone.');
+    if(!pw) return;
+    try{
+      var r = await fetch('/.netlify/functions/auth',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization': getAuthHeader()||''},
+        body:JSON.stringify({action:'deleteAccount', password:pw})
+      });
+      var d = await r.json();
+      if(d.ok){
+        localStorage.clear();
+        alert('Account deleted. Goodbye!');
+        location.href='index.html';
+      } else {
+        alert(d.error||'Incorrect password — account not deleted');
+      }
+    } catch(e){ alert('Network error — try again'); }
+  }
+  // END FLOATING ACCOUNT PANEL
 
 </script>
 
