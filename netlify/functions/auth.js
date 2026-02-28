@@ -96,8 +96,8 @@ exports.handler = async function(event){
     if(!user) return fail('No account found for this email');
     if(user.hash!==hashPw(password)) return fail('Incorrect password');
     const token=makeToken();
-    await rSet('token:'+token,{userId:user.id,email:user.email||email,name:user.name,plan:user.plan||'free',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    return ok({ok:true,token,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free'});
+    await rSet('token:'+token,{userId:user.id,email:user.email||email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
+    return ok({ok:true,token,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'});
   }
 
   if(action==='verify'){
@@ -127,6 +127,124 @@ exports.handler = async function(event){
     delete merged.photo; // large photos use photo.js
     await rSet('profile:'+user.userId,merged);
     return ok({ok:true});
+  }
+
+
+  if(action==='changePassword'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user) return fail('Unauthorized',401);
+    const {currentPassword,newPassword}=body;
+    if(!currentPassword||!newPassword) return fail('Both passwords required');
+    if(newPassword.length<8) return fail('New password must be at least 8 characters');
+    const userData=await rGet('user:'+user.email);
+    if(!userData) return fail('Account not found');
+    if(userData.hash!==hashPw(currentPassword)) return fail('Current password is incorrect');
+    userData.hash=hashPw(newPassword);
+    await rSet('user:'+user.email,userData);
+    return ok({ok:true});
+  }
+
+  if(action==='deleteAccount'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user) return fail('Unauthorized',401);
+    const {password}=body;
+    if(!password) return fail('Password required to confirm deletion');
+    const userData=await rGet('user:'+user.email);
+    if(!userData) return fail('Account not found');
+    if(userData.hash!==hashPw(password)) return fail('Incorrect password');
+    // Delete all user data
+    await rDel('user:'+user.email);
+    await rDel('profile:'+user.userId);
+    await rDel('token:'+(body.token||''));
+    // Note: scenarios are stored client-side in localStorage — cleared on signout
+    return ok({ok:true});
+  }
+
+  if(action==='adminListUsers'){
+    // Admin only — verify token has admin role
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    // Return limited user data — no passwords
+    const keys=await redisCmd('KEYS','user:*');
+    if(!keys||!keys.length) return ok({ok:true,users:[]});
+    const users=await Promise.all(keys.map(async k=>{
+      const u=await rGet(k);
+      return u?{email:u.email,name:u.name,plan:u.plan,id:u.id,createdAt:u.createdAt,role:u.role}:null;
+    }));
+    return ok({ok:true,users:users.filter(Boolean)});
+  }
+
+  if(action==='adminResetPassword'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {targetEmail,newPassword}=body;
+    if(!targetEmail||!newPassword) return fail('targetEmail and newPassword required');
+    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    if(!userData) return fail('User not found');
+    userData.hash=hashPw(newPassword);
+    await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    return ok({ok:true});
+  }
+
+  if(action==='adminDeleteUser'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {targetEmail}=body;
+    if(!targetEmail) return fail('targetEmail required');
+    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    if(!userData) return fail('User not found');
+    await rDel('user:'+targetEmail.toLowerCase().trim());
+    await rDel('profile:'+userData.id);
+    return ok({ok:true});
+  }
+
+  if(action==='adminSetRole'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {targetEmail,role}=body;
+    if(!targetEmail||!role) return fail('targetEmail and role required');
+    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    if(!userData) return fail('User not found');
+    userData.role=role;
+    await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    // Update token if user is currently signed in
+    return ok({ok:true});
+  }
+
+  if(action==='setSelfAdmin'){
+    // Bootstrap: first user can claim admin — only works if NO admin exists yet
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user) return fail('Unauthorized',401);
+    // Check if any admin exists
+    const keys=await redisCmd('KEYS','user:*');
+    if(keys&&keys.length){
+      const users=await Promise.all(keys.map(async k=>rGet(k)));
+      const hasAdmin=users.some(u=>u&&u.role==='admin');
+      if(hasAdmin) return fail('An admin already exists. Contact the existing admin.');
+    }
+    const userData=await rGet('user:'+user.email);
+    if(!userData) return fail('Account not found');
+    userData.role='admin';
+    await rSet('user:'+user.email,userData);
+    // Refresh token with admin role
+    const token=makeToken();
+    await rSet('token:'+token,{userId:user.userId,email:user.email,name:user.name,plan:user.plan,role:'admin',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
+    return ok({ok:true,token,role:'admin'});
+  }
+
+  if(action==='adminSetPlan'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {targetEmail,plan}=body;
+    if(!targetEmail||!plan) return fail('targetEmail and plan required');
+    const validPlans=['free','pro','adviser'];
+    if(!validPlans.includes(plan)) return fail('Invalid plan. Use: free, pro, adviser');
+    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    if(!userData) return fail('User not found');
+    userData.plan=plan;
+    await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    // Also update any active tokens for this user
+    return ok({ok:true,plan});
   }
 
   return fail('Unknown action');
