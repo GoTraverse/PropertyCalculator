@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Admin — EquitySight.app</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="shortcut icon" href="favicon.svg">
+<link rel="stylesheet" href="shared.css">
+<style>
+  body { background: var(--warm-white); min-height: 100vh; }
+
+  .admin-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .admin-header h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--charcoal);
+  }
+  .admin-badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--charcoal);
+    color: var(--gold);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* Stats bar */
+  .admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: white;
+    border: 1px solid rgba(28,28,30,0.08);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+  }
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--charcoal);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--slate);
+    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Tabs */
+  .admin-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid rgba(28,28,30,0.08);
+    margin-bottom: 24px;
+  }
+  .admin-tab {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 10px 18px;
+    background: none;
+    border: none;
+    color: var(--slate);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s;
+  }
+  .admin-tab.active { color: var(--charcoal); border-bottom-color: var(--charcoal); }
+  .admin-tab:hover { color: var(--charcoal); }
+
+  .admin-section { display: none; }
+  .admin-section.active { display: block; }
+
+  /* User table */
+  .admin-card {
+    background: white;
+    border: 1px solid rgba(28,28,30,0.08);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .admin-card-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(28,28,30,0.07);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .admin-card-head h3 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+  .user-table { width: 100%; border-collapse: collapse; }
+  .user-table th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--slate);
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(28,28,30,0.06);
+    background: rgba(28,28,30,0.02);
+    white-space: nowrap;
+  }
+  .user-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--charcoal);
+    border-bottom: 1px solid rgba(28,28,30,0.05);
+    vertical-align: middle;
+  }
+  .user-table tr:last-child td { border-bottom: none; }
+  .user-table tr:hover td { background: rgba(28,28,30,0.02); }
+  .user-email { font-family: var(--font-mono); font-size: 11px; color: var(--slate); }
+  .plan-badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .plan-free { background: rgba(74,74,82,0.1); color: var(--slate); }
+  .plan-pro { background: rgba(201,168,76,0.15); color: #9A7A2A; }
+  .plan-adviser { background: rgba(91,143,171,0.15); color: var(--sky); }
+  .role-badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: rgba(196,90,90,0.12);
+    color: var(--risk-red);
+  }
+  .user-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .act-btn {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid rgba(28,28,30,0.15);
+    background: none;
+    color: var(--slate);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .act-btn:hover { background: var(--charcoal); color: var(--cream); border-color: var(--charcoal); }
+  .act-btn.danger:hover { background: var(--risk-red); border-color: var(--risk-red); color: white; }
+
+  /* Stripe / config section */
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .config-field { display: flex; flex-direction: column; gap: 6px; }
+  .config-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+  .config-input {
+    background: rgba(28,28,30,0.04);
+    border: 1px solid rgba(28,28,30,0.12);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--charcoal);
+    outline: none;
+  }
+  .config-input:focus { border-color: var(--gold); background: white; }
+  .config-input[readonly] { color: var(--slate); background: rgba(28,28,30,0.02); cursor: default; }
+
+  /* Status / alerts */
+  .admin-status { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 12px; font-family: var(--font-mono); margin-top: 12px; display: none; }
+  .admin-status.ok { background: rgba(90,158,123,0.1); color: var(--reward-green); display: block; }
+  .admin-status.err { background: rgba(196,90,90,0.1); color: var(--risk-red); display: block; }
+  .admin-status.info { background: rgba(91,143,171,0.1); color: var(--sky); display: block; }
+
+  /* Bootstrap admin section */
+  .bootstrap-box {
+    background: var(--charcoal);
+    color: var(--cream);
+    border-radius: var(--radius-md);
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .bootstrap-box h2 { font-family: var(--font-display); font-size: 24px; margin-bottom: 12px; }
+  .bootstrap-box p { font-size: 14px; color: rgba(245,240,232,0.55); margin-bottom: 24px; line-height: 1.7; }
+
+  .btn-admin {
+    background: var(--gold);
+    border: none;
+    color: var(--charcoal);
+    padding: 10px 22px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-admin:hover { opacity: 0.85; }
+  .btn-admin-outline {
+    background: none;
+    border: 1px solid rgba(28,28,30,0.2);
+    color: var(--charcoal);
+    padding: 10px 22px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .btn-admin-outline:hover { background: var(--charcoal); color: var(--cream); }
+
+  /* Access denied screen */
+  .access-denied {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    gap: 16px;
+  }
+  .access-denied .ad-icon { font-size: 48px; }
+  .access-denied h2 { font-family: var(--font-display); font-size: 28px; }
+  .access-denied p { color: var(--slate); max-width: 400px; line-height: 1.7; }
+
+  /* Filter bar */
+  .filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .filter-input {
+    background: rgba(28,28,30,0.04);
+    border: 1px solid rgba(28,28,30,0.12);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    font-size: 12px;
+    font-family: var(--font-body);
+    color: var(--charcoal);
+    outline: none;
+    width: 220px;
+  }
+  .filter-input:focus { border-color: var(--gold); }
+  .filter-select {
+    background: rgba(28,28,30,0.04);
+    border: 1px solid rgba(28,28,30,0.12);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--charcoal);
+    outline: none;
+  }
+
+  /* Reset pwd modal */
+  .reset-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  .reset-modal-overlay.open { display: flex; }
+  .reset-modal {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 32px;
+    width: min(420px, 92vw);
+    box-shadow: var(--shadow-lg);
+  }
+  .reset-modal h3 { font-family: var(--font-display); font-size: 20px; margin-bottom: 8px; }
+  .reset-modal p { font-size: 13px; color: var(--slate); margin-bottom: 20px; }
+  .reset-modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+
+  @media (max-width: 768px) {
+    .config-grid { grid-template-columns: 1fr; }
+    .user-table td:nth-child(4), .user-table th:nth-child(4) { display: none; }
+    .admin-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<!-- Nav -->
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="index.html" class="site-logo">
+      <div class="site-logo-mark">🏠</div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links">
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="contact.html">Support</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham">☰</button>
+  </div>
+</nav>
+<script src="auth-nav.js"></script>
+
+<!-- Reset Password Modal -->
+<div class="reset-modal-overlay" id="reset-modal-overlay">
+  <div class="reset-modal">
+    <h3>Reset Password</h3>
+    <p id="reset-modal-desc">Set a new password for this account.</p>
+    <div class="config-field">
+      <label class="config-label">New Password</label>
+      <input type="password" class="config-input" id="reset-new-pw" placeholder="Minimum 8 characters">
+    </div>
+    <div id="reset-modal-status" class="admin-status"></div>
+    <div class="reset-modal-btns">
+      <button class="btn-admin" onclick="confirmResetPw()">Set Password</button>
+      <button class="btn-admin-outline" onclick="closeResetModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="admin-layout" id="admin-layout" style="display:none">
+
+  <div class="admin-header">
+    <div>
+      <h1>Admin Dashboard</h1>
+      <div style="font-size:13px;color:var(--slate);margin-top:4px;">EquitySight.app system management</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="admin-badge">🔒 Admin</span>
+      <a href="app.html" class="btn-admin-outline" style="font-size:10px;padding:7px 14px;">← Back to App</a>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="admin-stats" id="admin-stats">
+    <div class="stat-card"><div class="stat-value" id="stat-total">—</div><div class="stat-label">Total Users</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-free">—</div><div class="stat-label">Free Plan</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-pro">—</div><div class="stat-label">Pro Plan</div></div>
+    <div class="stat-card"><div class="stat-value" id="stat-adviser">—</div><div class="stat-label">Adviser Plan</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="showAdminTab('users',this)">Users</button>
+    <button class="admin-tab" onclick="showAdminTab('config',this)">Configuration</button>
+    <button class="admin-tab" onclick="showAdminTab('stripe',this)">Stripe</button>
+  </div>
+
+  <!-- USERS TAB -->
+  <div class="admin-section active" id="tab-users">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>All Accounts</h3>
+        <div class="filter-bar">
+          <input class="filter-input" id="user-search" placeholder="Search email or name…" oninput="filterUsers()">
+          <select class="filter-select" id="plan-filter" onchange="filterUsers()">
+            <option value="">All plans</option>
+            <option value="free">Free</option>
+            <option value="pro">Pro</option>
+            <option value="adviser">Adviser</option>
+          </select>
+          <button class="btn-admin" style="font-size:10px;padding:7px 14px;" onclick="loadUsers()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="users-table-wrap" style="overflow-x:auto;">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Plan</th>
+              <th>Joined</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--slate);padding:32px;font-style:italic;">Loading users…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="users-status" class="admin-status"></div>
+  </div>
+
+  <!-- CONFIG TAB -->
+  <div class="admin-section" id="tab-config">
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Site Configuration</h3></div>
+      <div style="padding:24px;">
+        <div class="config-grid" style="margin-bottom:20px;">
+          <div class="config-field">
+            <label class="config-label">Site Name</label>
+            <input type="text" class="config-input" id="cfg-site-name" value="EquitySight.app">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Support Email</label>
+            <input type="email" class="config-input" id="cfg-support-email" value="support@equitysight.app">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Free Plan Scenario Limit</label>
+            <input type="number" class="config-input" id="cfg-free-limit" value="1" min="1" max="10">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Pro Monthly Price (AUD)</label>
+            <input type="number" class="config-input" id="cfg-pro-price" value="9">
+          </div>
+        </div>
+        <div class="config-field" style="margin-bottom:20px;">
+          <label class="config-label">Announcement Banner (leave blank to hide)</label>
+          <input type="text" class="config-input" id="cfg-banner" placeholder="e.g. New feature: 30-year equity projections now available!">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-admin" onclick="saveConfig()">Save Configuration</button>
+        </div>
+        <div id="config-status" class="admin-status"></div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Admin Account</h3></div>
+      <div style="padding:24px;">
+        <p style="font-size:13px;color:var(--slate);margin-bottom:16px;line-height:1.7;">Your account is currently set as admin. If you want to grant admin access to another user, change their role in the Users tab. To revoke your own admin access, you would need to use the Redis database directly.</p>
+        <div id="self-admin-info" style="font-size:12px;font-family:var(--font-mono);color:var(--slate);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STRIPE TAB -->
+  <div class="admin-section" id="tab-stripe">
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Stripe Integration</h3></div>
+      <div style="padding:24px;">
+        <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:24px;font-size:13px;line-height:1.7;">
+          <strong>⚠️ Stripe is not yet connected.</strong> To enable payments, add your Stripe keys to the Netlify environment variables and update the payment links below. Stripe handles the actual payment processing — once a payment succeeds, update the user's plan in Redis using the admin panel above.
+        </div>
+        <div class="config-grid" style="margin-bottom:24px;">
+          <div class="config-field">
+            <label class="config-label">Stripe Publishable Key</label>
+            <input type="text" class="config-input" id="stripe-pub-key" placeholder="pk_live_…">
+            <span style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">Store in Netlify env: STRIPE_PUBLISHABLE_KEY</span>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Stripe Secret Key (NEVER expose)</label>
+            <input type="password" class="config-input" id="stripe-secret-key" placeholder="sk_live_… (server-side only)">
+            <span style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">Store in Netlify env: STRIPE_SECRET_KEY</span>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Pro Monthly Price ID</label>
+            <input type="text" class="config-input" id="stripe-pro-monthly" placeholder="price_…">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Pro Annual Price ID</label>
+            <input type="text" class="config-input" id="stripe-pro-annual" placeholder="price_…">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Webhook Secret</label>
+            <input type="password" class="config-input" id="stripe-webhook" placeholder="whsec_…">
+            <span style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">Store in Netlify env: STRIPE_WEBHOOK_SECRET</span>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Customer Portal Link</label>
+            <input type="text" class="config-input" id="stripe-portal" placeholder="https://billing.stripe.com/…">
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--slate);margin-bottom:16px;padding:14px 18px;background:rgba(28,28,30,0.03);border-radius:var(--radius-sm);line-height:1.8;">
+          <strong>Stripe Setup Steps:</strong><br>
+          1. Create products in Stripe Dashboard → Products (Pro Monthly, Pro Annual, Adviser)<br>
+          2. Copy Price IDs into the fields above<br>
+          3. Add STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET to Netlify env vars<br>
+          4. Deploy the <code>stripe.js</code> Netlify function to handle webhook events<br>
+          5. Set webhook endpoint: <code>https://yoursite.netlify.app/.netlify/functions/stripe</code><br>
+          6. Subscribe to events: <code>checkout.session.completed</code>, <code>customer.subscription.deleted</code>
+        </div>
+        <button class="btn-admin" onclick="saveStripeConfig()">Save Stripe Config (local reference)</button>
+        <div id="stripe-status" class="admin-status"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Access denied / not logged in -->
+<div class="access-denied" id="access-denied" style="display:none;">
+  <div class="ad-icon">🔒</div>
+  <h2>Access Restricted</h2>
+  <p id="access-denied-msg">This page requires an admin account. Please sign in with an admin account to continue.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+    <a href="login.html" class="btn-admin">Sign In</a>
+    <button class="btn-admin-outline" id="bootstrap-btn" onclick="bootstrapAdmin()" style="display:none;">Claim Admin (first user only)</button>
+  </div>
+  <div id="bootstrap-status" class="admin-status" style="margin-top:12px;"></div>
+</div>
+
+<div class="admin-layout" id="loading-view">
+  <div style="text-align:center;padding:80px 24px;color:var(--slate);">
+    <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:1px;">Verifying access…</div>
+  </div>
+</div>
+
+<script>
+const SESSION_KEY = 'propCalc_session_v1';
+let adminSession = null;
+let allUsers = [];
+let resetTarget = null;
+
+function getSession(){
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch(e){ return null; }
+}
+
+async function callAuth(action, payload){
+  const sess = getSession();
+  const token = sess && sess.token;
+  const r = await fetch('/.netlify/functions/auth', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + (token || '')
+    },
+    body: JSON.stringify(Object.assign({action}, payload || {}))
+  });
+  return r.json();
+}
+
+async function init(){
+  const sess = getSession();
+  document.getElementById('loading-view').style.display = 'none';
+
+  if(!sess || !(sess.id || sess.email)){
+    showAccessDenied('Please sign in with an admin account.');
+    document.getElementById('bootstrap-btn').style.display = 'inline-block';
+    return;
+  }
+
+  // Verify session and check for admin role
+  const d = await callAuth('verify', {token: sess.token});
+  if(!d.ok){
+    showAccessDenied('Your session has expired. Please sign in again.');
+    return;
+  }
+
+  if(d.role !== 'admin'){
+    // Not admin - show option to claim admin if no admin exists
+    showAccessDenied('Your account does not have admin privileges.');
+    document.getElementById('bootstrap-btn').style.display = 'inline-block';
+    document.getElementById('access-denied-msg').textContent = 'Your account ('+(d.email||sess.email)+') does not have admin access. If you are the first user, you can claim admin below.';
+    return;
+  }
+
+  // Is admin - show dashboard
+  adminSession = d;
+  document.getElementById('access-denied').style.display = 'none';
+  document.getElementById('admin-layout').style.display = 'block';
+  document.getElementById('self-admin-info').textContent = 'Logged in as: ' + (d.email || '') + ' | Role: admin';
+
+  loadUsers();
+}
+
+function showAccessDenied(msg){
+  document.getElementById('access-denied').style.display = 'flex';
+  document.getElementById('admin-layout').style.display = 'none';
+  if(msg) document.getElementById('access-denied-msg').textContent = msg;
+}
+
+async function bootstrapAdmin(){
+  const sess = getSession();
+  if(!sess){ alert('Please sign in first.'); location.href='login.html'; return; }
+  const st = document.getElementById('bootstrap-status');
+  st.textContent = 'Claiming admin role…'; st.className = 'admin-status info';
+  const d = await callAuth('setSelfAdmin');
+  if(d.ok){
+    // Update local session with new token and admin role
+    const updated = Object.assign({}, sess, {token: d.token || sess.token, role: 'admin'});
+    localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+    st.textContent = '✓ Admin role granted! Reloading…'; st.className = 'admin-status ok';
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    st.textContent = '✗ ' + (d.error || 'Failed'); st.className = 'admin-status err';
+  }
+}
+
+async function loadUsers(){
+  const tbody = document.getElementById('users-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading…</td></tr>';
+  const d = await callAuth('adminListUsers');
+  if(!d.ok){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed to load users')+'</td></tr>';
+    return;
+  }
+  allUsers = (d.users || []).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  updateStats(allUsers);
+  renderUsers(allUsers);
+}
+
+function updateStats(users){
+  document.getElementById('stat-total').textContent = users.length;
+  document.getElementById('stat-free').textContent = users.filter(u=>u.plan==='free'||!u.plan).length;
+  document.getElementById('stat-pro').textContent = users.filter(u=>u.plan==='pro').length;
+  document.getElementById('stat-adviser').textContent = users.filter(u=>u.plan==='adviser').length;
+}
+
+function filterUsers(){
+  const search = document.getElementById('user-search').value.toLowerCase();
+  const plan = document.getElementById('plan-filter').value;
+  const filtered = allUsers.filter(u => {
+    const matchSearch = !search || (u.email||'').toLowerCase().includes(search) || (u.name||'').toLowerCase().includes(search);
+    const matchPlan = !plan || (u.plan||'free') === plan;
+    return matchSearch && matchPlan;
+  });
+  renderUsers(filtered);
+}
+
+function renderUsers(users){
+  const tbody = document.getElementById('users-tbody');
+  if(!users.length){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No users found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const plan = u.plan || 'free';
+    const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    const roleHtml = u.role === 'admin' ? '<span class="role-badge">admin</span>' : '';
+    return `<tr>
+      <td style="font-weight:500;">${escHtml(u.name||'—')}</td>
+      <td><span class="user-email">${escHtml(u.email||'—')}</span></td>
+      <td><span class="plan-badge plan-${escHtml(plan)}">${escHtml(plan)}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;">${joined}</td>
+      <td>${roleHtml}</td>
+      <td>
+        <div class="user-actions">
+          <button class="act-btn" onclick="openResetPw(${JSON.stringify(u.email)})">Reset Pwd</button>
+          <button class="act-btn" onclick="setPlan(${JSON.stringify(u.email)},${JSON.stringify(plan)})">Plan</button>
+          ${u.role !== 'admin' ? `<button class="act-btn" onclick="setRole(${JSON.stringify(u.email)},'admin')">→ Admin</button>` : `<button class="act-btn" onclick="setRole(${JSON.stringify(u.email)},'user')">Revoke Admin</button>`}
+          <button class="act-btn danger" onclick="deleteUser(${JSON.stringify(u.email)})">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openResetPw(email){
+  resetTarget = email;
+  document.getElementById('reset-modal-desc').textContent = 'Set a new password for: ' + email;
+  document.getElementById('reset-new-pw').value = '';
+  document.getElementById('reset-modal-status').className = 'admin-status';
+  document.getElementById('reset-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('reset-new-pw').focus(), 100);
+}
+function closeResetModal(){
+  document.getElementById('reset-modal-overlay').classList.remove('open');
+  resetTarget = null;
+}
+async function confirmResetPw(){
+  const pw = document.getElementById('reset-new-pw').value.trim();
+  const st = document.getElementById('reset-modal-status');
+  if(!pw || pw.length < 8){ st.textContent='Password must be at least 8 characters'; st.className='admin-status err'; return; }
+  st.textContent='Updating…'; st.className='admin-status info';
+  const d = await callAuth('adminResetPassword', {targetEmail: resetTarget, newPassword: pw});
+  if(d.ok){ st.textContent='✓ Password updated'; st.className='admin-status ok'; setTimeout(closeResetModal, 1500); }
+  else { st.textContent='✗ ' + (d.error||'Failed'); st.className='admin-status err'; }
+}
+
+async function setPlan(email, currentPlan){
+  const plans = ['free', 'pro', 'adviser'];
+  const newPlan = prompt('Change plan for ' + email + '\nCurrent: ' + currentPlan + '\nEnter new plan (free / pro / adviser):', currentPlan);
+  if(!newPlan) return;
+  const plan = newPlan.toLowerCase().trim();
+  if(!plans.includes(plan)){ alert('Invalid plan. Use: free, pro, or adviser'); return; }
+  const st = document.getElementById('users-status');
+  st.textContent = 'Updating plan…'; st.className = 'admin-status info';
+  const d = await callAuth('adminSetPlan', {targetEmail: email, plan});
+  if(d.ok){ st.textContent = '✓ Plan updated to ' + plan + ' for ' + email; st.className = 'admin-status ok'; loadUsers(); }
+  else { st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err'; }
+}
+
+async function setRole(email, role){
+  const confirm_msg = role === 'admin' ? `Grant admin access to ${email}?` : `Revoke admin access from ${email}?`;
+  if(!confirm(confirm_msg)) return;
+  const st = document.getElementById('users-status');
+  st.textContent = 'Updating role…'; st.className = 'admin-status info';
+  const d = await callAuth('adminSetRole', {targetEmail: email, role});
+  if(d.ok){ st.textContent = '✓ Role updated'; st.className = 'admin-status ok'; loadUsers(); }
+  else { st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err'; }
+}
+
+async function deleteUser(email){
+  if(!confirm('PERMANENTLY delete account for ' + email + '?\n\nThis cannot be undone.')) return;
+  if(!confirm('Are you absolutely sure? All data for ' + email + ' will be deleted.')) return;
+  const st = document.getElementById('users-status');
+  st.textContent = 'Deleting…'; st.className = 'admin-status info';
+  const d = await callAuth('adminDeleteUser', {targetEmail: email});
+  if(d.ok){ st.textContent = '✓ User deleted'; st.className = 'admin-status ok'; loadUsers(); }
+  else { st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err'; }
+}
+
+function showAdminTab(tab, btn){
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+function saveConfig(){
+  const st = document.getElementById('config-status');
+  // In a real deployment, these would be written to Redis or env vars via an API
+  // For now, save to localStorage as local reference
+  const cfg = {
+    siteName: document.getElementById('cfg-site-name').value,
+    supportEmail: document.getElementById('cfg-support-email').value,
+    freeLimit: document.getElementById('cfg-free-limit').value,
+    proPrice: document.getElementById('cfg-pro-price').value,
+    banner: document.getElementById('cfg-banner').value,
+  };
+  localStorage.setItem('admin_config', JSON.stringify(cfg));
+  st.textContent = '✓ Configuration saved locally (deploy env vars for server-side changes)';
+  st.className = 'admin-status ok';
+}
+
+function saveStripeConfig(){
+  const st = document.getElementById('stripe-status');
+  const cfg = {
+    pubKey: document.getElementById('stripe-pub-key').value,
+    proMonthly: document.getElementById('stripe-pro-monthly').value,
+    proAnnual: document.getElementById('stripe-pro-annual').value,
+    portal: document.getElementById('stripe-portal').value,
+  };
+  // Never save secret key or webhook secret to localStorage
+  localStorage.setItem('stripe_config_ref', JSON.stringify(cfg));
+  st.textContent = '✓ Reference saved. Secret keys must be added via Netlify environment variables.';
+  st.className = 'admin-status ok';
+}
+
+function escHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
