@@ -222,7 +222,7 @@
 
   /* ── CONTENT ── */
   .content{overflow:hidden;display:flex;flex-direction:column;height:100%;}
-  nav{background:var(--charcoal);display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+  nav{background:var(--charcoal);display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;position:sticky;top:0;z-index:150;flex-shrink:0;}
   nav::-webkit-scrollbar{display:none;}
   .tab{flex:1;min-width:110px;padding:14px 10px;font-family:'DM Mono',monospace;font-size:14px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:rgba(245,240,232,0.4);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;text-align:center;white-space:nowrap;border:none;background:none;}
   .tab:hover{color:rgba(245,240,232,0.85);}
@@ -394,12 +394,17 @@
   .addr-suggestion span{font-size:11px;color:var(--slate);}
 
   /* ── MOBILE OVERHAUL ── */
+  /* Hide profile btn when overlays are open */
+  body.sidebar-open #app-profile-widget,
+  body.modal-open #app-profile-widget { opacity:0; pointer-events:none; }
+
   @media(max-width:600px){
     /* Sidebar */
     #sidebar-close-btn{display:block!important;}
     .sidebar{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;border-radius:0;}
     .sidebar.mobile-open{display:block!important;}
-    #mobile-sidebar-btn{display:flex!important;}
+    #mobile-sidebar-btn{display:none!important;}
+    #mobile-calc-fab{display:flex!important;}
 
     /* Header — compact but clear */
     .header-inner{min-height:auto!important;flex-wrap:wrap;}
@@ -656,6 +661,16 @@
     </div>
   </div>
 </header>
+
+  <!-- Mobile floating calculator access button -->
+  <button id="mobile-calc-fab" onclick="toggleMobileSidebar()"
+    style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+           z-index:4000;background:var(--charcoal);color:var(--cream);border:1px solid rgba(255,255,255,0.15);
+           border-radius:24px;padding:11px 22px;font-family:'DM Mono',monospace;font-size:12px;
+           letter-spacing:1px;gap:8px;align-items:center;box-shadow:0 4px 24px rgba(0,0,0,0.5);
+           cursor:pointer;white-space:nowrap;transition:background 0.15s;">
+    <span style="font-size:14px;">↓</span> Calculator
+  </button>
 
   <nav>
     <button class="tab active" onclick="showTab('property',this)">00 · Property</button>
@@ -2340,11 +2355,13 @@
   function setScenariosView(mode){ /* grid view removed — list only */ }
 
   function openScenariosModal(){
+    document.body.classList.add('modal-open');
     document.getElementById('scenarios-modal').style.display='block';
     document.body.style.overflow='hidden';
     renderScenariosList();
   }
   function closeScenariosModal(){
+    document.body.classList.remove('modal-open');
     document.getElementById('scenarios-modal').style.display='none';
     document.body.style.overflow='';
   }
@@ -3314,9 +3331,11 @@
     if(isOpen){
       sidebar?.classList.remove('mobile-open');
       overlay?.classList.remove('open');
+      document.body.classList.remove('sidebar-open');
     } else {
       sidebar?.classList.add('mobile-open');
       overlay?.classList.add('open');
+      document.body.classList.add('sidebar-open');
     }
   }
 
@@ -3675,17 +3694,6 @@
 </script>
 
 
-    <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--cream);margin-bottom:10px;line-height:1.2;">mypropertymate<span style="font-family:'DM Mono',monospace;color:var(--gold);font-size:18px;">.app</span></div>
-    <p style="font-size:14px;color:rgba(245,240,232,0.5);line-height:1.6;margin-bottom:32px;">Sign in to access your property calculator and personal library. Free accounts get full access to the core calculator.</p>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
-      <button onclick="location.href='login.html'" style="background:var(--gold);color:var(--charcoal);border:none;border-radius:4px;padding:14px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:opacity 0.15s;">Sign In →</button>
-      <button onclick="location.href='login.html?tab=signup'" style="background:rgba(255,255,255,0.08);color:var(--cream);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:14px 24px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:0.5px;cursor:pointer;">Create free account →</button>
-      <button onclick="dismissAuthGate()" style="background:none;color:rgba(245,240,232,0.3);border:none;padding:10px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">Continue as guest (data saved locally only)</button>
-    </div>
-    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;color:rgba(245,240,232,0.2);text-transform:uppercase;">Free · No credit card · Cancel any time</div>
-  </div>
-</div>
-
 <!-- ══ USER PROFILE PANEL ══ -->
 <div id="profile-overlay" onclick="closeProfile()"></div>
 <div id="profile-panel">
@@ -3745,7 +3753,7 @@
 
 
 <!-- ══ TOP-RIGHT PROFILE WIDGET (consistent across all pages) ══ -->
-<div id="app-profile-widget" style="position:fixed;top:max(14px, calc(env(safe-area-inset-top) + 10px));right:16px;z-index:5000;">
+<div id="app-profile-widget" style="position:fixed;top:max(14px, calc(env(safe-area-inset-top) + 10px));right:16px;z-index:5000;transition:opacity 0.2s,visibility 0.2s;">
   <button id="app-profile-btn" onclick="toggleAppProfileMenu()" title="Account"
     style="width:38px;height:38px;border-radius:50%;background:var(--gold);
            border:2px solid rgba(201,168,76,0.4);color:var(--charcoal);
