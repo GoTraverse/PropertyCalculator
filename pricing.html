@@ -80,20 +80,10 @@
   .faq-ans{display:none;padding-bottom:20px;font-size:14px;color:var(--slate);line-height:1.7;}
   .faq-item.open .faq-ans{display:block;}
 
-  @media(max-width:900px){.cards-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto 60px;}.cmp-table th,.cmp-table td{padding:10px 8px;font-size:11px;}}
-  /* Page transition spinner */
-  #page-spinner{display:none;position:fixed;inset:0;z-index:99999;background:rgba(28,28,30,0.72);
-    backdrop-filter:blur(4px);align-items:center;justify-content:center;}
-  #page-spinner.show{display:flex;}
-  .spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);
-    border-top-color:#C9A84C;border-radius:50%;animation:spin 0.7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:900px){.cards-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto 60px;}.cmp-table th,.cmp-table td{padding:10px 8px;font-size:11px;}}}
 </style>
 </head>
-<body>
-
-<div id="page-spinner"><div class="spinner-ring"></div></div>
-<nav class="site-nav">
+<body><nav class="site-nav">
   <div class="site-nav-inner">
     <a href="index.html" class="site-logo">
       <div class="site-logo-mark">🏠</div>
@@ -104,13 +94,11 @@
       <li><a href="contact.html">Support</a></li>
       <li><a href="about.html">About</a></li>
     </ul>
-    <div class="site-nav-actions" id="nav-actions">
-      <button class="btn-ghost" onclick="location.href='login.html'">Sign in</button>
-      <button class="btn-gold" onclick="location.href='login.html?tab=signup'">Get started free</button>
-    </div>
+    <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham">☰</button>
   </div>
 </nav>
+<script src="auth-nav.js"></script>
 
 <section class="pricing-hero">
   <div class="pricing-hero-inner">
@@ -133,7 +121,7 @@
           <div class="pcard-badge">Free forever</div>
           <div class="pcard-name">Starter</div>
           <div class="pcard-desc">Explore the calculator risk-free. No card needed.</div>
-          <div class="pcard-price"><span class="pcard-amt">$0</span><span class="pcard-per">/ month</span></div>
+          <div class="pcard-price"><span class="pcard-amt">$0</span><span class="pcard-per">AUD / month</span></div>
         </div>
         <div class="pcard-body">
           <ul class="pcard-feats">
@@ -145,7 +133,7 @@
             <li><div class="ck ck-n">—</div>PDF export</li>
             <li><div class="ck ck-n">—</div>Unlimited library &amp; cloud sync</li>
           </ul>
-          <button class="pcard-btn pb-outline" onclick="goTo('login.html?tab=signup')">Start free →</button>
+          <button class="pcard-btn pb-outline" href="login.html?tab=signup">Start free →</button>
         </div>
       </div>
 
@@ -154,7 +142,7 @@
           <div class="pcard-badge">Most popular</div>
           <div class="pcard-name">Pro</div>
           <div class="pcard-desc">For serious buyers who want the full picture before making an offer.</div>
-          <div class="pcard-price"><span class="pcard-amt" id="pro-amt">$9</span><span class="pcard-per">/ month</span></div>
+          <div class="pcard-price"><span class="pcard-amt" id="pro-amt">A$9</span><span class="pcard-per">AUD / month</span></div>
           <div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.25);margin-top:6px;" id="pro-sub">Billed monthly · cancel any time</div>
         </div>
         <div class="pcard-body">
@@ -176,7 +164,7 @@
           <div class="pcard-badge">Brokers &amp; advisers</div>
           <div class="pcard-name">Adviser</div>
           <div class="pcard-desc">For mortgage brokers managing multiple client scenarios.</div>
-          <div class="pcard-price"><span class="pcard-amt" id="adv-amt">$29</span><span class="pcard-per">/ month</span></div>
+          <div class="pcard-price"><span class="pcard-amt" id="adv-amt">A$29</span><span class="pcard-per">AUD / month</span></div>
           <div style="font-family:var(--font-mono);font-size:10px;color:rgba(28,28,30,0.3);margin-top:6px;" id="adv-sub">Billed monthly · cancel any time</div>
         </div>
         <div class="pcard-body">
@@ -243,7 +231,7 @@
     <h2 style="font-family:var(--font-display);font-size:36px;font-weight:700;color:var(--cream);margin-bottom:14px;">Start for free today.</h2>
     <p style="color:rgba(245,240,232,0.45);margin-bottom:32px;font-size:15px;line-height:1.6;">No credit card. No commitment. Upgrade when you're ready.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-      <button onclick="goTo('login.html?tab=signup')" style="background:var(--gold);color:var(--charcoal);border:none;padding:14px 30px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Open Calculator Free →</button>
+      <button onclick="location.href=\'login.html?tab=signup\'" style="background:var(--gold);color:var(--charcoal);border:none;padding:14px 30px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Open Calculator Free →</button>
       <button onclick="location.href='contact.html'" style="background:rgba(255,255,255,0.06);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 26px;border-radius:3px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;cursor:pointer;">Talk to us first</button>
     </div>
   </div>
@@ -277,12 +265,12 @@
     document.getElementById('bill-tog').classList.toggle('on',annual);
     document.getElementById('lbl-m').classList.toggle('active',!annual);
     document.getElementById('lbl-a').classList.toggle('active',annual);
-    document.getElementById('pro-amt').textContent=annual?'$7':'$9';
-    document.getElementById('adv-amt').textContent=annual?'$23':'$29';
-    document.getElementById('pro-sub').textContent=annual?'Billed $86/yr · cancel any time':'Billed monthly · cancel any time';
-    document.getElementById('adv-sub').textContent=annual?'Billed $278/yr · cancel any time':'Billed monthly · cancel any time';
-    document.getElementById('tbl-pro').textContent=annual?'$7/mo ($86/yr)':'$9/mo';
-    document.getElementById('tbl-adv').textContent=annual?'$23/mo ($278/yr)':'$29/mo';
+    document.getElementById('pro-amt').textContent=annual?'A$7':'A$9';
+    document.getElementById('adv-amt').textContent=annual?'A$23':'A$29';
+    document.getElementById('pro-sub').textContent=annual?'Billed A$86/yr · cancel any time':'Billed monthly AUD · cancel any time';
+    document.getElementById('adv-sub').textContent=annual?'Billed A$278/yr · cancel any time':'Billed monthly AUD · cancel any time';
+    document.getElementById('tbl-pro').textContent=annual?'A$7/mo (A$86/yr)':'A$9/mo';
+    document.getElementById('tbl-adv').textContent=annual?'A$23/mo (A$278/yr)':'A$29/mo';
   }
   document.getElementById('nav-ham').addEventListener('click',function(){
     const l=document.querySelector('.site-nav-links');
@@ -300,23 +288,6 @@
     document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');});
   })();
 </script>
-<script>
-  (function(){
-    function showSpinner(){ var s=document.getElementById('page-spinner'); if(s) s.classList.add('show'); }
-    // Intercept all internal <a> clicks
-    document.addEventListener('click', function(e){
-      var a = e.target.closest('a[href]');
-      if(!a) return;
-      var href = a.getAttribute('href');
-      if(!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-      if(a.target === '_blank') return;
-      e.preventDefault();
-      showSpinner();
-      setTimeout(function(){ location.href = href; }, 80);
-    });
-    // Intercept location.href calls via buttons — handled by onclick goTo()
-    window.goTo = function(url){ showSpinner(); setTimeout(function(){ location.href=url; }, 80); };
-  })();
-</script>
+
 </body>
 </html>
