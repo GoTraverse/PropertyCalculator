@@ -31,8 +31,6 @@
   </div>
 </nav>
 <script src="auth-nav.js"></script>
-<div id="page-spinner"><div class="spinner-ring"></div></div>
-
 <section class="legal-hero">
   <div class="legal-tag">Legal</div>
   <h1 class="legal-title">Disclaimer</h1>
@@ -97,14 +95,54 @@
 </div>
 
 <footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-col"><h4>Product</h4><ul><li><a href="login.html?tab=signup">Try Calculator Free</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
-    <div class="footer-col"><h4>Company</h4><ul><li><a href="about.html">About us</a></li><li><a href="contact.html">Contact</a></li></ul></div>
-    <div class="footer-col"><h4>Legal</h4><ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms of Service</a></li><li><a href="cookies.html">Cookie Policy</a></li><li><a href="disclaimer.html">Disclaimer</a></li></ul></div>
+  <div class="site-footer-inner">
+    <div class="site-footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="site-logo" style="margin-bottom:14px;">
+          <div class="site-logo-mark">🏠</div>
+          <div class="site-logo-text">
+            <span class="site-logo-name">mypropertymate</span>
+            <span class="site-logo-tld">.app</span>
+          </div>
+        </a>
+        <p>Australia's smartest property finance calculator for first home buyers and investors navigating the Shared Equity Scheme.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="login.html?tab=signup">Try Calculator Free</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="pricing.html#comparison">Feature comparison</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="contact.html#support">Support</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="cookies.html">Cookie Policy</a></li>
+          <li><a href="disclaimer.html">Disclaimer</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 mypropertymate.app · ABN pending · Not financial advice — always consult a licensed adviser.</p>
+      <div class="footer-bottom-links">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
   </div>
-  <div class="footer-bottom"><span>© 2025 mypropertymate.app</span><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact</a></div>
 </footer>
-<style>#page-spinner{display:none;position:fixed;inset:0;z-index:99999;background:rgba(28,28,30,0.72);backdrop-filter:blur(4px);align-items:center;justify-content:center;}#page-spinner.show{display:flex;}.spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);border-top-color:#C9A84C;border-radius:50%;animation:spin 0.7s linear infinite;}@keyframes spin{to{transform:rotate(360deg)}}</style>
-<script>(function(){function showSpinner(){var s=document.getElementById('page-spinner');if(s)s.classList.add('show');}document.addEventListener('click',function(e){var a=e.target.closest('a[href]');if(!a)return;var href=a.getAttribute('href');if(!href||href.startsWith('#')||href.startsWith('mailto:')||href.startsWith('tel:'))return;if(a.target==='_blank')return;e.preventDefault();showSpinner();setTimeout(function(){location.href=href;},80);});window.goTo=function(url){showSpinner();setTimeout(function(){location.href=url;},80);};})();</script>
+
 </body>
 </html>
