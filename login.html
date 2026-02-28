@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Sign in — mypropertymate.app</title>
+<title>Sign in — EquitySight.app</title>
 <link rel="stylesheet" href="shared.css">
 <style>
   body { background: var(--charcoal); min-height: 100vh; display: flex; flex-direction: column; }
@@ -38,6 +38,9 @@
     border-top-color:#C9A84C;border-radius:50%;animation:spin 0.7s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.svg">
+  <meta name="theme-color" content="#1C1C1E">
 </head>
 <body>
 <div id="page-spinner"><div class="spinner-ring"></div></div>
@@ -45,15 +48,15 @@
   <div class="site-nav-inner">
     <a href="index.html" class="site-logo">
       <div class="site-logo-mark">🏠</div>
-      <div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
   </div>
 </nav>
 <div class="login-wrap">
   <div class="login-box">
     <div style="text-align:center;">
-      <div class="login-heading">Welcome back</div>
-      <div class="login-sub">Sign in to access your property scenarios</div>
+      <div class="login-heading" id="login-heading">Welcome back</div>
+      <div class="login-sub" id="login-sub">Sign in to access your property scenarios</div>
     </div>
     <div class="login-tabs">
       <button class="login-tab active" id="tab-signin" onclick="setTab('signin')">Sign In</button>
@@ -118,6 +121,10 @@
     document.getElementById('form-signup').style.display = t==='signup' ? '' : 'none';
     document.getElementById('tab-signin').classList.toggle('active', t==='signin');
     document.getElementById('tab-signup').classList.toggle('active', t==='signup');
+    var h = document.getElementById('login-heading');
+    var s = document.getElementById('login-sub');
+    if(h) h.textContent = t==='signin' ? 'Welcome back' : 'Create your account';
+    if(s) s.textContent = t==='signin' ? 'Sign in to access your property scenarios' : 'Start for free — no credit card required';
   }
 
   async function callAuth(action, payload){
