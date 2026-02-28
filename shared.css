@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   mypropertymate.app — Shared Design System
+   EquitySight.app — Shared Design System
    ═══════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -65,11 +65,10 @@ img { max-width: 100%; display: block; }
   margin: 0 auto;
   padding: 0 24px;
   min-height: 64px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: nowrap;
+  gap: 0;
 }
 .site-logo {
   display: flex;
@@ -119,6 +118,7 @@ img { max-width: 100%; display: block; }
 .site-nav-links {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   list-style: none;
 }
@@ -141,7 +141,8 @@ img { max-width: 100%; display: block; }
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  justify-content: flex-end;
+  width: 200px;
 }
 .btn-ghost {
   background: none;
@@ -290,8 +291,10 @@ img { max-width: 100%; display: block; }
 @media(max-width: 768px) {
   /* Never hide nav links behind hamburger — show them in a secondary row */
   .site-nav-inner {
+    display: flex;
     flex-wrap: wrap;
     padding-bottom: 0;
+    gap: 0;
   }
   .site-nav-links {
     display: flex !important;
@@ -316,7 +319,10 @@ img { max-width: 100%; display: block; }
   }
   .site-nav-actions {
     order: 2;
+    flex: 1;
     gap: 6px;
+    width: auto;
+    justify-content: flex-end;
   }
   .btn-ghost {
     padding: 7px 11px;
