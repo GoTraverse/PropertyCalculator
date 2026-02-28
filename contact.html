@@ -53,10 +53,18 @@
   .faq-item.open .faq-ans{display:block;}
 
   @media(max-width:860px){.contact-inner{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+  /* Page transition spinner */
+  #page-spinner{display:none;position:fixed;inset:0;z-index:99999;background:rgba(28,28,30,0.72);
+    backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+  #page-spinner.show{display:flex;}
+  .spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);
+    border-top-color:#C9A84C;border-radius:50%;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
+<div id="page-spinner"><div class="spinner-ring"></div></div>
 <nav class="site-nav">
   <div class="site-nav-inner">
     <a href="index.html" class="site-logo">
@@ -64,7 +72,6 @@
       <div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div>
     </a>
     <ul class="site-nav-links">
-      <li><a href="index.html#features">Features</a></li>
       <li><a href="pricing.html">Pricing</a></li>
       <li><a href="contact.html" class="active">Support</a></li>
       <li><a href="about.html">About</a></li>
@@ -94,7 +101,7 @@
       <h2 style="font-family:var(--font-display);font-size:26px;font-weight:700;margin-bottom:24px;line-height:1.2;">Support options</h2>
       <div class="support-options">
 
-        <div class="support-card">
+        <div class="support-card" style="cursor:pointer;" onclick="location.href='mailto:support@mypropertymate.app'">
           <div class="support-icon" style="background:rgba(201,168,76,0.12);">✉️</div>
           <div class="support-card-text">
             <h3>Email support</h3>
@@ -103,11 +110,11 @@
           </div>
         </div>
 
-        <div class="support-card">
+        <div class="support-card" style="cursor:pointer;" onclick="showChatNotice()">
           <div class="support-icon" style="background:rgba(91,143,171,0.12);">💬</div>
           <div class="support-card-text">
             <h3>Live chat</h3>
-            <p>Available to Pro and Adviser subscribers during business hours (AEST Mon–Fri).</p>
+            <p>Available to Pro subscribers during business hours (AEST Mon–Fri).</p>
             <p class="rt">Pro plan feature</p>
           </div>
         </div>
@@ -129,13 +136,6 @@
             <p class="rt">See the form →</p>
           </div>
         </div>
-
-        <div style="background:var(--charcoal);border-radius:8px;padding:24px;margin-top:8px;">
-          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Adviser plan</div>
-          <div style="font-size:14px;color:rgba(245,240,232,0.7);line-height:1.6;margin-bottom:14px;">Adviser subscribers get priority phone support. Contact us to discuss your account or escalate an issue.</div>
-          <a href="mailto:advisers@mypropertymate.app" style="font-family:var(--font-mono);font-size:11px;color:var(--gold);letter-spacing:0.5px;">advisers@mypropertymate.app →</a>
-        </div>
-
       </div>
     </div>
 
@@ -159,7 +159,6 @@
             <option value="feature">Feature request</option>
             <option value="billing">Billing / subscription</option>
             <option value="calculator">Calculator question</option>
-            <option value="adviser">Adviser plan enquiry</option>
             <option value="other">Other</option>
           </select>
         </div>
@@ -173,7 +172,7 @@
         <div class="cf-success-icon">✅</div>
         <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--charcoal);margin-bottom:8px;">Message sent!</div>
         <div style="color:var(--slate);font-family:var(--font-body);font-size:14px;">We'll get back to you within 24 hours. While you wait, try the calculator →</div>
-        <button onclick="location.href='app.html'" style="margin-top:20px;background:var(--charcoal);color:var(--cream);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.5px;">Open Calculator →</button>
+        <button onclick="goTo('login.html?tab=signup')" style="margin-top:20px;background:var(--charcoal);color:var(--cream);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.5px;">Open Calculator →</button>
       </div>
     </div>
 
@@ -205,13 +204,22 @@
       <div class="footer-brand"><a href="index.html" class="site-logo" style="margin-bottom:14px;"><div class="site-logo-mark">🏠</div><div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div></a><p>Australia's smartest property finance calculator for first home buyers.</p></div>
       <div class="footer-col"><h4>Product</h4><ul><li><a href="app.html">Calculator</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
       <div class="footer-col"><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></div>
-      <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+      <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul>    <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms of Service</a></li>
+            <li><a href="cookies.html">Cookie Policy</a></li>
+            <li><a href="disclaimer.html">Disclaimer</a></li>
+          </ul>
+        </div>
+</div>
     </div>
     <div class="footer-bottom"><p>© 2025 mypropertymate.app · Not financial advice · ABN pending.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div></div>
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   function submitForm(){
     const fname=document.getElementById('cf-fname').value.trim();
     const email=document.getElementById('cf-email').value.trim();
@@ -247,11 +255,4 @@
     el.innerHTML=`<a href="app.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.55);padding:8px 14px;border-radius:3px;background:rgba(255,255,255,0.06);text-decoration:none;border:1px solid rgba(255,255,255,0.1);">Open App →</a><div class="nav-user-wrap" id="nuw"><button class="nav-user-btn" onclick="document.getElementById('nuw').classList.toggle('open')" title="${n}">${ph?'<img src="'+ph+'">':ini}</button><div class="nav-user-dropdown"><div class="nav-dropdown-header"><div class="nav-dropdown-name">${n}</div><div class="nav-dropdown-email">${sess.email||''}</div></div><div class="nav-dropdown-items"><a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a><a href="account.html" class="nav-dropdown-item">⚙ Account</a><button class="nav-dropdown-item danger" onclick="localStorage.removeItem('${SK}');location.reload()">Sign Out</button></div></div></div>`;
     document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');});
     // Pre-fill form email
-    const emailInput=document.getElementById('cf-email');
-    if(emailInput&&sess.email)emailInput.value=sess.email;
-    const fnameInput=document.getElementById('cf-fname');
-    if(fnameInput&&sess.name)fnameInput.value=sess.name.split(' ')[0];
-  })();
-</script>
-</body>
-</html>
+    const emailInput=
