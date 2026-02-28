@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Account — mypropertymate.app</title>
+<title>Account — EquitySight.app</title>
 <link rel="stylesheet" href="shared.css">
 <style>
   body { background: var(--warm-white); }
@@ -109,6 +109,9 @@
     .acct-row { grid-template-columns: 1fr; }
   }
 </style>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.svg">
+  <meta name="theme-color" content="#1C1C1E">
 </head>
 <body>
 
@@ -116,7 +119,7 @@
   <div class="site-nav-inner">
     <a href="index.html" class="site-logo">
       <div class="site-logo-mark">🏠</div>
-      <div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
     <ul class="site-nav-links">
       <li><a href="index.html#features">Features</a></li>
@@ -318,6 +321,7 @@
         <h4>⚠️ Danger zone</h4>
         <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
         <button class="acct-btn acct-btn-danger" onclick="confirmDeleteAccount()">Delete account</button>
+        <div id="delete-status" class="acct-status-msg" style="margin-top:10px;"></div>
       </div>
     </div>
 
@@ -326,7 +330,7 @@
 
 <footer class="site-footer" style="margin-top:0;">
   <div class="site-footer-inner">
-    <div class="footer-bottom"><p>© 2025 mypropertymate.app · Not financial advice.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="contact.html">Contact</a></div></div>
+    <div class="footer-bottom"><p>© 2025 EquitySight.app · Not financial advice.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="contact.html">Contact</a></div></div>
   </div>
 </footer>
 
@@ -479,30 +483,66 @@
   }
 
   async function changePassword(){
-    const cur = document.getElementById('pw-current').value;
+    const cur = document.getElementById('pw-current').value.trim();
     const nw  = document.getElementById('pw-new').value;
     const cf  = document.getElementById('pw-confirm').value;
     const st  = document.getElementById('pw-status');
-    if(!cur||!nw){ st.textContent='Fill in all fields'; st.className='acct-status-msg err'; return; }
-    if(nw.length<8){ st.textContent='New password must be 8+ characters'; st.className='acct-status-msg err'; return; }
-    if(nw!==cf){ st.textContent='Passwords don\'t match'; st.className='acct-status-msg err'; return; }
+    if(!cur || !nw){ st.textContent='Please fill in all password fields'; st.className='acct-status-msg err'; return; }
+    if(nw.length < 8){ st.textContent='New password must be at least 8 characters'; st.className='acct-status-msg err'; return; }
+    if(nw !== cf){ st.textContent="New passwords don't match"; st.className='acct-status-msg err'; return; }
     st.textContent='Updating…'; st.className='acct-status-msg';
+    const token = session && session.token;
     try{
-      const r = await fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'changePassword',token:session?.token,currentPassword:cur,newPassword:nw})});
+      const r = await fetch('/.netlify/functions/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+        body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw })
+      });
       const d = await r.json();
-      if(d.ok){ st.textContent='✓ Password updated'; st.className='acct-status-msg ok'; document.getElementById('password-form').style.display='none'; }
-      else{ st.textContent=d.error||'Failed'; st.className='acct-status-msg err'; }
-    }catch(e){ st.textContent='Network error — try again'; st.className='acct-status-msg err'; }
+      if(d.ok){
+        st.textContent = '✓ Password updated successfully';
+        st.className = 'acct-status-msg ok';
+        document.getElementById('pw-current').value = '';
+        document.getElementById('pw-new').value = '';
+        document.getElementById('pw-confirm').value = '';
+        if(document.getElementById('pw-strength-bar')) document.getElementById('pw-strength-bar').style.width='0%';
+      } else {
+        st.textContent = d.error || 'Failed — please check your current password';
+        st.className = 'acct-status-msg err';
+      }
+    } catch(e){ st.textContent = 'Network error — please try again'; st.className = 'acct-status-msg err'; }
   }
 
   function openBillingPortal(){
     // Stripe billing portal — configure portal URL in Netlify env vars
-    alert('Billing portal coming soon. Email support@mypropertymate.app to manage your subscription.');
+    alert('Billing portal coming soon. Email support@EquitySight.app to manage your subscription.');
   }
 
-  function confirmDeleteAccount(){
-    if(confirm('Are you sure? This will permanently delete your account and all saved properties. This cannot be undone.')){
-      doSignOut();
+  async function confirmDeleteAccount(){
+    const pw = prompt('Enter your password to confirm account deletion. This cannot be undone.');
+    if(!pw) return;
+    const st = document.getElementById('delete-status') || document.createElement('span');
+    try{
+      const token = session && session.token;
+      const r = await fetch('/.netlify/functions/auth',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},
+        body:JSON.stringify({action:'deleteAccount',password:pw,token:token})
+      });
+      const d = await r.json();
+      if(d.ok){
+        // Clear all local data
+        localStorage.clear();
+        alert('Your account has been deleted. You will now be redirected to the home page.');
+        location.href='index.html';
+      } else {
+        alert(d.error||'Failed to delete account. Please try again.');
+      }
+    }catch(e){
+      // Fallback: clear local data only
+      localStorage.clear();
+      alert('Account data cleared locally. Contact support to remove server data.');
+      location.href='index.html';
     }
   }
 
