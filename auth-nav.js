@@ -1,5 +1,5 @@
 /**
- * mypropertymate.app — Shared Auth Header Nav
+ * EquitySight.app — Shared Auth Header Nav
  */
 (function() {
   const SESSION_KEY = 'propCalc_session_v1';
@@ -93,7 +93,7 @@
             '</div>' +
             '<div style="padding:2px 0;">' +
               '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">🏠 Open Calculator</a>' +
-              '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">⚙ Account Settings</a>' +
+              '<button onclick="if(window.openAccountPanel){openAccountPanel();}else{location.href=\'app.html?openAccount=1\';}" class="anav-item">⚙ Account Settings</button>' +
               '<button onclick="siteSignOut()" class="anav-item anav-item-danger">→ Sign Out</button>' +
             '</div>' +
           '</div>' +
