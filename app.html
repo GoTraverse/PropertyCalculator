@@ -44,7 +44,7 @@
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{overflow-x:hidden!important;}  body{background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--charcoal);min-height:100vh;overflow-x:hidden;font-size:17px;}
 
-  header{background:var(--charcoal);color:var(--cream);padding:0;padding-top:env(safe-area-inset-top,0px);position:relative;overflow:hidden;}
+  header{background:var(--charcoal);color:var(--cream);padding:0;padding-top:env(safe-area-inset-top,0px);position:sticky;top:0;z-index:100;overflow:hidden;}
   header::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.028) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
   .header-inner{position:relative;z-index:1;}
   header::before{content:'';position:absolute;top:-60px;left:-40px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.12) 0%,transparent 70%);pointer-events:none;}
@@ -408,7 +408,6 @@
     #mobile-sidebar-btn{display:flex!important;}
 
     /* Header — compact but clear */
-    header{position:sticky;top:0;z-index:100;padding-top:env(safe-area-inset-top,0px);}
     .header-inner{min-height:auto!important;flex-wrap:wrap;}
     .header-text{padding:10px 14px!important;flex:1 1 100%;}
     h1{font-size:17px!important;line-height:1.2!important;}
@@ -559,29 +558,6 @@
   .pp-login-note strong{color:rgba(201,168,76,0.8);}
   .pp-signout-btn{margin:0 22px 22px;background:rgba(255,255,255,0.04);color:rgba(245,240,232,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:3px;padding:9px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;width:calc(100% - 44px);}
   .pp-signout-btn:hover{background:rgba(255,255,255,0.07);color:rgba(245,240,232,0.6);}
-
-  /* ── LOGIN MODAL ── */
-  #login-modal{display:none;position:fixed;inset:0;padding-top:env(safe-area-inset-top,0px);z-index:6000;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
-  #login-modal.open{display:flex;}
-  .lm-box{background:var(--charcoal);border-radius:6px;width:min(400px,94vw);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.6);}
-  .lm-header{background:linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.05));padding:26px 26px 20px;border-bottom:1px solid rgba(255,255,255,0.07);}
-  .lm-tag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);opacity:0.7;margin-bottom:6px;}
-  .lm-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--cream);}
-  .lm-body{padding:22px 26px;}
-  .lm-tabs{display:flex;gap:0;margin-bottom:20px;border-radius:3px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);}
-  .lm-tab{flex:1;padding:9px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;background:rgba(255,255,255,0.03);color:rgba(245,240,232,0.45);border:none;cursor:pointer;transition:all 0.15s;}
-  .lm-tab.active{background:rgba(201,168,76,0.15);color:var(--gold);}
-  .lm-field{margin-bottom:14px;}
-  .lm-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(245,240,232,0.4);margin-bottom:5px;display:block;}
-  .lm-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--cream);outline:none;transition:border-color 0.15s;box-sizing:border-box;}
-  .lm-input:focus{border-color:rgba(201,168,76,0.6);}
-  .lm-submit{width:100%;background:var(--gold);color:var(--charcoal);border:none;border-radius:3px;padding:13px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;margin-top:6px;transition:opacity 0.15s;}
-  .lm-submit:hover{opacity:0.88;}
-  .lm-submit:disabled{opacity:0.4;cursor:default;}
-  .lm-error{font-size:12px;color:#E8956A;margin-top:8px;min-height:18px;font-family:'DM Mono',monospace;}
-  .lm-divider{display:flex;align-items:center;gap:10px;margin:16px 0;font-family:'DM Mono',monospace;font-size:9px;color:rgba(245,240,232,0.25);letter-spacing:1px;}
-  .lm-divider::before,.lm-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.07);}
-  .lm-guest{width:100%;background:rgba(255,255,255,0.04);color:rgba(245,240,232,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:3px;padding:11px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;transition:all 0.15s;}
   .lm-guest:hover{background:rgba(255,255,255,0.07);color:rgba(245,240,232,0.6);}
 
 
@@ -3498,7 +3474,7 @@
         signBtn.onclick = signOut;
       } else {
         signBtn.textContent = '🔑 Sign In / Create Account';
-        signBtn.onclick = function(){ closeProfile(); openLoginModal(); };
+        signBtn.onclick = function(){ location.href='login.html'; };
       }
     }
     const ct   = document.getElementById('saved-count');
@@ -3611,12 +3587,7 @@
     if(emailEl) emailEl.textContent = email || '';
   }
   function appSignOut(){
-    if(_currentUser && _currentUser.token){
-      fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'signout',token:_currentUser.token})}).catch(function(){});
-    }
-    localStorage.removeItem('propCalc_session_v1');
-    location.href = 'index.html';
+    signOut();
   }
   // Close profile menu on outside click
   document.addEventListener('click', function(e){
@@ -3631,108 +3602,15 @@
     if(overlay) overlay.classList.remove('open');
   }
 
-  // ── LOGIN MODAL ──
-  function openLoginModal(){
-    const m = document.getElementById('login-modal');
-    if(m) m.classList.add('open');
-    const errEls = document.querySelectorAll('.lm-error');
-    errEls.forEach(function(e){ e.textContent=''; });
-  }
-  function closeLoginModal(){
-    const m = document.getElementById('login-modal');
-    if(m) m.classList.remove('open');
-  }
 
-  function setLoginTab(tab){
-    document.getElementById('lm-signin-form').style.display = tab==='signin' ? '' : 'none';
-    document.getElementById('lm-signup-form').style.display = tab==='signup' ? '' : 'none';
-    document.getElementById('lm-tab-signin').classList.toggle('active', tab==='signin');
-    document.getElementById('lm-tab-signup').classList.toggle('active', tab==='signup');
-  }
 
-  async function handleLogin(){
-    const email    = (document.getElementById('lm-email')    && document.getElementById('lm-email').value.trim())    || '';
-    const password = (document.getElementById('lm-password') && document.getElementById('lm-password').value)        || '';
-    const errEl    = document.getElementById('lm-error');
-    const btn      = document.getElementById('lm-submit-btn');
-    if(!email || !password){ if(errEl) errEl.textContent='Please enter email and password'; return; }
-    if(btn){ btn.disabled=true; btn.textContent='Signing in…'; }
-    if(errEl) errEl.textContent='';
-    const res = await callAuthFn('signin', {email:email, password:password});
-    if(res.ok){
-      _currentUser = {id:res.id||email, name:res.name||email.split('@')[0], email:email, token:res.token||null, plan:res.plan||'free'};
-      lsSet(SESSION_KEY, JSON.stringify(_currentUser));
-      _profileData.name  = _currentUser.name;
-      _profileData.email = email;
-      lsSet(getProfileKey(), JSON.stringify(_profileData));
-      closeLoginModal(); renderProfileBtn(); renderProfilePanel(); hideAuthGate();
-      // Reload library from user's personal cloud storage
-      _scenariosCache = null;
-      showToast('✓ Welcome back, ' + _currentUser.name + '!');
-    } else {
-      // Backend not deployed yet — save as local guest profile
-      if(res.error && res.error.indexOf('Network') >= 0){
-        _profileData.name  = email.split('@')[0];
-        _profileData.email = email;
-        lsSet(getProfileKey(), JSON.stringify(_profileData));
-        if(errEl) errEl.textContent = 'Auth backend not configured yet — saved locally';
-        setTimeout(function(){ closeLoginModal(); renderProfileBtn(); renderProfilePanel(); }, 1400);
-      } else {
-        if(errEl) errEl.textContent = res.error || 'Sign in failed — check your details';
-      }
-    }
-    if(btn){ btn.disabled=false; btn.textContent='Sign In →'; }
-  }
-
-  async function handleSignup(){
-    const name     = (document.getElementById('lm-name')      && document.getElementById('lm-name').value.trim())      || '';
-    const email    = (document.getElementById('lm-email2')    && document.getElementById('lm-email2').value.trim())    || '';
-    const password = (document.getElementById('lm-password2') && document.getElementById('lm-password2').value)        || '';
-    const errEl    = document.getElementById('lm-error2');
-    const btn      = document.getElementById('lm-submit-btn2');
-    if(!name||!email||!password){ if(errEl) errEl.textContent='Please fill in all fields'; return; }
-    if(password.length < 8){ if(errEl) errEl.textContent='Password must be at least 8 characters'; return; }
-    if(btn){ btn.disabled=true; btn.textContent='Creating account…'; }
-    if(errEl) errEl.textContent='';
-    const res = await callAuthFn('signup', {email:email, password:password, name:name});
-    if(res.ok){
-      _currentUser = {id:res.id||email, name:name, email:email, token:res.token||null, plan:res.plan||'free'};
-      lsSet(SESSION_KEY, JSON.stringify(_currentUser));
-      _profileData.name = name; _profileData.email = email;
-      lsSet(getProfileKey(), JSON.stringify(_profileData));
-      closeLoginModal(); renderProfileBtn(); renderProfilePanel(); hideAuthGate();
-      _scenariosCache = null;
-      showToast('✓ Account created! Welcome, ' + name);
-    } else {
-      if(res.error && res.error.indexOf('Network') >= 0){
-        _profileData.name = name; _profileData.email = email;
-        lsSet(getProfileKey(), JSON.stringify(_profileData));
-        if(errEl) errEl.textContent = 'Auth backend not deployed yet — saved locally';
-        setTimeout(function(){ closeLoginModal(); renderProfileBtn(); renderProfilePanel(); }, 1500);
-      } else {
-        if(errEl) errEl.textContent = res.error || 'Could not create account';
-      }
-    }
-    if(btn){ btn.disabled=false; btn.textContent='Create Account →'; }
-  }
-
-  function continueAsGuest(){
-    closeLoginModal();
-    showToast('👋 Continuing as guest — data saved locally');
-  }
 
   function signOut(){
-    // Revoke token on server (best effort)
     if(_currentUser && _currentUser.token){
-      callAuthFn('signout', {token: _currentUser.token}).catch(()=>{});
+      callAuthFn('signout', {token: _currentUser.token}).catch(function(){});
     }
-    _currentUser = null;
-    _scenariosCache = null;
     lsDel(SESSION_KEY);
-    closeProfile();
-    renderProfileBtn();
-    renderProfilePanel();
-    showToast('Signed out');
+    location.href = 'login.html';
   }
 
   // ── NEW SCENARIO ──
@@ -3796,13 +3674,6 @@
     setTimeout(openScenariosModal, 300);
   }
 
-  // Stub: showLoginModal redirects to login page
-  function showLoginModal(){ location.href = 'login.html'; }
-  // Stub: dismissAuthGate hides the overlay
-  function dismissAuthGate(){
-    const ag = document.getElementById('auth-gate');
-    if(ag) ag.style.display = 'none';
-  }
 
   // ── COLLAPSIBLE SIDEBAR ──
   var _sidebarCollapsed = false;
@@ -3825,10 +3696,6 @@
 </script>
 
 
-<!-- ══ AUTH GATE ══ -->
-<div id="auth-gate" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--charcoal);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
-  <div style="max-width:400px;width:100%;text-align:center;">
-    <div style="font-size:48px;margin-bottom:20px;">🏠</div>
     <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--cream);margin-bottom:10px;line-height:1.2;">mypropertymate<span style="font-family:'DM Mono',monospace;color:var(--gold);font-size:18px;">.app</span></div>
     <p style="font-size:14px;color:rgba(245,240,232,0.5);line-height:1.6;margin-bottom:32px;">Sign in to access your property calculator and personal library. Free accounts get full access to the core calculator.</p>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
@@ -3893,51 +3760,6 @@
       <button class="splash-btn splash-btn-primary" onclick="splashNewScenario()">＋ New Scenario</button>
       <button class="splash-btn splash-btn-secondary" onclick="splashOpenLibrary()">📁 My Library</button>
     </div>
-    </div>
-  </div>
-</div>
-<!-- ══ LOGIN MODAL ══ -->
-<div id="login-modal">
-  <div class="lm-box">
-    <div class="lm-header">
-      <div class="lm-tag">Property Finance Calculator</div>
-      <div class="lm-title" id="lm-title">Sign in to your account</div>
-    </div>
-    <div class="lm-body">
-      <div class="lm-tabs">
-        <button class="lm-tab active" onclick="setLoginTab('signin')" id="lm-tab-signin">Sign In</button>
-        <button class="lm-tab" onclick="setLoginTab('signup')" id="lm-tab-signup">Create Account</button>
-      </div>
-      <div id="lm-signin-form">
-        <div class="lm-field">
-          <label class="lm-label">Email</label>
-          <input class="lm-input" id="lm-email" type="email" placeholder="you@email.com" autocomplete="email">
-        </div>
-        <div class="lm-field">
-          <label class="lm-label">Password</label>
-          <input class="lm-input" id="lm-password" type="password" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <div class="lm-error" id="lm-error"></div>
-        <button class="lm-submit" onclick="handleLogin()" id="lm-submit-btn">Sign In →</button>
-      </div>
-      <div id="lm-signup-form" style="display:none;">
-        <div class="lm-field">
-          <label class="lm-label">Your Name</label>
-          <input class="lm-input" id="lm-name" type="text" placeholder="Jamie Smith" autocomplete="name">
-        </div>
-        <div class="lm-field">
-          <label class="lm-label">Email</label>
-          <input class="lm-input" id="lm-email2" type="email" placeholder="you@email.com" autocomplete="email">
-        </div>
-        <div class="lm-field">
-          <label class="lm-label">Password</label>
-          <input class="lm-input" id="lm-password2" type="password" placeholder="Min 8 characters" autocomplete="new-password">
-        </div>
-        <div class="lm-error" id="lm-error2"></div>
-        <button class="lm-submit" onclick="handleSignup()" id="lm-submit-btn2">Create Account →</button>
-      </div>
-      <div class="lm-divider">or continue without account</div>
-      <button class="lm-guest" onclick="continueAsGuest()">Continue as Guest</button>
     </div>
   </div>
 </div>
