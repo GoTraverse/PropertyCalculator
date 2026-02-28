@@ -42,7 +42,11 @@
     --terracotta-light:#E8A882;--gold:#C9A84C;--sky:#5B8FAB;--risk-red:#C45A5A;--reward-green:#5A9E7B;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{margin:0;padding:0;box-sizing:border-box;}  body{background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--charcoal);overflow-x:hidden;display:flex;flex-direction:column;min-height:100vh;}
+  :root{--hdr-h-mobile:60px;}
+  @supports (padding-top: env(safe-area-inset-top)){
+    :root{--hdr-h-mobile:calc(60px + env(safe-area-inset-top));}
+  }
+  html,body{margin:0;padding:0;box-sizing:border-box;overscroll-behavior:none;}  body{background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--charcoal);overflow-x:hidden;display:flex;flex-direction:column;min-height:100vh;}
 
   header{background:var(--charcoal);color:var(--cream);padding:0;padding-top:env(safe-area-inset-top,0px);position:sticky;top:0;z-index:200;overflow:hidden;flex-shrink:0;}
   header::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.028) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
@@ -222,7 +226,7 @@
 
   /* ── CONTENT ── */
   .content{overflow:hidden;display:flex;flex-direction:column;height:100%;}
-  nav{background:var(--charcoal);display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;position:sticky;top:0;z-index:150;flex-shrink:0;}
+  nav{background:var(--charcoal);display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;position:sticky;top:0;z-index:150;}
   nav::-webkit-scrollbar{display:none;}
   .tab{flex:1;min-width:110px;padding:14px 10px;font-family:'DM Mono',monospace;font-size:14px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:rgba(245,240,232,0.4);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;text-align:center;white-space:nowrap;border:none;background:none;}
   .tab:hover{color:rgba(245,240,232,0.85);}
@@ -401,7 +405,7 @@
   @media(max-width:600px){
     /* Sidebar */
     #sidebar-close-btn{display:block!important;}
-    .sidebar{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;border-radius:0;padding-top:env(safe-area-inset-top,0px);}
+    .sidebar{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;overscroll-behavior:none;border-radius:0;padding-top:env(safe-area-inset-top,0px);}
     .sidebar.mobile-open{display:block!important;}
     .sidebar.mobile-open .sidebar-title{padding-top:max(14px, calc(env(safe-area-inset-top) + 8px))!important;}
     #mobile-sidebar-btn{display:none!important;}
@@ -424,13 +428,13 @@
     .header-photo-wrap{display:none!important;}
 
     /* Layout — full page scroll on mobile, header stays sticky */
-    html,body{height:100%;overflow-x:hidden;}
-    body{display:flex;flex-direction:column;overflow-y:auto;}
+    html,body{height:100%;overflow-x:hidden;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
+    body{display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior-y:none;}
     .app-body{grid-template-columns:1fr!important;flex:1;overflow:visible!important;height:auto!important;}
     .content{height:auto!important;overflow:visible!important;display:flex;flex-direction:column;}
 
-    /* Tabs — scrollable row */
-    nav{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding-bottom:1px;}
+    /* Tabs — stick below sticky header on mobile */
+    nav{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding-bottom:1px;position:sticky!important;top:var(--hdr-h-mobile)!important;z-index:149!important;}
     .tab{padding:11px 16px!important;font-size:12px!important;white-space:nowrap!important;flex-shrink:0!important;min-width:auto!important;border-right:1px solid rgba(255,255,255,0.07)!important;}
 
     /* Main content */
@@ -593,6 +597,14 @@
     #sidebar-toggle{display:none!important;}
     .sidebar.collapsed{width:100%!important;padding:24px 20px!important;}
     .sidebar.collapsed .sidebar-content{display:block!important;}
+  }
+
+  /* PWA / Add to Home Screen — prevent all rubber-band bounce */
+  @media all and (display-mode: standalone) {
+    html, body { overscroll-behavior: none; position: relative; }
+    body { overflow: hidden; height: 100vh; }
+    /* Let the actual scroll container handle scrolling */
+    .content, main { overflow-y: auto; overscroll-behavior: none; }
   }
 </style>
 <script src="auth-nav.js"></script>
@@ -824,8 +836,8 @@
 <div class="content">
 
   <!-- ══ SCENARIOS MODAL ══ -->
-  <div id="scenarios-modal" style="display:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:24px;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);align-items:flex-start;justify-content:center;" onclick="if(event.target===this)closeScenariosModal()">
-    <div style="position:relative;margin:auto;width:min(760px,96vw);max-height:90vh;background:var(--warm-white);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+  <div id="scenarios-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);justify-content:center;overflow-y:auto;" onclick="if(event.target===this)closeScenariosModal()">
+    <div style="position:relative;margin:max(8px,env(safe-area-inset-top,0px)) auto 24px;width:min(760px,96vw);max-height:90vh;background:var(--warm-white);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
 
       <!-- Header -->
       <div style="background:var(--charcoal);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;">
@@ -1473,6 +1485,18 @@
     renderDynCosts();
     recalc();
   }
+  function addCostItemAndFocus(){
+    addCostItem();
+    // Focus the name field of the newly added row
+    setTimeout(function(){
+      var rows = document.querySelectorAll('.dyn-cost-row');
+      if(rows.length > 0){
+        var lastRow = rows[rows.length-1];
+        var nameInput = lastRow.querySelector('input[type="text"]');
+        if(nameInput){ nameInput.focus(); nameInput.select(); }
+      }
+    }, 60);
+  }
 
   function removeCostItem(id){
     dynCosts=dynCosts.filter(c=>c.id!==id);
@@ -1488,8 +1512,8 @@
       const row=document.createElement('div');
       row.className='dyn-cost-row';
       row.innerHTML=`
-        <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" oninput="updateDynCost('${cost.id}','name',this.value)">
-        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" step="50" oninput="updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);recalc()"></div>
+        <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" oninput="updateDynCost('${cost.id}','name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var nxt=this.closest('.dyn-cost-row').querySelector('input[type=number]');if(nxt){nxt.focus();nxt.select();}}">
+        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" step="50" oninput="updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);recalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItemAndFocus();}"></div>
         <button class="dyn-del" onclick="removeCostItem('${cost.id}')" title="Remove">−</button>
       `;
       list.appendChild(row);
@@ -1517,10 +1541,15 @@
     renderRenoItems();
     recalc();
     // Scroll to the new item
-    setTimeout(()=>{
-      const el=document.querySelector(`[data-reno="${id}"]`);
-      if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
-    },100);
+    setTimeout(function(){
+      var el=document.querySelector('[data-reno="'+id+'"]');
+      if(el){
+        el.scrollIntoView({behavior:'smooth',block:'nearest'});
+        // Focus amount field directly (user wants to type cost right away)
+        var amtField = el.querySelector('input[type="number"]');
+        if(amtField){ amtField.focus(); amtField.select(); }
+      }
+    },120);
   }
 
   function removeRenoItem(id){
@@ -1538,6 +1567,23 @@
     return renoItems.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
   }
 
+  function updateRenoBar(id, newAmount){
+    // Update only the progress bar for one reno item without full DOM redraw
+    var maxAmt = Math.max.apply(null, renoItems.map(function(r){ return parseFloat(r.amount)||0; }).concat([1]));
+    renoItems.forEach(function(r){
+      var el = document.querySelector('[data-reno="' + r.id + '"]');
+      if(!el) return;
+      var bar = el.querySelector('.rbf');
+      if(bar){
+        var pct = maxAmt > 0 ? Math.min((parseFloat(r.amount)||0)/maxAmt*100, 100) : 0;
+        bar.style.width = pct + '%';
+      }
+    });
+    // Update sidebar total
+    var stEl = document.getElementById('lbl-reno-total');
+    if(stEl){ var ct=v('inp-cont'); stEl.textContent=fmtK(getRenoTotal()*(1+ct/100)); }
+  }
+
   function renderRenoItems(){
     const list=document.getElementById('reno-items-list');
     if(!list) return;
@@ -1549,10 +1595,10 @@
       return `<div data-reno="${r.id}" style="border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;">
         <div class="reno-row">
           <select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" onchange="updateRenoItem('${r.id}','emoji',this.value);renderRenoItems()">${emojiOpts}</select>
-          <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" oninput="updateRenoItem('${r.id}','name',this.value)" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
+          <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" oninput="updateRenoItem('${r.id}','name',this.value)" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'" onkeydown="if(event.key==='Enter'){event.preventDefault();var amtInput=this.closest('[data-reno]').querySelector('input[type=number]');if(amtInput){amtInput.focus();amtInput.select();}}">
           <div class="rbt" style="max-width:60px;"><div class="rbf" style="width:${pct}%"></div></div>
           <div style="display:flex;align-items:center;gap:2px;min-width:90px;">
-            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" oninput="updateRenoItem('${r.id}','amount',parseFloat(this.value)||0);recalc();renderRenoItems()" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
+            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" oninput="updateRenoItem('${r.id}','amount',parseFloat(this.value)||0);recalc();updateRenoBar('${r.id}',parseFloat(this.value)||0)" onkeydown="if(event.key==='Enter'){event.preventDefault();addRenoItem();}" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
           </div>
           <button class="kd-del" onclick="removeRenoItem('${r.id}')" title="Remove" style="flex-shrink:0;">✕</button>
         </div>
@@ -2378,7 +2424,7 @@
 
   function openScenariosModal(){
     document.body.classList.add('modal-open');
-    var sm=document.getElementById('scenarios-modal');sm.style.display='flex';sm.style.paddingTop='env(safe-area-inset-top,0px)';sm.style.paddingBottom='24px';
+    var sm=document.getElementById('scenarios-modal');sm.style.display='flex';sm.style.alignItems='flex-start';sm.style.paddingTop='max(8px, env(safe-area-inset-top, 0px))';sm.style.paddingBottom='24px';
     document.body.style.overflow='hidden';
     renderScenariosList();
   }
