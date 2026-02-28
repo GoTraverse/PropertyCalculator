@@ -521,6 +521,21 @@
   .splash-btn-secondary{background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.18)!important;}
   .splash-deco{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 28px;}
 
+  /* Page transition spinner */
+  #page-spinner{display:none;position:fixed;inset:0;z-index:99998;background:rgba(28,28,30,0.72);
+    backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+  #page-spinner.show{display:flex;}
+  .spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);
+    border-top-color:#C9A84C;border-radius:50%;animation:spin2 0.7s linear infinite;}
+  @keyframes spin2{to{transform:rotate(360deg)}}
+  /* Profile dropdown item hover */
+  .app-dd-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:4px;
+    color:rgba(245,240,232,0.7);font-size:13px;text-decoration:none;background:transparent;
+    border:none;cursor:pointer;font-family:inherit;width:100%;text-align:left;
+    transition:background 0.12s,color 0.12s;}
+  .app-dd-item:hover{background:rgba(255,255,255,0.07);color:#F5F0E8;}
+  .app-dd-item-danger{color:rgba(245,240,232,0.4);}
+  .app-dd-item-danger:hover{background:rgba(255,255,255,0.04);color:rgba(245,240,232,0.6);}
   /* ── PROFILE BUTTON ── */
   #profile-btn{width:36px;height:36px;border-radius:50%;background:var(--gold);border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--charcoal);flex-shrink:0;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;}
   #profile-btn:hover{transform:scale(1.1);box-shadow:0 0 0 3px rgba(201,168,76,0.25);}
@@ -613,6 +628,8 @@
   })();
 </script>
 
+<div id="page-spinner"><div class="spinner-ring"></div></div>
+
 <div id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
 <header>
@@ -664,12 +681,16 @@
 
   <!-- Mobile floating calculator access button -->
   <button id="mobile-calc-fab" onclick="toggleMobileSidebar()"
-    style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-           z-index:4000;background:var(--charcoal);color:var(--cream);border:1px solid rgba(255,255,255,0.15);
-           border-radius:24px;padding:11px 22px;font-family:'DM Mono',monospace;font-size:12px;
-           letter-spacing:1px;gap:8px;align-items:center;box-shadow:0 4px 24px rgba(0,0,0,0.5);
-           cursor:pointer;white-space:nowrap;transition:background 0.15s;">
-    <span style="font-size:14px;">↓</span> Calculator
+    style="display:none;position:fixed;
+           bottom:max(24px, calc(env(safe-area-inset-bottom) + 16px));
+           left:50%;transform:translateX(-50%);
+           z-index:3500;background:rgba(28,28,30,0.96);color:var(--cream);
+           border:1px solid rgba(201,168,76,0.35);
+           border-radius:28px;padding:13px 26px;font-family:'DM Mono',monospace;font-size:12px;
+           letter-spacing:1.5px;gap:10px;align-items:center;
+           box-shadow:0 4px 28px rgba(0,0,0,0.6),0 0 0 1px rgba(201,168,76,0.1);
+           cursor:pointer;white-space:nowrap;transition:background 0.15s,transform 0.1s;">
+    <span style="font-size:15px;line-height:1;">↓</span> Calculator
   </button>
 
   <nav>
@@ -3442,7 +3463,8 @@
       btn.style.padding = '0';
       btn.innerHTML = '<img src="' + _profileData.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
     } else {
-      const initials = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '👤';
+      var ppParts = name ? name.trim().split(/\s+/).filter(Boolean) : [];
+      var initials = ppParts.length===0?'?':ppParts.length===1?ppParts[0][0].toUpperCase():(ppParts[0][0]+ppParts[ppParts.length-1][0]).toUpperCase();
       btn.style.background = color;
       btn.style.padding = '';
       btn.innerHTML = initials;
@@ -3576,7 +3598,8 @@
       btn.style.padding = '0';
       btn.innerHTML = '<img src="' + photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
     } else {
-      const ini = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+      var parts2 = name ? name.trim().split(/\s+/).filter(Boolean) : [];
+      var ini = parts2.length===0?'?':parts2.length===1?parts2[0][0].toUpperCase():(parts2[0][0]+parts2[parts2.length-1][0]).toUpperCase();
       btn.style.background = color;
       btn.style.padding = '';
       btn.innerHTML = ini;
@@ -3603,7 +3626,10 @@
 
 
 
+  function showPageSpinner(){ var s=document.getElementById('page-spinner'); if(s) s.classList.add('show'); }
+
   function signOut(){
+    showPageSpinner();
     if(_currentUser && _currentUser.token){
       callAuthFn('signout', {token: _currentUser.token}).catch(function(){});
     }
@@ -3734,7 +3760,7 @@
     </div>
   </div>
   <button class="pp-save-btn" onclick="saveProfile()">Save Profile</button>
-  <a href="account.html" style="display:block;text-align:center;margin:0 22px 10px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.4);letter-spacing:0.5px;text-decoration:none;border:1px solid rgba(255,255,255,0.06);border-radius:3px;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">⚙ Full Account Settings →</a>
+  <a href="account.html" style="display:block;text-align:center;margin:0 22px 10px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.4);letter-spacing:0.5px;text-decoration:none;border:1px solid rgba(255,255,255,0.06);border-radius:3px;">⚙ Full Account Settings →</a>
 </div>
 <!-- ══ WELCOME SPLASH ══ -->
 <div id="welcome-splash">
@@ -3771,9 +3797,9 @@
       <div id="app-profile-email" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.35);margin-top:2px;"></div>
     </div>
     <div style="padding:2px 0;">
-      <button onclick="closeAppProfileMenu()" style="width:100%;text-align:left;display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;background:none;border:none;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''">🏠 Calculator</button>
-      <a href="account.html" onclick="closeAppProfileMenu()" style="display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;text-decoration:none;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''">⚙ Account Settings</a>
-      <button onclick="appSignOut()" style="width:100%;text-align:left;display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.45);font-size:13px;border-radius:4px;background:none;border:none;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">→ Sign Out</button>
+      <button onclick="closeAppProfileMenu()" style="width:100%;text-align:left;display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;background:none;border:none;cursor:pointer;font-family:inherit;">🏠 Calculator</button>
+      <a href="account.html" onclick="closeAppProfileMenu()" style="display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;text-decoration:none;">⚙ Account Settings</a>
+      <button onclick="appSignOut()" style="width:100%;text-align:left;display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.45);font-size:13px;border-radius:4px;background:none;border:none;cursor:pointer;font-family:inherit;">→ Sign Out</button>
     </div>
   </div>
 </div>
