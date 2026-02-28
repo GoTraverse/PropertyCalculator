@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Contact &amp; Support — mypropertymate.app</title>
+<title>Contact &amp; Support — EquitySight.app</title>
 <link rel="stylesheet" href="shared.css">
 <style>
   .contact-hero{background:var(--charcoal);padding:80px 0 60px;text-align:center;position:relative;overflow:hidden;}
@@ -54,12 +54,15 @@
 
   @media(max-width:860px){.contact-inner{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}}
 </style>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.svg">
+  <meta name="theme-color" content="#1C1C1E">
 </head>
 <body><nav class="site-nav">
   <div class="site-nav-inner">
     <a href="index.html" class="site-logo">
       <div class="site-logo-mark">🏠</div>
-      <div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
     <ul class="site-nav-links">
       <li><a href="pricing.html">Pricing</a></li>
@@ -89,7 +92,7 @@
       <h2 style="font-family:var(--font-display);font-size:26px;font-weight:700;margin-bottom:24px;line-height:1.2;">Support options</h2>
       <div class="support-options">
 
-        <div class="support-card" style="cursor:pointer;" onclick="location.href='mailto:support@mypropertymate.app'">
+        <div class="support-card" style="cursor:pointer;" onclick="location.href='mailto:<span id="support-email-display"></span><script>document.getElementById("support-email-display").textContent="support@"+"EquitySight.app";</script>'">
           <div class="support-icon" style="background:rgba(201,168,76,0.12);">✉️</div>
           <div class="support-card-text">
             <h3>Email support</h3>
@@ -137,7 +140,7 @@
           <div class="cf-field"><label class="cf-label">First name</label><input class="cf-input" id="cf-fname" type="text" placeholder="Jamie"></div>
           <div class="cf-field"><label class="cf-label">Last name</label><input class="cf-input" id="cf-lname" type="text" placeholder="Smith"></div>
         </div>
-        <div class="cf-field"><label class="cf-label">Email</label><input class="cf-input" id="cf-email" type="email" placeholder="jamie@email.com"></div>
+        <div class="cf-field"><label class="cf-label">Email</label><input class="cf-input" id="cf-email" type="email" placeholder="demo@example.com"></div>
         <div class="cf-field">
           <label class="cf-label">Subject</label>
           <select class="cf-select" id="cf-subject">
@@ -172,15 +175,15 @@
   <div class="faq-inner">
     <h2 style="font-family:var(--font-display);font-size:32px;font-weight:700;margin-bottom:48px;text-align:center;">Common questions</h2>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How does the shared equity calculator work?<span class="faq-ico">+</span></button><div class="faq-ans">mypropertymate models the government's equity contribution based on the scheme rules for your state (QLD, NSW, or VIC). It calculates the government's percentage share, what you'll owe when you sell or buy out, and how that changes over time as property values grow. It uses the purchase price, your savings, and the applicable income/property caps to determine eligibility.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How does the shared equity calculator work?<span class="faq-ico">+</span></button><div class="faq-ans">EquitySight models the government's equity contribution based on the scheme rules for your state (QLD, NSW, or VIC). It calculates the government's percentage share, what you'll owe when you sell or buy out, and how that changes over time as property values grow. It uses the purchase price, your savings, and the applicable income/property caps to determine eligibility.</div></div>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Is mypropertymate actually accurate?<span class="faq-ico">+</span></button><div class="faq-ans">Our calculations are based on publicly available scheme rules and standard mortgage calculations. They're designed to give you an accurate planning picture, not a legal quote. Always verify eligibility and final figures with a licensed mortgage broker or financial adviser before making any decisions.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Is EquitySight actually accurate?<span class="faq-ico">+</span></button><div class="faq-ans">Our calculations are based on publicly available scheme rules and standard mortgage calculations. They're designed to give you an accurate planning picture, not a legal quote. Always verify eligibility and final figures with a licensed mortgage broker or financial adviser before making any decisions.</div></div>
 
     <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">I'm having trouble logging in — what do I do?<span class="faq-ico">+</span></button><div class="faq-ans">Try clearing your browser cache and logging in again. If that doesn't work, use the "forgot password" option on the login page. If you're still stuck, send us a message using the form above with "Billing / subscription" selected and we'll sort it out promptly.</div></div>
 
     <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How do I cancel my subscription?<span class="faq-ico">+</span></button><div class="faq-ans">Go to Account Settings → Subscription → Cancel Plan. Your Pro access will continue until the end of the billing period. We don't charge cancellation fees. If you cancel mid-year on an annual plan and want a partial refund, contact us.</div></div>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Can I use this on my phone?<span class="faq-ico">+</span></button><div class="faq-ans">Yes — mypropertymate is fully responsive and works well on iPhone and Android. You can also add it to your home screen as a PWA (Progressive Web App) for a native-app-like experience. On iPhone: tap Share → Add to Home Screen. On Android: tap the menu → Install App.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Can I use this on my phone?<span class="faq-ico">+</span></button><div class="faq-ans">Yes — EquitySight is fully responsive and works well on iPhone and Android. You can also add it to your home screen as a PWA (Progressive Web App) for a native-app-like experience. On iPhone: tap Share → Add to Home Screen. On Android: tap the menu → Install App.</div></div>
 
     <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Do you have an API for developers?<span class="faq-ico">+</span></button><div class="faq-ans">An API is in our Q3 2025 roadmap, starting with the Adviser plan. If you have a specific integration in mind, send us a message — we'd love to hear what you're building.</div></div>
   </div>
@@ -189,7 +192,7 @@
 <footer class="site-footer">
   <div class="site-footer-inner">
     <div class="site-footer-grid">
-      <div class="footer-brand"><a href="index.html" class="site-logo" style="margin-bottom:14px;"><div class="site-logo-mark">🏠</div><div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div></a><p>Australia's smartest property finance calculator for first home buyers.</p></div>
+      <div class="footer-brand"><a href="index.html" class="site-logo" style="margin-bottom:14px;"><div class="site-logo-mark">🏠</div><div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div></a><p>Australia's smartest property finance calculator for first home buyers.</p></div>
       <div class="footer-col"><h4>Product</h4><ul><li><a href="app.html">Calculator</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
       <div class="footer-col"><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></div>
       <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul>    <div class="footer-col">
@@ -203,11 +206,11 @@
         </div>
 </div>
     </div>
-    <div class="footer-bottom"><p>© 2025 mypropertymate.app · Not financial advice · ABN pending.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div></div>
+    <div class="footer-bottom"><p>© 2025 EquitySight.app · Not financial advice · ABN pending.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div></div>
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
   function submitForm(){
     const fname=document.getElementById('cf-fname').value.trim();
     const email=document.getElementById('cf-email').value.trim();
