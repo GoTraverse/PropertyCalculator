@@ -401,8 +401,9 @@
   @media(max-width:600px){
     /* Sidebar */
     #sidebar-close-btn{display:block!important;}
-    .sidebar{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;border-radius:0;}
+    .sidebar{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;border-radius:0;padding-top:env(safe-area-inset-top,0px);}
     .sidebar.mobile-open{display:block!important;}
+    .sidebar.mobile-open .sidebar-title{padding-top:max(14px, calc(env(safe-area-inset-top) + 8px))!important;}
     #mobile-sidebar-btn{display:none!important;}
     #mobile-calc-fab{display:flex!important;}
 
@@ -823,8 +824,8 @@
 <div class="content">
 
   <!-- ══ SCENARIOS MODAL ══ -->
-  <div id="scenarios-modal" style="display:none;padding-top:env(safe-area-inset-top,0px);position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);" onclick="if(event.target===this)closeScenariosModal()">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(760px,96vw);max-height:90vh;background:var(--warm-white);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+  <div id="scenarios-modal" style="display:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:24px;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);align-items:flex-start;justify-content:center;" onclick="if(event.target===this)closeScenariosModal()">
+    <div style="position:relative;margin:auto;width:min(760px,96vw);max-height:90vh;background:var(--warm-white);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
 
       <!-- Header -->
       <div style="background:var(--charcoal);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;">
@@ -2377,7 +2378,7 @@
 
   function openScenariosModal(){
     document.body.classList.add('modal-open');
-    document.getElementById('scenarios-modal').style.display='block';
+    var sm=document.getElementById('scenarios-modal');sm.style.display='flex';sm.style.paddingTop='env(safe-area-inset-top,0px)';sm.style.paddingBottom='24px';
     document.body.style.overflow='hidden';
     renderScenariosList();
   }
