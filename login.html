@@ -52,15 +52,15 @@
       <button class="login-tab" id="tab-signup" onclick="setTab('signup')">Create Account</button>
     </div>
     <div id="form-signin">
-      <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="si-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
-      <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="si-password" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="si-email" type="email" onkeydown="if(event.key==='Enter')doSignin()" placeholder="you@email.com" autocomplete="email"></div>
+      <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="si-password" onkeydown="if(event.key==='Enter')doSignin()" type="password" placeholder="••••••••" autocomplete="current-password"></div>
       <div class="form-error" id="si-error"></div>
       <button class="form-submit" id="si-btn" onclick="doSignin()">Sign In →</button>
     </div>
     <div id="form-signup" style="display:none;">
-      <div class="form-field"><label class="form-label">Your name</label><input class="form-input" id="su-name" type="text" placeholder="Jamie Smith" autocomplete="name"></div>
-      <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="su-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
-      <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="su-password" type="password" placeholder="Min 8 characters" autocomplete="new-password"></div>
+      <div class="form-field"><label class="form-label">Your name</label><input class="form-input" id="su-name" onkeydown="if(event.key==='Enter')document.getElementById('su-email').focus()" type="text" placeholder="Jamie Smith" autocomplete="name"></div>
+      <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="su-email" onkeydown="if(event.key==='Enter')document.getElementById('su-password').focus()" type="email" placeholder="you@email.com" autocomplete="email"></div>
+      <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="su-password" onkeydown="if(event.key==='Enter')doSignup()" type="password" placeholder="Min 8 characters" autocomplete="new-password"></div>
       <div class="form-field">
         <label class="form-label">Plan</label>
         <select class="form-input" id="su-plan" style="background:rgba(255,255,255,0.05);">
