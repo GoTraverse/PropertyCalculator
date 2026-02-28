@@ -44,10 +44,18 @@
 
   @media(max-width:900px){.about-hero-inner{grid-template-columns:1fr;gap:40px;}.values-grid,.team-grid{grid-template-columns:1fr 1fr;}.about-stat-grid{grid-template-columns:1fr 1fr;}}
   @media(max-width:600px){.values-grid,.team-grid{grid-template-columns:1fr;}}
+  /* Page transition spinner */
+  #page-spinner{display:none;position:fixed;inset:0;z-index:99999;background:rgba(28,28,30,0.72);
+    backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+  #page-spinner.show{display:flex;}
+  .spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);
+    border-top-color:#C9A84C;border-radius:50%;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
+<div id="page-spinner"><div class="spinner-ring"></div></div>
 <nav class="site-nav">
   <div class="site-nav-inner">
     <a href="index.html" class="site-logo">
@@ -55,7 +63,6 @@
       <div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div>
     </a>
     <ul class="site-nav-links">
-      <li><a href="index.html#features">Features</a></li>
       <li><a href="pricing.html">Pricing</a></li>
       <li><a href="contact.html">Support</a></li>
       <li><a href="about.html" class="active">About</a></li>
@@ -172,7 +179,7 @@
     <h2 style="font-family:var(--font-display);font-size:36px;font-weight:700;color:var(--cream);margin-bottom:14px;">Come find your property mate.</h2>
     <p style="color:rgba(245,240,232,0.45);margin-bottom:32px;font-size:15px;line-height:1.6;">Try the calculator free — no account needed to get started.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-      <button onclick="location.href='app.html'" style="background:var(--gold);color:var(--charcoal);border:none;padding:14px 30px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Open Calculator →</button>
+      <button onclick="goTo('login.html?tab=signup')" style="background:var(--gold);color:var(--charcoal);border:none;padding:14px 30px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Open Calculator →</button>
       <button onclick="location.href='contact.html'" style="background:rgba(255,255,255,0.06);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 26px;border-radius:3px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;cursor:pointer;">Get in touch</button>
     </div>
   </div>
@@ -184,7 +191,16 @@
       <div class="footer-brand"><a href="index.html" class="site-logo" style="margin-bottom:14px;"><div class="site-logo-mark">🏠</div><div class="site-logo-text"><span class="site-logo-name">mypropertymate</span><span class="site-logo-tld">.app</span></div></a><p>Australia's smartest property finance calculator for first home buyers.</p></div>
       <div class="footer-col"><h4>Product</h4><ul><li><a href="app.html">Calculator</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
       <div class="footer-col"><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></div>
-      <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+      <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul>    <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms of Service</a></li>
+            <li><a href="cookies.html">Cookie Policy</a></li>
+            <li><a href="disclaimer.html">Disclaimer</a></li>
+          </ul>
+        </div>
+</div>
     </div>
     <div class="footer-bottom"><p>© 2025 mypropertymate.app · Not financial advice.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div></div>
   </div>
@@ -204,6 +220,24 @@
     const n=sess.name||sess.email||'U',ini=n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2),ph=prof&&prof.photo;
     el.innerHTML=`<a href="app.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.55);padding:8px 14px;border-radius:3px;background:rgba(255,255,255,0.06);text-decoration:none;border:1px solid rgba(255,255,255,0.1);">Open App →</a><div class="nav-user-wrap" id="nuw"><button class="nav-user-btn" onclick="document.getElementById('nuw').classList.toggle('open')" title="${n}">${ph?'<img src="'+ph+'">':ini}</button><div class="nav-user-dropdown"><div class="nav-dropdown-header"><div class="nav-dropdown-name">${n}</div><div class="nav-dropdown-email">${sess.email||''}</div></div><div class="nav-dropdown-items"><a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a><a href="account.html" class="nav-dropdown-item">⚙ Account</a><button class="nav-dropdown-item danger" onclick="localStorage.removeItem('${SK}');location.reload()">Sign Out</button></div></div></div>`;
     document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');});
+  })();
+</script>
+<script>
+  (function(){
+    function showSpinner(){ var s=document.getElementById('page-spinner'); if(s) s.classList.add('show'); }
+    // Intercept all internal <a> clicks
+    document.addEventListener('click', function(e){
+      var a = e.target.closest('a[href]');
+      if(!a) return;
+      var href = a.getAttribute('href');
+      if(!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      if(a.target === '_blank') return;
+      e.preventDefault();
+      showSpinner();
+      setTimeout(function(){ location.href = href; }, 80);
+    });
+    // Intercept location.href calls via buttons — handled by onclick goTo()
+    window.goTo = function(url){ showSpinner(); setTimeout(function(){ location.href=url; }, 80); };
   })();
 </script>
 </body>
