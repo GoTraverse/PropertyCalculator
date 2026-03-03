@@ -759,6 +759,17 @@
   <hr class="div">
   <div class="s-head">Loan & Scheme</div>
 
+  <!-- Scheme selector — populated from admin-configured schemes -->
+  <div class="ig" id="scheme-selector-wrap">
+    <div class="il" style="margin-bottom:5px;">Government Scheme</div>
+    <select id="scheme-select" onchange="applySelectedScheme(this.value)"
+      style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:10px 8px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;cursor:pointer;">
+      <option value="">No scheme (manual entry below)</option>
+      <option value="help-to-buy" data-pct="30" data-max="700000">Help to Buy (30% federal)</option>
+      <option value="vic-homebuyer" data-pct="25" data-max="950000">VIC Homebuyer Fund (25%)</option>
+    </select>
+  </div>
+
   <div class="ig">
     <div class="il">Deposit % <span id="lbl-depp">2.0%</span></div>
     <div class="iw"><input type="number" class="pct" id="inp-depp" value="2" min="2" max="20" step="0.5" oninput="syncRange('depp');recalc()"><span class="isfx">%</span></div>
@@ -2411,7 +2422,8 @@
       'inp-cont','inp-rent','inp-weeks',
       'pd-address','pd-suburb','pd-state','pd-bed','pd-bath','pd-car',
       'pd-land','pd-house','pd-year','pd-type','pd-url','pd-notes',
-      'pd-status','pd-status-date','ag-agency','ag-name','ag-phone','ag-email'
+      'pd-status','pd-status-date','ag-agency','ag-name','ag-phone','ag-email',
+      'scheme-select'
     ];
     const values = {};
     fields.forEach(id => { const el=document.getElementById(id); if(el) values[id]=el.value||''; });
@@ -2458,7 +2470,10 @@
     const timestamp = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
     const scenarios = await getAllScenarios();
     const addrKey  = fullAddr.toLowerCase().trim();
-    const existIdx = scenarios.findIndex(s => (s.addrKey||'') === addrKey);
+    const existIdx = scenarios.findIndex(s =>
+      (s.addrKey||'') === addrKey ||
+      (s.fullAddr||'').toLowerCase().trim() === addrKey
+    );
     const id       = existIdx >= 0 ? scenarios[existIdx].id : ('sc_' + Date.now());
     const status   = state.values['pd-status'] || 'browsing';
     const record   = {
@@ -3427,8 +3442,19 @@
   function setAppHeight(){
     const header = document.querySelector('header');
     const appBody = document.querySelector('.app-body');
+    const navEl   = document.querySelector('nav');
     if(header && appBody){
-      appBody.style.height = (window.innerHeight - header.offsetHeight) + 'px';
+      const headerH = header.offsetHeight;
+      appBody.style.height = (window.innerHeight - headerH) + 'px';
+      // On mobile, keep the tab bar directly below the actual header height
+      if(navEl && window.innerWidth <= 600){
+        navEl.style.top = headerH + 'px';
+        // Update padding-top on app-body to match actual nav height
+        const navH = navEl.offsetHeight || 44;
+        appBody.style.paddingTop = navH + 'px';
+      } else if(navEl){
+        navEl.style.top = '';
+      }
     }
   }
   window.addEventListener('resize', setAppHeight);
@@ -3726,6 +3752,8 @@
     renderProfileBtn();
     renderProfilePanel();
     applyPlanUI();
+    // Load government schemes from backend/cache
+    setTimeout(loadSchemesFromBackend, 200);
     // Background sync: refresh plan/role from server so admin changes take effect without re-login
     if(_currentUser && _currentUser.token && ON_NETLIFY){
       callAuthFn('verify', {token: _currentUser.token}).then(function(d){
@@ -3742,6 +3770,111 @@
     }
   }
 
+  // ── SCHEME SELECTOR ──────────────────────────────────────────
+  var _schemes = [];
+
+  function applySelectedScheme(schemeId){
+    if(!schemeId){
+      // Manual — don't change values, just clear any scheme info display
+      return;
+    }
+    var sel = document.getElementById('scheme-select');
+    var opt = sel ? sel.querySelector('option[value="'+schemeId+'"]') : null;
+    var pct = opt ? parseFloat(opt.dataset.pct) : null;
+    if(pct !== null && !isNaN(pct)){
+      var govtInput = document.getElementById('inp-govt');
+      var govtRange = document.getElementById('rng-govt');
+      if(govtInput){ govtInput.value = pct; }
+      if(govtRange){ govtRange.value = pct; }
+      // If scheme has a max price hint, update the range slider max too
+      var maxPrice = opt ? parseInt(opt.dataset.max) : null;
+      var priceRange = document.getElementById('rng-price');
+      if(maxPrice && priceRange){ priceRange.max = maxPrice; }
+      recalc();
+      showToast('✓ Applied: ' + (opt ? opt.textContent.split('(')[0].trim() : schemeId));
+    }
+  }
+
+  function loadSchemesFromBackend(){
+    // First try localStorage cache (set by admin page)
+    try {
+      var cached = localStorage.getItem('propCalc_schemes_v1');
+      if(cached){
+        var schemes = JSON.parse(cached);
+        if(Array.isArray(schemes) && schemes.length) {
+          _schemes = schemes;
+          populateSchemeDropdown(schemes);
+          return;
+        }
+      }
+    } catch(e){}
+    // Try fetching from backend
+    var authH = getAuthHeader && getAuthHeader();
+    if(!authH || typeof ON_NETLIFY === 'undefined' || !ON_NETLIFY) return;
+    fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': authH },
+      body: JSON.stringify({ action: 'getSchemes' })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(d.ok && d.schemes && d.schemes.length){
+        _schemes = d.schemes;
+        try { localStorage.setItem('propCalc_schemes_v1', JSON.stringify(d.schemes)); } catch(e){}
+        populateSchemeDropdown(d.schemes);
+      }
+    }).catch(function(){});
+  }
+
+  function populateSchemeDropdown(schemes){
+    var sel = document.getElementById('scheme-select');
+    if(!sel) return;
+    var active = schemes.filter(function(s){ return s.active !== false; });
+    // Keep the "no scheme" option, rebuild the rest
+    sel.innerHTML = '<option value="">No scheme (manual entry below)</option>' +
+      active.map(function(s){
+        return '<option value="'+s.id+'" data-pct="'+s.govtDefaultPct+'" data-max="'+(s.maxPropertyPrice||700000)+'">'
+          + s.name + ' (' + s.govtDefaultPct + '% — ' + (s.country||'') + ')'
+          + '</option>';
+      }).join('');
+  }
+
+  // Load site config from localStorage (written by admin page) and apply feature flags
+  function loadSiteConfig(){
+    try {
+      var raw = localStorage.getItem('propCalc_siteConfig_v1');
+      if(!raw) return;
+      var cfg = JSON.parse(raw);
+      applyFeatureFlags(cfg);
+    } catch(e){}
+  }
+
+  function applyFeatureFlags(cfg){
+    if(!cfg) return;
+    // PDF Export feature flag
+    var pdfEnabled = cfg.enablePdfExport !== false;
+    document.querySelectorAll('.export-btn[title*="PDF"], .export-btn[onclick*="exportPDF"]').forEach(function(el){
+      el.style.display = pdfEnabled ? '' : 'none';
+    });
+    // Projection tab feature flag
+    var projEnabled = cfg.enableProjections !== false;
+    var projBtn = document.getElementById('tab-projection-btn');
+    if(projBtn) projBtn.style.display = projEnabled ? '' : 'none';
+    // Also fetch fresh config from backend and update
+    var sess = null;
+    try { sess = JSON.parse(localStorage.getItem('propCalc_session_v1')); } catch(e){}
+    if(sess && sess.token && typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY){
+      fetch('/.netlify/functions/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.token },
+        body: JSON.stringify({ action: 'adminGetConfig' })
+      }).then(function(r){ return r.json(); }).then(function(d){
+        if(d.ok && d.config){
+          try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(d.config)); } catch(e){}
+          applyFeatureFlags(d.config);
+        }
+      }).catch(function(){});
+    }
+  }
+
   // Returns Authorization header value for API calls, or null if guest
   function applyPlanUI(){
     var pro = isPro();
@@ -3752,6 +3885,8 @@
     var plan = getUserPlan();
     var badge = document.getElementById('plan-badge');
     if(badge) badge.textContent = plan === 'free' ? 'Starter' : 'Pro';
+    // Apply site feature flags (admin-controlled global toggles)
+    loadSiteConfig();
   }
 
     function getAuthHeader(){
@@ -3940,6 +4075,12 @@
   document.addEventListener('click', function(e){
     const widget = document.getElementById('app-profile-widget');
     if(widget && !widget.contains(e.target)) closeAppProfileMenu();
+  });
+
+  // After full page load, re-render the top-right profile button (it's defined after the main script)
+  window.addEventListener('load', function(){
+    renderAppProfileBtn();
+    setAppHeight(); // recalculate after all elements are rendered
   });
 
   function closeProfile(){
@@ -4317,7 +4458,31 @@
            font-family:'DM Mono',monospace;font-size:13px;font-weight:700;
            cursor:pointer;display:flex;align-items:center;justify-content:center;
            overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;
-           flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,0.4);">?</button>
+           flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,0.4);"></button>
+  <script>
+    // Pre-render initials immediately (before main script runs renderAppProfileBtn)
+    (function(){
+      try{
+        var sess = JSON.parse(localStorage.getItem('propCalc_session_v1')||'{}');
+        var profKey = 'propCalc_profile_v1_' + (sess.id||sess.userId||'guest');
+        var prof = JSON.parse(localStorage.getItem(profKey)||'{}');
+        var name = sess.name || prof.name || '';
+        var color = prof.color || '#C9A84C';
+        var btn = document.getElementById('app-profile-btn');
+        if(btn){
+          if(prof.photo){
+            btn.style.background='transparent';
+            btn.innerHTML='<img src="'+prof.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+          } else if(name){
+            var parts=name.trim().split(/\s+/).filter(Boolean);
+            var ini=parts.length===1?parts[0][0].toUpperCase():(parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+            btn.style.background=color;
+            btn.textContent=ini;
+          }
+        }
+      }catch(e){}
+    })();
+  </script>
   <div id="app-profile-menu" style="display:none;position:absolute;top:46px;right:0;
     background:#1C1C1E;border:1px solid rgba(255,255,255,0.1);
     border-radius:6px;padding:6px;min-width:200px;

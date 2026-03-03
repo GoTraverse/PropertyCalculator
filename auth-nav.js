@@ -38,6 +38,7 @@
   function getInitials(name) {
     if (!name) return '?';
     var parts = name.trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
     if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
@@ -93,7 +94,7 @@
             '</div>' +
             '<div style="padding:2px 0;">' +
               '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">🏠 Open Calculator</a>' +
-              '<button onclick="if(window.openAccountPanel){openAccountPanel();}else{location.href=\'app.html?openAccount=1\';}" class="anav-item">⚙ Account Settings</button>' +
+              '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">⚙ Account Settings</a>' +
               (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">🔒 Admin Dashboard</a>' : '') +
               '<button onclick="siteSignOut()" class="anav-item anav-item-danger">→ Sign Out</button>' +
             '</div>' +
@@ -122,22 +123,33 @@
   }
 })();
 
-// Auto-inject the standalone account panel on every page except app.html,
-// which already has the panel built-in.
-(function () {
-  var page = window.location.pathname.split('/').pop() || 'index.html';
-  if (page === 'app.html') return;
-
-  function injectPanel() {
-    if (document.getElementById('ap-panel')) return; // already loaded
-    var s = document.createElement('script');
-    s.src = 'account-panel.js';
-    document.head.appendChild(s);
+// Background session refresh: checks if plan/role changed (e.g. admin updated user)
+// and reloads the page if needed so feature gates update without re-login.
+(function() {
+  function refreshSession() {
+    try {
+      var raw = localStorage.getItem('propCalc_session_v1');
+      if (!raw) return;
+      var sess = JSON.parse(raw);
+      if (!sess || !sess.token) return;
+      fetch('/.netlify/functions/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', token: sess.token })
+      }).then(function(r){ return r.json(); }).then(function(d){
+        if (!d.ok) return;
+        var changed = d.plan !== sess.plan || d.role !== sess.role;
+        if (changed) {
+          var updated = Object.assign({}, sess, { plan: d.plan, role: d.role });
+          localStorage.setItem('propCalc_session_v1', JSON.stringify(updated));
+          // Re-render nav to reflect new plan/role
+          var actions = document.querySelector('.site-nav-actions');
+          if (actions) { actions.innerHTML = ''; renderNav && renderNav(); }
+        }
+      }).catch(function(){});
+    } catch(e) {}
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectPanel);
-  } else {
-    injectPanel();
-  }
+  // Refresh once after 5s then every 5 minutes
+  setTimeout(refreshSession, 5000);
+  setInterval(refreshSession, 5 * 60 * 1000);
 })();
