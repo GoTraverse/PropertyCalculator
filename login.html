@@ -6,8 +6,18 @@
 <title>Sign in — EquitySight.app</title>
 <link rel="stylesheet" href="shared.css">
 <style>
-  body { background: var(--charcoal); min-height: 100vh; display: flex; flex-direction: column; }
-  .login-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+  html { height: 100%; overflow: hidden; }
+  body {
+    background: var(--charcoal);
+    height: 100%; height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    position: fixed; /* prevents iOS rubber-band bounce scroll */
+    width: 100%; left: 0; top: 0;
+    display: flex; flex-direction: column;
+  }
+  .login-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .login-box { width: min(420px, 100%); }
   .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; justify-content: center; }
   .login-heading { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--cream); margin-bottom: 6px; }
