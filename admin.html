@@ -642,6 +642,8 @@ function renderUsers(users){
     const plan = u.plan || 'free';
     const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '—';
     const roleHtml = u.role === 'admin' ? '<span class="role-badge">admin</span>' : '';
+    const roleAction = u.role !== 'admin' ? 'grant-admin' : 'revoke-admin';
+    const roleLabel  = u.role !== 'admin' ? '→ Admin'      : 'Revoke Admin';
     return `<tr>
       <td style="font-weight:500;">${escHtml(u.name||'—')}</td>
       <td><span class="user-email">${escHtml(u.email||'—')}</span></td>
@@ -650,15 +652,29 @@ function renderUsers(users){
       <td>${roleHtml}</td>
       <td>
         <div class="user-actions">
-          <button class="act-btn" onclick="openResetPw(${JSON.stringify(u.email)})">Reset Pwd</button>
-          <button class="act-btn" onclick="setPlan(${JSON.stringify(u.email)},${JSON.stringify(plan)})">Plan</button>
-          ${u.role !== 'admin' ? `<button class="act-btn" onclick="setRole(${JSON.stringify(u.email)},'admin')">→ Admin</button>` : `<button class="act-btn" onclick="setRole(${JSON.stringify(u.email)},'user')">Revoke Admin</button>`}
-          <button class="act-btn danger" onclick="deleteUser(${JSON.stringify(u.email)})">Delete</button>
+          <button class="act-btn" data-action="reset-pw"    data-email="${escHtml(u.email)}">Reset Pwd</button>
+          <button class="act-btn" data-action="set-plan"    data-email="${escHtml(u.email)}" data-plan="${escHtml(plan)}">Plan</button>
+          <button class="act-btn" data-action="${roleAction}" data-email="${escHtml(u.email)}">${roleLabel}</button>
+          <button class="act-btn danger" data-action="delete-user" data-email="${escHtml(u.email)}">Delete</button>
         </div>
       </td>
     </tr>`;
   }).join('');
 }
+
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('users-tbody').addEventListener('click', function(e){
+    const btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    const action = btn.dataset.action;
+    const email  = btn.dataset.email;
+    if(action === 'reset-pw')    openResetPw(email);
+    if(action === 'set-plan')    setPlan(email, btn.dataset.plan);
+    if(action === 'grant-admin') setRole(email, 'admin');
+    if(action === 'revoke-admin')setRole(email, 'user');
+    if(action === 'delete-user') deleteUser(email);
+  });
+});
 
 function openResetPw(email){
   resetTarget = email;
