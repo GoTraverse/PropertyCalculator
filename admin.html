@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="shared.css">
 <style>
   .site-nav-links, .nav-hamburger { display: none !important; }
+  /* Keep profile icon pinned to the right column even when nav links are hidden */
+  .site-nav-actions { grid-column: 3; justify-self: end; }
   body { background: var(--warm-white); min-height: 100vh; }
 
   .admin-layout {
@@ -360,10 +362,26 @@
 
   <!-- Stats row -->
   <div class="admin-stats" id="admin-stats">
-    <div class="stat-card"><div class="stat-value" id="stat-total">—</div><div class="stat-label">Total Users</div></div>
-    <div class="stat-card"><div class="stat-value" id="stat-free">—</div><div class="stat-label">Free Plan</div></div>
-    <div class="stat-card"><div class="stat-value" id="stat-pro">—</div><div class="stat-label">Pro Plan</div></div>
-    <div class="stat-card"><div class="stat-value" id="stat-adviser">—</div><div class="stat-label">Adviser Plan</div></div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-label">Total Users</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">All registered accounts</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-free">—</div>
+      <div class="stat-label">Free Plan</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Limited to 1 saved scenario</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-pro">—</div>
+      <div class="stat-label">Pro Plan</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Unlimited scenarios + PDF export</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-adviser">—</div>
+      <div class="stat-label">Adviser Plan</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Multi-client + white-label reports</div>
+    </div>
   </div>
 
   <!-- Tabs -->
@@ -419,43 +437,68 @@
         <button class="btn-admin-outline" style="font-size:10px;padding:6px 12px;" onclick="loadStats()">↻ Refresh</button>
       </div>
       <div style="padding:16px 20px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;" id="cfg-stats-grid">
-          <div class="stat-card"><div class="stat-value" id="cfg-stat-users">—</div><div class="stat-label">Total Users</div></div>
-          <div class="stat-card"><div class="stat-value" id="cfg-stat-sessions">—</div><div class="stat-label">Active Sessions</div></div>
-          <div class="stat-card"><div class="stat-value" id="cfg-stat-scenarios">—</div><div class="stat-label">Scenario Lists</div></div>
-          <div class="stat-card"><div class="stat-value" id="cfg-stat-redis" style="font-size:18px;">—</div><div class="stat-label">Redis</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;" id="cfg-stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="cfg-stat-users">—</div>
+            <div class="stat-label">Total Users</div>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Registered accounts in the database</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="cfg-stat-sessions">—</div>
+            <div class="stat-label">Active Sessions</div>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Valid login tokens currently in use</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="cfg-stat-scenarios">—</div>
+            <div class="stat-label">Scenario Lists</div>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Saved property scenario sets across all users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="cfg-stat-redis" style="font-size:18px;">—</div>
+            <div class="stat-label">Redis</div>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Database connection status — must be Online</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Site Identity -->
     <div class="admin-card">
-      <div class="admin-card-head"><h3>Site Identity</h3></div>
+      <div class="admin-card-head">
+        <h3>Site Identity</h3>
+        <span style="font-size:11px;color:var(--slate);">Branding &amp; contact details shown across the site</span>
+      </div>
       <div style="padding:24px;">
         <div class="config-grid" style="margin-bottom:16px;">
           <div class="config-field">
             <label class="config-label">Site Name</label>
             <input type="text" class="config-input" id="cfg-site-name" placeholder="EquitySight.app">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Displayed in the browser tab and header</div>
           </div>
           <div class="config-field">
             <label class="config-label">Site Tagline</label>
             <input type="text" class="config-input" id="cfg-site-tagline" placeholder="Shared Equity Property Calculator">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Short description shown on the landing page</div>
           </div>
           <div class="config-field">
             <label class="config-label">Support Email</label>
             <input type="email" class="config-input" id="cfg-support-email" placeholder="support@equitysight.app">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Shown in footers and error messages</div>
           </div>
           <div class="config-field">
             <label class="config-label">Site URL</label>
             <input type="url" class="config-input" id="cfg-site-url" placeholder="https://equitysight.app">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Used in emails and canonical links</div>
           </div>
           <div class="config-field">
             <label class="config-label">Discord / Community Link</label>
             <input type="url" class="config-input" id="cfg-discord" placeholder="https://discord.gg/…">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Shown in the footer community section</div>
           </div>
           <div class="config-field">
             <label class="config-label">Twitter / X Handle</label>
             <input type="text" class="config-input" id="cfg-twitter" placeholder="@equitysight">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Linked in the footer social section</div>
           </div>
         </div>
       </div>
@@ -463,7 +506,10 @@
 
     <!-- Announcement Banner -->
     <div class="admin-card">
-      <div class="admin-card-head"><h3>Announcement Banner</h3></div>
+      <div class="admin-card-head">
+        <h3>Announcement Banner</h3>
+        <span style="font-size:11px;color:var(--slate);">Displays a sitewide notice bar at the top of the app</span>
+      </div>
       <div style="padding:24px;">
         <div style="margin-bottom:16px;">
           <label class="config-label">Banner Message (leave blank to hide)</label>
@@ -490,7 +536,10 @@
 
     <!-- Access Control -->
     <div class="admin-card">
-      <div class="admin-card-head"><h3>Access Control</h3></div>
+      <div class="admin-card-head">
+        <h3>Access Control</h3>
+        <span style="font-size:11px;color:var(--slate);">Control who can access the site and how accounts are managed</span>
+      </div>
       <div style="padding:24px;">
         <div class="config-grid" style="margin-bottom:16px;">
           <div class="config-field">
@@ -532,7 +581,10 @@
 
     <!-- Feature Flags -->
     <div class="admin-card">
-      <div class="admin-card-head"><h3>Feature Flags</h3></div>
+      <div class="admin-card-head">
+        <h3>Feature Flags</h3>
+        <span style="font-size:11px;color:var(--slate);">Enable or disable features globally across the app</span>
+      </div>
       <div style="padding:24px;">
         <div class="config-grid">
           <div class="config-field">
@@ -540,30 +592,36 @@
               <input type="checkbox" id="cfg-enable-pdf" checked style="width:16px;height:16px;accent-color:var(--gold);">
               PDF Export (Pro)
             </label>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Allows Pro &amp; Adviser users to download property reports as PDF. Uncheck to disable for all users.</div>
           </div>
           <div class="config-field">
             <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
               <input type="checkbox" id="cfg-enable-proj" checked style="width:16px;height:16px;accent-color:var(--gold);">
               30-Year Projection (Pro)
             </label>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Shows the 30-year equity growth chart. Uncheck to hide the Projection tab for all users.</div>
           </div>
           <div class="config-field">
             <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
               <input type="checkbox" id="cfg-enable-referral" style="width:16px;height:16px;accent-color:var(--gold);">
               Referral Program
             </label>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Enables the referral link system — users earn free Pro days when friends sign up.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Referral Bonus (days free)</label>
             <input type="number" class="config-input" id="cfg-referral-bonus" value="30" min="1" max="365">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Number of free Pro days awarded to a referrer when their link converts to a signup.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Max Upload Size (MB)</label>
             <input type="number" class="config-input" id="cfg-max-upload" value="5" min="1" max="50">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Maximum file size for property photo uploads. Applies to all users.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Session Duration (days)</label>
             <input type="number" class="config-input" id="cfg-session-ttl" value="30" min="1" max="365">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">How long before users are automatically signed out due to inactivity.</div>
           </div>
         </div>
       </div>
@@ -571,28 +629,36 @@
 
     <!-- Plan Limits & Pricing -->
     <div class="admin-card">
-      <div class="admin-card-head"><h3>Plan Limits &amp; Pricing</h3></div>
+      <div class="admin-card-head">
+        <h3>Plan Limits &amp; Pricing</h3>
+        <span style="font-size:11px;color:var(--slate);">Controls how many scenarios each plan can save and what prices show on the Pricing page</span>
+      </div>
       <div style="padding:24px;">
         <div class="config-grid">
           <div class="config-field">
             <label class="config-label">Free — Scenario Limit</label>
             <input type="number" class="config-input" id="cfg-free-limit" value="1" min="1" max="20">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Max saved property scenarios for free accounts. Saving more will prompt an upgrade.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Pro — Scenario Limit (-1 = unlimited)</label>
             <input type="number" class="config-input" id="cfg-pro-limit" value="-1" min="-1" max="999">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Set to -1 for unlimited. Pro users can save and compare as many properties as they like.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Pro Monthly Price (AUD $)</label>
             <input type="number" class="config-input" id="cfg-pro-monthly" value="9" min="0">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Displayed on the Pricing page. Must match your Stripe price configuration.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Pro Annual Price (AUD $)</label>
             <input type="number" class="config-input" id="cfg-pro-annual" value="86" min="0">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Yearly Pro price shown on Pricing page. Typically ~20% discount vs monthly.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Adviser Monthly Price (AUD $)</label>
             <input type="number" class="config-input" id="cfg-adviser-monthly" value="29" min="0">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Displayed on the Pricing page for the Adviser tier. Includes multi-client access.</div>
           </div>
         </div>
       </div>
@@ -886,8 +952,20 @@ async function loadConfig(){
   const st = document.getElementById('config-status');
   st.textContent = 'Loading configuration…'; st.className = 'admin-status info';
   const d = await callAuth('adminGetConfig');
-  if(!d.ok){ st.textContent = '✗ ' + (d.error||'Failed to load config'); st.className = 'admin-status err'; return; }
-  const c = d.config || {};
+  let c = {};
+  if(d.ok){
+    c = d.config || {};
+    // Cache locally for app-side use
+    try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(c)); } catch(e){}
+  } else {
+    // Fall back to locally cached config
+    try { c = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e){ c = {}; }
+    if(Object.keys(c).length){
+      st.textContent = 'Using locally cached config (API unavailable)'; st.className = 'admin-status info';
+    } else {
+      st.textContent = '✗ ' + (d.error||'Failed to load config'); st.className = 'admin-status err'; return;
+    }
+  }
   setV('cfg-site-name',       c.siteName       || 'EquitySight.app');
   setV('cfg-site-tagline',    c.siteTagline    || '');
   setV('cfg-support-email',   c.supportEmail   || 'support@equitysight.app');
@@ -977,10 +1055,15 @@ async function saveConfig(){
   };
   const d = await callAuth('adminSetConfig', {config});
   if(d.ok){
-    st.textContent = '✓ Configuration saved to Redis'; st.className = 'admin-status ok';
+    // Also cache config locally so the app can apply settings without an API call
+    try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(config)); } catch(e){}
+    st.textContent = '✓ Configuration saved'; st.className = 'admin-status ok';
     setTimeout(()=>{ st.className='admin-status'; }, 3000);
   } else {
-    st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err';
+    // If API fails, still save locally so frontend settings are applied
+    try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(config)); } catch(e){}
+    st.textContent = '✓ Saved locally (API: ' + (d.error||'check backend') + ')'; st.className = 'admin-status ok';
+    setTimeout(()=>{ st.className='admin-status'; }, 4000);
   }
 }
 

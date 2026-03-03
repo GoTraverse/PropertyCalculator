@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="shared.css">
 <style>
   .site-nav-links, .nav-hamburger { display: none !important; }
+  /* Keep profile icon pinned to the right column even when nav links are hidden */
+  .site-nav-actions { grid-column: 3; justify-self: end; }
   body { background: var(--warm-white); }
 
   .account-layout {
@@ -158,7 +160,6 @@
     <div class="acct-nav-divider"></div>
     <button class="acct-nav-item" onclick="showPanel('security',this)"><span class="ni">🔒</span> Security</button>
     <div class="acct-nav-divider"></div>
-    <button class="acct-nav-item" onclick="location.href='app.html'"><span class="ni">🏠</span> Open Calculator</button>
     <button class="acct-nav-item" style="color:#C45A5A;" onclick="doSignOut()"><span class="ni">↩</span> Sign Out</button>
   </nav>
 
@@ -571,8 +572,7 @@
     const ini = n.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
     const ph = profileData && profileData.photo;
     const col = (profileData && profileData.color) || '#C9A84C';
-    el.innerHTML='<a href="app.html" style="font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(245,240,232,0.55);padding:8px 14px;border-radius:3px;background:rgba(255,255,255,0.06);text-decoration:none;border:1px solid rgba(255,255,255,0.1);">Open App →</a>'
-      +'<div class="nav-user-wrap" id="nuw"><button class="nav-user-btn" onclick="document.getElementById(\'nuw\').classList.toggle(\'open\')" title="'+n+'">'+(ph?'<img src="'+ph+'">':ini)+'</button>'
+    el.innerHTML='<div class="nav-user-wrap" id="nuw"><button class="nav-user-btn" onclick="document.getElementById(\'nuw\').classList.toggle(\'open\')" title="'+n+'">'+(ph?'<img src="'+ph+'">':ini)+'</button>'
       +'<div class="nav-user-dropdown"><div class="nav-dropdown-header"><div class="nav-dropdown-name">'+n+'</div><div class="nav-dropdown-email">'+(session.email||'')+'</div></div>'
       +'<div class="nav-dropdown-items"><a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a><a href="account.html" class="nav-dropdown-item active-link">⚙ Account Settings</a><button class="nav-dropdown-item danger" onclick="doSignOut()">Sign Out</button></div></div></div>';
     document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');},{once:false});
