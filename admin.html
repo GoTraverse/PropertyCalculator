@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Admin — EquitySight.app</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="shortcut icon" href="favicon.svg">
@@ -557,9 +557,17 @@ async function init(){
     return;
   }
 
-  // Try to verify with backend, but grant access regardless — all accounts are admin for now
+  // Verify token with backend to get current role
   let d = {};
   try { d = await callAuth('verify', {token: sess.token}); } catch(e){}
+
+  const role = (d.ok ? d.role : sess.role) || 'user';
+
+  if(role !== 'admin'){
+    showAccessDenied('This page requires an admin account. Use the button below to claim admin (only works if no admin exists yet).');
+    document.getElementById('bootstrap-btn').style.display = '';
+    return;
+  }
 
   adminSession = d.ok ? d : sess;
   document.getElementById('access-denied').style.display = 'none';

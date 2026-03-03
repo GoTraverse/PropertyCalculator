@@ -94,6 +94,7 @@
             '<div style="padding:2px 0;">' +
               '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">🏠 Open Calculator</a>' +
               '<button onclick="if(window.openAccountPanel){openAccountPanel();}else{location.href=\'app.html?openAccount=1\';}" class="anav-item">⚙ Account Settings</button>' +
+              (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">🔒 Admin Dashboard</a>' : '') +
               '<button onclick="siteSignOut()" class="anav-item anav-item-danger">→ Sign Out</button>' +
             '</div>' +
           '</div>' +
