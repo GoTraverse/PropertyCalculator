@@ -2609,8 +2609,28 @@
   async function confirmLoad(){
     if(!pendingLoadId) return;
     const scenarios = _scenariosCache || await getAllScenarios();
-    const sc = scenarios.find(s => s.id === pendingLoadId);
-    if(!sc || !sc.state){ pendingLoadId=null; closeConfirmModal(); return; }
+    let sc = scenarios.find(s => s.id === pendingLoadId);
+    if(!sc){ pendingLoadId=null; closeConfirmModal(); return; }
+
+    // State is stored separately on the backend — fetch it if not already in cache
+    if(!sc.state && ON_NETLIFY){
+      try{
+        const authH = getAuthHeader();
+        if(authH){
+          const r = await fetch('/.netlify/functions/scenarios', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':authH},
+            body: JSON.stringify({action:'getState', userId:getUserId(), id:sc.id})
+          });
+          if(r.ok){
+            const d = await r.json();
+            if(d.state) sc = Object.assign({}, sc, {state: typeof d.state==='string' ? JSON.parse(d.state) : d.state});
+          }
+        }
+      }catch(e){ console.warn('[scenarios] getState error:', e.message); }
+    }
+
+    if(!sc.state){ showToast('⚠️ Could not load scenario data'); pendingLoadId=null; closeConfirmModal(); return; }
     closeConfirmModal();
     closeScenariosModal();
     const photo = sc.hasPhoto ? await getPhoto(sc.id) : null;
@@ -3705,6 +3725,20 @@
     renderProfileBtn();
     renderProfilePanel();
     applyPlanUI();
+    // Background sync: refresh plan/role from server so admin changes take effect without re-login
+    if(_currentUser && _currentUser.token && ON_NETLIFY){
+      callAuthFn('verify', {token: _currentUser.token}).then(function(d){
+        if(!d.ok) return;
+        var changed = d.plan !== _currentUser.plan || d.role !== _currentUser.role;
+        if(changed){
+          _currentUser.plan = d.plan;
+          _currentUser.role = d.role;
+          lsSet(SESSION_KEY, JSON.stringify(_currentUser));
+          applyPlanUI();
+          renderAppProfileBtn();
+        }
+      }).catch(function(){});
+    }
   }
 
   // Returns Authorization header value for API calls, or null if guest
@@ -3866,6 +3900,7 @@
     const menu = document.getElementById('app-profile-menu');
     if(!menu) return;
     const isOpen = menu.style.display === 'block';
+    if(!isOpen) renderAppProfileBtn(); // refresh admin link visibility on open
     menu.style.display = isOpen ? 'none' : 'block';
   }
   function closeAppProfileMenu(){
