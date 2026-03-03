@@ -274,12 +274,99 @@ exports.handler = async function(event){
       const keys=await redisCmd('KEYS','user:*');
       const tokenKeys=await redisCmd('KEYS','token:*');
       const scenarioKeys=await redisCmd('KEYS','scenarios:*:index');
+      // Count active (non-expired) sessions
+      let activeSessions=0;
+      if(tokenKeys&&tokenKeys.length){
+        const tokenData=await Promise.all(tokenKeys.map(k=>rGet(k)));
+        activeSessions=tokenData.filter(d=>d&&(!d.expires||Date.now()<d.expires)).length;
+      }
       return ok({ok:true,stats:{
         totalUsers:keys?keys.length:0,
-        activeSessions:tokenKeys?tokenKeys.length:0,
+        activeSessions,
         totalScenarioLists:scenarioKeys?scenarioKeys.length:0,
       }});
     }catch(e){ return fail('Stats error: '+e.message); }
+  }
+
+  if(action==='adminPurgeExpiredSessions'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const tokenKeys=await redisCmd('KEYS','token:*');
+      if(!tokenKeys||!tokenKeys.length) return ok({ok:true,count:0});
+      let count=0;
+      await Promise.all(tokenKeys.map(async k=>{
+        const d=await rGet(k);
+        if(!d||(d.expires&&Date.now()>d.expires)){
+          await rDel(k); count++;
+        }
+      }));
+      return ok({ok:true,count});
+    }catch(e){ return fail('Purge error: '+e.message); }
+  }
+
+  if(action==='adminPurgeOrphanedProfiles'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const profileKeys=await redisCmd('KEYS','profile:*');
+      if(!profileKeys||!profileKeys.length) return ok({ok:true,count:0});
+      const userKeys=await redisCmd('KEYS','user:*');
+      // Build set of valid user IDs
+      const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
+      const validIds=new Set(users.filter(Boolean).map(u=>u.id));
+      let count=0;
+      await Promise.all(profileKeys.map(async k=>{
+        const uid=k.replace('profile:','');
+        if(!validIds.has(uid)){ await rDel(k); count++; }
+      }));
+      return ok({ok:true,count});
+    }catch(e){ return fail('Purge error: '+e.message); }
+  }
+
+  if(action==='adminPurgeOrphanedScenarios'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const scenarioKeys=await redisCmd('KEYS','scenarios:*');
+      if(!scenarioKeys||!scenarioKeys.length) return ok({ok:true,count:0});
+      const userKeys=await redisCmd('KEYS','user:*');
+      const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
+      const validIds=new Set(users.filter(Boolean).map(u=>u.id));
+      let count=0;
+      await Promise.all(scenarioKeys.map(async k=>{
+        // key format: scenarios:<userId>:index or scenarios:<userId>:state:<id> or scenarios:<userId>:photo:<id>
+        const parts=k.split(':');
+        const uid=parts[1];
+        if(!validIds.has(uid)){ await rDel(k); count++; }
+      }));
+      return ok({ok:true,count});
+    }catch(e){ return fail('Purge error: '+e.message); }
+  }
+
+  if(action==='adminGetSchemes'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const schemes=await rGet('config:schemes');
+    return ok({ok:true,schemes:schemes||[]});
+  }
+
+  if(action==='adminSetSchemes'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {schemes}=body;
+    if(!Array.isArray(schemes)) return fail('schemes must be an array');
+    await rSet('config:schemes',schemes);
+    return ok({ok:true});
+  }
+
+  if(action==='getSchemes'){
+    // Public endpoint — any authenticated user can read active schemes
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user) return fail('Unauthorized',401);
+    const schemes=await rGet('config:schemes');
+    const active=(schemes||[]).filter(s=>s.active!==false);
+    return ok({ok:true,schemes:active});
   }
 
   if(action==='adminSetPlan'){

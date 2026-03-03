@@ -178,6 +178,7 @@
     transition: all 0.12s;
   }
   .act-btn:hover { background: var(--charcoal); color: var(--cream); border-color: var(--charcoal); }
+  .act-btn.danger { border-color: rgba(196,90,90,0.3); color: var(--risk-red); }
   .act-btn.danger:hover { background: var(--risk-red); border-color: var(--risk-red); color: white; }
 
   /* Stripe / config section */
@@ -360,7 +361,7 @@
     </div>
   </div>
 
-  <!-- Stats row -->
+  <!-- Stats row — always visible outside tabs -->
   <div class="admin-stats" id="admin-stats">
     <div class="stat-card">
       <div class="stat-value" id="stat-total">—</div>
@@ -370,23 +371,36 @@
     <div class="stat-card">
       <div class="stat-value" id="stat-free">—</div>
       <div class="stat-label">Free Plan</div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Limited to 1 saved scenario</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">1 saved scenario limit</div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-pro">—</div>
       <div class="stat-label">Pro Plan</div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Unlimited scenarios + PDF export</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Unlimited + PDF + Projection</div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-adviser">—</div>
       <div class="stat-label">Adviser Plan</div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Multi-client + white-label reports</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Multi-client + white-label</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-sessions">—</div>
+      <div class="stat-label">Active Sessions</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Valid login tokens in use</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-scenarios-top">—</div>
+      <div class="stat-label">Scenario Sets</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Saved property scenario lists</div>
     </div>
   </div>
 
   <!-- Tabs -->
   <div class="admin-tabs">
     <button class="admin-tab active" onclick="showAdminTab('users',this)">Users</button>
+    <button class="admin-tab" onclick="showAdminTab('scenarios',this);loadAllScenarios();">Scenarios</button>
+    <button class="admin-tab" onclick="showAdminTab('schemes',this);loadSchemes();">Gov Schemes</button>
+    <button class="admin-tab" onclick="showAdminTab('database',this);">Database</button>
     <button class="admin-tab" onclick="showAdminTab('config',this);loadConfig();">Configuration</button>
   </div>
 
@@ -711,6 +725,103 @@
     <div id="config-status" class="admin-status"></div>
   </div>
 
+
+  <!-- SCENARIOS TAB -->
+  <div class="admin-section" id="tab-scenarios">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>All Saved Scenarios</h3>
+        <button class="btn-admin" style="font-size:10px;padding:7px 14px;" onclick="loadAllScenarios()">↻ Refresh</button>
+      </div>
+      <div id="scenarios-list-wrap" style="padding:16px 20px;">
+        <div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Click Refresh to load scenario data…</div>
+      </div>
+    </div>
+    <div id="scenarios-tab-status" class="admin-status"></div>
+  </div>
+
+  <!-- SCHEMES TAB -->
+  <div class="admin-section" id="tab-schemes">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>Government Schemes</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-admin" style="font-size:10px;padding:7px 14px;" onclick="addScheme()">＋ Add Scheme</button>
+          <button class="btn-admin-outline" style="font-size:10px;padding:7px 14px;" onclick="saveSchemes()">Save All</button>
+        </div>
+      </div>
+      <div style="padding:16px 20px;">
+        <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:12px;line-height:1.7;">
+          Configure government shared-equity schemes here. Users can select a scheme in the app and the parameters will auto-fill. Each scheme has a name, description, contribution percentage range, and eligibility rules.
+        </div>
+        <div id="schemes-list">
+          <div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading schemes…</div>
+        </div>
+      </div>
+    </div>
+    <div id="schemes-status" class="admin-status"></div>
+  </div>
+
+  <!-- DATABASE TAB -->
+  <div class="admin-section" id="tab-database">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>Database Maintenance</h3>
+        <span style="font-size:11px;color:var(--slate);">Purge old or orphaned data from the database</span>
+      </div>
+      <div style="padding:24px;">
+        <div style="display:grid;gap:16px;">
+          <div style="background:rgba(196,90,90,0.06);border:1px solid rgba(196,90,90,0.15);border-radius:var(--radius-sm);padding:16px 20px;">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--charcoal);">🗑 Purge Expired Sessions</div>
+            <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Remove all login tokens that have expired. Active users won't be affected — only stale sessions older than the TTL are removed.</div>
+            <button class="btn-admin-outline" onclick="purgeExpiredSessions()">Purge Expired Sessions</button>
+          </div>
+          <div style="background:rgba(196,90,90,0.06);border:1px solid rgba(196,90,90,0.15);border-radius:var(--radius-sm);padding:16px 20px;">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--charcoal);">🗑 Purge Orphaned Profiles</div>
+            <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Remove profile data for accounts that no longer exist. Safe to run — only deletes profiles with no matching user account.</div>
+            <button class="btn-admin-outline" onclick="purgeOrphanedProfiles()">Purge Orphaned Profiles</button>
+          </div>
+          <div style="background:rgba(196,90,90,0.06);border:1px solid rgba(196,90,90,0.15);border-radius:var(--radius-sm);padding:16px 20px;">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--charcoal);">🗑 Purge Orphaned Scenarios</div>
+            <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Remove saved scenarios for accounts that no longer exist. This frees up storage space without affecting active user data.</div>
+            <button class="btn-admin-outline" onclick="purgeOrphanedScenarios()">Purge Orphaned Scenarios</button>
+          </div>
+          <div style="background:rgba(196,90,90,0.08);border:1px solid rgba(196,90,90,0.25);border-radius:var(--radius-sm);padding:16px 20px;">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--risk-red);">⚠ Export All User Data</div>
+            <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Download a JSON export of all user accounts (no passwords). Useful for backup or migration purposes.</div>
+            <button class="btn-admin-outline" onclick="exportAllUsers()">Export User Data JSON</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="database-status" class="admin-status"></div>
+  </div>
+
+</div>
+
+<!-- Plan Change Modal -->
+<div class="reset-modal-overlay" id="plan-modal-overlay">
+  <div class="reset-modal">
+    <h3>Change Plan</h3>
+    <p id="plan-modal-desc">Select a new plan for this account.</p>
+    <div class="config-field" style="margin-bottom:12px;">
+      <label class="config-label">Current Plan</label>
+      <div id="plan-modal-current" style="font-family:var(--font-mono);font-size:13px;color:var(--charcoal);padding:8px 0;"></div>
+    </div>
+    <div class="config-field">
+      <label class="config-label">New Plan</label>
+      <select class="config-input" id="plan-modal-select">
+        <option value="free">Free (Starter) — 1 saved scenario, core calculator</option>
+        <option value="pro">Pro — Unlimited scenarios + PDF export + Projection</option>
+        <option value="adviser">Adviser — All Pro features + white-label + multi-client</option>
+      </select>
+    </div>
+    <div id="plan-modal-status" class="admin-status"></div>
+    <div class="reset-modal-btns">
+      <button class="btn-admin" onclick="confirmPlanChange()">Update Plan</button>
+      <button class="btn-admin-outline" onclick="closePlanModal()">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <!-- Access denied / not logged in -->
@@ -783,6 +894,7 @@ async function init(){
   document.getElementById('self-admin-info').textContent = 'Logged in as: ' + email;
 
   loadUsers();
+  loadStats(); // populate top stats row immediately
 }
 
 function showAccessDenied(msg){
@@ -860,7 +972,7 @@ function renderUsers(users){
       <td>
         <div class="user-actions">
           <button class="act-btn" data-action="reset-pw"    data-email="${escHtml(u.email)}">Reset Pwd</button>
-          <button class="act-btn" data-action="set-plan"    data-email="${escHtml(u.email)}" data-plan="${escHtml(plan)}">Plan</button>
+          <button class="act-btn" data-action="set-plan"    data-email="${escHtml(u.email)}" data-plan="${escHtml(plan)}">Change Plan</button>
           <button class="act-btn" data-action="${roleAction}" data-email="${escHtml(u.email)}">${roleLabel}</button>
           <button class="act-btn danger" data-action="delete-user" data-email="${escHtml(u.email)}">Delete</button>
         </div>
@@ -905,17 +1017,33 @@ async function confirmResetPw(){
   else { st.textContent='✗ ' + (d.error||'Failed'); st.className='admin-status err'; }
 }
 
+let planTarget = null;
+function openPlanModal(email, currentPlan){
+  planTarget = email;
+  document.getElementById('plan-modal-desc').textContent = 'Change plan for: ' + email;
+  document.getElementById('plan-modal-current').textContent = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+  document.getElementById('plan-modal-select').value = currentPlan;
+  document.getElementById('plan-modal-status').className = 'admin-status';
+  document.getElementById('plan-modal-overlay').classList.add('open');
+}
+function closePlanModal(){
+  document.getElementById('plan-modal-overlay').classList.remove('open');
+  planTarget = null;
+}
+async function confirmPlanChange(){
+  const plan = document.getElementById('plan-modal-select').value;
+  const st = document.getElementById('plan-modal-status');
+  st.textContent = 'Updating…'; st.className = 'admin-status info';
+  const d = await callAuth('adminSetPlan', {targetEmail: planTarget, plan});
+  if(d.ok){
+    st.textContent = '✓ Plan updated to ' + plan; st.className = 'admin-status ok';
+    setTimeout(() => { closePlanModal(); loadUsers(); }, 1200);
+  } else {
+    st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err';
+  }
+}
 async function setPlan(email, currentPlan){
-  const plans = ['free', 'pro', 'adviser'];
-  const newPlan = prompt('Change plan for ' + email + '\nCurrent: ' + currentPlan + '\nEnter new plan (free / pro / adviser):', currentPlan);
-  if(!newPlan) return;
-  const plan = newPlan.toLowerCase().trim();
-  if(!plans.includes(plan)){ alert('Invalid plan. Use: free, pro, or adviser'); return; }
-  const st = document.getElementById('users-status');
-  st.textContent = 'Updating plan…'; st.className = 'admin-status info';
-  const d = await callAuth('adminSetPlan', {targetEmail: email, plan});
-  if(d.ok){ st.textContent = '✓ Plan updated to ' + plan + ' for ' + email; st.className = 'admin-status ok'; loadUsers(); }
-  else { st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err'; }
+  openPlanModal(email, currentPlan);
 }
 
 async function setRole(email, role){
@@ -1084,15 +1212,281 @@ async function loadStats(){
   if(!d.ok) return;
   const s = d.stats || {};
   const el = id => document.getElementById(id);
+  // Update inline config tab stats
   if(el('cfg-stat-users'))    el('cfg-stat-users').textContent    = s.totalUsers    ?? '—';
   if(el('cfg-stat-sessions')) el('cfg-stat-sessions').textContent = s.activeSessions ?? '—';
   if(el('cfg-stat-scenarios'))el('cfg-stat-scenarios').textContent= s.totalScenarioLists ?? '—';
   if(el('cfg-stat-redis'))    el('cfg-stat-redis').textContent    = d.ok ? '✓ Online' : '✗ Error';
   if(el('cfg-stat-redis'))    el('cfg-stat-redis').style.color    = d.ok ? 'var(--reward-green)' : 'var(--risk-red)';
+  // Also update the always-visible top stats row
+  if(el('stat-sessions'))       el('stat-sessions').textContent       = s.activeSessions    ?? '—';
+  if(el('stat-scenarios-top'))  el('stat-scenarios-top').textContent  = s.totalScenarioLists ?? '—';
 }
 
 function escHtml(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── SCENARIOS TAB ─────────────────────────────────────────────
+async function loadAllScenarios(){
+  const wrap = document.getElementById('scenarios-list-wrap');
+  const st   = document.getElementById('scenarios-tab-status');
+  wrap.innerHTML = '<div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading scenarios…</div>';
+  const d = await callAuth('adminListUsers');
+  if(!d.ok){ wrap.innerHTML='<div style="color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed')+'</div>'; return; }
+  const users = d.users || [];
+  if(!users.length){ wrap.innerHTML='<div style="color:var(--slate);padding:24px;text-align:center;font-style:italic;">No users found</div>'; return; }
+  // Fetch scenario counts for each user
+  const sess = getSession();
+  const token = sess && sess.token;
+  let totalScenarios = 0;
+  const rows = await Promise.all(users.map(async u => {
+    if(!u.id) return null;
+    try {
+      const r = await fetch('/.netlify/functions/scenarios?' + new URLSearchParams({userId: u.id}), {
+        headers: token ? {'Authorization': 'Bearer ' + token} : {}
+      });
+      const arr = await r.json();
+      const count = Array.isArray(arr) ? arr.length : 0;
+      totalScenarios += count;
+      if(count === 0) return null;
+      return { user: u, scenarios: Array.isArray(arr) ? arr : [] };
+    } catch(e){ return null; }
+  }));
+  const valid = rows.filter(Boolean);
+  if(!valid.length){
+    wrap.innerHTML='<div style="color:var(--slate);padding:24px;text-align:center;font-style:italic;">No saved scenarios found across all users</div>';
+    return;
+  }
+  wrap.innerHTML = valid.map(({ user, scenarios }) => `
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);padding:10px 0 6px;border-bottom:1px solid rgba(28,28,30,0.08);margin-bottom:8px;">
+        ${escHtml(user.email)} <span style="color:var(--charcoal);margin-left:8px;">${scenarios.length} scenario${scenarios.length!==1?'s':''}</span>
+      </div>
+      ${scenarios.map(s => `
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(28,28,30,0.04);font-size:13px;">
+          <div style="flex:1;font-weight:500;">${escHtml(s.fullAddr||'Unnamed')}</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">${s.status||'browsing'}</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">${s.savedAt ? new Date(s.savedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
+        </div>`).join('')}
+    </div>`).join('');
+  st.textContent = '✓ Loaded ' + totalScenarios + ' scenarios across ' + valid.length + ' user' + (valid.length!==1?'s':'');
+  st.className = 'admin-status ok';
+  setTimeout(()=>{ st.className='admin-status'; }, 4000);
+}
+
+// ── DATABASE PURGE ─────────────────────────────────────────────
+async function purgeExpiredSessions(){
+  const st = document.getElementById('database-status');
+  if(!confirm('Purge all expired login sessions? Active sessions will not be affected.')) return;
+  st.textContent = 'Purging…'; st.className = 'admin-status info';
+  const d = await callAuth('adminPurgeExpiredSessions');
+  if(d.ok){
+    st.textContent = '✓ Purged ' + (d.count||0) + ' expired sessions';
+    st.className = 'admin-status ok';
+    loadStats();
+  } else {
+    st.textContent = '✗ ' + (d.error||'Failed');
+    st.className = 'admin-status err';
+  }
+}
+
+async function purgeOrphanedProfiles(){
+  const st = document.getElementById('database-status');
+  if(!confirm('Remove profile data for deleted accounts?')) return;
+  st.textContent = 'Purging…'; st.className = 'admin-status info';
+  const d = await callAuth('adminPurgeOrphanedProfiles');
+  if(d.ok){
+    st.textContent = '✓ Purged ' + (d.count||0) + ' orphaned profiles';
+    st.className = 'admin-status ok';
+  } else {
+    st.textContent = '✗ ' + (d.error||'Failed');
+    st.className = 'admin-status err';
+  }
+}
+
+async function purgeOrphanedScenarios(){
+  const st = document.getElementById('database-status');
+  if(!confirm('Remove scenario data for deleted accounts?')) return;
+  st.textContent = 'Purging…'; st.className = 'admin-status info';
+  const d = await callAuth('adminPurgeOrphanedScenarios');
+  if(d.ok){
+    st.textContent = '✓ Purged ' + (d.count||0) + ' orphaned scenario sets';
+    st.className = 'admin-status ok';
+    loadStats();
+  } else {
+    st.textContent = '✗ ' + (d.error||'Failed');
+    st.className = 'admin-status err';
+  }
+}
+
+async function exportAllUsers(){
+  const st = document.getElementById('database-status');
+  st.textContent = 'Exporting…'; st.className = 'admin-status info';
+  const d = await callAuth('adminListUsers');
+  if(!d.ok){ st.textContent='✗ '+(d.error||'Failed'); st.className='admin-status err'; return; }
+  const blob = new Blob([JSON.stringify(d.users||[], null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'equitysight-users-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  st.textContent = '✓ Exported ' + (d.users||[]).length + ' users';
+  st.className = 'admin-status ok';
+  setTimeout(()=>{ st.className='admin-status'; }, 3000);
+}
+
+// ── SCHEMES TAB ─────────────────────────────────────────────
+let _schemes = [];
+
+const DEFAULT_SCHEMES = [
+  {
+    id: 'help-to-buy',
+    name: 'Help to Buy',
+    country: 'Australia',
+    description: 'Federal government shared equity scheme. Government contributes up to 40% for new homes and 30% for existing homes.',
+    govtMinPct: 2,
+    govtMaxPct: 40,
+    govtDefaultPct: 30,
+    maxPropertyPrice: 700000,
+    eligibility: 'Australian citizen or permanent resident, first home buyer, income under $90k single / $120k couple',
+    active: true
+  },
+  {
+    id: 'vic-homebuyer',
+    name: 'VIC Homebuyer Fund',
+    country: 'Australia – Victoria',
+    description: 'Victorian government co-contribution up to 25% for eligible buyers purchasing in Victoria.',
+    govtMinPct: 5,
+    govtMaxPct: 25,
+    govtDefaultPct: 25,
+    maxPropertyPrice: 950000,
+    eligibility: 'Australian citizen, Victorian resident, first home buyer or single parent',
+    active: true
+  },
+  {
+    id: 'wa-keystart',
+    name: 'WA Keystart',
+    country: 'Australia – Western Australia',
+    description: 'Keystart provides low-deposit home loans with shared equity options for eligible WA residents.',
+    govtMinPct: 0,
+    govtMaxPct: 30,
+    govtDefaultPct: 20,
+    maxPropertyPrice: 560000,
+    eligibility: 'WA resident, income limits apply, primary residence only',
+    active: false
+  }
+];
+
+async function loadSchemes(){
+  const st = document.getElementById('schemes-status');
+  const d = await callAuth('adminGetSchemes');
+  if(d.ok && d.schemes && d.schemes.length){
+    _schemes = d.schemes;
+  } else if(!d.ok && d.error && d.error.includes('Unknown action')){
+    // Backend doesn't support schemes yet — use defaults
+    _schemes = JSON.parse(JSON.stringify(DEFAULT_SCHEMES));
+  } else {
+    _schemes = JSON.parse(JSON.stringify(DEFAULT_SCHEMES));
+  }
+  renderSchemes();
+}
+
+function renderSchemes(){
+  const list = document.getElementById('schemes-list');
+  if(!_schemes.length){
+    list.innerHTML='<div style="color:var(--slate);padding:24px;text-align:center;font-style:italic;">No schemes configured. Click + Add Scheme.</div>';
+    return;
+  }
+  list.innerHTML = _schemes.map((s,i) => `
+    <div style="background:rgba(28,28,30,0.03);border:1px solid rgba(28,28,30,0.1);border-radius:var(--radius-sm);padding:20px;margin-bottom:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--charcoal);">${escHtml(s.name)}</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--slate);margin-top:2px;">${escHtml(s.country)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;cursor:pointer;">
+            <input type="checkbox" ${s.active?'checked':''} onchange="_schemes[${i}].active=this.checked" style="accent-color:var(--gold);width:14px;height:14px;"> Active
+          </label>
+          <button class="act-btn danger" onclick="removeScheme(${i})">Remove</button>
+        </div>
+      </div>
+      <div class="config-grid">
+        <div class="config-field">
+          <label class="config-label">Scheme Name</label>
+          <input type="text" class="config-input" value="${escHtml(s.name)}" onchange="_schemes[${i}].name=this.value">
+        </div>
+        <div class="config-field">
+          <label class="config-label">Country / State</label>
+          <input type="text" class="config-input" value="${escHtml(s.country)}" onchange="_schemes[${i}].country=this.value">
+        </div>
+        <div class="config-field">
+          <label class="config-label">Min Govt % Contribution</label>
+          <input type="number" class="config-input" value="${s.govtMinPct}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtMinPct=parseFloat(this.value)||0">
+        </div>
+        <div class="config-field">
+          <label class="config-label">Max Govt % Contribution</label>
+          <input type="number" class="config-input" value="${s.govtMaxPct}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtMaxPct=parseFloat(this.value)||0">
+        </div>
+        <div class="config-field">
+          <label class="config-label">Default Govt % (pre-fill)</label>
+          <input type="number" class="config-input" value="${s.govtDefaultPct}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtDefaultPct=parseFloat(this.value)||0">
+        </div>
+        <div class="config-field">
+          <label class="config-label">Max Property Price (AUD $)</label>
+          <input type="number" class="config-input" value="${s.maxPropertyPrice}" min="0" step="10000" onchange="_schemes[${i}].maxPropertyPrice=parseInt(this.value)||0">
+        </div>
+      </div>
+      <div class="config-field" style="margin-top:12px;">
+        <label class="config-label">Description</label>
+        <input type="text" class="config-input" value="${escHtml(s.description)}" onchange="_schemes[${i}].description=this.value">
+      </div>
+      <div class="config-field" style="margin-top:12px;">
+        <label class="config-label">Eligibility Requirements</label>
+        <input type="text" class="config-input" value="${escHtml(s.eligibility||'')}" onchange="_schemes[${i}].eligibility=this.value">
+      </div>
+    </div>`).join('');
+}
+
+function addScheme(){
+  _schemes.push({
+    id: 'scheme-' + Date.now(),
+    name: 'New Scheme',
+    country: 'Australia',
+    description: '',
+    govtMinPct: 0,
+    govtMaxPct: 30,
+    govtDefaultPct: 20,
+    maxPropertyPrice: 700000,
+    eligibility: '',
+    active: true
+  });
+  renderSchemes();
+}
+
+function removeScheme(i){
+  if(!confirm('Remove this scheme?')) return;
+  _schemes.splice(i, 1);
+  renderSchemes();
+}
+
+async function saveSchemes(){
+  const st = document.getElementById('schemes-status');
+  st.textContent = 'Saving…'; st.className = 'admin-status info';
+  const d = await callAuth('adminSetSchemes', {schemes: _schemes});
+  if(d.ok){
+    // Also cache locally so app can use without API call
+    try { localStorage.setItem('propCalc_schemes_v1', JSON.stringify(_schemes)); } catch(e){}
+    st.textContent = '✓ Schemes saved'; st.className = 'admin-status ok';
+    setTimeout(()=>{ st.className='admin-status'; }, 3000);
+  } else if(d.error && d.error.includes('Unknown action')){
+    // Backend doesn't support schemes yet — cache locally only
+    try { localStorage.setItem('propCalc_schemes_v1', JSON.stringify(_schemes)); } catch(e){}
+    st.textContent = '⚠ Saved locally (backend update needed for full persistence)'; st.className = 'admin-status info';
+    setTimeout(()=>{ st.className='admin-status'; }, 5000);
+  } else {
+    st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err';
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
