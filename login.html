@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Sign in — EquitySight.app</title>
 <link rel="stylesheet" href="shared.css">
 <style>
@@ -171,7 +171,7 @@
     btn.disabled=true; btn.textContent='Signing in…'; errEl.textContent='';
     const res = await callAuth('signin', {email,password});
     if(res.ok){
-      localStorage.setItem('propCalc_session_v1', JSON.stringify({id:res.id||email, name:res.name||email.split('@')[0], email, token:res.token||null, plan:res.plan||'free'}));
+      localStorage.setItem('propCalc_session_v1', JSON.stringify({id:res.id||email, name:res.name||email.split('@')[0], email, token:res.token||null, plan:res.plan||'free', role:res.role||'user'}));
       goTo('app.html');
     } else {
       errEl.textContent = res.error || 'Sign in failed — please try again';
@@ -201,7 +201,7 @@
     btn.disabled=true; btn.textContent='Creating account…'; errEl.textContent='';
     const res = await callAuth('signup', {email,password,name,plan});
     if(res.ok){
-      localStorage.setItem('propCalc_session_v1', JSON.stringify({id:res.id||email, name, email, token:res.token||null, plan:res.plan||plan||'free'}));
+      localStorage.setItem('propCalc_session_v1', JSON.stringify({id:res.id||email, name, email, token:res.token||null, plan:res.plan||plan||'free', role:res.role||'user'}));
       if(plan==='pro') goTo('account.html?checkout=1');
       else goTo('app.html');
     } else {
