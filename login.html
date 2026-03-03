@@ -91,24 +91,19 @@
 </div>
 <script src="auth-nav.js"></script>
 <script>
+  const ALLOWED_NEXT = ['app.html', 'account.html', 'pricing.html'];
+
   // Redirect if already logged in
   (function(){
     try{
       const s = JSON.parse(localStorage.getItem('propCalc_session_v1'));
-      if(s && s.id){
+      if(s && (s.id || s.email)){
         const params = new URLSearchParams(location.search);
-        const next = params.get('next') || 'app.html';
+        const raw = params.get('next') || '';
+        const next = ALLOWED_NEXT.includes(raw) ? raw : 'app.html';
         goTo(next);
       }
     }catch(e){}
-  })();
-
-  // If already logged in, redirect
-  (function(){
-    try {
-      const sess = localStorage.getItem('propCalc_session_v1');
-      if(sess) { const u=JSON.parse(sess); if(u && u.email) goTo('app.html'); }
-    } catch(e){}
   })();
 
   // Read plan from URL
@@ -169,12 +164,9 @@
       localStorage.setItem('propCalc_session_v1', JSON.stringify({id:res.id||email, name:res.name||email.split('@')[0], email, token:res.token||null, plan:res.plan||'free'}));
       goTo('app.html');
     } else {
-      // Backend unavailable or not configured — save local session and continue
-      // (full cloud sync works once UPSTASH env vars are set in Netlify)
-      localStorage.setItem('propCalc_session_v1', JSON.stringify({id:email, name:email.split('@')[0], email, plan:'free'}));
-      goTo('app.html');
+      errEl.textContent = res.error || 'Sign in failed — please try again';
+      btn.disabled=false; btn.textContent='Sign In →';
     }
-    btn.disabled=false; btn.textContent='Sign In →';
   }
 
   async function doSignup(){
@@ -203,11 +195,9 @@
       if(plan==='pro') goTo('account.html?checkout=1');
       else goTo('app.html');
     } else {
-      // Backend unavailable or not configured — save local session and continue
-      localStorage.setItem('propCalc_session_v1', JSON.stringify({id:email, name, email, plan:plan||'free'}));
-      goTo('app.html');
+      errEl.textContent = res.error || 'Could not create account — please try again';
+      btn.disabled=false; btn.textContent='Create Account →';
     }
-    btn.disabled=false; btn.textContent='Create Account →';
   }
 </script>
 </body>
