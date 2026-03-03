@@ -120,3 +120,23 @@
     renderNav();
   }
 })();
+
+// Auto-inject the standalone account panel on every page except app.html,
+// which already has the panel built-in.
+(function () {
+  var page = window.location.pathname.split('/').pop() || 'index.html';
+  if (page === 'app.html') return;
+
+  function injectPanel() {
+    if (document.getElementById('ap-panel')) return; // already loaded
+    var s = document.createElement('script');
+    s.src = 'account-panel.js';
+    document.head.appendChild(s);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectPanel);
+  } else {
+    injectPanel();
+  }
+})();

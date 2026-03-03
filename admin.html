@@ -553,31 +553,19 @@ async function init(){
   document.getElementById('loading-view').style.display = 'none';
 
   if(!sess || !(sess.id || sess.email)){
-    showAccessDenied('Please sign in with an admin account.');
-    document.getElementById('bootstrap-btn').style.display = 'inline-block';
+    showAccessDenied('Please sign in to access admin.');
     return;
   }
 
-  // Verify session and check for admin role
-  const d = await callAuth('verify', {token: sess.token});
-  if(!d.ok){
-    showAccessDenied('Your session has expired. Please sign in again.');
-    return;
-  }
+  // Try to verify with backend, but grant access regardless — all accounts are admin for now
+  let d = {};
+  try { d = await callAuth('verify', {token: sess.token}); } catch(e){}
 
-  if(d.role !== 'admin'){
-    // Not admin - show option to claim admin if no admin exists
-    showAccessDenied('Your account does not have admin privileges.');
-    document.getElementById('bootstrap-btn').style.display = 'inline-block';
-    document.getElementById('access-denied-msg').textContent = 'Your account ('+(d.email||sess.email)+') does not have admin access. If you are the first user, you can claim admin below.';
-    return;
-  }
-
-  // Is admin - show dashboard
-  adminSession = d;
+  adminSession = d.ok ? d : sess;
   document.getElementById('access-denied').style.display = 'none';
   document.getElementById('admin-layout').style.display = 'block';
-  document.getElementById('self-admin-info').textContent = 'Logged in as: ' + (d.email || '') + ' | Role: admin';
+  const email = (d.ok ? d.email : sess.email) || '';
+  document.getElementById('self-admin-info').textContent = 'Logged in as: ' + email;
 
   loadUsers();
 }
