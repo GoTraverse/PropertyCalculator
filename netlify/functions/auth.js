@@ -105,6 +105,14 @@ exports.handler = async function(event){
     if(!token) return fail('Token required');
     const data=await rGet('token:'+token);
     if(!data||(data.expires&&Date.now()>data.expires)) return fail('Invalid or expired session');
+    // Always return latest plan/role from user record so admin changes take effect immediately
+    try{
+      const userData=await rGet('user:'+data.email);
+      if(userData){
+        data.plan=userData.plan||data.plan;
+        data.role=userData.role||data.role;
+      }
+    }catch(e){}
     return ok({ok:true,...data});
   }
 
@@ -230,6 +238,48 @@ exports.handler = async function(event){
     const token=makeToken();
     await rSet('token:'+token,{userId:user.userId,email:user.email,name:user.name,plan:user.plan,role:'admin',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
     return ok({ok:true,token,role:'admin'});
+  }
+
+  if(action==='adminGetConfig'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const cfg=await rGet('config:site')||{};
+    return ok({ok:true,config:cfg});
+  }
+
+  if(action==='adminSetConfig'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {config}=body;
+    if(!config||typeof config!=='object') return fail('config object required');
+    // Whitelist safe keys — don't let arbitrary data overwrite system keys
+    const allowed=['siteName','siteTagline','supportEmail','siteUrl',
+      'maintenanceMode','maintenanceMessage','allowSignups','minPasswordLength',
+      'bannerText','bannerType','bannerExpiry',
+      'freeScenarioLimit','proScenarioLimit',
+      'enablePdfExport','enableProjections','enableGuestAccess',
+      'proMonthlyPrice','proAnnualPrice','adviserMonthlyPrice',
+      'contactDiscord','contactTwitter','referralEnabled','referralBonus',
+      'maxUploadMb','sessionTtlDays','requireEmailDomain'];
+    const sanitised={};
+    for(const k of allowed) if(k in config) sanitised[k]=config[k];
+    await rSet('config:site',sanitised);
+    return ok({ok:true});
+  }
+
+  if(action==='adminGetStats'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const keys=await redisCmd('KEYS','user:*');
+      const tokenKeys=await redisCmd('KEYS','token:*');
+      const scenarioKeys=await redisCmd('KEYS','scenarios:*:index');
+      return ok({ok:true,stats:{
+        totalUsers:keys?keys.length:0,
+        activeSessions:tokenKeys?tokenKeys.length:0,
+        totalScenarioLists:scenarioKeys?scenarioKeys.length:0,
+      }});
+    }catch(e){ return fail('Stats error: '+e.message); }
   }
 
   if(action==='adminSetPlan'){

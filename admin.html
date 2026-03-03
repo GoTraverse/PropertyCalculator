@@ -8,6 +8,7 @@
 <link rel="shortcut icon" href="favicon.svg">
 <link rel="stylesheet" href="shared.css">
 <style>
+  .site-nav-links, .nav-hamburger { display: none !important; }
   body { background: var(--warm-white); min-height: 100vh; }
 
   .admin-layout {
@@ -368,8 +369,7 @@
   <!-- Tabs -->
   <div class="admin-tabs">
     <button class="admin-tab active" onclick="showAdminTab('users',this)">Users</button>
-    <button class="admin-tab" onclick="showAdminTab('config',this)">Configuration</button>
-    <button class="admin-tab" onclick="showAdminTab('stripe',this)">Stripe</button>
+    <button class="admin-tab" onclick="showAdminTab('config',this);loadConfig();">Configuration</button>
   </div>
 
   <!-- USERS TAB -->
@@ -411,65 +411,204 @@
 
   <!-- CONFIG TAB -->
   <div class="admin-section" id="tab-config">
+
+    <!-- System Stats -->
+    <div class="admin-card" id="cfg-stats-card">
+      <div class="admin-card-head">
+        <h3>System Health</h3>
+        <button class="btn-admin-outline" style="font-size:10px;padding:6px 12px;" onclick="loadStats()">↻ Refresh</button>
+      </div>
+      <div style="padding:16px 20px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;" id="cfg-stats-grid">
+          <div class="stat-card"><div class="stat-value" id="cfg-stat-users">—</div><div class="stat-label">Total Users</div></div>
+          <div class="stat-card"><div class="stat-value" id="cfg-stat-sessions">—</div><div class="stat-label">Active Sessions</div></div>
+          <div class="stat-card"><div class="stat-value" id="cfg-stat-scenarios">—</div><div class="stat-label">Scenario Lists</div></div>
+          <div class="stat-card"><div class="stat-value" id="cfg-stat-redis" style="font-size:18px;">—</div><div class="stat-label">Redis</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Site Identity -->
     <div class="admin-card">
-      <div class="admin-card-head"><h3>Site Configuration</h3></div>
+      <div class="admin-card-head"><h3>Site Identity</h3></div>
       <div style="padding:24px;">
-        <div class="config-grid" style="margin-bottom:20px;">
+        <div class="config-grid" style="margin-bottom:16px;">
           <div class="config-field">
             <label class="config-label">Site Name</label>
-            <input type="text" class="config-input" id="cfg-site-name" value="EquitySight.app">
+            <input type="text" class="config-input" id="cfg-site-name" placeholder="EquitySight.app">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Site Tagline</label>
+            <input type="text" class="config-input" id="cfg-site-tagline" placeholder="Shared Equity Property Calculator">
           </div>
           <div class="config-field">
             <label class="config-label">Support Email</label>
-            <input type="email" class="config-input" id="cfg-support-email" value="support@equitysight.app">
+            <input type="email" class="config-input" id="cfg-support-email" placeholder="support@equitysight.app">
           </div>
           <div class="config-field">
-            <label class="config-label">Free Plan Scenario Limit</label>
-            <input type="number" class="config-input" id="cfg-free-limit" value="1" min="1" max="10">
+            <label class="config-label">Site URL</label>
+            <input type="url" class="config-input" id="cfg-site-url" placeholder="https://equitysight.app">
           </div>
           <div class="config-field">
-            <label class="config-label">Pro Monthly Price (AUD)</label>
-            <input type="number" class="config-input" id="cfg-pro-price" value="9">
+            <label class="config-label">Discord / Community Link</label>
+            <input type="url" class="config-input" id="cfg-discord" placeholder="https://discord.gg/…">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Twitter / X Handle</label>
+            <input type="text" class="config-input" id="cfg-twitter" placeholder="@equitysight">
           </div>
         </div>
-        <div class="config-field" style="margin-bottom:20px;">
-          <label class="config-label">Announcement Banner (leave blank to hide)</label>
-          <input type="text" class="config-input" id="cfg-banner" placeholder="e.g. New feature: 30-year equity projections now available!">
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button class="btn-admin" onclick="saveConfig()">Save Configuration</button>
-        </div>
-        <div id="config-status" class="admin-status"></div>
       </div>
     </div>
 
+    <!-- Announcement Banner -->
     <div class="admin-card">
-      <div class="admin-card-head"><h3>Admin Account</h3></div>
+      <div class="admin-card-head"><h3>Announcement Banner</h3></div>
       <div style="padding:24px;">
-        <p style="font-size:13px;color:var(--slate);margin-bottom:16px;line-height:1.7;">Your account is currently set as admin. If you want to grant admin access to another user, change their role in the Users tab. To revoke your own admin access, you would need to use the Redis database directly.</p>
-        <div id="self-admin-info" style="font-size:12px;font-family:var(--font-mono);color:var(--slate);"></div>
+        <div style="margin-bottom:16px;">
+          <label class="config-label">Banner Message (leave blank to hide)</label>
+          <input type="text" class="config-input" id="cfg-banner" placeholder="e.g. New: 30-year equity projections now available!">
+        </div>
+        <div class="config-grid" style="margin-bottom:16px;">
+          <div class="config-field">
+            <label class="config-label">Banner Type</label>
+            <select class="config-input" id="cfg-banner-type">
+              <option value="info">Info (blue)</option>
+              <option value="success">Success (green)</option>
+              <option value="warning">Warning (yellow)</option>
+              <option value="danger">Danger (red)</option>
+            </select>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Expiry Date (optional)</label>
+            <input type="date" class="config-input" id="cfg-banner-expiry">
+          </div>
+        </div>
+        <div id="cfg-banner-preview" style="display:none;padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:12px;"></div>
       </div>
     </div>
-  </div>
 
-  <!-- STRIPE TAB -->
-  <div class="admin-section" id="tab-stripe">
+    <!-- Access Control -->
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Access Control</h3></div>
+      <div style="padding:24px;">
+        <div class="config-grid" style="margin-bottom:16px;">
+          <div class="config-field">
+            <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="cfg-maintenance" style="width:16px;height:16px;accent-color:var(--gold);">
+              Maintenance Mode
+            </label>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Show maintenance page to all non-admin visitors</div>
+          </div>
+          <div class="config-field">
+            <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="cfg-allow-signups" checked style="width:16px;height:16px;accent-color:var(--gold);">
+              Allow New Signups
+            </label>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Disable to close registration temporarily</div>
+          </div>
+          <div class="config-field">
+            <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="cfg-guest-access" checked style="width:16px;height:16px;accent-color:var(--gold);">
+              Allow Guest Access
+            </label>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Allow non-signed-in users to use the calculator</div>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Maintenance Message</label>
+            <input type="text" class="config-input" id="cfg-maintenance-msg" placeholder="We'll be back shortly — upgrading our systems.">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Min Password Length</label>
+            <input type="number" class="config-input" id="cfg-min-pw" value="8" min="6" max="32">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Restrict Signups to Email Domain</label>
+            <input type="text" class="config-input" id="cfg-email-domain" placeholder="e.g. company.com (blank = anyone)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Flags -->
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Feature Flags</h3></div>
+      <div style="padding:24px;">
+        <div class="config-grid">
+          <div class="config-field">
+            <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="cfg-enable-pdf" checked style="width:16px;height:16px;accent-color:var(--gold);">
+              PDF Export (Pro)
+            </label>
+          </div>
+          <div class="config-field">
+            <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="cfg-enable-proj" checked style="width:16px;height:16px;accent-color:var(--gold);">
+              30-Year Projection (Pro)
+            </label>
+          </div>
+          <div class="config-field">
+            <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="cfg-enable-referral" style="width:16px;height:16px;accent-color:var(--gold);">
+              Referral Program
+            </label>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Referral Bonus (days free)</label>
+            <input type="number" class="config-input" id="cfg-referral-bonus" value="30" min="1" max="365">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Max Upload Size (MB)</label>
+            <input type="number" class="config-input" id="cfg-max-upload" value="5" min="1" max="50">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Session Duration (days)</label>
+            <input type="number" class="config-input" id="cfg-session-ttl" value="30" min="1" max="365">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan Limits & Pricing -->
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Plan Limits &amp; Pricing</h3></div>
+      <div style="padding:24px;">
+        <div class="config-grid">
+          <div class="config-field">
+            <label class="config-label">Free — Scenario Limit</label>
+            <input type="number" class="config-input" id="cfg-free-limit" value="1" min="1" max="20">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Pro — Scenario Limit (-1 = unlimited)</label>
+            <input type="number" class="config-input" id="cfg-pro-limit" value="-1" min="-1" max="999">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Pro Monthly Price (AUD $)</label>
+            <input type="number" class="config-input" id="cfg-pro-monthly" value="9" min="0">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Pro Annual Price (AUD $)</label>
+            <input type="number" class="config-input" id="cfg-pro-annual" value="86" min="0">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Adviser Monthly Price (AUD $)</label>
+            <input type="number" class="config-input" id="cfg-adviser-monthly" value="29" min="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stripe Integration -->
     <div class="admin-card">
       <div class="admin-card-head"><h3>Stripe Integration</h3></div>
       <div style="padding:24px;">
-        <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:24px;font-size:13px;line-height:1.7;">
-          <strong>⚠️ Stripe is not yet connected.</strong> To enable payments, add your Stripe keys to the Netlify environment variables and update the payment links below. Stripe handles the actual payment processing — once a payment succeeds, update the user's plan in Redis using the admin panel above.
+        <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:12px;line-height:1.7;">
+          Store sensitive keys (sk_live_…, whsec_…) only in <strong>Netlify → Site Settings → Environment Variables</strong> — never in this form.
         </div>
-        <div class="config-grid" style="margin-bottom:24px;">
+        <div class="config-grid">
           <div class="config-field">
             <label class="config-label">Stripe Publishable Key</label>
             <input type="text" class="config-input" id="stripe-pub-key" placeholder="pk_live_…">
-            <span style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">Store in Netlify env: STRIPE_PUBLISHABLE_KEY</span>
-          </div>
-          <div class="config-field">
-            <label class="config-label">Stripe Secret Key (NEVER expose)</label>
-            <input type="password" class="config-input" id="stripe-secret-key" placeholder="sk_live_… (server-side only)">
-            <span style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">Store in Netlify env: STRIPE_SECRET_KEY</span>
           </div>
           <div class="config-field">
             <label class="config-label">Pro Monthly Price ID</label>
@@ -480,28 +619,30 @@
             <input type="text" class="config-input" id="stripe-pro-annual" placeholder="price_…">
           </div>
           <div class="config-field">
-            <label class="config-label">Webhook Secret</label>
-            <input type="password" class="config-input" id="stripe-webhook" placeholder="whsec_…">
-            <span style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">Store in Netlify env: STRIPE_WEBHOOK_SECRET</span>
-          </div>
-          <div class="config-field">
             <label class="config-label">Customer Portal Link</label>
-            <input type="text" class="config-input" id="stripe-portal" placeholder="https://billing.stripe.com/…">
+            <input type="url" class="config-input" id="stripe-portal" placeholder="https://billing.stripe.com/…">
           </div>
         </div>
-        <div style="font-size:13px;color:var(--slate);margin-bottom:16px;padding:14px 18px;background:rgba(28,28,30,0.03);border-radius:var(--radius-sm);line-height:1.8;">
-          <strong>Stripe Setup Steps:</strong><br>
-          1. Create products in Stripe Dashboard → Products (Pro Monthly, Pro Annual, Adviser)<br>
-          2. Copy Price IDs into the fields above<br>
-          3. Add STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET to Netlify env vars<br>
-          4. Deploy the <code>stripe.js</code> Netlify function to handle webhook events<br>
-          5. Set webhook endpoint: <code>https://yoursite.netlify.app/.netlify/functions/stripe</code><br>
-          6. Subscribe to events: <code>checkout.session.completed</code>, <code>customer.subscription.deleted</code>
+        <div style="margin-top:16px;font-size:12px;color:var(--slate);line-height:1.8;background:rgba(28,28,30,0.03);padding:12px 16px;border-radius:var(--radius-sm);">
+          <strong>Setup:</strong> Add <code>STRIPE_PUBLISHABLE_KEY</code>, <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code> to Netlify env vars.
+          Webhook endpoint: <code>/.netlify/functions/stripe</code> — events: <code>checkout.session.completed</code>, <code>customer.subscription.deleted</code>
         </div>
-        <button class="btn-admin" onclick="saveStripeConfig()">Save Stripe Config (local reference)</button>
-        <div id="stripe-status" class="admin-status"></div>
       </div>
     </div>
+
+    <!-- Admin Account -->
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Admin Account</h3></div>
+      <div style="padding:24px;">
+        <div id="self-admin-info" style="font-size:12px;font-family:var(--font-mono);color:var(--slate);"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <button class="btn-admin" onclick="saveConfig()">Save All Configuration</button>
+      <button class="btn-admin-outline" onclick="exportConfigJson()">Export JSON</button>
+    </div>
+    <div id="config-status" class="admin-status"></div>
   </div>
 
 </div>
@@ -738,34 +879,133 @@ function showAdminTab(tab, btn){
   btn.classList.add('active');
 }
 
-function saveConfig(){
+function getV(id, fallback){ const el=document.getElementById(id); return el?(el.type==='checkbox'?el.checked:el.value):fallback; }
+function setV(id, val){ const el=document.getElementById(id); if(!el) return; if(el.type==='checkbox') el.checked=!!val; else el.value=val??''; }
+
+async function loadConfig(){
   const st = document.getElementById('config-status');
-  // In a real deployment, these would be written to Redis or env vars via an API
-  // For now, save to localStorage as local reference
-  const cfg = {
-    siteName: document.getElementById('cfg-site-name').value,
-    supportEmail: document.getElementById('cfg-support-email').value,
-    freeLimit: document.getElementById('cfg-free-limit').value,
-    proPrice: document.getElementById('cfg-pro-price').value,
-    banner: document.getElementById('cfg-banner').value,
-  };
-  localStorage.setItem('admin_config', JSON.stringify(cfg));
-  st.textContent = '✓ Configuration saved locally (deploy env vars for server-side changes)';
-  st.className = 'admin-status ok';
+  st.textContent = 'Loading configuration…'; st.className = 'admin-status info';
+  const d = await callAuth('adminGetConfig');
+  if(!d.ok){ st.textContent = '✗ ' + (d.error||'Failed to load config'); st.className = 'admin-status err'; return; }
+  const c = d.config || {};
+  setV('cfg-site-name',       c.siteName       || 'EquitySight.app');
+  setV('cfg-site-tagline',    c.siteTagline    || '');
+  setV('cfg-support-email',   c.supportEmail   || 'support@equitysight.app');
+  setV('cfg-site-url',        c.siteUrl        || '');
+  setV('cfg-discord',         c.contactDiscord || '');
+  setV('cfg-twitter',         c.contactTwitter || '');
+  setV('cfg-banner',          c.bannerText     || '');
+  setV('cfg-banner-type',     c.bannerType     || 'info');
+  setV('cfg-banner-expiry',   c.bannerExpiry   || '');
+  setV('cfg-maintenance',     c.maintenanceMode|| false);
+  setV('cfg-maintenance-msg', c.maintenanceMessage||'');
+  setV('cfg-allow-signups',   c.allowSignups!==false);
+  setV('cfg-guest-access',    c.enableGuestAccess!==false);
+  setV('cfg-min-pw',          c.minPasswordLength||8);
+  setV('cfg-email-domain',    c.requireEmailDomain||'');
+  setV('cfg-enable-pdf',      c.enablePdfExport!==false);
+  setV('cfg-enable-proj',     c.enableProjections!==false);
+  setV('cfg-enable-referral', c.referralEnabled||false);
+  setV('cfg-referral-bonus',  c.referralBonus||30);
+  setV('cfg-max-upload',      c.maxUploadMb||5);
+  setV('cfg-session-ttl',     c.sessionTtlDays||30);
+  setV('cfg-free-limit',      c.freeScenarioLimit||1);
+  setV('cfg-pro-limit',       c.proScenarioLimit!=null?c.proScenarioLimit:-1);
+  setV('cfg-pro-monthly',     c.proMonthlyPrice||9);
+  setV('cfg-pro-annual',      c.proAnnualPrice||86);
+  setV('cfg-adviser-monthly', c.adviserMonthlyPrice||29);
+  setV('stripe-pub-key',      c.stripePubKey||'');
+  setV('stripe-pro-monthly',  c.stripeProMonthly||'');
+  setV('stripe-pro-annual',   c.stripeProAnnual||'');
+  setV('stripe-portal',       c.stripePortal||'');
+  st.textContent = ''; st.className = 'admin-status';
+  updateBannerPreview();
+  loadStats();
 }
 
-function saveStripeConfig(){
-  const st = document.getElementById('stripe-status');
-  const cfg = {
-    pubKey: document.getElementById('stripe-pub-key').value,
-    proMonthly: document.getElementById('stripe-pro-monthly').value,
-    proAnnual: document.getElementById('stripe-pro-annual').value,
-    portal: document.getElementById('stripe-portal').value,
+function updateBannerPreview(){
+  const text = getV('cfg-banner','');
+  const type = getV('cfg-banner-type','info');
+  const prev = document.getElementById('cfg-banner-preview');
+  if(!prev) return;
+  if(!text){ prev.style.display='none'; return; }
+  const colors = {info:'rgba(91,143,171,0.12)',success:'rgba(90,158,123,0.12)',warning:'rgba(201,168,76,0.12)',danger:'rgba(196,90,90,0.1)'};
+  const textColors = {info:'var(--sky)',success:'var(--reward-green)',warning:'#9A7A2A',danger:'var(--risk-red)'};
+  prev.style.display='block';
+  prev.style.background=colors[type]||colors.info;
+  prev.style.color=textColors[type]||textColors.info;
+  prev.style.border='1px solid currentColor';
+  prev.textContent='Preview: ' + text;
+}
+document.addEventListener('change', function(e){ if(e.target.id==='cfg-banner'||e.target.id==='cfg-banner-type') updateBannerPreview(); });
+document.addEventListener('input',  function(e){ if(e.target.id==='cfg-banner') updateBannerPreview(); });
+
+async function saveConfig(){
+  const st = document.getElementById('config-status');
+  st.textContent = 'Saving…'; st.className = 'admin-status info';
+  const config = {
+    siteName:            getV('cfg-site-name',''),
+    siteTagline:         getV('cfg-site-tagline',''),
+    supportEmail:        getV('cfg-support-email',''),
+    siteUrl:             getV('cfg-site-url',''),
+    contactDiscord:      getV('cfg-discord',''),
+    contactTwitter:      getV('cfg-twitter',''),
+    bannerText:          getV('cfg-banner',''),
+    bannerType:          getV('cfg-banner-type','info'),
+    bannerExpiry:        getV('cfg-banner-expiry',''),
+    maintenanceMode:     getV('cfg-maintenance',false),
+    maintenanceMessage:  getV('cfg-maintenance-msg',''),
+    allowSignups:        getV('cfg-allow-signups',true),
+    enableGuestAccess:   getV('cfg-guest-access',true),
+    minPasswordLength:   parseInt(getV('cfg-min-pw','8'))||8,
+    requireEmailDomain:  getV('cfg-email-domain',''),
+    enablePdfExport:     getV('cfg-enable-pdf',true),
+    enableProjections:   getV('cfg-enable-proj',true),
+    referralEnabled:     getV('cfg-enable-referral',false),
+    referralBonus:       parseInt(getV('cfg-referral-bonus','30'))||30,
+    maxUploadMb:         parseInt(getV('cfg-max-upload','5'))||5,
+    sessionTtlDays:      parseInt(getV('cfg-session-ttl','30'))||30,
+    freeScenarioLimit:   parseInt(getV('cfg-free-limit','1'))||1,
+    proScenarioLimit:    parseInt(getV('cfg-pro-limit','-1')),
+    proMonthlyPrice:     parseFloat(getV('cfg-pro-monthly','9'))||9,
+    proAnnualPrice:      parseFloat(getV('cfg-pro-annual','86'))||86,
+    adviserMonthlyPrice: parseFloat(getV('cfg-adviser-monthly','29'))||29,
+    stripePubKey:        getV('stripe-pub-key',''),
+    stripeProMonthly:    getV('stripe-pro-monthly',''),
+    stripeProAnnual:     getV('stripe-pro-annual',''),
+    stripePortal:        getV('stripe-portal',''),
   };
-  // Never save secret key or webhook secret to localStorage
-  localStorage.setItem('stripe_config_ref', JSON.stringify(cfg));
-  st.textContent = '✓ Reference saved. Secret keys must be added via Netlify environment variables.';
-  st.className = 'admin-status ok';
+  const d = await callAuth('adminSetConfig', {config});
+  if(d.ok){
+    st.textContent = '✓ Configuration saved to Redis'; st.className = 'admin-status ok';
+    setTimeout(()=>{ st.className='admin-status'; }, 3000);
+  } else {
+    st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err';
+  }
+}
+
+function exportConfigJson(){
+  const fields = ['cfg-site-name','cfg-site-tagline','cfg-support-email','cfg-site-url'];
+  const config = {};
+  document.querySelectorAll('[id^="cfg-"],[id^="stripe-"]').forEach(el=>{
+    if(el.id) config[el.id] = el.type==='checkbox'?el.checked:el.value;
+  });
+  const blob = new Blob([JSON.stringify(config, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'equitysight-config-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+async function loadStats(){
+  const d = await callAuth('adminGetStats');
+  if(!d.ok) return;
+  const s = d.stats || {};
+  const el = id => document.getElementById(id);
+  if(el('cfg-stat-users'))    el('cfg-stat-users').textContent    = s.totalUsers    ?? '—';
+  if(el('cfg-stat-sessions')) el('cfg-stat-sessions').textContent = s.activeSessions ?? '—';
+  if(el('cfg-stat-scenarios'))el('cfg-stat-scenarios').textContent= s.totalScenarioLists ?? '—';
+  if(el('cfg-stat-redis'))    el('cfg-stat-redis').textContent    = d.ok ? '✓ Online' : '✗ Error';
+  if(el('cfg-stat-redis'))    el('cfg-stat-redis').style.color    = d.ok ? 'var(--reward-green)' : 'var(--risk-red)';
 }
 
 function escHtml(s){
