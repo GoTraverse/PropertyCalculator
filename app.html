@@ -1075,6 +1075,9 @@
               <input type="text" id="pd-photo-url" placeholder="Or paste image URL here…" style="flex:1;font-size:11px;padding:5px 8px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;color:var(--charcoal);font-family:'DM Sans',sans-serif;outline:none;" oninput="handlePhotoUrlInput(this.value)">
               <button onclick="applyPhotoUrl()" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;white-space:nowrap;">Use URL</button>
             </div>
+            <button id="map-img-btn" onclick="loadMapImage()" style="margin-top:7px;width:100%;background:rgba(91,143,171,0.1);border:1px solid rgba(91,143,171,0.3);color:var(--sky);border-radius:3px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:6px;" title="Fetches a satellite/map image of this property using the address from the Property tab">
+              🗺️ Get Map Image from Address
+            </button>
           </div>
         </div>
 
@@ -1614,12 +1617,43 @@
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #5B8FAB;display:inline-block;"></span>Loan Balance</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C4704A;display:inline-block;border-radius:2px;"></span>Govt Equity Owed</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#5A9E7B;display:inline-block;border-radius:2px;opacity:0.4;"></span>Your Equity</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;"></span>Early Payoff</span>
         </div>
-        <div style="font-size:11px;color:var(--slate);margin-bottom:8px;font-style:italic;">Click on chart to see values at that year</div>
+        <div style="font-size:11px;color:var(--slate);margin-bottom:8px;font-style:italic;">Click or hover to see quarterly values · Chart is quarterly (120 data points)</div>
         <div id="proj-svg-wrap" style="overflow:hidden;position:relative;width:100%;aspect-ratio:800/300;">
           <svg id="proj-chart" width="100%" height="100%" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;cursor:crosshair;"></svg>
           <!-- Click tooltip (item 6) -->
           <div id="proj-tooltip" style="display:none;position:absolute;background:var(--charcoal);color:var(--cream);border-radius:6px;padding:16px 22px;font-family:'DM Mono',monospace;font-size:13px;min-width:210px;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.35);min-width:210px;z-index:10;"></div>
+        </div>
+      </div>
+
+      <!-- Early Payoff Modelling (item #9) -->
+      <div class="card">
+        <div class="ca" style="background:#9B7FE8"></div>
+        <h3>Early Payoff Modelling</h3>
+        <p style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.6;">See how much you could save by paying extra each month. The purple dashed line on the chart shows the faster loan paydown.</p>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Extra Monthly Payment</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-family:'DM Mono',monospace;font-size:14px;color:var(--slate);">$</span>
+              <input type="number" id="proj-extra-payment" min="0" max="50000" step="50" value="0" placeholder="0"
+                style="width:110px;font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;"
+                oninput="drawProjection()">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">/month</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;">
+            <button style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;" onclick="document.getElementById('proj-extra-payment').value=200;drawProjection()">+$200</button>
+            <button style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;" onclick="document.getElementById('proj-extra-payment').value=500;drawProjection()">+$500</button>
+            <button style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;" onclick="document.getElementById('proj-extra-payment').value=1000;drawProjection()">+$1,000</button>
+            <button style="background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);color:var(--slate);border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;" onclick="document.getElementById('proj-extra-payment').value=0;drawProjection()">Clear</button>
+          </div>
+        </div>
+        <div id="early-payoff-result" style="display:none;margin-top:4px;"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px;color:var(--slate);">
+          <span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;flex-shrink:0;"></span>
+          Purple dashed line = loan balance with extra payments
         </div>
       </div>
 
@@ -2362,10 +2396,69 @@
     updatePropertyDetails();
   }
 
-  // ── PHOTO URL PASTE (item 11) ──
+  // ── PHOTO URL PASTE ──
   function handlePhotoUrlInput(val){
     // Real-time preview while typing a URL (debounced via existing input handler)
   }
+
+  // ── MAP IMAGE (item #10) ──
+  async function loadMapImage(){
+    const addr   = document.getElementById('pd-address')?.value?.trim() || '';
+    const suburb = document.getElementById('pd-suburb')?.value?.trim()  || '';
+    const state  = document.getElementById('pd-state')?.value?.trim()   || '';
+    const query  = [addr, suburb, state, 'Australia'].filter(Boolean).join(', ');
+    if(!addr){ showToast('⚠️ Enter a street address in the Property tab first'); return; }
+
+    const btn = document.getElementById('map-img-btn');
+    if(btn){ btn.disabled = true; btn.textContent = '⏳ Fetching map…'; }
+
+    try {
+      // 1. Geocode with Nominatim (no API key required)
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+        { headers: { 'Accept': 'application/json', 'User-Agent': 'PropertyCalculator/1.0' } }
+      );
+      const geoData = await geoRes.json();
+      if(!geoData || !geoData.length){ showToast('⚠️ Address not found on map. Try including suburb and state.'); return; }
+      const { lat, lon } = geoData[0];
+
+      // 2. Build static map URL using openstreetmap.de static map service
+      const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=17&size=640x480&markers=${lat},${lon},red-pushpin`;
+
+      // 3. Load image and convert to canvas (for proper base64 storage + thumbnail)
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = mapUrl; });
+
+      const MAX = 1200;
+      const ratio = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * ratio), h = Math.round(img.height * ratio);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      propPhotoDataUrl = c.toDataURL('image/jpeg', 0.82);
+
+      const THUMB = 200;
+      const tr = Math.min(1, THUMB / Math.max(img.width, img.height));
+      const tc = document.createElement('canvas');
+      tc.width = Math.round(img.width * tr); tc.height = Math.round(img.height * tr);
+      tc.getContext('2d').drawImage(img, 0, 0, tc.width, tc.height);
+      propThumbDataUrl = tc.toDataURL('image/jpeg', 0.72);
+
+      applyPropPhoto(propPhotoDataUrl);
+      showToast('🗺️ Map image loaded from OpenStreetMap');
+    } catch(err) {
+      // Fallback: set URL directly (no thumbnail, but still usable)
+      const addr2   = document.getElementById('pd-address')?.value?.trim() || '';
+      const suburb2 = document.getElementById('pd-suburb')?.value?.trim()  || '';
+      const state2  = document.getElementById('pd-state')?.value?.trim()   || '';
+      const q2 = [addr2, suburb2, state2, 'Australia'].filter(Boolean).join(', ');
+      showToast('⚠️ Could not load map image (CORS or network issue). Try pasting a photo URL manually.');
+    } finally {
+      if(btn){ btn.disabled = false; btn.innerHTML = '🗺️ Get Map Image from Address'; }
+    }
+  }
+
   function applyPhotoUrl(){
     const urlEl = document.getElementById('pd-photo-url');
     const url   = urlEl?.value?.trim();
@@ -2595,7 +2688,7 @@
         const r = await fetch('/.netlify/functions/scenarios', {
           method: 'POST',
           headers: Object.assign({'Content-Type':'application/json'}, authH ? {'Authorization': authH} : {}),
-          body: JSON.stringify({ action:'save', userId:getUserId(), id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'' })
+          body: JSON.stringify({ action:'save', userId:getUserId(), id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'', exportCount:record.exportCount||0, savedAt:record.savedAt||new Date().toISOString() })
         });
         console.log('[storage] POST scenarios status:', r.status);
         if(r.ok){
@@ -2734,6 +2827,7 @@
     );
     const id       = existIdx >= 0 ? scenarios[existIdx].id : ('sc_' + Date.now());
     const status   = state.values['pd-status'] || 'browsing';
+    const existingExportCount = existIdx >= 0 ? (scenarios[existIdx].exportCount || 0) : 0;
     const record   = {
       id, addrKey, fullAddr, timestamp, status,
       bed:  state.values['pd-bed']  || '',
@@ -2743,6 +2837,8 @@
       price: state.values['inp-price'] || '',
       hasPhoto: !!propPhotoDataUrl,
       thumb: propThumbDataUrl || null,
+      exportCount: existingExportCount,
+      savedAt: new Date().toISOString(),
       state,
     };
     const saveBtns = document.querySelectorAll('button[onclick*="saveScenario"]');
@@ -2862,12 +2958,29 @@
     // Load photos lazily — use thumb from record if available, else fetch
     scenarios.forEach(async s => {
       if(!s.hasPhoto) return;
-      const thumb = document.getElementById('thumb-'+s.id);
-      if(!thumb) return;
-      // Use embedded thumb if we have it (no network call needed)
-      if(s.thumb){ thumb.innerHTML = `<img src="${s.thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;" loading="lazy">`; return; }
-      const photo = await getPhoto(s.id);
-      if(photo && thumb) thumb.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;" loading="lazy">`;
+      const thumbId = 'thumb-'+s.id;
+      const setThumbSrc = (src) => {
+        if(!src) return;
+        const el = document.getElementById(thumbId);
+        if(!el) return; // element may no longer be in DOM
+        const img = document.createElement('img');
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:3px;';
+        img.loading = 'lazy';
+        img.onerror = () => {}; // suppress broken image
+        img.src = src;
+        el.innerHTML = '';
+        el.appendChild(img);
+      };
+      // Use embedded thumb first (no network call needed)
+      if(s.thumb){
+        setThumbSrc(s.thumb);
+        return;
+      }
+      // Fallback: fetch full photo from backend
+      try {
+        const photo = await getPhoto(s.id);
+        setThumbSrc(photo);
+      } catch(e) { /* leave default house emoji */ }
     });
   }
 
@@ -3146,6 +3259,7 @@
 
   // ── PROJECTION (items 6,7,8,9) ──
   let projData = []; // shared so tooltip can read it
+  let projDataExtra = []; // early-payoff scenario
 
   function drawProjection(){
     const price   = v('inp-price'); if(!price) return;
@@ -3154,66 +3268,132 @@
     const term    = v('inp-term');
     const govtPct = v('inp-govt') / 100;
     const growthPct = parseFloat(document.getElementById('proj-growth').value) / 100;
-    const upliftPct = parseFloat(document.getElementById('proj-uplift')?.value || '0') / 100;
-    const years   = 30; // item 8: fixed at 30
+    const years   = 30;
+    const totalQ  = years * 4; // 120 quarters — item #8
     const monthly = calcMonthly(loanAmt, rate, term);
+    const mRate   = rate / 100 / 12;
 
-    // Build year-by-year data
+    // ── Build quarterly data (item #8: quarterly instead of annually) ──
     projData = [];
     let loanBal = loanAmt;
-    const mRate = rate/100/12;
-    for(let yr=0; yr<=years; yr++){
-      const baseVal   = price * Math.pow(1+growthPct, yr);
-      const renoVal   = yr===0 ? price : price * Math.pow(1+growthPct, yr); // reno uplift removed
-      const govtOwed  = baseVal * govtPct;
-      if(yr>0){
-        for(let m=0;m<12;m++){
+    for(let q = 0; q <= totalQ; q++){
+      const yr      = q / 4;
+      const baseVal = price * Math.pow(1 + growthPct, yr);
+      const govtOwed = baseVal * govtPct;
+      if(q > 0){
+        // advance 3 months per quarter
+        for(let m = 0; m < 3; m++){
           const interest = loanBal * mRate;
           loanBal = Math.max(0, loanBal - (monthly - interest));
         }
       }
-      projData.push({ yr, baseVal, renoVal, loanBal:Math.max(0,loanBal), govtOwed, yourEquity:baseVal-loanBal-govtOwed });
+      projData.push({ q, yr, baseVal, renoVal: baseVal, loanBal: Math.max(0, loanBal), govtOwed, yourEquity: baseVal - loanBal - govtOwed });
     }
 
-    // ── Settlement year label helper ──
-    const settleYr = getSettleYear();
-    const yrLabel = (yr) => settleYr ? String(settleYr + yr) : `Yr ${yr}`;
-    const yrShort = (yr) => settleYr ? String(settleYr + yr) : `Year ${yr}`;
+    // ── Build early-payoff data (item #9) ──
+    const extraPayment = parseFloat(document.getElementById('proj-extra-payment')?.value || '0') || 0;
+    projDataExtra = [];
+    let loanBalExtra = loanAmt;
+    let extraStdInterest = 0, extraTotalInterest = 0;
+    let extraPaidOffQ = null;
+    for(let q = 0; q <= totalQ; q++){
+      if(q > 0){
+        for(let m = 0; m < 3; m++){
+          const int1 = Math.max(0, loanBal) * mRate; // reuse standard (unused here, just for savings calc)
+          const int2 = loanBalExtra * mRate;
+          loanBalExtra = Math.max(0, loanBalExtra - (monthly + extraPayment - int2));
+          extraTotalInterest += int2;
+        }
+      }
+      if(loanBalExtra <= 0.01 && extraPaidOffQ === null) extraPaidOffQ = q;
+      projDataExtra.push({ q, yr: q/4, loanBal: Math.max(0, loanBalExtra) });
+    }
+    // Standard total interest
+    let stdBal = loanAmt, stdTotalInterest = 0;
+    for(let m = 0; m < term * 12; m++){
+      const int = stdBal * mRate;
+      stdBal = Math.max(0, stdBal - (monthly - int));
+      stdTotalInterest += int;
+    }
+    const interestSaved = Math.max(0, stdTotalInterest - extraTotalInterest);
+    const stdPayoffQ    = projData.find(d => d.loanBal <= 0.01)?.q ?? totalQ;
+    const timeSavedQ    = Math.max(0, stdPayoffQ - (extraPaidOffQ ?? totalQ));
 
-    // ── MILESTONE TILES (item 9) ──
-    const payoffYr = projData.find(d=>d.loanBal<=0.01)?.yr;
-    // "can buy out govt" = your equity >= govtOwed (i.e. net equity without govt ≥ 0, i.e. property value ≥ loan + 2*govtOwed roughly)
-    const buyoutYr = projData.find(d=>d.yourEquity>=d.govtOwed && d.yr>0)?.yr;
+    // Update early payoff results panel
+    const epResult = document.getElementById('early-payoff-result');
+    if(epResult){
+      if(extraPayment > 0 && timeSavedQ > 0){
+        const savedYrs = Math.floor(timeSavedQ / 4);
+        const savedMos = Math.round((timeSavedQ % 4) * 3);
+        const timeStr = savedYrs > 0 ? `${savedYrs} yr${savedYrs!==1?'s':''} ${savedMos > 0 ? savedMos+' mo':''}`.trim() : `${savedMos} months`;
+        epResult.innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:rgba(90,158,123,0.08);border:1px solid rgba(90,158,123,0.2);border-radius:6px;padding:12px 14px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Time Saved</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--reward-green);">${timeStr}</div>
+            </div>
+            <div style="background:rgba(90,158,123,0.08);border:1px solid rgba(90,158,123,0.2);border-radius:6px;padding:12px 14px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Interest Saved</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--reward-green);">${fmtK(interestSaved)}</div>
+            </div>
+          </div>`;
+        epResult.style.display = 'block';
+      } else if(extraPayment > 0){
+        epResult.innerHTML = `<div style="font-size:12px;color:var(--slate);font-style:italic;">Loan already paid off within standard term — no additional saving.</div>`;
+        epResult.style.display = 'block';
+      } else {
+        epResult.style.display = 'none';
+      }
+    }
+
+    // ── Settlement year label helpers ──
+    const settleYr = getSettleYear();
+    const fmtQLabel = (q) => {
+      if(q === undefined || q === null) return '—';
+      const wholeYr = Math.floor(q / 4);
+      const qNum    = q % 4;
+      const qStr    = qNum > 0 ? ` Q${qNum + 1}` : '';
+      return settleYr ? `${settleYr + wholeYr}${qStr}` : `Year ${wholeYr}${qStr}`;
+    };
+    const yrLabel = (yr) => settleYr ? String(settleYr + yr) : `Yr ${yr}`;
+
+    // ── MILESTONE TILES ──
+    const payoffPoint = projData.find(d => d.loanBal <= 0.01);
+    const payoffQ     = payoffPoint?.q;
+    const buyoutPoint = projData.find(d => d.yourEquity >= d.govtOwed && d.q > 0);
+    const buyoutQ     = buyoutPoint?.q;
+    const payoffYr    = payoffPoint?.yr;
+    const buyoutYr    = buyoutPoint?.yr;
 
     const payEl = document.getElementById('proj-payoff-yr');
-    if(payEl) payEl.textContent = payoffYr ? yrShort(payoffYr) : (term<30?yrShort(term):'30+ yrs');
+    if(payEl) payEl.textContent = payoffQ != null ? fmtQLabel(payoffQ) : (term < 30 ? `Year ${term}` : '30+ yrs');
     const buyEl = document.getElementById('proj-buyout-yr');
-    if(buyEl) buyEl.textContent = buyoutYr ? yrShort(buyoutYr) : '30+ yrs';
+    if(buyEl) buyEl.textContent = buyoutQ != null ? fmtQLabel(buyoutQ) : '30+ yrs';
 
-    const d5 = projData.find(d=>d.yr===5) || projData[projData.length-1];
+    const d5 = projData[Math.min(20, projData.length - 1)]; // q=20 = year 5
     set('proj-val-5', fmtK(d5.baseVal));
     set('proj-govt-5', fmtK(d5.govtOwed));
-    // Update tile labels if settlement year is set
     const val5lbl = document.getElementById('proj-tiles')?.querySelectorAll('.tile-lbl');
     if(val5lbl && settleYr){
-      if(val5lbl[2]) val5lbl[2].textContent = `Property Value @ ${settleYr+5}`;
-      if(val5lbl[3]) val5lbl[3].textContent = `Govt Equity Owed @ ${settleYr+5}`;
+      if(val5lbl[2]) val5lbl[2].textContent = `Property Value @ ${settleYr + 5}`;
+      if(val5lbl[3]) val5lbl[3].textContent = `Govt Equity Owed @ ${settleYr + 5}`;
     }
 
     // ── MILESTONES TIMELINE ──
     const msEl = document.getElementById('proj-milestones');
     if(msEl){
       const ms = [];
-      ms.push({yr:0,color:'var(--gold)',label:`Settlement${settleYr?' — '+settleYr:''}`,desc:`Purchase price ${fmtK(price)} · Loan ${fmtK(loanAmt)} · Govt equity ${fmtK(price*govtPct)}`});
-      if(buyoutYr) ms.push({yr:buyoutYr,color:'var(--sage)',label:'Can Refinance/Buy Out Govt',desc:`Property ~${fmtK(projData[buyoutYr]?.baseVal||0)} · Govt owed ~${fmtK(projData[buyoutYr]?.govtOwed||0)} · Your equity ~${fmtK(projData[buyoutYr]?.yourEquity||0)}`});
-      const halfYr = projData.find(d=>d.loanBal<=loanAmt*0.5 && d.yr>0)?.yr;
-      if(halfYr) ms.push({yr:halfYr,color:'var(--sky)',label:'Loan 50% Paid Off',desc:`Loan balance ~${fmtK(projData[halfYr]?.loanBal||0)} · Property ~${fmtK(projData[halfYr]?.baseVal||0)}`});
-      if(payoffYr&&payoffYr<=30) ms.push({yr:payoffYr,color:'var(--reward-green)',label:'Loan Fully Paid Off 🎉',desc:`Property ~${fmtK(projData[payoffYr]?.baseVal||0)} · Full equity achieved`});
-      ms.push({yr:30,color:'var(--terracotta)',label:`${yrShort(30)} — End of Projection`,desc:`Est. value ${fmtK(projData[29]?.baseVal||0)} · Est. govt equity owed ${fmtK(projData[29]?.govtOwed||0)}`});
-      msEl.innerHTML = ms.sort((a,b)=>a.yr-b.yr).map(m=>`
+      ms.push({ q:0, color:'var(--gold)', label:`Settlement${settleYr?' — '+settleYr:''}`, desc:`Purchase price ${fmtK(price)} · Loan ${fmtK(loanAmt)} · Govt equity ${fmtK(price*govtPct)}` });
+      if(buyoutQ != null){ const d=projData[buyoutQ]; ms.push({ q:buyoutQ, color:'var(--sage)', label:'Can Refinance/Buy Out Govt', desc:`Property ~${fmtK(d.baseVal)} · Govt owed ~${fmtK(d.govtOwed)} · Your equity ~${fmtK(d.yourEquity)}` }); }
+      const halfQ = projData.find(d => d.loanBal <= loanAmt * 0.5 && d.q > 0)?.q;
+      if(halfQ != null){ const d=projData[halfQ]; ms.push({ q:halfQ, color:'var(--sky)', label:'Loan 50% Paid Off', desc:`Loan balance ~${fmtK(d.loanBal)} · Property ~${fmtK(d.baseVal)}` }); }
+      if(payoffQ != null && payoffQ <= totalQ) ms.push({ q:payoffQ, color:'var(--reward-green)', label:'Loan Fully Paid Off 🎉', desc:`Property ~${fmtK(projData[payoffQ].baseVal)} · Full equity achieved` });
+      if(extraPayment > 0 && extraPaidOffQ != null && extraPaidOffQ < (payoffQ ?? totalQ)) ms.push({ q:extraPaidOffQ, color:'#9B7FE8', label:`Paid Off Early (+$${extraPayment}/mo) 🚀`, desc:`${fmtQLabel(extraPaidOffQ)} · Save ${fmtK(interestSaved)} in interest` });
+      const last = projData[totalQ]; ms.push({ q:totalQ, color:'var(--terracotta)', label:`${yrLabel(30)} — End of Projection`, desc:`Est. value ${fmtK(last.baseVal)} · Est. govt equity owed ${fmtK(last.govtOwed)}` });
+      msEl.innerHTML = ms.sort((a,b)=>a.q-b.q).map(m=>`
         <div class="tli">
           <div class="tld" style="color:${m.color}"></div>
-          <div class="tlp" style="color:${m.color}">${yrShort(m.yr)}</div>
+          <div class="tlp" style="color:${m.color}">${fmtQLabel(m.q)}</div>
           <div class="tlt">${m.label}</div>
           <div class="tldesc">${m.desc}</div>
         </div>`).join('');
@@ -3224,75 +3404,80 @@
     if(!svg) return;
     const container = svg.parentElement;
     const W = container ? Math.max(300, container.clientWidth || 700) : 700;
-    const H = Math.round(W * 0.375); // maintain aspect ratio
+    const H = Math.round(W * 0.375);
     const padL=64, padR=16, padT=18, padB=36;
     const cW=W-padL-padR, cH=H-padT-padB;
-    const maxVal = Math.max(...projData.map(d=>d.renoVal))*1.08;
-    const scaleX = yr => padL + (yr/years)*cW;
-    const scaleY = val => padT + cH - (val/maxVal)*cH;
+    const maxVal = Math.max(...projData.map(d=>d.baseVal)) * 1.08;
+    const scaleX = yr => padL + (yr / years) * cW;
+    const scaleY = val => padT + cH - (val / maxVal) * cH;
 
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     svg.setAttribute('width', '100%');
     svg.setAttribute('height', '100%');
-    svg.style.display = 'block';svg.style.position='absolute';svg.style.inset='0';
+    svg.style.display = 'block'; svg.style.position = 'absolute'; svg.style.inset = '0';
     let html = '';
+
     // Y grid lines
-    for(let p=0;p<=4;p++){
-      const val=maxVal*p/4, y=scaleY(val);
-      html+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(28,28,30,0.07)" stroke-width="1"/>`;
-      html+=`<text x="${padL-6}" y="${y+4}" text-anchor="end" font-family="DM Mono" font-size="9" fill="#999">${fmtK(val)}</text>`;
+    for(let p = 0; p <= 4; p++){
+      const val = maxVal * p / 4, y = scaleY(val);
+      html += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(28,28,30,0.07)" stroke-width="1"/>`;
+      html += `<text x="${padL-6}" y="${y+4}" text-anchor="end" font-family="DM Mono" font-size="9" fill="#999">${fmtK(val)}</text>`;
     }
-    // X axis labels — show actual years if settlement date is set
-    [0,5,10,15,20,25,30].forEach(yr=>{
-      html+=`<text x="${scaleX(yr)}" y="${H-padB+16}" text-anchor="middle" font-family="DM Mono" font-size="9" fill="#999">${yrLabel(yr)}</text>`;
+    // X axis labels (years)
+    [0,5,10,15,20,25,30].forEach(yr => {
+      html += `<text x="${scaleX(yr)}" y="${H-padB+16}" text-anchor="middle" font-family="DM Mono" font-size="9" fill="#999">${yrLabel(yr)}</text>`;
     });
 
     // Shaded equity area
     const topPts = projData.map(d=>`${scaleX(d.yr).toFixed(1)},${scaleY(d.baseVal).toFixed(1)}`).join(' ');
     const botPts = [...projData].reverse().map(d=>`${scaleX(d.yr).toFixed(1)},${scaleY(Math.max(d.loanBal+d.govtOwed,0)).toFixed(1)}`).join(' ');
-    html+=`<polygon points="${topPts} ${botPts}" fill="rgba(90,158,123,0.09)"/>`;
+    html += `<polygon points="${topPts} ${botPts}" fill="rgba(90,158,123,0.09)"/>`;
 
-    const mkPath=(key,color,dash='')=>{
-      const pts=projData.map((d,i)=>`${i===0?'M':'L'}${scaleX(d.yr).toFixed(1)},${scaleY(d[key]).toFixed(1)}`).join(' ');
-      return `<path d="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"${dash?` stroke-dasharray="${dash}"`:''}/>`;
+    // Helper to build an SVG path from any data array using a value key
+    const mkPath = (dataArr, key, color, dash='', width=2.5) => {
+      const pts = dataArr.map((d, i) => `${i===0?'M':'L'}${scaleX(d.yr).toFixed(1)},${scaleY(d[key]).toFixed(1)}`).join(' ');
+      return `<path d="${pts}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"${dash?` stroke-dasharray="${dash}"`:''}/>`;
     };
-    html += mkPath('baseVal','#C9A84C');
-    html += mkPath('renoVal','#7B9E87');
-    html += mkPath('loanBal','#5B8FAB','6 3');
-    html += mkPath('govtOwed','#C4704A');
+    html += mkPath(projData, 'baseVal',  '#C9A84C');
+    html += mkPath(projData, 'loanBal',  '#5B8FAB', '6 3');
+    html += mkPath(projData, 'govtOwed', '#C4704A');
 
-    // Milestone markers on chart
-    if(payoffYr && payoffYr<=30){ const d=projData[payoffYr]; html+=`<circle cx="${scaleX(payoffYr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5A9E7B" stroke="white" stroke-width="2"/><text x="${scaleX(payoffYr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5A9E7B">PAID OFF</text>`; }
-    if(buyoutYr && buyoutYr<=30){ const d=projData[buyoutYr]; html+=`<circle cx="${scaleX(buyoutYr)}" cy="${scaleY(d.baseVal)}" r="5" fill="#7B9E87" stroke="white" stroke-width="2"/><text x="${scaleX(buyoutYr)}" y="${scaleY(d.baseVal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#7B9E87">BUY OUT</text>`; }
+    // Early payoff line (item #9) — only draw if extra payment is set
+    if(extraPayment > 0) html += mkPath(projDataExtra, 'loanBal', '#9B7FE8', '5 2', 2.2);
 
-    // Invisible hit overlay for click/hover (item 6)
-    html += `<rect id="proj-hit" x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="transparent" style="cursor:crosshair;" onmousemove="projHover(event,${padL},${padR},${cW},${years})" onmouseleave="document.getElementById('proj-tooltip').style.display='none'" onclick="projHover(event,${padL},${padR},${cW},${years})"/>`;
+    // Milestone markers
+    if(payoffQ != null && payoffQ <= totalQ){ const d=projData[payoffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5A9E7B" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5A9E7B">PAID OFF</text>`; }
+    if(buyoutQ != null && buyoutQ <= totalQ){ const d=projData[buyoutQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.baseVal)}" r="5" fill="#7B9E87" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.baseVal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#7B9E87">BUY OUT</text>`; }
+    if(extraPayment > 0 && extraPaidOffQ != null){ const d=projDataExtra[extraPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#9B7FE8" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#9B7FE8">EARLY 🚀</text>`; }
 
-    // Crosshair line (hidden until hover)
+    // Hit overlay — passes totalQ so hover snaps to quarters
+    html += `<rect id="proj-hit" x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="transparent" style="cursor:crosshair;" onmousemove="projHover(event,${padL},${padR},${cW},${totalQ})" onmouseleave="document.getElementById('proj-tooltip').style.display='none'" onclick="projHover(event,${padL},${padR},${cW},${totalQ})"/>`;
     html += `<line id="proj-crosshair" x1="0" y1="${padT}" x2="0" y2="${H-padB}" stroke="rgba(201,168,76,0.5)" stroke-width="1" stroke-dasharray="3 2" style="display:none;pointer-events:none;"/>`;
 
     svg.innerHTML = html;
 
-    // ── TABLE ──
+    // ── QUARTERLY TABLE ──
     const tblEl = document.getElementById('proj-table');
     if(tblEl){
-      const rows = [1,2,3,5,7,10,15,20,25,30].map(y=>{
-        const d=projData[Math.min(y,projData.length-1)];
-        const eq=d.yourEquity;
-        const isMilestone = y===payoffYr||y===buyoutYr;
-        return `<div style="display:grid;grid-template-columns:64px repeat(5,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
+      const rows = [1,2,3,5,7,10,15,20,25,30].map(y => {
+        const q  = Math.min(y * 4, projData.length - 1);
+        const d  = projData[q];
+        const de = projDataExtra[q];
+        const eq = d.yourEquity;
+        const isMilestone = q === payoffQ || q === buyoutQ;
+        const extraLoanStr = (extraPayment > 0 && de) ? `<span style="color:#9B7FE8;font-size:9px;display:block;">(+extra: ${fmtK(de.loanBal)})</span>` : '';
+        return `<div style="display:grid;grid-template-columns:64px repeat(4,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
           +`<span style="color:var(--gold);">${settleYr?(settleYr+y):'Yr '+y}${isMilestone?' ★':''}</span>`
-          +`<span>${fmtK(d.baseVal)}</span><span style="color:var(--sage)">${fmtK(d.renoVal)}</span>`
-          +`<span style="color:var(--sky)">${fmtK(d.loanBal)}</span>`
+          +`<span>${fmtK(d.baseVal)}</span>`
+          +`<span style="color:var(--sky)">${fmtK(d.loanBal)}${extraLoanStr}</span>`
           +`<span style="color:var(--terracotta)">${fmtK(d.govtOwed)}</span>`
           +`<span style="color:${eq>0?'var(--reward-green)':'var(--risk-red)'};font-weight:600;">${fmtK(eq)}</span></div>`;
       });
-      const colHeader = settleYr ? 'Year' : 'Year';
-      tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:64px repeat(5,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Year':'Year'}</span><span>Value</span><span>+Reno</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
+      tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:64px repeat(4,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Year':'Year'}</span><span>Value</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
     }
   }
 
-  function projHover(e, padL, padR, cW, years){
+  function projHover(e, padL, padR, cW, totalQ){
     const svg   = document.getElementById('proj-chart');
     const tip   = document.getElementById('proj-tooltip');
     const cross = document.getElementById('proj-crosshair');
@@ -3302,35 +3487,46 @@
     const scale = svgW / rect.width;
     const mx    = (e.clientX - rect.left) * scale;
     const relX  = mx - padL;
-    if(relX<0||relX>cW) return;
-    const yr    = Math.round((relX/cW)*years);
-    const d     = projData[Math.min(yr, projData.length-1)];
+    if(relX < 0 || relX > cW) return;
+
+    // Snap to nearest quarter (item #8)
+    const q  = Math.round((relX / cW) * totalQ);
+    const d  = projData[Math.min(q, projData.length - 1)];
+    const de = projDataExtra[Math.min(q, projDataExtra.length - 1)];
     if(!d) return;
-    // crosshair
-    const cx = padL+(yr/years)*cW;
-    if(cross){ cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);cross.style.display=''; }
-    // tooltip — show actual calendar year if settlement date is set
-    const _sYr = getSettleYear();
-    const _tipYrLabel = _sYr ? (_sYr + d.yr) : ('YEAR ' + d.yr);
-    tip.innerHTML=`<div style="font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:12px;font-weight:700;">${_tipYrLabel}</div>`
+
+    const cx = padL + (d.yr / 30) * cW;
+    if(cross){ cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.style.display = ''; }
+
+    // Build quarter label e.g. "YEAR 5 Q2" or "2029 Q3"
+    const _sYr  = getSettleYear();
+    const wholeYr = Math.floor(d.yr);
+    const qNum    = d.q % 4;
+    const qStr    = qNum > 0 ? ` Q${qNum + 1}` : '';
+    const _tipYrLabel = _sYr ? `${_sYr + wholeYr}${qStr}` : `YEAR ${wholeYr}${qStr}`;
+
+    const extraPayment = parseFloat(document.getElementById('proj-extra-payment')?.value || '0') || 0;
+    const extraRow = (extraPayment > 0 && de != null)
+      ? `<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Loan+Extra</span><span style="color:#9B7FE8;font-size:19px;font-weight:700;">${fmtK(de.loanBal)}</span></div>`
+      : '';
+
+    tip.innerHTML = `<div style="font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:12px;font-weight:700;">${_tipYrLabel}</div>`
       +`<div style="display:flex;flex-direction:column;gap:9px;">`
       +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Value</span><span style="color:#C9A84C;font-size:19px;font-weight:700;">${fmtK(d.baseVal)}</span></div>`
-      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">+Reno</span><span style="color:#7B9E87;font-size:19px;font-weight:700;">${fmtK(d.renoVal)}</span></div>`
       +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Loan Bal</span><span style="color:#5B8FAB;font-size:19px;font-weight:700;">${fmtK(d.loanBal)}</span></div>`
+      + extraRow
       +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Govt Owed</span><span style="color:#C4704A;font-size:19px;font-weight:700;">${fmtK(d.govtOwed)}</span></div>`
       +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;border-top:1px solid rgba(255,255,255,0.14);padding-top:10px;margin-top:4px;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Your Equity</span><span style="color:${d.yourEquity>0?'#5A9E7B':'#C45A5A'};font-size:22px;font-weight:700;">${fmtK(d.yourEquity)}</span></div>`
       +'</div>';
-    // position tooltip — clamped so it never overflows the chart container
+
     const px = e.clientX - rect.left;
     const py = e.clientY - rect.top;
-    tip.style.display='block';
+    tip.style.display = 'block';
     const tipW = tip.offsetWidth;
     const tipH = tip.offsetHeight;
-    // Prefer right of cursor; flip left if too close to right edge
-    let tipX = px > rect.width/2 ? (px - tipW - 12) : (px + 12);
-    // Clamp within container
+    let tipX = px > rect.width / 2 ? (px - tipW - 12) : (px + 12);
     tipX = Math.max(4, Math.min(tipX, rect.width - tipW - 4));
-    let tipY = Math.max(4, py - tipH/2);
+    let tipY = Math.max(4, py - tipH / 2);
     tipY = Math.min(tipY, rect.height - tipH - 4);
     tip.style.left = tipX + 'px';
     tip.style.top  = tipY + 'px';
@@ -3446,6 +3642,7 @@
     if(modal) modal.style.display = 'none';
   }
   function exportPDFWithOptions(){
+    incrementExportCount(); // fire-and-forget — track export count against saved scenario
     // Read values BEFORE closing modal so elements are still in DOM
     const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
     const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
@@ -3462,6 +3659,26 @@
     closePDFOptionsModal();
     exportPDF({size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline});
   }
+  async function incrementExportCount(){
+    // Increment export count for the currently loaded scenario (if saved)
+    if(!_lastSavedAddr) return;
+    try {
+      const scenarios = await getAllScenarios();
+      const sc = scenarios.find(s => (s.fullAddr||'').toLowerCase().trim() === _lastSavedAddr.toLowerCase().trim());
+      if(!sc) return;
+      const updated = Object.assign({}, sc, { exportCount: (sc.exportCount || 0) + 1 });
+      const authH = getAuthHeader();
+      if(authH){
+        await fetch('/.netlify/functions/scenarios', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json','Authorization': authH},
+          body: JSON.stringify({ action:'save', userId:getUserId(), id:updated.id, fullAddr:updated.fullAddr, state:updated.state, hasPhoto:updated.hasPhoto, status:updated.status||'browsing', thumb:updated.thumb||'', exportCount:updated.exportCount, savedAt:updated.savedAt||updated.timestamp })
+        });
+      }
+      _scenariosCache = null; // invalidate cache
+    } catch(e) {}
+  }
+
   function exportPDF(opts){
     const o = opts || {};
     const pageSize   = o.size    || 'A4';
@@ -4554,10 +4771,12 @@
     reader.onload = function(e){
       const img = new Image();
       img.onload = function(){
+        // Use 320×320 for crisp display at all sizes — square-crop centred
+        const size = Math.min(img.width, img.height, 320);
         const c = document.createElement('canvas');
-        c.width = 128; c.height = 128;
-        c.getContext('2d').drawImage(img,0,0,128,128);
-        _profileData.photo = c.toDataURL('image/jpeg',0.85);
+        c.width = size; c.height = size;
+        c.getContext('2d').drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, size, size);
+        _profileData.photo = c.toDataURL('image/jpeg', 0.92);
         renderProfileBtn(); renderProfilePanel();
       };
       img.src = e.target.result;
@@ -4842,11 +5061,11 @@
       var img = new Image();
       img.onload = function(){
         var canvas = document.createElement('canvas');
-        var size = Math.min(img.width, img.height, 400);
+        var size = Math.min(img.width, img.height, 320);
         canvas.width = size; canvas.height = size;
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, size, size);
-        var data = canvas.toDataURL('image/jpeg', 0.8);
+        var data = canvas.toDataURL('image/jpeg', 0.92);
         _profileData.photo = data;
         var av = document.getElementById('ap-avatar');
         if(av){ av.innerHTML='<img src="'+data+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; av.style.background='transparent'; }
