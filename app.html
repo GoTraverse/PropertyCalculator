@@ -518,6 +518,19 @@
     #proj-svg-wrap{width:100%!important;min-width:0!important;}
   #proj-svg-wrap svg{width:100%!important;min-width:0!important;display:block;}
 
+    /* Projection tooltip — compact on mobile so it fits in the chart area */
+    #proj-tooltip{
+      font-size:11px!important;
+      padding:10px 12px!important;
+      min-width:0!important;
+      width:max-content!important;
+      max-width:min(210px,calc(100vw - 32px))!important;
+    }
+    #proj-tooltip > div:first-child{font-size:11px!important;margin-bottom:8px!important;}
+    #proj-tooltip span[style*="font-size:19px"]{font-size:14px!important;}
+    #proj-tooltip span[style*="font-size:22px"]{font-size:15px!important;}
+    #proj-tooltip span[style*="font-size:13px"]{font-size:11px!important;}
+
     /* Fix 1: Extra bottom padding so the floating calc FAB doesn't obscure content */
     main{padding-bottom:max(110px, calc(env(safe-area-inset-bottom) + 96px))!important;}
 
@@ -629,6 +642,21 @@
   .sidebar.collapsed #sidebar-close-btn{display:none!important;}
   .sidebar.collapsed #sidebar-toggle{margin:0 auto;}
   .sidebar-collapsed-hint{display:none;writing-mode:vertical-rl;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.25);margin-top:12px;cursor:pointer;user-select:none;}
+  /* Collapse/expand toggle button */
+  #sidebar-toggle{
+    width:30px;height:30px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.16);
+    border-radius:5px;
+    color:var(--cream);
+    font-size:18px;line-height:1;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:background 0.15s,transform 0.25s;
+  }
+  #sidebar-toggle:hover{background:rgba(255,255,255,0.14);}
+  .sidebar.collapsed #sidebar-toggle{transform:rotate(180deg);}
   /* Mobile: toggle btn hidden (⚙ settings button already exists) */
   @media(max-width:600px){
     #sidebar-toggle{display:none!important;}
@@ -778,7 +806,7 @@
   <div class="sidebar-title" style="display:flex;align-items:center;justify-content:space-between;">
     <span>⚙ Scenario Calculator</span>
     <div style="display:flex;gap:6px;align-items:center;">
-      <button id="sidebar-toggle" onclick="toggleSidebarCollapse()" title="Collapse calculator">‹</button>
+      <button id="sidebar-toggle" onclick="toggleSidebarCollapse()" title="Collapse calculator">&#x276E;</button>
       <button onclick="toggleMobileSidebar()" style="display:none;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:3px;color:var(--cream);font-size:18px;cursor:pointer;padding:2px 8px;line-height:1;" id="sidebar-close-btn">✕</button>
     </div>
   </div>
@@ -3181,12 +3209,20 @@
       +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Govt Owed</span><span style="color:#C4704A;font-size:19px;font-weight:700;">${fmtK(d.govtOwed)}</span></div>`
       +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;border-top:1px solid rgba(255,255,255,0.14);padding-top:10px;margin-top:4px;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Your Equity</span><span style="color:${d.yourEquity>0?'#5A9E7B':'#C45A5A'};font-size:22px;font-weight:700;">${fmtK(d.yourEquity)}</span></div>`
       +'</div>';
-    // position tooltip
+    // position tooltip — clamped so it never overflows the chart container
     const px = e.clientX - rect.left;
     const py = e.clientY - rect.top;
     tip.style.display='block';
-    tip.style.left = (px > rect.width/2 ? (px-tip.offsetWidth-12)+'px' : (px+12)+'px');
-    tip.style.top  = Math.max(0,py-tip.offsetHeight/2)+'px';
+    const tipW = tip.offsetWidth;
+    const tipH = tip.offsetHeight;
+    // Prefer right of cursor; flip left if too close to right edge
+    let tipX = px > rect.width/2 ? (px - tipW - 12) : (px + 12);
+    // Clamp within container
+    tipX = Math.max(4, Math.min(tipX, rect.width - tipW - 4));
+    let tipY = Math.max(4, py - tipH/2);
+    tipY = Math.min(tipY, rect.height - tipH - 4);
+    tip.style.left = tipX + 'px';
+    tip.style.top  = tipY + 'px';
   }
 
   // ── SUBURB GROWTH LOOKUP (item 7) ──
@@ -3416,10 +3452,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
   body{background:#fff;font-family:'DM Sans',sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'10px':'12px'};}
   @page{margin:10mm 12mm;size:${pageSize} ${pageOrient};}
-  @media print{body{font-size:${fontSize==='large'?'12px':fontSize==='compact'?'9px':'11px'};}}
-  .page{max-width:900px;margin:0 auto;padding:20px 24px;}
+  @media print{
+    body{font-size:${fontSize==='large'?'12px':fontSize==='compact'?'9px':'11px'};}
+    @page{size:${pageSize} ${pageOrient};margin:10mm 12mm;}
+  }
+  .page{max-width:${pageOrient==='landscape'?'none':'900px'};margin:0 auto;padding:20px 24px;}
+  /* Landscape: use wider two-column grids */
+  ${pageOrient==='landscape'?'.grid2{grid-template-columns:1fr 1fr;}.grid4{grid-template-columns:repeat(4,1fr);}':''}
   header{background:#1C1C1E;color:#F5F0E8;padding:0;display:flex;margin-bottom:20px;border-radius:4px;overflow:hidden;}
   .htext{flex:1;padding:20px 24px;}
   .htag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:4px;}
@@ -3450,13 +3492,9 @@
   .print-btn{position:fixed;top:16px;right:16px;background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:8px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;z-index:100;}
   @media print{.print-btn{display:none;}}
   ${colourMode==='mono'?`
-  /* Monochrome overrides */
-  header{background:#1C1C1E!important;}
-  .tile{background:#333!important;}
-  .card{background:#f5f5f5!important;}
-  .card-accent,.tile-dot{background:#666!important;}
-  .meter-fill{background:#555!important;}
-  a{color:#333!important;}
+  /* Monochrome — apply greyscale to everything, then force black text/backgrounds for print */
+  html{filter:grayscale(1);}
+  @media print{html{filter:grayscale(1);}}
   `:''}
 
 
