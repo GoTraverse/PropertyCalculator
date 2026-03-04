@@ -474,9 +474,9 @@
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-sessions">—</div>
-      <div class="stat-label">Active Sessions</div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Users with valid login tokens</div>
-      <div class="stat-chart" id="stat-chart-sessions" title="Sessions vs users ratio"></div>
+      <div class="stat-label">Login Tokens</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Valid tokens (1 per device/session — users may have multiple)</div>
+      <div class="stat-chart" id="stat-chart-sessions" title="Tokens vs users ratio"></div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-scenarios-top">—</div>
@@ -518,12 +518,13 @@
               <th>Email</th>
               <th>Plan</th>
               <th>Joined</th>
+              <th>Last Login</th>
               <th>Role</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="users-tbody">
-            <tr><td colspan="6" style="text-align:center;color:var(--slate);padding:32px;font-style:italic;">Loading users…</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:var(--slate);padding:32px;font-style:italic;">Loading users…</td></tr>
           </tbody>
         </table>
       </div>
@@ -858,6 +859,17 @@
 
 </div>
 
+<!-- User Detail Modal -->
+<div class="reset-modal-overlay" id="user-detail-overlay">
+  <div class="reset-modal" style="max-width:600px;width:calc(100vw - 32px);">
+    <h3 id="user-detail-title">User Details</h3>
+    <div id="user-detail-body" style="max-height:70vh;overflow-y:auto;"></div>
+    <div class="reset-modal-btns">
+      <button class="btn-admin-outline" onclick="document.getElementById('user-detail-overlay').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Plan Change Modal -->
 <div class="reset-modal-overlay" id="plan-modal-overlay">
   <div class="reset-modal">
@@ -1044,10 +1056,10 @@ async function bootstrapAdmin(){
 
 async function loadUsers(){
   const tbody = document.getElementById('users-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading…</td></tr>';
   const d = await callAuth('adminListUsers');
   if(!d.ok){
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed to load users')+'</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed to load users')+'</td></tr>';
     return;
   }
   allUsers = (d.users || []).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
@@ -1108,20 +1120,22 @@ function filterUsers(){
 function renderUsers(users){
   const tbody = document.getElementById('users-tbody');
   if(!users.length){
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No users found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No users found</td></tr>';
     return;
   }
   tbody.innerHTML = users.map(u => {
     const plan = u.plan || 'free';
     const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    const lastLogin = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '—';
     const roleHtml = u.role === 'admin' ? '<span class="role-badge">admin</span>' : '';
     const roleAction = u.role !== 'admin' ? 'grant-admin' : 'revoke-admin';
     const roleLabel  = u.role !== 'admin' ? '→ Admin'      : 'Revoke Admin';
-    return `<tr>
+    return `<tr data-email="${escHtml(u.email)}" style="cursor:pointer;" title="Click to view user details">
       <td style="font-weight:500;">${escHtml(u.name||'—')}</td>
       <td><span class="user-email">${escHtml(u.email||'—')}</span></td>
       <td><span class="plan-badge plan-${escHtml(plan)}">${escHtml(plan)}</span></td>
       <td style="font-family:var(--font-mono);font-size:11px;">${joined}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;">${lastLogin}</td>
       <td>${roleHtml}</td>
       <td>
         <div class="user-actions">
@@ -1138,14 +1152,20 @@ function renderUsers(users){
 document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('users-tbody').addEventListener('click', function(e){
     const btn = e.target.closest('[data-action]');
-    if(!btn) return;
-    const action = btn.dataset.action;
-    const email  = btn.dataset.email;
-    if(action === 'reset-pw')    openResetPw(email);
-    if(action === 'set-plan')    setPlan(email, btn.dataset.plan);
-    if(action === 'grant-admin') setRole(email, 'admin');
-    if(action === 'revoke-admin')setRole(email, 'user');
-    if(action === 'delete-user') deleteUser(email);
+    if(btn){
+      // Action button clicked — handle action, don't open detail modal
+      const action = btn.dataset.action;
+      const email  = btn.dataset.email;
+      if(action === 'reset-pw')    openResetPw(email);
+      if(action === 'set-plan')    setPlan(email, btn.dataset.plan);
+      if(action === 'grant-admin') setRole(email, 'admin');
+      if(action === 'revoke-admin')setRole(email, 'user');
+      if(action === 'delete-user') deleteUser(email);
+      return;
+    }
+    // Row click (not on a button) — open user detail modal
+    const tr = e.target.closest('tr[data-email]');
+    if(tr) openUserDetails(tr.dataset.email);
   });
 });
 
@@ -1226,6 +1246,89 @@ async function deleteUser(email){
   const d = await callAuth('adminDeleteUser', {targetEmail: email});
   if(d.ok){ st.textContent = '✓ User deleted'; st.className = 'admin-status ok'; loadUsers(); }
   else { st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err'; }
+}
+
+async function openUserDetails(email){
+  const overlay = document.getElementById('user-detail-overlay');
+  const body    = document.getElementById('user-detail-body');
+  document.getElementById('user-detail-title').textContent = email;
+  body.innerHTML = '<div style="text-align:center;padding:32px;color:var(--slate);font-style:italic;">Loading user details…</div>';
+  overlay.classList.add('open');
+
+  const d = await callAuth('adminGetUserDetails', {targetEmail: email});
+  if(!d.ok){
+    body.innerHTML = `<div style="color:var(--risk-red);padding:16px;">${escHtml(d.error||'Failed to load user details')}</div>`;
+    return;
+  }
+  const u = d.user || {};
+  const profile = d.profile || {};
+
+  const fmt = ts => ts ? new Date(ts).toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Never';
+  const ip = u.lastLoginIp || '';
+  const ipHtml = ip
+    ? `<a href="https://ipinfo.io/${encodeURIComponent(ip)}" target="_blank" rel="noopener" style="color:var(--sky);font-family:var(--font-mono);font-size:12px;">${escHtml(ip)} ↗</a>`
+    : '<span style="color:var(--slate);">Not recorded</span>';
+
+  body.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;padding:8px 0 16px;">
+      <div>
+        <div class="config-label">Full Name</div>
+        <div style="font-size:14px;margin-top:3px;">${escHtml(u.name||'—')}</div>
+      </div>
+      <div>
+        <div class="config-label">Email</div>
+        <div style="font-size:13px;font-family:var(--font-mono);margin-top:3px;word-break:break-all;">${escHtml(u.email||'—')}</div>
+      </div>
+      <div>
+        <div class="config-label">Plan</div>
+        <div style="margin-top:4px;"><span class="plan-badge plan-${escHtml(u.plan||'free')}">${escHtml(u.plan||'free')}</span></div>
+      </div>
+      <div>
+        <div class="config-label">Role</div>
+        <div style="margin-top:4px;">${u.role==='admin'?'<span class="role-badge">admin</span>':'<span style="color:var(--slate);font-size:13px;">user</span>'}</div>
+      </div>
+      <div>
+        <div class="config-label">Date Joined</div>
+        <div style="font-family:var(--font-mono);font-size:12px;margin-top:3px;">${fmt(u.createdAt)}</div>
+      </div>
+      <div>
+        <div class="config-label">Last Login</div>
+        <div style="font-family:var(--font-mono);font-size:12px;margin-top:3px;">${fmt(u.lastLoginAt)}</div>
+      </div>
+      <div>
+        <div class="config-label">Total Logins</div>
+        <div style="font-family:var(--font-mono);font-size:26px;font-weight:500;margin-top:2px;">${u.loginCount||0}</div>
+      </div>
+      <div>
+        <div class="config-label">Active Login Tokens</div>
+        <div style="font-family:var(--font-mono);font-size:26px;font-weight:500;margin-top:2px;">${d.activeTokens||0}
+          <span style="font-size:11px;font-weight:400;color:var(--slate);">device(s)</span>
+        </div>
+      </div>
+      <div>
+        <div class="config-label">Saved Scenarios</div>
+        <div style="font-family:var(--font-mono);font-size:26px;font-weight:500;margin-top:2px;">${d.scenarioCount||0}</div>
+      </div>
+      <div>
+        <div class="config-label">Last Login IP</div>
+        <div style="margin-top:4px;">${ipHtml}</div>
+      </div>
+      ${profile.color ? `<div>
+        <div class="config-label">Profile Colour</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <div style="width:22px;height:22px;border-radius:50%;background:${escHtml(profile.color)};border:1px solid rgba(0,0,0,0.12);flex-shrink:0;"></div>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--slate);">${escHtml(profile.color)}</span>
+        </div>
+      </div>` : ''}
+      ${profile.photo ? `<div>
+        <div class="config-label">Avatar</div>
+        <img src="${escHtml(profile.photo)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-top:4px;border:2px solid rgba(28,28,30,0.1);">
+      </div>` : ''}
+    </div>
+    <div style="padding:12px 0;border-top:1px solid rgba(28,28,30,0.08);font-size:11px;color:var(--slate);font-family:var(--font-mono);">
+      User ID: ${escHtml(u.id||'—')}
+    </div>
+  `;
 }
 
 function showAdminTab(tab, btn){

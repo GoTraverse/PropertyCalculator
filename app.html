@@ -186,7 +186,7 @@
 
 
 
-  .app-body{display:grid;grid-template-columns:340px 1fr;overflow:hidden;height:calc(100vh - var(--hdr-h-desktop) - 44px);transition:grid-template-columns 0.25s cubic-bezier(0.4,0,0.2,1);}
+  .app-body{display:grid;grid-template-columns:340px 1fr;overflow:hidden;height:calc(100vh - var(--hdr-h-desktop) - 44px);margin-top:44px;transition:grid-template-columns 0.25s cubic-bezier(0.4,0,0.2,1);}
 
   /* ── SIDEBAR ── */
   .sidebar{background:var(--charcoal-soft);color:var(--cream);padding:24px 20px;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.05);height:100%;}
@@ -226,7 +226,7 @@
 
   /* ── CONTENT ── */
   .content{overflow:hidden;display:flex;flex-direction:column;height:100%;}
-  nav{background:var(--charcoal);display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;position:sticky;top:var(--hdr-h-desktop);z-index:150;}
+  nav{background:var(--charcoal);display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;position:fixed;top:var(--hdr-h-desktop);left:0;right:0;z-index:150;}
   nav::-webkit-scrollbar{display:none;}
   .tab{flex:1;min-width:110px;padding:14px 10px;font-family:'DM Mono',monospace;font-size:14px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:rgba(245,240,232,0.4);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;text-align:center;white-space:nowrap;border:none;background:none;}
   .tab:hover{color:rgba(245,240,232,0.85);}
@@ -434,8 +434,7 @@
     .content{height:auto!important;overflow:visible!important;display:flex;flex-direction:column;}
 
     /* Tabs — FIXED position so they always stay visible on iOS/PWA regardless of scroll model */
-    nav{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;padding-bottom:1px;
-        position:fixed!important;top:var(--hdr-h-mobile)!important;left:0!important;right:0!important;width:100%!important;z-index:149!important;}
+    nav{flex-wrap:nowrap!important;padding-bottom:1px;top:var(--hdr-h-mobile)!important;width:100%!important;}
     .tab{padding:11px 16px!important;font-size:12px!important;white-space:nowrap!important;flex-shrink:0!important;min-width:auto!important;border-right:1px solid rgba(255,255,255,0.07)!important;}
 
     /* Main content */
@@ -500,7 +499,9 @@
   #mobile-overlay.open{display:block;}
 
   @media(max-width:820px){
-    .app-body{grid-template-columns:1fr;height:auto!important;}
+    /* Nav uses mobile header height and stays fixed */
+    nav{top:var(--hdr-h-mobile)!important;}
+    .app-body{grid-template-columns:1fr;height:auto!important;margin-top:0!important;padding-top:44px;}
     .prop-top-grid{grid-template-columns:1fr!important;}
     .sidebar{height:auto;overflow-y:auto;}
     .header-photo-wrap{width:120px;}
@@ -655,7 +656,16 @@
 
 <div id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
+<!-- Maintenance mode overlay — shown instead of app when maintenanceMode is on -->
+<div id="maintenance-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--charcoal);color:var(--cream);flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:40px 24px;font-family:'DM Sans',sans-serif;">
+  <div style="font-size:52px;line-height:1;">🔧</div>
+  <h2 style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;margin:0;">Under Maintenance</h2>
+  <p id="maintenance-msg" style="font-size:15px;color:rgba(245,240,232,0.6);max-width:440px;line-height:1.7;margin:0;">We'll be back shortly — upgrading our systems.</p>
+</div>
+
 <header>
+  <!-- Announcement banner (hidden until config loads) -->
+  <div id="announce-banner" style="display:none;padding:9px 48px 9px 16px;font-size:13px;text-align:center;position:relative;line-height:1.4;"></div>
   <div class="header-inner">
     <div class="header-text">
       <h1 id="page-title">New Property</h1>
@@ -1542,13 +1552,17 @@
   }
   function addCostItemAndFocus(){
     addCostItem();
-    // Focus the name field of the newly added row
+    // Focus the name field of the newly added row and scroll it into view (critical for iOS PWA)
     setTimeout(function(){
       var rows = document.querySelectorAll('.dyn-cost-row');
       if(rows.length > 0){
         var lastRow = rows[rows.length-1];
         var nameInput = lastRow.querySelector('input[type="text"]');
-        if(nameInput){ nameInput.focus(); nameInput.select(); }
+        if(nameInput){
+          // Scroll the new row into view before focusing (iOS keyboard hides it otherwise)
+          lastRow.scrollIntoView({behavior:'smooth', block:'nearest'});
+          setTimeout(function(){ nameInput.focus(); nameInput.select(); }, 80);
+        }
       }
     }, 60);
   }
@@ -3531,21 +3545,27 @@
   }
 
   function setAppHeight(){
-    const header = document.querySelector('header');
+    const header  = document.querySelector('header');
     const appBody = document.querySelector('.app-body');
     const navEl   = document.querySelector('nav');
-    if(header && appBody){
-      const headerH = header.offsetHeight;
-      appBody.style.height = (window.innerHeight - headerH) + 'px';
-      // On mobile, keep the tab bar directly below the actual header height
-      if(navEl && window.innerWidth <= 600){
-        navEl.style.top = headerH + 'px';
-        // Update padding-top on app-body to match actual nav height
-        const navH = navEl.offsetHeight || 44;
-        appBody.style.paddingTop = navH + 'px';
-      } else if(navEl){
-        navEl.style.top = '';
-      }
+    if(!header || !appBody) return;
+
+    const headerH = header.offsetHeight;
+    const navH    = navEl ? (navEl.offsetHeight || 44) : 44;
+
+    // Always position fixed nav directly below the actual rendered header
+    if(navEl) navEl.style.top = headerH + 'px';
+
+    if(window.innerWidth <= 820){
+      // Mobile / tablet: body scrolls, app-body grows with content
+      appBody.style.height     = '';
+      appBody.style.marginTop  = '';
+      appBody.style.paddingTop = navH + 'px';
+    } else {
+      // Desktop: inner scroll model — app-body fills remaining viewport
+      appBody.style.paddingTop = '';
+      appBody.style.marginTop  = navH + 'px';
+      appBody.style.height     = (window.innerHeight - headerH - navH) + 'px';
     }
   }
   window.addEventListener('resize', setAppHeight);
@@ -3797,6 +3817,10 @@
   updatePropertyDetails();
   updateSavedCount();
   setAppHeight();
+  // Re-measure after fonts load — web fonts can change header height slightly
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ setTimeout(setAppHeight, 50); });
+  }
   drawProjection();
   loadProfile();
 
@@ -3932,24 +3956,12 @@
   function loadSiteConfig(){
     try {
       var raw = localStorage.getItem('propCalc_siteConfig_v1');
-      if(!raw) return;
-      var cfg = JSON.parse(raw);
-      applyFeatureFlags(cfg);
+      if(raw){
+        var cfg = JSON.parse(raw);
+        applyFeatureFlags(cfg);
+      }
     } catch(e){}
-  }
-
-  function applyFeatureFlags(cfg){
-    if(!cfg) return;
-    // PDF Export feature flag
-    var pdfEnabled = cfg.enablePdfExport !== false;
-    document.querySelectorAll('.export-btn[title*="PDF"], .export-btn[onclick*="exportPDF"]').forEach(function(el){
-      el.style.display = pdfEnabled ? '' : 'none';
-    });
-    // Projection tab feature flag
-    var projEnabled = cfg.enableProjections !== false;
-    var projBtn = document.getElementById('tab-projection-btn');
-    if(projBtn) projBtn.style.display = projEnabled ? '' : 'none';
-    // Also fetch fresh config from backend and update
+    // Always fetch fresh config from backend so maintenance/banner changes are immediate
     var sess = null;
     try { sess = JSON.parse(localStorage.getItem('propCalc_session_v1')); } catch(e){}
     if(sess && sess.token && typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY){
@@ -3966,12 +3978,89 @@
     }
   }
 
+  // Simple HTML escape for banner text
+  function _escBanner(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function applyFeatureFlags(cfg){
+    if(!cfg) return;
+
+    // ── Maintenance Mode ──────────────────────────────────────────
+    var maintOverlay = document.getElementById('maintenance-overlay');
+    if(cfg.maintenanceMode){
+      var userRole = (_currentUser && _currentUser.role) || '';
+      if(userRole !== 'admin'){
+        if(maintOverlay){
+          var msg = document.getElementById('maintenance-msg');
+          if(msg) msg.textContent = cfg.maintenanceMessage || "We'll be back shortly — upgrading our systems.";
+          maintOverlay.style.display = 'flex';
+        }
+        return; // Stop applying other flags — page is in maintenance
+      }
+    } else {
+      // Ensure overlay is hidden if maintenance mode was previously on
+      if(maintOverlay) maintOverlay.style.display = 'none';
+    }
+
+    // ── Announcement Banner ───────────────────────────────────────
+    var banner = document.getElementById('announce-banner');
+    if(banner){
+      var bannerText = cfg.bannerText || '';
+      var bannerExpiry = cfg.bannerExpiry;
+      var bannerActive = bannerText && (!bannerExpiry || new Date(bannerExpiry + 'T23:59:59') >= new Date());
+      if(bannerActive){
+        var type = cfg.bannerType || 'info';
+        var bannerStyles = {
+          info:    {bg:'rgba(91,143,171,0.18)',  color:'#4a7d9a', border:'rgba(91,143,171,0.35)'},
+          success: {bg:'rgba(90,158,123,0.15)',  color:'#3d8a62', border:'rgba(90,158,123,0.35)'},
+          warning: {bg:'rgba(201,168,76,0.18)',  color:'#7a5e1a', border:'rgba(201,168,76,0.45)'},
+          danger:  {bg:'rgba(196,90,90,0.15)',   color:'#a03535', border:'rgba(196,90,90,0.35)'}
+        };
+        var bs = bannerStyles[type] || bannerStyles.info;
+        if(banner.style.display === 'none' || !banner.dataset.shown){
+          banner.dataset.shown = '1';
+          banner.style.cssText = 'display:block;padding:9px 48px 9px 16px;font-size:13px;text-align:center;position:relative;line-height:1.4;'
+            + 'background:' + bs.bg + ';color:' + bs.color + ';border-bottom:1px solid ' + bs.border + ';';
+          banner.innerHTML = '<span>' + _escBanner(bannerText) + '</span>'
+            + '<button onclick="document.getElementById(\'announce-banner\').style.display=\'none\';setTimeout(setAppHeight,0);" '
+            + 'style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;'
+            + 'color:currentColor;font-size:20px;cursor:pointer;opacity:0.55;padding:0 4px;line-height:1;" title="Dismiss">×</button>';
+          // Recompute layout since header is now taller
+          setTimeout(setAppHeight, 0);
+        }
+      } else {
+        banner.style.display = 'none';
+        delete banner.dataset.shown;
+      }
+    }
+
+    // ── PDF Export feature flag ───────────────────────────────────
+    var pdfEnabled = cfg.enablePdfExport !== false;
+    // Also respect plan — only show if both admin-enabled AND user is pro
+    var pdfVisible = pdfEnabled && isPro();
+    document.querySelectorAll('.export-btn[title*="PDF"], .export-btn[onclick*="exportPDF"]').forEach(function(el){
+      el.style.display = pdfVisible ? '' : 'none';
+    });
+
+    // ── Projection tab feature flag ───────────────────────────────
+    var projEnabled = cfg.enableProjections !== false;
+    var projVisible = projEnabled && isPro();
+    var projBtn = document.getElementById('tab-projection-btn');
+    if(projBtn) projBtn.style.display = projVisible ? '' : 'none';
+  }
+
   // Returns Authorization header value for API calls, or null if guest
   function applyPlanUI(){
     var pro = isPro();
     // Hide projection lock icon for pro users
     var lock = document.getElementById('proj-lock');
     if(lock) lock.style.display = pro ? 'none' : 'inline';
+    // Hide PDF button entirely for free users (plan-based, not just toast)
+    document.querySelectorAll('.export-btn[onclick*="exportPDF"],.export-btn[title*="PDF"]').forEach(function(el){
+      el.style.display = pro ? '' : 'none';
+    });
+    // Hide projection tab entirely for free users
+    var projBtn = document.getElementById('tab-projection-btn');
+    if(projBtn) projBtn.style.display = pro ? '' : 'none';
     // Show/hide upgrade banner in header if free
     var plan = getUserPlan();
     var badge = document.getElementById('plan-badge');
