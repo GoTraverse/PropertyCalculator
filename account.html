@@ -336,7 +336,63 @@
   </div>
 </footer>
 
+<!-- Custom Dialog -->
+<div id="acct-dialog-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:var(--radius-md);width:min(420px,92vw);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.35);">
+    <div id="acct-dialog-header" style="padding:18px 22px 14px;border-bottom:1px solid rgba(28,28,30,0.08);">
+      <span id="acct-dialog-icon" style="font-size:20px;display:block;margin-bottom:5px;"></span>
+      <div id="acct-dialog-title" style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--charcoal);"></div>
+    </div>
+    <div style="padding:16px 22px;">
+      <div id="acct-dialog-msg" style="font-size:13px;color:var(--slate);line-height:1.7;"></div>
+      <input type="password" id="acct-dialog-input" placeholder="Your password" style="display:none;width:100%;margin-top:10px;padding:9px 12px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.12);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:13px;color:var(--charcoal);outline:none;">
+    </div>
+    <div style="padding:0 22px 18px;display:flex;gap:10px;justify-content:flex-end;">
+      <button id="acct-dialog-cancel" onclick="_acctDialogResolve(false)" style="padding:9px 18px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:11px;cursor:pointer;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.12);color:var(--slate);">Cancel</button>
+      <button id="acct-dialog-confirm" onclick="_acctDialogResolve(true)" style="padding:9px 18px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:11px;font-weight:600;cursor:pointer;background:var(--charcoal);border:1px solid var(--charcoal);color:var(--cream);">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
+  // ── Custom Dialog ──────────────────────────────────────────────────────────
+  var _acctDialogResolveFn = null;
+  function _acctDialogResolve(val){
+    var overlay = document.getElementById('acct-dialog-overlay');
+    var input   = document.getElementById('acct-dialog-input');
+    overlay.style.display='none'; overlay.style.alignItems=''; overlay.style.justifyContent='';
+    if(_acctDialogResolveFn){
+      var fn=_acctDialogResolveFn; _acctDialogResolveFn=null;
+      fn(input && input.style.display!=='none' && val ? (input.value||'') : val);
+    }
+  }
+  function _acctDialog(title, msg, opts){
+    opts=opts||{};
+    return new Promise(function(resolve){
+      _acctDialogResolveFn=resolve;
+      var o=document.getElementById('acct-dialog-overlay');
+      document.getElementById('acct-dialog-icon').textContent=opts.icon||(opts.danger?'⚠️':'ℹ️');
+      document.getElementById('acct-dialog-title').textContent=title;
+      document.getElementById('acct-dialog-msg').innerHTML=msg;
+      var inp=document.getElementById('acct-dialog-input');
+      var cancel=document.getElementById('acct-dialog-cancel');
+      var confirm=document.getElementById('acct-dialog-confirm');
+      cancel.style.display=opts.alertOnly?'none':'';
+      confirm.textContent=opts.confirmLabel||(opts.danger?'Delete':'OK');
+      confirm.style.background=opts.danger?'var(--risk-red)':'var(--charcoal)';
+      confirm.style.borderColor=opts.danger?'var(--risk-red)':'var(--charcoal)';
+      if(opts.inputType){inp.type=opts.inputType;inp.placeholder=opts.inputPlaceholder||'';inp.value='';inp.style.display='';setTimeout(function(){inp.focus();},60);}
+      else{inp.style.display='none';setTimeout(function(){confirm.focus();},50);}
+      o.style.display='flex'; o.style.alignItems='center'; o.style.justifyContent='center';
+    });
+  }
+  function acctAlert(title,msg,opts){return _acctDialog(title,msg,Object.assign({alertOnly:true},opts));}
+  function acctConfirm(title,msg,opts){return _acctDialog(title,msg,opts);}
+  function acctPrompt(title,msg,opts){return _acctDialog(title,msg,Object.assign({inputType:'password'},opts));}
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&document.getElementById('acct-dialog-overlay').style.display==='flex') _acctDialogResolve(false);
+  });
+
   const SK = 'propCalc_session_v1';
   const PK_BASE = 'propCalc_profile_v1';
 
@@ -515,13 +571,36 @@
     } catch(e){ st.textContent = 'Network error — please try again'; st.className = 'acct-status-msg err'; }
   }
 
-  function openBillingPortal(){
-    // Stripe billing portal — configure portal URL in Netlify env vars
-    alert('Billing portal coming soon. Email support@EquitySight.app to manage your subscription.');
+  async function openBillingPortal(){
+    const token = session && session.token;
+    if(!token){ acctAlert('Not signed in', 'Please sign in to manage billing.', {icon:'🔒'}); return; }
+    const st = document.getElementById('delete-status');
+    if(st){ st.textContent='Opening billing portal…'; st.className='acct-status-msg info'; }
+    try{
+      const r = await fetch('/.netlify/functions/stripe',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({action:'createPortalSession',returnUrl:location.href})
+      });
+      const d = await r.json();
+      if(d.ok && d.url){
+        location.href = d.url;
+      } else {
+        // Stripe not configured — show helpful message
+        const msg = d.error && d.error.includes('not configured')
+          ? 'Billing portal is not yet configured. Email <a href="mailto:support@EquitySight.app">support@EquitySight.app</a> to manage your subscription.'
+          : (d.error || 'Unable to open billing portal. Please contact support.');
+        acctAlert('Billing Portal', msg, {icon:'💳', alertOnly:true, confirmLabel:'OK'});
+        if(st){ st.textContent=''; st.className='acct-status-msg'; }
+      }
+    }catch(e){
+      acctAlert('Billing Portal', 'Email <a href="mailto:support@EquitySight.app">support@EquitySight.app</a> to manage your subscription.', {icon:'💳', alertOnly:true});
+      if(st){ st.textContent=''; st.className='acct-status-msg'; }
+    }
   }
 
   async function confirmDeleteAccount(){
-    const pw = prompt('Enter your password to confirm account deletion. This cannot be undone.');
+    const pw = await acctPrompt('Delete Account', 'Enter your password to confirm account deletion. This cannot be undone.', {danger:true, confirmLabel:'Delete Account', inputPlaceholder:'Your password'});
     if(!pw) return;
     const st = document.getElementById('delete-status') || document.createElement('span');
     try{
@@ -533,17 +612,15 @@
       });
       const d = await r.json();
       if(d.ok){
-        // Clear all local data
         localStorage.clear();
-        alert('Your account has been deleted. You will now be redirected to the home page.');
+        await acctAlert('Account Deleted', 'Your account has been deleted. You will now be redirected.', {icon:'👋'});
         location.href='index.html';
       } else {
-        alert(d.error||'Failed to delete account. Please try again.');
+        await acctAlert('Error', d.error||'Failed to delete account. Please try again.', {danger:true, icon:'✗'});
       }
     }catch(e){
-      // Fallback: clear local data only
       localStorage.clear();
-      alert('Account data cleared locally. Contact support to remove server data.');
+      await acctAlert('Error', 'Account data cleared locally. Contact support@EquitySight.app to remove server data.', {icon:'⚠️'});
       location.href='index.html';
     }
   }

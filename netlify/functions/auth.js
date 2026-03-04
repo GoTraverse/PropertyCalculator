@@ -14,7 +14,14 @@ const crypto = require('crypto');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
-const SALT        = process.env.AUTH_SALT || 'propCalcSalt2024_v2';
+const SALT        = process.env.AUTH_SALT || (() => {
+  // ⚠️  AUTH_SALT is not set in environment variables.
+  // For production security, add AUTH_SALT as a strong random secret
+  // in Netlify → Site Settings → Environment Variables.
+  // Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  console.warn('[auth] WARNING: AUTH_SALT env var not set — using insecure default. Set AUTH_SALT in Netlify env vars.');
+  return 'propCalcSalt2024_v2';
+})();
 const TOKEN_TTL   = 60 * 60 * 24 * 30; // 30 days
 
 const H = {
