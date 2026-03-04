@@ -282,6 +282,12 @@
   .rv{font-family:'DM Mono',monospace;font-size:22px;margin-bottom:2px;}
   .rl{font-size:12px;color:rgba(245,240,232,0.38);}
   .rs{font-size:12px;color:var(--gold);margin-top:1px;font-family:'DM Mono',monospace;}
+  #amort-table th{text-align:right;padding:7px 10px;border-bottom:2px solid rgba(28,28,30,0.1);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--slate);white-space:nowrap;font-weight:600;}
+  #amort-table th:first-child{text-align:left;}
+  #amort-table td{text-align:right;padding:6px 10px;border-bottom:1px solid rgba(28,28,30,0.05);font-size:12px;}
+  #amort-table td:first-child{text-align:left;color:var(--slate);}
+  #amort-table tbody tr:last-child td{border-bottom:none;font-weight:700;}
+  #amort-table tbody tr:nth-child(even){background:rgba(28,28,30,0.025);}
 
   .reno-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid rgba(28,28,30,0.06);gap:10px;font-size:16px;}
   .ri{font-size:15px;width:20px;text-align:center;}
@@ -1330,6 +1336,21 @@
           <div><div style="font-family:'DM Mono',monospace;font-size:24px;color:var(--sage)" id="rp-loan-show">$450k</div><div style="font-size:11px;color:var(--slate);margin-top:2px">Principal</div></div>
         </div>
       </div>
+      <div class="card">
+        <div class="ca" style="background:var(--charcoal)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <h3 style="margin-bottom:0;">Amortization Schedule</h3>
+          <button id="amort-toggle-btn" onclick="toggleAmortTable()"
+            style="font-family:'DM Mono',monospace;font-size:11px;padding:6px 14px;
+                   background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);
+                   border-radius:3px;cursor:pointer;color:var(--charcoal);letter-spacing:0.5px;
+                   transition:background 0.15s;">Show Schedule</button>
+        </div>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:0;">Year-by-year breakdown of principal, interest and remaining balance over the full loan term.</p>
+        <div id="amort-table-wrap" style="display:none;margin-top:16px;overflow-x:auto;">
+          <table id="amort-table" style="width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:12px;min-width:380px;"></table>
+        </div>
+      </div>
     </div>
 
     <!-- TAB 4: RENT OVERLAP -->
@@ -1552,6 +1573,57 @@
     if(principal<=0)return 0;if(annualRate===0)return principal/(years*12);
     const r=annualRate/100/12,n=years*12;
     return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  }
+
+  var _amortVisible = false;
+  var _lastAmortParams = null;
+
+  function toggleAmortTable(){
+    _amortVisible = !_amortVisible;
+    const wrap = document.getElementById('amort-table-wrap');
+    const btn  = document.getElementById('amort-toggle-btn');
+    if(wrap) wrap.style.display = _amortVisible ? 'block' : 'none';
+    if(btn)  btn.textContent    = _amortVisible ? 'Hide Schedule' : 'Show Schedule';
+    if(_amortVisible) buildAmortTable();
+  }
+
+  function buildAmortTable(){
+    const tbl = document.getElementById('amort-table');
+    if(!tbl || !_lastAmortParams) return;
+    const {loanAmt, rate, term} = _lastAmortParams;
+    const monthly = calcMonthly(loanAmt, rate, term);
+    if(loanAmt <= 0 || monthly <= 0){
+      tbl.innerHTML = '<tbody><tr><td colspan="5" style="text-align:center;color:var(--slate);padding:16px;font-size:12px;">Enter loan details to generate schedule.</td></tr></tbody>';
+      return;
+    }
+    const r = rate / 100 / 12;
+    const fmt$ = v => '$' + Math.round(v).toLocaleString('en-AU');
+    let balance = loanAmt, rows = '';
+    for(let yr = 1; yr <= term; yr++){
+      const openBal = balance;
+      let yPrin = 0, yInt = 0;
+      for(let mo = 1; mo <= 12 && balance > 0.005; mo++){
+        const intCharge  = balance * r;
+        const prinCharge = Math.min(monthly - intCharge, balance);
+        yInt  += intCharge;
+        yPrin += prinCharge;
+        balance = Math.max(0, balance - prinCharge);
+      }
+      rows += `<tr>
+        <td>Yr ${yr}</td>
+        <td>${fmt$(openBal)}</td>
+        <td style="color:var(--sage)">${fmt$(yPrin)}</td>
+        <td style="color:var(--terracotta)">${fmt$(yInt)}</td>
+        <td>${fmt$(balance)}</td>
+      </tr>`;
+    }
+    tbl.innerHTML = `<thead><tr>
+      <th style="text-align:left">Year</th>
+      <th>Opening Bal</th>
+      <th>Principal</th>
+      <th>Interest</th>
+      <th>Closing Bal</th>
+    </tr></thead><tbody>${rows}</tbody>`;
   }
 
   // ── DYNAMIC COST ITEMS ──
@@ -1833,6 +1905,8 @@
     const weekly  = monthly*12/52;
     const totalPaid = monthly*term*12;
     const totalInterest = totalPaid-loanAmt;
+    _lastAmortParams = {loanAmt, rate, term};
+    if(_amortVisible) buildAmortTable();
 
     // Use dynamic reno items system (item 13)
     const renoBase=getRenoTotal();
@@ -4652,7 +4726,7 @@
 
 
 <!-- ══ TOP-RIGHT PROFILE WIDGET (consistent across all pages) ══ -->
-<div id="app-profile-widget" style="position:fixed;top:max(12px, calc(env(safe-area-inset-top) + 8px));right:20px;z-index:5000;transition:opacity 0.2s,visibility 0.2s;">
+<div id="app-profile-widget" style="position:fixed;top:max(12px, calc(env(safe-area-inset-top) + 8px));right:28px;z-index:5000;transition:opacity 0.2s,visibility 0.2s;">
   <button id="app-profile-btn" onclick="toggleAppProfileMenu()" title="Account"
     style="width:46px;height:46px;border-radius:50%;background:var(--gold);
            border:2px solid rgba(201,168,76,0.5);color:var(--charcoal);
@@ -4684,19 +4758,20 @@
       }catch(e){}
     })();
   </script>
-  <div id="app-profile-menu" style="display:none;position:absolute;top:54px;right:0;
-    background:#1C1C1E;border:1px solid rgba(255,255,255,0.1);
-    border-radius:6px;padding:6px;min-width:200px;
-    box-shadow:0 12px 40px rgba(0,0,0,0.6);z-index:5001;">
-    <div id="app-profile-header" style="padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;">
-      <div id="app-profile-name" style="font-size:13px;font-weight:600;color:#F5F0E8;"></div>
-      <div id="app-profile-email" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.35);margin-top:2px;"></div>
+  <div id="app-profile-menu" style="display:none;position:absolute;top:56px;right:0;
+    background:#1C1C1E;border:1px solid rgba(255,255,255,0.12);
+    border-radius:8px;padding:8px;min-width:240px;
+    box-shadow:0 16px 48px rgba(0,0,0,0.65);z-index:5001;">
+    <div id="app-profile-header" style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:6px;">
+      <div id="app-profile-name" style="font-size:15px;font-weight:600;color:#F5F0E8;"></div>
+      <div id="app-profile-email" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;"></div>
     </div>
     <div style="padding:2px 0;">
-      <button onclick="closeAppProfileMenu()" style="width:100%;text-align:left;display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;background:none;border:none;cursor:pointer;font-family:inherit;">🏠 Calculator</button>
-      <a href="account.html" onclick="closeAppProfileMenu()" style="display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;text-decoration:none;">⚙ Account Settings</a>
-      <a id="app-admin-link" href="admin.html" style="display:none;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;text-decoration:none;">🔒 Admin Dashboard</a>
-      <button onclick="appSignOut()" style="width:100%;text-align:left;display:flex;align-items:center;gap:9px;padding:8px 12px;color:rgba(245,240,232,0.45);font-size:13px;border-radius:4px;background:none;border:none;cursor:pointer;font-family:inherit;">→ Sign Out</button>
+      <button onclick="closeAppProfileMenu()" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;background:none;border:none;cursor:pointer;font-family:inherit;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">Calculator</button>
+      <a href="account.html" onclick="closeAppProfileMenu()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">Account Settings</a>
+      <a id="app-admin-link" href="admin.html" style="display:none;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">Admin Dashboard</a>
+      <div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>
+      <button onclick="appSignOut()" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.4);font-size:14px;border-radius:5px;background:none;border:none;cursor:pointer;font-family:inherit;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='none'">Sign Out</button>
     </div>
   </div>
 </div>
