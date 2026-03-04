@@ -99,6 +99,7 @@
   </div>
 </nav>
 <script src="auth-nav.js"></script>
+<script src="stripe-config.js"></script>
 
 <section class="pricing-hero">
   <div class="pricing-hero-inner">
@@ -156,7 +157,7 @@
             <li><div class="ck ck-y">✓</div>PDF export</li>
             <li><div class="ck ck-y">✓</div>Cloud sync + priority support</li>
           </ul>
-          <button class="pcard-btn pb-gold" onclick="location.href='login.html?tab=signup&plan=pro'">Get Pro — 7-day free trial →</button>
+          <button class="pcard-btn pb-gold" id="pro-cta-btn" onclick="startCheckout()">Get Pro — 7-day free trial →</button>
         </div>
       </div>
 
@@ -260,6 +261,46 @@
 </footer>
 
 <script>
+  async function startCheckout(){
+    const SK = 'propCalc_session_v1';
+    let session = null;
+    try { session = JSON.parse(localStorage.getItem(SK)); } catch(e){}
+
+    // Not logged in → send to signup, then back here
+    if(!session || !session.token){
+      location.href = 'login.html?tab=signup&plan=pro&redirect=' + encodeURIComponent('pricing.html?checkout=1');
+      return;
+    }
+
+    const btn = document.getElementById('pro-cta-btn');
+    btn.textContent = 'Loading…';
+    btn.disabled = true;
+
+    const priceId = annual
+      ? (window.STRIPE_PRICES && window.STRIPE_PRICES.pro_annual)
+      : (window.STRIPE_PRICES && window.STRIPE_PRICES.pro_monthly);
+
+    try {
+      const r = await fetch('/.netlify/functions/stripe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+        body: JSON.stringify({ action: 'createCheckout', priceId: priceId, plan: 'pro' }),
+      });
+      const d = await r.json();
+      if(d.ok && d.url){
+        location.href = d.url;
+      } else {
+        alert(d.error || 'Something went wrong. Please try again.');
+        btn.textContent = 'Get Pro — 7-day free trial →';
+        btn.disabled = false;
+      }
+    } catch(e){
+      alert('Network error. Please try again.');
+      btn.textContent = 'Get Pro — 7-day free trial →';
+      btn.disabled = false;
+    }
+  }
+
   let annual=false;
   function toggleBill(){
     annual=!annual;
@@ -272,6 +313,11 @@
     document.getElementById('pro-sub').textContent=annual?'Billed A$86/yr · cancel any time':'Billed monthly AUD · cancel any time';
     document.getElementById('tbl-pro').innerHTML=annual?'A$7/mo (A$86/yr)':'<span style="text-decoration:line-through;opacity:0.45;">$9</span> $2.99/mo';
   }
+  // Auto-trigger checkout if redirected back after login
+  if(new URLSearchParams(location.search).get('checkout')==='1'){
+    setTimeout(startCheckout, 800);
+  }
+
   document.getElementById('nav-ham').addEventListener('click',function(){
     const l=document.querySelector('.site-nav-links');
     l.style.cssText=l.style.display==='flex'?'':'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
