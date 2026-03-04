@@ -345,6 +345,10 @@
   .stat-card { cursor: default; transition: box-shadow 0.15s; }
   .stat-chart { margin-top: 12px; }
   .stat-chart svg { display: block; width: 100%; overflow: visible; }
+  .stat-spinner { display:inline-block;width:22px;height:22px;border:2.5px solid rgba(28,28,30,0.1);border-top-color:rgba(28,28,30,0.4);border-radius:50%;animation:spin 0.75s linear infinite;vertical-align:middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .stat-chart-loading { height:36px;background:linear-gradient(90deg,rgba(28,28,30,0.05) 0%,rgba(28,28,30,0.1) 50%,rgba(28,28,30,0.05) 100%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:3px;margin-top:12px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
   /* ── Scheme panel collapse ── */
   .scheme-panel { background: rgba(28,28,30,0.03); border: 1px solid rgba(28,28,30,0.1); border-radius: var(--radius-sm); margin-bottom: 12px; overflow: hidden; }
@@ -451,40 +455,58 @@
   <!-- Stats row — always visible outside tabs -->
   <div class="admin-stats" id="admin-stats">
     <div class="stat-card">
-      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-value" id="stat-total"><div class="stat-spinner"></div></div>
       <div class="stat-label">Total Users</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">All registered accounts</div>
-      <div class="stat-chart" id="stat-chart-total"></div>
+      <div class="stat-chart" id="stat-chart-total"><div class="stat-chart-loading"></div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="stat-free">—</div>
+      <div class="stat-value" id="stat-free"><div class="stat-spinner"></div></div>
       <div class="stat-label">Free Plan</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">1 saved scenario limit</div>
-      <div class="stat-chart" id="stat-chart-free"></div>
+      <div class="stat-chart" id="stat-chart-free"><div class="stat-chart-loading"></div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="stat-pro">—</div>
+      <div class="stat-value" id="stat-pro"><div class="stat-spinner"></div></div>
       <div class="stat-label">Pro Plan</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Unlimited + PDF + Projection</div>
-      <div class="stat-chart" id="stat-chart-pro"></div>
+      <div class="stat-chart" id="stat-chart-pro"><div class="stat-chart-loading"></div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="stat-adviser">—</div>
+      <div class="stat-value" id="stat-adviser"><div class="stat-spinner"></div></div>
       <div class="stat-label">Adviser Plan</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Multi-client + white-label</div>
-      <div class="stat-chart" id="stat-chart-adviser"></div>
+      <div class="stat-chart" id="stat-chart-adviser"><div class="stat-chart-loading"></div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="stat-sessions">—</div>
+      <div class="stat-value" id="stat-sessions"><div class="stat-spinner"></div></div>
       <div class="stat-label">Login Tokens</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Valid tokens — 1 per device/session</div>
-      <div class="stat-chart" id="stat-chart-sessions"></div>
+      <div class="stat-chart" id="stat-chart-sessions"><div class="stat-chart-loading"></div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-value" id="stat-scenarios-top">—</div>
+      <div class="stat-value" id="stat-scenarios-top"><div class="stat-spinner"></div></div>
       <div class="stat-label">Scenario Sets</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Saved property scenario lists</div>
-      <div class="stat-chart" id="stat-chart-scenarios"></div>
+      <div class="stat-chart" id="stat-chart-scenarios"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-new-users"><div class="stat-spinner"></div></div>
+      <div class="stat-label">New This Week</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Signups in last 7 days</div>
+      <div class="stat-chart" id="stat-chart-new-users"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-revenue"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Revenue Est.</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Monthly AUD (Pro + Adviser)</div>
+      <div class="stat-chart" id="stat-chart-revenue"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-avg-scenarios"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Avg Scenarios</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Scenario lists per user</div>
+      <div class="stat-chart" id="stat-chart-avg"><div class="stat-chart-loading"></div></div>
     </div>
   </div>
 
@@ -522,12 +544,13 @@
               <th>Plan</th>
               <th>Joined</th>
               <th>Last Login</th>
+              <th>Last IP</th>
               <th>Role</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="users-tbody">
-            <tr><td colspan="7" style="text-align:center;color:var(--slate);padding:32px;font-style:italic;">Loading users…</td></tr>
+            <tr><td colspan="8" style="text-align:center;color:var(--slate);padding:32px;font-style:italic;">Loading users…</td></tr>
           </tbody>
         </table>
       </div>
@@ -1161,13 +1184,14 @@ function filterUsers(){
 function renderUsers(users){
   const tbody = document.getElementById('users-tbody');
   if(!users.length){
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No users found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No users found</td></tr>';
     return;
   }
   tbody.innerHTML = users.map(u => {
     const plan = u.plan || 'free';
     const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '—';
-    const lastLogin = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    const lastLogin = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    const ip = u.lastLoginIp || '—';
     const roleHtml = u.role === 'admin' ? '<span class="role-badge">admin</span>' : '';
     const roleAction = u.role !== 'admin' ? 'grant-admin' : 'revoke-admin';
     const roleLabel  = u.role !== 'admin' ? '→ Admin'      : 'Revoke Admin';
@@ -1177,6 +1201,7 @@ function renderUsers(users){
       <td><span class="plan-badge plan-${escHtml(plan)}">${escHtml(plan)}</span></td>
       <td style="font-family:var(--font-mono);font-size:11px;">${joined}</td>
       <td style="font-family:var(--font-mono);font-size:11px;">${lastLogin}</td>
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">${escHtml(ip)}</td>
       <td>${roleHtml}</td>
       <td>
         <div class="user-actions">
@@ -1514,8 +1539,20 @@ function exportConfigJson(){
 }
 
 async function loadStats(){
+  // Show loading state immediately
+  const spinner = '<div class="stat-spinner"></div>';
+  const chartLoad = '<div class="stat-chart-loading"></div>';
+  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-sessions','stat-scenarios-top','stat-new-users','stat-revenue','stat-avg-scenarios'];
+  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-sessions','stat-chart-scenarios','stat-chart-new-users','stat-chart-revenue','stat-chart-avg'];
+  statIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=spinner; });
+  chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=chartLoad; });
+
   const d = await callAuth('adminGetStats');
-  if(!d.ok) return;
+  if(!d.ok){
+    statIds.forEach(id => { const e=document.getElementById(id); if(e) e.textContent='—'; });
+    chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=''; });
+    return;
+  }
   const s = d.stats || {};
   const history = d.history || [];
   const el = id => document.getElementById(id);
@@ -1527,6 +1564,9 @@ async function loadStats(){
   if(el('stat-adviser'))       el('stat-adviser').textContent       = s.adviserUsers       ?? '—';
   if(el('stat-sessions'))      el('stat-sessions').textContent      = s.activeSessions     ?? '—';
   if(el('stat-scenarios-top')) el('stat-scenarios-top').textContent = s.totalScenarioLists ?? '—';
+  if(el('stat-new-users'))     el('stat-new-users').textContent     = s.newUsersLast7      ?? '—';
+  if(el('stat-revenue'))       el('stat-revenue').textContent       = s.revenueEstimate !== undefined ? '$' + s.revenueEstimate : '—';
+  if(el('stat-avg-scenarios')) el('stat-avg-scenarios').textContent = s.avgScenariosPerUser ?? '—';
 
   // Render 7-day sparklines for every stat card
   const mk = (key) => history.map(h => ({ date: h.date, value: h[key] }));
@@ -1536,6 +1576,9 @@ async function loadStats(){
   renderSparkline('stat-chart-adviser',   mk('adviserUsers'),       'rgba(60,120,165,0.9)',      'rgba(91,143,171,0.5)');
   renderSparkline('stat-chart-sessions',  mk('activeSessions'),     'rgba(91,143,171,0.85)',     'rgba(91,143,171,0.4)');
   renderSparkline('stat-chart-scenarios', mk('totalScenarioLists'), 'rgba(70,140,110,0.85)',     'rgba(90,158,123,0.4)');
+  renderSparkline('stat-chart-new-users', mk('newUsersLast7'),      'rgba(90,158,123,0.9)',      'rgba(90,158,123,0.5)');
+  renderSparkline('stat-chart-revenue',   mk('revenueEstimate'),    'rgba(201,168,76,0.9)',      'rgba(201,168,76,0.5)');
+  renderSparkline('stat-chart-avg',       mk('avgScenariosPerUser'),'rgba(150,100,180,0.8)',     'rgba(150,100,180,0.4)');
 }
 
 function escHtml(s){
@@ -1616,23 +1659,66 @@ function openScenarioDetail(scenarioId){
   const fmt$  = v => (v !== '' && v !== null && v !== undefined) ? '$' + parseFloat(v).toLocaleString('en-AU', {minimumFractionDigits:0,maximumFractionDigits:0}) : null;
   const fmtTs = ts => ts ? new Date(ts).toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
 
-  const price     = fmt$(vals['inp-price'] || s.price);
-  const deposit   = fmt$(vals['inp-deposit']);
-  const loanTerm  = vals['inp-term'] || vals['inp-loan-term'];
-  const intRate   = vals['inp-rate'];
-  const rent      = vals['inp-rent'];
+  const priceNum  = parseFloat(vals['inp-price']  || s.price  || 0);
+  const depNum    = parseFloat(vals['inp-deposit'] || 0);
+  const govtPct   = parseFloat(vals['inp-govt'] || 0);
+  const govtNum   = priceNum * govtPct / 100;
+  const loanNum   = Math.max(0, priceNum - depNum - govtNum);
+  const termNum   = parseFloat(vals['inp-term'] || vals['inp-loan-term'] || 30);
+  const rateNum   = parseFloat(vals['inp-rate'] || 0);
+  const rentNum   = parseFloat(vals['inp-rent'] || 0);
+  const savingsNum= parseFloat(vals['inp-savings'] || 0);
+
+  const price     = priceNum  ? fmt$(priceNum)  : null;
+  const deposit   = depNum    ? fmt$(depNum)    : null;
+  const loanTerm  = termNum   ? termNum         : null;
+  const intRate   = rateNum   ? rateNum         : null;
+  const rent      = rentNum   ? rentNum         : null;
   const bed  = s.bed  || vals['pd-bed']  || '';
   const bath = s.bath || vals['pd-bath'] || '';
   const car  = s.car  || vals['pd-car']  || '';
   const propType = s.type || vals['pd-type'] || '';
 
+  // Compute monthly repayment
+  let monthlyRep = null;
+  if(loanNum > 0 && rateNum > 0 && termNum > 0){
+    const r = rateNum/100/12, n = termNum*12;
+    monthlyRep = loanNum * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+  }
+  // Gross yield
+  const grossYield = (rentNum > 0 && priceNum > 0) ? (rentNum * 52 / priceNum * 100).toFixed(1) + '%' : null;
+  // Total upfront costs from dynCosts
+  const dynCosts   = (s.state && s.state.dynCosts)   || [];
+  const renoItems  = (s.state && s.state.renoItems)  || [];
+  const totalCosts = dynCosts.reduce((acc, c) => acc + (parseFloat(c.amount)||0), 0);
+  const renoTotal  = renoItems.reduce((acc, r) => acc + (parseFloat(r.amount)||0), 0);
+
   const row = (label, val, mono) => val
     ? `<div><div class="config-label">${label}</div><div style="font-size:13px;${mono?'font-family:var(--font-mono);':''} margin-top:3px;">${escHtml(String(val))}</div></div>`
     : '';
 
-  const bigRow = (label, val) => val
-    ? `<div><div class="config-label">${label}</div><div style="font-family:var(--font-mono);font-size:20px;font-weight:500;margin-top:3px;">${escHtml(String(val))}</div></div>`
+  const bigRow = (label, val, color) => val
+    ? `<div><div class="config-label">${label}</div><div style="font-family:var(--font-mono);font-size:20px;font-weight:500;margin-top:3px;${color?'color:'+color+';':''}">${escHtml(String(val))}</div></div>`
     : '';
+
+  // Cost items HTML
+  const costsHtml = dynCosts.length ? `
+    <div style="border-top:1px solid rgba(28,28,30,0.09);padding-top:14px;margin-top:4px;">
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:10px;">Upfront Cost Items</div>
+      ${dynCosts.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(28,28,30,0.05);font-size:13px;"><span style="color:var(--slate)">${escHtml(c.name||'Item')}</span><span style="font-family:var(--font-mono)">${fmt$(parseFloat(c.amount)||0)}</span></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13px;font-weight:600;margin-top:2px;border-top:1px solid rgba(28,28,30,0.1);">
+        <span>Total</span><span style="font-family:var(--font-mono)">${fmt$(totalCosts)}</span>
+      </div>
+    </div>` : '';
+
+  const renoHtml = renoItems.length ? `
+    <div style="border-top:1px solid rgba(28,28,30,0.09);padding-top:14px;margin-top:4px;">
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:10px;">Renovation Items</div>
+      ${renoItems.map(r=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(28,28,30,0.05);font-size:13px;"><span style="color:var(--slate)">${escHtml(r.name||'Item')}</span><span style="font-family:var(--font-mono)">${fmt$(parseFloat(r.amount)||0)}</span></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13px;font-weight:600;margin-top:2px;border-top:1px solid rgba(28,28,30,0.1);">
+        <span>Total</span><span style="font-family:var(--font-mono)">${fmt$(renoTotal)}</span>
+      </div>
+    </div>` : '';
 
   document.getElementById('scenario-detail-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;padding:8px 0 16px;">
@@ -1653,11 +1739,17 @@ function openScenarioDetail(scenarioId){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;">
         ${bigRow('Purchase Price', price)}
         ${deposit ? bigRow('Deposit', deposit) : ''}
+        ${loanNum ? bigRow('Loan Amount', fmt$(loanNum), 'var(--risk-red)') : ''}
+        ${monthlyRep ? bigRow('Monthly Repayment', fmt$(monthlyRep)) : ''}
         ${loanTerm ? row('Loan Term', loanTerm + ' years', true) : ''}
         ${intRate  ? row('Interest Rate', parseFloat(intRate).toFixed(2) + '%', true) : ''}
         ${rent     ? row('Weekly Rent', fmt$(rent) + '/wk', true) : ''}
+        ${grossYield ? row('Gross Yield', grossYield, true) : ''}
+        ${savingsNum ? row('Savings / Equity', fmt$(savingsNum), true) : ''}
       </div>
     </div>` : ''}
+    ${costsHtml}
+    ${renoHtml}
     <div style="border-top:1px solid rgba(28,28,30,0.09);padding-top:10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
       <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">Owner: ${escHtml(userEmail)}</div>
       <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">ID: ${escHtml(s.id||'—')}</div>

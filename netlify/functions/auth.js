@@ -85,7 +85,15 @@ exports.handler = async function(event){
   if(action==='signup'){
     const {email,password,name,plan}=body;
     if(!email||!password) return fail('Email and password required');
-    if(password.length<8) return fail('Password must be at least 8 characters');
+    // Check site config for signup restrictions
+    const siteCfgSu=await rGet('config:site')||{};
+    if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
+    const pwMin=parseInt(siteCfgSu.minPasswordLength)||8;
+    if(password.length<pwMin) return fail('Password must be at least '+pwMin+' characters');
+    if(siteCfgSu.requireEmailDomain){
+      const domain=siteCfgSu.requireEmailDomain.toLowerCase().replace(/^@/,'');
+      if(!email.toLowerCase().trim().endsWith('@'+domain)) return fail('Signups are restricted to @'+domain+' email addresses');
+    }
     const ekey='user:'+email.toLowerCase().trim();
     if(await rGet(ekey)) return fail('An account with this email already exists');
     const userId=Date.now().toString(36)+crypto.randomBytes(4).toString('hex');
@@ -273,7 +281,8 @@ exports.handler = async function(event){
       'enablePdfExport','enableProjections','enableGuestAccess',
       'proMonthlyPrice','proAnnualPrice','adviserMonthlyPrice',
       'contactDiscord','contactTwitter','referralEnabled','referralBonus',
-      'maxUploadMb','sessionTtlDays','requireEmailDomain'];
+      'maxUploadMb','sessionTtlDays','requireEmailDomain',
+      'stripePubKey','stripeProMonthly','stripeProAnnual','stripePortal'];
     const sanitised={};
     for(const k of allowed) if(k in config) sanitised[k]=config[k];
     await rSet('config:site',sanitised);
@@ -301,18 +310,28 @@ exports.handler = async function(event){
         activeSessions=tokenData.filter(d=>d&&(!d.expires||Date.now()<d.expires)).length;
       }
       const totalScenarioLists=scenarioKeys?scenarioKeys.length:0;
+      // New users in the last 7 days
+      const sevenDaysAgo=Date.now()-7*24*60*60*1000;
+      const newUsersLast7=validUsers.filter(u=>u.createdAt&&u.createdAt>sevenDaysAgo).length;
+      // Revenue estimate from config prices
+      const siteCfgStats=await rGet('config:site')||{};
+      const proPrice=parseFloat(siteCfgStats.proMonthlyPrice)||9;
+      const adviserPrice=parseFloat(siteCfgStats.adviserMonthlyPrice)||29;
+      const revenueEstimate=Math.round(proUsers*proPrice+adviserUsers*adviserPrice);
+      // Avg scenario lists per user
+      const avgScenariosPerUser=totalUsers>0?Math.round(totalScenarioLists/totalUsers*10)/10:0;
       // Store today's snapshot (31-day TTL so we keep ~1 month of history)
       const today=new Date().toISOString().slice(0,10);
-      await rSet('stats:snapshot:'+today,{date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists},60*60*24*31);
+      await rSet('stats:snapshot:'+today,{date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser},60*60*24*31);
       // Fetch last 7 days of daily snapshots
       const history=[];
       for(let i=6;i>=0;i--){
         const d=new Date();d.setDate(d.getDate()-i);
         const dateStr=d.toISOString().slice(0,10);
         const snap=await rGet('stats:snapshot:'+dateStr);
-        history.push(snap||{date:dateStr,totalUsers:null,freeUsers:null,proUsers:null,adviserUsers:null,activeSessions:null,totalScenarioLists:null});
+        history.push(snap||{date:dateStr,totalUsers:null,freeUsers:null,proUsers:null,adviserUsers:null,activeSessions:null,totalScenarioLists:null,newUsersLast7:null,revenueEstimate:null,avgScenariosPerUser:null});
       }
-      return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists},history});
+      return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser},history});
     }catch(e){ return fail('Stats error: '+e.message); }
   }
 
