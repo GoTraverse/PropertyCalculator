@@ -276,7 +276,7 @@ exports.handler = async function (event) {
     if (!priceId) return fail('priceId required');
 
     // Fetch site config for success/cancel URLs if not provided
-    let siteUrl = 'https://equitysight.app';
+    let siteUrl = 'https://equitysight.netlify.app';
     try {
       const cfg = await rGet('config:site') || {};
       if (cfg.siteUrl) siteUrl = cfg.siteUrl.replace(/\/$/, '');
@@ -322,7 +322,7 @@ exports.handler = async function (event) {
       return fail('No billing account found. Please subscribe first.');
     }
 
-    let siteUrl = 'https://equitysight.app';
+    let siteUrl = 'https://equitysight.netlify.app';
     try {
       const cfg = await rGet('config:site') || {};
       if (cfg.siteUrl) siteUrl = cfg.siteUrl.replace(/\/$/, '');
