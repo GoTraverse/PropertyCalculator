@@ -301,14 +301,16 @@
   .reno-note:focus{border-color:var(--sage);background:white;min-height:48px;}
   .reno-note::placeholder{color:rgba(74,74,82,0.4);font-style:italic;}
 
-  .tl{position:relative;padding-left:24px;}
-  .tl::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--gold),var(--sage));}
-  .tli{position:relative;margin-bottom:20px;}
-  .tld{position:absolute;left:-20px;top:4px;width:9px;height:9px;border-radius:50%;border:2px solid var(--warm-white);box-shadow:0 0 0 2px currentColor;}
-  .tlp{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
-  .tlt{font-size:17px;font-weight:500;margin-bottom:2px;}
-  .tldesc{font-size:12px;color:var(--slate);line-height:1.6;}
-  .tldr{display:inline-block;background:var(--charcoal);color:var(--cream);font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;margin-top:4px;}
+  .tl{position:relative;padding-left:30px;}
+  .tl::before{content:'';position:absolute;left:9px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--gold),var(--sage));border-radius:2px;}
+  .tli{position:relative;margin-bottom:0;padding:14px 0 14px;border-bottom:1px solid rgba(28,28,30,0.06);}
+  .tli:last-child{border-bottom:none;}
+  .tld{position:absolute;left:-23px;top:18px;width:12px;height:12px;border-radius:50%;border:2px solid var(--warm-white);box-shadow:0 0 0 2px currentColor;background:var(--warm-white);}
+  .tlp{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+  .tldr-cal{display:inline-flex;align-items:center;background:rgba(28,28,30,0.06);color:var(--slate);font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:auto;white-space:nowrap;}
+  .tlt{font-size:15px;font-weight:600;margin-bottom:4px;color:var(--charcoal);}
+  .tldesc{font-size:12px;color:var(--slate);line-height:1.65;}
+  .tldr{display:inline-block;background:var(--charcoal);color:var(--cream);font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:10px;margin-top:5px;letter-spacing:0.3px;}
 
   .rr-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
   .rri{display:flex;align-items:flex-start;gap:9px;padding:10px 0;border-bottom:1px solid rgba(28,28,30,0.07);font-size:12px;line-height:1.6;}
@@ -518,18 +520,21 @@
     #proj-svg-wrap{width:100%!important;min-width:0!important;}
   #proj-svg-wrap svg{width:100%!important;min-width:0!important;display:block;}
 
-    /* Projection tooltip — compact on mobile so it fits in the chart area */
+    /* Projection tooltip — very compact on mobile */
     #proj-tooltip{
-      font-size:11px!important;
-      padding:10px 12px!important;
+      font-size:10px!important;
+      padding:7px 9px!important;
       min-width:0!important;
       width:max-content!important;
-      max-width:min(210px,calc(100vw - 32px))!important;
+      max-width:min(170px,calc(100vw - 24px))!important;
+      border-radius:4px!important;
     }
-    #proj-tooltip > div:first-child{font-size:11px!important;margin-bottom:8px!important;}
-    #proj-tooltip span[style*="font-size:19px"]{font-size:14px!important;}
-    #proj-tooltip span[style*="font-size:22px"]{font-size:15px!important;}
-    #proj-tooltip span[style*="font-size:13px"]{font-size:11px!important;}
+    #proj-tooltip > div:first-child{font-size:10px!important;margin-bottom:5px!important;letter-spacing:1px!important;}
+    #proj-tooltip span[style*="font-size:19px"]{font-size:12px!important;font-weight:600!important;}
+    #proj-tooltip span[style*="font-size:22px"]{font-size:13px!important;font-weight:700!important;}
+    #proj-tooltip span[style*="font-size:13px"]{font-size:10px!important;}
+    #proj-tooltip > div > div{gap:10px!important;}
+    #proj-tooltip > div > div > div{gap:6px!important;padding-top:6px!important;margin-top:2px!important;}
 
     /* Fix 1: Extra bottom padding so the floating calc FAB doesn't obscure content */
     main{padding-bottom:max(110px, calc(env(safe-area-inset-bottom) + 96px))!important;}
@@ -641,21 +646,21 @@
   .sidebar.collapsed .sidebar-collapsed-hint{display:block!important;}
   .sidebar.collapsed #sidebar-close-btn{display:none!important;}
   .sidebar.collapsed #sidebar-toggle{margin:0 auto;}
-  .sidebar-collapsed-hint{display:none;writing-mode:vertical-rl;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.25);margin-top:12px;cursor:pointer;user-select:none;}
+  .sidebar-collapsed-hint{display:none;writing-mode:vertical-rl;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:rgba(245,240,232,0.18);margin-top:16px;cursor:pointer;user-select:none;}
   /* Collapse/expand toggle button */
   #sidebar-toggle{
-    width:30px;height:30px;
+    width:38px;height:38px;
     display:flex;align-items:center;justify-content:center;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.16);
-    border-radius:5px;
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:6px;
     color:var(--cream);
-    font-size:18px;line-height:1;
+    font-size:20px;line-height:1;
     cursor:pointer;
     flex-shrink:0;
     transition:background 0.15s,transform 0.25s;
   }
-  #sidebar-toggle:hover{background:rgba(255,255,255,0.14);}
+  #sidebar-toggle:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.32);}
   .sidebar.collapsed #sidebar-toggle{transform:rotate(180deg);}
   /* Mobile: toggle btn hidden (⚙ settings button already exists) */
   @media(max-width:600px){
@@ -810,7 +815,7 @@
       <button onclick="toggleMobileSidebar()" style="display:none;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:3px;color:var(--cream);font-size:18px;cursor:pointer;padding:2px 8px;line-height:1;" id="sidebar-close-btn">✕</button>
     </div>
   </div>
-  <div class="sidebar-collapsed-hint" onclick="toggleSidebarCollapse()">Calculator</div>
+  <div class="sidebar-collapsed-hint" onclick="toggleSidebarCollapse()" title="Expand calculator">⚙</div>
 
   <div class="sidebar-content">
 
@@ -886,16 +891,30 @@
     <div class="iw"><input type="number" id="inp-term" value="30" min="5" max="30" step="1" oninput="syncRange('term');recalc()"></div>
     <input type="range" id="rng-term" min="5" max="30" step="1" value="30" oninput="syncInput('term');recalc()">
   </div>
+  <div class="ig">
+    <div class="il" style="font-size:12px;">Est. Settlement Date <span id="lbl-settle-date" style="font-size:11px;color:rgba(201,168,76,0.7);"></span></div>
+    <div class="iw" style="position:relative;">
+      <input type="date" id="inp-settle-date" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;color-scheme:dark;" oninput="onSettleDateChange()">
+    </div>
+    <div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:4px;font-style:italic;">Used to show calendar years in projection</div>
+  </div>
 
   <hr class="div">
   <!-- PURCHASE COSTS — dynamic -->
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <div class="s-head" style="margin-bottom:0">Purchase Costs</div>
-    <button class="add-cost-btn" style="width:auto;padding:4px 9px;font-size:9px;" onclick="addCostItem()">＋ Add Item</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <div class="s-head" style="margin-bottom:0;font-size:10px;letter-spacing:1.5px;">Purchase Costs</div>
+    <button class="add-cost-btn" style="width:auto;padding:4px 9px;font-size:9px;" onclick="addCostItem('purchase')">＋ Add</button>
+  </div>
+  <div class="cost-items-list" id="cost-items-purchase">
+    <!-- Purchase costs seeded in JS -->
   </div>
 
-  <div class="cost-items-list" id="cost-items-list">
-    <!-- All costs are now fully dynamic (item 14) — seeded in JS initPage() -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;margin-bottom:8px;">
+    <div class="s-head" style="margin-bottom:0;font-size:10px;letter-spacing:1.5px;color:var(--terracotta-light);">Move-Out Costs</div>
+    <button class="add-cost-btn" style="width:auto;padding:4px 9px;font-size:9px;" onclick="addCostItem('moveout')">＋ Add</button>
+  </div>
+  <div class="cost-items-list" id="cost-items-moveout">
+    <!-- Move-out costs seeded in JS -->
   </div>
 
   <div id="reno-sidebar-section" style="display:none;">
@@ -1480,15 +1499,51 @@
       <div class="card">
         <div class="ca" style="background:var(--gold)"></div>
         <h3>Purchase to Move-In — <span id="tl-address">your property</span></h3>
-        <p style="font-size:12px;color:var(--slate);margin-bottom:22px;line-height:1.6">Estimated timeframes from offer accepted through to settled and living in your new home.</p>
+        <p style="font-size:12px;color:var(--slate);margin-bottom:18px;line-height:1.6">Estimated timeframes from offer accepted through to settled and living in your new home.</p>
         <div class="tl">
-          <div class="tli"><div class="tld" style="color:var(--gold)"></div><div class="tlp" style="color:var(--gold)">Phase 01</div><div class="tlt">Offer Accepted & Contracts Exchanged</div><div class="tldesc">You sign contracts, pay your deposit, and the property is taken off market. Cooling-off period applies (typically 5 business days in QLD).</div><div class="tldr">Week 1–2</div></div>
-          <div class="tli"><div class="tld" style="color:var(--terracotta)"></div><div class="tlp" style="color:var(--terracotta)">Phase 02</div><div class="tlt">Building & Pest Inspection</div><div class="tldesc">Book a licensed inspector within the first week. Results typically returned within 24–48 hours. Address any findings before settlement.</div><div class="tldr">Week 1–3</div></div>
-          <div class="tli"><div class="tld" style="color:var(--sky)"></div><div class="tlp" style="color:var(--sky)">Phase 03</div><div class="tlt">Finance & Loan Finalisation</div><div class="tldesc">Your bank formally approves the loan. Government scheme contribution confirmed. Solicitor prepares for settlement.</div><div class="tldr">Week 2–5</div></div>
-          <div class="tli"><div class="tld" style="color:var(--sage)"></div><div class="tlp" style="color:var(--sage)">Phase 04</div><div class="tlt">Settlement Day</div><div class="tldesc">Title transfers to your name. Final balance paid. Keys handed over. You are now a homeowner.</div><div class="tldr">Week 4–12</div></div>
-          <div class="tli"><div class="tld" style="color:var(--terracotta-light)"></div><div class="tlp" style="color:var(--terracotta-light)">Phase 05</div><div class="tlt">Overlap Period <span id="tl-overlap-badge" style="font-family:'DM Mono',monospace;font-size:10px;background:var(--terracotta);color:white;padding:2px 7px;border-radius:2px;margin-left:6px;vertical-align:middle;"></span></div><div class="tldesc" id="tl-overlap-desc">You continue renting while renovations begin. Both rent and mortgage repayments are active during this window.</div><div class="tldr" id="tl-overlap-dur">Weeks 1–4 post-settlement</div></div>
-          <div class="tli"><div class="tld" style="color:var(--terracotta-light)"></div><div class="tlp" style="color:var(--terracotta-light)">Phase 06</div><div class="tlt">Renovations Complete</div><div class="tldesc">Tradies finish, final inspections done. Property ready to move in.</div><div class="tldr">Month 3–5</div></div>
-          <div class="tli"><div class="tld" style="color:var(--reward-green)"></div><div class="tlp" style="color:var(--reward-green)">Phase 07</div><div class="tlt">Move In & Rent Ends 🎉</div><div class="tldesc">You move in, give notice to your landlord, and your rent obligation ends. Single housing cost from here.</div><div class="tldr">Month 4–6</div></div>
+          <div class="tli">
+            <div class="tld" style="color:var(--gold)"></div>
+            <div class="tlp" style="color:var(--gold)">Phase 01 <span class="tldr-cal">Week 1–2</span></div>
+            <div class="tlt">Offer Accepted & Contracts Exchanged</div>
+            <div class="tldesc">You sign contracts, pay your deposit, and the property is taken off market. Cooling-off period applies (typically 5 business days in QLD).</div>
+          </div>
+          <div class="tli">
+            <div class="tld" style="color:var(--terracotta)"></div>
+            <div class="tlp" style="color:var(--terracotta)">Phase 02 <span class="tldr-cal">Week 1–3</span></div>
+            <div class="tlt">Building & Pest Inspection</div>
+            <div class="tldesc">Book a licensed inspector within the first week. Results typically returned within 24–48 hours. Address any findings before settlement.</div>
+          </div>
+          <div class="tli">
+            <div class="tld" style="color:var(--sky)"></div>
+            <div class="tlp" style="color:var(--sky)">Phase 03 <span class="tldr-cal">Week 2–5</span></div>
+            <div class="tlt">Finance & Loan Finalisation</div>
+            <div class="tldesc">Your bank formally approves the loan. Government scheme contribution confirmed. Solicitor prepares for settlement.</div>
+          </div>
+          <div class="tli">
+            <div class="tld" style="color:var(--sage)"></div>
+            <div class="tlp" style="color:var(--sage)">Phase 04 <span class="tldr-cal" id="tl-settle-badge">Week 4–12</span></div>
+            <div class="tlt">Settlement Day 🔑</div>
+            <div class="tldesc">Title transfers to your name. Final balance paid. Keys handed over. You are now a homeowner.</div>
+          </div>
+          <div class="tli">
+            <div class="tld" style="color:var(--terracotta-light)"></div>
+            <div class="tlp" style="color:var(--terracotta-light)">Phase 05 <span id="tl-overlap-badge" style="display:inline-flex;align-items:center;background:rgba(196,112,74,0.18);color:var(--terracotta);font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:4px;"></span> <span class="tldr-cal" id="tl-overlap-dur-cal">Weeks 1–4 post-settlement</span></div>
+            <div class="tlt">Overlap Period</div>
+            <div class="tldesc" id="tl-overlap-desc">You continue renting while renovations begin. Both rent and mortgage repayments are active during this window.</div>
+            <div class="tldr" id="tl-overlap-dur" style="display:none;"></div>
+          </div>
+          <div class="tli">
+            <div class="tld" style="color:var(--terracotta-light)"></div>
+            <div class="tlp" style="color:var(--terracotta-light)">Phase 06 <span class="tldr-cal">Month 3–5</span></div>
+            <div class="tlt">Renovations Complete</div>
+            <div class="tldesc">Tradies finish, final inspections done. Property ready to move in.</div>
+          </div>
+          <div class="tli">
+            <div class="tld" style="color:var(--reward-green)"></div>
+            <div class="tlp" style="color:var(--reward-green)">Phase 07 <span class="tldr-cal">Month 4–6</span></div>
+            <div class="tlt">Move In & Rent Ends 🎉</div>
+            <div class="tldesc">You move in, give notice to your landlord, and your rent obligation ends. Single housing cost from here.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1673,28 +1728,28 @@
 
   // ── ALL PURCHASE COSTS ARE NOW DYNAMIC (item 14) ──
   // Seeded with defaults in initPage()
-  function addCostItem(){
+  // category: 'purchase' (default) | 'moveout'
+  function addCostItem(category){
+    const cat = category || 'purchase';
     const id='dyn-'+dynId++;
-    dynCosts.push({id,name:'New Item',amount:0});
+    dynCosts.push({id, name:'New Item', amount:0, category:cat});
     renderDynCosts();
     recalc();
-  }
-  function addCostItemAndFocus(){
-    addCostItem();
-    // Focus the name field of the newly added row and scroll it into view (critical for iOS PWA)
+    // Focus the name field of the newly added row
     setTimeout(function(){
-      var rows = document.querySelectorAll('.dyn-cost-row');
-      if(rows.length > 0){
+      const listId = cat === 'moveout' ? 'cost-items-moveout' : 'cost-items-purchase';
+      var rows = document.getElementById(listId)?.querySelectorAll('.dyn-cost-row');
+      if(rows && rows.length > 0){
         var lastRow = rows[rows.length-1];
         var nameInput = lastRow.querySelector('input[type="text"]');
         if(nameInput){
-          // Scroll the new row into view before focusing (iOS keyboard hides it otherwise)
           lastRow.scrollIntoView({behavior:'smooth', block:'nearest'});
           setTimeout(function(){ nameInput.focus(); nameInput.select(); }, 80);
         }
       }
     }, 60);
   }
+  function addCostItemAndFocus(){ addCostItem('purchase'); }
 
   function removeCostItem(id){
     dynCosts=dynCosts.filter(c=>c.id!==id);
@@ -1702,20 +1757,26 @@
     recalc();
   }
 
-  function renderDynCosts(){
-    const list=document.getElementById('cost-items-list');
+  function _renderCostList(listId, costs){
+    const list = document.getElementById(listId);
     if(!list) return;
-    list.innerHTML='';
-    dynCosts.forEach(cost=>{
-      const row=document.createElement('div');
-      row.className='dyn-cost-row';
-      row.innerHTML=`
+    list.innerHTML = '';
+    costs.forEach(cost=>{
+      const row = document.createElement('div');
+      row.className = 'dyn-cost-row';
+      row.innerHTML = `
         <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" oninput="updateDynCost('${cost.id}','name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var nxt=this.closest('.dyn-cost-row').querySelector('input[type=number]');if(nxt){nxt.focus();nxt.select();}}">
-        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" step="50" oninput="updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);recalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItemAndFocus();}"></div>
+        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" step="50" oninput="updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);recalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${cost.category||'purchase'}');}"></div>
         <button class="dyn-del" onclick="removeCostItem('${cost.id}')" title="Remove">−</button>
       `;
       list.appendChild(row);
     });
+  }
+
+  function renderDynCosts(){
+    // Support old single-list id for backward compat
+    _renderCostList('cost-items-purchase', dynCosts.filter(c=>c.category!=='moveout'));
+    _renderCostList('cost-items-moveout',  dynCosts.filter(c=>c.category==='moveout'));
   }
 
   function updateDynCost(id,field,val){
@@ -1725,6 +1786,12 @@
 
   function getExtraCosts(){
     return dynCosts.reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+  }
+  function getPurchaseCosts(){
+    return dynCosts.filter(c=>c.category!=='moveout').reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+  }
+  function getMoveOutCosts(){
+    return dynCosts.filter(c=>c.category==='moveout').reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
   }
 
   // ── RENO ITEMS — dynamic custom items (item 13) ──
@@ -1984,13 +2051,21 @@
 
     set('cr-deposit',fmt(deposit));
 
-    // dynamic cost rows display (all costs now dynamic, item 14)
+    // dynamic cost rows display — two groups: purchase and move-out
     const display=document.getElementById('cost-rows-display');
     if(display){
       let html='';
-      dynCosts.forEach(c=>{
+      const purchaseCosts = dynCosts.filter(c=>c.category!=='moveout');
+      const moveoutCosts  = dynCosts.filter(c=>c.category==='moveout');
+      purchaseCosts.forEach(c=>{
         html+=`<div class="cr"><span class="nm">${(c.name||'Item').replace(/</g,'&lt;')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
       });
+      if(moveoutCosts.length>0){
+        html+=`<div class="cr" style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--terracotta-light);text-transform:uppercase;border-bottom:1px solid rgba(28,28,30,0.05);padding-top:8px;padding-bottom:2px;"><span class="nm">Move-Out Costs</span><span class="am"></span></div>`;
+        moveoutCosts.forEach(c=>{
+          html+=`<div class="cr"><span class="nm" style="color:var(--terracotta)">${(c.name||'Item').replace(/</g,'&lt;')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
+        });
+      }
       display.innerHTML=html;
     }
     set('cr-total',fmt(upfront));
@@ -2133,11 +2208,13 @@
     // ─── TAB 5: TIMELINE ───
     set('tl-address',address);
     const ob=document.getElementById('tl-overlap-badge');
-    if(ob)ob.textContent=weeks>0?weeks+' wks':'Optional';
+    if(ob)ob.textContent=weeks>0?weeks+' wks':'';
     const od=document.getElementById('tl-overlap-desc');
     if(od)od.textContent=weeks>0?`You continue renting for ${weeks} weeks while renovations begin — paying ${fmt(combinedWeekly)}/wk (rent + mortgage) for a total of ${fmt(totalOverlap)}.`:'No overlap planned — you move in immediately after renovations.';
     const olDur=document.getElementById('tl-overlap-dur');
     if(olDur)olDur.textContent=weeks>0?`Weeks 1–${weeks} post-settlement`:'Immediate move-in';
+    const olDurCal=document.getElementById('tl-overlap-dur-cal');
+    if(olDurCal)olDurCal.textContent=weeks>0?`Weeks 1–${weeks} post-settlement`:'Immediate move-in';
 
     // ─── TAB 6: RISKS ───
     const riskScore=Math.min(90,Math.max(15,
@@ -2600,7 +2677,7 @@
   function collectCurrentState(){
     const fields = [
       'inp-price','inp-savings','inp-depp','inp-govt','inp-rate','inp-term',
-      'inp-cont','inp-rent','inp-weeks',
+      'inp-cont','inp-rent','inp-weeks','inp-settle-date',
       'pd-address','pd-suburb','pd-state','pd-bed','pd-bath','pd-car',
       'pd-land','pd-house','pd-year','pd-type','pd-url','pd-notes',
       'pd-status','pd-status-date','ag-agency','ag-name','ag-phone','ag-email',
@@ -2614,7 +2691,7 @@
     values['rentEnabled'] = document.getElementById('rent-sidebar-section')?.style.display !== 'none';
     return {
       values,
-      dynCostData: dynCosts.map(c=>({name:c.name,amount:c.amount})),
+      dynCostData: dynCosts.map(c=>({name:c.name,amount:c.amount,category:c.category||'purchase'})),
       renoItemData: renoItems.map(r=>({emoji:r.emoji,name:r.name,amount:r.amount,note:r.note})),
       keyDates: typeof keyDates !== 'undefined' ? [...keyDates] : [],
       commsLog:  typeof commsLog  !== 'undefined' ? [...commsLog]  : []
@@ -2877,9 +2954,9 @@
       // legacy: old saved data had reno in dynCostData — skip (can't distinguish)
     }
     renderRenoItems();
-    // Purchase costs (item 14) — all dynamic now
+    // Purchase costs — all dynamic now, with category support
     dynCosts = [];
-    if(dynCostData) dynCostData.forEach(c => dynCosts.push({id:'dyn-'+dynId++, name:c.name||'', amount:c.amount||0}));
+    if(dynCostData) dynCostData.forEach(c => dynCosts.push({id:'dyn-'+dynId++, name:c.name||'', amount:c.amount||0, category:c.category||'purchase'}));
     renderDynCosts();
     // Reno/rent toggles
     if(typeof renoEnabled !== 'undefined'){
@@ -3047,6 +3124,26 @@
     }
   }
 
+  // ── SETTLEMENT DATE ──
+  function onSettleDateChange(){
+    const el = document.getElementById('inp-settle-date');
+    const lbl = document.getElementById('lbl-settle-date');
+    if(el && el.value){
+      const d = new Date(el.value);
+      const yr = d.getFullYear();
+      if(lbl) lbl.textContent = yr;
+    } else {
+      if(lbl) lbl.textContent = '';
+    }
+    drawProjection();
+    autosaveDraft();
+  }
+  function getSettleYear(){
+    const el = document.getElementById('inp-settle-date');
+    if(!el || !el.value) return null;
+    return new Date(el.value).getFullYear();
+  }
+
   // ── PROJECTION (items 6,7,8,9) ──
   let projData = []; // shared so tooltip can read it
 
@@ -3078,34 +3175,45 @@
       projData.push({ yr, baseVal, renoVal, loanBal:Math.max(0,loanBal), govtOwed, yourEquity:baseVal-loanBal-govtOwed });
     }
 
+    // ── Settlement year label helper ──
+    const settleYr = getSettleYear();
+    const yrLabel = (yr) => settleYr ? String(settleYr + yr) : `Yr ${yr}`;
+    const yrShort = (yr) => settleYr ? String(settleYr + yr) : `Year ${yr}`;
+
     // ── MILESTONE TILES (item 9) ──
     const payoffYr = projData.find(d=>d.loanBal<=0.01)?.yr;
     // "can buy out govt" = your equity >= govtOwed (i.e. net equity without govt ≥ 0, i.e. property value ≥ loan + 2*govtOwed roughly)
     const buyoutYr = projData.find(d=>d.yourEquity>=d.govtOwed && d.yr>0)?.yr;
 
     const payEl = document.getElementById('proj-payoff-yr');
-    if(payEl) payEl.textContent = payoffYr ? 'Year '+payoffYr : (term<30?'Year '+term:'30+ yrs');
+    if(payEl) payEl.textContent = payoffYr ? yrShort(payoffYr) : (term<30?yrShort(term):'30+ yrs');
     const buyEl = document.getElementById('proj-buyout-yr');
-    if(buyEl) buyEl.textContent = buyoutYr ? 'Year '+buyoutYr : '30+ yrs';
+    if(buyEl) buyEl.textContent = buyoutYr ? yrShort(buyoutYr) : '30+ yrs';
 
     const d5 = projData.find(d=>d.yr===5) || projData[projData.length-1];
     set('proj-val-5', fmtK(d5.baseVal));
     set('proj-govt-5', fmtK(d5.govtOwed));
+    // Update tile labels if settlement year is set
+    const val5lbl = document.getElementById('proj-tiles')?.querySelectorAll('.tile-lbl');
+    if(val5lbl && settleYr){
+      if(val5lbl[2]) val5lbl[2].textContent = `Property Value @ ${settleYr+5}`;
+      if(val5lbl[3]) val5lbl[3].textContent = `Govt Equity Owed @ ${settleYr+5}`;
+    }
 
     // ── MILESTONES TIMELINE ──
     const msEl = document.getElementById('proj-milestones');
     if(msEl){
       const ms = [];
-      ms.push({yr:0,color:'var(--gold)',label:'Settlement',desc:`Purchase price ${fmtK(price)} · Loan ${fmtK(loanAmt)} · Govt equity ${fmtK(price*govtPct)}`});
+      ms.push({yr:0,color:'var(--gold)',label:`Settlement${settleYr?' — '+settleYr:''}`,desc:`Purchase price ${fmtK(price)} · Loan ${fmtK(loanAmt)} · Govt equity ${fmtK(price*govtPct)}`});
       if(buyoutYr) ms.push({yr:buyoutYr,color:'var(--sage)',label:'Can Refinance/Buy Out Govt',desc:`Property ~${fmtK(projData[buyoutYr]?.baseVal||0)} · Govt owed ~${fmtK(projData[buyoutYr]?.govtOwed||0)} · Your equity ~${fmtK(projData[buyoutYr]?.yourEquity||0)}`});
       const halfYr = projData.find(d=>d.loanBal<=loanAmt*0.5 && d.yr>0)?.yr;
       if(halfYr) ms.push({yr:halfYr,color:'var(--sky)',label:'Loan 50% Paid Off',desc:`Loan balance ~${fmtK(projData[halfYr]?.loanBal||0)} · Property ~${fmtK(projData[halfYr]?.baseVal||0)}`});
       if(payoffYr&&payoffYr<=30) ms.push({yr:payoffYr,color:'var(--reward-green)',label:'Loan Fully Paid Off 🎉',desc:`Property ~${fmtK(projData[payoffYr]?.baseVal||0)} · Full equity achieved`});
-      ms.push({yr:30,color:'var(--terracotta)',label:'Year 30 — End of Projection',desc:`Est. value ${fmtK(projData[29]?.baseVal||0)} · Est. govt equity owed ${fmtK(projData[29]?.govtOwed||0)}`});
+      ms.push({yr:30,color:'var(--terracotta)',label:`${yrShort(30)} — End of Projection`,desc:`Est. value ${fmtK(projData[29]?.baseVal||0)} · Est. govt equity owed ${fmtK(projData[29]?.govtOwed||0)}`});
       msEl.innerHTML = ms.sort((a,b)=>a.yr-b.yr).map(m=>`
         <div class="tli">
           <div class="tld" style="color:${m.color}"></div>
-          <div class="tlp" style="color:${m.color}">Year ${m.yr}</div>
+          <div class="tlp" style="color:${m.color}">${yrShort(m.yr)}</div>
           <div class="tlt">${m.label}</div>
           <div class="tldesc">${m.desc}</div>
         </div>`).join('');
@@ -3134,9 +3242,9 @@
       html+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(28,28,30,0.07)" stroke-width="1"/>`;
       html+=`<text x="${padL-6}" y="${y+4}" text-anchor="end" font-family="DM Mono" font-size="9" fill="#999">${fmtK(val)}</text>`;
     }
-    // X axis labels
+    // X axis labels — show actual years if settlement date is set
     [0,5,10,15,20,25,30].forEach(yr=>{
-      html+=`<text x="${scaleX(yr)}" y="${H-padB+16}" text-anchor="middle" font-family="DM Mono" font-size="9" fill="#999">Yr ${yr}</text>`;
+      html+=`<text x="${scaleX(yr)}" y="${H-padB+16}" text-anchor="middle" font-family="DM Mono" font-size="9" fill="#999">${yrLabel(yr)}</text>`;
     });
 
     // Shaded equity area
@@ -3172,14 +3280,15 @@
         const d=projData[Math.min(y,projData.length-1)];
         const eq=d.yourEquity;
         const isMilestone = y===payoffYr||y===buyoutYr;
-        return `<div style="display:grid;grid-template-columns:60px repeat(5,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
-          +`<span style="color:var(--gold);">Yr ${y}${isMilestone?' ★':''}</span>`
+        return `<div style="display:grid;grid-template-columns:64px repeat(5,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
+          +`<span style="color:var(--gold);">${settleYr?(settleYr+y):'Yr '+y}${isMilestone?' ★':''}</span>`
           +`<span>${fmtK(d.baseVal)}</span><span style="color:var(--sage)">${fmtK(d.renoVal)}</span>`
           +`<span style="color:var(--sky)">${fmtK(d.loanBal)}</span>`
           +`<span style="color:var(--terracotta)">${fmtK(d.govtOwed)}</span>`
           +`<span style="color:${eq>0?'var(--reward-green)':'var(--risk-red)'};font-weight:600;">${fmtK(eq)}</span></div>`;
       });
-      tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:60px repeat(5,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>Year</span><span>Value</span><span>+Reno</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
+      const colHeader = settleYr ? 'Year' : 'Year';
+      tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:64px repeat(5,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Year':'Year'}</span><span>Value</span><span>+Reno</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
     }
   }
 
@@ -3200,8 +3309,10 @@
     // crosshair
     const cx = padL+(yr/years)*cW;
     if(cross){ cross.setAttribute('x1',cx);cross.setAttribute('x2',cx);cross.style.display=''; }
-    // tooltip
-    tip.innerHTML=`<div style="font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:12px;font-weight:700;">YEAR ${d.yr}</div>`
+    // tooltip — show actual calendar year if settlement date is set
+    const _sYr = getSettleYear();
+    const _tipYrLabel = _sYr ? (_sYr + d.yr) : ('YEAR ' + d.yr);
+    tip.innerHTML=`<div style="font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:12px;font-weight:700;">${_tipYrLabel}</div>`
       +`<div style="display:flex;flex-direction:column;gap:9px;">`
       +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Value</span><span style="color:#C9A84C;font-size:19px;font-weight:700;">${fmtK(d.baseVal)}</span></div>`
       +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">+Reno</span><span style="color:#7B9E87;font-size:19px;font-weight:700;">${fmtK(d.renoVal)}</span></div>`
@@ -3335,7 +3446,7 @@
     if(modal) modal.style.display = 'none';
   }
   function exportPDFWithOptions(){
-    closePDFOptionsModal();
+    // Read values BEFORE closing modal so elements are still in DOM
     const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
     const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
     const colour  = document.getElementById('pdf-opt-colour')?.value   || 'full';
@@ -3347,7 +3458,9 @@
     const incOverlap   = document.getElementById('pdf-opt-overlap')?.checked !== false;
     const incRisks     = document.getElementById('pdf-opt-risks')?.checked !== false;
     const incNotes     = document.getElementById('pdf-opt-notes')?.checked !== false;
-    exportPDF({size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes});
+    const incTimeline  = document.getElementById('pdf-opt-timeline')?.checked === true;
+    closePDFOptionsModal();
+    exportPDF({size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline});
   }
   function exportPDF(opts){
     const o = opts || {};
@@ -3362,6 +3475,7 @@
     const incOverlap   = o.incOverlap   !== false;
     const incRisks     = o.incRisks     !== false;
     const incNotes     = o.incNotes     !== false;
+    const incTimeline  = o.incTimeline  === true;
 
     const addr = document.getElementById('pd-address')?.value || 'Property';
     const suburb = document.getElementById('pd-suburb')?.value || '';
@@ -3453,19 +3567,24 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
-  body{background:#fff;font-family:'DM Sans',sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'10px':'12px'};}
+  /* Base font size — normal=12px, large=16px, compact=9px */
+  body{background:#fff;font-family:'DM Sans',sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
   @page{margin:10mm 12mm;size:${pageSize} ${pageOrient};}
   @media print{
-    body{font-size:${fontSize==='large'?'12px':fontSize==='compact'?'9px':'11px'};}
+    body{font-size:${fontSize==='large'?'15px':fontSize==='compact'?'8px':'11px'}!important;}
     @page{size:${pageSize} ${pageOrient};margin:10mm 12mm;}
   }
-  .page{max-width:${pageOrient==='landscape'?'none':'900px'};margin:0 auto;padding:20px 24px;}
-  /* Landscape: use wider two-column grids */
-  ${pageOrient==='landscape'?'.grid2{grid-template-columns:1fr 1fr;}.grid4{grid-template-columns:repeat(4,1fr);}':''}
+  .page{max-width:${pageOrient==='landscape'?'none':'780px'};margin:0 auto;padding:${pageOrient==='landscape'?'16px 24px':'20px 24px'};}
+  /* Landscape: wider grids and larger tiles */
+  ${pageOrient==='landscape'?`
+    .grid4{grid-template-columns:repeat(4,1fr)!important;}
+    .grid2{grid-template-columns:1fr 1fr!important;}
+    .hphoto{width:240px!important;}
+  `:''}
   header{background:#1C1C1E;color:#F5F0E8;padding:0;display:flex;margin-bottom:20px;border-radius:4px;overflow:hidden;}
   .htext{flex:1;padding:20px 24px;}
   .htag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:4px;}
-  h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;margin-bottom:3px;}
+  h1{font-family:'Playfair Display',serif;font-size:${fontSize==='large'?'30px':fontSize==='compact'?'20px':'26px'};font-weight:900;margin-bottom:3px;}
   .hsub{font-size:11px;color:rgba(245,240,232,0.45);margin-bottom:12px;}
   .hstamp{font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.3);}
   .hphoto{width:200px;flex-shrink:0;}
@@ -3473,48 +3592,52 @@
   .section-title::after{content:'';flex:1;height:1px;background:#eee;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
-  .card{background:#FAF7F2;border-radius:4px;padding:14px 16px;border:1px solid #eee;}
+  .card{background:#FAF7F2;border-radius:4px;padding:${fontSize==='large'?'18px 20px':fontSize==='compact'?'10px 12px':'14px 16px'};border:1px solid #eee;}
   .card-accent{width:4px;height:100%;position:absolute;top:0;left:0;border-radius:4px 0 0 4px;}
   .card-rel{position:relative;}
-  .kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:11px;}
+  .kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'9px':'11px'};}
   .kv:last-child{border-bottom:none;}
   .kv .lbl{color:#666;}
   .kv .val{font-family:'DM Mono',monospace;font-weight:500;}
-  .tile{background:#1C1C1E;color:#F5F0E8;border-radius:3px;padding:12px;}
-  .tile-val{font-family:'DM Mono',monospace;font-size:22px;margin-bottom:2px;}
-  .tile-lbl{font-size:9px;color:rgba(245,240,232,0.5);letter-spacing:1px;text-transform:uppercase;}
-  .big-num{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;}
+  .tile{background:#1C1C1E;color:#F5F0E8;border-radius:3px;padding:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
+  .tile-val{font-family:'DM Mono',monospace;font-size:${fontSize==='large'?'28px':fontSize==='compact'?'16px':'22px'};margin-bottom:2px;}
+  .tile-lbl{font-size:${fontSize==='large'?'11px':fontSize==='compact'?'8px':'9px'};color:rgba(245,240,232,0.5);letter-spacing:1px;text-transform:uppercase;}
+  .big-num{font-family:'DM Mono',monospace;font-size:${fontSize==='large'?'34px':fontSize==='compact'?'20px':'28px'};font-weight:500;}
   .meter-wrap{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin:6px 0 4px;}
   .meter-fill{height:100%;border-radius:4px;}
-  table{width:100%;border-collapse:collapse;font-size:11px;}
+  table{width:100%;border-collapse:collapse;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'9px':'11px'};}
   th{background:#F5F0E8;padding:7px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;}
   th:last-child,td:last-child{text-align:right;}
-  .print-btn{position:fixed;top:16px;right:16px;background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:8px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;z-index:100;}
-  @media print{.print-btn{display:none;}}
+  /* Print / Save PDF button — bigger on mobile */
+  .print-btn{position:fixed;bottom:max(20px,env(safe-area-inset-bottom,20px));left:50%;transform:translateX(-50%);background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:14px 28px;border-radius:28px;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;z-index:100;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);letter-spacing:0.5px;}
+  .print-btn:hover{background:#2C2C2E;}
+  /* Share button (mobile only) */
+  .share-btn{position:fixed;bottom:max(80px,calc(env(safe-area-inset-bottom,20px) + 64px));left:50%;transform:translateX(-50%);background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:12px 24px;border-radius:28px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;z-index:100;white-space:nowrap;display:none;letter-spacing:0.5px;}
+  @media(max-width:600px){.share-btn{display:block;}}
+  @media(min-width:601px){.print-btn{top:16px;bottom:auto;right:16px;left:auto;transform:none;border-radius:4px;padding:10px 20px;font-size:12px;box-shadow:none;}}
+  @media print{.print-btn,.share-btn{display:none!important;}}
   ${colourMode==='mono'?`
-  /* Monochrome — apply greyscale to everything, then force black text/backgrounds for print */
+  /* Monochrome — screen filter + explicit print overrides */
   html{filter:grayscale(1);}
-  @media print{html{filter:grayscale(1);}}
+  header{background:#1C1C1E!important;}
+  .tile{background:#333!important;}
+  .card{background:#f8f8f8!important;border-color:#ccc!important;}
+  .tile-val,.big-num,.kv .val{color:#000!important;}
+  .htag{color:#aaa!important;}
+  .card-accent{background:#666!important;}
+  .meter-fill{background:#666!important;}
+  @media print{
+    html{filter:grayscale(1);-webkit-filter:grayscale(1);}
+    header{background:#1C1C1E!important;}
+    .tile{background:#333!important;}
+    .card{background:#f8f8f8!important;}
+  }
   `:''}
-
-
-  /* ── WELCOME SPLASH ── */
-  #welcome-splash{position:fixed;inset:0;z-index:8000;background:var(--charcoal);display:none;padding-top:env(safe-area-inset-top,0px);align-items:center;justify-content:center;opacity:1;transition:opacity 0.4s;}
-  #welcome-splash.hiding{opacity:0;pointer-events:none;}
-  .splash-inner{text-align:center;padding:40px 24px;max-width:480px;}
-  .splash-logo{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0.7;}
-  .splash-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--cream);line-height:1.2;margin-bottom:10px;}
-  .splash-sub{font-size:15px;color:rgba(245,240,232,0.45);margin-bottom:40px;line-height:1.6;}
-  .splash-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
-  .splash-btn{padding:14px 28px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;cursor:pointer;transition:transform 0.15s,opacity 0.15s;border:none;}
-  .splash-btn:hover{transform:translateY(-2px);opacity:0.9;}
-  .splash-btn-primary{background:var(--gold);color:var(--charcoal);font-weight:600;}
-  .splash-btn-secondary{background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.18)!important;}
-  .splash-deco{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 28px;}
 </style>
 </head>
 <body>
-<button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+<button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+<button class="share-btn" onclick="(async()=>{try{const r=await fetch(location.href);const b=await r.blob();const f=new File([b],'property-report.html',{type:'text/html'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Property Finance Report'});}else if(navigator.share){await navigator.share({title:'Property Finance Report',url:location.href});}else{window.print();}}catch(e){window.print();}})()">↑ Share Report</button>
 <div class="page">
   <header>
     <div class="htext">
@@ -3613,6 +3736,27 @@
     <div class="card" style="display:flex;align-items:center;justify-content:center;">
       <div style="font-size:11px;color:#888;font-style:italic;text-align:center;">Risk &amp; reward scores are calculated from loan-to-value ratio, cash buffer, and government scheme contribution.</div>
     </div>
+  </div>` : ''}
+
+  ${incTimeline ? `
+  <div class="section-title">06 · Purchase Timeline</div>
+  <div class="card" style="padding-left:32px;position:relative;">
+    <div style="position:absolute;left:16px;top:20px;bottom:20px;width:2px;background:linear-gradient(to bottom,#C9A84C,#7B9E87);border-radius:2px;"></div>
+    ${[
+      {phase:'01',color:'#C9A84C',title:'Offer Accepted & Contracts Exchanged',dur:'Week 1–2',desc:'Sign contracts, pay deposit. Cooling-off period applies (typically 5 business days).'},
+      {phase:'02',color:'#C4704A',title:'Building & Pest Inspection',dur:'Week 1–3',desc:'Book a licensed inspector within the first week. Results within 24–48 hours.'},
+      {phase:'03',color:'#5B8FAB',title:'Finance & Loan Finalisation',dur:'Week 2–5',desc:'Bank formally approves the loan. Government scheme contribution confirmed.'},
+      {phase:'04',color:'#7B9E87',title:'Settlement Day 🔑',dur:'Week 4–12',desc:'Title transfers to your name. Keys handed over. You are now a homeowner.'},
+      {phase:'05',color:'#E8A882',title:'Overlap Period',dur:document.getElementById('tl-overlap-dur-cal')?.textContent||'Weeks 1–4 post-settlement',desc:document.getElementById('tl-overlap-desc')?.textContent||''},
+      {phase:'06',color:'#E8A882',title:'Renovations Complete',dur:'Month 3–5',desc:'Tradies finish, final inspections done. Property ready to move in.'},
+      {phase:'07',color:'#5A9E7B',title:'Move In & Rent Ends 🎉',dur:'Month 4–6',desc:'You move in and your rent obligation ends.'},
+    ].map(p=>`
+    <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:${p.color};border:2px solid white;box-shadow:0 0 0 2px ${p.color};"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:${p.color};margin-bottom:3px;">Phase ${p.phase} · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">${p.dur}</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">${p.title}</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">${p.desc}</div>
+    </div>`).join('')}
   </div>` : ''}
 </div>
 <script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
@@ -4005,11 +4149,13 @@
     }
   }
 
-  // ── SEED DEFAULT PURCHASE COSTS (item 14 — all costs now dynamic) ──
+  // ── SEED DEFAULT PURCHASE & MOVE-OUT COSTS ──
   dynCosts = [
-    {id:'dyn-'+dynId++, name:'Bank Fees',      amount:800},
-    {id:'dyn-'+dynId++, name:'Conveyancing',   amount:1600},
-    {id:'dyn-'+dynId++, name:'Building & Pest',amount:700},
+    {id:'dyn-'+dynId++, name:'Bank / Lender Fees', amount:800,  category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Conveyancing',        amount:1600, category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Building & Pest',     amount:700,  category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Removalists',         amount:1200, category:'moveout'},
+    {id:'dyn-'+dynId++, name:'Lease Break Fee',     amount:0,    category:'moveout'},
   ];
   renderDynCosts();
 
@@ -4911,6 +5057,7 @@
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-overlap" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Rent Overlap</strong> — weekly overlap cost, cash remaining</span></label>
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-risks" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Risk &amp; Reward</strong> — risk/reward meter scores and descriptions</span></label>
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-notes" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Property Notes</strong> — your saved notes for this property</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-timeline" style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Purchase Timeline</strong> — phase-by-phase guide from offer to move-in</span></label>
         </div>
       </div>
 

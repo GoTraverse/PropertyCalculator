@@ -1291,6 +1291,21 @@ async function fetchIpGeo(ip){
   if(!ip || ip === '—') return null;
   if(_ipGeoCache[ip] !== undefined) return _ipGeoCache[ip];
   _ipGeoCache[ip] = null; // mark as in-flight
+
+  // Try ipwho.is first — good IPv6 support, free, HTTPS
+  try {
+    const r = await fetch('https://ipwho.is/' + encodeURIComponent(ip), {signal: AbortSignal.timeout(5000)});
+    if(r.ok){
+      const d = await r.json();
+      if(d.success !== false && (d.city || d.country)){
+        const geo = { city: d.city||'', region: d.region_code||d.region||'', country: d.country||'', flag: d.country_code ? countryFlag(d.country_code) : '' };
+        _ipGeoCache[ip] = geo;
+        return geo;
+      }
+    }
+  } catch(e){ /* fall through to backup */ }
+
+  // Fallback: ipapi.co (may have rate limits, weaker IPv6 support)
   try {
     const r = await fetch('https://ipapi.co/' + encodeURIComponent(ip) + '/json/', {signal: AbortSignal.timeout(4000)});
     if(!r.ok) return (_ipGeoCache[ip] = null);
