@@ -294,7 +294,6 @@ exports.handler = async function (event) {
         'metadata[plan]': plan || 'pro',
         'metadata[userId]': user.userId,
         'allow_promotion_codes': 'true',
-        'subscription_data[trial_period_days]': '7',
         'subscription_data[metadata][plan]': plan || 'pro',
         'subscription_data[metadata][userId]': user.userId,
       };
