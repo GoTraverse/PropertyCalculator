@@ -284,20 +284,35 @@ exports.handler = async function(event){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
-      const keys=await redisCmd('KEYS','user:*');
+      const userKeys=await redisCmd('KEYS','user:*');
       const tokenKeys=await redisCmd('KEYS','token:*');
       const scenarioKeys=await redisCmd('KEYS','scenarios:*:index');
+      // Get plan breakdown from user records
+      const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
+      const validUsers=users.filter(Boolean);
+      const totalUsers=validUsers.length;
+      const freeUsers=validUsers.filter(u=>!u.plan||u.plan==='free').length;
+      const proUsers=validUsers.filter(u=>u.plan==='pro').length;
+      const adviserUsers=validUsers.filter(u=>u.plan==='adviser').length;
       // Count active (non-expired) sessions
       let activeSessions=0;
       if(tokenKeys&&tokenKeys.length){
         const tokenData=await Promise.all(tokenKeys.map(k=>rGet(k)));
         activeSessions=tokenData.filter(d=>d&&(!d.expires||Date.now()<d.expires)).length;
       }
-      return ok({ok:true,stats:{
-        totalUsers:keys?keys.length:0,
-        activeSessions,
-        totalScenarioLists:scenarioKeys?scenarioKeys.length:0,
-      }});
+      const totalScenarioLists=scenarioKeys?scenarioKeys.length:0;
+      // Store today's snapshot (31-day TTL so we keep ~1 month of history)
+      const today=new Date().toISOString().slice(0,10);
+      await rSet('stats:snapshot:'+today,{date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists},60*60*24*31);
+      // Fetch last 7 days of daily snapshots
+      const history=[];
+      for(let i=6;i>=0;i--){
+        const d=new Date();d.setDate(d.getDate()-i);
+        const dateStr=d.toISOString().slice(0,10);
+        const snap=await rGet('stats:snapshot:'+dateStr);
+        history.push(snap||{date:dateStr,totalUsers:null,freeUsers:null,proUsers:null,adviserUsers:null,activeSessions:null,totalScenarioLists:null});
+      }
+      return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists},history});
     }catch(e){ return fail('Stats error: '+e.message); }
   }
 

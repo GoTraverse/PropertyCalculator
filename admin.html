@@ -341,10 +341,10 @@
   .custom-dialog-footer .btn-admin,
   .custom-dialog-footer .btn-admin-outline { min-width: 90px; text-align: center; }
 
-  /* ── Stat card mini chart ── */
+  /* ── Stat card sparkline chart ── */
   .stat-card { cursor: default; transition: box-shadow 0.15s; }
-  .stat-chart { margin-top: 10px; display: flex; align-items: flex-end; gap: 3px; height: 28px; }
-  .stat-chart-bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 3px; transition: height 0.4s cubic-bezier(0.16,1,0.3,1); }
+  .stat-chart { margin-top: 12px; }
+  .stat-chart svg { display: block; width: 100%; overflow: visible; }
 
   /* ── Scheme panel collapse ── */
   .scheme-panel { background: rgba(28,28,30,0.03); border: 1px solid rgba(28,28,30,0.1); border-radius: var(--radius-sm); margin-bottom: 12px; overflow: hidden; }
@@ -454,34 +454,37 @@
       <div class="stat-value" id="stat-total">—</div>
       <div class="stat-label">Total Users</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">All registered accounts</div>
-      <!-- Mini plan distribution chart (updated by renderStatsCharts) -->
-      <div class="stat-chart" id="stat-chart-plans" title="Plan distribution: Free / Pro / Adviser"></div>
+      <div class="stat-chart" id="stat-chart-total"></div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-free">—</div>
       <div class="stat-label">Free Plan</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">1 saved scenario limit</div>
+      <div class="stat-chart" id="stat-chart-free"></div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-pro">—</div>
       <div class="stat-label">Pro Plan</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Unlimited + PDF + Projection</div>
+      <div class="stat-chart" id="stat-chart-pro"></div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-adviser">—</div>
       <div class="stat-label">Adviser Plan</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Multi-client + white-label</div>
+      <div class="stat-chart" id="stat-chart-adviser"></div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-sessions">—</div>
       <div class="stat-label">Login Tokens</div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Valid tokens (1 per device/session — users may have multiple)</div>
-      <div class="stat-chart" id="stat-chart-sessions" title="Tokens vs users ratio"></div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Valid tokens — 1 per device/session</div>
+      <div class="stat-chart" id="stat-chart-sessions"></div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="stat-scenarios-top">—</div>
       <div class="stat-label">Scenario Sets</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Saved property scenario lists</div>
+      <div class="stat-chart" id="stat-chart-scenarios"></div>
     </div>
   </div>
 
@@ -859,6 +862,17 @@
 
 </div>
 
+<!-- Scenario Detail Modal -->
+<div class="reset-modal-overlay" id="scenario-detail-overlay">
+  <div class="reset-modal" style="max-width:580px;width:calc(100vw - 32px);">
+    <h3 id="scenario-detail-title">Scenario Overview</h3>
+    <div id="scenario-detail-body" style="max-height:70vh;overflow-y:auto;"></div>
+    <div class="reset-modal-btns">
+      <button class="btn-admin-outline" onclick="document.getElementById('scenario-detail-overlay').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- User Detail Modal -->
 <div class="reset-modal-overlay" id="user-detail-overlay">
   <div class="reset-modal" style="max-width:600px;width:calc(100vw - 32px);">
@@ -1068,6 +1082,7 @@ async function loadUsers(){
 }
 
 function updateStats(users){
+  // Keep counts in sync when user list changes; sparklines come from loadStats()
   const nFree    = users.filter(u=>u.plan==='free'||!u.plan).length;
   const nPro     = users.filter(u=>u.plan==='pro').length;
   const nAdviser = users.filter(u=>u.plan==='adviser').length;
@@ -1075,35 +1090,61 @@ function updateStats(users){
   document.getElementById('stat-free').textContent    = nFree;
   document.getElementById('stat-pro').textContent     = nPro;
   document.getElementById('stat-adviser').textContent = nAdviser;
-  renderPlanChart(nFree, nPro, nAdviser);
 }
 
-function renderPlanChart(nFree, nPro, nAdviser){
-  const chart = document.getElementById('stat-chart-plans');
-  if(!chart) return;
-  const total = nFree + nPro + nAdviser || 1;
-  const max   = Math.max(nFree, nPro, nAdviser, 1);
-  const bars = [
-    { n: nFree,    color: 'rgba(74,74,82,0.25)',     label: 'Free' },
-    { n: nPro,     color: 'rgba(201,168,76,0.55)',   label: 'Pro' },
-    { n: nAdviser, color: 'rgba(91,143,171,0.55)',   label: 'Adviser' },
-  ];
-  chart.innerHTML = bars.map(b =>
-    `<div class="stat-chart-bar" title="${b.label}: ${b.n}"
-       style="background:${b.color};height:${Math.max(3, Math.round((b.n/max)*28))}px;flex:${b.n+0.5};"></div>`
-  ).join('');
-}
+// ── 7-day SVG sparkline ──────────────────────────────────────────────────────
+function renderSparkline(chartId, rawData, strokeColor, fillColor){
+  const el = document.getElementById(chartId);
+  if(!el) return;
 
-function renderSessionsChart(sessions, users){
-  const chart = document.getElementById('stat-chart-sessions');
-  if(!chart) return;
-  const ratio = users > 0 ? sessions / users : 0;
-  const pct   = Math.min(100, Math.round(ratio * 100));
-  chart.innerHTML = `
-    <div style="flex:1;background:rgba(28,28,30,0.08);border-radius:2px;height:6px;align-self:center;overflow:hidden;">
-      <div style="height:100%;width:${pct}%;background:rgba(91,143,171,0.5);border-radius:2px;transition:width 0.5s;"></div>
-    </div>
-    <div style="font-family:var(--font-mono);font-size:9px;color:var(--slate);white-space:nowrap;">${pct}%</div>`;
+  // Forward-fill nulls so gaps in history show flat lines
+  let last = 0;
+  const data = rawData.map(d => {
+    const v = (d.value !== null && d.value !== undefined) ? d.value : last;
+    last = v; return { date: d.date, value: v };
+  });
+
+  const vals   = data.map(d => d.value);
+  const maxV   = Math.max(...vals, 1);
+  const minV   = Math.min(...vals, 0);
+  const range  = maxV - minV || 1;
+  const W = 100, H = 36, n = data.length;
+
+  const pts = data.map((d, i) => ({
+    x: n > 1 ? (i / (n - 1)) * W : W / 2,
+    y: H - ((d.value - minV) / range) * H,
+  }));
+
+  const poly  = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const area  = `M ${pts[0].x.toFixed(1)},${H} ` +
+                pts.map(p => `L ${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') +
+                ` L ${pts[pts.length-1].x.toFixed(1)},${H} Z`;
+
+  const first = vals[0], latest = vals[vals.length - 1];
+  const delta = latest - first;
+  const dStr  = (delta > 0 ? '+' : '') + delta;
+  const dCol  = delta > 0 ? 'var(--reward-green)' : delta < 0 ? 'var(--risk-red)' : 'var(--slate)';
+
+  // Short date labels (e.g. "28 Feb")
+  const shortDate = s => { try { return new Date(s + 'T12:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'}); } catch(e){ return s; } };
+
+  const uid = chartId.replace(/[^a-z0-9]/gi,'');
+  el.innerHTML = `
+    <svg viewBox="0 0 100 36" preserveAspectRatio="none" height="36">
+      <defs>
+        <linearGradient id="sg${uid}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${fillColor||strokeColor}" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="${fillColor||strokeColor}" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <path d="${area}" fill="url(#sg${uid})"/>
+      <polyline points="${poly}" fill="none" stroke="${strokeColor}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${pts[pts.length-1].x.toFixed(1)}" cy="${pts[pts.length-1].y.toFixed(1)}" r="2.2" fill="${strokeColor}"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">
+      <span style="font-family:var(--font-mono);font-size:9px;color:var(--slate);">${shortDate(data[0].date)} → ${shortDate(data[n-1].date)}</span>
+      <span style="font-family:var(--font-mono);font-size:9px;color:${dCol};">${dStr}</span>
+    </div>`;
 }
 
 function filterUsers(){
@@ -1476,13 +1517,25 @@ async function loadStats(){
   const d = await callAuth('adminGetStats');
   if(!d.ok) return;
   const s = d.stats || {};
+  const history = d.history || [];
   const el = id => document.getElementById(id);
-  // Update the always-visible top stats row
-  if(el('stat-sessions'))       el('stat-sessions').textContent       = s.activeSessions    ?? '—';
-  if(el('stat-scenarios-top'))  el('stat-scenarios-top').textContent  = s.totalScenarioLists ?? '—';
-  // Render session/user ratio chart
-  const totalUsers = parseInt(el('stat-total')?.textContent) || s.totalUsers || 0;
-  renderSessionsChart(s.activeSessions || 0, totalUsers);
+
+  // Update all stat card values from authoritative backend data
+  if(el('stat-total'))         el('stat-total').textContent         = s.totalUsers         ?? '—';
+  if(el('stat-free'))          el('stat-free').textContent          = s.freeUsers          ?? '—';
+  if(el('stat-pro'))           el('stat-pro').textContent           = s.proUsers           ?? '—';
+  if(el('stat-adviser'))       el('stat-adviser').textContent       = s.adviserUsers       ?? '—';
+  if(el('stat-sessions'))      el('stat-sessions').textContent      = s.activeSessions     ?? '—';
+  if(el('stat-scenarios-top')) el('stat-scenarios-top').textContent = s.totalScenarioLists ?? '—';
+
+  // Render 7-day sparklines for every stat card
+  const mk = (key) => history.map(h => ({ date: h.date, value: h[key] }));
+  renderSparkline('stat-chart-total',     mk('totalUsers'),         'rgba(74,74,82,0.9)',        'rgba(74,74,82,0.5)');
+  renderSparkline('stat-chart-free',      mk('freeUsers'),          'rgba(100,100,110,0.8)',     'rgba(100,100,110,0.4)');
+  renderSparkline('stat-chart-pro',       mk('proUsers'),           'rgba(180,140,50,0.9)',      'rgba(201,168,76,0.5)');
+  renderSparkline('stat-chart-adviser',   mk('adviserUsers'),       'rgba(60,120,165,0.9)',      'rgba(91,143,171,0.5)');
+  renderSparkline('stat-chart-sessions',  mk('activeSessions'),     'rgba(91,143,171,0.85)',     'rgba(91,143,171,0.4)');
+  renderSparkline('stat-chart-scenarios', mk('totalScenarioLists'), 'rgba(70,140,110,0.85)',     'rgba(90,158,123,0.4)');
 }
 
 function escHtml(s){
@@ -1490,6 +1543,9 @@ function escHtml(s){
 }
 
 // ── SCENARIOS TAB ─────────────────────────────────────────────
+// Cache for quick scenario lookup by id
+var _scenarioDetailCache = {};
+
 async function loadAllScenarios(){
   const wrap = document.getElementById('scenarios-list-wrap');
   const st   = document.getElementById('scenarios-tab-status');
@@ -1498,10 +1554,10 @@ async function loadAllScenarios(){
   if(!d.ok){ wrap.innerHTML='<div style="color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed')+'</div>'; return; }
   const users = d.users || [];
   if(!users.length){ wrap.innerHTML='<div style="color:var(--slate);padding:24px;text-align:center;font-style:italic;">No users found</div>'; return; }
-  // Fetch scenario lists for each user using adminUserId param (admin token is sent)
   const sess = getSession();
   const token = sess && sess.token;
   let totalScenarios = 0;
+  _scenarioDetailCache = {};
   const rows = await Promise.all(users.map(async u => {
     if(!u.id) return null;
     try {
@@ -1512,7 +1568,9 @@ async function loadAllScenarios(){
       const count = Array.isArray(arr) ? arr.length : 0;
       totalScenarios += count;
       if(count === 0) return null;
-      return { user: u, scenarios: Array.isArray(arr) ? arr : [] };
+      const scenarios = Array.isArray(arr) ? arr : [];
+      scenarios.forEach(s => { _scenarioDetailCache[s.id] = { scenario: s, userEmail: u.email, userId: u.id }; });
+      return { user: u, scenarios };
     } catch(e){ return null; }
   }));
   const valid = rows.filter(Boolean);
@@ -1527,16 +1585,83 @@ async function loadAllScenarios(){
         <span style="color:var(--charcoal);">${scenarios.length} scenario${scenarios.length!==1?'s':''}</span>
       </div>
       ${scenarios.map(s => `
-        <div style="display:flex;align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid rgba(28,28,30,0.04);font-size:13px;">
-          <div style="flex:1;font-weight:500;">${escHtml(s.fullAddr||'Unnamed')}</div>
-          <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">${s.status||'browsing'}</div>
-          <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">${s.savedAt ? new Date(s.savedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
-          <button class="act-btn danger" onclick="adminDeleteScenario('${escHtml(user.id)}','${escHtml(s.id)}','${escHtml(s.fullAddr||'this scenario')}')">Delete</button>
+        <div onclick="openScenarioDetail('${escHtml(s.id)}')"
+             style="display:flex;align-items:center;gap:12px;padding:9px 8px;border-bottom:1px solid rgba(28,28,30,0.04);font-size:13px;cursor:pointer;border-radius:4px;transition:background 0.12s;"
+             onmouseover="this.style.background='rgba(28,28,30,0.04)'" onmouseout="this.style.background=''">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.fullAddr||'Unnamed')}</div>
+            ${s.type||s.state?.values?.['pd-type'] ? `<div style="font-size:11px;color:var(--slate);margin-top:2px;">${escHtml(s.type||s.state?.values?.['pd-type']||'')}${s.bed?` · ${s.bed}bd`:''}</div>` : ''}
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;text-transform:capitalize;">${s.status||'browsing'}</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;">${s.savedAt ? new Date(s.savedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
+          <button class="act-btn" style="font-size:9px;padding:3px 7px;" onclick="event.stopPropagation();openScenarioDetail('${escHtml(s.id)}')">View</button>
+          <button class="act-btn danger" onclick="event.stopPropagation();adminDeleteScenario('${escHtml(user.id)}','${escHtml(s.id)}','${escHtml(s.fullAddr||'this scenario')}')">Delete</button>
         </div>`).join('')}
     </div>`).join('');
   st.textContent = '✓ Loaded ' + totalScenarios + ' scenario' + (totalScenarios!==1?'s':'') + ' across ' + valid.length + ' user' + (valid.length!==1?'s':'');
   st.className = 'admin-status ok';
   setTimeout(()=>{ st.className='admin-status'; }, 5000);
+}
+
+function openScenarioDetail(scenarioId){
+  const cache = _scenarioDetailCache[scenarioId];
+  if(!cache) return;
+  const s = cache.scenario;
+  const userEmail = cache.userEmail;
+
+  document.getElementById('scenario-detail-overlay').classList.add('open');
+  document.getElementById('scenario-detail-title').textContent = s.fullAddr || 'Scenario Overview';
+
+  const vals  = (s.state && s.state.values) || {};
+  const fmt$  = v => (v !== '' && v !== null && v !== undefined) ? '$' + parseFloat(v).toLocaleString('en-AU', {minimumFractionDigits:0,maximumFractionDigits:0}) : null;
+  const fmtTs = ts => ts ? new Date(ts).toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+
+  const price     = fmt$(vals['inp-price'] || s.price);
+  const deposit   = fmt$(vals['inp-deposit']);
+  const loanTerm  = vals['inp-term'] || vals['inp-loan-term'];
+  const intRate   = vals['inp-rate'];
+  const rent      = vals['inp-rent'];
+  const bed  = s.bed  || vals['pd-bed']  || '';
+  const bath = s.bath || vals['pd-bath'] || '';
+  const car  = s.car  || vals['pd-car']  || '';
+  const propType = s.type || vals['pd-type'] || '';
+
+  const row = (label, val, mono) => val
+    ? `<div><div class="config-label">${label}</div><div style="font-size:13px;${mono?'font-family:var(--font-mono);':''} margin-top:3px;">${escHtml(String(val))}</div></div>`
+    : '';
+
+  const bigRow = (label, val) => val
+    ? `<div><div class="config-label">${label}</div><div style="font-family:var(--font-mono);font-size:20px;font-weight:500;margin-top:3px;">${escHtml(String(val))}</div></div>`
+    : '';
+
+  document.getElementById('scenario-detail-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;padding:8px 0 16px;">
+      <div style="grid-column:1/-1;">
+        <div class="config-label">Full Address</div>
+        <div style="font-size:15px;font-weight:600;margin-top:3px;line-height:1.3;">${escHtml(s.fullAddr||'—')}</div>
+      </div>
+      ${row('Status', s.status||'browsing')}
+      ${row('Property Type', propType)}
+      ${(bed||bath||car) ? `<div>
+        <div class="config-label">Bed / Bath / Car</div>
+        <div style="font-family:var(--font-mono);font-size:15px;margin-top:3px;">${[bed,bath,car].map((v,i)=>v?v+['bd','ba','car'][i]:'').filter(Boolean).join(' · ')||'—'}</div>
+      </div>` : ''}
+      ${row('Saved', fmtTs(s.savedAt||s.timestamp), true)}
+    </div>
+    ${price ? `<div style="border-top:1px solid rgba(28,28,30,0.09);padding-top:14px;margin-bottom:4px;">
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:12px;">Financial Snapshot</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;">
+        ${bigRow('Purchase Price', price)}
+        ${deposit ? bigRow('Deposit', deposit) : ''}
+        ${loanTerm ? row('Loan Term', loanTerm + ' years', true) : ''}
+        ${intRate  ? row('Interest Rate', parseFloat(intRate).toFixed(2) + '%', true) : ''}
+        ${rent     ? row('Weekly Rent', fmt$(rent) + '/wk', true) : ''}
+      </div>
+    </div>` : ''}
+    <div style="border-top:1px solid rgba(28,28,30,0.09);padding-top:10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">Owner: ${escHtml(userEmail)}</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">ID: ${escHtml(s.id||'—')}</div>
+    </div>`;
 }
 
 async function adminDeleteScenario(userId, scenarioId, label){
@@ -1845,6 +1970,13 @@ function renderSchemes(){
           <label class="config-label">Eligibility Requirements</label>
           <input type="text" class="config-input" value="${escHtml(s.eligibility||'')}" oninput="_schemes[${i}].eligibility=this.value">
         </div>
+        <div class="config-field" style="margin-bottom:10px;">
+          <label class="config-label">Official Government Website</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="url" class="config-input" value="${escHtml(s.websiteUrl||'')}" placeholder="https://www.housing.gov.au/..." oninput="_schemes[${i}].websiteUrl=this.value" style="flex:1;">
+            ${s.websiteUrl ? `<a href="${escHtml(s.websiteUrl)}" target="_blank" rel="noopener" style="flex-shrink:0;font-family:var(--font-mono);font-size:11px;color:var(--sky);text-decoration:none;white-space:nowrap;padding:6px 10px;border:1px solid rgba(91,143,171,0.3);border-radius:3px;" title="Open website">Visit ↗</a>` : ''}
+          </div>
+        </div>
         <div class="config-field" style="margin-bottom:4px;">
           <label class="config-label">Admin Notes (internal only)</label>
           <input type="text" class="config-input" value="${escHtml(s.notes||'')}" placeholder="Internal notes, caveats, links..." oninput="_schemes[${i}].notes=this.value">
@@ -1946,6 +2078,7 @@ function addScheme(){
     type: 'shared-equity',
     country: 'Australia',
     description: '',
+    websiteUrl: '',
     govtMinPct: 0,
     govtMaxPct: 30,
     govtDefaultPct: 20,
