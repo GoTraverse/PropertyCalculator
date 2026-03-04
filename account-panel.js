@@ -232,6 +232,13 @@
     _apProfile.color = color;
     var av = el('ap2-avatar');
     if (av && !_apProfile.photo) av.style.background = color;
+    // Immediately persist colour so it propagates across all pages without needing Save
+    var current = getProfile();
+    current.color = color;
+    saveProfile(current);
+    // Also update the nav avatar button if present on this page
+    var navBtn = document.getElementById('site-profile-btn');
+    if (navBtn && !_apProfile.photo) navBtn.style.background = color;
   };
 
   // ── Photo upload ─────────────────────────────────────────────────────────────
@@ -288,8 +295,21 @@
       } catch (e) {}
     }
 
-    // Refresh the nav avatar
+    // Refresh the panel display
     if (el('ap2-name-display')) el('ap2-name-display').textContent = nameVal;
+    // Refresh the site nav avatar button so it immediately reflects new name/colour
+    var navBtn = document.getElementById('site-profile-btn');
+    if (navBtn) {
+      var parts = nameVal.trim().split(/\s+/).filter(Boolean);
+      var ini = parts.length === 0 ? '?' : parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+      if (_apProfile.photo) {
+        navBtn.style.background = 'transparent';
+        navBtn.innerHTML = '<img src="' + _apProfile.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;">';
+      } else {
+        navBtn.style.background = _apProfile.color || '#C9A84C';
+        navBtn.textContent = ini;
+      }
+    }
     st.textContent = '\u2713 Profile saved';
     setTimeout(function () { st.className = 'ap2-status'; }, 3000);
   };

@@ -424,6 +424,39 @@
     .user-table td:nth-child(4), .user-table th:nth-child(4) { display: none; }
     .admin-stats { grid-template-columns: 1fr 1fr; }
   }
+  @media (max-width: 600px) {
+    /* Scheme panels — fix clipping and overflow on PWA/mobile */
+    .scheme-panel { overflow: visible; }
+    .scheme-panel-header {
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+    .scheme-panel-header > div:nth-child(2) { /* name/country col */
+      min-width: 0;
+      flex: 1 1 140px;
+    }
+    .scheme-panel-header > div:nth-child(2) > div:first-child {
+      white-space: normal!important; /* allow name to wrap */
+      overflow: visible!important;
+      text-overflow: unset!important;
+    }
+    .scheme-type-badge { order: 3; }
+    .scheme-panel-header label { order: 4; }
+    .scheme-panel-header .act-btn { order: 5; }
+    .scheme-panel-body {
+      padding: 0 10px 14px;
+      overflow-x: hidden;
+    }
+    .config-grid { grid-template-columns: 1fr!important; gap: 8px; }
+    .config-input { font-size: 16px; } /* prevent iOS zoom */
+    .suburb-bonus-row, .income-thresh-row {
+      flex-wrap: wrap;
+    }
+    .suburb-bonus-row input, .income-thresh-row input { min-width: 0; }
+    .admin-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .admin-tab { white-space: nowrap; flex-shrink: 0; }
+  }
 </style>
 </head>
 <body>
