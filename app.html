@@ -2595,7 +2595,7 @@
         const r = await fetch('/.netlify/functions/scenarios', {
           method: 'POST',
           headers: Object.assign({'Content-Type':'application/json'}, authH ? {'Authorization': authH} : {}),
-          body: JSON.stringify({ action:'save', userId:getUserId(), id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'' })
+          body: JSON.stringify({ action:'save', userId:getUserId(), id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'', exportCount:record.exportCount||0, savedAt:record.savedAt||new Date().toISOString() })
         });
         console.log('[storage] POST scenarios status:', r.status);
         if(r.ok){
@@ -2734,6 +2734,7 @@
     );
     const id       = existIdx >= 0 ? scenarios[existIdx].id : ('sc_' + Date.now());
     const status   = state.values['pd-status'] || 'browsing';
+    const existingExportCount = existIdx >= 0 ? (scenarios[existIdx].exportCount || 0) : 0;
     const record   = {
       id, addrKey, fullAddr, timestamp, status,
       bed:  state.values['pd-bed']  || '',
@@ -2743,6 +2744,8 @@
       price: state.values['inp-price'] || '',
       hasPhoto: !!propPhotoDataUrl,
       thumb: propThumbDataUrl || null,
+      exportCount: existingExportCount,
+      savedAt: new Date().toISOString(),
       state,
     };
     const saveBtns = document.querySelectorAll('button[onclick*="saveScenario"]');
@@ -2862,12 +2865,29 @@
     // Load photos lazily — use thumb from record if available, else fetch
     scenarios.forEach(async s => {
       if(!s.hasPhoto) return;
-      const thumb = document.getElementById('thumb-'+s.id);
-      if(!thumb) return;
-      // Use embedded thumb if we have it (no network call needed)
-      if(s.thumb){ thumb.innerHTML = `<img src="${s.thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;" loading="lazy">`; return; }
-      const photo = await getPhoto(s.id);
-      if(photo && thumb) thumb.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;" loading="lazy">`;
+      const thumbId = 'thumb-'+s.id;
+      const setThumbSrc = (src) => {
+        if(!src) return;
+        const el = document.getElementById(thumbId);
+        if(!el) return; // element may no longer be in DOM
+        const img = document.createElement('img');
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:3px;';
+        img.loading = 'lazy';
+        img.onerror = () => {}; // suppress broken image
+        img.src = src;
+        el.innerHTML = '';
+        el.appendChild(img);
+      };
+      // Use embedded thumb first (no network call needed)
+      if(s.thumb){
+        setThumbSrc(s.thumb);
+        return;
+      }
+      // Fallback: fetch full photo from backend
+      try {
+        const photo = await getPhoto(s.id);
+        setThumbSrc(photo);
+      } catch(e) { /* leave default house emoji */ }
     });
   }
 
@@ -3446,6 +3466,7 @@
     if(modal) modal.style.display = 'none';
   }
   function exportPDFWithOptions(){
+    incrementExportCount(); // fire-and-forget — track export count against saved scenario
     // Read values BEFORE closing modal so elements are still in DOM
     const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
     const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
@@ -3462,6 +3483,26 @@
     closePDFOptionsModal();
     exportPDF({size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline});
   }
+  async function incrementExportCount(){
+    // Increment export count for the currently loaded scenario (if saved)
+    if(!_lastSavedAddr) return;
+    try {
+      const scenarios = await getAllScenarios();
+      const sc = scenarios.find(s => (s.fullAddr||'').toLowerCase().trim() === _lastSavedAddr.toLowerCase().trim());
+      if(!sc) return;
+      const updated = Object.assign({}, sc, { exportCount: (sc.exportCount || 0) + 1 });
+      const authH = getAuthHeader();
+      if(authH){
+        await fetch('/.netlify/functions/scenarios', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json','Authorization': authH},
+          body: JSON.stringify({ action:'save', userId:getUserId(), id:updated.id, fullAddr:updated.fullAddr, state:updated.state, hasPhoto:updated.hasPhoto, status:updated.status||'browsing', thumb:updated.thumb||'', exportCount:updated.exportCount, savedAt:updated.savedAt||updated.timestamp })
+        });
+      }
+      _scenariosCache = null; // invalidate cache
+    } catch(e) {}
+  }
+
   function exportPDF(opts){
     const o = opts || {};
     const pageSize   = o.size    || 'A4';
@@ -4554,10 +4595,12 @@
     reader.onload = function(e){
       const img = new Image();
       img.onload = function(){
+        // Use 320×320 for crisp display at all sizes — square-crop centred
+        const size = Math.min(img.width, img.height, 320);
         const c = document.createElement('canvas');
-        c.width = 128; c.height = 128;
-        c.getContext('2d').drawImage(img,0,0,128,128);
-        _profileData.photo = c.toDataURL('image/jpeg',0.85);
+        c.width = size; c.height = size;
+        c.getContext('2d').drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, size, size);
+        _profileData.photo = c.toDataURL('image/jpeg', 0.92);
         renderProfileBtn(); renderProfilePanel();
       };
       img.src = e.target.result;
@@ -4842,11 +4885,11 @@
       var img = new Image();
       img.onload = function(){
         var canvas = document.createElement('canvas');
-        var size = Math.min(img.width, img.height, 400);
+        var size = Math.min(img.width, img.height, 320);
         canvas.width = size; canvas.height = size;
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, size, size);
-        var data = canvas.toDataURL('image/jpeg', 0.8);
+        var data = canvas.toDataURL('image/jpeg', 0.92);
         _profileData.photo = data;
         var av = document.getElementById('ap-avatar');
         if(av){ av.innerHTML='<img src="'+data+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; av.style.background='transparent'; }

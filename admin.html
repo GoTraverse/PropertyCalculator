@@ -555,6 +555,10 @@
   </div>
 
   <!-- Stats row — always visible outside tabs -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);">Overview</div>
+    <button class="btn-admin-outline" id="stats-refresh-btn" style="font-size:10px;padding:6px 14px;" onclick="refreshStats()" title="Manually refresh all stats and graphs">↻ Refresh Stats</button>
+  </div>
   <div class="admin-stats" id="admin-stats">
     <div class="stat-card" onclick="openStatPopup('total')" title="Click to expand">
       <div class="stat-value" id="stat-total"><div class="stat-spinner"></div></div>
@@ -582,8 +586,10 @@
     </div>
     <div class="stat-card" onclick="openStatPopup('sessions')" title="Click to expand">
       <div class="stat-value" id="stat-sessions"><div class="stat-spinner"></div></div>
-      <div class="stat-label">Login Tokens</div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Valid tokens — 1 per device/session</div>
+      <div class="stat-label" style="display:flex;align-items:center;gap:5px;">Login Tokens
+        <span title="Each sign-in creates one session token per device/browser (30-day TTL). A user with 3 devices has 3 tokens. High counts are normal — they don&#39;t mean multiple simultaneous logins." style="cursor:help;font-size:12px;color:var(--sky);line-height:1;">ⓘ</span>
+      </div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Active sessions — 1 per device/browser</div>
       <div class="stat-chart" id="stat-chart-sessions"><div class="stat-chart-loading"></div></div>
     </div>
     <div class="stat-card" onclick="openStatPopup('scenarios')" title="Click to expand">
@@ -633,6 +639,18 @@
             <option value="free">Free</option>
             <option value="pro">Pro</option>
             <option value="adviser">Adviser</option>
+          </select>
+          <select class="filter-select" id="login-filter" onchange="filterUsers()" title="Filter by login activity">
+            <option value="">All users</option>
+            <option value="active-30">Active last 30d</option>
+            <option value="active-7">Active last 7d</option>
+            <option value="never">Never logged in</option>
+          </select>
+          <select class="filter-select" id="sort-filter" onchange="filterUsers()" title="Sort users">
+            <option value="joined-desc">Joined: newest first</option>
+            <option value="joined-asc">Joined: oldest first</option>
+            <option value="login-desc">Last login: newest first</option>
+            <option value="login-asc">Last login: oldest first</option>
           </select>
           <button class="btn-admin" style="font-size:10px;padding:7px 14px;" onclick="loadUsers()">↻ Refresh</button>
         </div>
@@ -1274,13 +1292,33 @@ function renderSparkline(chartId, rawData, strokeColor, fillColor){
 }
 
 function filterUsers(){
-  const search = document.getElementById('user-search').value.toLowerCase();
-  const plan = document.getElementById('plan-filter').value;
-  const filtered = allUsers.filter(u => {
+  const search      = document.getElementById('user-search').value.toLowerCase();
+  const plan        = document.getElementById('plan-filter').value;
+  const loginFilter = (document.getElementById('login-filter') || {}).value || '';
+  const sortMode    = (document.getElementById('sort-filter')  || {}).value || 'joined-desc';
+  const now         = Date.now();
+  const D30 = 30 * 24 * 3600 * 1000;
+  const D7  =  7 * 24 * 3600 * 1000;
+
+  let filtered = allUsers.filter(u => {
     const matchSearch = !search || (u.email||'').toLowerCase().includes(search) || (u.name||'').toLowerCase().includes(search);
-    const matchPlan = !plan || (u.plan||'free') === plan;
-    return matchSearch && matchPlan;
+    const matchPlan   = !plan || (u.plan||'free') === plan;
+    let   matchLogin  = true;
+    if(loginFilter === 'active-30') matchLogin = u.lastLoginAt && (now - u.lastLoginAt) < D30;
+    if(loginFilter === 'active-7')  matchLogin = u.lastLoginAt && (now - u.lastLoginAt) < D7;
+    if(loginFilter === 'never')     matchLogin = !u.lastLoginAt;
+    return matchSearch && matchPlan && matchLogin;
   });
+
+  // Sort
+  filtered = filtered.slice().sort((a, b) => {
+    if(sortMode === 'joined-desc')  return (b.createdAt||0)   - (a.createdAt||0);
+    if(sortMode === 'joined-asc')   return (a.createdAt||0)   - (b.createdAt||0);
+    if(sortMode === 'login-desc')   return (b.lastLoginAt||0) - (a.lastLoginAt||0);
+    if(sortMode === 'login-asc')    return (a.lastLoginAt||0) - (b.lastLoginAt||0);
+    return 0;
+  });
+
   renderUsers(filtered);
 }
 
@@ -1647,7 +1685,7 @@ async function loadConfig(){
   setV('stripe-portal',       c.stripePortal||'');
   st.textContent = ''; st.className = 'admin-status';
   updateBannerPreview();
-  loadStats();
+  // NOTE: stats are NOT auto-refreshed here — use the Refresh Stats button
 }
 
 function updateBannerPreview(){
@@ -1728,6 +1766,13 @@ function exportConfigJson(){
   a.click();
 }
 
+async function refreshStats(){
+  const btn = document.getElementById('stats-refresh-btn');
+  if(btn){ btn.disabled = true; btn.textContent = '↻ Refreshing…'; }
+  await loadStats();
+  if(btn){ btn.disabled = false; btn.textContent = '↻ Refresh Stats'; }
+}
+
 async function loadStats(){
   // Show loading state immediately
   const spinner = '<div class="stat-spinner"></div>';
@@ -1785,7 +1830,7 @@ const STAT_META = {
   free:       { title: 'Free Plan Users',     desc: '1 saved scenario limit',               valueId: 'stat-free',          histKey: 'freeUsers',           stroke: 'rgba(100,100,110,0.8)',   fill: 'rgba(100,100,110,0.4)',   prefix: '', suffix: '' },
   pro:        { title: 'Pro Plan Users',      desc: 'Unlimited + PDF + Projection',         valueId: 'stat-pro',           histKey: 'proUsers',            stroke: 'rgba(180,140,50,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '', suffix: '' },
   adviser:    { title: 'Adviser Plan Users',  desc: 'Multi-client + white-label',           valueId: 'stat-adviser',       histKey: 'adviserUsers',        stroke: 'rgba(60,120,165,0.9)',    fill: 'rgba(91,143,171,0.5)',    prefix: '', suffix: '' },
-  sessions:   { title: 'Login Tokens',        desc: 'Active sessions across all devices',   valueId: 'stat-sessions',      histKey: 'activeSessions',      stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
+  sessions:   { title: 'Login Tokens',        desc: 'One token per device/browser per user (30-day TTL). High counts are normal — each device sign-in creates a new token. Use Database → Purge Expired Sessions to clean up stale tokens.',   valueId: 'stat-sessions',      histKey: 'activeSessions',      stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
   scenarios:  { title: 'Scenario Sets',       desc: 'Saved property scenario lists',        valueId: 'stat-scenarios-top', histKey: 'totalScenarioLists',  stroke: 'rgba(70,140,110,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
   'new-users':{ title: 'New This Week',       desc: 'Signups in last 7 days',               valueId: 'stat-new-users',     histKey: 'newUsersLast7',       stroke: 'rgba(90,158,123,0.9)',    fill: 'rgba(90,158,123,0.5)',    prefix: '', suffix: '' },
   revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
@@ -1822,7 +1867,22 @@ function renderStatPopupChart(days){
 
   // Slice data to requested range (most recent N days)
   let data = _statPopupAllHistory.map(h => ({ date: h.date, value: h[meta.histKey] }));
+  const totalAvailable = data.length;
   if(days > 0 && data.length > days) data = data.slice(data.length - days);
+  // Show a note when less data is available than requested
+  const availNote = document.getElementById('stat-popup-avail-note') || (() => {
+    const el = document.createElement('span');
+    el.id = 'stat-popup-avail-note';
+    el.style.cssText = 'font-family:var(--font-mono);font-size:9px;color:var(--slate);margin-left:8px;';
+    document.getElementById('stat-popup-range-label')?.parentElement?.appendChild(el);
+    return el;
+  })();
+  if(days > 0 && totalAvailable < days){
+    availNote.textContent = `(only ${totalAvailable} day${totalAvailable !== 1 ? 's' : ''} of history available)`;
+    availNote.style.color = 'var(--gold)';
+  } else {
+    availNote.textContent = '';
+  }
 
   // Forward-fill nulls
   let last = 0;
@@ -2056,7 +2116,8 @@ function openScenarioDetail(scenarioId){
         <div class="config-label">Bed / Bath / Car</div>
         <div style="font-family:var(--font-mono);font-size:15px;margin-top:3px;">${[bed,bath,car].map((v,i)=>v?v+['bd','ba','car'][i]:'').filter(Boolean).join(' · ')||'—'}</div>
       </div>` : ''}
-      ${row('Saved', fmtTs(s.savedAt||s.timestamp), true)}
+      ${row('Last Saved', fmtTs(s.savedAt||s.timestamp), true)}
+      ${s.exportCount !== undefined ? row('PDF Exports', s.exportCount + (s.exportCount === 1 ? ' export' : ' exports'), true) : ''}
     </div>
     ${price ? `<div style="border-top:1px solid rgba(28,28,30,0.09);padding-top:14px;margin-bottom:4px;">
       <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:12px;">Financial Snapshot</div>

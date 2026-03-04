@@ -250,10 +250,10 @@
       var img = new Image();
       img.onload = function () {
         var canvas = document.createElement('canvas');
-        var size = Math.min(img.width, img.height, 400);
+        var size = Math.min(img.width, img.height, 320);
         canvas.width = size; canvas.height = size;
         canvas.getContext('2d').drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
-        _apProfile.photo = canvas.toDataURL('image/jpeg', 0.8);
+        _apProfile.photo = canvas.toDataURL('image/jpeg', 0.92);
         var av = el('ap2-avatar');
         if (av) {
           av.innerHTML = '<img src="' + _apProfile.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
