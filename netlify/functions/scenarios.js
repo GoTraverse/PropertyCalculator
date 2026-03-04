@@ -52,7 +52,7 @@ async function verifyToken(authHeader){
   let data;
   try{data=JSON.parse(raw);}catch(e){return null;}
   if(data.expires&&Date.now()>data.expires){ await redisCmd('DEL','token:'+token); return null; }
-  return data; // {userId, email, name, plan}
+  return data; // {userId, email, name, plan, role}
 }
 
 // ── userId validation — verify userId exists as a registered user ─────
@@ -106,6 +106,13 @@ async function resolveUser(event, body){
   return null;
 }
 
+// ── Admin: resolve admin token ────────────────────────────────────────
+async function verifyAdminToken(authHeader){
+  const data = await verifyToken(authHeader);
+  if(!data || data.role !== 'admin') return null;
+  return data;
+}
+
 // ── Handler ───────────────────────────────────────────────────────────
 exports.handler = async function(event){
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
@@ -121,8 +128,23 @@ exports.handler = async function(event){
     try{ body = JSON.parse(event.body); }catch(e){ return fail('Bad request body',400); }
   }
 
+  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
+
   // ── GET — list all scenarios ─────────────────────────────────────────
   if(event.httpMethod==='GET'){
+    // Admin override: admin can view any user's scenarios
+    const adminTargetId = event.queryStringParameters?.adminUserId;
+    if(adminTargetId){
+      const admin = await verifyAdminToken(authHeader);
+      if(!admin) return fail('Admin access required', 401);
+      try{
+        const index = await readIndex(adminTargetId);
+        return ok(index);
+      }catch(e){
+        return fail('Failed to load scenarios: '+e.message, 500);
+      }
+    }
+
     const uid = await resolveUser(event, body);
     if(!uid) return ok([]); // guest mode — return empty, frontend uses localStorage
     try{
@@ -200,6 +222,19 @@ exports.handler = async function(event){
   if(event.httpMethod==='DELETE'){
     const id = event.queryStringParameters?.id;
     if(!id) return fail('id query param required');
+
+    // Admin override: admin can delete any user's scenario
+    const adminTargetId = event.queryStringParameters?.adminUserId;
+    if(adminTargetId){
+      const admin = await verifyAdminToken(authHeader);
+      if(!admin) return fail('Admin access required', 401);
+      const index = await readIndex(adminTargetId);
+      await writeIndex(adminTargetId, index.filter(s=>s.id!==id));
+      try{ await redisPipe([['DEL',stateKey(adminTargetId,id)],['DEL',photoKey(adminTargetId,id)]]); }
+      catch(e){ console.warn('[scenarios] admin DEL pipeline warn:', e.message); }
+      return ok({ok:true});
+    }
+
     const uid = await resolveUser(event, body);
     if(!uid) return fail('Authentication required', 401);
     const index = await readIndex(uid);

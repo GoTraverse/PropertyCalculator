@@ -911,6 +911,42 @@
     </div>
   </div>
 
+  <!-- ══ CUSTOM DIALOG (replaces browser confirm/alert/prompt) ══ -->
+  <div id="app-dialog-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;animation:appDialogFadeIn 0.15s ease;">
+    <style>
+      @keyframes appDialogFadeIn{from{opacity:0}to{opacity:1}}
+      @keyframes appDialogSlideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+      #app-dialog-box{background:var(--warm-white);border-radius:6px;width:min(420px,90vw);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);animation:appDialogSlideUp 0.18s ease;}
+      #app-dialog-header{padding:16px 20px;border-bottom:1px solid rgba(28,28,30,0.08);}
+      #app-dialog-icon{font-size:20px;display:block;margin-bottom:5px;}
+      #app-dialog-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--charcoal);}
+      #app-dialog-body{padding:16px 20px;font-size:13px;color:var(--slate);line-height:1.7;}
+      #app-dialog-input{width:100%;margin-top:10px;padding:9px 12px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.15);border-radius:3px;font-family:'DM Mono',monospace;font-size:13px;color:var(--charcoal);outline:none;}
+      #app-dialog-input:focus{border-color:var(--gold);background:white;}
+      #app-dialog-footer{padding:0 20px 18px;display:flex;gap:10px;justify-content:flex-end;}
+      .app-dialog-btn{padding:9px 18px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;transition:all 0.12s;}
+      .app-dialog-btn-cancel{background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);color:var(--slate);}
+      .app-dialog-btn-cancel:hover{background:rgba(28,28,30,0.12);}
+      .app-dialog-btn-confirm{background:var(--charcoal);border:1px solid var(--charcoal);color:var(--cream);}
+      .app-dialog-btn-confirm:hover{opacity:0.85;}
+      .app-dialog-btn-confirm.danger{background:var(--risk-red);border-color:var(--risk-red);}
+    </style>
+    <div id="app-dialog-box">
+      <div id="app-dialog-header">
+        <span id="app-dialog-icon"></span>
+        <div id="app-dialog-title"></div>
+      </div>
+      <div id="app-dialog-body">
+        <div id="app-dialog-message"></div>
+        <input type="password" id="app-dialog-input" placeholder="" style="display:none;">
+      </div>
+      <div id="app-dialog-footer">
+        <button class="app-dialog-btn app-dialog-btn-cancel" id="app-dialog-cancel" onclick="_appDialogResolve(false)">Cancel</button>
+        <button class="app-dialog-btn app-dialog-btn-confirm" id="app-dialog-confirm" onclick="_appDialogResolve(true)">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <main>
 
     <!-- TAB 0: PROPERTY DETAILS -->
@@ -2717,8 +2753,63 @@
     recalc();
   }
 
+  // ── Custom Dialog System ─────────────────────────────────────────────────
+  var _appDialogResolveFn = null;
+  function _appDialogResolve(val){
+    var overlay = document.getElementById('app-dialog-overlay');
+    var input   = document.getElementById('app-dialog-input');
+    overlay.style.display = 'none';
+    overlay.style.alignItems = '';
+    overlay.style.justifyContent = '';
+    if(_appDialogResolveFn){
+      var fn = _appDialogResolveFn;
+      _appDialogResolveFn = null;
+      fn(input && input.style.display !== 'none' && val ? (input.value || '') : val);
+    }
+  }
+  function _appDialog(title, message, opts){
+    opts = opts || {};
+    return new Promise(function(resolve){
+      _appDialogResolveFn = resolve;
+      var overlay    = document.getElementById('app-dialog-overlay');
+      var icon       = document.getElementById('app-dialog-icon');
+      var titleEl    = document.getElementById('app-dialog-title');
+      var msgEl      = document.getElementById('app-dialog-message');
+      var inputEl    = document.getElementById('app-dialog-input');
+      var cancelBtn  = document.getElementById('app-dialog-cancel');
+      var confirmBtn = document.getElementById('app-dialog-confirm');
+      icon.textContent    = opts.icon || (opts.danger ? '⚠️' : 'ℹ️');
+      titleEl.textContent = title;
+      msgEl.innerHTML     = message;
+      cancelBtn.style.display  = opts.alertOnly ? 'none' : '';
+      confirmBtn.textContent   = opts.confirmLabel || (opts.danger ? 'Delete' : 'OK');
+      confirmBtn.className     = 'app-dialog-btn app-dialog-btn-confirm' + (opts.danger ? ' danger' : '');
+      if(opts.inputType){
+        inputEl.type        = opts.inputType;
+        inputEl.placeholder = opts.inputPlaceholder || '';
+        inputEl.value       = '';
+        inputEl.style.display = '';
+        setTimeout(function(){ inputEl.focus(); }, 60);
+      } else {
+        inputEl.style.display = 'none';
+        setTimeout(function(){ confirmBtn.focus(); }, 50);
+      }
+      overlay.style.display        = 'flex';
+      overlay.style.alignItems     = 'center';
+      overlay.style.justifyContent = 'center';
+    });
+  }
+  function appConfirm(title, message, opts){ return _appDialog(title, message, opts); }
+  function appAlert(title, message, opts){ return _appDialog(title, message, Object.assign({alertOnly:true, icon:'✓'}, opts)); }
+  function appPrompt(title, message, opts){ return _appDialog(title, message, Object.assign({inputType:'password'}, opts)); }
+
+  // Close on backdrop click / Escape
+  document.getElementById('app-dialog-overlay').addEventListener('click', function(e){ if(e.target===this) _appDialogResolve(false); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && document.getElementById('app-dialog-overlay').style.display==='flex') _appDialogResolve(false); });
+
   async function deleteScenario(id){
-    if(!confirm('Delete this scenario? This cannot be undone.')) return;
+    var ok = await appConfirm('Delete Scenario', 'Delete this scenario? This cannot be undone.', {danger:true, confirmLabel:'Delete'});
+    if(!ok) return;
     _scenariosCache = null;
     await deleteScenarioFromBackend(id);
     updateSavedCount();
@@ -4105,8 +4196,11 @@
   }
 
   // ── NEW SCENARIO ──
-  function newScenario(){
-    if(_isDirty && !confirm('Start a new scenario? Unsaved changes will be lost.')) return;
+  async function newScenario(){
+    if(_isDirty){
+      var ok = await appConfirm('New Scenario', 'Start a new scenario? Unsaved changes will be lost.', {icon:'✨', confirmLabel:'Start New'});
+      if(!ok) return;
+    }
     var defaults = {
       'inp-price':'650000','inp-savings':'40000','inp-depp':'2',
       'inp-govt':'28.7','inp-rate':'6.2','inp-term':'30',
@@ -4369,7 +4463,7 @@
   }
 
   async function apDeleteAccount(){
-    var pw = prompt('Enter your password to permanently delete your account. This cannot be undone.');
+    var pw = await appPrompt('Delete Account', 'Enter your password to permanently delete your account. This cannot be undone.', {danger:true, confirmLabel:'Delete Account', inputPlaceholder:'Your password'});
     if(!pw) return;
     try{
       var r = await fetch('/.netlify/functions/auth',{
@@ -4380,12 +4474,14 @@
       var d = await r.json();
       if(d.ok){
         localStorage.clear();
-        alert('Account deleted. Goodbye!');
+        await appAlert('Account Deleted', 'Your account has been deleted. You will now be redirected.', {icon:'👋'});
         location.href='index.html';
       } else {
-        alert(d.error||'Incorrect password — account not deleted');
+        await appAlert('Error', d.error||'Incorrect password — account not deleted', {danger:true, icon:'✗'});
       }
-    } catch(e){ alert('Network error — try again'); }
+    } catch(e){
+      await appAlert('Network Error', 'Could not connect — please try again.', {danger:true, icon:'✗'});
+    }
   }
   // END FLOATING ACCOUNT PANEL
 
