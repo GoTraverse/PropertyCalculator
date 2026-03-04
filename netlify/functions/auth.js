@@ -102,6 +102,11 @@ exports.handler = async function(event){
     const user=await rGet('user:'+email.toLowerCase().trim());
     if(!user) return fail('No account found for this email');
     if(user.hash!==hashPw(password)) return fail('Incorrect password');
+    // Track login statistics
+    user.lastLoginAt=Date.now();
+    user.loginCount=(user.loginCount||0)+1;
+    user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
+    await rSet('user:'+email.toLowerCase().trim(),user);
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email||email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
     return ok({ok:true,token,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'});
@@ -184,7 +189,8 @@ exports.handler = async function(event){
     if(!keys||!keys.length) return ok({ok:true,users:[]});
     const users=await Promise.all(keys.map(async k=>{
       const u=await rGet(k);
-      return u?{email:u.email,name:u.name,plan:u.plan,id:u.id,createdAt:u.createdAt,role:u.role}:null;
+      return u?{email:u.email,name:u.name,plan:u.plan,id:u.id,createdAt:u.createdAt,role:u.role,
+                lastLoginAt:u.lastLoginAt,loginCount:u.loginCount,lastLoginIp:u.lastLoginIp}:null;
     }));
     return ok({ok:true,users:users.filter(Boolean)});
   }
@@ -365,6 +371,33 @@ exports.handler = async function(event){
     if(!Array.isArray(schemes)) return fail('schemes must be an array');
     await rSet('config:schemes',schemes);
     return ok({ok:true});
+  }
+
+  if(action==='adminGetUserDetails'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {targetEmail}=body;
+    if(!targetEmail) return fail('targetEmail required');
+    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    if(!userData) return fail('User not found');
+    const {hash,...safeUser}=userData;
+    const profile=await rGet('profile:'+userData.id)||{};
+    // Count saved scenarios
+    let scenarioCount=0;
+    try{
+      const scenarioIndex=await rGet('scenarios:'+userData.id+':index');
+      scenarioCount=Array.isArray(scenarioIndex)?scenarioIndex.length:0;
+    }catch(e){}
+    // Count active tokens belonging to this user
+    let activeTokens=0;
+    try{
+      const tokenKeys=await redisCmd('KEYS','token:*');
+      if(tokenKeys&&tokenKeys.length){
+        const tokens=await Promise.all(tokenKeys.map(k=>rGet(k)));
+        activeTokens=tokens.filter(t=>t&&t.userId===userData.id&&(!t.expires||Date.now()<t.expires)).length;
+      }
+    }catch(e){}
+    return ok({ok:true,user:safeUser,profile,scenarioCount,activeTokens});
   }
 
   if(action==='getSchemes'){
