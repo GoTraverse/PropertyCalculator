@@ -125,13 +125,10 @@
         </div>
         <div class="pcard-body">
           <ul class="pcard-feats">
-            <li><div class="ck ck-y">✓</div>1 saved property scenario</li>
+            <li><div class="ck ck-y">✓</div>2 saved scenarios</li>
             <li><div class="ck ck-y">✓</div>Shared equity calculator</li>
             <li><div class="ck ck-y">✓</div>Renovation budget tracker</li>
             <li><div class="ck ck-y">✓</div>Key dates &amp; timeline</li>
-            <li><div class="ck ck-n">—</div>30-year projection chart</li>
-            <li><div class="ck ck-n">—</div>PDF export</li>
-            <li><div class="ck ck-n">—</div>Unlimited library &amp; cloud sync</li>
           </ul>
           <button class="pcard-btn pb-outline" href="login.html?tab=signup">Start free →</button>
         </div>
@@ -142,8 +139,12 @@
           <div class="pcard-badge">Most popular</div>
           <div class="pcard-name">Pro</div>
           <div class="pcard-desc">For serious buyers who want the full picture before making an offer.</div>
-          <div class="pcard-price"><span class="pcard-amt" id="pro-amt">A$0</span><span class="pcard-per">AUD / month</span></div>
-          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.25);margin-top:6px;" id="pro-sub">Billed monthly · cancel any time</div>
+          <div class="pcard-price">
+            <span id="pro-orig" style="font-family:var(--font-mono);font-size:20px;text-decoration:line-through;color:rgba(245,240,232,0.3);margin-right:6px;">A$9</span>
+            <span class="pcard-amt" id="pro-amt">A$2.99</span><span class="pcard-per">AUD / month</span>
+          </div>
+          <div id="pro-promo" style="font-family:var(--font-mono);font-size:10px;color:rgba(201,168,76,0.8);margin-top:5px;">$2.99 until June 1st 2026</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.25);margin-top:4px;" id="pro-sub">Billed monthly · cancel any time</div>
         </div>
         <div class="pcard-body">
           <ul class="pcard-feats">
@@ -159,24 +160,24 @@
         </div>
       </div>
 
-      <div class="pcard">
+      <div class="pcard" style="opacity:0.75;">
         <div class="pcard-top">
-          <div class="pcard-badge">Brokers &amp; advisers</div>
+          <div class="pcard-badge" style="color:rgba(28,28,30,0.4);">Coming soon</div>
           <div class="pcard-name">Adviser</div>
           <div class="pcard-desc">For mortgage brokers managing multiple client scenarios.</div>
-          <div class="pcard-price"><span class="pcard-amt" id="adv-amt">A$0</span><span class="pcard-per">AUD / month</span></div>
-          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(28,28,30,0.3);margin-top:6px;" id="adv-sub">Billed monthly · cancel any time</div>
+          <div class="pcard-price"><span class="pcard-amt" id="adv-amt" style="color:rgba(28,28,30,0.35);">A$29</span><span class="pcard-per">AUD / month</span></div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(28,28,30,0.3);margin-top:6px;" id="adv-sub">Available soon</div>
         </div>
         <div class="pcard-body">
           <ul class="pcard-feats">
-            <li><div class="ck ck-y">✓</div>Everything in Pro</li>
-            <li><div class="ck ck-y">✓</div>Up to 5 client accounts</li>
-            <li><div class="ck ck-y">✓</div>White-label PDF (your branding)</li>
-            <li><div class="ck ck-y">✓</div>Client portfolio dashboard</li>
-            <li><div class="ck ck-y">✓</div>Broker referral tools</li>
-            <li><div class="ck ck-y">✓</div>Phone + email priority support</li>
+            <li><div class="ck ck-n">—</div>Everything in Pro</li>
+            <li><div class="ck ck-n">—</div>Up to 5 client accounts</li>
+            <li><div class="ck ck-n">—</div>White-label PDF (your branding)</li>
+            <li><div class="ck ck-n">—</div>Client portfolio dashboard</li>
+            <li><div class="ck ck-n">—</div>Broker referral tools</li>
+            <li><div class="ck ck-n">—</div>Phone + email priority support</li>
           </ul>
-          <button class="pcard-btn pb-outline" onclick="location.href='contact.html?plan=adviser'">Contact us →</button>
+          <button class="pcard-btn pb-outline" disabled style="opacity:0.4;cursor:not-allowed;">Coming soon</button>
         </div>
       </div>
     </div>
@@ -198,7 +199,7 @@
             <tr><td class="fname">30-year projection chart</td><td class="tv tn">—</td><td class="tv tg fc">✓</td><td class="tv ty">✓</td></tr>
             <tr><td class="fname">Suburb growth data lookup</td><td class="tv tn">—</td><td class="tv tg fc">✓</td><td class="tv ty">✓</td></tr>
             <tr class="sec-row"><td colspan="4">Property Library</td></tr>
-            <tr><td class="fname">Saved property scenarios</td><td class="tv">1</td><td class="tv tg fc">Unlimited</td><td class="tv ty">Unlimited</td></tr>
+            <tr><td class="fname">Saved property scenarios</td><td class="tv">2</td><td class="tv tg fc">Unlimited</td><td class="tv ty">Unlimited</td></tr>
             <tr><td class="fname">Cloud sync across devices</td><td class="tv tn">—</td><td class="tv tg fc">✓</td><td class="tv ty">✓</td></tr>
             <tr class="sec-row"><td colspan="4">Export</td></tr>
             <tr><td class="fname">PDF export</td><td class="tv tn">—</td><td class="tv tg fc">✓</td><td class="tv ty">✓</td></tr>
@@ -207,7 +208,7 @@
             <tr><td class="fname">Support tier</td><td class="tv">Community</td><td class="tv tg fc">Priority email</td><td class="tv ty">Phone + email</td></tr>
             <tr><td class="fname">Client accounts</td><td class="tv tn">—</td><td class="tv tn fc">—</td><td class="tv ty">Up to 5</td></tr>
             <tr class="sec-row"><td colspan="4">Pricing</td></tr>
-            <tr><td class="fname">Monthly price</td><td class="tv">Free</td><td class="tv tg fc" id="tbl-pro">$9/mo</td><td class="tv" id="tbl-adv">$29/mo</td></tr>
+            <tr><td class="fname">Monthly price</td><td class="tv">Free</td><td class="tv tg fc" id="tbl-pro"><span style="text-decoration:line-through;opacity:0.45;">$9</span> $2.99/mo</td><td class="tv" id="tbl-adv">Coming soon</td></tr>
           </tbody>
         </table>
       </div>
@@ -220,7 +221,7 @@
     <h2 style="font-family:var(--font-display);font-size:32px;font-weight:700;text-align:center;margin-bottom:48px;">Questions</h2>
     <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Can I really use it for free?<span class="faq-icon">+</span></button><div class="faq-ans">Yes — the Starter plan is free forever with no credit card required. Save one property and use the core calculator indefinitely.</div></div>
     <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Do you offer a free trial on Pro?<span class="faq-icon">+</span></button><div class="faq-ans">Yes, 7 days free. You won't be charged until day 8. Cancel any time during the trial at no cost.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">What happens to my data if I cancel?<span class="faq-icon">+</span></button><div class="faq-ans">Your account stays on the Starter plan. Scenarios over the 1-property limit are archived (not deleted) and unlock again if you re-subscribe. All your data is exportable as PDF at any time.</div></div>
+    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">What happens to my data if I cancel?<span class="faq-icon">+</span></button><div class="faq-ans">Your account stays on the Starter plan. Scenarios over the 2-scenario limit are archived (not deleted) and unlock again if you re-subscribe. All your data is exportable as PDF at any time.</div></div>
     <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Is this financial advice?<span class="faq-icon">+</span></button><div class="faq-ans">No. mypropertymate is a planning and modelling tool. Always consult a licensed financial adviser or mortgage broker before making property decisions.</div></div>
     <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How does billing work?<span class="faq-icon">+</span></button><div class="faq-ans">Payments are processed securely via Stripe. Monthly or annual billing available. Cancel any time from your account page.</div></div>
   </div>
@@ -265,12 +266,11 @@
     document.getElementById('bill-tog').classList.toggle('on',annual);
     document.getElementById('lbl-m').classList.toggle('active',!annual);
     document.getElementById('lbl-a').classList.toggle('active',annual);
-    document.getElementById('pro-amt').textContent=annual?'A$7':'A$9';
-    document.getElementById('adv-amt').textContent=annual?'A$23':'A$29';
+    document.getElementById('pro-amt').textContent=annual?'A$7':'A$2.99';
+    document.getElementById('pro-orig').style.display=annual?'none':'inline';
+    document.getElementById('pro-promo').style.display=annual?'none':'block';
     document.getElementById('pro-sub').textContent=annual?'Billed A$86/yr · cancel any time':'Billed monthly AUD · cancel any time';
-    document.getElementById('adv-sub').textContent=annual?'Billed A$278/yr · cancel any time':'Billed monthly AUD · cancel any time';
-    document.getElementById('tbl-pro').textContent=annual?'A$7/mo (A$86/yr)':'A$9/mo';
-    document.getElementById('tbl-adv').textContent=annual?'A$23/mo (A$278/yr)':'A$29/mo';
+    document.getElementById('tbl-pro').innerHTML=annual?'A$7/mo (A$86/yr)':'<span style="text-decoration:line-through;opacity:0.45;">$9</span> $2.99/mo';
   }
   document.getElementById('nav-ham').addEventListener('click',function(){
     const l=document.querySelector('.site-nav-links');
