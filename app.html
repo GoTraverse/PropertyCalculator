@@ -517,6 +517,17 @@
     .chart-wrap{overflow:hidden!important;width:100%!important;}
     #proj-svg-wrap{width:100%!important;min-width:0!important;}
   #proj-svg-wrap svg{width:100%!important;min-width:0!important;display:block;}
+
+    /* Fix 1: Extra bottom padding so the floating calc FAB doesn't obscure content */
+    main{padding-bottom:max(110px, calc(env(safe-area-inset-bottom) + 96px))!important;}
+
+    /* Fix 2: Amortization table — proper mobile scroll and sizing */
+    #amort-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;max-width:100%;border-radius:4px;}
+    #amort-table th{font-size:9px!important;padding:5px 7px!important;white-space:nowrap;}
+    #amort-table td{font-size:10px!important;padding:5px 7px!important;white-space:nowrap;}
+
+    /* Fix 3: Ensure all header action buttons have exactly the same height */
+    .export-btn{height:36px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;}
   }
   #mobile-sidebar-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:3px;color:var(--cream);cursor:pointer;font-size:16px;flex-shrink:0;}
   #mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:190;}
@@ -710,7 +721,7 @@
         <button class="export-btn hdr-desktop-btn" id="open-saved-btn" onclick="openScenariosModal()" title="Browse saved scenarios">
           📁 Library <span id="saved-count" style="display:none;background:var(--gold);color:var(--charcoal);border-radius:10px;padding:1px 6px;font-size:9px;margin-left:3px;vertical-align:middle;">0</span>
         </button>
-        <button class="export-btn hdr-desktop-btn" onclick="if(isPro()){exportPDF();}else{requirePro('PDF Export');}" title="Export to PDF (Pro)">
+        <button class="export-btn hdr-desktop-btn" onclick="if(isPro()){showPDFOptionsPopup();}else{requirePro('PDF Export');}" title="Export to PDF (Pro)">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           PDF
         </button>
@@ -774,6 +785,29 @@
   <div class="sidebar-collapsed-hint" onclick="toggleSidebarCollapse()">Calculator</div>
 
   <div class="sidebar-content">
+
+  <!-- Scenario feature toggles — moved to top for quick access -->
+  <div style="display:flex;flex-direction:column;gap:8px;padding:10px 0 4px;">
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:2px;">Sections</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="s-head" style="margin-bottom:0;font-size:11px;">🔨 Reno Tab</div>
+      <div id="reno-toggle" onclick="toggleReno()" style="width:38px;height:20px;background:var(--sage);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+        <div id="reno-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="s-head" style="margin-bottom:0;font-size:11px;">🏠 Rent Overlap Tab</div>
+      <div id="rent-toggle" onclick="toggleRent()" style="width:38px;height:20px;background:var(--sky);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+        <div id="rent-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="s-head" style="margin-bottom:0;font-size:11px;">⚠️ Risk Tab</div>
+      <div id="risk-toggle" onclick="toggleRisk()" style="width:38px;height:20px;background:var(--terracotta);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+        <div id="risk-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
+      </div>
+    </div>
+  </div>
 
   <hr class="div">
   <div class="s-head">Purchase Price & Savings</div>
@@ -860,29 +894,6 @@
   </div>
   </div>
 
-  <hr class="div">
-  <div style="display:flex;flex-direction:column;gap:10px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div class="s-head" style="margin-bottom:0;">🔨 Reno Tab</div>
-      <div style="display:flex;align-items:center;gap:7px;">
-        <div id="reno-toggle" onclick="toggleReno()" style="width:38px;height:20px;background:var(--sage);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
-          <div id="reno-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div class="s-head" style="margin-bottom:0;">🏠 Rent Overlap Tab</div>
-      <div id="rent-toggle" onclick="toggleRent()" style="width:38px;height:20px;background:var(--sky);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
-        <div id="rent-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div class="s-head" style="margin-bottom:0;">⚠️ Risk Tab</div>
-      <div id="risk-toggle" onclick="toggleRisk()" style="width:38px;height:20px;background:var(--terracotta);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
-        <div id="risk-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
-      </div>
-    </div>
-  </div>
   <div id="sidebar-alert"></div>  </div>
 
 </div>
@@ -3278,7 +3289,44 @@
   }
 
   // ── EXPORT PDF (Fix 2) — opens a clean read-only print-optimised view ──
-  function exportPDF(){
+  function showPDFOptionsPopup(){
+    const modal = document.getElementById('pdf-options-modal');
+    if(!modal) return exportPDF();
+    modal.style.display = 'flex';
+  }
+  function closePDFOptionsModal(){
+    const modal = document.getElementById('pdf-options-modal');
+    if(modal) modal.style.display = 'none';
+  }
+  function exportPDFWithOptions(){
+    closePDFOptionsModal();
+    const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
+    const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
+    const colour  = document.getElementById('pdf-opt-colour')?.value   || 'full';
+    const fsz     = document.getElementById('pdf-opt-fontsize')?.value || 'normal';
+    const incFinancial = document.getElementById('pdf-opt-financial')?.checked !== false;
+    const incReno      = document.getElementById('pdf-opt-reno')?.checked !== false;
+    const incRepay     = document.getElementById('pdf-opt-repay')?.checked !== false;
+    const incAmort     = document.getElementById('pdf-opt-amort')?.checked === true;
+    const incOverlap   = document.getElementById('pdf-opt-overlap')?.checked !== false;
+    const incRisks     = document.getElementById('pdf-opt-risks')?.checked !== false;
+    const incNotes     = document.getElementById('pdf-opt-notes')?.checked !== false;
+    exportPDF({size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes});
+  }
+  function exportPDF(opts){
+    const o = opts || {};
+    const pageSize   = o.size    || 'A4';
+    const pageOrient = o.orient  || 'portrait';
+    const colourMode = o.colour  || 'full';
+    const fontSize   = o.fsz     || 'normal';
+    const incFinancial = o.incFinancial !== false;
+    const incReno      = o.incReno      !== false;
+    const incRepay     = o.incRepay     !== false;
+    const incAmort     = o.incAmort     === true;
+    const incOverlap   = o.incOverlap   !== false;
+    const incRisks     = o.incRisks     !== false;
+    const incNotes     = o.incNotes     !== false;
+
     const addr = document.getElementById('pd-address')?.value || 'Property';
     const suburb = document.getElementById('pd-suburb')?.value || '';
     const stateVal = document.getElementById('pd-state')?.value || '';
@@ -3340,6 +3388,27 @@
       <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${it.amt}</td>
       <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;">${it.note}</td></tr>`).join('');
 
+    // Build amortisation data for PDF if requested
+    let amortTableHTML = '';
+    if(incAmort && _lastAmortParams){
+      const {loanAmt, rate, term} = _lastAmortParams;
+      const monthly = calcMonthly(loanAmt, rate, term);
+      if(loanAmt > 0 && monthly > 0){
+        const r = rate / 100 / 12;
+        const fa = v => '$' + Math.round(v).toLocaleString('en-AU');
+        let bal = loanAmt, amRows = '';
+        for(let yr = 1; yr <= term; yr++){
+          const ob = bal; let yP=0, yI=0;
+          for(let mo=1;mo<=12&&bal>0.005;mo++){
+            const ic=bal*r, pc=Math.min(monthly-ic,bal);
+            yI+=ic; yP+=pc; bal=Math.max(0,bal-pc);
+          }
+          amRows+=`<tr style="${yr%2===0?'background:#f9f6f0':''}"><td style="padding:5px 8px;border-bottom:1px solid #eee;">Yr ${yr}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${fa(ob)}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;color:#5A9E7A;">${fa(yP)}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;color:#C45A5A;">${fa(yI)}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${fa(bal)}</td></tr>`;
+        }
+        amortTableHTML = `<div class="section-title">— · Amortisation Schedule</div><div class="card" style="overflow-x:auto;"><table style="font-size:10px;"><thead><tr><th style="text-align:left;">Year</th><th style="text-align:right;">Opening Bal</th><th style="text-align:right;">Principal</th><th style="text-align:right;">Interest</th><th style="text-align:right;">Closing Bal</th></tr></thead><tbody>${amRows}</tbody></table></div>`;
+      }
+    }
+
     const html = `<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
@@ -3347,9 +3416,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:#fff;font-family:'DM Sans',sans-serif;color:#1C1C1E;font-size:12px;}
-  @page{margin:10mm 12mm;size:A4;}
-  @media print{body{font-size:11px;}}
+  body{background:#fff;font-family:'DM Sans',sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'10px':'12px'};}
+  @page{margin:10mm 12mm;size:${pageSize} ${pageOrient};}
+  @media print{body{font-size:${fontSize==='large'?'12px':fontSize==='compact'?'9px':'11px'};}}
   .page{max-width:900px;margin:0 auto;padding:20px 24px;}
   header{background:#1C1C1E;color:#F5F0E8;padding:0;display:flex;margin-bottom:20px;border-radius:4px;overflow:hidden;}
   .htext{flex:1;padding:20px 24px;}
@@ -3380,6 +3449,15 @@
   th:last-child,td:last-child{text-align:right;}
   .print-btn{position:fixed;top:16px;right:16px;background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:8px 16px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;z-index:100;}
   @media print{.print-btn{display:none;}}
+  ${colourMode==='mono'?`
+  /* Monochrome overrides */
+  header{background:#1C1C1E!important;}
+  .tile{background:#333!important;}
+  .card{background:#f5f5f5!important;}
+  .card-accent,.tile-dot{background:#666!important;}
+  .meter-fill{background:#555!important;}
+  a{color:#333!important;}
+  `:''}
 
 
   /* ── WELCOME SPLASH ── */
@@ -3405,12 +3483,13 @@
       <div class="htag">Property Finance Calculator</div>
       <h1>${snap.addr}</h1>
       <div class="hsub">${snap.sub}</div>
-      <div class="hstamp">Exported ${(()=>{const n=new Date();return String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();})()}</div>
-      ${snap.notes ? `<div style="margin-top:10px;font-size:11px;color:rgba(245,240,232,0.5);font-style:italic;max-width:360px;">"${snap.notes}"</div>` : ''}
+      <div class="hstamp">Exported ${(()=>{const n=new Date();return String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();})()}  ·  ${pageSize} ${pageOrient.charAt(0).toUpperCase()+pageOrient.slice(1)}</div>
+      ${(snap.notes && incNotes) ? `<div style="margin-top:10px;font-size:11px;color:rgba(245,240,232,0.5);font-style:italic;max-width:360px;">"${snap.notes}"</div>` : ''}
     </div>
     <div class="hphoto">${photoHTML}</div>
   </header>
 
+  ${incFinancial ? `
   <div class="section-title">01 · Financial Snapshot</div>
   <div class="grid4">
     <div class="tile"><div class="tile-val">${snap.price}</div><div class="tile-lbl">Purchase Price</div></div>
@@ -3431,9 +3510,10 @@
       ${snap.costRows.replace(/<div class="cr">/g,'<div class="kv" style="padding-left:10px;">').replace(/<span class="nm">/g,'<span class="lbl">').replace(/<span class="am">/g,'<span class="val">').replace(/<\/div>/g,'</div>')}
       <div class="kv" style="padding-left:10px;border-top:2px solid #1C1C1E;padding-top:7px;margin-top:5px;"><span class="lbl" style="font-weight:600;">Total Required</span><span class="val" style="font-weight:600;">${snap.crTotal}</span></div>
     </div>
-  </div>
+  </div>` : ''}
 
-  ${snap.renoOn ? `  <div class="section-title">02 · Renovation Budget</div>
+  ${(snap.renoOn && incReno) ? `
+  <div class="section-title">02 · Renovation Budget</div>
   <div class="grid2" style="margin-bottom:12px;">
     <div class="card" style="text-align:center;">
       <div style="font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">POOL</div>
@@ -3453,8 +3533,9 @@
         <tr><td style="padding:7px 10px;font-weight:700;">Total</td><td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700;">${snap.renoTotal}</td><td></td></tr>
       </table>
     </div>
-  </div>
-` : ''}
+  </div>` : ''}
+
+  ${incRepay ? `
   <div class="section-title">03 · Loan Repayments</div>
   <div class="grid2">
     <div class="card">
@@ -3469,20 +3550,32 @@
       <div class="kv"><span class="lbl">Total Amount Paid</span><span class="val">${snap.totalPaid}</span></div>
     </div>
   </div>
-  ${snap.rentOn ? `
+  ${amortTableHTML}` : ''}
+
+  ${(snap.rentOn && incOverlap) ? `
   <div class="section-title">04 · Rent Overlap</div>
-  <div class="grid2">
+  <div class="grid2" style="margin-bottom:0;">
     <div class="card">
       <div class="kv"><span class="lbl">Weekly Combined Cost</span><span class="val">${snap.overlapWeekly}</span></div>
       <div class="kv"><span class="lbl">Total Overlap Cost</span><span class="val" style="color:#C4704A;">${snap.overlapTotal}</span></div>
       <div class="kv"><span class="lbl">Cash Left After Overlap</span><span class="val" style="color:#5A9E7B;">${snap.overlapAfter}</span></div>
     </div>
-    <div class="card">
-      <div style="font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:10px;">RISK · REWARD</div>
-      <div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;"><span>Risk Level</span><span style="font-family:monospace;">${snap.riskScore}</span></div><div class="meter-wrap"><div class="meter-fill" style="width:${snap.riskScore};background:linear-gradient(to right,#C9A84C,#C4704A);"></div></div><div style="font-size:10px;color:#666;">${snap.riskDesc}</div></div>
-      <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;"><span>Reward Potential</span><span style="font-family:monospace;">${snap.rewardScore}</span></div><div class="meter-wrap"><div class="meter-fill" style="width:${snap.rewardScore};background:linear-gradient(to right,#7B9E87,#5A9E7B);"></div></div><div style="font-size:10px;color:#666;">${snap.rewardDesc}</div></div>
+    <div class="card" style="display:flex;align-items:center;justify-content:center;">
+      <div style="font-size:11px;color:#888;font-style:italic;">Overlap period modelled from rent + mortgage input values.</div>
     </div>
-  ` : ''}</div>
+  </div>` : ''}
+
+  ${incRisks ? `
+  <div class="section-title">05 · Risk &amp; Reward</div>
+  <div class="grid2">
+    <div class="card">
+      <div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><strong>Risk Level</strong><span style="font-family:monospace;">${snap.riskScore}</span></div><div class="meter-wrap"><div class="meter-fill" style="width:${snap.riskScore};background:linear-gradient(to right,#C9A84C,#C4704A);"></div></div><div style="font-size:11px;color:#666;margin-top:4px;">${snap.riskDesc}</div></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><strong>Reward Potential</strong><span style="font-family:monospace;">${snap.rewardScore}</span></div><div class="meter-wrap"><div class="meter-fill" style="width:${snap.rewardScore};background:linear-gradient(to right,#7B9E87,#5A9E7B);"></div></div><div style="font-size:11px;color:#666;margin-top:4px;">${snap.rewardDesc}</div></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;justify-content:center;">
+      <div style="font-size:11px;color:#888;font-style:italic;text-align:center;">Risk &amp; reward scores are calculated from loan-to-value ratio, cash buffer, and government scheme contribution.</div>
+    </div>
+  </div>` : ''}
 </div>
 <script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
 
@@ -4191,7 +4284,7 @@
     if(_profileData.photo){
       btn.style.background = 'transparent';
       btn.style.padding = '0';
-      btn.innerHTML = '<img src="' + _profileData.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      btn.innerHTML = '<img src="' + _profileData.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;display:block;">';
     } else {
       var ppParts = name ? name.trim().split(/\s+/).filter(Boolean) : [];
       var initials = ppParts.length===0?'?':ppParts.length===1?ppParts[0][0].toUpperCase():(ppParts[0][0]+ppParts[ppParts.length-1][0]).toUpperCase();
@@ -4261,6 +4354,8 @@
 
   function setProfileColor(color){
     _profileData.color = color;
+    // Immediately persist the colour so it propagates across all pages
+    lsSet(getProfileKey(), JSON.stringify(_profileData));
     const avd = document.getElementById('pp-avatar-display');
     if(avd && !_profileData.photo) avd.style.background = color;
     document.querySelectorAll('.pp-color-swatch').forEach(function(el){
@@ -4327,7 +4422,7 @@
     if(photo){
       btn.style.background = 'transparent';
       btn.style.padding = '0';
-      btn.innerHTML = '<img src="' + photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      btn.innerHTML = '<img src="' + photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;display:block;">';
     } else {
       var parts2 = name ? name.trim().split(/\s+/).filter(Boolean) : [];
       var ini = parts2.length===0?'?':parts2.length===1?parts2[0][0].toUpperCase():(parts2[0][0]+parts2[parts2.length-1][0]).toUpperCase();
@@ -4730,6 +4825,88 @@
 </div>
 
 
+<!-- ══ PDF EXPORT OPTIONS MODAL ══ -->
+<div id="pdf-options-modal" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closePDFOptionsModal()">
+  <div style="background:#F5F0E8;border-radius:8px;width:min(520px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.55);">
+    <!-- Header -->
+    <div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">PDF EXPORT</div>
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#F5F0E8;">Export Options</div>
+      </div>
+      <button onclick="closePDFOptionsModal()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <!-- Body -->
+    <div style="padding:22px;">
+
+      <!-- Page Size & Orientation -->
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Page Layout</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Page Size</label>
+            <select id="pdf-opt-size" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
+              <option value="A4" selected>A4 (210 × 297 mm)</option>
+              <option value="A3">A3 (297 × 420 mm)</option>
+              <option value="Letter">US Letter (8.5 × 11 in)</option>
+              <option value="Legal">US Legal (8.5 × 14 in)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Orientation</label>
+            <select id="pdf-opt-orient" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
+              <option value="portrait" selected>Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sections to include -->
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Sections to Include</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-financial" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Financial Snapshot</strong> — price, deposit, govt contribution, cash picture</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-reno" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Renovation Budget</strong> — pool, itemised costs, contingency</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-repay" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Loan Repayments</strong> — monthly, weekly, annual, total interest</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-amort" style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Amortisation Schedule</strong> — full year-by-year principal &amp; interest table</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-overlap" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Rent Overlap</strong> — weekly overlap cost, cash remaining</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-risks" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Risk &amp; Reward</strong> — risk/reward meter scores and descriptions</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-notes" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Property Notes</strong> — your saved notes for this property</span></label>
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div style="margin-bottom:22px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Appearance</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Colour Scheme</label>
+            <select id="pdf-opt-colour" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
+              <option value="full" selected>Full Colour</option>
+              <option value="mono">Monochrome (ink saving)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Font Size</label>
+            <select id="pdf-opt-fontsize" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
+              <option value="normal" selected>Normal</option>
+              <option value="large">Large (accessibility)</option>
+              <option value="compact">Compact (fit more per page)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+        <button onclick="closePDFOptionsModal()" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>
+        <button onclick="exportPDFWithOptions()" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">🖨 Generate PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ TOP-RIGHT PROFILE WIDGET (consistent across all pages) ══ -->
 <div id="app-profile-widget" style="position:fixed;top:max(12px, calc(env(safe-area-inset-top) + 8px));right:28px;z-index:5000;transition:opacity 0.2s,visibility 0.2s;">
   <button id="app-profile-btn" onclick="toggleAppProfileMenu()" title="Account"
@@ -4752,7 +4929,7 @@
         if(btn){
           if(prof.photo){
             btn.style.background='transparent';
-            btn.innerHTML='<img src="'+prof.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+            btn.innerHTML='<img src="'+prof.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;display:block;">';
           } else if(name){
             var parts=name.trim().split(/\s+/).filter(Boolean);
             var ini=parts.length===1?parts[0][0].toUpperCase():(parts[0][0]+parts[parts.length-1][0]).toUpperCase();
