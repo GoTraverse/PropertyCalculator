@@ -6,8 +6,6 @@ Do urgent tasks first. Urgent tasks have a "!" at the start of the line after th
 Never delete anything above this line.
 ------------------------------------------
 
-
-
 General(DO NOT REMOVE THIS LINE)
 1. After loading a scenario and then refreshing to e page, the property image disappears forwver, please fix.
 2. Automatically bring up the suburb growth rate if there is a suburb listed and keep that data on file so we dont have to keep pingingthe API unless the suburb is different.
@@ -25,6 +23,9 @@ General(DO NOT REMOVE THIS LINE)
 14. Add forgot password functionality.
 15. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
 16. !Restructure my HTML/CSS/JS into modular, reusable components (header, footer, sidebar, modals, scenario cards), move all inline CSS/JS into separate files per component, preserve all current functionality, keep the investment engine separate, make it mobile-friendly, use consistent naming, and include comments for clarity.
+17. In scenario app, when starting new project, make all defaults 0.
+18. 
+
 
 Desktop(DO NOT REMOVE THIS LINE)
 1. Index.html the "Sign in" and "Get started free" buttons are different sizes and look weird.
@@ -39,4 +40,5 @@ PWA(DO NOT REMOVE THIS LINE)
 5. In property tab, make yhe call and emal buttons the same height.
 6. In the property tab, remove the header preview at the bottom.
 7. In projection tab on the graph, the tooltip that comes uo when you tap somehwhere on the graph is unusable. maybe for mobile only do we make a little custom slider that changes values in little boxes next to the graph but plots the graph dot as it goes maybe?
-8. 
+8. Index landing page cuts off stuff to the right in what it does section. 
+9. 
