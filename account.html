@@ -660,9 +660,10 @@
     l.style.cssText=l.style.display==='flex'?'':'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
   });
 
-  // Check for checkout success
+  // Open requested panel (used by signup/checkout flow)
   const urlParams = new URLSearchParams(location.search);
-  if(urlParams.get('checkout')==='1'){
+  const requestedPanel = urlParams.get('panel');
+  if(requestedPanel==='subscription' || urlParams.get('checkout')==='1'){
     setTimeout(function(){ showPanel('subscription', document.querySelector('[onclick*="subscription"]')); }, 300);
   }
 

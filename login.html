@@ -33,6 +33,7 @@
   .form-submit:hover { opacity: 0.88; }
   .form-submit:disabled { opacity: 0.4; cursor: default; }
   .form-error { font-size: 12px; color: #E8956A; min-height: 18px; font-family: var(--font-mono); margin-top: 6px; }
+  .verify-note { font-size: 12px; color: rgba(245,240,232,0.6); line-height: 1.5; margin: 6px 0 14px; }
   .divider { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-family: var(--font-mono); font-size: 9px; color: rgba(245,240,232,0.2); letter-spacing: 1px; }
   .divider::before,.divider::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.07); }
   .btn-guest { width: 100%; background: rgba(255,255,255,0.04); color: rgba(245,240,232,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 3px; padding: 12px; font-family: var(--font-mono); font-size: 11px; cursor: pointer; transition: all 0.15s; }
@@ -93,6 +94,15 @@
       </div>
       <div class="form-error" id="su-error"></div>
       <button class="form-submit" id="su-btn" onclick="doSignup()">Create Account →</button>
+
+      <div id="signup-verify-step" style="display:none;margin-top:18px;border-top:1px solid rgba(255,255,255,0.09);padding-top:18px;">
+        <div class="form-label" style="margin-bottom:10px;">Step 2 — Verify email</div>
+        <div class="verify-note" id="verify-note">Enter the 6-digit code we sent to your email.</div>
+        <div class="form-field"><label class="form-label">Verification code</label><input class="form-input" id="su-verify-code" type="text" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter')doVerifyEmail()" placeholder="123456"></div>
+        <div class="form-error" id="verify-error"></div>
+        <button class="form-submit" id="verify-btn" onclick="doVerifyEmail()">Verify Email →</button>
+        <button class="btn-guest" style="margin-top:10px;" onclick="resendVerificationCode()">Resend code</button>
+      </div>
     </div>
   </div>
 </div>
@@ -162,6 +172,29 @@
     label.style.color = col;
   }
 
+  function persistSession(res, fallback){
+    localStorage.setItem('propCalc_session_v1', JSON.stringify({
+      id:res.id||fallback.email,
+      name:res.name||fallback.name||fallback.email.split('@')[0],
+      email:res.email||fallback.email,
+      token:res.token||null,
+      plan:res.plan||fallback.plan||'free',
+      role:res.role||'user'
+    }));
+  }
+
+  function postVerificationRedirect(plan){
+    if(plan==='pro') goTo('account.html?checkout=1&panel=subscription');
+    else goTo('account.html?panel=subscription');
+  }
+
+  function showVerificationStep(data){
+    document.getElementById('signup-verify-step').style.display='block';
+    document.getElementById('su-btn').style.display='none';
+    const email = data.email || document.getElementById('su-email').value.trim();
+    document.getElementById('verify-note').textContent = 'Enter the 6-digit code sent to '+email+'.';
+  }
+
   async function doSignin(){
     const email = document.getElementById('si-email').value.trim();
     const password = document.getElementById('si-password').value;
@@ -171,12 +204,21 @@
     btn.disabled=true; btn.textContent='Signing in…'; errEl.textContent='';
     const res = await callAuth('signin', {email,password});
     if(res.ok){
-      localStorage.setItem('propCalc_session_v1', JSON.stringify({id:res.id||email, name:res.name||email.split('@')[0], email, token:res.token||null, plan:res.plan||'free', role:res.role||'user'}));
+      persistSession(res, {email});
       goTo('app.html');
+      return;
+    }
+    if(res.requiresEmailVerification){
+      setTab('signup');
+      document.getElementById('su-email').value = email;
+      document.getElementById('su-name').value = res.name || document.getElementById('su-name').value;
+      document.getElementById('su-plan').value = res.plan || 'free';
+      showVerificationStep(res);
+      errEl.textContent = '';
     } else {
       errEl.textContent = res.error || 'Sign in failed — please try again';
-      btn.disabled=false; btn.textContent='Sign In →';
     }
+    btn.disabled=false; btn.textContent='Sign In →';
   }
 
   async function doSignup(){
@@ -187,26 +229,57 @@
     const errEl = document.getElementById('su-error');
     const btn = document.getElementById('su-btn');
     if(!name||!email||!password){ errEl.textContent='Please fill in all fields'; return; }
-    // Email format check
     const emailRx = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
     if(!emailRx.test(email)){ errEl.textContent='Please enter a valid email address'; return; }
-    // Password strength: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special
     const pwErrors = [];
     if(password.length < 8) pwErrors.push('at least 8 characters');
     if(!/[A-Z]/.test(password)) pwErrors.push('one uppercase letter');
     if(!/[a-z]/.test(password)) pwErrors.push('one lowercase letter');
     if(!/[0-9]/.test(password)) pwErrors.push('one number');
-    if(!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) pwErrors.push('one special character (!@#$…)');
+    if(!/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(password)) pwErrors.push('one special character (!@#$…)');
     if(pwErrors.length){ errEl.textContent='Password needs: ' + pwErrors.join(', '); return; }
     btn.disabled=true; btn.textContent='Creating account…'; errEl.textContent='';
     const res = await callAuth('signup', {email,password,name,plan});
-    if(res.ok){
-      localStorage.setItem('propCalc_session_v1', JSON.stringify({id:res.id||email, name, email, token:res.token||null, plan:res.plan||plan||'free', role:res.role||'user'}));
-      if(plan==='pro') goTo('account.html?checkout=1');
-      else goTo('app.html');
+    if(res.ok && res.requiresEmailVerification){
+      showVerificationStep(res);
+      document.getElementById('verify-error').textContent='';
     } else {
       errEl.textContent = res.error || 'Could not create account — please try again';
       btn.disabled=false; btn.textContent='Create Account →';
+    }
+  }
+
+  async function doVerifyEmail(){
+    const code = document.getElementById('su-verify-code').value.trim();
+    const email = document.getElementById('su-email').value.trim();
+    const plan = document.getElementById('su-plan').value;
+    const name = document.getElementById('su-name').value.trim();
+    const errEl = document.getElementById('verify-error');
+    const btn = document.getElementById('verify-btn');
+    if(!code){ errEl.textContent='Enter your verification code'; return; }
+    btn.disabled = true; btn.textContent = 'Verifying…'; errEl.textContent='';
+    const res = await callAuth('verifyEmail', {email,code});
+    if(res.ok){
+      persistSession(res, {email,name,plan});
+      postVerificationRedirect(res.plan || plan);
+    } else {
+      errEl.textContent = res.error || 'Could not verify email';
+      btn.disabled = false; btn.textContent = 'Verify Email →';
+    }
+  }
+
+  async function resendVerificationCode(){
+    const email = document.getElementById('su-email').value.trim();
+    const errEl = document.getElementById('verify-error');
+    if(!email){ errEl.textContent='Enter your email first'; return; }
+    const res = await callAuth('resendVerification', {email});
+    if(res.ok){
+      showVerificationStep(res);
+      errEl.textContent='A fresh verification code has been sent.';
+      errEl.style.color = '#5A9E7A';
+      setTimeout(function(){ errEl.style.color=''; }, 1200);
+    } else {
+      errEl.textContent = res.error || 'Could not resend code';
     }
   }
 </script>

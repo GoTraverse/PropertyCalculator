@@ -2,7 +2,7 @@
  * auth.js — Netlify Function
  * Per-user auth backed by Upstash Redis.
  *
- * actions: signup, signin, verify, signout, getProfile, setProfile
+ * actions: signup, signin, verifyEmail, resendVerification, verify, signout, getProfile, setProfile
  *
  * Redis keys:
  *   user:<email>      → {name, hash, id, plan, email, createdAt}
@@ -31,6 +31,37 @@ const H = {
   'Access-Control-Allow-Headers':'Content-Type,Authorization',
 };
 
+const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
+const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'EquitySight <no-reply@equitysight.app>').trim();
+
+async function sendVerificationEmail(email, code){
+  if(!RESEND_API_KEY){
+    console.log('[auth] RESEND_API_KEY not configured. Verification code for %s: %s', email, code);
+    return {sent:false,provider:'log'};
+  }
+  try{
+    const r = await fetch('https://api.resend.com/emails',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        from:VERIFY_EMAIL_FROM,
+        to:[email],
+        subject:'Verify your EquitySight account',
+        html:'<p>Your verification code is <strong style="font-size:18px;letter-spacing:2px;">'+code+'</strong>.</p><p>This code expires in 15 minutes.</p>'
+      })
+    });
+    if(!r.ok){
+      const errBody = await r.text();
+      console.warn('[auth] Failed to send verification email (%s): %s', r.status, errBody);
+      return {sent:false,provider:'resend'};
+    }
+    return {sent:true,provider:'resend'};
+  }catch(e){
+    console.warn('[auth] Verification email error for %s: %s', email, e.message);
+    return {sent:false,provider:'resend'};
+  }
+}
+
 async function redisCmd(...args){
   if(!REDIS_URL||!REDIS_TOKEN) throw new Error('UPSTASH env vars missing');
   const r=await fetch(REDIS_URL,{method:'POST',headers:{Authorization:'Bearer '+REDIS_TOKEN,'Content-Type':'application/json'},body:JSON.stringify(args)});
@@ -49,8 +80,12 @@ async function rSet(key,val,ttl){
 }
 async function rDel(key){ return redisCmd('DEL',key); }
 
+const EMAIL_CODE_TTL_MS = 1000 * 60 * 15; // 15 minutes
+
 function hashPw(pw){ return crypto.createHmac('sha256',SALT).update(pw).digest('hex'); }
 function makeToken(){ return crypto.randomBytes(32).toString('hex'); }
+function makeEmailCode(){ return String(Math.floor(100000 + Math.random()*900000)); }
+function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('email-code:'+String(code)).digest('hex'); }
 function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
 
@@ -85,7 +120,6 @@ exports.handler = async function(event){
   if(action==='signup'){
     const {email,password,name,plan}=body;
     if(!email||!password) return fail('Email and password required');
-    // Check site config for signup restrictions
     const siteCfgSu=await rGet('config:site')||{};
     if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
     const pwMin=parseInt(siteCfgSu.minPasswordLength)||8;
@@ -94,30 +128,92 @@ exports.handler = async function(event){
       const domain=siteCfgSu.requireEmailDomain.toLowerCase().replace(/^@/,'');
       if(!email.toLowerCase().trim().endsWith('@'+domain)) return fail('Signups are restricted to @'+domain+' email addresses');
     }
-    const ekey='user:'+email.toLowerCase().trim();
+    const normalizedEmail=email.toLowerCase().trim();
+    const ekey='user:'+normalizedEmail;
     if(await rGet(ekey)) return fail('An account with this email already exists');
     const userId=Date.now().toString(36)+crypto.randomBytes(4).toString('hex');
-    const user={name:(name||email.split('@')[0]).trim(),hash:hashPw(password),id:userId,plan:plan||'free',email:email.toLowerCase().trim(),createdAt:Date.now()};
+    const code=makeEmailCode();
+    const user={
+      name:(name||normalizedEmail.split('@')[0]).trim(),
+      hash:hashPw(password),
+      id:userId,
+      plan:plan||'free',
+      email:normalizedEmail,
+      createdAt:Date.now(),
+      emailVerified:false,
+      emailVerificationCodeHash:hashEmailCode(code),
+      emailVerificationExpiresAt:Date.now()+EMAIL_CODE_TTL_MS,
+      emailVerificationAttempts:0,
+      emailVerificationSentAt:Date.now()
+    };
     await rSet(ekey,user);
-    const token=makeToken();
-    await rSet('token:'+token,{userId,email:user.email,name:user.name,plan:user.plan,expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    return ok({ok:true,token,id:userId,name:user.name,email:user.email,plan:user.plan});
+    await sendVerificationEmail(normalizedEmail, code);
+    return ok({ok:true,requiresEmailVerification:true,email:user.email,plan:user.plan,name:user.name});
   }
 
   if(action==='signin'){
     const {email,password}=body;
     if(!email||!password) return fail('Email and password required');
-    const user=await rGet('user:'+email.toLowerCase().trim());
+    const normalizedEmail=email.toLowerCase().trim();
+    const user=await rGet('user:'+normalizedEmail);
     if(!user) return fail('No account found for this email');
     if(user.hash!==hashPw(password)) return fail('Incorrect password');
-    // Track login statistics
+    if(user.emailVerified===false){
+      return ok({ok:false,error:'Please verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
+    }
     user.lastLoginAt=Date.now();
     user.loginCount=(user.loginCount||0)+1;
     user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
-    await rSet('user:'+email.toLowerCase().trim(),user);
+    await rSet('user:'+normalizedEmail,user);
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email||email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
     return ok({ok:true,token,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'});
+  }
+
+  if(action==='resendVerification'){
+    const normalizedEmail=(body.email||'').toLowerCase().trim();
+    if(!normalizedEmail) return fail('Email required');
+    const user=await rGet('user:'+normalizedEmail);
+    if(!user) return fail('No account found for this email');
+    if(user.emailVerified) return ok({ok:true,alreadyVerified:true});
+    const code=makeEmailCode();
+    user.emailVerificationCodeHash=hashEmailCode(code);
+    user.emailVerificationExpiresAt=Date.now()+EMAIL_CODE_TTL_MS;
+    user.emailVerificationSentAt=Date.now();
+    await rSet('user:'+normalizedEmail,user);
+    await sendVerificationEmail(normalizedEmail, code);
+    return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail});
+  }
+
+  if(action==='verifyEmail'){
+    const normalizedEmail=(body.email||'').toLowerCase().trim();
+    const code=String(body.code||'').trim();
+    if(!normalizedEmail||!code) return fail('Email and code required');
+    const user=await rGet('user:'+normalizedEmail);
+    if(!user) return fail('No account found for this email');
+    if(user.emailVerified){
+      const token=makeToken();
+      await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
+      return ok({ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user',alreadyVerified:true});
+    }
+    if(!user.emailVerificationCodeHash||!user.emailVerificationExpiresAt||Date.now()>user.emailVerificationExpiresAt){
+      return fail('Verification code expired. Please request a new code.');
+    }
+    user.emailVerificationAttempts=(user.emailVerificationAttempts||0)+1;
+    if(user.emailVerificationAttempts>8) return fail('Too many attempts. Please request a new code.');
+    if(user.emailVerificationCodeHash!==hashEmailCode(code)){
+      await rSet('user:'+normalizedEmail,user);
+      return fail('Incorrect verification code.');
+    }
+    user.emailVerified=true;
+    user.emailVerifiedAt=Date.now();
+    delete user.emailVerificationCodeHash;
+    delete user.emailVerificationExpiresAt;
+    delete user.emailVerificationAttempts;
+    await rSet('user:'+normalizedEmail,user);
+    const token=makeToken();
+    await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
+    return ok({ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'});
   }
 
   if(action==='verify'){
