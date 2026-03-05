@@ -7,7 +7,9 @@ General(DO NOT REMOVE THIS LINE)
 1. After loading a scenario and then refreshing to e page, the property image disappears forwver, please fix.
 2. Automatically bring up the suburb growth rate if there is a suburb listed and keep that data on file so we dont have to keep pingingthe API unless the suburb is different.
 3. On the projection tab, instead of just showng the year, ahow the year and q1 for quarter one like q2-4.
-4. 
+4. Stripe testing works, except it doesnt seem to show in my account settings when it gets redirected back that i have cancelled the subscription? Or is that because its still in the subscription period?
+5. Content-Security-Policy: The page’s settings blocked the loading of a resource (connect-src) at https://nominatim.openstreetmap.org/search?q=54%20Southampton%20Road%2C%20Ellen%20Grove%2C%20QLD%2C%20Australia&format=json&limit=1 because it violates the following directive: “connect-src ‘self’ https://api.stripe.com” app.html:2417:28
+6. On the pricing and about pages, ther is still “myPropertyM8” please change it everywhere in my site to equitysight.app
 
 Desktop(DO NOT REMOVE THIS LINE)
 1. 
