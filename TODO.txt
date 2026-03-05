@@ -21,7 +21,7 @@ General(DO NOT REMOVE THIS LINE)
 12. Make sure footer is the same on all pages except app.html.
 13. Remove "Come find your property mate." section and buttons at footer.
 14. Add forgot password functionality.
-15. 
+15. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
 
 Desktop(DO NOT REMOVE THIS LINE)
 1. Index.html the "Sign in" and "Get started free" buttons are different sizes and look weird.
