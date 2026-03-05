@@ -2,6 +2,7 @@ Please read this file to see what needs to be done.
 Once a task is complete, remove the line from this file. 
 
 Do urgent tasks first. Urgent tasks have a "!" at the start of the line after the number.
+Claude, only tackle the jobs in chunks you beleive you can finish well.
 
 Never delete anything above this line.
 ------------------------------------------
