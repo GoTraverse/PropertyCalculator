@@ -24,7 +24,8 @@ General(DO NOT REMOVE THIS LINE)
 15. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
 16. !Restructure my HTML/CSS/JS into modular, reusable components (header, footer, sidebar, modals, scenario cards), move all inline CSS/JS into separate files per component, preserve all current functionality, keep the investment engine separate, make it mobile-friendly, use consistent naming, and include comments for clarity.
 17. In scenario app, when starting new project, make all defaults 0.
-18. 
+18. In property tab in app, when clicking property type house it doesnt show up the top.
+19. 
 
 
 Desktop(DO NOT REMOVE THIS LINE)
