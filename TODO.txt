@@ -18,10 +18,15 @@ General(DO NOT REMOVE THIS LINE)
 9. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
 10. Add dark mode/light mode. can be toggled from theprofile drop down.
 11. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
-12. 
+12. Make sure footer is the same on all pages except app.html.
+13. Remove "Come find your property mate." section and buttons at footer.
+14. Add forgot password functionality.
+15. 
 
 Desktop(DO NOT REMOVE THIS LINE)
-1. 
+1. Index.html the "Sign in" and "Get started free" buttons are different sizes and look weird.
+2. Profile button needs to be padded away from edge of window a bit more. Seems very cramped.
+3. 
 
 PWA(DO NOT REMOVE THIS LINE)
 1. Amortisation table still can scroll sideways a but when generated
