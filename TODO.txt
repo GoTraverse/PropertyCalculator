@@ -1,10 +1,12 @@
 Please read this file to see what needs to be done. 
 Once a task is complete, remove the line from this file. 
 
-
+Do urgent tasks first. Urgent tasks have a "!" at the start of the line after the number.
 
 Never delete anything above this line.
 ------------------------------------------
+
+
 
 General(DO NOT REMOVE THIS LINE)
 1. After loading a scenario and then refreshing to e page, the property image disappears forwver, please fix.
@@ -22,6 +24,7 @@ General(DO NOT REMOVE THIS LINE)
 13. Remove "Come find your property mate." section and buttons at footer.
 14. Add forgot password functionality.
 15. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
+16. !Restructure my HTML/CSS/JS into modular, reusable components (header, footer, sidebar, modals, scenario cards), move all inline CSS/JS into separate files per component, preserve all current functionality, keep the investment engine separate, make it mobile-friendly, use consistent naming, and include comments for clarity.
 
 Desktop(DO NOT REMOVE THIS LINE)
 1. Index.html the "Sign in" and "Get started free" buttons are different sizes and look weird.
