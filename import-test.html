@@ -15,7 +15,7 @@
 
 <button onclick="openListing()">Open Listing</button>
 
-<button onclick="importListing()">Import Listing</button>
+<button onclick="showURL()">Test Import</button>
 
 <pre id="result"></pre>
 
@@ -23,22 +23,13 @@
 
 function openListing(){
   const url = document.getElementById("url").value
-  window.open(url,"_blank")
+  window.location.href = url
 }
 
-async function importListing(){
-
+function showURL(){
   const url = document.getElementById("url").value
-
-  const res = await fetch(
-    "https://api.allorigins.win/get?url=" + encodeURIComponent(url)
-  )
-
-  const data = await res.json()
-
   document.getElementById("result").innerText =
-    data.contents.substring(0,1000)
-
+    "Importer received:\n\n" + url
 }
 
 </script>
