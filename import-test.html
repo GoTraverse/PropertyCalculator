@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EquitySight Import Test</title>
+</head>
+
+<body>
+
+<h2>Property Import Test</h2>
+
+<input id="url" style="width:100%" placeholder="Paste property URL">
+
+<br><br>
+
+<button onclick="openListing()">Open Listing</button>
+
+<button onclick="importListing()">Import Listing</button>
+
+<pre id="result"></pre>
+
+<script>
+
+function openListing(){
+  const url = document.getElementById("url").value
+  window.open(url,"_blank")
+}
+
+async function importListing(){
+
+  const url = document.getElementById("url").value
+
+  const res = await fetch(
+    "https://api.allorigins.win/get?url=" + encodeURIComponent(url)
+  )
+
+  const data = await res.json()
+
+  document.getElementById("result").innerText =
+    data.contents.substring(0,1000)
+
+}
+
+</script>
+
+</body>
+</html>
