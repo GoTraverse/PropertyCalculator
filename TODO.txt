@@ -1,5 +1,1 @@
 Please read this file to see what needs to be done. Once completed, remove from this file. Never delete this line.
-
-1. When signing up for an account it needs to go: Create account > Verify email > Pay for subscription (If selected paid plan) > Direct to account settings page to show subscription details etc.
-2. As mentioned in last point, we need to have a email verification system setup to stop spam accounts and verify the email so we can send invoices to.
-3. 
