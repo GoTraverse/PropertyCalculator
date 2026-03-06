@@ -41,8 +41,8 @@ window.toggleTheme = function(){
     s.textContent = [
       '#site-profile-menu.open{display:block!important;}',
       '#site-profile-btn:hover{transform:scale(1.05);box-shadow:0 0 0 3px rgba(201,168,76,0.25);}',
-      '.anav-item{display:flex;align-items:center;gap:9px;padding:8px 12px;',
-        'color:rgba(245,240,232,0.7);font-size:13px;border-radius:4px;',
+      '.anav-item{display:flex;align-items:center;gap:10px;padding:11px 14px;',
+        'color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;',
         'text-decoration:none;background:transparent;border:none;',
         'cursor:pointer;font-family:inherit;width:100%;text-align:left;',
         'transition:background 0.12s,color 0.12s;}',
@@ -98,24 +98,27 @@ window.toggleTheme = function(){
         '<div style="position:relative;" id="site-profile-wrap">' +
           '<button id="site-profile-btn"' +
           ' onclick="var m=document.getElementById(\'site-profile-menu\');m.classList.toggle(\'open\')"' +
-          ' style="width:36px;height:36px;border-radius:50%;background:' + (photo ? 'transparent' : color) + ';' +
-          'border:2px solid rgba(255,255,255,0.2);cursor:pointer;display:flex;align-items:center;' +
-          'justify-content:center;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;' +
-          'color:#1C1C1E;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;" title="' + name + '">' +
+          ' style="width:42px;height:42px;border-radius:50%;background:' + (photo ? 'transparent' : color) + ';' +
+          'border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;' +
+          'justify-content:center;font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;' +
+          'color:#1C1C1E;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;' +
+          'box-shadow:0 3px 16px rgba(0,0,0,0.35);" title="' + name + '">' +
           avatarHTML +
           '</button>' +
-          '<div id="site-profile-menu" style="display:none;position:absolute;top:46px;right:0;' +
-          'background:#1C1C1E;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px;' +
-          'min-width:210px;box-shadow:0 12px 40px rgba(0,0,0,0.6);z-index:9999;">' +
-            '<div style="padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;">' +
-              '<div style="font-size:13px;font-weight:600;color:#F5F0E8;">' + name + '</div>' +
-              '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:rgba(245,240,232,0.35);margin-top:2px;">' + email + '</div>' +
+          '<div id="site-profile-menu" style="display:none;position:absolute;top:52px;right:0;' +
+          'background:#1C1C1E;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px;' +
+          'min-width:240px;box-shadow:0 16px 48px rgba(0,0,0,0.65);z-index:9999;">' +
+            '<div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:6px;">' +
+              '<div style="font-size:15px;font-weight:600;color:#F5F0E8;">' + name + '</div>' +
+              '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
             '</div>' +
             '<div style="padding:2px 0;">' +
               '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">🏠 Open Calculator</a>' +
               '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">⚙ Account Settings</a>' +
               (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">🔒 Admin Dashboard</a>' : '') +
+              '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
               '<button onclick="toggleTheme()" data-theme-toggle class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
+              '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
               '<button onclick="siteSignOut()" class="anav-item anav-item-danger">→ Sign Out</button>' +
             '</div>' +
           '</div>' +

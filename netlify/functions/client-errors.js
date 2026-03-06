@@ -70,6 +70,9 @@ exports.handler = async function (event) {
       stack:     String(err.stack   || '').slice(0, 1500),
       url:       String(err.url     || '').slice(0, 300),
       userAgent: String(err.userAgent || '').slice(0, 250),
+      userId:    String(err.userId    || '').slice(0, 100),
+      userName:  String(err.userName  || '').slice(0, 100),
+      userEmail: String(err.userEmail || '').slice(0, 200),
     };
     try {
       await redisCmd('RPUSH', 'client-errors', JSON.stringify(entry));
