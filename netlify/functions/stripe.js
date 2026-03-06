@@ -357,13 +357,37 @@ exports.handler = async function (event) {
       return ok({ ok: true, status: 'none', plan: userData.plan || 'free' });
     }
     try {
-      const sub = await stripeGet('/v1/subscriptions/' + userData.stripeSubscriptionId);
+      const sub = await stripeGet(
+        '/v1/subscriptions/' + userData.stripeSubscriptionId +
+        '?expand[]=default_payment_method&expand[]=customer.invoice_settings.default_payment_method'
+      );
+
+      // Price info
+      const item = sub.items && sub.items.data && sub.items.data[0];
+      const price = item && item.price;
+      const priceAmount   = price ? price.unit_amount : null;
+      const priceCurrency = price ? price.currency : null;
+      const priceInterval = price && price.recurring ? price.recurring.interval : null;
+
+      // Payment method: subscription default → customer default
+      let pm = sub.default_payment_method;
+      if (!pm && sub.customer && typeof sub.customer === 'object') {
+        const inv = sub.customer.invoice_settings;
+        pm = inv && inv.default_payment_method;
+      }
+      const card = pm && pm.card ? pm.card : null;
+
       return ok({
         ok: true,
         status: sub.status,
         plan: userData.plan || 'free',
         currentPeriodEnd: sub.current_period_end,
         cancelAtPeriodEnd: sub.cancel_at_period_end,
+        priceAmount,
+        priceCurrency,
+        priceInterval,
+        cardBrand: card ? card.brand : null,
+        cardLast4: card ? card.last4 : null,
       });
     } catch (e) {
       return ok({ ok: true, status: 'unknown', plan: userData.plan || 'free' });
