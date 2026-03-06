@@ -9,7 +9,6 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-6. Keep track of discounts for plans, maybe make some logic and data base stuff, cause in the admin app its showing 1 user has pro and it costing $9 but in stripe its actually $2.99 becasue we discouned for first couple months.
 8.
 
 Desktop(DO NOT REMOVE THIS LINE)
