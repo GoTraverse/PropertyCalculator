@@ -374,9 +374,13 @@ function toggleUserCog(e, btn){
   e.stopPropagation();
   const menu = btn.nextElementSibling;
   const isOpen = menu.classList.contains('open');
-  // Close all open cog menus first
   document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
-  if(!isOpen) menu.classList.add('open');
+  if(!isOpen){
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.classList.add('open');
+  }
 }
 
 document.addEventListener('click', function(){
@@ -1740,14 +1744,14 @@ function renderClientErrors(errors){
     const browser = parseBrowser(e.userAgent||'');
     const src     = [e.source ? escHtml(e.source.replace(/^https?:\/\/[^/]+/,'')) : '', e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
     const page    = e.url ? escHtml(e.url.replace(/^https?:\/\/[^/]+/,'').slice(0,60)) : '';
-    const user    = e.userEmail ? escHtml(e.userEmail) : (e.userName ? escHtml(e.userName) : '<span style="color:rgba(245,240,232,0.25)">guest</span>');
-    const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:rgba(245,240,232,0.4);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:rgba(245,240,232,0.35);margin:4px 0 0;line-height:1.4;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
+    const user    = e.userEmail ? escHtml(e.userEmail) : (e.userName ? escHtml(e.userName) : '<span style="color:rgba(245,240,232,0.5)">guest</span>');
+    const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:rgba(245,240,232,0.65);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:rgba(245,240,232,0.6);margin:4px 0 0;line-height:1.4;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
     return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
       <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 0;">${time}</td>
       <td style="vertical-align:top;padding:10px 8px;max-width:340px;">
         <div style="font-size:12px;font-weight:600;color:#F5F0E8;">${escHtml(e.message||'')}</div>
         ${src ? `<div style="font-family:var(--font-mono);font-size:10px;color:rgba(201,168,76,0.7);margin-top:2px;">${src}</div>` : ''}
-        ${page ? `<div style="font-size:10px;color:rgba(245,240,232,0.3);font-family:var(--font-mono);margin-top:1px;">${page}</div>` : ''}
+        ${page ? `<div style="font-size:10px;color:rgba(245,240,232,0.55);font-family:var(--font-mono);margin-top:1px;">${page}</div>` : ''}
         ${stack}
       </td>
       <td style="vertical-align:top;padding:10px 8px;font-size:11px;white-space:nowrap;">${user}</td>
