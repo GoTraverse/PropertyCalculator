@@ -9,8 +9,7 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-1. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
-2. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
+1. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
 
 Desktop(DO NOT REMOVE THIS LINE)
 1.
