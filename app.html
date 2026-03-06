@@ -2275,6 +2275,9 @@
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     btn.classList.add('active');
+    // Scroll content back to top when switching tabs
+    var mainEl = document.querySelector('main');
+    if(mainEl) mainEl.scrollTop = 0; else window.scrollTo(0,0);
     // Redraw projection when that tab becomes visible (container was hidden at load)
     if(id === 'projection'){ setTimeout(drawProjection, 30); }
     // Smooth-scroll active tab to centre on mobile
@@ -2481,6 +2484,8 @@
     btn.classList.add('active');
     document.getElementById('pd-type').value = type;
     updatePropertyDetails();
+    var mainEl = document.querySelector('main');
+    if(mainEl) mainEl.scrollTop = 0; else window.scrollTo(0,0);
   }
 
   // ══════════════════════════════════════════════
@@ -4884,9 +4889,9 @@
       if(!ok) return;
     }
     var defaults = {
-      'inp-price':'650000','inp-savings':'40000','inp-depp':'2',
-      'inp-govt':'28.7','inp-rate':'6.2','inp-term':'30',
-      'inp-cont':'15','inp-rent':'450','inp-weeks':'4'
+      'inp-price':'0','inp-savings':'0','inp-depp':'0',
+      'inp-govt':'0','inp-rate':'0','inp-term':'0',
+      'inp-cont':'0','inp-rent':'0','inp-weeks':'0'
     };
     Object.keys(defaults).forEach(function(id){
       var val = defaults[id];
