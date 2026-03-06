@@ -52,6 +52,14 @@ async function rSet(key, val, ttl) {
   const s = typeof val === 'string' ? val : JSON.stringify(val);
   return ttl ? redisCmd('SETEX', key, String(ttl), s) : redisCmd('SET', key, s);
 }
+async function logEvent(userId, type, extra) {
+  if (!userId) return;
+  try {
+    const s = JSON.stringify({ type, at: Date.now(), ...extra });
+    await redisCmd('RPUSH', 'events:' + userId, s);
+    await redisCmd('LTRIM', 'events:' + userId, '0', '199');
+  } catch (e) { console.warn('[stripe] logEvent failed:', e.message); }
+}
 
 // ── Token verification ────────────────────────────────────────────────────────
 async function verifyToken(authHeader) {
@@ -157,6 +165,7 @@ async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId) 
   if (stripeCustomerId)    userData.stripeCustomerId    = stripeCustomerId;
   if (stripeSubscriptionId) userData.stripeSubscriptionId = stripeSubscriptionId;
   await rSet(key, userData);
+  await logEvent(userData.id, 'plan_upgraded', { plan, stripeCustomerId, stripeSubscriptionId });
   console.log('[stripe] Upgraded', email, '→', plan);
   return true;
 }
@@ -174,6 +183,7 @@ async function downgradePlan(stripeCustomerId) {
   userData.plan = 'free';
   delete userData.stripeSubscriptionId;
   await rSet('user:' + userData.email.toLowerCase().trim(), userData);
+  await logEvent(userData.id, 'plan_downgraded', { plan: 'free', stripeCustomerId });
   console.log('[stripe] Downgraded', userData.email, '→ free');
   return true;
 }

@@ -344,6 +344,7 @@ function renderUsers(users){
             <button class="cog-menu-item" data-action="reset-pw"     data-email="${escHtml(u.email)}">Reset Password</button>
             <button class="cog-menu-item" data-action="set-plan"     data-email="${escHtml(u.email)}" data-plan="${escHtml(plan)}">Change Plan</button>
             <button class="cog-menu-item" data-action="${roleAction}" data-email="${escHtml(u.email)}">${roleLabel}</button>
+            <button class="cog-menu-item" data-action="view-history" data-userid="${escHtml(u.id)}" data-email="${escHtml(u.email)}">View History</button>
             <button class="cog-menu-item danger" data-action="delete-user" data-email="${escHtml(u.email)}">Delete</button>
           </div>
         </div>
@@ -396,6 +397,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if(action === 'grant-admin') setRole(email, 'admin');
       if(action === 'revoke-admin')setRole(email, 'user');
       if(action === 'delete-user') deleteUser(email);
+      if(action === 'view-history') openUserHistory(btn.dataset.userid, email);
       return;
     }
     // Cog button — handled by onclick, stop propagation handled there
@@ -1645,6 +1647,40 @@ async function loadGrowthData(){
 function showAddGrowthEntry(){ document.getElementById('growth-add-form').style.display='block'; }
 function hideAddGrowthEntry(){ document.getElementById('growth-add-form').style.display='none'; }
 
+async function importGrowthCSV(input){
+  const file = input.files[0];
+  if(!file) return;
+  input.value = '';
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if(!lines.length){ alert('CSV is empty'); return; }
+
+  // Skip header row if first cell isn't a plausible suburb name (contains non-numeric alpha)
+  const STATES = ['QLD','NSW','VIC','SA','WA','TAS','NT','ACT'];
+  let rows = lines.map(l => l.split(',').map(c=>c.trim().replace(/^["']|["']$/g,'')));
+  // Detect header: if state column (index 1) isn't a known state, skip first row
+  if(rows.length > 1 && rows[0][1] && !STATES.includes(rows[0][1].toUpperCase())){
+    rows = rows.slice(1);
+  }
+
+  const valid = rows.filter(r => r[0] && r[1] && !isNaN(parseFloat(r[2])));
+  if(!valid.length){ alert('No valid rows found.\nExpected format: suburb,state,rate,note'); return; }
+
+  const statusEl = document.getElementById('growth-loading');
+  if(statusEl){ statusEl.style.display='block'; statusEl.textContent = `Importing ${valid.length} entries…`; }
+
+  let ok=0, fail=0;
+  for(const r of valid){
+    const suburb = r[0], state = r[1].toUpperCase(), rate = parseFloat(r[2]), note = r[3]||'csv import';
+    const d = await callGrowth({action:'set', suburb, state, rate, note});
+    if(d.ok) ok++; else fail++;
+  }
+
+  if(statusEl) statusEl.style.display='none';
+  alert(`Import complete: ${ok} saved, ${fail} failed.`);
+  loadGrowthData();
+}
+
 async function saveGrowthEntry(){
   const suburb = document.getElementById('growth-add-suburb').value.trim();
   const state  = document.getElementById('growth-add-state').value;
@@ -1668,6 +1704,71 @@ async function deleteGrowthEntry(suburb, state){
   const d = await callGrowth({action:'delete', suburb, state});
   if(d.ok) loadGrowthData();
   else alert('Failed: '+(d.error||'Unknown error'));
+}
+
+// ── User Event History ────────────────────────────────────────────────────────
+const EVENT_LABELS = {
+  signup:               '🆕 Signed up',
+  email_verified:       '✅ Email verified',
+  signin:               '🔐 Signed in',
+  password_changed:     '🔑 Password changed',
+  password_reset:       '🔁 Password reset (self-service)',
+  admin_password_reset: '🔧 Password reset by admin',
+  plan_upgraded:        '⬆️ Plan upgraded',
+  plan_downgraded:      '⬇️ Plan downgraded',
+  role_changed:         '👤 Role changed',
+};
+
+function fmtEventTime(at){
+  if(!at) return '—';
+  try{ return new Date(at).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(at); }
+}
+
+async function openUserHistory(userId, email){
+  const overlay = document.getElementById('history-modal-overlay');
+  const body    = document.getElementById('history-modal-body');
+  const emailEl = document.getElementById('history-modal-email');
+  overlay.style.display = 'flex';
+  emailEl.textContent = email;
+  body.innerHTML = '<div style="text-align:center;color:var(--slate);padding:32px;font-size:13px;">Loading…</div>';
+
+  const d = await callAuth('adminGetUserEvents', { targetUserId: userId });
+  if(!d.ok){
+    body.innerHTML = `<div style="color:#c45a5a;font-size:13px;padding:16px;">Error: ${escHtml(d.error||'Failed to load')}</div>`;
+    return;
+  }
+  const events = d.events || [];
+  if(!events.length){
+    body.innerHTML = '<div style="color:var(--slate);font-size:13px;padding:16px;">No events recorded yet. Events will be logged going forward.</div>';
+    return;
+  }
+
+  const rows = events.map(ev => {
+    const label = EVENT_LABELS[ev.type] || escHtml(ev.type);
+    const meta = [];
+    if(ev.plan)  meta.push('Plan: '+escHtml(ev.plan));
+    if(ev.from && ev.to) meta.push(escHtml(ev.from)+' → '+escHtml(ev.to));
+    if(ev.ip)    meta.push('IP: '+escHtml(ev.ip));
+    if(ev.by)    meta.push('By: '+escHtml(ev.by));
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate);white-space:nowrap;">${fmtEventTime(ev.at)}</td>
+      <td style="font-size:12px;">${label}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate);">${meta.join(' · ')}</td>
+    </tr>`;
+  }).join('');
+
+  body.innerHTML = `<table style="width:100%;border-collapse:collapse;">
+    <thead><tr>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);">Time</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Event</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 0 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Details</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function closeHistoryModal(){
+  document.getElementById('history-modal-overlay').style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -127,6 +127,21 @@ async function rSet(key,val,ttl){
   return ttl ? redisCmd('SETEX',key,String(ttl),s) : redisCmd('SET',key,s);
 }
 async function rDel(key){ return redisCmd('DEL',key); }
+// Push to a Redis list (RPUSH) and cap at 200 entries (LTRIM 0 199)
+async function rListPush(key,val){
+  const s=typeof val==='string'?val:JSON.stringify(val);
+  await redisCmd('RPUSH',key,s);
+  await redisCmd('LTRIM',key,'0','199');
+}
+async function rListRange(key,start,stop){ return redisCmd('LRANGE',key,String(start),String(stop)); }
+
+// Append a structured event for a userId
+async function logEvent(userId,type,extra){
+  if(!userId) return;
+  try{
+    await rListPush('events:'+userId, JSON.stringify({type,at:Date.now(),...extra}));
+  }catch(e){ console.warn('[auth] logEvent failed:',e.message); }
+}
 
 const EMAIL_CODE_TTL_MS = 1000 * 60 * 15; // 15 minutes
 
@@ -195,6 +210,7 @@ exports.handler = async function(event){
       emailVerificationSentAt:Date.now()
     };
     await rSet(ekey,user);
+    await logEvent(userId,'signup',{name:user.name,email:normalizedEmail,plan:user.plan});
     await sendVerificationEmail(normalizedEmail, code);
     return ok({ok:true,requiresEmailVerification:true,email:user.email,plan:user.plan,name:user.name});
   }
@@ -213,6 +229,7 @@ exports.handler = async function(event){
     user.loginCount=(user.loginCount||0)+1;
     user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
     await rSet('user:'+normalizedEmail,user);
+    await logEvent(user.id,'signin',{ip:user.lastLoginIp||''});
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email||email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
     return ok({ok:true,token,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'});
@@ -259,6 +276,7 @@ exports.handler = async function(event){
     delete user.emailVerificationExpiresAt;
     delete user.emailVerificationAttempts;
     await rSet('user:'+normalizedEmail,user);
+    await logEvent(user.id,'email_verified',{});
     sendWelcomeEmail(normalizedEmail, user.name).catch(()=>{});
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
@@ -314,6 +332,7 @@ exports.handler = async function(event){
     if(userData.hash!==hashPw(currentPassword)) return fail('Current password is incorrect');
     userData.hash=hashPw(newPassword);
     await rSet('user:'+user.email,userData);
+    await logEvent(userData.id,'password_changed',{});
     return ok({ok:true});
   }
 
@@ -344,6 +363,7 @@ exports.handler = async function(event){
     userData.hash=hashPw(newPassword);
     await rSet('user:'+normalizedEmail,userData);
     await rDel('pwreset:'+normalizedEmail);
+    await logEvent(userData.id,'password_reset',{});
     return ok({ok:true});
   }
 
@@ -387,6 +407,7 @@ exports.handler = async function(event){
     if(!userData) return fail('User not found');
     userData.hash=hashPw(newPassword);
     await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    await logEvent(userData.id,'admin_password_reset',{by:user.email});
     return ok({ok:true});
   }
 
@@ -409,10 +430,26 @@ exports.handler = async function(event){
     if(!targetEmail||!role) return fail('targetEmail and role required');
     const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
     if(!userData) return fail('User not found');
+    const prevRole=userData.role||'user';
     userData.role=role;
     await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
-    // Update token if user is currently signed in
+    await logEvent(userData.id,'role_changed',{from:prevRole,to:role,by:user.email});
     return ok({ok:true});
+  }
+
+  if(action==='adminGetUserEvents'){
+    const admin=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!admin||admin.role!=='admin') return fail('Unauthorized',401);
+    const {targetUserId}=body;
+    if(!targetUserId) return fail('targetUserId required');
+    try{
+      const raw=await rListRange('events:'+targetUserId,0,-1);
+      const events=(raw||[]).map(s=>{ try{return JSON.parse(s);}catch(e){return {type:'unknown',at:0,raw:s};} });
+      events.sort((a,b)=>b.at-a.at);
+      return ok({ok:true,events});
+    }catch(e){
+      return ok({ok:true,events:[]});
+    }
   }
 
   if(action==='setSelfAdmin'){
