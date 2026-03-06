@@ -2411,7 +2411,12 @@
   .share-btn{position:fixed;bottom:max(80px,calc(env(safe-area-inset-bottom,20px) + 64px));left:50%;transform:translateX(-50%);background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:12px 24px;border-radius:28px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;z-index:100;white-space:nowrap;display:none;letter-spacing:0.5px;}
   @media(max-width:600px){.share-btn{display:block;}}
   @media(min-width:601px){.print-btn{top:16px;bottom:auto;right:16px;left:auto;transform:none;border-radius:4px;padding:10px 20px;font-size:12px;box-shadow:none;}}
-  @media print{.print-btn,.share-btn{display:none!important;}}
+  @media print{.print-btn,.share-btn{display:none!important;}#account-panel-overlay,#account-panel{display:none!important;}}
+  /* Page-break fixes — prevent content being sliced mid-element */
+  .card,.tile,.section-title,.grid2,.grid4,.kv{page-break-inside:avoid;break-inside:avoid;}
+  .section-title{page-break-after:avoid;break-after:avoid;}
+  header{page-break-inside:avoid;break-inside:avoid;page-break-after:avoid;break-after:avoid;}
+  .grid2,.grid4{display:grid;}
   ${colourMode==='mono'?`
   /* Monochrome — screen filter + explicit print overrides */
   html{filter:grayscale(1);}
@@ -2558,12 +2563,10 @@
 <script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
 
 
-
-
-<!-- ══ FLOATING ACCOUNT PANEL ══ -->
+<!-- account panel intentionally hidden in PDF export -->
 <style>
 #account-panel-overlay{
-  display:none;position:fixed;inset:0;z-index:3000;
+  display:none!important;position:fixed;inset:0;z-index:3000;
   background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
 }
 #account-panel-overlay.open{display:block;}
