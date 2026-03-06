@@ -662,6 +662,26 @@
   loadSession();
   renderAccount();
   renderNavUser();
+
+  // Always re-fetch the profile from backend on page load to pick up any plan
+  // changes (e.g. Stripe cancellation webhook updating plan in Redis before we land here)
+  if(session && session.token){
+    fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'getProfile', token: session.token})
+    }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+      if(!d || !d.ok) return;
+      const changed = d.plan !== session.plan || d.name !== session.name;
+      if(changed){
+        session.plan = d.plan || session.plan;
+        session.name = d.name || session.name;
+        try{ localStorage.setItem(SK, JSON.stringify(session)); }catch(e){}
+        renderPlan();   // re-render subscription panel with fresh plan
+        renderNavUser();
+      }
+    }).catch(function(){});
+  }
 </script>
 </body>
 </html>
