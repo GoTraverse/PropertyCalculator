@@ -1,0 +1,3526 @@
+/* app.js — EquitySight calculator app logic */
+
+// ── PWA: Prevent iOS back-swipe from leaving the app ──────────────────
+  // PWA back-swipe trap — prevent iOS edge swipe from leaving the app
+  (function(){
+    if(!window.history || !window.history.pushState) return;
+    // Push two entries so there's always a forward state to return to
+    history.pushState({pwa:1}, '');
+    history.pushState({pwa:2}, '');
+    window.addEventListener('popstate', function(e){
+      // Immediately push forward again — traps the back gesture
+      history.pushState({pwa:2}, '');
+    });
+  })();
+
+// ── PWA: Block pinch-zoom in iOS standalone mode ──────────────────────
+  // Block pinch-zoom in iOS PWA (standalone) mode
+  (function(){
+    if(window.navigator.standalone){
+      document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
+      document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, {passive:false});
+      document.addEventListener('gestureend', function(e){ e.preventDefault(); }, {passive:false});
+      var lastTouchEnd = 0;
+      document.addEventListener('touchend', function(e){
+        var now = Date.now();
+        if(now - lastTouchEnd < 300){ e.preventDefault(); }
+        lastTouchEnd = now;
+      }, {passive:false});
+    }
+  })();
+
+// ── Main App Logic ────────────────────────────────────────────────────
+  const CIRC = 263.89; // 2*pi*42
+
+  // ── HELPERS ──
+  function fmt(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(2)+'M';if(a>=1000)return s+'$'+Math.round(a).toLocaleString();return s+'$'+Math.round(a);}
+  function fmtK(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';if(a>=1000)return s+'$'+Math.round(a/1000)+'k';return s+'$'+Math.round(a);}
+  function pctS(n){return n.toFixed(1)+'%';}
+  function v(id){return parseFloat(document.getElementById(id).value)||0;}
+  function set(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+  function css(id,prop,val){const el=document.getElementById(id);if(el)el.style[prop]=val;}
+  function attr(id,a,val){const el=document.getElementById(id);if(el)el.setAttribute(a,val);}
+
+  function syncRange(key){const i=document.getElementById('inp-'+key),r=document.getElementById('rng-'+key);if(r)r.value=i.value;rl(key,parseFloat(i.value));}
+  function syncInput(key){const i=document.getElementById('inp-'+key),r=document.getElementById('rng-'+key);if(i)i.value=r.value;rl(key,parseFloat(r.value));}
+  function rl(key,val){
+    const el=document.getElementById('lbl-'+key);if(!el)return;
+    if(['price','savings','bank','conv','pest','r1','r2','r3','r4','r5','r6','rent'].includes(key))el.textContent=fmt(val);
+    else if(key==='term')el.textContent=val+' yrs';
+    else if(key==='weeks')el.textContent=val;
+    else el.textContent=val.toFixed(key==='cont'?0:1)+'%';
+  }
+
+  function calcMonthly(principal,annualRate,years){
+    if(principal<=0)return 0;if(annualRate===0)return principal/(years*12);
+    const r=annualRate/100/12,n=years*12;
+    return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  }
+
+  var _amortVisible = false;
+  var _lastAmortParams = null;
+
+  function toggleAmortTable(){
+    _amortVisible = !_amortVisible;
+    const wrap = document.getElementById('amort-table-wrap');
+    const btn  = document.getElementById('amort-toggle-btn');
+    if(wrap) wrap.style.display = _amortVisible ? 'block' : 'none';
+    if(btn)  btn.textContent    = _amortVisible ? 'Hide Schedule' : 'Show Schedule';
+    if(_amortVisible) buildAmortTable();
+  }
+
+  function buildAmortTable(){
+    const tbl = document.getElementById('amort-table');
+    if(!tbl || !_lastAmortParams) return;
+    const {loanAmt, rate, term} = _lastAmortParams;
+    const monthly = calcMonthly(loanAmt, rate, term);
+    if(loanAmt <= 0 || monthly <= 0){
+      tbl.innerHTML = '<tbody><tr><td colspan="5" style="text-align:center;color:var(--slate);padding:16px;font-size:12px;">Enter loan details to generate schedule.</td></tr></tbody>';
+      return;
+    }
+    const r = rate / 100 / 12;
+    const fmt$ = v => '$' + Math.round(v).toLocaleString('en-AU');
+    let balance = loanAmt, rows = '';
+    for(let yr = 1; yr <= term; yr++){
+      const openBal = balance;
+      let yPrin = 0, yInt = 0;
+      for(let mo = 1; mo <= 12 && balance > 0.005; mo++){
+        const intCharge  = balance * r;
+        const prinCharge = Math.min(monthly - intCharge, balance);
+        yInt  += intCharge;
+        yPrin += prinCharge;
+        balance = Math.max(0, balance - prinCharge);
+      }
+      rows += `<tr>
+        <td>Yr ${yr}</td>
+        <td>${fmt$(openBal)}</td>
+        <td style="color:var(--sage)">${fmt$(yPrin)}</td>
+        <td style="color:var(--terracotta)">${fmt$(yInt)}</td>
+        <td>${fmt$(balance)}</td>
+      </tr>`;
+    }
+    tbl.innerHTML = `<thead><tr>
+      <th style="text-align:left">Year</th>
+      <th>Opening Bal</th>
+      <th>Principal</th>
+      <th>Interest</th>
+      <th>Closing Bal</th>
+    </tr></thead><tbody>${rows}</tbody>`;
+  }
+
+  // ── DYNAMIC COST ITEMS ──
+  let dynCosts=[];
+  let dynId=0;
+
+  // ── ALL PURCHASE COSTS ARE NOW DYNAMIC (item 14) ──
+  // Seeded with defaults in initPage()
+  // category: 'purchase' (default) | 'moveout'
+  function addCostItem(category){
+    const cat = category || 'purchase';
+    const id='dyn-'+dynId++;
+    dynCosts.push({id, name:'New Item', amount:0, category:cat});
+    renderDynCosts();
+    recalc();
+    // Focus the name field of the newly added row
+    setTimeout(function(){
+      const listId = cat === 'moveout' ? 'cost-items-moveout' : 'cost-items-purchase';
+      var rows = document.getElementById(listId)?.querySelectorAll('.dyn-cost-row');
+      if(rows && rows.length > 0){
+        var lastRow = rows[rows.length-1];
+        var nameInput = lastRow.querySelector('input[type="text"]');
+        if(nameInput){
+          lastRow.scrollIntoView({behavior:'smooth', block:'nearest'});
+          setTimeout(function(){ nameInput.focus(); nameInput.select(); }, 80);
+        }
+      }
+    }, 60);
+  }
+  function addCostItemAndFocus(){ addCostItem('purchase'); }
+
+  function removeCostItem(id){
+    dynCosts=dynCosts.filter(c=>c.id!==id);
+    renderDynCosts();
+    recalc();
+  }
+
+  function _renderCostList(listId, costs){
+    const list = document.getElementById(listId);
+    if(!list) return;
+    list.innerHTML = '';
+    costs.forEach(cost=>{
+      const row = document.createElement('div');
+      row.className = 'dyn-cost-row';
+      row.innerHTML = `
+        <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" oninput="updateDynCost('${cost.id}','name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var nxt=this.closest('.dyn-cost-row').querySelector('input[type=number]');if(nxt){nxt.focus();nxt.select();}}">
+        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" step="50" oninput="updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);recalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${cost.category||'purchase'}');}"></div>
+        <button class="dyn-del" onclick="removeCostItem('${cost.id}')" title="Remove">−</button>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  function renderDynCosts(){
+    // Support old single-list id for backward compat
+    _renderCostList('cost-items-purchase', dynCosts.filter(c=>c.category!=='moveout'));
+    _renderCostList('cost-items-moveout',  dynCosts.filter(c=>c.category==='moveout'));
+  }
+
+  function updateDynCost(id,field,val){
+    const c=dynCosts.find(x=>x.id===id);
+    if(c){c[field]=val;if(field==='amount')recalc();}
+  }
+
+  function getExtraCosts(){
+    return dynCosts.reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+  }
+  function getPurchaseCosts(){
+    return dynCosts.filter(c=>c.category!=='moveout').reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+  }
+  function getMoveOutCosts(){
+    return dynCosts.filter(c=>c.category==='moveout').reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+  }
+
+  // ── RENO ITEMS — dynamic custom items (item 13) ──
+  let renoItems=[]; // [{id, emoji, name, amount, note}]
+  let renoItemId=0;
+
+  const RENO_EMOJIS=['🎨','🍳','🚿','🪵','💡','🌿','🪟','🚪','🧱','🛁','❄️','🔧','🏗','🏠','⚡','💧','🔨','🪴','✨','⚠️'];
+
+
+  // ── Reno row event helpers (called from dynamic HTML) ──
+  function _renoId(el){ return el.closest('[data-reno]').dataset.reno; }
+  function _renoEmoji(el,v){ updateRenoItem(_renoId(el),'emoji',v); renderRenoItems(); }
+  function _renoName(el,v){ updateRenoItem(_renoId(el),'name',v); }
+  function _renoNote(el,v){ updateRenoItem(_renoId(el),'note',v); el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+  function _renoAmt(el,v){ var id=_renoId(el); updateRenoItem(id,'amount',parseFloat(v)||0); recalc(); updateRenoBar(id,parseFloat(v)||0); }
+  function _renoNameKey(el,e){ if(e.key==='Enter'){e.preventDefault();var a=el.closest('[data-reno]').querySelector('input[type=number]');if(a){a.focus();a.select();}} }
+  function _renoAmtKey(el,e){ if(e.key==='Enter'){e.preventDefault();addRenoItem();} }
+  function _renoDel(el){ removeRenoItem(_renoId(el)); }
+
+  function addRenoItem(name,amount,emoji,note){
+    name  = name  || 'New Item';
+    amount= amount|| 0;
+    emoji = emoji || '🔨';
+    note  = note  || '';
+    const id='ri-'+renoItemId++;
+    renoItems.push({id, emoji, name, amount, note});
+    recalc();
+    // Append just the new row — NO full DOM rebuild (preserves iOS keyboard)
+    const list = document.getElementById('reno-items-list');
+    if(list){
+      const maxAmt = Math.max.apply(null, renoItems.map(function(r){ return parseFloat(r.amount)||0; }).concat([1]));
+      const pct = maxAmt>0 ? Math.min((amount||0)/maxAmt*100,100) : 0;
+      const emojiOpts = RENO_EMOJIS.map(function(e){
+        return '<option value="'+e+'"'+(e===emoji?' selected':'')+'>'+e+'</option>';
+      }).join('');
+      const div = document.createElement('div');
+      div.setAttribute('data-reno', id);
+      div.style.cssText = 'border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;';
+      // Use safe name (no double quotes)
+      const safeName = name.replace(/"/g,'&quot;');
+      div.innerHTML = [
+        '<div class="reno-row">',
+          '<select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" onchange="_renoEmoji(this,this.value)">'+emojiOpts+'</select>',
+          '<input type="text" value="'+safeName+'" placeholder="Item name" ',
+            'style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" ',
+            'oninput="_renoName(this,this.value)" ',
+            'onkeydown="_renoNameKey(this,event)">',
+          '<div class="rbt" style="max-width:60px;"><div class="rbf" style="width:'+pct+'%"></div></div>',
+          '<div style="display:flex;align-items:center;gap:2px;min-width:90px;">',
+            '<span style="font-size:14px;color:var(--slate);">$</span>',
+            '<input type="number" value="'+(amount||0)+'" min="0" step="100" id="reno-amt-'+id+'" ',
+              'style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:\"DM Mono\",monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" ',
+              'oninput="_renoAmt(this,this.value)" ',
+              'onkeydown="_renoAmtKey(this,event)">',
+          '</div>',
+          '<button class="kd-del" onclick="_renoDel(this)" title="Remove" style="flex-shrink:0;">✕</button>',
+        '</div>',
+        '<div class="reno-note-wrap" style="padding-left:44px;">',
+          '<textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" ',
+            'oninput="_renoNote(this,this.value)">'+(note||'')+'</textarea>',
+        '</div>'
+      ].join('');
+      list.appendChild(div);
+      // Add focus/blur styles via JS (avoids quote issues in HTML string)
+      var nameInp = div.querySelector('input[type="text"]');
+      if(nameInp){
+        nameInp.addEventListener('focus', function(){ this.style.borderColor='var(--sage)'; });
+        nameInp.addEventListener('blur',  function(){ this.style.borderColor='rgba(28,28,30,0.1)'; });
+      }
+      var amtInp = div.querySelector('#reno-amt-'+id);
+      if(amtInp){
+        amtInp.addEventListener('focus', function(){ this.style.borderColor='var(--sage)'; });
+        amtInp.addEventListener('blur',  function(){ this.style.borderColor='rgba(28,28,30,0.1)'; });
+      }
+      div.scrollIntoView({behavior:'smooth', block:'nearest'});
+      // Focus the amount field after brief delay to allow scroll
+      setTimeout(function(){
+        var amtField = document.getElementById('reno-amt-'+id);
+        if(amtField){ amtField.focus(); amtField.select(); }
+      }, 100);
+    } else {
+      renderRenoItems();
+    }
+    // Update sidebar total
+    var stEl = document.getElementById('lbl-reno-total');
+    if(stEl){ var ct=v('inp-cont'); stEl.textContent=fmtK(getRenoTotal()*(1+ct/100)); }
+  }
+
+  function removeRenoItem(id){
+    renoItems=renoItems.filter(r=>r.id!==id);
+    renderRenoItems();
+    recalc();
+  }
+
+  function updateRenoItem(id,field,val){
+    const r=renoItems.find(x=>x.id===id);
+    if(r){r[field]=val;if(field==='amount')recalc();}
+  }
+
+  function getRenoTotal(){
+    return renoItems.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  }
+
+  function updateRenoBar(id, newAmount){
+    // Update only the progress bar for one reno item without full DOM redraw
+    var maxAmt = Math.max.apply(null, renoItems.map(function(r){ return parseFloat(r.amount)||0; }).concat([1]));
+    renoItems.forEach(function(r){
+      var el = document.querySelector('[data-reno="' + r.id + '"]');
+      if(!el) return;
+      var bar = el.querySelector('.rbf');
+      if(bar){
+        var pct = maxAmt > 0 ? Math.min((parseFloat(r.amount)||0)/maxAmt*100, 100) : 0;
+        bar.style.width = pct + '%';
+      }
+    });
+    // Update sidebar total
+    var stEl = document.getElementById('lbl-reno-total');
+    if(stEl){ var ct=v('inp-cont'); stEl.textContent=fmtK(getRenoTotal()*(1+ct/100)); }
+  }
+
+  function renderRenoItems(){
+    const list=document.getElementById('reno-items-list');
+    if(!list) return;
+    const total = getRenoTotal();
+    const maxAmt = Math.max(...renoItems.map(r=>parseFloat(r.amount)||0), 1);
+    list.innerHTML = renoItems.map(r=>{
+      const pct = maxAmt>0 ? Math.min((parseFloat(r.amount)||0)/maxAmt*100,100) : 0;
+      const emojiOpts = RENO_EMOJIS.map(e=>`<option value="${e}" ${e===r.emoji?'selected':''}>${e}</option>`).join('');
+      return `<div data-reno="${r.id}" style="border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;">
+        <div class="reno-row">
+          <select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" onchange="updateRenoItem('${r.id}','emoji',this.value);renderRenoItems()">${emojiOpts}</select>
+          <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" oninput="updateRenoItem('${r.id}','name',this.value)" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'" onkeydown="if(event.key==='Enter'){event.preventDefault();var amtInput=this.closest('[data-reno]').querySelector('input[type=number]');if(amtInput){amtInput.focus();amtInput.select();}}">
+          <div class="rbt" style="max-width:60px;"><div class="rbf" style="width:${pct}%"></div></div>
+          <div style="display:flex;align-items:center;gap:2px;min-width:90px;">
+            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" oninput="updateRenoItem('${r.id}','amount',parseFloat(this.value)||0);recalc();updateRenoBar('${r.id}',parseFloat(this.value)||0)" onkeydown="if(event.key==='Enter'){event.preventDefault();addRenoItem();}" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
+          </div>
+          <button class="kd-del" onclick="removeRenoItem('${r.id}')" title="Remove" style="flex-shrink:0;">✕</button>
+        </div>
+        <div class="reno-note-wrap" style="padding-left:44px;">
+          <textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" oninput="updateRenoItem('${r.id}','note',this.value);this.style.height='auto';this.style.height=this.scrollHeight+'px'">${r.note||''}</textarea>
+        </div>
+      </div>`;
+    }).join('');
+    // sidebar total
+    const stEl=document.getElementById('lbl-reno-total');
+    if(stEl){ const ct=v('inp-cont'); stEl.textContent=fmtK(total*(1+ct/100)); }
+  }
+
+  // ── MAIN RECALC ──
+  const DRAFT_KEY = 'propCalc_draft_v1';
+  let _draftTimer = null;
+  function autosaveDraft(){
+    if(_restoringDraft) return;
+    clearTimeout(_draftTimer);
+    _draftTimer = setTimeout(()=>{
+      try{
+        const state = collectCurrentState();
+        lsSet(DRAFT_KEY, JSON.stringify({state, photo: propPhotoDataUrl||'', thumb: propThumbDataUrl||'', savedId: _lastSavedAddr||''}));
+        // Only mark dirty if content has actually changed from last save.
+        // This prevents "Unsaved" showing after loading a saved property
+        // or after page load restoring a draft.
+        const currentAddr = (state.values && state.values['pd-address']) || '';
+        const savedAddr   = _lastSavedAddr || '';
+        // If a saved address exists and it still matches, don't mark dirty
+        if(savedAddr && currentAddr && savedAddr.toLowerCase().includes(currentAddr.toLowerCase().split(',')[0].trim().toLowerCase()) && !_forceDirty){
+          // No change to the address that identifies this save - stay clean
+        } else {
+          _isDirty = true;
+        }
+        _forceDirty = false;
+        updateUnsavedBadge();
+      }catch(e){}
+    }, 800);
+  }
+  function restoreDraft(){
+    try{
+      const raw = lsGet(DRAFT_KEY);
+      if(!raw) return false;
+      const draft = JSON.parse(raw);
+      if(!draft || !draft.state) return false;
+      _restoringDraft = true;
+      // Restore photo — only if it fits (skip silently if corrupt)
+      if(draft.photo && draft.photo.startsWith('data:')){
+        try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.thumb||''; applyPropPhoto(draft.photo); }catch(pe){}
+      } else if(draft.photo && draft.photo.startsWith('http')){
+        try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.photo; applyPropPhoto(draft.photo); }catch(pe){}
+      }
+      applyScenarioState(draft.state, null);
+      // Always land on property tab after restore
+      const propTabBtn = document.querySelector('.tab[onclick*="property"]');
+      if(propTabBtn) showTab('property', propTabBtn);
+      // Restore saved address so unsaved badge doesn't fire
+      if(draft.savedId) _lastSavedAddr = draft.savedId;
+      _restoringDraft = false;
+      _isDirty = false;
+      return true;
+    }catch(e){ console.warn('restoreDraft failed:', e); _restoringDraft = false; return false; }
+  }
+  function recalc(){
+    if(!_restoringDraft) _forceDirty = true;
+    autosaveDraft();
+    const price   = v('inp-price');
+    const savings = v('inp-savings');
+    const depPct  = v('inp-depp');
+    const govtPct = v('inp-govt');
+    const rate    = v('inp-rate');
+    const term    = v('inp-term');
+    const contPct = v('inp-cont');
+    const address = document.getElementById('inp-address').value||'your property';
+
+    const deposit  = price*depPct/100;
+    const govtAmt  = price*govtPct/100;
+    const loanAmt  = Math.max(0,price-deposit-govtAmt);
+    const extraCosts = getExtraCosts();
+    const upfront  = deposit+extraCosts;
+    const remaining = savings-upfront;
+
+    const monthly = calcMonthly(loanAmt,rate,term);
+    const weekly  = monthly*12/52;
+    const totalPaid = monthly*term*12;
+    const totalInterest = totalPaid-loanAmt;
+    _lastAmortParams = {loanAmt, rate, term};
+    if(_amortVisible) buildAmortTable();
+
+    // Use dynamic reno items system (item 13)
+    const renoBase=getRenoTotal();
+    const contingency=renoBase*contPct/100;
+    const renoTotal=renoBase+contingency;
+
+    // overlap (may be disabled by item 12 rent toggle)
+    const rentEnabled = document.getElementById('rent-sidebar-section')?.style.display !== 'none';
+    const rent  = rentEnabled ? v('inp-rent') : 0;
+    const weeks = rentEnabled ? v('inp-weeks') : 0;
+    const overlapCost = (rent+weekly)*weeks;
+    const cashAfterOverlap = remaining-overlapCost;
+
+    // ─── sidebar labels ───
+    ['price','savings','depp','govt','rate','term','cont','rent','weeks'].forEach(k=>{
+      const el=document.getElementById('inp-'+k);if(el)rl(k,parseFloat(el.value)||0);
+    });
+    // sidebar reno total
+    const stEl2=document.getElementById('lbl-reno-total');
+    if(stEl2) stEl2.textContent=fmtK(renoTotal);
+
+    document.getElementById('page-title').textContent=address;
+
+    // ─── TAB 1: COSTS ───
+    set('t-price',fmtK(price));
+    set('t-deposit',fmtK(deposit));
+    set('t-govt',fmtK(govtAmt));
+    const remEl=document.getElementById('t-remaining');if(remEl){remEl.textContent=fmtK(remaining);remEl.style.color=remaining<0?'var(--risk-red)':'';}
+
+    set('cb-savings',fmt(savings));
+    set('cb-out','−'+fmt(upfront));
+    const cbR=document.getElementById('cb-remaining');
+    if(cbR){cbR.textContent=fmt(remaining);cbR.style.color=remaining<0?'var(--risk-red)':'var(--sage-light)';}
+
+    set('cr-deposit',fmt(deposit));
+
+    // dynamic cost rows display — two groups: purchase and move-out
+    const display=document.getElementById('cost-rows-display');
+    if(display){
+      let html='';
+      const purchaseCosts = dynCosts.filter(c=>c.category!=='moveout');
+      const moveoutCosts  = dynCosts.filter(c=>c.category==='moveout');
+      purchaseCosts.forEach(c=>{
+        html+=`<div class="cr"><span class="nm">${(c.name||'Item').replace(/</g,'&lt;')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
+      });
+      if(moveoutCosts.length>0){
+        html+=`<div class="cr" style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--terracotta-light);text-transform:uppercase;border-bottom:1px solid rgba(28,28,30,0.05);padding-top:8px;padding-bottom:2px;"><span class="nm">Move-Out Costs</span><span class="am"></span></div>`;
+        moveoutCosts.forEach(c=>{
+          html+=`<div class="cr"><span class="nm" style="color:var(--terracotta)">${(c.name||'Item').replace(/</g,'&lt;')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
+        });
+      }
+      display.innerHTML=html;
+    }
+    set('cr-total',fmt(upfront));
+
+    const noteEl=document.getElementById('cost-note');
+    if(noteEl){
+      if(remaining<0){noteEl.textContent=`⚠️ Shortfall of ${fmt(Math.abs(remaining))} — increase savings or reduce costs.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(196,90,90,0.1);color:var(--risk-red)';}
+      else{noteEl.textContent=`💡 ${fmt(remaining)} remaining after settlement — available for renovations or emergency buffer.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.1);color:var(--slate)';}
+    }
+
+    // donut
+    const tp=price,bP=tp>0?loanAmt/tp:0,gP=tp>0?govtAmt/tp:0,dP=tp>0?deposit/tp:0;
+    const bD=bP*CIRC,gD=gP*CIRC,dD=dP*CIRC;
+    attr('d-bank','stroke-dasharray',`${bD} ${CIRC}`);
+    attr('d-govt','stroke-dasharray',`${gD} ${CIRC}`);attr('d-govt','stroke-dashoffset',`-${bD}`);
+    attr('d-you','stroke-dasharray',`${dD} ${CIRC}`);attr('d-you','stroke-dashoffset',`-${bD+gD}`);
+    set('d-centre',fmtK(price));
+    set('leg-bank',fmtK(loanAmt));set('leg-govt',fmtK(govtAmt));set('leg-you',fmtK(deposit));
+    set('bp-bank',pctS(bP*100));css('bf-bank','width',pctS(bP*100));
+    set('bp-govt',pctS(gP*100));css('bf-govt','width',pctS(gP*100));
+    set('bp-dep',pctS(dP*100));css('bf-dep','width',pctS(dP*100));
+
+    // sidebar alert
+    const sa=document.getElementById('sidebar-alert');
+    if(sa){
+      if(remaining<0)sa.innerHTML=`<div class="alert alert-warn">⚠️ Savings shortfall of ${fmt(Math.abs(remaining))}.</div>`;
+      else if(cashAfterOverlap<5000&&weeks>0)sa.innerHTML=`<div class="alert alert-warn">⚠️ After overlap, only ${fmt(cashAfterOverlap)} left for reno.</div>`;
+      else sa.innerHTML=`<div class="alert alert-ok">✓ Cash position viable. ${fmt(remaining)} after settlement.</div>`;
+    }
+
+    // ─── TAB 2: RENO ───
+    const rpEl=document.getElementById('reno-pool-val');
+    if(rpEl){rpEl.textContent=fmtK(remaining);rpEl.style.color=remaining<0?'var(--risk-red)':'var(--sage)';}
+    const unspent = remaining - renoTotal;
+    const ruEl=document.getElementById('reno-unspent-val');
+    if(ruEl){ruEl.textContent=fmtK(unspent);ruEl.style.color=unspent<0?'var(--risk-red)':unspent<5000?'var(--terracotta)':'var(--reward-green)';}
+    set('reno-planned',fmt(renoTotal));set('reno-pool-cap',fmt(remaining));set('reno-total',fmt(renoTotal));
+    const rpct=remaining>0?Math.min(renoTotal/remaining*100,200):100;
+    css('reno-spend-bar','width',Math.min(rpct,100)+'%');
+    css('reno-spend-bar','background',rpct>100?'var(--risk-red)':'var(--sage)');
+    set('reno-spend-pct',Math.round(rpct)+'%');
+    const rpaEl=document.getElementById('reno-pool-alert');
+    if(rpaEl){
+      if(!renoEnabled){rpaEl.innerHTML='';}
+      else if(remaining<0)rpaEl.innerHTML=`<div class="alert alert-warn">⚠️ No reno budget — savings don't cover upfront costs.</div>`;
+      else if(renoTotal>remaining)rpaEl.innerHTML=`<div class="alert alert-warn">⚠️ Reno plan (${fmt(renoTotal)}) exceeds pool (${fmt(remaining)}). Trim items or increase savings.</div>`;
+      else rpaEl.innerHTML=`<div class="alert alert-ok">✓ Fits budget — ${fmt(remaining-renoTotal)} to spare after reno.</div>`;
+    }
+
+    // ─── TAB 3: REPAYMENTS ───
+    set('rp-monthly',fmt(monthly));set('rp-weekly',fmt(weekly));set('rp-annual',fmt(monthly*12));
+    set('rp-rate-lbl','@ '+rate+'%');set('rp-term-lbl',term+'yr term');set('rp-loan-lbl',fmtK(loanAmt)+' loan');
+    set('rp-interest',fmt(totalInterest));set('rp-total-paid',fmt(totalPaid));set('rp-loan-show',fmt(loanAmt));
+
+    const stEl=document.getElementById('stress-table');
+    if(stEl){
+      const rates=[rate,rate+0.5,rate+1,rate+2,rate+3];
+      let html=`<div style="font-family:'DM Mono',monospace;font-size:11px"><div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;margin-bottom:6px;color:var(--slate);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1)"><span>Rate</span><span>Monthly</span><span>Annual</span><span>Change</span></div>`;
+      rates.forEach((r,i)=>{
+        const m=calcMonthly(loanAmt,r,term),d=m-monthly,cur=i===0;
+        html+=`<div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;padding:6px 0;border-top:1px solid rgba(28,28,30,0.06)${cur?';background:rgba(201,168,76,0.06);border-radius:2px':''}"><span style="color:${cur?'var(--gold)':'var(--slate)'}">${r.toFixed(1)}%${cur?' ←':''}</span><span>${fmt(m)}</span><span>${fmt(m*12)}</span><span style="color:${i===0?'var(--slate)':d>600?'var(--risk-red)':'var(--terracotta)'}">${i===0?'current':'+'+fmt(d)+'/mo'}</span></div>`;
+      });
+      stEl.innerHTML=html+'</div>';
+    }
+
+    // ─── TAB 4: RENT OVERLAP ───
+    const weeklyMort=weekly;
+    const combinedWeekly=rent+weeklyMort;
+    const totalOverlap=combinedWeekly*weeks;
+    const cashAfter=remaining-totalOverlap;
+
+    set('ov-weekly-total',fmt(combinedWeekly));
+    set('ov-total-cost',fmt(totalOverlap));
+    const ovR=document.getElementById('ov-remaining-after');
+    if(ovR){ovR.textContent=fmt(cashAfter);ovR.style.color=cashAfter<0?'var(--risk-red)':'';}
+
+    set('ov-rent-wk',fmt(rent));set('ov-mort-wk',fmt(weeklyMort));
+    set('ov-rent-pct',combinedWeekly>0?Math.round(rent/combinedWeekly*100)+'%':'0%');
+    set('ov-mort-pct',combinedWeekly>0?Math.round(weeklyMort/combinedWeekly*100)+'%':'0%');
+    css('ov-rent-bar','width',combinedWeekly>0?(rent/combinedWeekly*100)+'%':'0%');
+    css('ov-mort-bar','width',combinedWeekly>0?(weeklyMort/combinedWeekly*100)+'%':'0%');
+
+    set('ov-s-rent',fmt(rent));set('ov-s-mort',fmt(weeklyMort));
+    set('ov-s-combined',fmt(combinedWeekly));
+    set('ov-s-weeks',weeks);set('ov-s-total',fmt(totalOverlap));
+    set('ov-buf-start',fmt(remaining));
+    set('ov-buf-overlap','−'+fmt(totalOverlap));
+    const ovFinal=document.getElementById('ov-buf-final');
+    // Match reno tab: cash after overlap AND reno budget spent
+    const cashAfterReno = cashAfter - renoTotal;
+    if(ovFinal){ovFinal.textContent=fmt(cashAfterReno);ovFinal.style.color=cashAfterReno<0?'var(--risk-red)':cashAfterReno<5000?'var(--terracotta)':'var(--reward-green)';}
+
+    const advEl=document.getElementById('ov-advice');
+    if(advEl){
+      if(weeks===0)advEl.innerHTML=`<div class="alert alert-ok">✓ No overlap period — you move in straight after renovation. Maximum cash preserved.</div>`;
+      else if(cashAfter<0)advEl.innerHTML=`<div class="alert alert-warn">⚠️ The overlap cost (${fmt(totalOverlap)}) exceeds your remaining cash. You'll need extra funds or to reduce the overlap period.</div>`;
+      else if(cashAfterReno<5000)advEl.innerHTML=`<div class="alert alert-warn">⚠️ Tight — only ${fmt(cashAfterReno)} remaining after overlap &amp; reno. Consider reducing overlap weeks or reno scope.</div>`;
+      else advEl.innerHTML=`<div class="alert alert-ok">✓ Manageable — ${fmt(cashAfterReno)} remaining after reno &amp; ${weeks}-week overlap.</div>`;
+    }
+
+    // calendar grid
+    const calEl=document.getElementById('cal-grid');
+    if(calEl&&weeks>=0){
+      const totalW=Math.max(8,weeks+4);
+      let html=`<div style="display:grid;grid-template-columns:repeat(${Math.min(totalW,12)},1fr);gap:3px;margin-bottom:4px">`;
+      for(let i=0;i<Math.min(totalW,12);i++){
+        const label='Wk '+(i+1);
+        const cls=i<weeks?'cal-both':'cal-mortgage';
+        html+=`<div class="cal-cell ${cls}" title="${i<weeks?'Rent + Mortgage':'Mortgage only'}">${i+1}</div>`;
+      }
+      html+='</div>';
+      html+=`<div style="font-size:11px;color:var(--slate);margin-top:6px">`;
+      html+=`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px"><span style="width:10px;height:10px;border-radius:2px;background:var(--terracotta);display:inline-block"></span>Paying rent + mortgage</span>`;
+      html+=`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:var(--sky);display:inline-block"></span>Mortgage only</span>`;
+      html+='</div>';
+      calEl.innerHTML=html;
+    }
+
+    // overlap scenarios
+    const scEl=document.getElementById('overlap-scenarios');
+    if(scEl){
+      const scenWeeks=[0,2,4,6,8,12];
+      let html=`<div style="font-family:'DM Mono',monospace;font-size:11px"><div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;margin-bottom:6px;color:var(--slate);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1)"><span>Weeks</span><span>Overlap Cost</span><span>Reno Budget Left</span><span>Status</span></div>`;
+      scenWeeks.forEach(w=>{
+        const cost=combinedWeekly*w;
+        const left=remaining-cost;
+        const isCur=w===weeks;
+        const status=left<0?'⚠ Shortfall':left<8000?'⚡ Tight':'✓ OK';
+        const sc=left<0?'var(--risk-red)':left<8000?'var(--terracotta)':'var(--reward-green)';
+        html+=`<div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;padding:6px 0;border-top:1px solid rgba(28,28,30,0.06)${isCur?';background:rgba(201,168,76,0.06);border-radius:2px':''}">
+          <span style="color:${isCur?'var(--gold)':'var(--slate)'}">${w}wk${isCur?' ←':''}</span>
+          <span>${fmt(cost)}</span>
+          <span style="color:${sc}">${fmt(left)}</span>
+          <span style="color:${sc}">${status}</span>
+        </div>`;
+      });
+      scEl.innerHTML=html+'</div>';
+    }
+
+    // ─── TAB 5: TIMELINE ───
+    set('tl-address',address);
+    const ob=document.getElementById('tl-overlap-badge');
+    if(ob)ob.textContent=weeks>0?weeks+' wks':'';
+    const od=document.getElementById('tl-overlap-desc');
+    if(od)od.textContent=weeks>0?`You continue renting for ${weeks} weeks while renovations begin — paying ${fmt(combinedWeekly)}/wk (rent + mortgage) for a total of ${fmt(totalOverlap)}.`:'No overlap planned — you move in immediately after renovations.';
+    const olDur=document.getElementById('tl-overlap-dur');
+    if(olDur)olDur.textContent=weeks>0?`Weeks 1–${weeks} post-settlement`:'Immediate move-in';
+    const olDurCal=document.getElementById('tl-overlap-dur-cal');
+    if(olDurCal)olDurCal.textContent=weeks>0?`Weeks 1–${weeks} post-settlement`:'Immediate move-in';
+
+    // ─── TAB 6: RISKS ───
+    const riskScore=Math.min(90,Math.max(15,
+      20+(depPct<5?20:depPct<10?10:0)+(rate>7?15:rate>6?5:0)+(govtPct>20?-8:0)
+        +(remaining<5000?25:remaining<15000?10:0)+(weeks>8?10:weeks>4?5:0)
+    ));
+    const rewardScore=Math.min(95,Math.max(25,
+      35+(govtPct>0?20:0)+(remaining>20000?15:remaining>10000?8:0)+(renoTotal>10000?10:5)+(price<650000?5:0)
+    ));
+    css('risk-meter','width',riskScore+'%');css('reward-meter','width',rewardScore+'%');
+    set('risk-desc',riskScore<30?'Low risk — strong equity and healthy cash buffer.':riskScore<50?'Moderate risk — manageable with the government scheme reducing LVR.':riskScore<70?'Medium-high risk — consider increasing deposit or savings buffer.':'Higher risk — savings are tight. Build a larger buffer before proceeding.');
+    set('reward-desc',rewardScore>70?'High reward potential — strong equity uplift through renovation and capital growth.':rewardScore>50?'Good reward potential — renovation and scheme create solid upside.':'Modest reward potential — consider a higher reno budget or larger govt scheme.');
+    const m2=calcMonthly(loanAmt,rate+2,term);
+    set('rr-rate-delta',fmt(m2-monthly));
+    set('rr-dep-pct',pctS(depPct));set('rr-pool-val',fmtK(remaining));
+    set('rr-overlap-cost',fmt(totalOverlap));set('rr-overlap-weeks',weeks);
+    set('rr-dep-show',fmtK(deposit));set('rr-reno-show',fmtK(renoTotal));
+    set('rr-price-show',fmtK(price));set('rr-govt-show',pctS(govtPct));
+    set('rr-dep-ltg',fmtK(deposit));set('rr-price-ltg',fmtK(price));
+  }
+
+  function showTab(id,btn){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    // Scroll content back to top when switching tabs
+    var mainEl = document.querySelector('main');
+    if(mainEl) mainEl.scrollTop = 0; else window.scrollTo(0,0);
+    // Redraw projection when that tab becomes visible (container was hidden at load)
+    if(id === 'projection'){ setTimeout(drawProjection, 30); }
+    // Smooth-scroll active tab to centre on mobile
+    if(window.innerWidth <= 820){
+      setTimeout(function(){
+        btn.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+      }, 40);
+    }
+  }
+
+  const PRESETS={
+    base:        {price:650000,savings:40000,depp:2,  govt:28.7,rate:6.2,term:30,bank:800,conv:1600,pest:700,r1:3500,r2:5000,r3:4500,r4:4000,r5:2000,r6:2000,cont:15,rent:450,weeks:4},
+    max:         {price:700000,savings:60000,depp:5,  govt:28.7,rate:6.2,term:30,bank:800,conv:1800,pest:700,r1:5000,r2:8000,r3:6000,r4:5000,r5:3000,r6:3000,cont:15,rent:450,weeks:4},
+    conservative:{price:600000,savings:50000,depp:10, govt:28.7,rate:7.0,term:25,bank:800,conv:1600,pest:700,r1:2000,r2:3000,r3:2500,r4:2000,r5:1000,r6:1000,cont:20,rent:400,weeks:6},
+    nodep:       {price:650000,savings:40000,depp:20, govt:0,   rate:6.5,term:30,bank:800,conv:1600,pest:700,r1:2000,r2:3000,r3:2000,r4:2000,r5:1000,r6:500, cont:10,rent:450,weeks:2},
+  };
+
+  function loadPreset(key){
+    const p=PRESETS[key];
+    Object.entries(p).forEach(([k,val])=>{
+      const inp=document.getElementById('inp-'+k),rng=document.getElementById('rng-'+k);
+      if(inp)inp.value=val;if(rng)rng.value=val;rl(k,val);
+    });
+    dynCosts=[];renderDynCosts();
+    recalc();
+  }
+
+  function handlePhotoDrop(e){
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const file=e.dataTransfer.files[0];
+    if(file&&file.type.startsWith('image/'))handlePropPhotoFile(file);
+  }
+
+  function handlePhotoFile(file){
+    if(!file)return;
+    handlePropPhotoFile(file);
+  }
+
+  // ── PROPERTY DETAILS ──
+  let propPhotoDataUrl = '';
+  let _lastSavedAddr = null;
+  let _isDirty = false;
+  let _restoringDraft = false; // suppresses autosaveDraft during restore
+  let propThumbDataUrl = ''; // small thumbnail for library
+
+  function handlePropPhotoDrop(e){
+    e.preventDefault();
+    e.currentTarget.classList.remove('pd-drag');
+    const file = e.dataTransfer.files[0];
+    if(file && file.type.startsWith('image/')) handlePropPhotoFile(file);
+  }
+
+  function handlePropPhotoFile(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        // Resize to max 900px wide for storage (reduces from ~3MB to ~80-150KB)
+        const MAX = 900;
+        const ratio = Math.min(1, MAX / Math.max(img.width, img.height));
+        const w = Math.round(img.width * ratio);
+        const h = Math.round(img.height * ratio);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        propPhotoDataUrl = c.toDataURL('image/jpeg', 0.82);
+        // Also store a small thumbnail (200px) for the library grid
+        const THUMB = 200;
+        const tr = Math.min(1, THUMB / Math.max(img.width, img.height));
+        const tw = Math.round(img.width * tr);
+        const th = Math.round(img.height * tr);
+        const tc = document.createElement('canvas');
+        tc.width = tw; tc.height = th;
+        tc.getContext('2d').drawImage(img, 0, 0, tw, th);
+        propThumbDataUrl = tc.toDataURL('image/jpeg', 0.72);
+        applyPropPhoto(propPhotoDataUrl);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function applyPropPhoto(src){
+    // big preview in details tab
+    const big = document.getElementById('pd-photo-big');
+    const prompt = document.getElementById('pd-upload-prompt');
+    const overlay = document.getElementById('pd-photo-overlay');
+    if(big){ big.src = src; big.style.display = 'block'; }
+    if(prompt) prompt.style.display = 'none';
+    if(overlay) overlay.style.display = 'flex';
+    // header thumbnail
+    const hImg = document.getElementById('prop-img');
+    const hZone = document.getElementById('upload-zone');
+    if(hImg){ hImg.src = src; hImg.style.display = 'block'; }
+    if(hZone) hZone.style.display = 'none';
+    // preview thumb in details tab
+    const prevPhoto = document.getElementById('pd-preview-photo');
+    if(prevPhoto) prevPhoto.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;">`;
+    updatePropertyDetails();
+  }
+
+  function clearPropPhoto(){
+    propPhotoDataUrl = '';
+    propThumbDataUrl = '';
+    const big = document.getElementById('pd-photo-big');
+    const prompt = document.getElementById('pd-upload-prompt');
+    const overlay = document.getElementById('pd-photo-overlay');
+    if(big){ big.src=''; big.style.display='none'; }
+    if(prompt) prompt.style.display = 'flex';
+    if(overlay) overlay.style.display = 'none';
+    const hImg = document.getElementById('prop-img');
+    const hZone = document.getElementById('upload-zone');
+    if(hImg){ hImg.src=''; hImg.style.display='none'; }
+    if(hZone) hZone.style.display = 'flex';
+    const prevPhoto = document.getElementById('pd-preview-photo');
+    if(prevPhoto) prevPhoto.innerHTML = '📷';
+    updatePropertyDetails();
+  }
+
+  // ── PHOTO URL PASTE ──
+  function handlePhotoUrlInput(val){
+    // Real-time preview while typing a URL (debounced via existing input handler)
+  }
+
+  // ── MAP IMAGE (item #10) ──
+  async function loadMapImage(){
+    const addr   = document.getElementById('pd-address')?.value?.trim() || '';
+    const suburb = document.getElementById('pd-suburb')?.value?.trim()  || '';
+    const state  = document.getElementById('pd-state')?.value?.trim()   || '';
+    const query  = [addr, suburb, state, 'Australia'].filter(Boolean).join(', ');
+    if(!addr){ showToast('⚠️ Enter a street address in the Property tab first'); return; }
+
+    const btn = document.getElementById('map-img-btn');
+    if(btn){ btn.disabled = true; btn.textContent = '⏳ Fetching map…'; }
+
+    try {
+      // 1. Geocode with Nominatim (no API key required)
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+        { headers: { 'Accept': 'application/json', 'User-Agent': 'PropertyCalculator/1.0' } }
+      );
+      const geoData = await geoRes.json();
+      if(!geoData || !geoData.length){ showToast('⚠️ Address not found on map. Try including suburb and state.'); return; }
+      const { lat, lon } = geoData[0];
+
+      // 2. Build static map URL using openstreetmap.de static map service
+      const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=17&size=640x480&markers=${lat},${lon},red-pushpin`;
+
+      // 3. Load image and convert to canvas (for proper base64 storage + thumbnail)
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = mapUrl; });
+
+      const MAX = 1200;
+      const ratio = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * ratio), h = Math.round(img.height * ratio);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      propPhotoDataUrl = c.toDataURL('image/jpeg', 0.82);
+
+      const THUMB = 200;
+      const tr = Math.min(1, THUMB / Math.max(img.width, img.height));
+      const tc = document.createElement('canvas');
+      tc.width = Math.round(img.width * tr); tc.height = Math.round(img.height * tr);
+      tc.getContext('2d').drawImage(img, 0, 0, tc.width, tc.height);
+      propThumbDataUrl = tc.toDataURL('image/jpeg', 0.72);
+
+      applyPropPhoto(propPhotoDataUrl);
+      showToast('🗺️ Map image loaded from OpenStreetMap');
+    } catch(err) {
+      // Fallback: set URL directly (no thumbnail, but still usable)
+      const addr2   = document.getElementById('pd-address')?.value?.trim() || '';
+      const suburb2 = document.getElementById('pd-suburb')?.value?.trim()  || '';
+      const state2  = document.getElementById('pd-state')?.value?.trim()   || '';
+      const q2 = [addr2, suburb2, state2, 'Australia'].filter(Boolean).join(', ');
+      showToast('⚠️ Could not load map image (CORS or network issue). Try pasting a photo URL manually.');
+    } finally {
+      if(btn){ btn.disabled = false; btn.innerHTML = '🗺️ Get Map Image from Address'; }
+    }
+  }
+
+  function applyPhotoUrl(){
+    const urlEl = document.getElementById('pd-photo-url');
+    const url   = urlEl?.value?.trim();
+    if(!url){ showToast('⚠️ Paste an image URL first'); return; }
+    propPhotoDataUrl = url;
+    applyPropPhoto(url);
+    showToast('🖼️ Photo loaded from URL');
+  }
+
+  function stepStat(id, delta){
+    const el = document.getElementById(id);
+    if(!el) return;
+    const val = (parseInt(el.value) || 0) + delta;
+    el.value = Math.max(0, val);
+    updatePropertyDetails();
+  }
+
+  function setPropType(btn, type){
+    document.querySelectorAll('.prop-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('pd-type').value = type;
+    updatePropertyDetails();
+    var mainEl = document.querySelector('main');
+    if(mainEl) mainEl.scrollTop = 0; else window.scrollTo(0,0);
+  }
+
+  // ══════════════════════════════════════════════
+  // ADDRESS AUTOCOMPLETE — QLD Open Data CKAN API
+  // Free, no sign-up, no API key required.
+  // Falls back gracefully if unavailable.
+  // ══════════════════════════════════════════════
+  let _addrTimer = null;
+  let _lastAddrQuery = '';
+
+  async function addrAutocomplete(val){
+    val = val.trim();
+    if(val.length < 4){ hideAddrSuggestions(); return; }
+    if(val === _lastAddrQuery) return;
+    _lastAddrQuery = val;
+    clearTimeout(_addrTimer);
+    _addrTimer = setTimeout(async () => {
+      try {
+        // Nominatim (OpenStreetMap) — free, no auth, covers all of Australia
+        const url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=au&limit=6&q=' + encodeURIComponent(val);
+        const r = await fetch(url, {
+          headers: {'Accept-Language':'en', 'User-Agent':'PropertyCalc/1.0'},
+          signal: AbortSignal.timeout(4000)
+        });
+        if(!r.ok) throw new Error('no response');
+        const j = await r.json();
+        if(!j.length){ hideAddrSuggestions(); return; }
+        const results = j.map(item => {
+          const a = item.address || {};
+          const road    = a.road || a.pedestrian || a.path || '';
+          const houseNo = a.house_number || '';
+          const street  = houseNo ? houseNo + ' ' + road : road;
+          const suburb  = a.suburb || a.neighbourhood || a.city_district || a.town || a.village || a.hamlet || '';
+          const state   = a.state_code || a.state || '';
+          const postcode = a.postcode || '';
+          // Use display_name if we couldn't parse well
+          const display = street || item.display_name.split(',')[0];
+          return { address: display, suburb, state: ({'queensland':'QLD','new south wales':'NSW','victoria':'VIC','western australia':'WA','south australia':'SA','tasmania':'TAS','northern territory':'NT','australian capital territory':'ACT'}[((a.state_code||a.state||'')).toLowerCase().replace(/^state of /,'')] || 'QLD'), postcode };
+        }).filter(r => r.address);
+        if(!results.length){ hideAddrSuggestions(); return; }
+        showAddrSuggestions(results);
+      } catch(e) {
+        hideAddrSuggestions();
+      }
+    }, 400);
+  }
+
+  function showAddrSuggestions(results){
+    const box = document.getElementById('addr-suggestions');
+    if(!box || !results.length){ hideAddrSuggestions(); return; }
+    box.innerHTML = results.map(r =>
+      `<div class="addr-suggestion" onmousedown="selectAddress(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+        <strong>${r.address}</strong><br><span>${r.suburb}${r.postcode ? ', '+r.postcode : ''} ${r.state}</span>
+      </div>`
+    ).join('');
+    box.style.display = 'block';
+  }
+
+  function hideAddrSuggestions(){
+    const box = document.getElementById('addr-suggestions');
+    if(box) box.style.display = 'none';
+  }
+
+  function selectAddress(r){
+    const addrEl   = document.getElementById('pd-address');
+    const suburbEl = document.getElementById('pd-suburb');
+    const stateEl  = document.getElementById('pd-state');
+    if(addrEl)   addrEl.value   = r.address || '';
+    if(suburbEl) suburbEl.value = r.suburb  || '';
+    if(stateEl)  stateEl.value  = r.state   || 'QLD';
+    hideAddrSuggestions();
+    updatePropertyDetails();
+  }
+
+  function updatePropertyDetails(){
+    if(!_restoringDraft) _forceDirty = true;
+    autosaveDraft();
+    const address = document.getElementById('pd-address').value;
+    const suburb  = document.getElementById('pd-suburb').value;
+    const state   = document.getElementById('pd-state').value;
+    const bed     = parseInt(document.getElementById('pd-bed').value) || 0;
+    const bath    = parseInt(document.getElementById('pd-bath').value) || 0;
+    const car     = parseInt(document.getElementById('pd-car').value) || 0;
+    const land    = document.getElementById('pd-land').value;
+    const house   = document.getElementById('pd-house').value;
+    const year    = document.getElementById('pd-year').value;
+    const type    = document.getElementById('pd-type').value;
+    const url     = document.getElementById('pd-url').value;
+
+    const fullAddr = [address, suburb, state].filter(Boolean).join(', ') || 'New Property';
+
+    // update header title
+    const pageTitle = document.getElementById('page-title');
+    if(pageTitle) pageTitle.textContent = fullAddr;
+
+    // update header subtitle with stats or fallback
+    const statParts = [
+      type && type !== 'House' ? type : (address ? 'House' : null),
+      bed  ? bed+' bed'  : null,
+      bath ? bath+' bath': null,
+      car  ? car+' car'  : null,
+      land ? land+'m² land' : null
+    ].filter(Boolean);
+    const headerSubEl = document.getElementById('header-sub-text');
+    if(headerSubEl) headerSubEl.textContent = statParts.length ? statParts.join('  ·  ') : (address ? 'Edit values on the left — everything updates live' : 'Add property details in the Property tab to get started');
+    // Status badge in header
+    const statusVal = document.getElementById('pd-status')?.value || 'browsing';
+    const STATUS_BADGE_COLORS = {'browsing':'#5B8FAB','auction':'#C4704A','for-sale':'#C9A84C','offered':'#7B9E87','under-offer':'#E8A882','unconditional':'#5A9E7B','sold':'#C45A5A'};
+    const STATUS_BADGE_LABELS = {'browsing':'👀 Browsing','auction':'🔨 Auction','for-sale':'🏷 For Sale','offered':'📝 Offer Sent','under-offer':'⏳ Under Offer','unconditional':'✅ Unconditional','sold':'🔴 Sold'};
+    let statusBadge = document.getElementById('header-status-badge');
+    if(!statusBadge){ statusBadge = document.createElement('div'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:2px 10px;border-radius:10px;font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;white-space:nowrap;width:auto;max-width:none;align-self:flex-start;margin-top:4px;'; const h1=document.getElementById('page-title'); if(h1&&h1.parentNode) h1.parentNode.insertBefore(statusBadge, h1.nextSibling); }
+    statusBadge.textContent = STATUS_BADGE_LABELS[statusVal] || statusVal;
+    statusBadge.style.background = (STATUS_BADGE_COLORS[statusVal]||'#888') + '33';
+    statusBadge.style.color = STATUS_BADGE_COLORS[statusVal] || '#888';
+    statusBadge.style.border = '1px solid ' + (STATUS_BADGE_COLORS[statusVal]||'#888') + '66';
+
+    const photoCap = document.getElementById('photo-caption');
+    if(photoCap) photoCap.textContent = fullAddr;
+
+    // sync address to sidebar
+    const sideAddr = document.getElementById('inp-address');
+    if(sideAddr && sideAddr.value !== address) sideAddr.value = address;
+
+    // listing URL link
+    const urlLink = document.getElementById('pd-url-link');
+    const urlAnchor = document.getElementById('pd-url-anchor');
+    if(url && url.startsWith('http')){ urlLink.style.display='block'; urlAnchor.href=url; }
+    else if(urlLink) urlLink.style.display='none';
+
+    // photo label
+    const photoLabel = document.getElementById('pd-photo-label');
+    if(photoLabel) photoLabel.textContent = fullAddr;
+
+    // live preview
+    const prevTitle = document.getElementById('pd-preview-title');
+    if(prevTitle) prevTitle.textContent = fullAddr;
+
+    const statsEl = document.getElementById('pd-preview-stats');
+    if(statsEl){
+      const chips = [];
+      if(type) chips.push(`🏠 ${type}`);
+      if(bed)  chips.push(`🛏 ${bed} bed`);
+      if(bath) chips.push(`🚿 ${bath} bath`);
+      if(car)  chips.push(`🚗 ${car} car`);
+      if(land) chips.push(`📐 ${land}m²`);
+      if(house)chips.push(`🏗 ${house}m² house`);
+      if(year) chips.push(`📅 Built ${year}`);
+      statsEl.innerHTML = chips.map(c=>`<span class="pd-stat-chip">${c}</span>`).join('') || '<span style="font-size:11px;color:rgba(245,240,232,0.3);font-family:\'DM Mono\',monospace;">Fill in details above to see preview</span>';
+    }
+
+    recalc();
+  }
+
+  // ══════════════════════════════════════════════
+  // RENO NOTES — legacy placeholder (reno items now fully dynamic, item 13)
+  // ══════════════════════════════════════════════
+  const renoNotes = {}; // kept for backward compat during load
+  function saveRenoNote(i, val){ renoNotes[i] = val; }
+
+  // ══════════════════════════════════════════════
+  // SHARED STORAGE — Netlify Functions + Blobs
+  // All visitors to the site share the same data.
+  // Falls back to localStorage when running locally.
+  // ══════════════════════════════════════════════
+  const STORAGE_KEY = 'propCalc_v5_index';
+  const PHOTO_PFX   = 'propCalc_v5_ph_';
+  let scenariosView = 'grid';
+  let pendingLoadId = null;
+  let _scenariosCache = null;
+
+  function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
+  function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
+  function lsDel(k){ try{localStorage.removeItem(k);}catch(e){} }
+
+  // Are we running on Netlify (not a local file)?
+  const ON_NETLIFY = window.location.protocol !== 'file:';
+
+  async function getAllScenarios(){
+    if(ON_NETLIFY){
+      try{
+        const authH2 = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
+        const uid2   = getUserId();
+        const qs     = (!authH2 && uid2) ? '?userId='+encodeURIComponent(uid2) : '';
+        const r = await fetch('/.netlify/functions/scenarios'+qs, {
+          headers: authH2 ? {'Authorization': authH2} : {}
+        });
+        if(r.ok){
+          const data = await r.json();
+          // Mirror to localStorage — survives Netlify rebuilds as a fallback
+          if(data.length) lsSet(STORAGE_KEY, JSON.stringify(data));
+          return data;
+        }
+        console.error('[storage] GET failed:', r.status, await r.text());
+      }catch(e){ console.error('[storage] GET exception:', e.message); }
+    }
+    // Fallback: localStorage (browser-side, survives all rebuilds)
+    try{ return JSON.parse(lsGet(STORAGE_KEY)||'[]'); }catch(e){ return []; }
+  }
+
+  async function saveScenarioToBackend(record, photoSrc){
+    if(ON_NETLIFY){
+      try{
+        // Send record first (fast — no photo payload). Photo uploads in background.
+        const authH = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
+        const r = await fetch('/.netlify/functions/scenarios', {
+          method: 'POST',
+          headers: Object.assign({'Content-Type':'application/json'}, authH ? {'Authorization': authH} : {}),
+          body: JSON.stringify({ action:'save', userId:getUserId(), id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'', exportCount:record.exportCount||0, savedAt:record.savedAt||new Date().toISOString() })
+        });
+        console.log('[storage] POST scenarios status:', r.status);
+        if(r.ok){
+          // Mirror updated list to localStorage immediately (belt-and-suspenders)
+          getAllScenarios().then(latest => { if(latest.length) lsSet(STORAGE_KEY, JSON.stringify(latest)); }).catch(()=>{});
+          // Upload full photo separately in background (don't await — user sees success immediately)
+          if(photoSrc && authH){
+            fetch('/.netlify/functions/scenarios', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json','Authorization': authH},
+              body: JSON.stringify({ action:'photo', userId:getUserId(), id: record.id, photo: photoSrc })
+            }).then(pr => console.log('[storage] photo upload:', pr.status))
+              .catch(e => console.warn('[storage] photo upload failed:', e.message));
+          }
+          return true;
+        }
+        const txt = await r.text();
+        console.error('[storage] POST failed:', r.status, txt);
+      }catch(e){ console.error('[storage] POST exception:', e.message); }
+    }
+    if(photoSrc) lsSet(PHOTO_PFX+record.id, photoSrc);
+    let arr=[]; try{ arr=JSON.parse(lsGet(STORAGE_KEY)||'[]'); }catch(e){}
+    const i=arr.findIndex(s=>s.id===record.id);
+    if(i>=0) arr[i]=record; else arr.unshift(record);
+    lsSet(STORAGE_KEY, JSON.stringify(arr));
+    return false;
+  }
+
+  async function deleteScenarioFromBackend(id){
+    if(ON_NETLIFY){
+      try{
+        const authH3 = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
+        const uid3 = getUserId();
+        const deleteQs = '?id='+encodeURIComponent(id) + ((!authH3 && uid3) ? '&userId='+encodeURIComponent(uid3) : '');
+        await fetch('/.netlify/functions/scenarios'+deleteQs, {
+          method:'DELETE',
+          headers: authH3 ? {'Authorization': authH3} : {}
+        });
+      }catch(e){}
+    }
+    lsDel(PHOTO_PFX+id);
+    try{
+      const arr=JSON.parse(lsGet(STORAGE_KEY)||'[]').filter(s=>s.id!==id);
+      lsSet(STORAGE_KEY, JSON.stringify(arr));
+    }catch(e){}
+  }
+
+  const _photoCache = {};
+  async function getPhoto(id){
+    if(_photoCache[id]) return _photoCache[id];
+    if(ON_NETLIFY){
+      try{
+        const authH = getAuthHeader();
+        if(!authH) { /* guest: use localStorage */ }
+        else {
+          const r = await fetch('/.netlify/functions/scenarios', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'Authorization': authH},
+            body: JSON.stringify({action:'getPhoto', userId:getUserId(), id})
+          });
+          if(r.ok){ const d=await r.json(); if(d.photo){ _photoCache[id]=d.photo; return d.photo; } return null; }
+        }
+      }catch(e){}
+    }
+    const local = lsGet(PHOTO_PFX+id);
+    if(local) _photoCache[id] = local;
+    return local;
+  }
+
+  function showStorageStatus(){
+    const el = document.getElementById('storage-status');
+    if(!el) return;
+    if(ON_NETLIFY){
+      el.innerHTML = '<span style="color:var(--sage-light)">☁ shared</span>';
+      el.title = 'Netlify shared storage — all visitors see the same properties';
+    }
+  }
+
+  function collectCurrentState(){
+    const fields = [
+      'inp-price','inp-savings','inp-depp','inp-govt','inp-rate','inp-term',
+      'inp-cont','inp-rent','inp-weeks','inp-settle-date',
+      'pd-address','pd-suburb','pd-state','pd-bed','pd-bath','pd-car',
+      'pd-land','pd-house','pd-year','pd-type','pd-url','pd-notes',
+      'pd-status','pd-status-date','ag-agency','ag-name','ag-phone','ag-email',
+      'scheme-select'
+    ];
+    const values = {};
+    fields.forEach(id => { const el=document.getElementById(id); if(el) values[id]=el.value||''; });
+    const activePropType = document.querySelector('.prop-type-btn.active');
+    values['pd-type-label'] = activePropType ? activePropType.textContent.trim() : '🏠 House';
+    values['renoEnabled'] = renoEnabled;
+    values['rentEnabled'] = document.getElementById('rent-sidebar-section')?.style.display !== 'none';
+    return {
+      values,
+      dynCostData: dynCosts.map(c=>({name:c.name,amount:c.amount,category:c.category||'purchase'})),
+      renoItemData: renoItems.map(r=>({emoji:r.emoji,name:r.name,amount:r.amount,note:r.note})),
+      keyDates: typeof keyDates !== 'undefined' ? [...keyDates] : [],
+      commsLog:  typeof commsLog  !== 'undefined' ? [...commsLog]  : []
+    };
+  }
+
+  async function saveScenario(){
+    const state    = collectCurrentState();
+    const addr     = state.values['pd-address'] || '';
+    if(!addr.trim()){
+      showToast('⚠️ Please enter a property address before saving');
+      const addrEl = document.getElementById('pd-address');
+      if(addrEl){ addrEl.focus(); addrEl.style.borderColor='var(--terracotta)'; setTimeout(()=>addrEl.style.borderColor='',2500); }
+      showTab('property', document.querySelector('.tab'));
+      return;
+    }
+    // Plan gate: free users limited to 1 saved scenario
+    if(!isPro()){
+      const existing = await getAllScenarios();
+      if(existing && existing.length >= 1){
+        showToast('🔒 Free plan allows 1 saved scenario. <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>', 6000);
+        return;
+      }
+    }
+    const suburb   = state.values['pd-suburb']  || '';
+    const stateV   = state.values['pd-state']   || '';
+    const fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ') || 'Unnamed Property';
+    const now      = new Date();
+    const dd = String(now.getDate()).padStart(2,'0');
+    const mm = String(now.getMonth()+1).padStart(2,'0');
+    const yyyy = now.getFullYear();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const min = String(now.getMinutes()).padStart(2,'0');
+    const timestamp = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+    const scenarios = await getAllScenarios();
+    const addrKey  = fullAddr.toLowerCase().trim();
+    const existIdx = scenarios.findIndex(s =>
+      (s.addrKey||'') === addrKey ||
+      (s.fullAddr||'').toLowerCase().trim() === addrKey
+    );
+    const id       = existIdx >= 0 ? scenarios[existIdx].id : ('sc_' + Date.now());
+    const status   = state.values['pd-status'] || 'browsing';
+    const existingExportCount = existIdx >= 0 ? (scenarios[existIdx].exportCount || 0) : 0;
+    const record   = {
+      id, addrKey, fullAddr, timestamp, status,
+      bed:  state.values['pd-bed']  || '',
+      bath: state.values['pd-bath'] || '',
+      car:  state.values['pd-car']  || '',
+      type: state.values['pd-type'] || 'House',
+      price: state.values['inp-price'] || '',
+      hasPhoto: !!propPhotoDataUrl,
+      thumb: propThumbDataUrl || null,
+      exportCount: existingExportCount,
+      savedAt: new Date().toISOString(),
+      state,
+    };
+    const saveBtns = document.querySelectorAll('button[onclick*="saveScenario"]');
+    saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
+    _scenariosCache = null;
+    const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
+    saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
+    _lastSavedAddr = fullAddr; _isDirty = false; updateUnsavedBadge();
+    const action = existIdx>=0 ? 'Updated' : 'Saved';
+    if(usedCloud){
+      showToast(`☁️ ${action} to cloud — visible on all devices`);
+    } else if(ON_NETLIFY){
+      showToast(`⚠️ Cloud save failed — saved locally only. Check Netlify Functions.`);
+    } else {
+      showToast(`💾 ${action} locally (open via Netlify for shared sync)`);
+    }
+    updateSavedCount();
+  }
+
+  async function updateSavedCount(){
+    // Warm the scenarios cache in the background so library opens instantly
+    const arr = await getAllScenarios();
+    if(arr.length) _scenariosCache = arr; // cache so library opens without re-fetching
+    const ct = document.getElementById('saved-count');
+    if(!ct) return;
+    if(arr.length > 0){ ct.textContent = arr.length; ct.style.display='inline'; }
+    else ct.style.display='none';
+  }
+
+  function setScenariosView(mode){ /* grid view removed — list only */ }
+
+  function openScenariosModal(){
+    document.body.classList.add('modal-open');
+    var sm=document.getElementById('scenarios-modal');sm.style.display='flex';sm.style.alignItems='flex-start';sm.style.paddingTop='max(8px, env(safe-area-inset-top, 0px))';sm.style.paddingBottom='24px';
+    document.body.style.overflow='hidden';
+    renderScenariosList();
+  }
+  function closeScenariosModal(){
+    document.body.classList.remove('modal-open');
+    document.getElementById('scenarios-modal').style.display='none';
+    document.body.style.overflow='';
+  }
+  function closeConfirmModal(){
+    document.getElementById('confirm-modal').style.display='none';
+    pendingLoadId = null;
+  }
+
+  const STATUS_COLORS = {
+    'browsing':'#5B8FAB','auction':'#C4704A','for-sale':'#C9A84C',
+    'offered':'#7B9E87','under-offer':'#E8A882','unconditional':'#5A9E7B','sold':'#C45A5A'
+  };
+  const STATUS_LABELS = {
+    'browsing':'👀 Browsing','auction':'🔨 Auction','for-sale':'🏷 For Sale',
+    'offered':'📝 Offer Sent','under-offer':'⏳ Under Offer',
+    'unconditional':'✅ Unconditional','sold':'🔴 Sold/Passed'
+  };
+
+  let _libFilter = 'all';
+
+  function setLibFilter(f, btn){
+    _libFilter = f;
+    document.querySelectorAll('.lib-filter').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    _renderScenariosToDOM(_scenariosCache || []);
+  }
+
+  async function renderScenariosList(){
+    const grid = document.getElementById('scenarios-grid');
+    if(!grid) return;
+    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\'DM Mono\',monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
+    _scenariosCache = await getAllScenarios();
+    _renderScenariosToDOM(_scenariosCache);
+  }
+
+  async function _renderScenariosToDOM(all){
+    const grid  = document.getElementById('scenarios-grid');
+    const empty = document.getElementById('scenarios-empty');
+    if(!grid) return;
+
+    const scenarios = _libFilter === 'all' ? all : all.filter(s => (s.status||'browsing') === _libFilter);
+
+    if(!all || all.length === 0){
+      if(empty) empty.style.display = 'block';
+      grid.innerHTML = ''; return;
+    }
+    if(empty) empty.style.display = 'none';
+    const libCount = document.getElementById('lib-count');
+    if(libCount) libCount.textContent = all.length > 0 ? `(${all.length})` : '';
+
+    if(scenarios.length === 0){
+      grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--slate);font-size:13px;">No properties match this filter.</div>';
+      return;
+    }
+
+    // Render rows immediately without waiting for photos
+    const rows = scenarios.map(s => {
+      const price  = s.price ? '$' + parseInt(s.price).toLocaleString() : '—';
+      const stats  = [s.type||'House', s.bed?s.bed+' bed':null, s.bath?s.bath+' bath':null, s.car?s.car+' car':null].filter(Boolean).join(' · ');
+      const status = s.status || 'browsing';
+      const sColor = STATUS_COLORS[status] || '#999';
+      const sLabel = STATUS_LABELS[status] || '👀';
+      return `
+        <div class="lib-row" onclick="promptLoadScenario('${s.id}')">
+          <div class="lib-thumb" id="thumb-${s.id}"><span style="font-size:24px;">🏠</span></div>
+          <div class="lib-info">
+            <div class="lib-addr">${s.fullAddr}</div>
+            <div class="lib-meta">${stats}</div>
+          </div>
+          <div class="lib-price">${price}</div>
+          <div class="lib-badge" style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}55;">${sLabel}</div>
+          <div class="lib-ts">${(s.timestamp||'').replace(/(\d+)\s([A-Za-z]+)\s(\d{4})/,(_,d,mo,y)=>{const mn={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};return String(d).padStart(2,'0')+'/'+(mn[mo]||'01')+'/'+y;})}</div>
+          <button class="lib-del" onclick="event.stopPropagation();deleteScenario('${s.id}')" title="Delete">✕</button>
+        </div>`;
+    });
+    grid.innerHTML = rows.join('');
+
+    // Load photos lazily — use thumb from record if available, else fetch
+    scenarios.forEach(async s => {
+      if(!s.hasPhoto) return;
+      const thumbId = 'thumb-'+s.id;
+      const setThumbSrc = (src) => {
+        if(!src) return;
+        const el = document.getElementById(thumbId);
+        if(!el) return; // element may no longer be in DOM
+        const img = document.createElement('img');
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:3px;';
+        img.loading = 'lazy';
+        img.onerror = () => {}; // suppress broken image
+        img.src = src;
+        el.innerHTML = '';
+        el.appendChild(img);
+      };
+      // Use embedded thumb first (no network call needed)
+      if(s.thumb){
+        setThumbSrc(s.thumb);
+        return;
+      }
+      // Fallback: fetch full photo from backend
+      try {
+        const photo = await getPhoto(s.id);
+        setThumbSrc(photo);
+      } catch(e) { /* leave default house emoji */ }
+    });
+  }
+
+  async function promptLoadScenario(id){
+    const scenarios = _scenariosCache || await getAllScenarios();
+    const sc = scenarios.find(s => s.id === id);
+    if(!sc) return;
+    pendingLoadId = id;
+    document.getElementById('confirm-name').textContent = sc.fullAddr;
+    document.getElementById('confirm-modal').style.display='block';
+  }
+
+  async function confirmLoad(){
+    if(!pendingLoadId) return;
+    const scenarios = _scenariosCache || await getAllScenarios();
+    let sc = scenarios.find(s => s.id === pendingLoadId);
+    if(!sc){ pendingLoadId=null; closeConfirmModal(); return; }
+
+    // State is stored separately on the backend — fetch it if not already in cache
+    if(!sc.state && ON_NETLIFY){
+      try{
+        const authH = getAuthHeader();
+        if(authH){
+          const r = await fetch('/.netlify/functions/scenarios', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':authH},
+            body: JSON.stringify({action:'getState', userId:getUserId(), id:sc.id})
+          });
+          if(r.ok){
+            const d = await r.json();
+            if(d.state) sc = Object.assign({}, sc, {state: typeof d.state==='string' ? JSON.parse(d.state) : d.state});
+          }
+        }
+      }catch(e){ console.warn('[scenarios] getState error:', e.message); }
+    }
+
+    if(!sc.state){ showToast('⚠️ Could not load scenario data'); pendingLoadId=null; closeConfirmModal(); return; }
+    closeConfirmModal();
+    closeScenariosModal();
+    const photo = sc.hasPhoto ? await getPhoto(sc.id) : null;
+    _restoringDraft = true;
+    applyScenarioState(sc.state, photo);
+    _lastSavedAddr = sc.fullAddr;
+    _isDirty = false;
+    _forceDirty = false;
+    lsDel(DRAFT_KEY);
+    updateUnsavedBadge();
+    showToast('✓ Loaded: ' + sc.fullAddr);
+    pendingLoadId = null;
+    // Keep _restoringDraft=true past the 800ms autosaveDraft timer (prevents dirty)
+    setTimeout(function(){
+      _restoringDraft = false;
+      _isDirty = false;   // re-confirm clean after timers have fired
+      updateUnsavedBadge();
+    }, 1400);
+  }
+
+  function applyScenarioState(state, photoSrc){
+    const {values, dynCostData, renoItemData, keyDates:kd, commsLog:cl} = state;
+    const skipFields = new Set(['pd-type','pd-type-label','renoEnabled','rentEnabled']);
+    Object.entries(values||{}).forEach(([id, val]) => {
+      if(skipFields.has(id) || id.startsWith('rn-')) return;
+      const el = document.getElementById(id);
+      if(el) el.value = val;
+    });
+    if(values?.['pd-type-label']){
+      document.querySelectorAll('.prop-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.trim() === values['pd-type-label']);
+      });
+    }
+    // Restore status
+    if(values?.['pd-status']) setStatus(values['pd-status'], null, true);
+    // Agent links
+    updateAgentLinks();
+    // Key dates
+    if(typeof keyDates !== 'undefined'){ keyDates = Array.isArray(kd)?[...kd]:[]; renderKeyDates(); }
+    // Comms log
+    if(typeof commsLog !== 'undefined'){ commsLog = Array.isArray(cl)?[...cl]:[]; renderCommsLog(); }
+    // Reno items (item 13)
+    renoItems = [];
+    if(renoItemData && renoItemData.length>0){
+      renoItemData.forEach(r=>renoItems.push({id:'ri-'+renoItemId++, emoji:r.emoji||'🔨', name:r.name||'', amount:r.amount||0, note:r.note||''}));
+    } else if(dynCostData && !renoItemData) {
+      // legacy: old saved data had reno in dynCostData — skip (can't distinguish)
+    }
+    renderRenoItems();
+    // Purchase costs — all dynamic now, with category support
+    dynCosts = [];
+    if(dynCostData) dynCostData.forEach(c => dynCosts.push({id:'dyn-'+dynId++, name:c.name||'', amount:c.amount||0, category:c.category||'purchase'}));
+    renderDynCosts();
+    // Reno/rent toggles
+    if(typeof renoEnabled !== 'undefined'){
+      const newReno = values?.['renoEnabled'] !== false;
+      if(newReno !== renoEnabled){ renoEnabled=newReno; applyRenoToggle(); }
+    }
+    const newRent = values?.['rentEnabled'] !== false;
+    applyRentToggle(newRent);
+
+    if(photoSrc) applyPropPhoto(photoSrc); else clearPropPhoto();
+    ['price','savings','depp','govt','rate','term','cont','rent','weeks'].forEach(k => {
+      const inp = document.getElementById('inp-'+k), rng = document.getElementById('rng-'+k);
+      if(inp && rng) rng.value = inp.value;
+    });
+    updatePropertyDetails();
+    recalc();
+  }
+
+  // ── Custom Dialog System ─────────────────────────────────────────────────
+  var _appDialogResolveFn = null;
+  function _appDialogResolve(val){
+    var overlay = document.getElementById('app-dialog-overlay');
+    var input   = document.getElementById('app-dialog-input');
+    overlay.style.display = 'none';
+    overlay.style.alignItems = '';
+    overlay.style.justifyContent = '';
+    if(_appDialogResolveFn){
+      var fn = _appDialogResolveFn;
+      _appDialogResolveFn = null;
+      fn(input && input.style.display !== 'none' && val ? (input.value || '') : val);
+    }
+  }
+  function _appDialog(title, message, opts){
+    opts = opts || {};
+    return new Promise(function(resolve){
+      _appDialogResolveFn = resolve;
+      var overlay    = document.getElementById('app-dialog-overlay');
+      var icon       = document.getElementById('app-dialog-icon');
+      var titleEl    = document.getElementById('app-dialog-title');
+      var msgEl      = document.getElementById('app-dialog-message');
+      var inputEl    = document.getElementById('app-dialog-input');
+      var cancelBtn  = document.getElementById('app-dialog-cancel');
+      var confirmBtn = document.getElementById('app-dialog-confirm');
+      icon.textContent    = opts.icon || (opts.danger ? '⚠️' : 'ℹ️');
+      titleEl.textContent = title;
+      msgEl.innerHTML     = message;
+      cancelBtn.style.display  = opts.alertOnly ? 'none' : '';
+      confirmBtn.textContent   = opts.confirmLabel || (opts.danger ? 'Delete' : 'OK');
+      confirmBtn.className     = 'app-dialog-btn app-dialog-btn-confirm' + (opts.danger ? ' danger' : '');
+      if(opts.inputType){
+        inputEl.type        = opts.inputType;
+        inputEl.placeholder = opts.inputPlaceholder || '';
+        inputEl.value       = '';
+        inputEl.style.display = '';
+        setTimeout(function(){ inputEl.focus(); }, 60);
+      } else {
+        inputEl.style.display = 'none';
+        setTimeout(function(){ confirmBtn.focus(); }, 50);
+      }
+      overlay.style.display        = 'flex';
+      overlay.style.alignItems     = 'center';
+      overlay.style.justifyContent = 'center';
+    });
+  }
+  function appConfirm(title, message, opts){ return _appDialog(title, message, opts); }
+  function appAlert(title, message, opts){ return _appDialog(title, message, Object.assign({alertOnly:true, icon:'✓'}, opts)); }
+  function appPrompt(title, message, opts){ return _appDialog(title, message, Object.assign({inputType:'password'}, opts)); }
+
+  // Close on backdrop click / Escape
+  document.getElementById('app-dialog-overlay').addEventListener('click', function(e){ if(e.target===this) _appDialogResolve(false); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && document.getElementById('app-dialog-overlay').style.display==='flex') _appDialogResolve(false); });
+
+  async function deleteScenario(id){
+    var ok = await appConfirm('Delete Scenario', 'Delete this scenario? This cannot be undone.', {danger:true, confirmLabel:'Delete'});
+    if(!ok) return;
+    _scenariosCache = null;
+    await deleteScenarioFromBackend(id);
+    updateSavedCount();
+    renderScenariosList();
+  }
+
+  function updateUnsavedBadge(){
+    const badge = document.getElementById('unsaved-badge');
+    if(!badge) return;
+    const price = v('inp-price');
+    const addr  = document.getElementById('pd-address')?.value?.trim() || '';
+    const hasContent = price > 0 || addr.length > 0;
+    if(hasContent && _isDirty){
+      badge.style.display = 'inline-flex';
+      badge.title = 'You have unsaved changes — click Save to preserve them';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // beforeunload dialog removed — saving is automatic
+
+  function showToast(msg){
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--charcoal);color:var(--gold);font-family:"DM Mono",monospace;font-size:11px;padding:10px 16px;border-radius:3px;border:1px solid rgba(201,168,76,0.3);z-index:9999;letter-spacing:0.5px;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.8s;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 800); }, 3500);
+  }
+
+  // ── RENO TOGGLE ──
+  let renoEnabled = true;
+  function toggleReno(){
+    renoEnabled = !renoEnabled;
+    applyRenoToggle();
+    recalc();
+  }
+  function applyRenoToggle(){
+    const knob = document.getElementById('reno-toggle-knob');
+    const track = document.getElementById('reno-toggle');
+    const section = document.getElementById('reno-sidebar-section');
+    const tab = document.getElementById('tab-reno-btn');
+    if(renoEnabled){
+      if(knob) knob.style.left = '20px';
+      if(track) track.style.background = 'var(--sage)';
+      if(section) section.style.display = '';
+      if(tab) tab.style.display = '';
+    } else {
+      if(knob) knob.style.left = '2px';
+      if(track) track.style.background = 'rgba(255,255,255,0.15)';
+      if(section) section.style.display = 'none';
+      if(tab){ tab.style.display = 'none'; showTab('costs', document.querySelector('.tab')); }
+    }
+  }
+
+  // ── RENT OVERLAP TOGGLE (item 12) ──
+  let rentEnabled = true;
+  let riskEnabled = true;
+  function toggleRisk(){
+    riskEnabled = !riskEnabled;
+    const tog = document.getElementById('risk-toggle');
+    const knob = document.getElementById('risk-toggle-knob');
+    const tabBtn = document.getElementById('tab-risks-btn');
+    if(tog) tog.style.background = riskEnabled ? 'var(--terracotta)' : 'rgba(255,255,255,0.15)';
+    if(knob) knob.style.left = riskEnabled ? '20px' : '2px';
+    if(tabBtn) tabBtn.style.display = riskEnabled ? '' : 'none';
+    if(!riskEnabled){ const active = document.querySelector('.tab.active'); if(active && active.id==='tab-risks-btn') showTab('property', document.querySelector('.tab')); }
+  }
+  function toggleRent(){
+    rentEnabled = !rentEnabled;
+    applyRentToggle(rentEnabled);
+    recalc();
+  }
+  function applyRentToggle(enabled){
+    rentEnabled = enabled;
+    const knob = document.getElementById('rent-toggle-knob');
+    const track = document.getElementById('rent-toggle');
+    const section = document.getElementById('rent-sidebar-section');
+    const tab = document.querySelector('.tab[onclick*="overlap"]');
+    if(enabled){
+      if(knob) knob.style.left = '20px';
+      if(track) track.style.background = 'var(--sky)';
+      if(section) section.style.display = '';
+      if(tab) tab.style.display = '';
+    } else {
+      if(knob) knob.style.left = '2px';
+      if(track) track.style.background = 'rgba(255,255,255,0.15)';
+      if(section) section.style.display = 'none';
+      if(tab){ tab.style.display = 'none'; }
+    }
+  }
+
+  // ── SETTLEMENT DATE ──
+  function onSettleDateChange(){
+    const el = document.getElementById('inp-settle-date');
+    const lbl = document.getElementById('lbl-settle-date');
+    if(el && el.value){
+      const d = new Date(el.value);
+      const yr = d.getFullYear();
+      if(lbl) lbl.textContent = yr;
+    } else {
+      if(lbl) lbl.textContent = '';
+    }
+    drawProjection();
+    autosaveDraft();
+  }
+  function getSettleYear(){
+    const el = document.getElementById('inp-settle-date');
+    if(!el || !el.value) return null;
+    return new Date(el.value).getFullYear();
+  }
+
+  // ── PROJECTION (items 6,7,8,9) ──
+  let projData = []; // shared so tooltip can read it
+  let projDataExtra = []; // early-payoff scenario
+
+  function drawProjection(){
+    const price   = v('inp-price'); if(!price) return;
+    const loanAmt = Math.max(0, price - price*v('inp-depp')/100 - price*v('inp-govt')/100);
+    const rate    = v('inp-rate');
+    const term    = v('inp-term');
+    const govtPct = v('inp-govt') / 100;
+    const growthPct = parseFloat(document.getElementById('proj-growth').value) / 100;
+    const years   = 30;
+    const totalQ  = years * 4; // 120 quarters — item #8
+    const monthly = calcMonthly(loanAmt, rate, term);
+    const mRate   = rate / 100 / 12;
+
+    // ── Build quarterly data (item #8: quarterly instead of annually) ──
+    projData = [];
+    let loanBal = loanAmt;
+    for(let q = 0; q <= totalQ; q++){
+      const yr      = q / 4;
+      const baseVal = price * Math.pow(1 + growthPct, yr);
+      const govtOwed = baseVal * govtPct;
+      if(q > 0){
+        // advance 3 months per quarter
+        for(let m = 0; m < 3; m++){
+          const interest = loanBal * mRate;
+          loanBal = Math.max(0, loanBal - (monthly - interest));
+        }
+      }
+      projData.push({ q, yr, baseVal, renoVal: baseVal, loanBal: Math.max(0, loanBal), govtOwed, yourEquity: baseVal - loanBal - govtOwed });
+    }
+
+    // ── Build early-payoff data (item #9) ──
+    const extraPayment = parseFloat(document.getElementById('proj-extra-payment')?.value || '0') || 0;
+    projDataExtra = [];
+    let loanBalExtra = loanAmt;
+    let extraStdInterest = 0, extraTotalInterest = 0;
+    let extraPaidOffQ = null;
+    for(let q = 0; q <= totalQ; q++){
+      if(q > 0){
+        for(let m = 0; m < 3; m++){
+          const int1 = Math.max(0, loanBal) * mRate; // reuse standard (unused here, just for savings calc)
+          const int2 = loanBalExtra * mRate;
+          loanBalExtra = Math.max(0, loanBalExtra - (monthly + extraPayment - int2));
+          extraTotalInterest += int2;
+        }
+      }
+      if(loanBalExtra <= 0.01 && extraPaidOffQ === null) extraPaidOffQ = q;
+      projDataExtra.push({ q, yr: q/4, loanBal: Math.max(0, loanBalExtra) });
+    }
+    // Standard total interest
+    let stdBal = loanAmt, stdTotalInterest = 0;
+    for(let m = 0; m < term * 12; m++){
+      const int = stdBal * mRate;
+      stdBal = Math.max(0, stdBal - (monthly - int));
+      stdTotalInterest += int;
+    }
+    const interestSaved = Math.max(0, stdTotalInterest - extraTotalInterest);
+    const stdPayoffQ    = projData.find(d => d.loanBal <= 0.01)?.q ?? totalQ;
+    const timeSavedQ    = Math.max(0, stdPayoffQ - (extraPaidOffQ ?? totalQ));
+
+    // Update early payoff results panel
+    const epResult = document.getElementById('early-payoff-result');
+    if(epResult){
+      if(extraPayment > 0 && timeSavedQ > 0){
+        const savedYrs = Math.floor(timeSavedQ / 4);
+        const savedMos = Math.round((timeSavedQ % 4) * 3);
+        const timeStr = savedYrs > 0 ? `${savedYrs} yr${savedYrs!==1?'s':''} ${savedMos > 0 ? savedMos+' mo':''}`.trim() : `${savedMos} months`;
+        epResult.innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:rgba(90,158,123,0.08);border:1px solid rgba(90,158,123,0.2);border-radius:6px;padding:12px 14px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Time Saved</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--reward-green);">${timeStr}</div>
+            </div>
+            <div style="background:rgba(90,158,123,0.08);border:1px solid rgba(90,158,123,0.2);border-radius:6px;padding:12px 14px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Interest Saved</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--reward-green);">${fmtK(interestSaved)}</div>
+            </div>
+          </div>`;
+        epResult.style.display = 'block';
+      } else if(extraPayment > 0){
+        epResult.innerHTML = `<div style="font-size:12px;color:var(--slate);font-style:italic;">Loan already paid off within standard term — no additional saving.</div>`;
+        epResult.style.display = 'block';
+      } else {
+        epResult.style.display = 'none';
+      }
+    }
+
+    // ── Settlement year label helpers ──
+    const settleYr = getSettleYear();
+    const fmtQLabel = (q) => {
+      if(q === undefined || q === null) return '—';
+      const wholeYr = Math.floor(q / 4);
+      const qNum    = q % 4;
+      const qStr    = qNum > 0 ? ` Q${qNum + 1}` : '';
+      return settleYr ? `${settleYr + wholeYr}${qStr}` : `Year ${wholeYr}${qStr}`;
+    };
+    const yrLabel = (yr) => settleYr ? String(settleYr + yr) : `Yr ${yr}`;
+
+    // ── MILESTONE TILES ──
+    const payoffPoint = projData.find(d => d.loanBal <= 0.01);
+    const payoffQ     = payoffPoint?.q;
+    const buyoutPoint = projData.find(d => d.yourEquity >= d.govtOwed && d.q > 0);
+    const buyoutQ     = buyoutPoint?.q;
+    const payoffYr    = payoffPoint?.yr;
+    const buyoutYr    = buyoutPoint?.yr;
+
+    const payEl = document.getElementById('proj-payoff-yr');
+    if(payEl) payEl.textContent = payoffQ != null ? fmtQLabel(payoffQ) : (term < 30 ? `Year ${term}` : '30+ yrs');
+    const buyEl = document.getElementById('proj-buyout-yr');
+    if(buyEl) buyEl.textContent = buyoutQ != null ? fmtQLabel(buyoutQ) : '30+ yrs';
+
+    const d5 = projData[Math.min(20, projData.length - 1)]; // q=20 = year 5
+    set('proj-val-5', fmtK(d5.baseVal));
+    set('proj-govt-5', fmtK(d5.govtOwed));
+    const val5lbl = document.getElementById('proj-tiles')?.querySelectorAll('.tile-lbl');
+    if(val5lbl && settleYr){
+      if(val5lbl[2]) val5lbl[2].textContent = `Property Value @ ${settleYr + 5}`;
+      if(val5lbl[3]) val5lbl[3].textContent = `Govt Equity Owed @ ${settleYr + 5}`;
+    }
+
+    // ── MILESTONES TIMELINE ──
+    const msEl = document.getElementById('proj-milestones');
+    if(msEl){
+      const ms = [];
+      ms.push({ q:0, color:'var(--gold)', label:`Settlement${settleYr?' — '+settleYr:''}`, desc:`Purchase price ${fmtK(price)} · Loan ${fmtK(loanAmt)} · Govt equity ${fmtK(price*govtPct)}` });
+      if(buyoutQ != null){ const d=projData[buyoutQ]; ms.push({ q:buyoutQ, color:'var(--sage)', label:'Can Refinance/Buy Out Govt', desc:`Property ~${fmtK(d.baseVal)} · Govt owed ~${fmtK(d.govtOwed)} · Your equity ~${fmtK(d.yourEquity)}` }); }
+      const halfQ = projData.find(d => d.loanBal <= loanAmt * 0.5 && d.q > 0)?.q;
+      if(halfQ != null){ const d=projData[halfQ]; ms.push({ q:halfQ, color:'var(--sky)', label:'Loan 50% Paid Off', desc:`Loan balance ~${fmtK(d.loanBal)} · Property ~${fmtK(d.baseVal)}` }); }
+      if(payoffQ != null && payoffQ <= totalQ) ms.push({ q:payoffQ, color:'var(--reward-green)', label:'Loan Fully Paid Off 🎉', desc:`Property ~${fmtK(projData[payoffQ].baseVal)} · Full equity achieved` });
+      if(extraPayment > 0 && extraPaidOffQ != null && extraPaidOffQ < (payoffQ ?? totalQ)) ms.push({ q:extraPaidOffQ, color:'#9B7FE8', label:`Paid Off Early (+$${extraPayment}/mo) 🚀`, desc:`${fmtQLabel(extraPaidOffQ)} · Save ${fmtK(interestSaved)} in interest` });
+      const last = projData[totalQ]; ms.push({ q:totalQ, color:'var(--terracotta)', label:`${yrLabel(30)} — End of Projection`, desc:`Est. value ${fmtK(last.baseVal)} · Est. govt equity owed ${fmtK(last.govtOwed)}` });
+      msEl.innerHTML = ms.sort((a,b)=>a.q-b.q).map(m=>`
+        <div class="tli">
+          <div class="tld" style="color:${m.color}"></div>
+          <div class="tlp" style="color:${m.color}">${fmtQLabel(m.q)}</div>
+          <div class="tlt">${m.label}</div>
+          <div class="tldesc">${m.desc}</div>
+        </div>`).join('');
+    }
+
+    // ── SVG CHART ──
+    const svg = document.getElementById('proj-chart');
+    if(!svg) return;
+    const container = svg.parentElement;
+    const W = container ? Math.max(300, container.clientWidth || 700) : 700;
+    const H = Math.round(W * 0.375);
+    const padL=64, padR=16, padT=18, padB=36;
+    const cW=W-padL-padR, cH=H-padT-padB;
+    const maxVal = Math.max(...projData.map(d=>d.baseVal)) * 1.08;
+    const scaleX = yr => padL + (yr / years) * cW;
+    const scaleY = val => padT + cH - (val / maxVal) * cH;
+
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.style.display = 'block'; svg.style.position = 'absolute'; svg.style.inset = '0';
+    let html = '';
+
+    // Y grid lines
+    for(let p = 0; p <= 4; p++){
+      const val = maxVal * p / 4, y = scaleY(val);
+      html += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(28,28,30,0.07)" stroke-width="1"/>`;
+      html += `<text x="${padL-6}" y="${y+4}" text-anchor="end" font-family="DM Mono" font-size="9" fill="#999">${fmtK(val)}</text>`;
+    }
+    // X axis labels (years)
+    [0,5,10,15,20,25,30].forEach(yr => {
+      html += `<text x="${scaleX(yr)}" y="${H-padB+16}" text-anchor="middle" font-family="DM Mono" font-size="9" fill="#999">${yrLabel(yr)}</text>`;
+    });
+
+    // Shaded equity area
+    const topPts = projData.map(d=>`${scaleX(d.yr).toFixed(1)},${scaleY(d.baseVal).toFixed(1)}`).join(' ');
+    const botPts = [...projData].reverse().map(d=>`${scaleX(d.yr).toFixed(1)},${scaleY(Math.max(d.loanBal+d.govtOwed,0)).toFixed(1)}`).join(' ');
+    html += `<polygon points="${topPts} ${botPts}" fill="rgba(90,158,123,0.09)"/>`;
+
+    // Helper to build an SVG path from any data array using a value key
+    const mkPath = (dataArr, key, color, dash='', width=2.5) => {
+      const pts = dataArr.map((d, i) => `${i===0?'M':'L'}${scaleX(d.yr).toFixed(1)},${scaleY(d[key]).toFixed(1)}`).join(' ');
+      return `<path d="${pts}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"${dash?` stroke-dasharray="${dash}"`:''}/>`;
+    };
+    html += mkPath(projData, 'baseVal',  '#C9A84C');
+    html += mkPath(projData, 'loanBal',  '#5B8FAB', '6 3');
+    html += mkPath(projData, 'govtOwed', '#C4704A');
+
+    // Early payoff line (item #9) — only draw if extra payment is set
+    if(extraPayment > 0) html += mkPath(projDataExtra, 'loanBal', '#9B7FE8', '5 2', 2.2);
+
+    // Milestone markers
+    if(payoffQ != null && payoffQ <= totalQ){ const d=projData[payoffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5A9E7B" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5A9E7B">PAID OFF</text>`; }
+    if(buyoutQ != null && buyoutQ <= totalQ){ const d=projData[buyoutQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.baseVal)}" r="5" fill="#7B9E87" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.baseVal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#7B9E87">BUY OUT</text>`; }
+    if(extraPayment > 0 && extraPaidOffQ != null){ const d=projDataExtra[extraPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#9B7FE8" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#9B7FE8">EARLY 🚀</text>`; }
+
+    // Hit overlay — passes totalQ so hover snaps to quarters
+    html += `<rect id="proj-hit" x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="transparent" style="cursor:crosshair;" onmousemove="projHover(event,${padL},${padR},${cW},${totalQ})" onmouseleave="document.getElementById('proj-tooltip').style.display='none'" onclick="projHover(event,${padL},${padR},${cW},${totalQ})"/>`;
+    html += `<line id="proj-crosshair" x1="0" y1="${padT}" x2="0" y2="${H-padB}" stroke="rgba(201,168,76,0.5)" stroke-width="1" stroke-dasharray="3 2" style="display:none;pointer-events:none;"/>`;
+
+    svg.innerHTML = html;
+
+    // ── QUARTERLY TABLE ──
+    const tblEl = document.getElementById('proj-table');
+    if(tblEl){
+      const rows = [1,2,3,5,7,10,15,20,25,30].map(y => {
+        const q  = Math.min(y * 4, projData.length - 1);
+        const d  = projData[q];
+        const de = projDataExtra[q];
+        const eq = d.yourEquity;
+        const isMilestone = q === payoffQ || q === buyoutQ;
+        const extraLoanStr = (extraPayment > 0 && de) ? `<span style="color:#9B7FE8;font-size:9px;display:block;">(+extra: ${fmtK(de.loanBal)})</span>` : '';
+        return `<div style="display:grid;grid-template-columns:64px repeat(4,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
+          +`<span style="color:var(--gold);">${settleYr?(settleYr+y):'Yr '+y}${isMilestone?' ★':''}</span>`
+          +`<span>${fmtK(d.baseVal)}</span>`
+          +`<span style="color:var(--sky)">${fmtK(d.loanBal)}${extraLoanStr}</span>`
+          +`<span style="color:var(--terracotta)">${fmtK(d.govtOwed)}</span>`
+          +`<span style="color:${eq>0?'var(--reward-green)':'var(--risk-red)'};font-weight:600;">${fmtK(eq)}</span></div>`;
+      });
+      tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:64px repeat(4,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Year':'Year'}</span><span>Value</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
+    }
+  }
+
+  function projHover(e, padL, padR, cW, totalQ){
+    const svg   = document.getElementById('proj-chart');
+    const tip   = document.getElementById('proj-tooltip');
+    const cross = document.getElementById('proj-crosshair');
+    if(!svg||!tip||!projData.length) return;
+    const rect  = svg.getBoundingClientRect();
+    const svgW  = svg.viewBox.baseVal.width || 800;
+    const scale = svgW / rect.width;
+    const mx    = (e.clientX - rect.left) * scale;
+    const relX  = mx - padL;
+    if(relX < 0 || relX > cW) return;
+
+    // Snap to nearest quarter (item #8)
+    const q  = Math.round((relX / cW) * totalQ);
+    const d  = projData[Math.min(q, projData.length - 1)];
+    const de = projDataExtra[Math.min(q, projDataExtra.length - 1)];
+    if(!d) return;
+
+    const cx = padL + (d.yr / 30) * cW;
+    if(cross){ cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.style.display = ''; }
+
+    // Build quarter label e.g. "YEAR 5 Q2" or "2029 Q3"
+    const _sYr  = getSettleYear();
+    const wholeYr = Math.floor(d.yr);
+    const qNum    = d.q % 4;
+    const qStr    = qNum > 0 ? ` Q${qNum + 1}` : '';
+    const _tipYrLabel = _sYr ? `${_sYr + wholeYr}${qStr}` : `YEAR ${wholeYr}${qStr}`;
+
+    const extraPayment = parseFloat(document.getElementById('proj-extra-payment')?.value || '0') || 0;
+    const extraRow = (extraPayment > 0 && de != null)
+      ? `<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Loan+Extra</span><span style="color:#9B7FE8;font-size:19px;font-weight:700;">${fmtK(de.loanBal)}</span></div>`
+      : '';
+
+    tip.innerHTML = `<div style="font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:12px;font-weight:700;">${_tipYrLabel}</div>`
+      +`<div style="display:flex;flex-direction:column;gap:9px;">`
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Value</span><span style="color:#C9A84C;font-size:19px;font-weight:700;">${fmtK(d.baseVal)}</span></div>`
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Loan Bal</span><span style="color:#5B8FAB;font-size:19px;font-weight:700;">${fmtK(d.loanBal)}</span></div>`
+      + extraRow
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Govt Owed</span><span style="color:#C4704A;font-size:19px;font-weight:700;">${fmtK(d.govtOwed)}</span></div>`
+      +`<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;border-top:1px solid rgba(255,255,255,0.14);padding-top:10px;margin-top:4px;"><span style="color:rgba(245,240,232,0.5);font-size:13px;">Your Equity</span><span style="color:${d.yourEquity>0?'#5A9E7B':'#C45A5A'};font-size:22px;font-weight:700;">${fmtK(d.yourEquity)}</span></div>`
+      +'</div>';
+
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    tip.style.display = 'block';
+    const tipW = tip.offsetWidth;
+    const tipH = tip.offsetHeight;
+    let tipX = px > rect.width / 2 ? (px - tipW - 12) : (px + 12);
+    tipX = Math.max(4, Math.min(tipX, rect.width - tipW - 4));
+    let tipY = Math.max(4, py - tipH / 2);
+    tipY = Math.min(tipY, rect.height - tipH - 4);
+    tip.style.left = tipX + 'px';
+    tip.style.top  = tipY + 'px';
+  }
+
+  // ── SUBURB GROWTH LOOKUP (item 7) ──
+  async function fetchSuburbGrowth(){
+    const suburb = document.getElementById('pd-suburb')?.value?.trim();
+    const state  = document.getElementById('pd-state')?.value?.trim() || 'QLD';
+    if(!suburb){ showToast('⚠️ Enter a suburb in the Property tab first'); return; }
+    const btn = document.getElementById('fetch-growth-btn');
+    const hint = document.getElementById('suburb-growth-hint');
+    btn.textContent = '⏳ Looking up...';
+    btn.disabled = true;
+
+    // Brisbane/QLD suburb growth rate lookup table (5-yr average % p.a.)
+    // Based on CoreLogic/PropTrack historical data for common QLD suburbs
+    const qldGrowthTable = {
+      'kedron':6.8,'stafford':6.5,'stafford heights':6.2,'chermside':6.0,
+      'chermside west':5.8,'everton park':6.3,'nundah':7.1,'wavell heights':6.9,
+      'aspley':6.0,'zillmere':5.5,'geebung':5.8,'virginia':5.6,'northgate':6.4,
+      'nudgee':5.2,'banyo':5.0,'hendra':7.5,'eagle farm':5.8,'hamilton':7.2,
+      'ascot':7.8,'clayfield':7.3,'wooloowin':7.0,'gordon park':6.8,'grange':7.2,
+      'newmarket':6.9,'alderley':7.0,'enoggera':5.8,'keperra':5.5,'mitchelton':6.2,
+      'gaythorne':6.5,'oxley':5.5,'rocklea':5.0,'moorooka':5.8,'salisbury':5.5,
+      'nathan':5.8,'sunnybank':5.5,'sunnybank hills':5.2,'macgregor':5.0,'eight mile plains':5.3,
+      'mansfield':5.8,'wishart':5.5,'belmont':5.3,'tingalpa':5.0,'cannon hill':6.5,
+      'morningside':6.8,'murarrie':5.8,'hawthorne':7.5,'balmoral':8.0,'bulimba':8.2,
+      'new farm':9.0,'newstead':8.5,'teneriffe':9.2,'bowen hills':7.0,'fortitude valley':7.5,
+      'spring hill':7.8,'paddington':7.5,'red hill':7.8,'kelvin grove':7.0,'herston':7.5,
+      'taringa':7.0,'toowong':7.5,'auchenflower':7.8,'west end':8.5,'south brisbane':8.0,
+      'woolloongabba':8.0,'east brisbane':8.2,'coorparoo':7.5,'greenslopes':7.0,'dutton park':7.8,
+      'annerley':7.0,'yeronga':6.8,'graceville':7.5,'sherwood':7.0,'corinda':6.5,
+      'indooroopilly':7.0,'st lucia':7.5,'fig tree pocket':7.0,'kenmore':6.5,'pullenvale':6.0,
+      'chapel hill':6.5,'tarragindi':6.5,'holland park':6.8,'mount gravatt':6.0,'upper mount gravatt':5.8,
+      'carindale':5.5,'mount ommaney':6.0,'jindalee':5.8,'westlake':5.5,'seventeen mile rocks':5.5,
+      'sinnamon park':6.0,'riverhills':5.3,'middle park':5.5,'darra':4.8,'richlands':4.5,
+      'inala':4.2,'durack':4.5,'forest lake':4.8,'ellen grove':4.5,'heathwood':4.8,
+      'algester':5.0,'parkinson':5.2,'calamvale':5.5,'drewvale':5.0,'kuraby':5.0,
+      'coopers plains':5.5,'acacia ridge':4.5,'pallara':5.2,'willawong':4.8,'larapinta':5.0,
+      'springwood':5.0,'slacks creek':4.5,'woodridge':4.0,'logan central':3.8,'loganlea':4.0,
+      'meadowbrook':4.5,'marsden':4.5,'kingston':4.0,'waterford west':4.5,'logan reserve':4.8,
+      'crestmead':4.5,'berrinba':4.5,'browns plains':4.5,'heritage park':5.0,'regents park':4.8,
+      'boronia heights':4.5,'park ridge':5.0,'hillcrest':4.8,'forestdale':4.5,'greenbank':4.8,
+      'jimboomba':5.5,'august':5.8,'dakabin':5.0,'mango hill':5.5,'kippa-ring':5.2,
+      'redcliffe':5.5,'margate':5.8,'clontarf':5.5,'scarborough':6.0,'woody point':5.8,
+      'kallangur':5.0,'murrumba downs':5.2,'griffin':5.5,'narangba':5.2,'caboolture':4.5,
+      'morayfield':4.8,'burpengary':4.5,'deception bay':4.5,'north lakes':5.5,'rothwell':5.2,
+      'ormiston':6.5,'cleveland':6.8,'thornlands':6.0,'victoria point':6.2,'redland bay':6.0,
+      'capalaba':5.8,'alexandra hills':5.5,'wynnum':7.0,'manly':7.5,'lota':6.8,
+      'ipswich':5.2,'redbank plains':5.8,'redbank':5.5,'goodna':5.0,'springfield':5.8,
+      'springfield lakes':6.0,'collingwood park':5.5,'bellbird park':5.5,'camira':5.8,
+      'silkstone':5.2,'leichhardt':5.0,'booval':5.2,'bundamba':5.0,'east ipswich':5.2,
+      'north ipswich':5.0,'west ipswich':5.0,'brassall':5.5,'ripley':6.2,'deebing heights':5.8,
+      'flinders view':5.5,'brookwater':6.0,'augustine heights':5.8,'raceview':5.2,
+      'one mile':5.0,'pine mountain':5.5,'karalee':5.8,'moores pocket':5.0,
+      'riverview':5.2,'dinmore':4.8,'gailes':5.0,'blackstone':5.0,'sadliers crossing':5.2,
+      'woodend':5.0,'tivoli':5.2,'newtown':5.0,'coalfalls':5.0,'churchill':5.2,
+    };
+
+    const key = suburb.toLowerCase().trim();
+    const rate = qldGrowthTable[key];
+
+    if(rate){
+      document.getElementById('proj-growth').value = rate;
+      document.getElementById('proj-growth-lbl').textContent = rate.toFixed(1)+'%';
+      if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${rate}% p.a. avg (historical estimate)`;
+      drawProjection();
+      showToast(`📈 Set growth to ${rate}% for ${suburb}`);
+    } else {
+      // Try Claude API for unknown suburbs (item 7)
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            model:'claude-sonnet-4-20250514',
+            max_tokens:200,
+            messages:[{role:'user',content:`What is the typical 5-year average annual capital growth rate (as a single number like 5.2) for residential property in ${suburb}, ${state}, Australia? Reply with only a JSON object like {"rate":5.2,"note":"brief context"} and nothing else.`}]
+          })
+        });
+        const data = await response.json();
+        const text = data.content?.find(c=>c.type==='text')?.text||'';
+        const match = text.match(/\{[^}]+\}/);
+        if(match){
+          const parsed = JSON.parse(match[0]);
+          const r = Math.min(12, Math.max(1, parseFloat(parsed.rate)||5));
+          document.getElementById('proj-growth').value = r;
+          document.getElementById('proj-growth-lbl').textContent = r.toFixed(1)+'%';
+          if(hint) hint.textContent = `📍 ${suburb}: ~${r}% p.a. — ${parsed.note||'AI estimate'}`;
+          drawProjection();
+          showToast(`📈 Set growth to ${r}% for ${suburb}`);
+        } else {
+          throw new Error('No rate found');
+        }
+      } catch(e){
+        if(hint) hint.textContent = `No data found for ${suburb}. Try manual entry.`;
+        showToast(`⚠️ Could not find data for ${suburb} — adjust manually`);
+      }
+    }
+    btn.textContent = '🔍 Look Up Suburb Growth';
+    btn.disabled = false;
+  }
+
+  // ── EXPORT PDF (Fix 2) — opens a clean read-only print-optimised view ──
+  function showPDFOptionsPopup(){
+    const modal = document.getElementById('pdf-options-modal');
+    if(!modal) return exportPDF();
+    modal.style.display = 'flex';
+  }
+  function closePDFOptionsModal(){
+    const modal = document.getElementById('pdf-options-modal');
+    if(modal) modal.style.display = 'none';
+  }
+  function exportPDFWithOptions(){
+    incrementExportCount(); // fire-and-forget — track export count against saved scenario
+    // Read values BEFORE closing modal so elements are still in DOM
+    const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
+    const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
+    const colour  = document.getElementById('pdf-opt-colour')?.value   || 'full';
+    const fsz     = document.getElementById('pdf-opt-fontsize')?.value || 'normal';
+    const incFinancial = document.getElementById('pdf-opt-financial')?.checked !== false;
+    const incReno      = document.getElementById('pdf-opt-reno')?.checked !== false;
+    const incRepay     = document.getElementById('pdf-opt-repay')?.checked !== false;
+    const incAmort     = document.getElementById('pdf-opt-amort')?.checked === true;
+    const incOverlap   = document.getElementById('pdf-opt-overlap')?.checked !== false;
+    const incRisks     = document.getElementById('pdf-opt-risks')?.checked !== false;
+    const incNotes     = document.getElementById('pdf-opt-notes')?.checked !== false;
+    const incTimeline  = document.getElementById('pdf-opt-timeline')?.checked === true;
+    closePDFOptionsModal();
+    exportPDF({size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline});
+  }
+  async function incrementExportCount(){
+    // Increment export count for the currently loaded scenario (if saved)
+    if(!_lastSavedAddr) return;
+    try {
+      const scenarios = await getAllScenarios();
+      const sc = scenarios.find(s => (s.fullAddr||'').toLowerCase().trim() === _lastSavedAddr.toLowerCase().trim());
+      if(!sc) return;
+      const updated = Object.assign({}, sc, { exportCount: (sc.exportCount || 0) + 1 });
+      const authH = getAuthHeader();
+      if(authH){
+        await fetch('/.netlify/functions/scenarios', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json','Authorization': authH},
+          body: JSON.stringify({ action:'save', userId:getUserId(), id:updated.id, fullAddr:updated.fullAddr, state:updated.state, hasPhoto:updated.hasPhoto, status:updated.status||'browsing', thumb:updated.thumb||'', exportCount:updated.exportCount, savedAt:updated.savedAt||updated.timestamp })
+        });
+      }
+      _scenariosCache = null; // invalidate cache
+    } catch(e) {}
+  }
+
+  function exportPDF(opts){
+    const o = opts || {};
+    const pageSize   = o.size    || 'A4';
+    const pageOrient = o.orient  || 'portrait';
+    const colourMode = o.colour  || 'full';
+    const fontSize   = o.fsz     || 'normal';
+    const incFinancial = o.incFinancial !== false;
+    const incReno      = o.incReno      !== false;
+    const incRepay     = o.incRepay     !== false;
+    const incAmort     = o.incAmort     === true;
+    const incOverlap   = o.incOverlap   !== false;
+    const incRisks     = o.incRisks     !== false;
+    const incNotes     = o.incNotes     !== false;
+    const incTimeline  = o.incTimeline  === true;
+
+    const addr = document.getElementById('pd-address')?.value || 'Property';
+    const suburb = document.getElementById('pd-suburb')?.value || '';
+    const stateVal = document.getElementById('pd-state')?.value || '';
+    const fullAddr = [addr,suburb,stateVal].filter(Boolean).join(', ') || 'Property Scenario';
+
+    // Gather all display values from current DOM
+    const snap = {
+      renoOn: renoEnabled,
+      rentOn: document.getElementById('rent-sidebar-section')?.style.display !== 'none',
+      addr: fullAddr,
+      photo: propPhotoDataUrl,
+      sub: document.getElementById('header-sub-text')?.textContent || '',
+      price: document.getElementById('t-price')?.textContent || '—',
+      deposit: document.getElementById('t-deposit')?.textContent || '—',
+      govt: document.getElementById('t-govt')?.textContent || '—',
+      remaining: document.getElementById('t-remaining')?.textContent || '—',
+      remainingColor: document.getElementById('t-remaining')?.style.color || '',
+      savings: document.getElementById('cb-savings')?.textContent || '—',
+      outOfPocket: document.getElementById('cb-out')?.textContent || '—',
+      cashLeft: document.getElementById('cb-remaining')?.textContent || '—',
+      monthly: document.getElementById('rp-monthly')?.textContent || '—',
+      weekly: document.getElementById('rp-weekly')?.textContent || '—',
+      annual: document.getElementById('rp-annual')?.textContent || '—',
+      rateLabel: document.getElementById('rp-rate-lbl')?.textContent || '',
+      termLabel: document.getElementById('rp-term-lbl')?.textContent || '',
+      loanLabel: document.getElementById('rp-loan-lbl')?.textContent || '',
+      totalInterest: document.getElementById('rp-interest')?.textContent || '—',
+      totalPaid: document.getElementById('rp-total-paid')?.textContent || '—',
+      poolVal: document.getElementById('reno-pool-val')?.textContent || '—',
+      unspent: document.getElementById('reno-unspent-val')?.textContent || '—',
+      unspentColor: document.getElementById('reno-unspent-val')?.style.color || 'green',
+      renoTotal: document.getElementById('reno-total')?.textContent || '—',
+      renoItems: renoItems.map(r=>({
+        icon: r.emoji||'🔨',
+        name: r.name||'',
+        amt:  fmt(r.amount||0),
+        note: r.note||''
+      })),
+      contingency: fmt(getRenoTotal()*(v('inp-cont')/100)),
+      overlapWeekly: document.getElementById('ov-weekly-total')?.textContent || '—',
+      overlapTotal: document.getElementById('ov-total-cost')?.textContent || '—',
+      overlapAfter: document.getElementById('ov-remaining-after')?.textContent || '—',
+      riskScore: document.getElementById('risk-meter')?.style.width || '50%',
+      rewardScore: document.getElementById('reward-meter')?.style.width || '50%',
+      riskDesc: document.getElementById('risk-desc')?.textContent || '',
+      rewardDesc: document.getElementById('reward-desc')?.textContent || '',
+      notes: document.getElementById('pd-notes')?.value || '',
+      costRows: document.getElementById('cost-rows-display')?.innerHTML || '',
+      crDeposit: document.getElementById('cr-deposit')?.textContent || '—',
+      crTotal: document.getElementById('cr-total')?.textContent || '—',
+    };
+
+    const photoHTML = snap.photo
+      ? `<img src="${snap.photo}" style="width:100%;height:100%;object-fit:cover;display:block;">`
+      : `<div style="width:100%;height:100%;background:#2C2C2E;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.2);font-size:32px;">🏠</div>`;
+
+    const renoRowsHTML = snap.renoItems.map(it=>`
+      <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">${it.icon} ${it.name}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${it.amt}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;">${it.note}</td></tr>`).join('');
+
+    // Build amortisation data for PDF if requested
+    let amortTableHTML = '';
+    if(incAmort && _lastAmortParams){
+      const {loanAmt, rate, term} = _lastAmortParams;
+      const monthly = calcMonthly(loanAmt, rate, term);
+      if(loanAmt > 0 && monthly > 0){
+        const r = rate / 100 / 12;
+        const fa = v => '$' + Math.round(v).toLocaleString('en-AU');
+        let bal = loanAmt, amRows = '';
+        for(let yr = 1; yr <= term; yr++){
+          const ob = bal; let yP=0, yI=0;
+          for(let mo=1;mo<=12&&bal>0.005;mo++){
+            const ic=bal*r, pc=Math.min(monthly-ic,bal);
+            yI+=ic; yP+=pc; bal=Math.max(0,bal-pc);
+          }
+          amRows+=`<tr style="${yr%2===0?'background:#f9f6f0':''}"><td style="padding:5px 8px;border-bottom:1px solid #eee;">Yr ${yr}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${fa(ob)}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;color:#5A9E7A;">${fa(yP)}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;color:#C45A5A;">${fa(yI)}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${fa(bal)}</td></tr>`;
+        }
+        amortTableHTML = `<div class="section-title">— · Amortisation Schedule</div><div class="card" style="overflow-x:auto;"><table style="font-size:10px;"><thead><tr><th style="text-align:left;">Year</th><th style="text-align:right;">Opening Bal</th><th style="text-align:right;">Principal</th><th style="text-align:right;">Interest</th><th style="text-align:right;">Closing Bal</th></tr></thead><tbody>${amRows}</tbody></table></div>`;
+      }
+    }
+
+    const html = `<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>${snap.addr} — Finance Scenario</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+  /* Base font size — normal=12px, large=16px, compact=9px */
+  body{background:#fff;font-family:'DM Sans',sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
+  @page{margin:10mm 12mm;size:${pageSize} ${pageOrient};}
+  @media print{
+    body{font-size:${fontSize==='large'?'15px':fontSize==='compact'?'8px':'11px'}!important;}
+    @page{size:${pageSize} ${pageOrient};margin:10mm 12mm;}
+  }
+  .page{max-width:${pageOrient==='landscape'?'none':'780px'};margin:0 auto;padding:${pageOrient==='landscape'?'16px 24px':'20px 24px'};}
+  /* Landscape: wider grids and larger tiles */
+  ${pageOrient==='landscape'?`
+    .grid4{grid-template-columns:repeat(4,1fr)!important;}
+    .grid2{grid-template-columns:1fr 1fr!important;}
+    .hphoto{width:240px!important;}
+  `:''}
+  header{background:#1C1C1E;color:#F5F0E8;padding:0;display:flex;margin-bottom:20px;border-radius:4px;overflow:hidden;}
+  .htext{flex:1;padding:20px 24px;}
+  .htag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:4px;}
+  h1{font-family:'Playfair Display',serif;font-size:${fontSize==='large'?'30px':fontSize==='compact'?'20px':'26px'};font-weight:900;margin-bottom:3px;}
+  .hsub{font-size:11px;color:rgba(245,240,232,0.45);margin-bottom:12px;}
+  .hstamp{font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.3);}
+  .hphoto{width:200px;flex-shrink:0;}
+  .section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#888;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
+  .section-title::after{content:'';flex:1;height:1px;background:#eee;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .card{background:#FAF7F2;border-radius:4px;padding:${fontSize==='large'?'18px 20px':fontSize==='compact'?'10px 12px':'14px 16px'};border:1px solid #eee;}
+  .card-accent{width:4px;height:100%;position:absolute;top:0;left:0;border-radius:4px 0 0 4px;}
+  .card-rel{position:relative;}
+  .kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'9px':'11px'};}
+  .kv:last-child{border-bottom:none;}
+  .kv .lbl{color:#666;}
+  .kv .val{font-family:'DM Mono',monospace;font-weight:500;}
+  .tile{background:#1C1C1E;color:#F5F0E8;border-radius:3px;padding:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
+  .tile-val{font-family:'DM Mono',monospace;font-size:${fontSize==='large'?'28px':fontSize==='compact'?'16px':'22px'};margin-bottom:2px;}
+  .tile-lbl{font-size:${fontSize==='large'?'11px':fontSize==='compact'?'8px':'9px'};color:rgba(245,240,232,0.5);letter-spacing:1px;text-transform:uppercase;}
+  .big-num{font-family:'DM Mono',monospace;font-size:${fontSize==='large'?'34px':fontSize==='compact'?'20px':'28px'};font-weight:500;}
+  .meter-wrap{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin:6px 0 4px;}
+  .meter-fill{height:100%;border-radius:4px;}
+  table{width:100%;border-collapse:collapse;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'9px':'11px'};}
+  th{background:#F5F0E8;padding:7px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;}
+  th:last-child,td:last-child{text-align:right;}
+  /* Print / Save PDF button — bigger on mobile */
+  .print-btn{position:fixed;bottom:max(20px,env(safe-area-inset-bottom,20px));left:50%;transform:translateX(-50%);background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:14px 28px;border-radius:28px;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;z-index:100;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);letter-spacing:0.5px;}
+  .print-btn:hover{background:#2C2C2E;}
+  /* Share button (mobile only) */
+  .share-btn{position:fixed;bottom:max(80px,calc(env(safe-area-inset-bottom,20px) + 64px));left:50%;transform:translateX(-50%);background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:12px 24px;border-radius:28px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;z-index:100;white-space:nowrap;display:none;letter-spacing:0.5px;}
+  @media(max-width:600px){.share-btn{display:block;}}
+  @media(min-width:601px){.print-btn{top:16px;bottom:auto;right:16px;left:auto;transform:none;border-radius:4px;padding:10px 20px;font-size:12px;box-shadow:none;}}
+  @media print{.print-btn,.share-btn{display:none!important;}}
+  ${colourMode==='mono'?`
+  /* Monochrome — screen filter + explicit print overrides */
+  html{filter:grayscale(1);}
+  header{background:#1C1C1E!important;}
+  .tile{background:#333!important;}
+  .card{background:#f8f8f8!important;border-color:#ccc!important;}
+  .tile-val,.big-num,.kv .val{color:#000!important;}
+  .htag{color:#aaa!important;}
+  .card-accent{background:#666!important;}
+  .meter-fill{background:#666!important;}
+  @media print{
+    html{filter:grayscale(1);-webkit-filter:grayscale(1);}
+    header{background:#1C1C1E!important;}
+    .tile{background:#333!important;}
+    .card{background:#f8f8f8!important;}
+  }
+  `:''}
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+<button class="share-btn" onclick="(async()=>{try{const r=await fetch(location.href);const b=await r.blob();const f=new File([b],'property-report.html',{type:'text/html'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Property Finance Report'});}else if(navigator.share){await navigator.share({title:'Property Finance Report',url:location.href});}else{window.print();}}catch(e){window.print();}})()">↑ Share Report</button>
+<div class="page">
+  <header>
+    <div class="htext">
+      <div class="htag">Property Finance Calculator</div>
+      <h1>${snap.addr}</h1>
+      <div class="hsub">${snap.sub}</div>
+      <div class="hstamp">Exported ${(()=>{const n=new Date();return String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();})()}  ·  ${pageSize} ${pageOrient.charAt(0).toUpperCase()+pageOrient.slice(1)}</div>
+      ${(snap.notes && incNotes) ? `<div style="margin-top:10px;font-size:11px;color:rgba(245,240,232,0.5);font-style:italic;max-width:360px;">"${snap.notes}"</div>` : ''}
+    </div>
+    <div class="hphoto">${photoHTML}</div>
+  </header>
+
+  ${incFinancial ? `
+  <div class="section-title">01 · Financial Snapshot</div>
+  <div class="grid4">
+    <div class="tile"><div class="tile-val">${snap.price}</div><div class="tile-lbl">Purchase Price</div></div>
+    <div class="tile"><div class="tile-val">${snap.deposit}</div><div class="tile-lbl">Your Deposit</div></div>
+    <div class="tile"><div class="tile-val">${snap.govt}</div><div class="tile-lbl">Govt Contribution</div></div>
+    <div class="tile"><div class="tile-val" style="color:${snap.remainingColor||'#A8C4B0'}">${snap.remaining}</div><div class="tile-lbl">Remaining Cash</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card card-rel"><div class="card-accent" style="background:#C9A84C;position:absolute;"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:#C9A84C;margin-bottom:8px;padding-left:10px;">CASH PICTURE</div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Your Savings</span><span class="val">${snap.savings}</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Total Out-of-Pocket</span><span class="val" style="color:#C4704A;">${snap.outOfPocket}</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Remaining Cash</span><span class="val" style="color:#7B9E87;">${snap.cashLeft}</span></div>
+    </div>
+    <div class="card card-rel"><div class="card-accent" style="background:#5B8FAB;position:absolute;"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:#5B8FAB;margin-bottom:8px;padding-left:10px;">UPFRONT COSTS</div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Deposit</span><span class="val">${snap.crDeposit}</span></div>
+      ${snap.costRows.replace(/<div class="cr">/g,'<div class="kv" style="padding-left:10px;">').replace(/<span class="nm">/g,'<span class="lbl">').replace(/<span class="am">/g,'<span class="val">').replace(/<\/div>/g,'</div>')}
+      <div class="kv" style="padding-left:10px;border-top:2px solid #1C1C1E;padding-top:7px;margin-top:5px;"><span class="lbl" style="font-weight:600;">Total Required</span><span class="val" style="font-weight:600;">${snap.crTotal}</span></div>
+    </div>
+  </div>` : ''}
+
+  ${(snap.renoOn && incReno) ? `
+  <div class="section-title">02 · Renovation Budget</div>
+  <div class="grid2" style="margin-bottom:12px;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">POOL</div>
+      <div class="big-num" style="color:#7B9E87;">${snap.poolVal}</div>
+      <div style="font-size:10px;color:#888;margin-top:2px;">Available for reno</div>
+      <div style="border-top:1px solid #eee;margin-top:12px;padding-top:12px;">
+      <div style="font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">UNSPENT</div>
+      <div class="big-num" style="color:${snap.unspentColor};">${snap.unspent}</div>
+      <div style="font-size:10px;color:#888;margin-top:2px;">After planned reno</div>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <tr><th>Item</th><th>Cost</th><th style="text-align:left;">Note</th></tr>
+        ${renoRowsHTML}
+        <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">⚠️ Contingency</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${snap.contingency}</td><td></td></tr>
+        <tr><td style="padding:7px 10px;font-weight:700;">Total</td><td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700;">${snap.renoTotal}</td><td></td></tr>
+      </table>
+    </div>
+  </div>` : ''}
+
+  ${incRepay ? `
+  <div class="section-title">03 · Loan Repayments</div>
+  <div class="grid2">
+    <div class="card">
+      <div style="display:flex;gap:16px;">
+        <div style="text-align:center;flex:1;"><div class="big-num">${snap.monthly}</div><div style="font-size:10px;color:#888;margin-top:2px;">Monthly</div><div style="font-size:9px;color:#aaa;">${snap.rateLabel}</div></div>
+        <div style="text-align:center;flex:1;"><div class="big-num">${snap.weekly}</div><div style="font-size:10px;color:#888;margin-top:2px;">Weekly</div><div style="font-size:9px;color:#aaa;">${snap.termLabel}</div></div>
+        <div style="text-align:center;flex:1;"><div class="big-num">${snap.annual}</div><div style="font-size:10px;color:#888;margin-top:2px;">Annual</div><div style="font-size:9px;color:#aaa;">${snap.loanLabel}</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kv"><span class="lbl">Total Interest Paid</span><span class="val" style="color:#C45A5A;">${snap.totalInterest}</span></div>
+      <div class="kv"><span class="lbl">Total Amount Paid</span><span class="val">${snap.totalPaid}</span></div>
+    </div>
+  </div>
+  ${amortTableHTML}` : ''}
+
+  ${(snap.rentOn && incOverlap) ? `
+  <div class="section-title">04 · Rent Overlap</div>
+  <div class="grid2" style="margin-bottom:0;">
+    <div class="card">
+      <div class="kv"><span class="lbl">Weekly Combined Cost</span><span class="val">${snap.overlapWeekly}</span></div>
+      <div class="kv"><span class="lbl">Total Overlap Cost</span><span class="val" style="color:#C4704A;">${snap.overlapTotal}</span></div>
+      <div class="kv"><span class="lbl">Cash Left After Overlap</span><span class="val" style="color:#5A9E7B;">${snap.overlapAfter}</span></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;justify-content:center;">
+      <div style="font-size:11px;color:#888;font-style:italic;">Overlap period modelled from rent + mortgage input values.</div>
+    </div>
+  </div>` : ''}
+
+  ${incRisks ? `
+  <div class="section-title">05 · Risk &amp; Reward</div>
+  <div class="grid2">
+    <div class="card">
+      <div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><strong>Risk Level</strong><span style="font-family:monospace;">${snap.riskScore}</span></div><div class="meter-wrap"><div class="meter-fill" style="width:${snap.riskScore};background:linear-gradient(to right,#C9A84C,#C4704A);"></div></div><div style="font-size:11px;color:#666;margin-top:4px;">${snap.riskDesc}</div></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><strong>Reward Potential</strong><span style="font-family:monospace;">${snap.rewardScore}</span></div><div class="meter-wrap"><div class="meter-fill" style="width:${snap.rewardScore};background:linear-gradient(to right,#7B9E87,#5A9E7B);"></div></div><div style="font-size:11px;color:#666;margin-top:4px;">${snap.rewardDesc}</div></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;justify-content:center;">
+      <div style="font-size:11px;color:#888;font-style:italic;text-align:center;">Risk &amp; reward scores are calculated from loan-to-value ratio, cash buffer, and government scheme contribution.</div>
+    </div>
+  </div>` : ''}
+
+  ${incTimeline ? `
+  <div class="section-title">06 · Purchase Timeline</div>
+  <div class="card" style="padding-left:32px;position:relative;">
+    <div style="position:absolute;left:16px;top:20px;bottom:20px;width:2px;background:linear-gradient(to bottom,#C9A84C,#7B9E87);border-radius:2px;"></div>
+    ${[
+      {phase:'01',color:'#C9A84C',title:'Offer Accepted & Contracts Exchanged',dur:'Week 1–2',desc:'Sign contracts, pay deposit. Cooling-off period applies (typically 5 business days).'},
+      {phase:'02',color:'#C4704A',title:'Building & Pest Inspection',dur:'Week 1–3',desc:'Book a licensed inspector within the first week. Results within 24–48 hours.'},
+      {phase:'03',color:'#5B8FAB',title:'Finance & Loan Finalisation',dur:'Week 2–5',desc:'Bank formally approves the loan. Government scheme contribution confirmed.'},
+      {phase:'04',color:'#7B9E87',title:'Settlement Day 🔑',dur:'Week 4–12',desc:'Title transfers to your name. Keys handed over. You are now a homeowner.'},
+      {phase:'05',color:'#E8A882',title:'Overlap Period',dur:document.getElementById('tl-overlap-dur-cal')?.textContent||'Weeks 1–4 post-settlement',desc:document.getElementById('tl-overlap-desc')?.textContent||''},
+      {phase:'06',color:'#E8A882',title:'Renovations Complete',dur:'Month 3–5',desc:'Tradies finish, final inspections done. Property ready to move in.'},
+      {phase:'07',color:'#5A9E7B',title:'Move In & Rent Ends 🎉',dur:'Month 4–6',desc:'You move in and your rent obligation ends.'},
+    ].map(p=>`
+    <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:${p.color};border:2px solid white;box-shadow:0 0 0 2px ${p.color};"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:${p.color};margin-bottom:3px;">Phase ${p.phase} · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">${p.dur}</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">${p.title}</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">${p.desc}</div>
+    </div>`).join('')}
+  </div>` : ''}
+</div>
+<script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
+
+
+
+
+<!-- ══ FLOATING ACCOUNT PANEL ══ -->
+<style>
+#account-panel-overlay{
+  display:none;position:fixed;inset:0;z-index:3000;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
+}
+#account-panel-overlay.open{display:block;}
+#account-panel{
+  position:fixed;top:0;right:-480px;width:min(480px,100vw);height:100vh;
+  background:var(--warm-white);z-index:3001;overflow-y:auto;
+  transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:-8px 0 40px rgba(0,0,0,0.3);
+  padding-top:env(safe-area-inset-top,0px);
+}
+#account-panel.open{right:0;}
+.ap-header{
+  background:var(--charcoal);color:var(--cream);
+  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:1;
+}
+.ap-header h2{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.7);margin:0;}
+.ap-close{width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--cream);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.ap-body{padding:24px;}
+.ap-section{margin-bottom:24px;}
+.ap-section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--slate);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.08);}
+.ap-card{background:white;border-radius:8px;border:1px solid rgba(28,28,30,0.08);padding:16px;margin-bottom:12px;}
+.ap-field{margin-bottom:12px;}
+.ap-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate);display:block;margin-bottom:5px;}
+.ap-input{width:100%;background:var(--warm-white);border:1px solid rgba(28,28,30,0.12);border-radius:4px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--charcoal);outline:none;box-sizing:border-box;}
+.ap-input:focus{border-color:rgba(201,168,76,0.6);background:white;}
+.ap-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ap-btn{padding:10px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.5px;cursor:pointer;border:none;font-weight:600;}
+.ap-btn-primary{background:var(--charcoal);color:var(--cream);}
+.ap-btn-primary:hover{opacity:0.85;}
+.ap-btn-gold{background:var(--gold);color:var(--charcoal);}
+.ap-btn-gold:hover{opacity:0.88;}
+.ap-btn-danger{background:transparent;border:1px solid rgba(196,90,90,0.4);color:var(--risk-red);}
+.ap-btn-danger:hover{background:rgba(196,90,90,0.06);}
+.ap-status{font-size:12px;margin-top:8px;padding:6px 10px;border-radius:3px;display:none;}
+.ap-status.ok{display:block;background:rgba(90,158,123,0.1);color:var(--reward-green);}
+.ap-status.err{display:block;background:rgba(196,90,90,0.08);color:var(--risk-red);}
+.ap-avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.ap-avatar{width:56px;height:56px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--charcoal);overflow:hidden;flex-shrink:0;}
+.ap-plan-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;border:1px solid rgba(201,168,76,0.3);background:rgba(201,168,76,0.08);color:var(--gold);}
+.ap-color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.ap-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s,border-color 0.15s;}
+.ap-swatch:hover,.ap-swatch.active{transform:scale(1.2);border-color:white;box-shadow:0 0 0 1px rgba(0,0,0,0.2);}
+</style>
+
+<div id="account-panel-overlay" onclick="closeAccountPanel()"></div>
+<div id="account-panel">
+  <div class="ap-header">
+    <h2>Account Settings</h2>
+    <button class="ap-close" onclick="closeAccountPanel()">✕</button>
+  </div>
+  <div class="ap-body">
+    
+    <!-- Profile -->
+    <div class="ap-section">
+      <div class="ap-section-title">Profile</div>
+      <div class="ap-card">
+        <div class="ap-avatar-row">
+          <div class="ap-avatar" id="ap-avatar">ES</div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--charcoal);" id="ap-name-display">Loading…</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate);margin-top:2px;" id="ap-email-display"></div>
+            <div class="ap-plan-badge" id="ap-plan-display" style="margin-top:8px;">Starter</div>
+          </div>
+        </div>
+        <div class="ap-field">
+          <label class="ap-label">Display Name</label>
+          <input class="ap-input" id="ap-name" type="text" placeholder="Your name">
+        </div>
+        <div class="ap-field">
+          <label class="ap-label">Avatar Colour</label>
+          <div class="ap-color-row" id="ap-colors"></div>
+        </div>
+        <div class="ap-field">
+          <label class="ap-label">Profile Photo</label>
+          <input type="file" id="ap-photo-input" accept="image/*" style="display:none" onchange="apLoadPhoto(this)">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="ap-btn ap-btn-primary" onclick="document.getElementById('ap-photo-input').click()">📷 Upload Photo</button>
+            <button class="ap-btn" style="background:rgba(196,90,90,0.08);color:var(--risk-red);border:1px solid rgba(196,90,90,0.2);" onclick="apRemovePhoto()">Remove</button>
+          </div>
+        </div>
+        <button class="ap-btn ap-btn-gold" onclick="apSaveProfile()">Save Profile</button>
+        <div class="ap-status" id="ap-profile-status"></div>
+      </div>
+    </div>
+
+    <!-- Plan -->
+    <div class="ap-section">
+      <div class="ap-section-title">Subscription</div>
+      <div class="ap-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--charcoal);" id="ap-plan-name">Starter (Free)</div>
+            <div style="font-size:12px;color:var(--slate);margin-top:3px;" id="ap-plan-desc">1 saved scenario · Core calculator</div>
+          </div>
+          <button class="ap-btn ap-btn-gold" id="ap-upgrade-btn" onclick="location.href='pricing.html'" style="display:none;">Upgrade to Pro →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="ap-section">
+      <div class="ap-section-title">Security</div>
+      <div class="ap-card">
+        <div class="ap-field">
+          <label class="ap-label">Current Password</label>
+          <input class="ap-input" id="ap-pw-current" type="password" placeholder="Enter current password" autocomplete="current-password">
+        </div>
+        <div class="ap-row">
+          <div class="ap-field">
+            <label class="ap-label">New Password</label>
+            <input class="ap-input" id="ap-pw-new" type="password" placeholder="8+ characters" autocomplete="new-password">
+          </div>
+          <div class="ap-field">
+            <label class="ap-label">Confirm New</label>
+            <input class="ap-input" id="ap-pw-confirm" type="password" placeholder="Repeat password" autocomplete="new-password">
+          </div>
+        </div>
+        <button class="ap-btn ap-btn-primary" onclick="apChangePassword()">Update Password</button>
+        <div class="ap-status" id="ap-pw-status"></div>
+      </div>
+    </div>
+
+    <!-- Danger -->
+    <div class="ap-section">
+      <div class="ap-section-title">Danger Zone</div>
+      <div class="ap-card">
+        <div style="font-size:12px;color:var(--slate);margin-bottom:12px;">Permanently delete your account and all saved scenarios. This cannot be undone.</div>
+        <button class="ap-btn ap-btn-danger" onclick="apDeleteAccount()">Delete My Account</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body></html>`;
+
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    if(!win) showToast('⚠️ Popup blocked — allow popups for this site');
+    setTimeout(()=>URL.revokeObjectURL(url), 60000);
+  }
+
+  function setAppHeight(){
+    const header  = document.querySelector('header');
+    const appBody = document.querySelector('.app-body');
+    const navEl   = document.querySelector('nav');
+    if(!header || !appBody) return;
+
+    const headerH = header.offsetHeight;
+    const navH    = navEl ? (navEl.offsetHeight || 44) : 44;
+
+    // Always position fixed nav directly below the actual rendered header
+    if(navEl) navEl.style.top = headerH + 'px';
+
+    if(window.innerWidth <= 820){
+      // Mobile / tablet: body scrolls, app-body grows with content
+      appBody.style.height     = '';
+      appBody.style.marginTop  = '';
+      appBody.style.paddingTop = navH + 'px';
+    } else {
+      // Desktop: inner scroll model — app-body fills remaining viewport
+      appBody.style.paddingTop = '';
+      appBody.style.marginTop  = navH + 'px';
+      appBody.style.height     = (window.innerHeight - headerH - navH) + 'px';
+    }
+  }
+  window.addEventListener('resize', setAppHeight);
+
+  // ══════════════════════════════════════════════
+  // PROPERTY STATUS (item 2)
+  // ══════════════════════════════════════════════
+  function setStatus(status, btn, silent){
+    document.getElementById('pd-status').value = status;
+    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    else{
+      const found = document.querySelector(`.status-btn[data-status="${status}"]`);
+      if(found) found.classList.add('active');
+    }
+    const dateWrap = document.getElementById('status-note-wrap');
+    if(dateWrap) dateWrap.style.display = ['auction','offered','under-offer','unconditional'].includes(status) ? '' : 'none';
+    if(!silent) syncKeyDatesFromStatus();
+  }
+
+  function syncKeyDatesFromStatus(){
+    const status = document.getElementById('pd-status')?.value;
+    const date   = document.getElementById('pd-status-date')?.value;
+    if(!date) return;
+    const labels = {
+      'auction':'🔨 Auction Date','offered':'📝 Offer Date',
+      'under-offer':'⏳ Under Offer Date','unconditional':'✅ Unconditional Date'
+    };
+    const label = labels[status]; if(!label) return;
+    const existing = keyDates.findIndex(d=>d.label===label);
+    if(existing>=0) keyDates[existing].date = date;
+    else keyDates.push({id:'kd-status-'+Date.now(), date, label});
+    renderKeyDates();
+  }
+
+  // ══════════════════════════════════════════════
+  // KEY DATES (items 3 & 5)
+  // ══════════════════════════════════════════════
+  let keyDates = [];
+
+  function addKeyDate(date='', label=''){
+    keyDates.push({id:'kd-'+Date.now(), date, label});
+    renderKeyDates();
+  }
+
+  function removeKeyDate(id){
+    keyDates = keyDates.filter(d=>d.id!==id);
+    renderKeyDates();
+  }
+
+  function updateKeyDate(id, field, val){
+    const d = keyDates.find(x=>x.id===id);
+    if(d){ d[field]=val; syncKeyDatesToTimeline(); }
+  }
+
+  function formatDate(iso){
+    if(!iso) return '';
+    const [y,m,d] = iso.split('-');
+    if(!d || !m || !y) return iso;
+    return `${d}/${m}/${y.slice(-2)}`; // DD/MM/YY
+  }
+  function fmtDateFull(iso){ // DD/MM/YYYY for timestamps
+    if(!iso) return '';
+    const [y,m,d] = iso.split('-');
+    if(!d || !m || !y) return iso;
+    return `${d}/${m}/${y}`;
+  }
+  function renderKeyDates(){
+    const list  = document.getElementById('key-dates-list');
+    const empty = document.getElementById('key-dates-empty');
+    if(!list) return;
+    if(keyDates.length===0){
+      list.innerHTML='';
+      if(empty) empty.style.display='block';
+    } else {
+      if(empty) empty.style.display='none';
+      list.innerHTML = [...keyDates].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(d=>`
+        <div class="kd-row">
+          <input type="date" value="${d.date||''}" oninput="updateKeyDate('${d.id}','date',this.value)">
+          <input type="text" value="${(d.label||'').replace(/"/g,'&quot;')}" placeholder="Event (e.g. Inspection, Auction)" oninput="updateKeyDate('${d.id}','label',this.value)">
+          <button class="kd-del" onclick="removeKeyDate('${d.id}')">✕</button>
+        </div>`).join('');
+    }
+    syncKeyDatesToTimeline();
+  }
+
+  function syncKeyDatesToTimeline(){
+    const card = document.getElementById('tl-key-dates-card');
+    const list = document.getElementById('tl-key-dates-list');
+    if(!card||!list) return;
+    const sorted = [...keyDates].filter(d=>d.date||d.label).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    card.style.display = sorted.length ? '' : 'none';
+    const today = new Date().toISOString().split('T')[0];
+    const colors = ['var(--sky)','var(--gold)','var(--sage)','var(--terracotta)','var(--terracotta-light)','var(--reward-green)'];
+    list.innerHTML = sorted.map((d,i)=>{
+      const isPast  = d.date && d.date < today;
+      const isToday = d.date === today;
+      const fmt = d.date ? formatDate(d.date) : 'No date';
+      return `<div class="tli">
+        <div class="tld" style="color:${colors[i%colors.length]}"></div>
+        <div class="tlp" style="color:${colors[i%colors.length]}">${fmt}${isPast?' · past':isToday?' · TODAY':''}</div>
+        <div class="tlt">${d.label||'Unnamed Event'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ══════════════════════════════════════════════
+  // AGENT DETAILS (item 1)
+  // ══════════════════════════════════════════════
+  function markAgentDirty(){ updateAgentLinks(); }
+
+  function updateAgentLinks(){
+    const phone = document.getElementById('ag-phone')?.value?.trim();
+    const email = document.getElementById('ag-email')?.value?.trim();
+    const callLink  = document.getElementById('ag-call-link');
+    const emailLink = document.getElementById('ag-email-link');
+    if(callLink)  { callLink.href  = phone ? `tel:${phone}` : '#';       callLink.style.display  = phone ? 'inline-flex' : 'none'; }
+    if(emailLink) { emailLink.href = email ? `mailto:${email}` : '#';    emailLink.style.display = email ? 'inline-flex' : 'none'; }
+  }
+
+  // ══════════════════════════════════════════════
+  // COMMUNICATIONS LOG (item 1)
+  // ══════════════════════════════════════════════
+  let commsLog = [];
+  let commsFormVisible = false;
+
+  function addCommsEntry(){
+    if(commsFormVisible){ closeCommsForm(); return; }
+    commsFormVisible = true;
+    const list = document.getElementById('comms-list');
+    const today = new Date().toISOString().split('T')[0];
+    const formDiv = document.createElement('div');
+    formDiv.id = 'comms-add-form';
+    formDiv.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Date</div>
+          <input type="date" id="cf-date" value="${today}" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:7px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;color:var(--charcoal);"></div>
+        <div><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Type</div>
+          <select id="cf-type" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:7px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;color:var(--charcoal);">
+            <option>📞 Phone call</option><option>✉ Email</option><option>💬 Text / SMS</option>
+            <option>🤝 In person</option><option>📋 Inspection note</option><option>📝 Other</option>
+          </select></div>
+      </div>
+      <div style="margin-bottom:8px;"><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Note</div>
+        <textarea id="cf-text" rows="3" placeholder="What was discussed? Any key info from the agent?" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;padding:8px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.5;"></textarea></div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="submitCommsEntry()" style="flex:1;background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:8px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Entry</button>
+        <button onclick="closeCommsForm()" style="padding:8px 14px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:var(--slate);">Cancel</button>
+      </div>`;
+    if(list) list.insertBefore(formDiv, list.firstChild);
+  }
+
+  function closeCommsForm(){
+    commsFormVisible = false;
+    const f = document.getElementById('comms-add-form');
+    if(f) f.remove();
+  }
+
+  function submitCommsEntry(){
+    const date = document.getElementById('cf-date')?.value||'';
+    const type = document.getElementById('cf-type')?.value||'';
+    const text = document.getElementById('cf-text')?.value?.trim()||'';
+    if(!text){ showToast('⚠️ Add a note before submitting'); return; }
+    commsLog.unshift({id:'cm-'+Date.now(), date, type, text});
+    closeCommsForm();
+    renderCommsLog();
+  }
+
+  function deleteCommsEntry(id){
+    commsLog = commsLog.filter(c=>c.id!==id);
+    renderCommsLog();
+  }
+
+  function renderCommsLog(){
+    const list  = document.getElementById('comms-list');
+    const empty = document.getElementById('comms-empty');
+    if(!list) return;
+    list.querySelectorAll('.comms-entry').forEach(e=>e.remove());
+    if(commsLog.length===0){
+      if(empty) empty.style.display='block';
+    } else {
+      if(empty) empty.style.display='none';
+      commsLog.forEach(c=>{
+        const fmtDate = c.date ? formatDate(c.date) : '';
+        const div = document.createElement('div');
+        div.className = 'comms-entry';
+        div.innerHTML = `
+          <div class="comms-meta">
+            <span class="comms-date">${fmtDate}</span>
+            <span class="comms-type">${c.type||'Note'}</span>
+            <button class="comms-del" onclick="deleteCommsEntry('${c.id}')" title="Delete">✕</button>
+          </div>
+          <div class="comms-text">${c.text.replace(/</g,'&lt;')}</div>`;
+        list.appendChild(div);
+      });
+    }
+  }
+
+  // ══════════════════════════════════════════════
+  // MOBILE SIDEBAR TOGGLE (item 4)
+  // ══════════════════════════════════════════════
+  function toggleMobileSidebar(){
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+    const isOpen  = sidebar?.classList.contains('mobile-open');
+    if(isOpen){
+      sidebar?.classList.remove('mobile-open');
+      overlay?.classList.remove('open');
+      document.body.classList.remove('sidebar-open');
+    } else {
+      sidebar?.classList.add('mobile-open');
+      overlay?.classList.add('open');
+      document.body.classList.add('sidebar-open');
+    }
+  }
+
+  // ── SEED DEFAULT PURCHASE & MOVE-OUT COSTS ──
+  dynCosts = [
+    {id:'dyn-'+dynId++, name:'Bank / Lender Fees', amount:800,  category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Conveyancing',        amount:1600, category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Building & Pest',     amount:700,  category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Removalists',         amount:1200, category:'moveout'},
+    {id:'dyn-'+dynId++, name:'Lease Break Fee',     amount:0,    category:'moveout'},
+  ];
+  renderDynCosts();
+
+  // ── SEED DEFAULT RENO ITEMS (item 13 — now fully dynamic) ──
+  const defaultReno = [
+    {emoji:'🎨', name:'Paint',       amount:3500, note:''},
+    {emoji:'🍳', name:'Kitchen',     amount:5000, note:''},
+    {emoji:'🚿', name:'Bathroom',    amount:4500, note:''},
+    {emoji:'🪵', name:'Flooring',    amount:4000, note:''},
+    {emoji:'💡', name:'Electrical',  amount:2000, note:''},
+    {emoji:'🌿', name:'Landscaping', amount:2000, note:''},
+  ];
+  defaultReno.forEach(r => renoItems.push({id:'ri-'+renoItemId++, ...r}));
+  renderRenoItems();
+
+  const PROFILE_KEY_BASE = 'propCalc_profile_v1';
+  function getProfileKey(){
+    const uid = (_currentUser && (_currentUser.id || _currentUser.userId)) || 'guest';
+    return PROFILE_KEY_BASE + '_' + uid;
+  }
+  const SESSION_KEY = 'propCalc_session_v1';
+  let _profileData  = {name:'',email:'',color:'#C9A84C',photo:''};
+  let _currentUser  = null; // null=guest, {name,email,id}=logged in
+
+  var SPLASH_SEEN_KEY = 'propCalc_splash_seen';
+  const _hadDraft = restoreDraft();
+  recalc();
+  updatePropertyDetails();
+  updateSavedCount();
+  setAppHeight();
+  // Re-measure after fonts load — web fonts can change header height slightly
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ setTimeout(setAppHeight, 50); });
+  }
+  drawProjection();
+  loadProfile();
+
+  // Auth guard handled in <head> script — redirects to login.html if not signed in
+
+  if(_hadDraft){
+    setTimeout(function(){
+      var addr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
+      showToast(addr ? '↩️ Restored: ' + addr : '↩️ Draft restored');
+    }, 600);
+  } else if(!localStorage.getItem('propCalc_splash_seen')) {
+    setTimeout(showWelcomeSplash, 300);
+  } else {
+    setTimeout(function(){ showToast('👋 Fill in your property details to get started'); }, 900);
+  }
+
+
+  // ══════════════════════════════════════════════
+  // AUTH + PROFILE SYSTEM
+  // ══════════════════════════════════════════════
+
+  async function callAuthFn(action, payload){
+    try{
+      const r = await fetch('/.netlify/functions/auth', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({action, ...payload})
+      });
+      return await r.json();
+    } catch(e){ return {ok:false, error:'Network error'}; }
+  }
+
+  function loadProfile(){
+    try{
+      // IMPORTANT: load session FIRST so getProfileKey() has the correct userId
+      const sess = lsGet(SESSION_KEY);
+      if(sess) _currentUser = JSON.parse(sess);
+      // Now load profile keyed to this specific user (not shared 'guest' key)
+      const raw = lsGet(getProfileKey());
+      if(raw) _profileData = Object.assign({name:'',email:'',color:'#C9A84C',photo:''}, JSON.parse(raw));
+      // Sync name/email from session if profile is blank
+      if(_currentUser && !_profileData.name) _profileData.name = _currentUser.name || '';
+      if(_currentUser && !_profileData.email) _profileData.email = _currentUser.email || '';
+    } catch(e){}
+    renderProfileBtn();
+    renderProfilePanel();
+    applyPlanUI();
+    // Load government schemes from backend/cache
+    setTimeout(loadSchemesFromBackend, 200);
+    // Background sync: refresh plan/role from server so admin changes take effect without re-login
+    if(_currentUser && _currentUser.token && ON_NETLIFY){
+      callAuthFn('verify', {token: _currentUser.token}).then(function(d){
+        if(!d.ok) return;
+        var changed = d.plan !== _currentUser.plan || d.role !== _currentUser.role;
+        if(changed){
+          _currentUser.plan = d.plan;
+          _currentUser.role = d.role;
+          lsSet(SESSION_KEY, JSON.stringify(_currentUser));
+          applyPlanUI();
+          renderAppProfileBtn();
+        }
+      }).catch(function(){});
+    }
+  }
+
+  // ── SCHEME SELECTOR ──────────────────────────────────────────
+  var _schemes = [];
+
+  function applySelectedScheme(schemeId){
+    if(!schemeId){
+      // Manual — don't change values, just clear any scheme info display
+      return;
+    }
+    var sel = document.getElementById('scheme-select');
+    var opt = sel ? sel.querySelector('option[value="'+schemeId+'"]') : null;
+    var pct = opt ? parseFloat(opt.dataset.pct) : null;
+    if(pct !== null && !isNaN(pct)){
+      var govtInput = document.getElementById('inp-govt');
+      var govtRange = document.getElementById('rng-govt');
+      if(govtInput){ govtInput.value = pct; }
+      if(govtRange){ govtRange.value = pct; }
+      // If scheme has a max price hint, update the range slider max too
+      var maxPrice = opt ? parseInt(opt.dataset.max) : null;
+      var priceRange = document.getElementById('rng-price');
+      if(maxPrice && priceRange){ priceRange.max = maxPrice; }
+      recalc();
+      showToast('✓ Applied: ' + (opt ? opt.textContent.split('(')[0].trim() : schemeId));
+    }
+  }
+
+  function loadSchemesFromBackend(){
+    // First try localStorage cache (set by admin page)
+    try {
+      var cached = localStorage.getItem('propCalc_schemes_v1');
+      if(cached){
+        var schemes = JSON.parse(cached);
+        if(Array.isArray(schemes) && schemes.length) {
+          _schemes = schemes;
+          populateSchemeDropdown(schemes);
+          return;
+        }
+      }
+    } catch(e){}
+    // Try fetching from backend
+    var authH = getAuthHeader && getAuthHeader();
+    if(!authH || typeof ON_NETLIFY === 'undefined' || !ON_NETLIFY) return;
+    fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': authH },
+      body: JSON.stringify({ action: 'getSchemes' })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(d.ok && d.schemes && d.schemes.length){
+        _schemes = d.schemes;
+        try { localStorage.setItem('propCalc_schemes_v1', JSON.stringify(d.schemes)); } catch(e){}
+        populateSchemeDropdown(d.schemes);
+      }
+    }).catch(function(){});
+  }
+
+  function populateSchemeDropdown(schemes){
+    var sel = document.getElementById('scheme-select');
+    if(!sel) return;
+    var active = schemes.filter(function(s){ return s.active !== false; });
+    // Keep the "no scheme" option, rebuild the rest
+    sel.innerHTML = '<option value="">No scheme (manual entry below)</option>' +
+      active.map(function(s){
+        return '<option value="'+s.id+'" data-pct="'+s.govtDefaultPct+'" data-max="'+(s.maxPropertyPrice||700000)+'">'
+          + s.name + ' (' + s.govtDefaultPct + '% — ' + (s.country||'') + ')'
+          + '</option>';
+      }).join('');
+  }
+
+  // Load site config from localStorage (written by admin page) and apply feature flags
+  function loadSiteConfig(){
+    try {
+      var raw = localStorage.getItem('propCalc_siteConfig_v1');
+      if(raw){
+        var cfg = JSON.parse(raw);
+        applyFeatureFlags(cfg);
+      }
+    } catch(e){}
+    // Always fetch fresh config from backend so maintenance/banner changes are immediate
+    var sess = null;
+    try { sess = JSON.parse(localStorage.getItem('propCalc_session_v1')); } catch(e){}
+    if(sess && sess.token && typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY){
+      fetch('/.netlify/functions/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.token },
+        body: JSON.stringify({ action: 'adminGetConfig' })
+      }).then(function(r){ return r.json(); }).then(function(d){
+        if(d.ok && d.config){
+          try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(d.config)); } catch(e){}
+          applyFeatureFlags(d.config);
+        }
+      }).catch(function(){});
+    }
+  }
+
+  // Simple HTML escape for banner text
+  function _escBanner(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function applyFeatureFlags(cfg){
+    if(!cfg) return;
+
+    // ── Maintenance Mode ──────────────────────────────────────────
+    var maintOverlay = document.getElementById('maintenance-overlay');
+    if(cfg.maintenanceMode){
+      var userRole = (_currentUser && _currentUser.role) || '';
+      if(userRole !== 'admin'){
+        if(maintOverlay){
+          var msg = document.getElementById('maintenance-msg');
+          if(msg) msg.textContent = cfg.maintenanceMessage || "We'll be back shortly — upgrading our systems.";
+          maintOverlay.style.display = 'flex';
+        }
+        return; // Stop applying other flags — page is in maintenance
+      }
+    } else {
+      // Ensure overlay is hidden if maintenance mode was previously on
+      if(maintOverlay) maintOverlay.style.display = 'none';
+    }
+
+    // ── Announcement Banner ───────────────────────────────────────
+    var banner = document.getElementById('announce-banner');
+    if(banner){
+      var bannerText = cfg.bannerText || '';
+      var bannerExpiry = cfg.bannerExpiry;
+      var bannerActive = bannerText && (!bannerExpiry || new Date(bannerExpiry + 'T23:59:59') >= new Date());
+      if(bannerActive){
+        var type = cfg.bannerType || 'info';
+        var bannerStyles = {
+          info:    {bg:'rgba(91,143,171,0.18)',  color:'#4a7d9a', border:'rgba(91,143,171,0.35)'},
+          success: {bg:'rgba(90,158,123,0.15)',  color:'#3d8a62', border:'rgba(90,158,123,0.35)'},
+          warning: {bg:'rgba(201,168,76,0.18)',  color:'#7a5e1a', border:'rgba(201,168,76,0.45)'},
+          danger:  {bg:'rgba(196,90,90,0.15)',   color:'#a03535', border:'rgba(196,90,90,0.35)'}
+        };
+        var bs = bannerStyles[type] || bannerStyles.info;
+        if(banner.style.display === 'none' || !banner.dataset.shown){
+          banner.dataset.shown = '1';
+          banner.style.cssText = 'display:block;padding:9px 48px 9px 16px;font-size:13px;text-align:center;position:relative;line-height:1.4;'
+            + 'background:' + bs.bg + ';color:' + bs.color + ';border-bottom:1px solid ' + bs.border + ';';
+          banner.innerHTML = '<span>' + _escBanner(bannerText) + '</span>'
+            + '<button onclick="document.getElementById(\'announce-banner\').style.display=\'none\';setTimeout(setAppHeight,0);" '
+            + 'style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;'
+            + 'color:currentColor;font-size:20px;cursor:pointer;opacity:0.55;padding:0 4px;line-height:1;" title="Dismiss">×</button>';
+          // Recompute layout since header is now taller
+          setTimeout(setAppHeight, 0);
+        }
+      } else {
+        banner.style.display = 'none';
+        delete banner.dataset.shown;
+      }
+    }
+
+    // ── PDF Export feature flag ───────────────────────────────────
+    var pdfEnabled = cfg.enablePdfExport !== false;
+    // Also respect plan — only show if both admin-enabled AND user is pro
+    var pdfVisible = pdfEnabled && isPro();
+    document.querySelectorAll('.export-btn[title*="PDF"], .export-btn[onclick*="exportPDF"]').forEach(function(el){
+      el.style.display = pdfVisible ? '' : 'none';
+    });
+
+    // ── Projection tab feature flag ───────────────────────────────
+    var projEnabled = cfg.enableProjections !== false;
+    var projVisible = projEnabled && isPro();
+    var projBtn = document.getElementById('tab-projection-btn');
+    if(projBtn) projBtn.style.display = projVisible ? '' : 'none';
+  }
+
+  // Returns Authorization header value for API calls, or null if guest
+  function applyPlanUI(){
+    var pro = isPro();
+    // Hide projection lock icon for pro users
+    var lock = document.getElementById('proj-lock');
+    if(lock) lock.style.display = pro ? 'none' : 'inline';
+    // Hide PDF button entirely for free users (plan-based, not just toast)
+    document.querySelectorAll('.export-btn[onclick*="exportPDF"],.export-btn[title*="PDF"]').forEach(function(el){
+      el.style.display = pro ? '' : 'none';
+    });
+    // Hide projection tab entirely for free users
+    var projBtn = document.getElementById('tab-projection-btn');
+    if(projBtn) projBtn.style.display = pro ? '' : 'none';
+    // Show/hide upgrade banner in header if free
+    var plan = getUserPlan();
+    var badge = document.getElementById('plan-badge');
+    if(badge) badge.textContent = plan === 'free' ? 'Starter' : 'Pro';
+    // Apply site feature flags (admin-controlled global toggles)
+    loadSiteConfig();
+  }
+
+    function getAuthHeader(){
+    if(_currentUser && _currentUser.token) return 'Bearer ' + _currentUser.token;
+    return null;
+  }
+
+  function getUserPlan(){
+    return (_currentUser && _currentUser.plan) || 'free';
+  }
+  function isPro(){
+    return getUserPlan() === 'pro' || getUserPlan() === 'adviser';
+  }
+  function requirePro(featureName){
+    if(isPro()) return true;
+    showToast('🔒 ' + featureName + ' is a Pro feature — <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);
+    return false;
+  }
+
+  // Returns current user ID for body-fallback auth (works even without token)
+  function getUserId(){
+    return (_currentUser && (_currentUser.id || _currentUser.userId)) || null;
+  }
+
+  function renderProfileBtn(){
+    const btn = document.getElementById('profile-btn');
+    if(!btn) return;
+    const name  = (_currentUser && _currentUser.name) || _profileData.name || '';
+    const color = _profileData.color || '#C9A84C';
+    if(_profileData.photo){
+      btn.style.background = 'transparent';
+      btn.style.padding = '0';
+      btn.innerHTML = '<img src="' + _profileData.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;display:block;">';
+    } else {
+      var ppParts = name ? name.trim().split(/\s+/).filter(Boolean) : [];
+      var initials = ppParts.length===0?'?':ppParts.length===1?ppParts[0][0].toUpperCase():(ppParts[0][0]+ppParts[ppParts.length-1][0]).toUpperCase();
+      btn.style.background = color;
+      btn.style.padding = '';
+      btn.innerHTML = initials;
+    }
+    // Keep top-right widget in sync
+    renderAppProfileBtn();
+  }
+
+  function renderProfilePanel(){
+    const name  = (_currentUser && _currentUser.name)  || _profileData.name  || '';
+    const email = (_currentUser && _currentUser.email) || _profileData.email || '';
+    const color = _profileData.color || '#C9A84C';
+    const nameD  = document.getElementById('pp-name-display');
+    const emailD = document.getElementById('pp-email-display');
+    const nameI  = document.getElementById('pp-name-input');
+    const emailI = document.getElementById('pp-email-input');
+    const avd    = document.getElementById('pp-avatar-display');
+    if(nameD)  nameD.textContent  = name  || 'Your Name';
+    if(emailD) emailD.textContent = email || (_currentUser ? '' : 'Guest — not signed in');
+    if(nameI)  nameI.value  = name;
+    if(emailI) emailI.value = email;
+    if(avd){
+      if(_profileData.photo){
+        avd.innerHTML = '<img src="' + _profileData.photo + '">';
+        avd.style.background = 'transparent';
+      } else {
+        avd.innerHTML = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+        avd.style.background = color;
+      }
+    }
+    const signBtn = document.getElementById('pp-signout-btn');
+    if(signBtn){
+      if(_currentUser){
+        signBtn.textContent = 'Sign Out';
+        signBtn.onclick = signOut;
+      } else {
+        signBtn.textContent = '🔑 Sign In / Create Account';
+        signBtn.onclick = function(){ location.href='login.html'; };
+      }
+    }
+    const ct   = document.getElementById('saved-count');
+    const ppS  = document.getElementById('pp-stat-saved');
+    if(ppS) ppS.textContent = (ct && ct.textContent !== '0') ? ct.textContent : '—';
+    const ppL  = document.getElementById('pp-stat-last');
+    if(ppL){
+      const n = new Date();
+      ppL.textContent = String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+String(n.getFullYear()).slice(-2);
+    }
+    const ppSt = document.getElementById('pp-stat-storage');
+    if(ppSt) ppSt.textContent = _currentUser ? '☁ Cloud account' : (typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY ? '☁ Cloud (guest)' : '💾 Local');
+    document.querySelectorAll('.pp-color-swatch').forEach(function(el){
+      el.classList.toggle('active', el.dataset.color === color);
+    });
+  }
+
+  function previewProfileName(val){
+    const d = document.getElementById('pp-name-display');
+    if(d) d.textContent = val || 'Your Name';
+    const avd = document.getElementById('pp-avatar-display');
+    if(avd && !_profileData.photo){
+      avd.innerHTML = val ? val.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+    }
+  }
+
+  function setProfileColor(color){
+    _profileData.color = color;
+    // Immediately persist the colour so it propagates across all pages
+    lsSet(getProfileKey(), JSON.stringify(_profileData));
+    const avd = document.getElementById('pp-avatar-display');
+    if(avd && !_profileData.photo) avd.style.background = color;
+    document.querySelectorAll('.pp-color-swatch').forEach(function(el){
+      el.classList.toggle('active', el.dataset.color === color);
+    });
+    renderProfileBtn();
+  }
+
+  function handleProfilePhoto(input){
+    const file = input.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        // Use 320×320 for crisp display at all sizes — square-crop centred
+        const size = Math.min(img.width, img.height, 320);
+        const c = document.createElement('canvas');
+        c.width = size; c.height = size;
+        c.getContext('2d').drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, size, size);
+        _profileData.photo = c.toDataURL('image/jpeg', 0.92);
+        renderProfileBtn(); renderProfilePanel();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function saveProfile(){
+    _profileData.name  = (document.getElementById('pp-name-input')  && document.getElementById('pp-name-input').value.trim())  || '';
+    _profileData.email = (document.getElementById('pp-email-input') && document.getElementById('pp-email-input').value.trim()) || '';
+    lsSet(getProfileKey(), JSON.stringify(_profileData));
+    renderProfileBtn(); renderProfilePanel();
+    closeProfile();
+    showToast('✓ Profile saved');
+  }
+
+  function openProfile(){
+    renderProfilePanel();
+    const panel   = document.getElementById('profile-panel');
+    const overlay = document.getElementById('profile-overlay');
+    if(panel)   panel.classList.add('open');
+    if(overlay) overlay.classList.add('open');
+  }
+
+  // ── TOP-RIGHT PROFILE WIDGET ──────────────────────────────────
+  function toggleAppProfileMenu(){
+    const menu = document.getElementById('app-profile-menu');
+    if(!menu) return;
+    const isOpen = menu.style.display === 'block';
+    if(!isOpen) renderAppProfileBtn(); // refresh admin link visibility on open
+    menu.style.display = isOpen ? 'none' : 'block';
+  }
+  function closeAppProfileMenu(){
+    const menu = document.getElementById('app-profile-menu');
+    if(menu) menu.style.display = 'none';
+  }
+  function renderAppProfileBtn(){
+    const btn   = document.getElementById('app-profile-btn');
+    const nameEl  = document.getElementById('app-profile-name');
+    const emailEl = document.getElementById('app-profile-email');
+    if(!btn) return;
+    const name  = (_currentUser && _currentUser.name)  || _profileData.name  || '';
+    const email = (_currentUser && _currentUser.email) || _profileData.email || '';
+    const color = _profileData.color || '#C9A84C';
+    const photo = _profileData.photo || '';
+    if(photo){
+      btn.style.background = 'transparent';
+      btn.style.padding = '0';
+      btn.innerHTML = '<img src="' + photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;display:block;">';
+    } else {
+      var parts2 = name ? name.trim().split(/\s+/).filter(Boolean) : [];
+      var ini = parts2.length===0?'?':parts2.length===1?parts2[0][0].toUpperCase():(parts2[0][0]+parts2[parts2.length-1][0]).toUpperCase();
+      btn.style.background = color;
+      btn.style.padding = '';
+      btn.innerHTML = ini;
+    }
+    if(nameEl)  nameEl.textContent  = name  || 'Account';
+    if(emailEl) emailEl.textContent = email || '';
+    const adminLink = document.getElementById('app-admin-link');
+    if(adminLink) adminLink.style.display = (_currentUser && _currentUser.role === 'admin') ? 'flex' : 'none';
+  }
+  function appSignOut(){
+    signOut();
+  }
+  // Close profile menu on outside click
+  document.addEventListener('click', function(e){
+    const widget = document.getElementById('app-profile-widget');
+    if(widget && !widget.contains(e.target)) closeAppProfileMenu();
+  });
+
+  // After full page load, re-render the top-right profile button (it's defined after the main script)
+  window.addEventListener('load', function(){
+    renderAppProfileBtn();
+    setAppHeight(); // recalculate after all elements are rendered
+    // Extra recalc for PWA/iOS where safe-area-inset and font rendering settle after load
+    setTimeout(setAppHeight, 200);
+    setTimeout(setAppHeight, 600);
+  });
+
+  function closeProfile(){
+    const panel   = document.getElementById('profile-panel');
+    const overlay = document.getElementById('profile-overlay');
+    if(panel)   panel.classList.remove('open');
+    if(overlay) overlay.classList.remove('open');
+  }
+
+
+
+
+  function showPageSpinner(){ var s=document.getElementById('page-spinner'); if(s) s.classList.add('show'); }
+
+  function signOut(){
+    showPageSpinner();
+    if(_currentUser && _currentUser.token){
+      callAuthFn('signout', {token: _currentUser.token}).catch(function(){});
+    }
+    lsDel(SESSION_KEY);
+    location.href = 'login.html';
+  }
+
+  // ── NEW SCENARIO ──
+  async function newScenario(){
+    if(_isDirty){
+      var ok = await appConfirm('New Scenario', 'Start a new scenario? Unsaved changes will be lost.', {icon:'✨', confirmLabel:'Start New'});
+      if(!ok) return;
+    }
+    var defaults = {
+      'inp-price':'0','inp-savings':'0','inp-depp':'0',
+      'inp-govt':'0','inp-rate':'0','inp-term':'0',
+      'inp-cont':'0','inp-rent':'0','inp-weeks':'0'
+    };
+    Object.keys(defaults).forEach(function(id){
+      var val = defaults[id];
+      var inp = document.getElementById(id);
+      var rng = document.getElementById(id.replace('inp-','rng-'));
+      if(inp) inp.value = val;
+      if(rng) rng.value = val;
+      rl(id.replace('inp-',''), parseFloat(val)||0);
+    });
+    ['pd-address','pd-suburb','pd-state','pd-url','pd-notes','pd-photo-url',
+     'ag-agency','ag-name','ag-phone','ag-email','inp-address'].forEach(function(id){
+      var el = document.getElementById(id); if(el) el.value='';
+    });
+    ['pd-bed','pd-bath','pd-car'].forEach(function(id){
+      var el = document.getElementById(id); if(el) el.value='0';
+    });
+    ['pd-land','pd-house','pd-year'].forEach(function(id){
+      var el = document.getElementById(id); if(el) el.value='';
+    });
+    dynCosts=[]; renderDynCosts();
+    renoItems=[]; renderRenoItems();
+    keyDates=[]; renderKeyDates();
+    commsLog=[]; renderCommsLog();
+    var browsingBtn = document.querySelector('[data-status="browsing"]');
+    if(browsingBtn) setStatus('browsing', browsingBtn);
+    clearPropPhoto();
+    var houseBtn = document.querySelector('.prop-type-btn');
+    if(houseBtn) setPropType(houseBtn,'House');
+    _lastSavedAddr = null; _isDirty = false;
+    lsDel(DRAFT_KEY);
+    var propTabBtn = document.querySelector('.tab[onclick*="property"]');
+    if(propTabBtn) showTab('property', propTabBtn);
+    updateUnsavedBadge(); recalc();
+    showToast('✨ New scenario ready');
+  }
+
+  // ── WELCOME SPLASH ──
+  function showWelcomeSplash(){
+    var splash = document.getElementById('welcome-splash');
+    if(splash){ splash.style.display = 'flex'; }
+  }
+  function hideSplash(){
+    var splash = document.getElementById('welcome-splash');
+    if(!splash) return;
+    splash.classList.add('hiding');
+    setTimeout(function(){ splash.style.display='none'; splash.classList.remove('hiding'); }, 420);
+    try{ localStorage.setItem('propCalc_splash_seen','1'); }catch(e){}
+  }
+  function splashNewScenario(){ hideSplash(); }
+  function splashOpenLibrary(){
+    hideSplash();
+    setTimeout(openScenariosModal, 300);
+  }
+
+
+  // ── COLLAPSIBLE SIDEBAR ──
+  var _sidebarCollapsed = false;
+  function toggleSidebarCollapse(){
+    var sb = document.querySelector('.sidebar');
+    var btn = document.getElementById('sidebar-toggle');
+    var appBody = document.querySelector('.app-body');
+    _sidebarCollapsed = !_sidebarCollapsed;
+    if(_sidebarCollapsed){
+      sb.classList.add('collapsed');
+      if(btn) btn.textContent = '›';
+      if(appBody) appBody.style.gridTemplateColumns = '48px 1fr';
+    } else {
+      sb.classList.remove('collapsed');
+      if(btn) btn.textContent = '‹';
+      if(appBody) appBody.style.gridTemplateColumns = '';
+    }
+  }
+
+
+  // ═══════════════════════════════════════════════
+  // FLOATING ACCOUNT PANEL
+  // ═══════════════════════════════════════════════
+  const AP_COLORS = ['#C9A84C','#7B9E87','#5B8FAB','#C4704A','#C45A5A','#8B6FAE','#4A9E8A','#B0956E'];
+
+
+  // Handle URL params - auto-open panels
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    if(params.get('openAccount') === '1'){
+      // Remove param from URL without reload
+      var url = new URL(window.location);
+      url.searchParams.delete('openAccount');
+      window.history.replaceState({}, '', url);
+      // Open account panel after init
+      setTimeout(function(){
+        if(window.openAccountPanel) window.openAccountPanel();
+      }, 800);
+    }
+  })();
+
+    window.openAccountPanel = function(){
+    if(!_currentUser){ location.href='login.html'; return; }
+    document.getElementById('account-panel').classList.add('open');
+    document.getElementById('account-panel-overlay').classList.add('open');
+    document.body.style.overflow='hidden';
+    apRenderPanel();
+  };
+  window.closeAccountPanel = function(){
+    document.getElementById('account-panel').classList.remove('open');
+    document.getElementById('account-panel-overlay').classList.remove('open');
+    document.body.style.overflow='';
+  };
+
+  function apRenderPanel(){
+    var u = _currentUser;
+    var p = _profileData;
+    if(!u) return;
+    var name = u.name || p.name || 'User';
+    var email = u.email || p.email || '';
+    var plan = u.plan || 'free';
+    var color = p.color || '#C9A84C';
+    
+    // Avatar
+    var av = document.getElementById('ap-avatar');
+    if(av){
+      var parts = name.trim().split(/\s+/).filter(Boolean);
+      var ini = parts.length===1?parts[0][0].toUpperCase():(parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+      if(p.photo){
+        av.innerHTML='<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        av.style.background='transparent';
+      } else {
+        av.textContent=ini;
+        av.style.background=color;
+      }
+    }
+    
+    // Text fields
+    var nd = document.getElementById('ap-name-display');
+    var ed = document.getElementById('ap-email-display');
+    var ni = document.getElementById('ap-name');
+    if(nd) nd.textContent = name;
+    if(ed) ed.textContent = email;
+    if(ni) ni.value = name;
+    
+    // Plan
+    var pd = document.getElementById('ap-plan-display');
+    var pn = document.getElementById('ap-plan-name');
+    var pdesc = document.getElementById('ap-plan-desc');
+    var ub = document.getElementById('ap-upgrade-btn');
+    if(pd) pd.textContent = plan==='free'?'⭐ Starter':(plan==='pro'?'⚡ Pro':'👑 Adviser');
+    if(pn) pn.textContent = plan==='free'?'Starter (Free)':(plan==='pro'?'Pro — A$9/mo AUD':'Adviser — A$29/mo AUD');
+    if(pdesc) pdesc.textContent = plan==='free'?'1 saved scenario · Core calculator':'Unlimited scenarios · Cloud sync · PDF export · Projection chart';
+    if(ub) ub.style.display = plan==='free'?'':'none';
+    
+    // Color swatches
+    var cr = document.getElementById('ap-colors');
+    if(cr){
+      cr.innerHTML = AP_COLORS.map(function(c2){
+        return '<div class="ap-swatch'+(c2===color?' active':'')+'" style="background:'+c2+';" onclick="apSetColor(this,\''+c2+'\')"></div>';
+      }).join('');
+    }
+  }
+
+  function apSetColor(el, color){
+    document.querySelectorAll('.ap-swatch').forEach(function(s){s.classList.remove('active');});
+    el.classList.add('active');
+    _profileData.color = color;
+    var av = document.getElementById('ap-avatar');
+    if(av && !_profileData.photo) av.style.background = color;
+  }
+
+  function apLoadPhoto(input){
+    var file = input.files && input.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        var canvas = document.createElement('canvas');
+        var size = Math.min(img.width, img.height, 320);
+        canvas.width = size; canvas.height = size;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, size, size);
+        var data = canvas.toDataURL('image/jpeg', 0.92);
+        _profileData.photo = data;
+        var av = document.getElementById('ap-avatar');
+        if(av){ av.innerHTML='<img src="'+data+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; av.style.background='transparent'; }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function apRemovePhoto(){
+    _profileData.photo = '';
+    apRenderPanel();
+  }
+
+  async function apSaveProfile(){
+    var st = document.getElementById('ap-profile-status');
+    var nameVal = (document.getElementById('ap-name').value||'').trim();
+    if(!nameVal){ st.textContent='Name is required'; st.className='ap-status err'; return; }
+    st.textContent='Saving…'; st.className='ap-status ok';
+    _profileData.name = nameVal;
+    if(_currentUser) _currentUser.name = nameVal;
+    // Save to localStorage
+    lsSet(getProfileKey(), JSON.stringify(_profileData));
+    // Save to backend
+    try{
+      var authH = getAuthHeader();
+      if(authH){
+        var profileToSave = Object.assign({}, _profileData);
+        delete profileToSave.photo; // photos via separate endpoint
+        await fetch('/.netlify/functions/auth',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':authH},
+          body:JSON.stringify({action:'setProfile',profile:profileToSave})
+        });
+        if(_profileData.photo && authH){
+          await fetch('/.netlify/functions/auth',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':authH},
+            body:JSON.stringify({action:'setPhoto',photo:_profileData.photo})
+          });
+        }
+      }
+    } catch(e){}
+    st.textContent='✓ Profile saved';
+    renderProfileBtn();
+    renderAppProfileBtn && renderAppProfileBtn();
+    setTimeout(function(){ st.className='ap-status'; }, 3000);
+  }
+
+  async function apChangePassword(){
+    var cur = (document.getElementById('ap-pw-current').value||'').trim();
+    var nw  = document.getElementById('ap-pw-new').value;
+    var cf  = document.getElementById('ap-pw-confirm').value;
+    var st  = document.getElementById('ap-pw-status');
+    if(!cur||!nw){ st.textContent='Fill in all fields'; st.className='ap-status err'; return; }
+    if(nw.length<8){ st.textContent='New password must be 8+ characters'; st.className='ap-status err'; return; }
+    if(nw!==cf){ st.textContent="Passwords don't match"; st.className='ap-status err'; return; }
+    st.textContent='Updating…'; st.className='ap-status ok';
+    try{
+      var r = await fetch('/.netlify/functions/auth',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization': getAuthHeader()||''},
+        body:JSON.stringify({action:'changePassword', currentPassword:cur, newPassword:nw})
+      });
+      var d = await r.json();
+      if(d.ok){
+        st.textContent='✓ Password updated';
+        document.getElementById('ap-pw-current').value='';
+        document.getElementById('ap-pw-new').value='';
+        document.getElementById('ap-pw-confirm').value='';
+        setTimeout(function(){ st.className='ap-status'; }, 3000);
+      } else {
+        st.textContent = d.error||'Incorrect current password';
+        st.className='ap-status err';
+      }
+    } catch(e){ st.textContent='Network error'; st.className='ap-status err'; }
+  }
+
+  async function apDeleteAccount(){
+    var pw = await appPrompt('Delete Account', 'Enter your password to permanently delete your account. This cannot be undone.', {danger:true, confirmLabel:'Delete Account', inputPlaceholder:'Your password'});
+    if(!pw) return;
+    try{
+      var r = await fetch('/.netlify/functions/auth',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization': getAuthHeader()||''},
+        body:JSON.stringify({action:'deleteAccount', password:pw})
+      });
+      var d = await r.json();
+      if(d.ok){
+        localStorage.clear();
+        await appAlert('Account Deleted', 'Your account has been deleted. You will now be redirected.', {icon:'👋'});
+        location.href='index.html';
+      } else {
+        await appAlert('Error', d.error||'Incorrect password — account not deleted', {danger:true, icon:'✗'});
+      }
+    } catch(e){
+      await appAlert('Network Error', 'Could not connect — please try again.', {danger:true, icon:'✗'});
+    }
+  }
+  // END FLOATING ACCOUNT PANEL
+

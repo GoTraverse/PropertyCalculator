@@ -21,8 +21,7 @@ General(DO NOT REMOVE THIS LINE)
 10. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
 11. Add forgot password functionality.
 12. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
-13. !Restructure my HTML/CSS/JS into modular, reusable components (header, footer, sidebar, modals, scenario cards), move all inline CSS/JS into separate files per component, preserve all current functionality, keep the investment engine separate, make it mobile-friendly, use consistent naming, and include comments for clarity.
-    [PARTIAL - Phase 2 done: index.css extracted. Remaining: admin.html, app.html JS extraction]
+13. DONE
 
 
 Desktop(DO NOT REMOVE THIS LINE)
