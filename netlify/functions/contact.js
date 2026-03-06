@@ -47,6 +47,7 @@ exports.handler = async function(event) {
   const { name, email, subject, message } = body;
   if (!name || !email || !subject || !message) return fail('All fields required');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Invalid email');
+  if (message.length > 5000) return fail('Message too long (max 5000 characters)');
 
   // Get support email from config
   let toEmail = 'support@equitysight.app';
