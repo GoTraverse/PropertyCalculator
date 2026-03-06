@@ -9,11 +9,19 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-1. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
+1. We need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
 2. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
+3. The annual growth rate slider/setting in the projection tab, maybe we get rud of that section and put it in a popup window where the user can click a button somehere under the graph to open the settings.
+4. Instead of writing into a text field directly in each reno item, make it open a custom themed text box.
+5. Some dark mode colours clash, like background is black and text is black, can you fix this? also library popup and pdf export popup don't adhere to dark mode rules.
+6. 
 
 Desktop(DO NOT REMOVE THIS LINE)
 1.
 
 PWA(DO NOT REMOVE THIS LINE)
-1.
+1. The scenario calculator can scroll left and right when its opened. only want vertical scroll.
+2. the projection graph slider needs to be below the values it changes so its easy on mobile to use.
+3. Amortisation table, when its opened on mobile it still causes there to be a littlle bit i can scroll horizontally which i dont want. confine it so it can only vertical scroll.
+4. Can we make it so i cant hold my finger on text to select it, site wide on PWA?
+3. 
