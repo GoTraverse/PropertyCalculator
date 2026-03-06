@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <script>
+  // Apply saved theme before render to prevent flash
+  (function(){ try{ if(localStorage.getItem('equitySight_theme')==='dark') document.documentElement.classList.add('dark-mode'); }catch(e){} })();
   // Auth guard — redirect to login only if no session exists at all.
   // Be permissive: any non-empty session object is treated as valid.
   // The server will reject bad tokens; this just prevents blank-slate access.
@@ -1159,6 +1161,8 @@
       <button onclick="closeAppProfileMenu()" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;background:none;border:none;cursor:pointer;font-family:inherit;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">Calculator</button>
       <a href="account.html" onclick="closeAppProfileMenu()" style="display:flex;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">Account Settings</a>
       <a id="app-admin-link" href="admin.html" style="display:none;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">Admin Dashboard</a>
+      <div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>
+      <button id="app-theme-toggle" onclick="toggleAppTheme()" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;background:none;border:none;cursor:pointer;font-family:inherit;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">🌙 Dark mode</button>
       <div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>
       <button onclick="appSignOut()" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:11px 14px;color:rgba(245,240,232,0.4);font-size:14px;border-radius:5px;background:none;border:none;cursor:pointer;font-family:inherit;transition:background 0.12s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='none'">Sign Out</button>
     </div>

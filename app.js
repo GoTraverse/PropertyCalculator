@@ -3284,6 +3284,18 @@
   }
 
   // ── TOP-RIGHT PROFILE WIDGET ──────────────────────────────────
+  function toggleAppTheme(){
+    const isDark = document.documentElement.classList.toggle('dark-mode');
+    try{ localStorage.setItem('equitySight_theme', isDark ? 'dark' : 'light'); }catch(e){}
+    const btn = document.getElementById('app-theme-toggle');
+    if(btn) btn.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
+  }
+  // Update theme button label on page load
+  (function(){
+    const btn = document.getElementById('app-theme-toggle');
+    if(btn && document.documentElement.classList.contains('dark-mode')) btn.textContent = '☀️ Light mode';
+  })();
+
   function toggleAppProfileMenu(){
     const menu = document.getElementById('app-profile-menu');
     if(!menu) return;

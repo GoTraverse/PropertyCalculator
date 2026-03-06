@@ -9,13 +9,10 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-1. Stripe testing works, except it doesnt seem to show in my account settings when it gets redirected back that i have cancelled the subscription? Or is that because its still in the subscription period?
-2. Need to add automated email functional for confirming email addresses at sign up and then sending an email once signed up. this can also be used for sending invoices. Maybe we use a temporary free mail server until i setup an O365.
-3. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
-4. Add dark mode/light mode. can be toggled from theprofile drop down.
-5. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
-6. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
-7. I like the profile menu tha comes up on the app page so can we make that the same accross all pages?
+1. Need to add automated email functional for confirming email addresses at sign up and then sending an email once signed up. this can also be used for sending invoices. Maybe we use a temporary free mail server until i setup an O365.
+2. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
+3. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
+4. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
 
 Desktop(DO NOT REMOVE THIS LINE)
 1.

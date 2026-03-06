@@ -663,3 +663,26 @@
 .app-dialog-btn-confirm{background:var(--charcoal);border:1px solid var(--charcoal);color:var(--cream);}
 .app-dialog-btn-confirm:hover{opacity:0.85;}
 .app-dialog-btn-confirm.danger{background:var(--risk-red);border-color:var(--risk-red);}
+
+/* ── Dark mode overrides for app page ── */
+html.dark-mode body{background:#111113!important;color:#F5F0E8!important;}
+html.dark-mode main{background:#111113!important;}
+html.dark-mode .card{background:#1C1C1E!important;border-color:rgba(255,255,255,0.08)!important;color:#F5F0E8!important;}
+html.dark-mode .card label,html.dark-mode .card .card-label,html.dark-mode .pd-field label{color:rgba(245,240,232,0.6)!important;}
+html.dark-mode .pd-field input[type="text"],html.dark-mode .pd-field input[type="number"],html.dark-mode .pd-field input[type="tel"],html.dark-mode .pd-field input[type="email"],html.dark-mode .pd-field select,html.dark-mode .pd-field textarea{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;}
+html.dark-mode .tab{color:rgba(245,240,232,0.45)!important;border-bottom-color:transparent!important;}
+html.dark-mode .tab.active{color:#F5F0E8!important;border-bottom-color:var(--gold)!important;}
+html.dark-mode .tab:hover{color:rgba(245,240,232,0.8)!important;}
+html.dark-mode .lib-row{background:#1C1C1E!important;border-color:rgba(255,255,255,0.08)!important;color:#F5F0E8!important;}
+html.dark-mode .lib-row:hover{background:#2C2C2E!important;}
+html.dark-mode .lib-row-sub{color:rgba(245,240,232,0.45)!important;}
+html.dark-mode .addr-suggestions{background:#2C2C2E!important;border-color:rgba(255,255,255,0.12)!important;}
+html.dark-mode .addr-sug-item:hover{background:rgba(255,255,255,0.06)!important;}
+html.dark-mode .reno-note{background:rgba(255,255,255,0.04)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.75)!important;}
+html.dark-mode .scenario-header{color:rgba(245,240,232,0.6)!important;}
+html.dark-mode .app-dialog-overlay{background:rgba(0,0,0,0.75)!important;}
+html.dark-mode .app-dialog{background:#1C1C1E!important;border-color:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;}
+html.dark-mode .app-dialog-btn-cancel{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.12)!important;color:rgba(245,240,232,0.7)!important;}
+html.dark-mode .dyn-cost-row input,html.dark-mode .kd-row input,html.dark-mode .comms-row input{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;}
+html.dark-mode .tld{border-color:#111113!important;background:#111113!important;}
+html.dark-mode .section-label{color:rgba(245,240,232,0.4)!important;border-bottom-color:rgba(255,255,255,0.06)!important;}

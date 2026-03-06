@@ -33,6 +33,51 @@
   --shadow-lg: 0 20px 60px rgba(0,0,0,0.22);
 }
 
+/* ── Dark mode ── */
+html.dark-mode { color-scheme: dark; background: #111113; }
+html.dark-mode body { background: #111113 !important; color: #F5F0E8 !important; }
+html.dark-mode .site-nav { background: rgba(8,8,10,0.98) !important; }
+/* Cards & panels */
+html.dark-mode .acct-card,
+html.dark-mode .stat-card,
+html.dark-mode .feature-card { background: #1C1C1E !important; border-color: rgba(255,255,255,0.08) !important; }
+html.dark-mode .acct-card-head { border-color: rgba(255,255,255,0.08) !important; }
+html.dark-mode .security-row { border-color: rgba(255,255,255,0.06) !important; }
+html.dark-mode .security-label,
+html.dark-mode .acct-card-head h3,
+html.dark-mode .acct-card-head p { color: rgba(245,240,232,0.8) !important; }
+html.dark-mode .security-meta { color: rgba(245,240,232,0.5) !important; }
+html.dark-mode .acct-nav-item { color: rgba(245,240,232,0.55) !important; }
+html.dark-mode .acct-nav-item.active,
+html.dark-mode .acct-nav-item:hover { background: rgba(255,255,255,0.07) !important; color: #F5F0E8 !important; }
+html.dark-mode .plan-feature { border-color: rgba(255,255,255,0.05) !important; color: rgba(245,240,232,0.65) !important; }
+/* Inputs */
+html.dark-mode input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+html.dark-mode select,
+html.dark-mode textarea { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.12) !important; color: #F5F0E8 !important; }
+html.dark-mode .form-input { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.12) !important; color: #F5F0E8 !important; }
+html.dark-mode .form-label { color: rgba(245,240,232,0.65) !important; }
+/* Pricing cards */
+html.dark-mode .pricing-card { background: #1C1C1E !important; border-color: rgba(255,255,255,0.1) !important; }
+html.dark-mode .pricing-card .price-label,
+html.dark-mode .pricing-card .feature-text { color: rgba(245,240,232,0.7) !important; }
+/* Sections */
+html.dark-mode section:not(.dark-section),
+html.dark-mode .page-section { background: #111113 !important; }
+html.dark-mode h1, html.dark-mode h2, html.dark-mode h3,
+html.dark-mode h4, html.dark-mode p { color: inherit; }
+/* Admin */
+html.dark-mode .admin-layout { color: #F5F0E8 !important; }
+html.dark-mode .user-table th,
+html.dark-mode .user-table td { color: rgba(245,240,232,0.8) !important; border-color: rgba(255,255,255,0.06) !important; }
+html.dark-mode .user-table tr:hover { background: rgba(255,255,255,0.04) !important; }
+html.dark-mode .user-cog-menu { background: #2C2C2E !important; border-color: rgba(255,255,255,0.12) !important; }
+html.dark-mode .cog-menu-item { color: rgba(245,240,232,0.8) !important; }
+html.dark-mode .cog-menu-item:hover { background: rgba(255,255,255,0.07) !important; }
+html.dark-mode .admin-tab { color: rgba(245,240,232,0.5) !important; border-color: rgba(255,255,255,0.08) !important; }
+html.dark-mode .admin-tab.active { color: #F5F0E8 !important; border-bottom-color: var(--gold) !important; background: rgba(255,255,255,0.05) !important; }
+html.dark-mode .config-input { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.1) !important; color: #F5F0E8 !important; }
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
