@@ -378,7 +378,7 @@
     /* Sidebar */
     #sidebar-close-btn{display:block!important;}
     .sidebar{display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;overscroll-behavior:none;border-radius:0;padding-top:env(safe-area-inset-top,0px);}
-    .sidebar.mobile-open{display:block!important;}
+    .sidebar.mobile-open{display:block!important;padding-bottom:max(100px, calc(env(safe-area-inset-bottom) + 88px))!important;}
     .sidebar.mobile-open .sidebar-title{padding-top:max(14px, calc(env(safe-area-inset-top) + 8px))!important;}
     #mobile-sidebar-btn{display:none!important;}
     #mobile-calc-fab{display:flex!important;}
