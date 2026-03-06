@@ -307,6 +307,43 @@
           <div style="font-size:13px;line-height:1.6;">Fill in your property details and click <strong>Save</strong> to save your first property.</div>
         </div>
         <div id="scenarios-grid"></div>
+
+        <!-- Shared with me section -->
+        <div id="shared-section" style="display:none;margin-top:20px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:8px 0 6px;border-bottom:1px solid rgba(201,168,76,0.2);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+            <span>👥 Shared with me</span>
+            <span id="shared-count" style="color:rgba(201,168,76,0.5);font-size:9px;"></span>
+          </div>
+          <div id="shared-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SHARE SCENARIO MODAL ══ -->
+  <div id="share-modal" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.7);" onclick="if(event.target===this)closeShareModal()">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,92vw);background:var(--warm-white);border-radius:6px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.4);">
+      <div style="background:var(--charcoal);padding:16px 20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:3px;">SHARE SCENARIO</div>
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:white;">Share with another user</div>
+      </div>
+      <div style="padding:20px;">
+        <p style="font-size:13px;color:var(--slate);line-height:1.7;margin-bottom:14px;">The person you share with can view and load this scenario. Enter their EquitySight account email.</p>
+        <div style="margin-bottom:8px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Their email address</div>
+          <input id="share-email-input" type="email" placeholder="user@example.com"
+            style="width:100%;padding:10px 12px;border:1px solid rgba(28,28,30,0.15);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:rgba(28,28,30,0.04);color:var(--charcoal);"
+            onkeydown="if(event.key==='Enter')confirmShare()">
+        </div>
+        <div id="share-also-list" style="display:none;margin-bottom:12px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);margin-bottom:5px;">Currently shared with:</div>
+          <div id="share-also-names" style="font-size:12px;color:var(--slate);line-height:1.8;"></div>
+        </div>
+        <div id="share-status" style="font-size:12px;min-height:18px;margin-bottom:12px;"></div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="confirmShare()" id="share-confirm-btn" style="flex:1;padding:10px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
+          <button onclick="closeShareModal()" style="flex:1;padding:10px;background:rgba(28,28,30,0.07);color:var(--slate);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -321,7 +358,7 @@
       <div style="padding:20px;">
         <p style="font-size:13px;color:var(--slate);line-height:1.7;margin-bottom:16px;">Loading <strong id="confirm-name" style="color:var(--charcoal);">this scenario</strong> will replace all your current values. Any unsaved changes will be lost.</p>
         <div style="display:flex;gap:10px;">
-          <button onclick="confirmLoad()" style="flex:1;padding:10px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">✓ Yes, Load It</button>
+          <button onclick="_pendingShared?confirmLoadShared():confirmLoad()" style="flex:1;padding:10px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">✓ Yes, Load It</button>
           <button onclick="closeConfirmModal()" style="flex:1;padding:10px;background:rgba(28,28,30,0.07);color:var(--slate);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;">Cancel</button>
         </div>
       </div>
@@ -919,13 +956,9 @@
           <!-- Click tooltip (item 6) -->
           <div id="proj-tooltip" style="display:none;position:absolute;background:var(--charcoal);color:var(--cream);border-radius:6px;padding:16px 22px;font-family:'DM Mono',monospace;font-size:13px;min-width:210px;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.35);min-width:210px;z-index:10;"></div>
         </div>
-        <!-- Mobile-only slider explorer -->
+        <!-- Mobile-only slider explorer — values first, slider below -->
         <div id="proj-mobile-slider" style="display:none;margin-top:12px;">
-          <div style="font-size:10px;color:var(--slate);font-style:italic;margin-bottom:8px;">Drag to explore quarters</div>
-          <input type="range" id="proj-slider-input" min="0" max="120" step="1" value="0"
-            style="width:100%;accent-color:var(--gold);height:28px;"
-            oninput="projSliderMove(parseInt(this.value))">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
             <div class="proj-slider-box">
               <div class="proj-slider-box-lbl">Quarter</div>
               <div class="proj-slider-box-val" id="psb-quarter" style="color:var(--gold);">—</div>
@@ -947,6 +980,10 @@
               <div class="proj-slider-box-val" id="psb-equity" style="color:var(--reward-green);font-size:20px;">—</div>
             </div>
           </div>
+          <div style="font-size:10px;color:var(--slate);font-style:italic;margin-bottom:6px;text-align:center;">Drag to explore quarters</div>
+          <input type="range" id="proj-slider-input" min="0" max="120" step="1" value="0"
+            style="width:100%;accent-color:var(--gold);height:34px;"
+            oninput="projSliderMove(parseInt(this.value))">
         </div>
       </div>
 

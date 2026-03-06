@@ -1310,6 +1310,7 @@
     grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\'DM Mono\',monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
     _scenariosCache = await getAllScenarios();
     _renderScenariosToDOM(_scenariosCache);
+    loadSharedWithMe(); // load shared-with-me in parallel
   }
 
   async function _renderScenariosToDOM(all){
@@ -1349,6 +1350,7 @@
           <div class="lib-price">${price}</div>
           <div class="lib-badge" style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}55;">${sLabel}</div>
           <div class="lib-ts">${(s.timestamp||'').replace(/(\d+)\s([A-Za-z]+)\s(\d{4})/,(_,d,mo,y)=>{const mn={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};return String(d).padStart(2,'0')+'/'+(mn[mo]||'01')+'/'+y;})}</div>
+          <button class="lib-share" onclick="event.stopPropagation();openShareModal('${s.id}',event)" title="Share with another user">↗</button>
           <button class="lib-del" onclick="event.stopPropagation();deleteScenario('${s.id}')" title="Delete">✕</button>
         </div>`;
     });
@@ -1555,6 +1557,154 @@
     await deleteScenarioFromBackend(id);
     updateSavedCount();
     renderScenariosList();
+  }
+
+  // ── SHARE / COLLABORATE ──────────────────────────────────────────────
+  var _shareTargetId = null;
+
+  async function openShareModal(scenarioId, e){
+    if(e) e.stopPropagation();
+    _shareTargetId = scenarioId;
+    document.getElementById('share-email-input').value = '';
+    document.getElementById('share-status').textContent = '';
+    document.getElementById('share-status').style.color = '';
+    document.getElementById('share-also-list').style.display = 'none';
+    document.getElementById('share-modal').style.display = 'block';
+    // Load existing shares for this scenario
+    try{
+      const authH = getAuthHeader();
+      if(authH){
+        const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'getMyShares',scenarioId})});
+        if(r.ok){
+          const d = await r.json();
+          if(d.ok && d.shares && d.shares.length){
+            document.getElementById('share-also-names').textContent = d.shares.map(s=>s.name||s.email).join(', ');
+            document.getElementById('share-also-list').style.display = 'block';
+          }
+        }
+      }
+    }catch(e2){}
+    setTimeout(()=>document.getElementById('share-email-input').focus(),100);
+  }
+
+  function closeShareModal(){
+    document.getElementById('share-modal').style.display = 'none';
+    _shareTargetId = null;
+  }
+
+  async function confirmShare(){
+    const email = document.getElementById('share-email-input').value.trim();
+    const statusEl = document.getElementById('share-status');
+    const btn = document.getElementById('share-confirm-btn');
+    if(!email){ statusEl.textContent = 'Please enter an email address'; statusEl.style.color = 'var(--risk-red)'; return; }
+    if(!_shareTargetId){ closeShareModal(); return; }
+    btn.textContent = '⏳ Sharing…'; btn.disabled = true;
+    statusEl.textContent = ''; statusEl.style.color = '';
+    try{
+      const authH = getAuthHeader();
+      if(!authH){ statusEl.textContent = 'Please sign in to share scenarios'; statusEl.style.color='var(--risk-red)'; btn.textContent='↗ Share'; btn.disabled=false; return; }
+      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'share',scenarioId:_shareTargetId,targetEmail:email})});
+      const d = await r.json();
+      if(d.ok){
+        if(d.already){
+          statusEl.textContent = `Already shared with ${d.name||email}`;
+          statusEl.style.color = 'var(--slate)';
+        } else {
+          statusEl.textContent = `✓ Shared with ${d.name||email}`;
+          statusEl.style.color = 'var(--reward-green)';
+          document.getElementById('share-email-input').value = '';
+          // Refresh existing shares list
+          const namesEl = document.getElementById('share-also-names');
+          const cur = namesEl.textContent ? namesEl.textContent+', ' : '';
+          namesEl.textContent = cur + (d.name||email);
+          document.getElementById('share-also-list').style.display = 'block';
+        }
+      } else {
+        statusEl.textContent = d.error || 'Failed to share';
+        statusEl.style.color = 'var(--risk-red)';
+      }
+    }catch(err){
+      statusEl.textContent = 'Network error — try again';
+      statusEl.style.color = 'var(--risk-red)';
+    }
+    btn.textContent = '↗ Share'; btn.disabled = false;
+  }
+
+  async function loadSharedWithMe(){
+    try{
+      const authH = getAuthHeader();
+      if(!authH) return;
+      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'getSharedWithMe'})});
+      if(!r.ok) return;
+      const d = await r.json();
+      if(d.ok && d.items && d.items.length) _renderSharedSection(d.items);
+    }catch(e){}
+  }
+
+  function _renderSharedSection(items){
+    const section = document.getElementById('shared-section');
+    const grid = document.getElementById('shared-grid');
+    const countEl = document.getElementById('shared-count');
+    if(!section||!grid) return;
+    if(!items||!items.length){ section.style.display='none'; return; }
+    countEl.textContent = '('+items.length+')';
+    section.style.display = 'block';
+    const rows = items.map(s => {
+      const thumbHtml = s.thumb ? `<img src="${s.thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;">` : '<span style="font-size:24px;">🏠</span>';
+      return `<div class="lib-row" onclick="promptLoadSharedScenario('${s.ownerId}','${s.scenarioId}','${(s.fullAddr||'').replace(/'/g,"\\'")}')">
+        <div class="lib-thumb">${thumbHtml}</div>
+        <div class="lib-info">
+          <div class="lib-addr">${s.fullAddr||'Shared property'}</div>
+          <div class="lib-meta" style="font-size:11px;color:var(--slate);">Shared by ${s.ownerName||s.ownerEmail||'someone'}</div>
+        </div>
+        <div class="lib-shared-badge">Shared</div>
+        <button class="lib-del" onclick="event.stopPropagation();dismissSharedScenario('${s.ownerId}','${s.scenarioId}')" title="Remove from my list">✕</button>
+      </div>`;
+    });
+    grid.innerHTML = rows.join('');
+  }
+
+  var _pendingShared = null;
+
+  async function promptLoadSharedScenario(ownerId, scenarioId, fullAddr){
+    _pendingShared = {ownerId, scenarioId};
+    document.getElementById('confirm-name').textContent = fullAddr || 'this shared property';
+    document.getElementById('confirm-modal').style.display = 'block';
+  }
+
+  async function confirmLoadShared(){
+    if(!_pendingShared) return;
+    const {ownerId, scenarioId} = _pendingShared;
+    _pendingShared = null;
+    closeConfirmModal();
+    try{
+      const authH = getAuthHeader();
+      if(!authH){ showToast('⚠️ Please sign in'); return; }
+      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'getSharedState',ownerId,scenarioId})});
+      const d = await r.json();
+      if(!d.ok){ showToast('⚠️ '+(d.error||'Could not load shared scenario')); return; }
+      const state = typeof d.state==='string' ? JSON.parse(d.state) : d.state;
+      if(!state){ showToast('⚠️ Shared scenario has no data'); return; }
+      closeScenariosModal();
+      _restoringDraft = true;
+      applyScenarioState(state, d.photo||null);
+      _lastSavedAddr = null; // not owned by this user — don't auto-save over it
+      _isDirty = false; _forceDirty = false;
+      updateUnsavedBadge();
+      showToast('✓ Loaded shared scenario (read-only view)');
+      setTimeout(()=>{ _restoringDraft=false; _isDirty=false; updateUnsavedBadge(); }, 1400);
+    }catch(err){
+      showToast('⚠️ Network error loading shared scenario');
+    }
+  }
+
+  async function dismissSharedScenario(ownerId, scenarioId){
+    try{
+      const authH = getAuthHeader();
+      if(!authH) return;
+      await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'dismissShared',ownerId,scenarioId})});
+      loadSharedWithMe(); // refresh
+    }catch(e){}
   }
 
   function updateUnsavedBadge(){

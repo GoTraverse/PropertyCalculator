@@ -215,6 +215,82 @@ exports.handler = async function(event){
       return ok({ok:true});
     }
 
+    if(action==='share'){
+      const {scenarioId, targetEmail} = body;
+      if(!scenarioId||!targetEmail) return fail('scenarioId and targetEmail required');
+      // Verify caller identity from token (need name/email for share record)
+      const ownerData = await verifyToken(authHeader);
+      if(!ownerData||ownerData.userId!==uid) return fail('Auth error');
+      // Look up target user
+      const norm = targetEmail.toLowerCase().trim();
+      const targetUser = await rGet('user:'+norm);
+      if(!targetUser) return fail('No EquitySight account found for that email address');
+      if(targetUser.id===uid) return fail('Cannot share with yourself');
+      // Confirm scenario exists in owner's library
+      const idx = await readIndex(uid);
+      const sc = idx.find(s=>s.id===scenarioId);
+      if(!sc) return fail('Scenario not found');
+      // Update owner's share list for this scenario
+      const shareKey = 'share:'+uid+':'+scenarioId;
+      const shareList = (await rGet(shareKey)) || [];
+      if(shareList.find(s=>s.userId===targetUser.id)) return ok({ok:true, already:true, name:targetUser.name||norm});
+      shareList.push({userId:targetUser.id, email:targetUser.email, name:targetUser.name||norm, sharedAt:Date.now()});
+      await rSet(shareKey, shareList);
+      // Add to recipient's shared-with-me list
+      const swKey = 'sharedwith:'+targetUser.id;
+      const swList = (await rGet(swKey)) || [];
+      swList.push({ownerId:uid, ownerEmail:ownerData.email, ownerName:ownerData.name||ownerData.email, scenarioId, fullAddr:sc.fullAddr, thumb:sc.thumb||'', hasPhoto:sc.hasPhoto||false, sharedAt:Date.now()});
+      await rSet(swKey, swList);
+      return ok({ok:true, name:targetUser.name||norm});
+    }
+
+    if(action==='getSharedWithMe'){
+      const list = (await rGet('sharedwith:'+uid)) || [];
+      return ok({ok:true, items:list});
+    }
+
+    if(action==='getSharedState'){
+      const {ownerId, scenarioId} = body;
+      if(!ownerId||!scenarioId) return fail('ownerId and scenarioId required');
+      // Verify share record exists (owner hasn't revoked)
+      const shareList = (await rGet('share:'+ownerId+':'+scenarioId)) || [];
+      if(!shareList.find(s=>s.userId===uid)) return fail('Access denied — share may have been revoked');
+      const state = await rGet(stateKey(ownerId, scenarioId));
+      const photo = await redisCmd('GET', photoKey(ownerId, scenarioId));
+      return ok({ok:true, state, photo:photo||null});
+    }
+
+    if(action==='getMyShares'){
+      // Get list of who a specific scenario is shared with (owner only)
+      const {scenarioId} = body;
+      if(!scenarioId) return fail('scenarioId required');
+      const shareList = (await rGet('share:'+uid+':'+scenarioId)) || [];
+      return ok({ok:true, shares:shareList});
+    }
+
+    if(action==='removeShare'){
+      const {scenarioId, targetUserId} = body;
+      if(!scenarioId||!targetUserId) return fail('scenarioId and targetUserId required');
+      const shareKey = 'share:'+uid+':'+scenarioId;
+      let shareList = (await rGet(shareKey)) || [];
+      shareList = shareList.filter(s=>s.userId!==targetUserId);
+      await rSet(shareKey, shareList);
+      // Remove from recipient's list
+      const swKey = 'sharedwith:'+targetUserId;
+      const swList = ((await rGet(swKey))||[]).filter(s=>!(s.ownerId===uid&&s.scenarioId===scenarioId));
+      await rSet(swKey, swList);
+      return ok({ok:true});
+    }
+
+    if(action==='dismissShared'){
+      const {ownerId, scenarioId} = body;
+      if(!ownerId||!scenarioId) return fail('ownerId and scenarioId required');
+      const swKey = 'sharedwith:'+uid;
+      const swList = ((await rGet(swKey))||[]).filter(s=>!(s.ownerId===ownerId&&s.scenarioId===scenarioId));
+      await rSet(swKey, swList);
+      return ok({ok:true});
+    }
+
     return fail('Unknown action');
   }
 
