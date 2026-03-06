@@ -1418,6 +1418,13 @@
       _restoringDraft = false;
       _isDirty = false;   // re-confirm clean after timers have fired
       updateUnsavedBadge();
+      // Write a draft immediately so that a page refresh restores the loaded scenario
+      // (without this, if the user hasn't touched any inputs, no draft exists and the
+      // photo and state are lost on refresh)
+      try{
+        const state = collectCurrentState();
+        lsSet(DRAFT_KEY, JSON.stringify({state, photo: propPhotoDataUrl||'', thumb: propThumbDataUrl||'', savedId: _lastSavedAddr||''}));
+      }catch(e){}
     }, 1400);
   }
 
