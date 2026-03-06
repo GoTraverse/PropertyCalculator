@@ -804,13 +804,14 @@
       if(!geoData || !geoData.length){ showToast('⚠️ Address not found on map. Try including suburb and state.'); return; }
       const { lat, lon } = geoData[0];
 
-      // 2. Build static map URL using openstreetmap.de static map service
-      const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=17&size=640x480&markers=${lat},${lon},red-pushpin`;
+      // 2. Fetch static map via server-side proxy (avoids browser CORS restriction)
+      const proxyRes = await fetch(`/.netlify/functions/mapproxy?lat=${lat}&lon=${lon}&zoom=17`);
+      const proxyData = await proxyRes.json();
+      if(!proxyData.ok) throw new Error(proxyData.error || 'Map proxy failed');
 
-      // 3. Load image and convert to canvas (for proper base64 storage + thumbnail)
+      // 3. Load the returned data URL into an image for canvas resize + thumbnail
       const img = new Image();
-      img.crossOrigin = 'anonymous';
-      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = mapUrl; });
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = proxyData.dataUrl; });
 
       const MAX = 1200;
       const ratio = Math.min(1, MAX / Math.max(img.width, img.height));
@@ -863,8 +864,6 @@
     btn.classList.add('active');
     document.getElementById('pd-type').value = type;
     updatePropertyDetails();
-    var mainEl = document.querySelector('main');
-    if(mainEl) mainEl.scrollTop = 0; else window.scrollTo(0,0);
   }
 
   // ══════════════════════════════════════════════

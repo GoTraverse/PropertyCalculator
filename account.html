@@ -133,10 +133,7 @@
       <li><a href="contact.html">Support</a></li>
       <li><a href="about.html">About</a></li>
     </ul>
-    <div class="site-nav-actions" id="nav-actions">
-      <button class="btn-ghost" onclick="location.href='login.html'">Sign in</button>
-      <button class="btn-gold" onclick="location.href='login.html?tab=signup'">Get started free</button>
-    </div>
+    <div class="site-nav-actions" id="nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham">☰</button>
   </div>
 </nav>
@@ -336,6 +333,7 @@
 
 <div id="site-footer-root"></div>
 <script src="footer.js"></script>
+<script src="auth-nav.js"></script>
 
 <!-- Custom Dialog -->
 <div id="acct-dialog-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
@@ -668,20 +666,6 @@
     if(btn) btn.classList.add('active');
   }
 
-  // Session nav
-  function renderNavUser(){
-    const el = document.getElementById('nav-actions');
-    if(!session || !el) return;
-    const n = session.name || session.email || 'Account';
-    const ini = n.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
-    const ph = profileData && profileData.photo;
-    const col = (profileData && profileData.color) || '#C9A84C';
-    el.innerHTML='<div class="nav-user-wrap" id="nuw"><button class="nav-user-btn" onclick="document.getElementById(\'nuw\').classList.toggle(\'open\')" title="'+n+'">'+(ph?'<img src="'+ph+'">':ini)+'</button>'
-      +'<div class="nav-user-dropdown"><div class="nav-dropdown-header"><div class="nav-dropdown-name">'+n+'</div><div class="nav-dropdown-email">'+(session.email||'')+'</div></div>'
-      +'<div class="nav-dropdown-items"><a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a><a href="account.html" class="nav-dropdown-item active-link">⚙ Account Settings</a><button class="nav-dropdown-item danger" onclick="doSignOut()">Sign Out</button></div></div></div>';
-    document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');},{once:false});
-  }
-
   // Open requested panel (used by signup/checkout flow)
   const urlParams = new URLSearchParams(location.search);
   const requestedPanel = urlParams.get('panel');
@@ -691,7 +675,6 @@
 
   loadSession();
   renderAccount();
-  renderNavUser();
 
   // Always re-fetch the profile from backend on page load to pick up any plan
   // changes (e.g. Stripe cancellation webhook updating plan in Redis before we land here)
