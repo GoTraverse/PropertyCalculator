@@ -142,30 +142,33 @@ img { max-width: 100%; display: block; }
   align-items: center;
   gap: 8px;
   justify-content: flex-end;
-  width: 200px;
+  width: auto;
+  min-width: 200px;
 }
 .btn-ghost {
   background: none;
   border: 1px solid rgba(255,255,255,0.18);
   color: rgba(245,240,232,0.7);
-  padding: 12px 22px;
+  padding: 10px 20px;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 13px;
   letter-spacing: 0.5px;
+  white-space: nowrap;
   transition: all 0.15s;
 }
 .btn-ghost:hover { border-color: rgba(255,255,255,0.4); color: var(--cream); }
 .btn-gold {
   background: var(--gold);
-  border: none;
+  border: 1px solid transparent;
   color: var(--charcoal);
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;
+  white-space: nowrap;
   transition: opacity 0.15s, transform 0.1s;
 }
 .btn-gold:hover { opacity: 0.88; transform: translateY(-1px); }

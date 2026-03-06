@@ -14,25 +14,18 @@ General(DO NOT REMOVE THIS LINE)
 3. On the projection tab, instead of just showng the year, ahow the year and q1 for quarter one like q2-4.
 4. Stripe testing works, except it doesnt seem to show in my account settings when it gets redirected back that i have cancelled the subscription? Or is that because its still in the subscription period?
 5. Content-Security-Policy: The page’s settings blocked the loading of a resource (connect-src) at https://nominatim.openstreetmap.org/search?q=54%20Southampton%20Road%2C%20Ellen%20Grove%2C%20QLD%2C%20Australia&format=json&limit=1 because it violates the following directive: “connect-src ‘self’ https://api.stripe.com” app.html:2417:28
-6. On the pricing and about pages, ther is still “myPropertyM8” please change it everywhere in my site to equitysight.app
-7. In the admin page under users, i can see the last ip address of users tha have logged in and whn i click it it goes to a website tha has a estimated location but in the popup it doesnt show the location?
-8. Need to add automated email functional for confirming email addresses at sign up and then sending an email once signed up. this can also be used for sending invoices. Maybe we use a temporary free mail server until i setup an O365.
-9. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
-10. Add dark mode/light mode. can be toggled from theprofile drop down.
-11. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
-12. Make sure footer is the same on all pages except app.html.
-13. Remove "Come find your property mate." section and buttons at footer.
-14. Add forgot password functionality.
-15. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
-16. !Restructure my HTML/CSS/JS into modular, reusable components (header, footer, sidebar, modals, scenario cards), move all inline CSS/JS into separate files per component, preserve all current functionality, keep the investment engine separate, make it mobile-friendly, use consistent naming, and include comments for clarity.
-17. In scenario app, when starting new project, make all defaults 0.
-18. In property tab in app, when clicking property type house it doesnt show up the top.
-19. 
+6. In the admin page under users, i can see the last ip address of users tha have logged in and whn i click it it goes to a website tha has a estimated location but in the popup it doesnt show the location?
+7. Need to add automated email functional for confirming email addresses at sign up and then sending an email once signed up. this can also be used for sending invoices. Maybe we use a temporary free mail server until i setup an O365.
+8. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
+9. Add dark mode/light mode. can be toggled from theprofile drop down.
+10. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
+11. Add forgot password functionality.
+12. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
+13. !Restructure my HTML/CSS/JS into modular, reusable components (header, footer, sidebar, modals, scenario cards), move all inline CSS/JS into separate files per component, preserve all current functionality, keep the investment engine separate, make it mobile-friendly, use consistent naming, and include comments for clarity.
 
 
 Desktop(DO NOT REMOVE THIS LINE)
-1. Index.html the "Sign in" and "Get started free" buttons are different sizes and look weird.
-2. Profile button needs to be padded away from edge of window a bit more. Seems very cramped.
+1. Profile button needs to be padded away from edge of window a bit more. Seems very cramped.
 3. 
 
 PWA(DO NOT REMOVE THIS LINE)
