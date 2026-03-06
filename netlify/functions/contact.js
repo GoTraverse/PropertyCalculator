@@ -1,0 +1,111 @@
+/**
+ * contact.js — Netlify Function
+ * Accepts contact form submissions and emails them to the supportEmail
+ * configured in the site config (Redis key: config:site).
+ *
+ * POST { name, email, subject, message }
+ */
+
+const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
+const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
+const RESEND_API_KEY    = (process.env.RESEND_API_KEY    || '').trim();
+const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'onboarding@resend.dev').trim();
+
+const H = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+async function redisCmd(...args) {
+  if (!REDIS_URL || !REDIS_TOKEN) throw new Error('Redis not configured');
+  const r = await fetch(REDIS_URL, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args),
+  });
+  if (!r.ok) throw new Error('Redis HTTP ' + r.status);
+  return (await r.json()).result;
+}
+
+async function rGet(key) {
+  const raw = await redisCmd('GET', key);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e) { return raw; }
+}
+
+const ok   = b => ({ statusCode: 200, headers: H, body: JSON.stringify(b) });
+const fail = (msg, code) => ({ statusCode: code || 400, headers: H, body: JSON.stringify({ ok: false, error: msg }) });
+
+exports.handler = async function(event) {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
+  if (event.httpMethod !== 'POST') return fail('POST only', 405);
+
+  let body;
+  try { body = JSON.parse(event.body || '{}'); } catch(e) { return fail('Invalid JSON'); }
+
+  const { name, email, subject, message } = body;
+  if (!name || !email || !subject || !message) return fail('All fields required');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Invalid email');
+
+  // Get support email from config
+  let toEmail = 'support@equitysight.app';
+  try {
+    const cfg = await rGet('config:site');
+    if (cfg && cfg.supportEmail) toEmail = cfg.supportEmail;
+  } catch(e) {}
+
+  const subjectLabels = {
+    general: 'General question',
+    bug: 'Bug report',
+    feature: 'Feature request',
+    billing: 'Billing / subscription',
+    calculator: 'Calculator question',
+    other: 'Other',
+  };
+  const subjectLabel = subjectLabels[subject] || subject;
+
+  if (!RESEND_API_KEY) {
+    console.log('[contact] No RESEND_API_KEY. Would send from %s to %s — %s', email, toEmail, subjectLabel);
+    return ok({ ok: true });
+  }
+
+  const html = `
+<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+  <h2 style="color:#1C1C1E;margin-bottom:4px;">New contact form submission</h2>
+  <p style="color:#6B7280;margin-top:0;font-size:13px;">Via EquitySight contact form</p>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+    <tr><td style="padding:8px 0;color:#6B7280;font-size:13px;width:100px;">From</td><td style="padding:8px 0;font-size:14px;">${escHtml(name)} &lt;${escHtml(email)}&gt;</td></tr>
+    <tr><td style="padding:8px 0;color:#6B7280;font-size:13px;">Subject</td><td style="padding:8px 0;font-size:14px;">${escHtml(subjectLabel)}</td></tr>
+  </table>
+  <div style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:16px;border-radius:0 4px 4px 0;">
+    <p style="margin:0;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escHtml(message)}</p>
+  </div>
+  <p style="font-size:12px;color:#9CA3AF;margin-top:24px;">Reply directly to this email to respond to ${escHtml(name)}.</p>
+</div>`;
+
+  function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: VERIFY_EMAIL_FROM,
+        to: [toEmail],
+        reply_to: email,
+        subject: '[EquitySight] ' + subjectLabel + ' — from ' + name,
+        html,
+      }),
+    });
+    if (!r.ok) {
+      const e = await r.text();
+      console.warn('[contact] Resend error %s: %s', r.status, e);
+      return fail('Failed to send message — please try again');
+    }
+    return ok({ ok: true });
+  } catch(e) {
+    console.warn('[contact] Send error:', e.message);
+    return fail('Failed to send message');
+  }
+};
