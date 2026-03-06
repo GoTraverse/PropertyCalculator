@@ -17,6 +17,10 @@ General(DO NOT REMOVE THIS LINE)
 10. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
 11. Add forgot password functionality.
 12. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
+13. All values in the app by default are zero except on the projection tab.
+14. Can we add an auto save to library feature after certain changes like property image, property details etc, dont have auto save for changing calculator values, tha can stay manual.
+15. I like the profile menu tha comes up on the app page so can we make that the same accross all pages?
+16. Convert TODO.txt to TODO.md
 
 Desktop(DO NOT REMOVE THIS LINE)
 1.
@@ -25,4 +29,8 @@ PWA(DO NOT REMOVE THIS LINE)
 1. In projection tab on the graph, the tooltip that comes uo when you tap somehwhere on the graph is unusable. maybe for mobile only do we make a little custom slider that changes values in little boxes next to the graph but plots the graph dot as it goes maybe?
 2. In admin page, under user popup. it scrolls horizontally because the ip address is big. i only want it to scroll vertically.
 3. The users, scenarios etc tab in asmin page work well bet needs to be some kind of indication qhen tab you are on, like a line below the tab name or some kind of highlight.
-4. 
+4. In scenario calculator menu, the calculator button that opens and closes the menu covers things when you scroll to the bottom of the menu, please leave a bit of space so a user can scroll down further so the calculator button doesnt block anything.
+5. Gov schemes tab in admin page some fields still cut off.
+6. In admin page > users tab, i need to scroll sideways to see actions, maybe at the end of each yser there can be a little cog icon to open a menu for actions instead? Or a select box for each user and actions at the top.
+7. On my iphone around the notch on admin page and account settings page there is white bar at top, replace with same dark coloured bar as theme.
+8. 
