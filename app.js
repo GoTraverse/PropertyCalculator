@@ -3196,7 +3196,7 @@
           _currentUser.role = d.role;
           lsSet(SESSION_KEY, JSON.stringify(_currentUser));
           applyPlanUI();
-          renderAppProfileBtn();
+          typeof renderSiteNav === 'function' && renderSiteNav();
         }
       }).catch(function(){});
     }
@@ -3425,7 +3425,7 @@
       btn.innerHTML = initials;
     }
     // Keep top-right widget in sync
-    renderAppProfileBtn();
+    typeof renderSiteNav === 'function' && renderSiteNav();
   }
 
   function renderProfilePanel(){
@@ -3584,15 +3584,9 @@
   function appSignOut(){
     signOut();
   }
-  // Close profile menu on outside click
-  document.addEventListener('click', function(e){
-    const widget = document.getElementById('app-profile-widget');
-    if(widget && !widget.contains(e.target)) closeAppProfileMenu();
-  });
-
-  // After full page load, re-render the top-right profile button (it's defined after the main script)
+  // After full page load, re-render the top-right profile button via auth-nav
   window.addEventListener('load', function(){
-    renderAppProfileBtn();
+    typeof renderSiteNav === 'function' && renderSiteNav();
     setAppHeight(); // recalculate after all elements are rendered
     // Extra recalc for PWA/iOS where safe-area-inset and font rendering settle after load
     setTimeout(setAppHeight, 200);
@@ -3854,7 +3848,7 @@
     } catch(e){}
     st.textContent='✓ Profile saved';
     renderProfileBtn();
-    renderAppProfileBtn && renderAppProfileBtn();
+    typeof renderSiteNav === 'function' && renderSiteNav();
     setTimeout(function(){ st.className='ap-status'; }, 3000);
   }
 

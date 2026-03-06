@@ -178,6 +178,7 @@
     <button class="admin-tab" onclick="showAdminTab('database',this);">Database</button>
     <button class="admin-tab" onclick="showAdminTab('client-errors',this);loadClientErrors();">Error Log</button>
     <button class="admin-tab" onclick="showAdminTab('config',this);loadConfig();">Configuration</button>
+    <button class="admin-tab" onclick="showAdminTab('email-templates',this);loadEmailTemplates();">Email Templates</button>
   </div>
 
   <!-- USERS TAB -->
@@ -630,6 +631,43 @@
     <div id="database-status" class="admin-status"></div>
   </div>
 
+</div>
+
+<!-- EMAIL TEMPLATES TAB -->
+<div class="admin-section" id="tab-email-templates">
+  <div class="admin-card">
+    <div class="admin-card-head">
+      <h3>Email Templates</h3>
+      <p class="admin-card-desc">Customise the emails sent by EquitySight. Use <code style="background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:3px;font-size:11px;">{{variable}}</code> placeholders listed for each template.</p>
+    </div>
+    <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <select id="et-type-select" class="config-input" style="width:240px;font-size:13px;" onchange="onEmailTemplateTypeChange()">
+        <option value="verification">Verification Code Email</option>
+        <option value="welcome">Welcome Email</option>
+        <option value="subscription">Subscription / Plan Update</option>
+        <option value="security_alert">Security Alert</option>
+        <option value="promotional">Promotional / Feature Update</option>
+        <option value="password_reset">Password Reset</option>
+      </select>
+      <span id="et-custom-badge" style="display:none;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);border-radius:3px;padding:2px 8px;">CUSTOMISED</span>
+      <button class="btn-admin" style="margin-left:auto;" onclick="resetEmailTemplate()">Reset to Default</button>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label class="config-label">Available variables: <span id="et-vars" style="font-family:var(--font-mono);font-size:11px;color:var(--gold);"></span></label>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="config-label">Subject</label>
+      <input class="config-input" id="et-subject" type="text" style="width:100%;max-width:520px;" placeholder="Email subject line">
+    </div>
+    <div style="margin-bottom:16px;">
+      <label class="config-label">HTML Body</label>
+      <textarea id="et-html" class="config-input" style="width:100%;min-height:220px;font-family:var(--font-mono);font-size:12px;resize:vertical;line-height:1.5;" placeholder="HTML content…"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="btn-admin btn-admin-primary" onclick="saveEmailTemplate()">Save Template</button>
+      <div id="et-status" class="admin-status" style="margin:0;"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Scenario Detail Modal -->

@@ -72,6 +72,12 @@
           <option value="pro">Pro — A$9/month AUD</option>
         </select>
       </div>
+      <div class="form-field" style="margin-top:10px;">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:rgba(245,240,232,0.7);line-height:1.5;">
+          <input type="checkbox" id="su-terms" style="margin-top:2px;accent-color:#C9A84C;flex-shrink:0;width:15px;height:15px;">
+          <span>I agree to the <a href="terms.html" target="_blank" style="color:#C9A84C;">Terms &amp; Conditions</a> and <a href="privacy.html" target="_blank" style="color:#C9A84C;">Privacy Policy</a></span>
+        </label>
+      </div>
       <div class="form-error" id="su-error"></div>
       <button class="form-submit" id="su-btn" onclick="doSignup()">Create Account →</button>
 
@@ -265,7 +271,9 @@
     const plan = document.getElementById('su-plan').value;
     const errEl = document.getElementById('su-error');
     const btn = document.getElementById('su-btn');
+    const terms = document.getElementById('su-terms');
     if(!name||!email||!password){ errEl.textContent='Please fill in all fields'; return; }
+    if(terms && !terms.checked){ errEl.textContent='Please accept the Terms & Conditions and Privacy Policy'; return; }
     const emailRx = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
     if(!emailRx.test(email)){ errEl.textContent='Please enter a valid email address'; return; }
     const pwErrors = [];
