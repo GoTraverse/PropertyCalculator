@@ -144,6 +144,10 @@ window.toggleTheme = function(){
   } else {
     renderNav();
   }
+
+  // Allow external code to re-render the nav (e.g. after profile update)
+  window.renderSiteNav = renderNav;
+  }
 })();
 
 // Hamburger menu toggle — shared across all pages that include this script

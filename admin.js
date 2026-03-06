@@ -377,7 +377,17 @@ function toggleUserCog(e, btn){
   document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
   if(!isOpen){
     const rect = btn.getBoundingClientRect();
-    menu.style.top = (rect.bottom + 4) + 'px';
+    // Estimate menu height (5 items ~38px each + padding)
+    const estH = 240;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    if(spaceBelow < estH && rect.top > estH){
+      // Flip upward
+      menu.style.top = '';
+      menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+    } else {
+      menu.style.bottom = '';
+      menu.style.top = (rect.bottom + 4) + 'px';
+    }
     menu.style.right = (window.innerWidth - rect.right) + 'px';
     menu.classList.add('open');
   }
@@ -1887,18 +1897,18 @@ async function openUserHistory(userId, email){
     if(ev.from && ev.to) meta.push(escHtml(ev.from)+' → '+escHtml(ev.to));
     if(ev.ip)    meta.push('IP: '+escHtml(ev.ip));
     if(ev.by)    meta.push('By: '+escHtml(ev.by));
-    return `<tr>
-      <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate);white-space:nowrap;">${fmtEventTime(ev.at)}</td>
-      <td style="font-size:12px;">${label}</td>
-      <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate);">${meta.join(' · ')}</td>
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="font-family:var(--font-mono);font-size:11px;color:rgba(245,240,232,0.5);white-space:nowrap;padding:8px 8px 8px 0;vertical-align:top;">${fmtEventTime(ev.at)}</td>
+      <td style="font-size:12px;color:#F5F0E8;padding:8px;vertical-align:top;">${label}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:rgba(245,240,232,0.55);padding:8px 0 8px 8px;vertical-align:top;">${meta.join(' · ')}</td>
     </tr>`;
   }).join('');
 
   body.innerHTML = `<table style="width:100%;border-collapse:collapse;">
     <thead><tr>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);">Time</th>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Event</th>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 0 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Details</th>
+      <th style="text-align:left;font-size:11px;color:rgba(245,240,232,0.4);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);">Time</th>
+      <th style="text-align:left;font-size:11px;color:rgba(245,240,232,0.4);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Event</th>
+      <th style="text-align:left;font-size:11px;color:rgba(245,240,232,0.4);padding:4px 0 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Details</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
