@@ -1840,23 +1840,34 @@
     svg.innerHTML = html;
 
     // ── QUARTERLY TABLE ──
+    // Years 1-3: expand to all 4 quarters. Years 5+ show Q4 annual snapshot.
     const tblEl = document.getElementById('proj-table');
     if(tblEl){
-      const rows = [1,2,3,5,7,10,15,20,25,30].map(y => {
-        const q  = Math.min(y * 4, projData.length - 1);
-        const d  = projData[q];
-        const de = projDataExtra[q];
+      const mkRow = (q, labelOverride) => {
+        const qi = Math.min(q, projData.length - 1);
+        const d  = projData[qi];
+        const de = projDataExtra[qi];
         const eq = d.yourEquity;
-        const isMilestone = q === payoffQ || q === buyoutQ;
+        const isMilestone = qi === payoffQ || qi === buyoutQ;
         const extraLoanStr = (extraPayment > 0 && de) ? `<span style="color:#9B7FE8;font-size:9px;display:block;">(+extra: ${fmtK(de.loanBal)})</span>` : '';
-        return `<div style="display:grid;grid-template-columns:64px repeat(4,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
-          +`<span style="color:var(--gold);">${settleYr?(settleYr+y):'Yr '+y}${isMilestone?' ★':''}</span>`
+        const wholeYr  = Math.floor(d.yr);
+        const qNum     = (qi % 4) || 4; // 1-based quarter within year
+        const calLabel = settleYr ? `${settleYr + wholeYr} Q${qNum}` : `Yr ${wholeYr} Q${qNum}`;
+        const label    = labelOverride || calLabel;
+        return `<div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
+          +`<span style="color:var(--gold);white-space:nowrap;">${label}${isMilestone?' ★':''}</span>`
           +`<span>${fmtK(d.baseVal)}</span>`
           +`<span style="color:var(--sky)">${fmtK(d.loanBal)}${extraLoanStr}</span>`
           +`<span style="color:var(--terracotta)">${fmtK(d.govtOwed)}</span>`
           +`<span style="color:${eq>0?'var(--reward-green)':'var(--risk-red)'};font-weight:600;">${fmtK(eq)}</span></div>`;
-      });
-      tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:64px repeat(4,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Year':'Year'}</span><span>Value</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
+      };
+      // Rows: Q1-Q4 for years 1-3, Q4-only for years 5+
+      const rows = [];
+      for(let y = 1; y <= 3; y++){
+        for(let qn = 1; qn <= 4; qn++) rows.push(mkRow(y * 4 - (4 - qn)));
+      }
+      [5,7,10,15,20,25,30].forEach(y => rows.push(mkRow(y * 4)));
+      tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Q':'Quarter'}</span><span>Value</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
     }
   }
 
