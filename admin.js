@@ -1706,6 +1706,67 @@ async function deleteGrowthEntry(suburb, state){
   else alert('Failed: '+(d.error||'Unknown error'));
 }
 
+// ── Client Error Log ─────────────────────────────────────────────────────────
+async function callClientErrors(payload){
+  const sess = getSession();
+  const token = sess && sess.token;
+  const r = await fetch('/.netlify/functions/client-errors', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+    body: JSON.stringify(payload)
+  });
+  return r.json();
+}
+
+async function loadClientErrors(){
+  const wrap = document.getElementById('client-errors-wrap');
+  const loading = document.getElementById('client-errors-loading');
+  if(loading){ loading.style.display='block'; loading.textContent='Loading…'; }
+  const d = await callClientErrors({action:'adminGetClientErrors'});
+  if(loading) loading.style.display='none';
+  if(!d.ok){
+    wrap.innerHTML = `<div style="padding:16px;color:#c45a5a;font-size:13px;">Error: ${escHtml(d.error||'Failed to load')}</div>`;
+    return;
+  }
+  const errors = d.errors || [];
+  if(!errors.length){
+    wrap.innerHTML = '<div style="padding:16px;color:var(--slate);font-size:13px;">No errors logged yet. Errors are captured automatically when users encounter JavaScript problems.</div>';
+    return;
+  }
+
+  const rows = errors.map(e => {
+    const time = e.at ? new Date(e.at).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
+    const stack = e.stack ? `<pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:rgba(245,240,232,0.4);margin:4px 0 0;line-height:1.4;">${escHtml(e.stack.slice(0,600))}</pre>` : '';
+    const src = [e.source ? escHtml(e.source) : '', e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
+    const ua = e.userAgent ? `<div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:3px;">${escHtml(e.userAgent.slice(0,120))}</div>` : '';
+    const url = e.url ? `<div style="font-size:10px;color:rgba(245,240,232,0.35);font-family:var(--font-mono);">${escHtml(e.url.slice(0,120))}</div>` : '';
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 0;">${time}</td>
+      <td style="vertical-align:top;padding:10px 8px;">
+        <div style="font-size:12px;font-weight:600;color:#F5F0E8;">${escHtml(e.message||'')}</div>
+        ${src ? `<div style="font-family:var(--font-mono);font-size:10px;color:rgba(201,168,76,0.7);margin-top:2px;">${src}</div>` : ''}
+        ${url}${ua}${stack}
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<div style="font-size:11px;color:var(--slate);margin-bottom:8px;">${errors.length} error${errors.length!==1?'s':''} (newest first)</div>
+  <table style="width:100%;border-collapse:collapse;">
+    <thead><tr>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap;">Time</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Error</th>
+    </tr></thead>
+    <tbody style="border-bottom:none;">${rows}</tbody>
+  </table>`;
+}
+
+async function clearClientErrors(){
+  if(!confirm('Clear all logged client errors?')) return;
+  const d = await callClientErrors({action:'adminClearClientErrors'});
+  if(d.ok) loadClientErrors();
+  else alert('Failed: '+(d.error||'Unknown error'));
+}
+
 // ── User Event History ────────────────────────────────────────────────────────
 const EVENT_LABELS = {
   signup:               '🆕 Signed up',
