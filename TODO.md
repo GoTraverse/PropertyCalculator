@@ -9,7 +9,6 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-2. In the admin page, add a tab for email template, lets make a template editor that we can drop down select the following: verification code email, welcome email, subsscription emails, security alerts or promotional, updates, feature emails.
 7. 
 
 Desktop(DO NOT REMOVE THIS LINE)
