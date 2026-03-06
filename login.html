@@ -35,6 +35,28 @@
       <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="si-password" onkeydown="if(event.key==='Enter')doSignin()" type="password" placeholder="••••••••" autocomplete="current-password"></div>
       <div class="form-error" id="si-error"></div>
       <button class="form-submit" id="si-btn" onclick="doSignin()">Sign In →</button>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="showForgotPassword()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">Forgot password?</button>
+      </div>
+    </div>
+    <!-- Forgot Password Flow -->
+    <div id="form-forgot" style="display:none;">
+      <div id="forgot-step-request">
+        <div style="font-size:13px;color:rgba(245,240,232,0.55);margin-bottom:14px;">Enter your email and we'll send a reset code.</div>
+        <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="fp-email" type="email" onkeydown="if(event.key==='Enter')requestReset()" placeholder="you@email.com" autocomplete="email"></div>
+        <div class="form-error" id="fp-error"></div>
+        <button class="form-submit" id="fp-btn" onclick="requestReset()">Send Reset Code →</button>
+      </div>
+      <div id="forgot-step-reset" style="display:none;">
+        <div style="font-size:13px;color:rgba(245,240,232,0.55);margin-bottom:14px;">Enter the 6-digit code we sent to your email, then choose a new password.</div>
+        <div class="form-field"><label class="form-label">Reset Code</label><input class="form-input" id="fp-code" type="text" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter')document.getElementById('fp-newpw').focus()" placeholder="123456"></div>
+        <div class="form-field"><label class="form-label">New Password</label><input class="form-input" id="fp-newpw" type="password" onkeydown="if(event.key==='Enter')confirmReset()" placeholder="Min 8 characters" autocomplete="new-password"></div>
+        <div class="form-error" id="fp-reset-error"></div>
+        <button class="form-submit" id="fp-reset-btn" onclick="confirmReset()">Set New Password →</button>
+      </div>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="setTab('signin')" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">← Back to Sign In</button>
+      </div>
     </div>
     <div id="form-signup" style="display:none;">
       <div class="form-field"><label class="form-label">Your name</label><input class="form-input" id="su-name" onkeydown="if(event.key==='Enter')document.getElementById('su-email').focus()" type="text" placeholder="Jamie Smith" autocomplete="name"></div>
@@ -91,12 +113,68 @@
   function setTab(t){
     document.getElementById('form-signin').style.display = t==='signin' ? '' : 'none';
     document.getElementById('form-signup').style.display = t==='signup' ? '' : 'none';
+    document.getElementById('form-forgot').style.display = 'none';
     document.getElementById('tab-signin').classList.toggle('active', t==='signin');
     document.getElementById('tab-signup').classList.toggle('active', t==='signup');
     var h = document.getElementById('login-heading');
     var s = document.getElementById('login-sub');
     if(h) h.textContent = t==='signin' ? 'Welcome back' : 'Create your account';
     if(s) s.textContent = t==='signin' ? 'Sign in to access your property scenarios' : 'Start for free — no credit card required';
+  }
+
+  function showForgotPassword(){
+    document.getElementById('form-signin').style.display = 'none';
+    document.getElementById('form-signup').style.display = 'none';
+    document.getElementById('form-forgot').style.display = '';
+    document.getElementById('forgot-step-request').style.display = '';
+    document.getElementById('forgot-step-reset').style.display = 'none';
+    document.getElementById('fp-error').textContent = '';
+    document.getElementById('fp-reset-error').textContent = '';
+    var h = document.getElementById('login-heading');
+    var s = document.getElementById('login-sub');
+    if(h) h.textContent = 'Reset password';
+    if(s) s.textContent = 'We\'ll send a code to your email';
+    // Pre-fill email from sign-in field
+    var siEmail = document.getElementById('si-email').value;
+    if(siEmail) document.getElementById('fp-email').value = siEmail;
+    setTimeout(function(){ document.getElementById('fp-email').focus(); }, 80);
+  }
+
+  var _fpEmail = '';
+  async function requestReset(){
+    const email = document.getElementById('fp-email').value.trim();
+    const errEl = document.getElementById('fp-error');
+    if(!email){ errEl.textContent = 'Please enter your email'; return; }
+    errEl.textContent = '';
+    const btn = document.getElementById('fp-btn');
+    btn.textContent = 'Sending…'; btn.disabled = true;
+    _fpEmail = email;
+    await callAuth('requestPasswordReset', {email});
+    // Always show next step (don't reveal if email exists)
+    btn.textContent = 'Send Reset Code →'; btn.disabled = false;
+    document.getElementById('forgot-step-request').style.display = 'none';
+    document.getElementById('forgot-step-reset').style.display = '';
+    setTimeout(function(){ document.getElementById('fp-code').focus(); }, 80);
+  }
+
+  async function confirmReset(){
+    const code = document.getElementById('fp-code').value.trim();
+    const newPw = document.getElementById('fp-newpw').value;
+    const errEl = document.getElementById('fp-reset-error');
+    if(!code){ errEl.textContent = 'Enter the reset code'; return; }
+    if(!newPw || newPw.length < 8){ errEl.textContent = 'Password must be at least 8 characters'; return; }
+    errEl.textContent = '';
+    const btn = document.getElementById('fp-reset-btn');
+    btn.textContent = 'Updating…'; btn.disabled = true;
+    const res = await callAuth('resetPasswordWithToken', {email: _fpEmail, code, newPassword: newPw});
+    btn.textContent = 'Set New Password →'; btn.disabled = false;
+    if(res.ok){
+      setTab('signin');
+      var s = document.getElementById('login-sub');
+      if(s){ s.textContent = '✓ Password updated — sign in with your new password'; s.style.color = '#5A9E7A'; }
+    } else {
+      errEl.textContent = res.error || 'Invalid or expired code. Please try again.';
+    }
   }
 
   async function callAuth(action, payload){

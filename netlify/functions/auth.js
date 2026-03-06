@@ -62,6 +62,27 @@ async function sendVerificationEmail(email, code){
   }
 }
 
+async function sendPasswordResetEmail(email, code){
+  if(!RESEND_API_KEY){
+    console.log('[auth] RESEND_API_KEY not configured. Password reset code for %s: %s', email, code);
+    return {sent:false,provider:'log'};
+  }
+  try{
+    const r = await fetch('https://api.resend.com/emails',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        from:VERIFY_EMAIL_FROM,
+        to:[email],
+        subject:'Reset your EquitySight password',
+        html:'<p>Your password reset code is <strong style="font-size:18px;letter-spacing:2px;">'+code+'</strong>.</p><p>This code expires in 30 minutes. If you did not request this, you can ignore this email.</p>'
+      })
+    });
+    if(!r.ok){ const e=await r.text(); console.warn('[auth] Failed to send reset email (%s): %s',r.status,e); return {sent:false}; }
+    return {sent:true};
+  }catch(e){ console.warn('[auth] Reset email error: %s',e.message); return {sent:false}; }
+}
+
 async function redisCmd(...args){
   if(!REDIS_URL||!REDIS_TOKEN) throw new Error('UPSTASH env vars missing');
   const r=await fetch(REDIS_URL,{method:'POST',headers:{Authorization:'Bearer '+REDIS_TOKEN,'Content-Type':'application/json'},body:JSON.stringify(args)});
@@ -265,6 +286,36 @@ exports.handler = async function(event){
     if(userData.hash!==hashPw(currentPassword)) return fail('Current password is incorrect');
     userData.hash=hashPw(newPassword);
     await rSet('user:'+user.email,userData);
+    return ok({ok:true});
+  }
+
+  if(action==='requestPasswordReset'){
+    const {email}=body;
+    if(!email) return fail('Email required');
+    const normalizedEmail=email.toLowerCase().trim();
+    const userData=await rGet('user:'+normalizedEmail);
+    // Always return ok to prevent email enumeration
+    if(userData){
+      const code=makeEmailCode();
+      const hashed=hashEmailCode(code);
+      await rSet('pwreset:'+normalizedEmail,{hash:hashed,email:normalizedEmail},1800); // 30 min
+      await sendPasswordResetEmail(normalizedEmail,code);
+    }
+    return ok({ok:true,message:'If an account exists, a reset code has been sent.'});
+  }
+
+  if(action==='resetPasswordWithToken'){
+    const {email,code,newPassword}=body;
+    if(!email||!code||!newPassword) return fail('Email, code and new password required');
+    if(newPassword.length<8) return fail('Password must be at least 8 characters');
+    const normalizedEmail=email.toLowerCase().trim();
+    const resetData=await rGet('pwreset:'+normalizedEmail);
+    if(!resetData||resetData.hash!==hashEmailCode(String(code).trim())) return fail('Invalid or expired reset code');
+    const userData=await rGet('user:'+normalizedEmail);
+    if(!userData) return fail('Account not found');
+    userData.hash=hashPw(newPassword);
+    await rSet('user:'+normalizedEmail,userData);
+    await rDel('pwreset:'+normalizedEmail);
     return ok({ok:true});
   }
 
