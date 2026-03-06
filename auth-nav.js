@@ -237,7 +237,7 @@ window.toggleTheme = function(){
           'box-shadow:0 3px 16px rgba(0,0,0,0.35);" title="' + name + '">' +
           avatarHTML +
           '</button>' +
-          '<div id="site-profile-menu" style="display:none;position:absolute;top:52px;right:0;' +
+          '<div id="site-profile-menu" style="display:none;position:fixed;top:70px;right:20px;' +
           'background:#1C1C1E;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px;' +
           'min-width:240px;box-shadow:0 16px 48px rgba(0,0,0,0.65);z-index:9999;">' +
             '<div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:6px;">' +
@@ -323,8 +323,7 @@ window.toggleTheme = function(){
           var updated = Object.assign({}, sess, { plan: d.plan, role: d.role });
           localStorage.setItem('propCalc_session_v1', JSON.stringify(updated));
           // Re-render nav to reflect new plan/role
-          var actions = document.querySelector('.site-nav-actions');
-          if (actions) { actions.innerHTML = ''; renderNav && renderNav(); }
+          if (window.renderSiteNav) window.renderSiteNav();
         }
       }).catch(function(){});
     } catch(e) {}

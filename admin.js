@@ -525,6 +525,42 @@ async function openUserDetails(email){
   // Fetch geolocation for the IP address
   let geoHtml = ip ? '<span style="color:var(--slate);font-size:11px;">Looking up location…</span>' : '<span style="color:var(--slate);">—</span>';
 
+  // Pre-compute action buttons (Task 7)
+  const _udEmail = u.email || '';
+  const _udPlan  = u.plan  || 'free';
+  const _udId    = u.id    || '';
+  const _udRoleBtn = u.role === 'admin'
+    ? `<button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setRole('${escHtml(_udEmail)}','user')">Revoke Admin</button>`
+    : `<button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setRole('${escHtml(_udEmail)}','admin')">Grant Admin</button>`;
+  const _udActionsHtml = `<div style="padding:14px 0 4px;border-top:1px solid rgba(28,28,30,0.08);display:flex;flex-wrap:wrap;gap:8px;">
+    <button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');openResetPw('${escHtml(_udEmail)}')">Reset Password</button>
+    <button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setPlan('${escHtml(_udEmail)}','${escHtml(_udPlan)}')">Change Plan</button>
+    ${_udRoleBtn}
+    <button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');openUserHistory('${escHtml(_udId)}','${escHtml(_udEmail)}')">View History</button>
+    <button class="btn-admin" style="color:var(--risk-red);border-color:rgba(196,90,90,0.4);" onclick="document.getElementById('user-detail-overlay').classList.remove('open');deleteUser('${escHtml(_udEmail)}')">Delete User</button>
+  </div>`;
+
+  // Pre-compute user errors section (Task 5)
+  const _udUserErrs = (_allClientErrors || []).filter(e => (e.userEmail || '').toLowerCase() === _udEmail.toLowerCase());
+  let _udErrRows = '';
+  if (!_allClientErrors || !_allClientErrors.length) {
+    _udErrRows = '<div style="font-size:12px;color:var(--slate);padding:6px 0;">Load the Error Log tab first to populate errors.</div>';
+  } else if (!_udUserErrs.length) {
+    _udErrRows = '<div style="font-size:12px;color:var(--slate);padding:6px 0;">No errors logged for this user.</div>';
+  } else {
+    _udErrRows = _udUserErrs.slice(0, 10).map(e => {
+      const t = e.at ? new Date(e.at).toLocaleString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+      return `<div style="padding:8px;background:rgba(28,28,30,0.04);border-radius:4px;margin-bottom:6px;">
+        <div style="font-size:12px;font-weight:600;color:var(--charcoal);">${escHtml(e.message||'')}</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:3px;">${t}</div>
+      </div>`;
+    }).join('');
+  }
+  const _udErrorsHtml = `<details style="margin-top:14px;border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
+    <summary style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);cursor:pointer;user-select:none;">Recent Errors (${_udUserErrs.length})</summary>
+    <div style="margin-top:10px;">${_udErrRows}</div>
+  </details>`;
+
   body.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;padding:8px 0 16px;">
       <div>
@@ -588,6 +624,8 @@ async function openUserDetails(email){
     <div style="padding:12px 0;border-top:1px solid rgba(28,28,30,0.08);font-size:11px;color:var(--slate);font-family:var(--font-mono);">
       User ID: ${escHtml(u.id||'—')}
     </div>
+    ${_udActionsHtml}
+    ${_udErrorsHtml}
   `;
 
   // Asynchronously populate geolocation for this IP
@@ -1745,8 +1783,16 @@ function parseBrowser(ua){
 
 function renderClientErrors(errors){
   const wrap = document.getElementById('client-errors-wrap');
+  const existingTbody = document.getElementById('ce-tbody');
   if(!errors.length){
-    wrap.innerHTML = '<div style="padding:16px;color:var(--slate);font-size:13px;">No errors match the current filters.</div>';
+    if(existingTbody){
+      // Filters are already rendered — just show empty state inside the table
+      existingTbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:rgba(245,240,232,0.45);font-size:13px;">No errors match the current filters.</td></tr>`;
+      const countEl = document.getElementById('ce-count');
+      if(countEl) countEl.textContent = `0 of ${_allClientErrors.length} error${_allClientErrors.length!==1?'s':''}`;
+    } else {
+      wrap.innerHTML = '<div style="padding:16px;color:var(--slate);font-size:13px;">No errors match the current filters.</div>';
+    }
     return;
   }
   const rows = errors.map(e => {
@@ -1794,7 +1840,7 @@ function renderClientErrors(errors){
     </select>
     <span id="ce-count" style="font-size:11px;color:var(--slate);margin-left:4px;"></span>
   </div>
-  <div style="overflow-x:auto;">
+  <div style="overflow-x:auto;background:#1C1C1E;border-radius:6px;">
   <table style="width:100%;border-collapse:collapse;min-width:600px;">
     <thead><tr>
       <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap;">Time</th>
