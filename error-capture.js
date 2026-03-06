@@ -27,10 +27,18 @@
     } catch (e) { /* never throw from error handler */ }
   }
 
+  var OWN_ORIGIN = window.location.origin; // e.g. https://equitysight.netlify.app
+
   window.addEventListener('error', function (e) {
+    var src = e.filename || '';
+    // Ignore errors from browser extensions or third-party scripts
+    // Extension URLs look like: moz-extension://, chrome-extension://, safari-extension://
+    if (src && (src.indexOf('extension://') !== -1 || src.indexOf('extension:') !== -1)) return;
+    // Only log errors from our own origin or inline scripts (empty/same-page source)
+    if (src && src.indexOf('://') !== -1 && src.indexOf(OWN_ORIGIN) !== 1 && src.indexOf(OWN_ORIGIN) !== 0) return;
     send({
       message: e.message || String(e),
-      source:  e.filename || '',
+      source:  src,
       line:    e.lineno  || null,
       col:     e.colno   || null,
       stack:   e.error && e.error.stack ? e.error.stack : '',
