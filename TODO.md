@@ -15,4 +15,8 @@ Desktop(DO NOT REMOVE THIS LINE)
 1.
 
 PWA(DO NOT REMOVE THIS LINE)
-1.
+1. The scenario calculator can scroll left and right when its opened. only want vertical scroll.
+2. the projection graph slider needs to be below the values it changes so its easy on mobile to use.
+3. Amortisation table, when its opened on mobile it still causes there to be a littlle bit i can scroll horizontally which i dont want. confine it so it can only vertical scroll.
+4. Can we make it so i cant hold my finger on text to select it, site wide on PWA?
+3. 
