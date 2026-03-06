@@ -640,6 +640,7 @@
       <h3>Email Templates</h3>
       <p class="admin-card-desc">Customise the emails sent by EquitySight. Use <code style="background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:3px;font-size:11px;">{{variable}}</code> placeholders listed for each template.</p>
     </div>
+    <div style="padding:20px 24px;max-width:720px;">
     <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
       <select id="et-type-select" class="config-input" style="width:240px;font-size:13px;" onchange="onEmailTemplateTypeChange()">
         <option value="verification">Verification Code Email</option>
@@ -657,7 +658,7 @@
     </div>
     <div style="margin-bottom:14px;">
       <label class="config-label">Subject</label>
-      <input class="config-input" id="et-subject" type="text" style="width:100%;max-width:520px;" placeholder="Email subject line">
+      <input class="config-input" id="et-subject" type="text" style="width:100%;" placeholder="Email subject line">
     </div>
     <div style="margin-bottom:16px;">
       <label class="config-label">HTML Body</label>
@@ -666,6 +667,7 @@
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <button class="btn-admin btn-admin-primary" onclick="saveEmailTemplate()">Save Template</button>
       <div id="et-status" class="admin-status" style="margin:0;"></div>
+    </div>
     </div>
   </div>
 </div>
