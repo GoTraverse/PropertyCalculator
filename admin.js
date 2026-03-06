@@ -338,11 +338,14 @@ function renderUsers(users){
       <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">${ipDisplay}</td>
       <td>${roleHtml}</td>
       <td>
-        <div class="user-actions">
-          <button class="act-btn" data-action="reset-pw"    data-email="${escHtml(u.email)}">Reset Pwd</button>
-          <button class="act-btn" data-action="set-plan"    data-email="${escHtml(u.email)}" data-plan="${escHtml(plan)}">Change Plan</button>
-          <button class="act-btn" data-action="${roleAction}" data-email="${escHtml(u.email)}">${roleLabel}</button>
-          <button class="act-btn danger" data-action="delete-user" data-email="${escHtml(u.email)}">Delete</button>
+        <div class="user-cog-wrap">
+          <button class="user-cog-btn" data-cog-email="${escHtml(u.email)}" title="Actions" onclick="toggleUserCog(event,this)">⚙</button>
+          <div class="user-cog-menu">
+            <button class="cog-menu-item" data-action="reset-pw"     data-email="${escHtml(u.email)}">Reset Password</button>
+            <button class="cog-menu-item" data-action="set-plan"     data-email="${escHtml(u.email)}" data-plan="${escHtml(plan)}">Change Plan</button>
+            <button class="cog-menu-item" data-action="${roleAction}" data-email="${escHtml(u.email)}">${roleLabel}</button>
+            <button class="cog-menu-item danger" data-action="delete-user" data-email="${escHtml(u.email)}">Delete</button>
+          </div>
         </div>
       </td>
     </tr>`;
@@ -366,10 +369,25 @@ function renderUsers(users){
   });
 }
 
+function toggleUserCog(e, btn){
+  e.stopPropagation();
+  const menu = btn.nextElementSibling;
+  const isOpen = menu.classList.contains('open');
+  // Close all open cog menus first
+  document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
+  if(!isOpen) menu.classList.add('open');
+}
+
+document.addEventListener('click', function(){
+  document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
+});
+
 document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('users-tbody').addEventListener('click', function(e){
     const btn = e.target.closest('[data-action]');
     if(btn){
+      // Close the cog menu
+      document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
       // Action button clicked — handle action, don't open detail modal
       const action = btn.dataset.action;
       const email  = btn.dataset.email;
@@ -380,6 +398,8 @@ document.addEventListener('DOMContentLoaded', function(){
       if(action === 'delete-user') deleteUser(email);
       return;
     }
+    // Cog button — handled by onclick, stop propagation handled there
+    if(e.target.closest('.user-cog-btn')) return;
     // Row click (not on a button) — open user detail modal
     const tr = e.target.closest('tr[data-email]');
     if(tr) openUserDetails(tr.dataset.email);
