@@ -327,6 +327,9 @@
   .lib-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:10px;flex-shrink:0;white-space:nowrap;}
   .lib-del{background:none;border:none;color:rgba(196,90,90,0.4);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0;}
   .lib-del:hover{color:var(--risk-red);}
+  .lib-share{background:none;border:none;color:rgba(201,168,76,0.4);cursor:pointer;font-size:14px;padding:4px 5px;flex-shrink:0;line-height:1;border-radius:3px;transition:all 0.15s;}
+  .lib-share:hover{color:var(--gold);background:rgba(201,168,76,0.1);}
+  .lib-shared-badge{font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.25);flex-shrink:0;white-space:nowrap;}
   .lib-ts{font-family:'DM Mono',monospace;font-size:10px;color:rgba(28,28,30,0.3);flex-shrink:0;white-space:nowrap;}
 
   /* ── STATUS BADGES (item 2) ── */
@@ -697,3 +700,6 @@ html.dark-mode .section-label{color:rgba(245,240,232,0.4)!important;border-botto
   .proj-desktop-hint{display:none;}
 }
 html.dark-mode .proj-slider-box{background:rgba(255,255,255,0.05)!important;border-color:rgba(255,255,255,0.1)!important;}
+html.dark-mode #share-modal>div>div:last-child{background:#1C1C1E!important;}
+html.dark-mode #share-email-input{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.12)!important;color:#F5F0E8!important;}
+html.dark-mode .lib-shared-badge{background:rgba(201,168,76,0.12)!important;}
