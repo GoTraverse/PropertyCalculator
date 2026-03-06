@@ -330,11 +330,8 @@
   </div>
 </div>
 
-<footer class="site-footer" style="margin-top:0;">
-  <div class="site-footer-inner">
-    <div class="footer-bottom"><p>© 2025 EquitySight.app · Not financial advice.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="contact.html">Contact</a></div></div>
-  </div>
-</footer>
+<div id="site-footer-root"></div>
+<script src="footer.js"></script>
 
 <!-- Custom Dialog -->
 <div id="acct-dialog-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;">
@@ -654,11 +651,6 @@
       +'<div class="nav-dropdown-items"><a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a><a href="account.html" class="nav-dropdown-item active-link">⚙ Account Settings</a><button class="nav-dropdown-item danger" onclick="doSignOut()">Sign Out</button></div></div></div>';
     document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');},{once:false});
   }
-
-  document.getElementById('nav-ham').addEventListener('click',function(){
-    const l=document.querySelector('.site-nav-links');
-    l.style.cssText=l.style.display==='flex'?'':'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
-  });
 
   // Open requested panel (used by signup/checkout flow)
   const urlParams = new URLSearchParams(location.search);

@@ -922,63 +922,8 @@
 
 
 <!-- ══ FOOTER ══ -->
-<footer class="site-footer">
-  <div class="site-footer-inner">
-    <div class="site-footer-grid">
-      <div class="footer-brand">
-        <a href="index.html" class="site-logo" style="margin-bottom:14px;">
-          <div class="site-logo-mark">🏠</div>
-          <div class="site-logo-text">
-            <span class="site-logo-name">EquitySight</span>
-            <span class="site-logo-tld">.app</span>
-          </div>
-        </a>
-        <p>Australia's smarter way to understand property equity, government grants, and your path to home ownership.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Product</h4>
-        <ul>
-          <li><a href="app.html">Calculator</a></li>
-          <li><a href="pricing.html">Pricing</a></li>
-          <li><a href="pricing.html#comparison">Feature comparison</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Company</h4>
-        <ul>
-          <li><a href="about.html">About us</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="contact.html#support">Support</a></li>
-          <li><a href="#">Blog</a></li>
-        </ul>
-      </div>
-</div>
-    </div>
-    <div class="footer-bottom">
-      <p>© 2025 EquitySight.app · ABN pending · Not financial advice — always consult a licensed adviser.</p>
-      <div class="footer-bottom-links">
-        <a href="privacy.html">Privacy</a>
-        <a href="terms.html">Terms</a>
-        <a href="contact.html">Contact</a>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<script>
-  // Mobile nav toggle
-  document.getElementById('nav-ham').addEventListener('click', function(){
-    const links = document.querySelector('.site-nav-links');
-    if(links.style.display === 'flex'){
-      links.style.display = '';
-    } else {
-      links.style.cssText = 'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
-    }
-  });
-
-// Nav rendered by auth-nav.js
-
-</script>
+<div id="site-footer-root"></div>
+<script src="footer.js"></script>
 
 </body>
 </html>

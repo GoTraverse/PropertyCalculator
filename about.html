@@ -5,46 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>About — EquitySight.app</title>
 <link rel="stylesheet" href="shared.css">
-<style>
-  .about-hero{background:var(--charcoal);padding:100px 0 80px;position:relative;overflow:hidden;}
-  .about-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 80% 50%,rgba(201,168,76,0.07) 0%,transparent 65%);pointer-events:none;}
-  .about-hero-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:center;position:relative;z-index:1;}
-  .about-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);opacity:0.8;margin-bottom:16px;}
-  .about-h1{font-family:var(--font-display);font-size:clamp(36px,5vw,58px);font-weight:700;color:var(--cream);line-height:1.1;letter-spacing:-0.5px;margin-bottom:20px;}
-  .about-lead{font-size:17px;color:rgba(245,240,232,0.5);line-height:1.7;}
-  .about-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .about-stat{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:22px 20px;}
-  .about-stat-n{font-family:var(--font-display);font-size:36px;font-weight:700;color:var(--gold);line-height:1;}
-  .about-stat-l{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(245,240,232,0.3);margin-top:6px;}
-
-  .about-story{padding:80px 0;background:var(--warm-white);}
-  .about-story-inner{max-width:760px;margin:0 auto;padding:0 24px;}
-  .about-story-inner h2{font-family:var(--font-display);font-size:34px;font-weight:700;margin-bottom:24px;}
-  .about-story-inner p{font-size:16px;color:var(--slate);line-height:1.8;margin-bottom:20px;}
-  .about-story-inner p:last-child{margin-bottom:0;}
-  .pullquote{background:var(--charcoal);color:var(--cream);border-radius:8px;padding:32px;margin:36px 0;border-left:4px solid var(--gold);}
-  .pullquote p{font-family:var(--font-display);font-size:20px;font-style:italic;color:var(--cream);line-height:1.5;margin-bottom:0;}
-
-  .about-values{padding:80px 0;background:var(--cream);}
-  .about-values-inner{max-width:1100px;margin:0 auto;padding:0 24px;}
-  .values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px;}
-  .value-card{background:white;border-radius:10px;padding:32px;border:1px solid rgba(28,28,30,0.08);}
-  .value-icon{font-size:28px;margin-bottom:14px;}
-  .value-card h3{font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:10px;}
-  .value-card p{font-size:14px;color:var(--slate);line-height:1.7;}
-
-  .about-team{padding:80px 0;background:white;}
-  .about-team-inner{max-width:1100px;margin:0 auto;padding:0 24px;}
-  .team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px;}
-  .team-card{text-align:center;padding:32px 20px;background:var(--warm-white);border-radius:10px;}
-  .team-avatar{width:72px;height:72px;border-radius:50%;background:var(--charcoal);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px;}
-  .team-name{font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;}
-  .team-role{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
-  .team-bio{font-size:13px;color:var(--slate);line-height:1.6;}
-
-  @media(max-width:900px){.about-hero-inner{grid-template-columns:1fr;gap:40px;}.values-grid,.team-grid{grid-template-columns:1fr 1fr;}.about-stat-grid{grid-template-columns:1fr 1fr;}}
-  @media(max-width:600px){.values-grid,.team-grid{grid-template-columns:1fr;}}}
-</style>
+<link rel="stylesheet" href="about.css">
 </head>
 <body><nav class="site-nav">
   <div class="site-nav-inner">
@@ -163,34 +124,8 @@
 </section>
 
 
-<footer class="site-footer">
-  <div class="site-footer-inner">
-    <div class="site-footer-grid">
-      <div class="footer-brand"><a href="index.html" class="site-logo" style="margin-bottom:14px;"><div class="site-logo-mark">🏠</div><div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div></a><p>Australia's smartest property finance calculator for first home buyers.</p></div>
-      <div class="footer-col"><h4>Product</h4><ul><li><a href="app.html">Calculator</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
-      <div class="footer-col"><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></div>
-      <div class="footer-col"><h4>Legal</h4><ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms of Service</a></li><li><a href="cookies.html">Cookie Policy</a></li><li><a href="disclaimer.html">Disclaimer</a></li></ul></div>
-    </div>
-    <div class="footer-bottom"><p>© 2025 EquitySight.app · Not financial advice · ABN pending.</p><div class="footer-bottom-links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></div>
-  </div>
-</footer>
-
-<script>
-  document.getElementById('nav-ham').addEventListener('click',function(){
-    const l=document.querySelector('.site-nav-links');
-    l.style.cssText=l.style.display==='flex'?'':'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
-  });
-  (function(){
-    const SK='propCalc_session_v1',PK='propCalc_profile_v1';
-    function gs(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):null;}catch(e){return null;}}
-    function gp(){try{const r=localStorage.getItem(PK);return r?JSON.parse(r):null;}catch(e){return null;}}
-    const sess=gs(),prof=gp(),el=document.getElementById('nav-actions');
-    if(!sess||!el)return;
-    const n=sess.name||sess.email||'U',ini=n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2),ph=prof&&prof.photo;
-    el.innerHTML=`<a href="app.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.55);padding:8px 14px;border-radius:3px;background:rgba(255,255,255,0.06);text-decoration:none;border:1px solid rgba(255,255,255,0.1);">Open App →</a><div class="nav-user-wrap" id="nuw"><button class="nav-user-btn" onclick="document.getElementById('nuw').classList.toggle('open')" title="${n}">${ph?'<img src="'+ph+'">':ini}</button><div class="nav-user-dropdown"><div class="nav-dropdown-header"><div class="nav-dropdown-name">${n}</div><div class="nav-dropdown-email">${sess.email||''}</div></div><div class="nav-dropdown-items"><a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a><a href="account.html" class="nav-dropdown-item">⚙ Account</a><button class="nav-dropdown-item danger" onclick="localStorage.removeItem('${SK}');location.reload()">Sign Out</button></div></div></div>`;
-    document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');});
-  })();
-</script>
+<div id="site-footer-root"></div>
+<script src="footer.js"></script>
 
 </body>
 </html>

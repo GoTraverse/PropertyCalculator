@@ -123,7 +123,27 @@
   }
 })();
 
-// Background session refresh: checks if plan/role changed (e.g. admin updated user)
+// Hamburger menu toggle — shared across all pages that include this script
+(function () {
+  function initHamburger() {
+    var ham = document.getElementById('nav-ham');
+    if (!ham) return;
+    ham.addEventListener('click', function () {
+      var links = document.querySelector('.site-nav-links');
+      if (!links) return;
+      if (links.style.display === 'flex') {
+        links.style.cssText = '';
+      } else {
+        links.style.cssText = 'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHamburger);
+  } else {
+    initHamburger();
+  }
+})();
 // and reloads the page if needed so feature gates update without re-login.
 (function() {
   function refreshSession() {

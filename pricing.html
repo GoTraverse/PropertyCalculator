@@ -5,83 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Pricing — EquitySight.app</title>
 <link rel="stylesheet" href="shared.css">
-<style>
-  .pricing-hero{background:var(--charcoal);padding:80px 0 60px;text-align:center;position:relative;overflow:hidden;}
-  .pricing-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 50% 0%,rgba(201,168,76,0.08) 0%,transparent 70%);pointer-events:none;}
-  .pricing-hero-inner{max-width:600px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
-  .pricing-hero h1{font-family:var(--font-display);font-size:clamp(34px,5vw,56px);font-weight:700;color:var(--cream);line-height:1.1;margin-bottom:16px;}
-  .pricing-hero p{font-size:17px;color:rgba(245,240,232,0.5);line-height:1.6;}
-  .toggle-wrap{display:inline-flex;align-items:center;gap:12px;margin-top:28px;}
-  .toggle-lbl{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:rgba(245,240,232,0.4);}
-  .toggle-lbl.active{color:var(--gold);}
-  .billing-tog{position:relative;width:44px;height:24px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:12px;cursor:pointer;transition:background 0.2s;}
-  .billing-tog.on{background:var(--gold);}
-  .billing-tog-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;}
-  .billing-tog.on .billing-tog-knob{left:22px;}
-  .save-badge{background:rgba(90,158,123,0.2);color:var(--reward-green);border:1px solid rgba(90,158,123,0.3);border-radius:20px;padding:3px 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;}
-
-  .cards-section{background:var(--warm-white);padding:60px 0 80px;}
-  .cards-inner{max-width:1100px;margin:0 auto;padding:0 24px;}
-  .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:60px;}
-  .pcard{border-radius:10px;overflow:hidden;background:white;border:1px solid rgba(28,28,30,0.09);transition:transform 0.2s,box-shadow 0.2s;}
-  .pcard:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.1);}
-  .pcard.feat{background:var(--charcoal);border-color:var(--gold);box-shadow:0 8px 40px rgba(201,168,76,0.15);}
-  .pcard-top{padding:30px 28px 22px;border-bottom:1px solid rgba(28,28,30,0.07);}
-  .pcard.feat .pcard-top{border-color:rgba(255,255,255,0.07);}
-  .pcard-badge{font-family:var(--font-mono);font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
-  .pcard-name{font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:6px;}
-  .pcard.feat .pcard-name{color:var(--cream);}
-  .pcard-desc{font-size:13px;color:var(--slate);line-height:1.5;margin-bottom:16px;}
-  .pcard.feat .pcard-desc{color:rgba(245,240,232,0.4);}
-  .pcard-price{display:flex;align-items:baseline;gap:5px;}
-  .pcard-amt{font-family:var(--font-mono);font-size:42px;line-height:1;}
-  .pcard.feat .pcard-amt{color:var(--gold);}
-  .pcard-per{font-family:var(--font-mono);font-size:12px;color:var(--slate);}
-  .pcard.feat .pcard-per{color:rgba(245,240,232,0.35);}
-  .pcard-body{padding:24px 28px;}
-  .pcard-feats{list-style:none;margin-bottom:24px;}
-  .pcard-feats li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--slate);padding:8px 0;border-bottom:1px solid rgba(28,28,30,0.06);line-height:1.4;}
-  .pcard.feat .pcard-feats li{color:rgba(245,240,232,0.55);border-color:rgba(255,255,255,0.05);}
-  .pcard-feats li:last-child{border-bottom:none;}
-  .ck{flex-shrink:0;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px;}
-  .ck-y{background:rgba(90,158,123,0.15);color:var(--reward-green);}
-  .ck-n{background:rgba(28,28,30,0.07);color:rgba(28,28,30,0.25);}
-  .pcard.feat .ck-n{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.15);}
-  .pcard-btn{width:100%;padding:13px;border-radius:4px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;}
-  .pb-outline{background:none;border:1px solid rgba(28,28,30,0.2);color:var(--charcoal);}
-  .pb-outline:hover{background:var(--charcoal);color:var(--cream);}
-  .pb-gold{background:var(--gold);border:none;color:var(--charcoal);}
-  .pb-gold:hover{opacity:0.88;}
-
-  /* Comparison table */
-  .cmp-section{background:white;padding:60px 0 80px;}
-  .cmp-inner{max-width:1000px;margin:0 auto;padding:0 24px;}
-  .cmp-table{width:100%;border-collapse:collapse;}
-  .cmp-table th,.cmp-table td{padding:13px 16px;border-bottom:1px solid rgba(28,28,30,0.07);text-align:left;}
-  .cmp-table th{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(28,28,30,0.4);background:rgba(245,240,232,0.5);}
-  .cmp-table th.tc{text-align:center;}
-  .cmp-table td{font-size:13px;color:var(--slate);}
-  .cmp-table td.fname{color:var(--charcoal);font-weight:500;}
-  .cmp-table td.tv{text-align:center;font-family:var(--font-mono);font-size:12px;}
-  .cmp-table tr:hover td{background:rgba(245,240,232,0.3);}
-  .sec-row td{background:rgba(28,28,30,0.04)!important;font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(28,28,30,0.4);padding:10px 16px!important;}
-  .tg{color:var(--gold);font-weight:700;}
-  .ty{color:var(--reward-green);}
-  .tn{color:rgba(28,28,30,0.2);}
-  .fc{background:rgba(201,168,76,0.04);}
-
-  /* FAQ */
-  .faq-section{background:var(--cream);padding:80px 0;}
-  .faq-inner{max-width:680px;margin:0 auto;padding:0 24px;}
-  .faq-item{border-bottom:1px solid rgba(28,28,30,0.1);}
-  .faq-q{width:100%;background:none;border:none;padding:20px 0;display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600;color:var(--charcoal);cursor:pointer;text-align:left;gap:16px;}
-  .faq-icon{font-size:20px;flex-shrink:0;transition:transform 0.2s;color:var(--gold);font-family:var(--font-mono);}
-  .faq-item.open .faq-icon{transform:rotate(45deg);}
-  .faq-ans{display:none;padding-bottom:20px;font-size:14px;color:var(--slate);line-height:1.7;}
-  .faq-item.open .faq-ans{display:block;}
-
-  @media(max-width:900px){.cards-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto 60px;}.cmp-table th,.cmp-table td{padding:10px 8px;font-size:11px;}}}
-</style>
+<link rel="stylesheet" href="pricing.css">
 </head>
 <body><nav class="site-nav">
   <div class="site-nav-inner">
@@ -239,17 +163,8 @@
   </div>
 </section>
 
-<footer class="site-footer">
-  <div class="site-footer-inner">
-    <div class="site-footer-grid">
-      <div class="footer-brand"><a href="index.html" class="site-logo" style="margin-bottom:14px;"><div class="site-logo-mark">🏠</div><div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div></a><p>Australia's smartest property finance calculator for first home buyers.</p></div>
-      <div class="footer-col"><h4>Product</h4><ul><li><a href="app.html">Calculator</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
-      <div class="footer-col"><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></div>
-      <div class="footer-col"><h4>Legal</h4><ul><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms of Service</a></li><li><a href="cookies.html">Cookie Policy</a></li><li><a href="disclaimer.html">Disclaimer</a></li></ul></div>
-    </div>
-    <div class="footer-bottom"><p>© 2025 EquitySight.app · Not financial advice · ABN pending.</p><div class="footer-bottom-links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></div>
-  </div>
-</footer>
+<div id="site-footer-root"></div>
+<script src="footer.js"></script>
 
 <script>
   async function startCheckout(){
@@ -309,21 +224,6 @@
     setTimeout(startCheckout, 800);
   }
 
-  document.getElementById('nav-ham').addEventListener('click',function(){
-    const l=document.querySelector('.site-nav-links');
-    l.style.cssText=l.style.display==='flex'?'':'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
-  });
-  // Session nav
-  (function(){
-    const SK='propCalc_session_v1',PK='propCalc_profile_v1';
-    function gs(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):null;}catch(e){return null;}}
-    function gp(){try{const r=localStorage.getItem(PK);return r?JSON.parse(r):null;}catch(e){return null;}}
-    const sess=gs(),prof=gp(),el=document.getElementById('nav-actions');
-    if(!sess||!el)return;
-    const n=sess.name||sess.email||'U',ini=n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2),ph=prof&&prof.photo;
-    el.innerHTML=`<a href="app.html" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.55);padding:8px 14px;border-radius:3px;background:rgba(255,255,255,0.06);text-decoration:none;border:1px solid rgba(255,255,255,0.1);">Open App →</a><div class="nav-user-wrap" id="nuw"><button class="nav-user-btn" onclick="document.getElementById('nuw').classList.toggle('open')" title="${n}">${ph?'<img src="'+ph+'">':ini}</button><div class="nav-user-dropdown"><div class="nav-dropdown-header"><div class="nav-dropdown-name">${n}</div><div class="nav-dropdown-email">${sess.email||''}</div></div><div class="nav-dropdown-items"><a href="app.html" class="nav-dropdown-item">🏠 Open Calculator</a><a href="account.html" class="nav-dropdown-item">⚙ Account</a><button class="nav-dropdown-item danger" onclick="localStorage.removeItem('${SK}');location.reload()">Sign Out</button></div></div></div>`;
-    document.addEventListener('click',function(e){const w=document.getElementById('nuw');if(w&&!w.contains(e.target))w.classList.remove('open');});
-  })();
 </script>
 
 </body>
