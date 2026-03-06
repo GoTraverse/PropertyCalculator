@@ -11,6 +11,13 @@
   var ENDPOINT = '/.netlify/functions/client-errors';
   var sent = [];  // deduplicate within a page session
 
+  function getUser() {
+    try {
+      var s = JSON.parse(localStorage.getItem('propCalc_session_v1') || 'null');
+      return s ? { userId: s.id || s.userId || '', userName: s.name || '', userEmail: s.email || '' } : {};
+    } catch(e) { return {}; }
+  }
+
   function send(entry) {
     // Deduplicate by message+source to avoid flooding on repeated errors
     var key = (entry.message || '') + '|' + (entry.source || '') + '|' + (entry.line || '');
@@ -21,6 +28,10 @@
     try {
       entry.url       = window.location.href;
       entry.userAgent = navigator.userAgent;
+      var u = getUser();
+      entry.userId    = u.userId    || '';
+      entry.userName  = u.userName  || '';
+      entry.userEmail = u.userEmail || '';
       navigator.sendBeacon
         ? navigator.sendBeacon(ENDPOINT, JSON.stringify({ action: 'logError', error: entry }))
         : fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'logError', error: entry }), keepalive: true }).catch(function(){});

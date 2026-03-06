@@ -1718,6 +1718,102 @@ async function callClientErrors(payload){
   return r.json();
 }
 
+let _allClientErrors = [];
+
+function parseBrowser(ua){
+  if(!ua) return '—';
+  if(/Edg\//.test(ua))     return 'Edge '    +(ua.match(/Edg\/([\d.]+)/)||[])[1];
+  if(/Firefox\//.test(ua)) return 'Firefox ' +(ua.match(/Firefox\/([\d.]+)/)||[])[1];
+  if(/Chrome\//.test(ua))  return 'Chrome '  +(ua.match(/Chrome\/([\d.]+)/)||[])[1];
+  if(/Safari\//.test(ua))  return 'Safari '  +(ua.match(/Version\/([\d.]+)/)||[])[1];
+  return ua.slice(0,30);
+}
+
+function renderClientErrors(errors){
+  const wrap = document.getElementById('client-errors-wrap');
+  if(!errors.length){
+    wrap.innerHTML = '<div style="padding:16px;color:var(--slate);font-size:13px;">No errors match the current filters.</div>';
+    return;
+  }
+  const rows = errors.map(e => {
+    const time    = e.at ? new Date(e.at).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
+    const browser = parseBrowser(e.userAgent||'');
+    const src     = [e.source ? escHtml(e.source.replace(/^https?:\/\/[^/]+/,'')) : '', e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
+    const page    = e.url ? escHtml(e.url.replace(/^https?:\/\/[^/]+/,'').slice(0,60)) : '';
+    const user    = e.userEmail ? escHtml(e.userEmail) : (e.userName ? escHtml(e.userName) : '<span style="color:rgba(245,240,232,0.25)">guest</span>');
+    const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:rgba(245,240,232,0.4);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:rgba(245,240,232,0.35);margin:4px 0 0;line-height:1.4;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 0;">${time}</td>
+      <td style="vertical-align:top;padding:10px 8px;max-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#F5F0E8;">${escHtml(e.message||'')}</div>
+        ${src ? `<div style="font-family:var(--font-mono);font-size:10px;color:rgba(201,168,76,0.7);margin-top:2px;">${src}</div>` : ''}
+        ${page ? `<div style="font-size:10px;color:rgba(245,240,232,0.3);font-family:var(--font-mono);margin-top:1px;">${page}</div>` : ''}
+        ${stack}
+      </td>
+      <td style="vertical-align:top;padding:10px 8px;font-size:11px;white-space:nowrap;">${user}</td>
+      <td style="vertical-align:top;padding:10px 8px;font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;">${escHtml(browser)}</td>
+    </tr>`;
+  }).join('');
+
+  const countEl = document.getElementById('ce-count');
+  if(countEl) countEl.textContent = `${errors.length} of ${_allClientErrors.length} error${_allClientErrors.length!==1?'s':''}`;
+
+  const tbody = document.getElementById('ce-tbody');
+  if(tbody){ tbody.innerHTML = rows; return; }
+
+  wrap.innerHTML = `
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+    <input id="ce-filter-msg"  class="config-input" placeholder="Search message…"  oninput="filterClientErrors()" style="width:180px;font-size:11px;padding:6px 10px;">
+    <input id="ce-filter-user" class="config-input" placeholder="User email/name…" oninput="filterClientErrors()" style="width:160px;font-size:11px;padding:6px 10px;">
+    <select id="ce-filter-browser" class="config-input" onchange="filterClientErrors()" style="width:130px;font-size:11px;padding:6px 10px;">
+      <option value="">All browsers</option>
+      <option value="Firefox">Firefox</option>
+      <option value="Chrome">Chrome</option>
+      <option value="Safari">Safari</option>
+      <option value="Edge">Edge</option>
+    </select>
+    <select id="ce-filter-time" class="config-input" onchange="filterClientErrors()" style="width:130px;font-size:11px;padding:6px 10px;">
+      <option value="">All time</option>
+      <option value="1h">Last hour</option>
+      <option value="24h">Last 24 hours</option>
+      <option value="7d">Last 7 days</option>
+    </select>
+    <span id="ce-count" style="font-size:11px;color:var(--slate);margin-left:4px;"></span>
+  </div>
+  <div style="overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;min-width:600px;">
+    <thead><tr>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap;">Time</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Error</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">User</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Browser</th>
+    </tr></thead>
+    <tbody id="ce-tbody">${rows}</tbody>
+  </table></div>`;
+
+  if(countEl) countEl.textContent = `${errors.length} of ${_allClientErrors.length} error${_allClientErrors.length!==1?'s':''}`;
+  // set count after re-render
+  const ce = document.getElementById('ce-count');
+  if(ce) ce.textContent = `${errors.length} of ${_allClientErrors.length} error${_allClientErrors.length!==1?'s':''}`;
+}
+
+function filterClientErrors(){
+  const msg     = (document.getElementById('ce-filter-msg')||{}).value||'';
+  const user    = (document.getElementById('ce-filter-user')||{}).value||'';
+  const browser = (document.getElementById('ce-filter-browser')||{}).value||'';
+  const time    = (document.getElementById('ce-filter-time')||{}).value||'';
+  const now     = Date.now();
+  const cutoffs = {'1h':3600000,'24h':86400000,'7d':604800000};
+
+  let filtered = _allClientErrors;
+  if(msg)     filtered = filtered.filter(e => (e.message||'').toLowerCase().includes(msg.toLowerCase()));
+  if(user)    filtered = filtered.filter(e => ((e.userEmail||'')+(e.userName||'')).toLowerCase().includes(user.toLowerCase()));
+  if(browser) filtered = filtered.filter(e => parseBrowser(e.userAgent||'').startsWith(browser));
+  if(time && cutoffs[time]) filtered = filtered.filter(e => e.at && (now - e.at) <= cutoffs[time]);
+
+  renderClientErrors(filtered);
+}
+
 async function loadClientErrors(){
   const wrap = document.getElementById('client-errors-wrap');
   const loading = document.getElementById('client-errors-loading');
@@ -1728,42 +1824,18 @@ async function loadClientErrors(){
     wrap.innerHTML = `<div style="padding:16px;color:#c45a5a;font-size:13px;">Error: ${escHtml(d.error||'Failed to load')}</div>`;
     return;
   }
-  const errors = d.errors || [];
-  if(!errors.length){
-    wrap.innerHTML = '<div style="padding:16px;color:var(--slate);font-size:13px;">No errors logged yet. Errors are captured automatically when users encounter JavaScript problems.</div>';
+  _allClientErrors = d.errors || [];
+  if(!_allClientErrors.length){
+    wrap.innerHTML = '<div style="padding:16px;color:var(--slate);font-size:13px;">No errors logged yet.</div>';
     return;
   }
-
-  const rows = errors.map(e => {
-    const time = e.at ? new Date(e.at).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
-    const stack = e.stack ? `<pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:rgba(245,240,232,0.4);margin:4px 0 0;line-height:1.4;">${escHtml(e.stack.slice(0,600))}</pre>` : '';
-    const src = [e.source ? escHtml(e.source) : '', e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
-    const ua = e.userAgent ? `<div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:3px;">${escHtml(e.userAgent.slice(0,120))}</div>` : '';
-    const url = e.url ? `<div style="font-size:10px;color:rgba(245,240,232,0.35);font-family:var(--font-mono);">${escHtml(e.url.slice(0,120))}</div>` : '';
-    return `<tr>
-      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 0;">${time}</td>
-      <td style="vertical-align:top;padding:10px 8px;">
-        <div style="font-size:12px;font-weight:600;color:#F5F0E8;">${escHtml(e.message||'')}</div>
-        ${src ? `<div style="font-family:var(--font-mono);font-size:10px;color:rgba(201,168,76,0.7);margin-top:2px;">${src}</div>` : ''}
-        ${url}${ua}${stack}
-      </td>
-    </tr>`;
-  }).join('');
-
-  wrap.innerHTML = `<div style="font-size:11px;color:var(--slate);margin-bottom:8px;">${errors.length} error${errors.length!==1?'s':''} (newest first)</div>
-  <table style="width:100%;border-collapse:collapse;">
-    <thead><tr>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap;">Time</th>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Error</th>
-    </tr></thead>
-    <tbody style="border-bottom:none;">${rows}</tbody>
-  </table>`;
+  renderClientErrors(_allClientErrors);
 }
 
 async function clearClientErrors(){
   if(!confirm('Clear all logged client errors?')) return;
   const d = await callClientErrors({action:'adminClearClientErrors'});
-  if(d.ok) loadClientErrors();
+  if(d.ok){ _allClientErrors=[]; loadClientErrors(); }
   else alert('Failed: '+(d.error||'Unknown error'));
 }
 
