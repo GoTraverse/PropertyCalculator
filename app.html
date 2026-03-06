@@ -190,7 +190,7 @@
   .app-body{display:grid;grid-template-columns:340px 1fr;overflow:hidden;height:calc(100vh - var(--hdr-h-desktop) - 44px);margin-top:44px;transition:grid-template-columns 0.25s cubic-bezier(0.4,0,0.2,1);}
 
   /* ── SIDEBAR ── */
-  .sidebar{background:var(--charcoal-soft);color:var(--cream);padding:24px 20px;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.05);height:100%;}
+  .sidebar{background:var(--charcoal-soft);color:var(--cream);padding:24px 20px;overflow-y:auto;overflow-x:hidden;border-right:1px solid rgba(255,255,255,0.05);height:100%;}
   
   .sidebar-title{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);}
   .s-head{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.28);margin-bottom:10px;}
@@ -1397,7 +1397,7 @@
                    transition:background 0.15s;">Show Schedule</button>
         </div>
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:0;">Year-by-year breakdown of principal, interest and remaining balance over the full loan term.</p>
-        <div id="amort-table-wrap" style="display:none;margin-top:16px;overflow-x:auto;">
+        <div id="amort-table-wrap" style="display:none;margin-top:16px;overflow-x:auto;max-width:100%;box-sizing:border-box;">
           <table id="amort-table" style="width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:12px;min-width:380px;"></table>
         </div>
       </div>
