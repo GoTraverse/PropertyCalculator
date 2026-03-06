@@ -505,10 +505,13 @@
     /* Fix 1: Extra bottom padding so the floating calc FAB doesn't obscure content */
     main{padding-bottom:max(110px, calc(env(safe-area-inset-bottom) + 96px))!important;}
 
-    /* Fix 2: Amortization table — proper mobile scroll and sizing */
-    #amort-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;max-width:100%;border-radius:4px;}
+    /* Fix 2: Amortization table — contain horizontally, no page-wide overflow */
+    #amort-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;max-width:100%;width:100%;border-radius:4px;display:block;}
+    #amort-table{width:max-content;min-width:100%;}
     #amort-table th{font-size:9px!important;padding:5px 7px!important;white-space:nowrap;}
     #amort-table td{font-size:10px!important;padding:5px 7px!important;white-space:nowrap;}
+    /* Prevent horizontal scroll on calculator — clamp all content inside viewport */
+    main,section,.card,.section{max-width:100%;overflow-x:hidden;}
 
     /* Fix 3: Ensure all header action buttons have exactly the same height */
     .export-btn{height:36px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;}
@@ -642,6 +645,18 @@
       overscroll-behavior: none;
       overscroll-behavior-y: none;
       -webkit-overflow-scrolling: auto; /* Disable momentum scrolling bounce */
+      overflow-x: hidden;
+    }
+    /* Prevent text selection/long-press highlight site-wide on PWA */
+    * {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    /* Re-enable selection for inputs, textareas and contenteditable */
+    input, textarea, [contenteditable] {
+      -webkit-user-select: text;
+      user-select: text;
     }
     /* Mobile: body is the scroller — keep overflow-y:auto but no bounce */
     @media (max-width: 600px) {

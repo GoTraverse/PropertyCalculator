@@ -956,13 +956,9 @@
           <!-- Click tooltip (item 6) -->
           <div id="proj-tooltip" style="display:none;position:absolute;background:var(--charcoal);color:var(--cream);border-radius:6px;padding:16px 22px;font-family:'DM Mono',monospace;font-size:13px;min-width:210px;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.35);min-width:210px;z-index:10;"></div>
         </div>
-        <!-- Mobile-only slider explorer -->
+        <!-- Mobile-only slider explorer — values first, slider below -->
         <div id="proj-mobile-slider" style="display:none;margin-top:12px;">
-          <div style="font-size:10px;color:var(--slate);font-style:italic;margin-bottom:8px;">Drag to explore quarters</div>
-          <input type="range" id="proj-slider-input" min="0" max="120" step="1" value="0"
-            style="width:100%;accent-color:var(--gold);height:28px;"
-            oninput="projSliderMove(parseInt(this.value))">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
             <div class="proj-slider-box">
               <div class="proj-slider-box-lbl">Quarter</div>
               <div class="proj-slider-box-val" id="psb-quarter" style="color:var(--gold);">—</div>
@@ -984,6 +980,10 @@
               <div class="proj-slider-box-val" id="psb-equity" style="color:var(--reward-green);font-size:20px;">—</div>
             </div>
           </div>
+          <div style="font-size:10px;color:var(--slate);font-style:italic;margin-bottom:6px;text-align:center;">Drag to explore quarters</div>
+          <input type="range" id="proj-slider-input" min="0" max="120" step="1" value="0"
+            style="width:100%;accent-color:var(--gold);height:34px;"
+            oninput="projSliderMove(parseInt(this.value))">
         </div>
       </div>
 
