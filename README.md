@@ -49,16 +49,19 @@ Other features:
 ├── account.html                    # User account & subscription
 ├── pricing.html                    # Pricing page
 ├── shared.css                      # Design tokens + shared components
-├── auth-nav.js                     # Injects nav header on every page
+├── auth-nav.js                     # Injects nav header + help modal on every page
 ├── footer.js                       # Injects footer on every page
+├── error-capture.js                # Captures JS errors from browsers → client-errors function
 ├── netlify/functions/
 │   ├── auth.js                     # All auth + admin actions
 │   ├── scenarios.js                # Scenario save/load/delete
-│   ├── stripe.js                   # Subscription management
+│   ├── stripe.js                   # Subscription management + discount tracking
+│   ├── contact.js                  # Contact/support form → Resend email
+│   ├── client-errors.js            # Stores JS error logs from browsers
+│   ├── growth.js                   # Suburb growth rate lookup + cache
 │   └── photo.js                    # Property photo proxy
 ├── netlify.toml                    # Build config + CSP headers
-├── CODEBASE.md                     # Developer architecture guide
-└── TODO.txt                        # Live task list
+└── CODEBASE.md                     # Developer architecture guide
 ```
 
 > For a full developer guide including auth model, session keys, design tokens, CSP notes, and coding conventions — read **`CODEBASE.md`**.
@@ -76,6 +79,7 @@ Set in **Netlify → Site Settings → Environment Variables**:
 | `AUTH_SALT` | Password hashing salt (strong random secret) |
 | `STRIPE_SECRET_KEY` | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `RESEND_API_KEY` | Resend API key for contact form emails |
 
 ---
 
@@ -90,7 +94,8 @@ npx netlify dev
 
 - **Plans**: `free` | `pro` | `adviser` — stored in session and Redis user record
 - **Roles**: `user` | `admin` — admin unlocks `admin.html`
-- **Task tracking**: see `TODO.txt` — update it when completing or adding tasks
+- **Task tracking**: see `TODO.md` — update it when completing or adding tasks
+- **AUTH_SALT** must be set in production — the function will refuse to start if missing
 
 ---
 
@@ -108,8 +113,8 @@ npx netlify dev
 
 If picking up this project for the first time:
 1. Read `CODEBASE.md` — architecture, file map, auth model, conventions
-2. Read `TODO.txt` — current open tasks
+2. Read `TODO.md` — current open tasks
 3. Set up environment variables (table above)
 4. Run `npx netlify dev` to develop locally with functions
 
-When making changes: update `CODEBASE.md` if the architecture changes, and update `TODO.txt` as tasks are completed or discovered.
+When making changes: update `CODEBASE.md` if the architecture changes, and update `TODO.md` as tasks are completed or discovered.

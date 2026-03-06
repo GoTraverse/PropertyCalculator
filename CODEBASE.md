@@ -11,15 +11,20 @@ No framework, no build step — what you see in the repo is what gets deployed.
 Browser (static files)
   │
   ├── HTML pages + per-page CSS/JS
-  ├── shared.css     — design tokens & shared component styles
-  ├── auth-nav.js    — injects nav header + session refresh into every page
-  ├── footer.js      — injects site footer into every page
+  ├── shared.css       — design tokens & shared component styles
+  ├── auth-nav.js      — injects nav header + session refresh into every page
+  ├── footer.js        — injects site footer into every page
+  ├── error-capture.js — captures JS errors and sends to client-errors function
   │
   └── /.netlify/functions/   (Node.js serverless, Netlify deploys automatically)
-        ├── auth.js          — all user auth + admin actions (Upstash Redis)
-        ├── scenarios.js     — save/load/delete property scenarios (Redis)
-        ├── stripe.js        — subscription management (Stripe API)
-        └── photo.js         — property photo proxy/upload
+        ├── auth.js           — all user auth + admin actions (Upstash Redis)
+        ├── scenarios.js      — save/load/delete property scenarios (Redis)
+        ├── stripe.js         — subscription management + discount tracking (Stripe API)
+        ├── contact.js        — contact/support form → Resend email
+        ├── client-errors.js  — stores/retrieves JS error logs from browsers
+        ├── growth.js         — suburb growth rate lookup + 30-day cache
+        ├── mapproxy.js       — map tile proxy
+        └── photo.js          — property photo proxy/upload
 ```
 
 ---
@@ -38,10 +43,11 @@ Browser (static files)
 | `contact.html` + `contact.css` | Contact / support page |
 | `privacy.html`, `terms.html`, `cookies.html`, `disclaimer.html` | Legal pages |
 | `shared.css` | CSS custom properties (design tokens), nav, footer, buttons — included on every page |
-| `auth-nav.js` | Renders nav header into `.site-nav-actions`, handles session display, hamburger toggle, background session refresh |
+| `auth-nav.js` | Renders nav header into `.site-nav-actions`, help modal, session display, background session refresh |
 | `footer.js` | Renders full site footer into `#site-footer-root` |
 | `stripe-config.js` | Stripe publishable key + plan IDs (client-side only) |
 | `account-panel.js` | Floating account panel shown from the app (plan info, sign out) |
+| `error-capture.js` | Captures unhandled JS errors + promise rejections, posts to `client-errors` function |
 | `netlify.toml` | Build config, CSP headers, CORS for functions |
 
 ---
@@ -72,6 +78,14 @@ Every page that needs the nav and footer follows this pattern:
 <script src="footer.js"></script>
 ```
 
+### auth-nav.js behaviour
+
+- Reads `propCalc_session_v1` from localStorage and injects the profile avatar button + dropdown menu into `.site-nav-actions`
+- Profile dropdown uses `position:fixed` to avoid being clipped by the nav's `backdrop-filter` stacking context
+- Injects a **help/contact modal** (the `?` button); calls `/.netlify/functions/contact` on submit
+- `window.renderSiteNav` is exposed so other scripts can re-render after profile changes
+- Runs a background `verify` token check 5s after load and every 5 minutes; re-renders nav via `window.renderSiteNav()` if plan/role has changed
+
 ---
 
 ## Authentication & Session
@@ -89,15 +103,81 @@ Every page that needs the nav and footer follows this pattern:
 ```javascript
 const resp = await fetch('/.netlify/functions/auth', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ action: 'getProfile', token: session.token })
+  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+  body: JSON.stringify({ action: 'getProfile' })
 });
 ```
 
 Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setProfile`,
 `changePassword`, `deleteAccount`, `adminListUsers`, `adminResetPassword`, `adminDeleteUser`,
 `adminSetRole`, `adminSetPlan`, `adminGetConfig`, `adminSetConfig`, `adminGetStats`,
-`adminGetSchemes`, `adminSetSchemes`, `adminGetUserDetails`, `getSchemes`
+`adminGetSchemes`, `adminSetSchemes`, `adminGetUserDetails`, `adminGetClientErrors`, `getSchemes`
+
+---
+
+## Admin Dashboard (`admin.html` / `admin.js`)
+
+Role=admin only. Tabs:
+
+| Tab | Key features |
+|-----|-------------|
+| **Users** | Table of all users with plan badges + DISC badge for discounted subscriptions. Click row → user detail popup. Cog menu per row → quick actions. |
+| **User Popup** | Full user details, collapsible Recent Errors section (from error log), all cog-wheel actions inline (Reset PW, Change Plan, Grant/Revoke Admin, View History, Delete). |
+| **Scenarios** | Browse and delete user scenarios |
+| **Gov Schemes** | Configure government grant/scheme eligibility per state |
+| **Growth Data** | View and clear suburb growth cache |
+| **Database** | Purge sessions / profiles / scenarios |
+| **Error Log** | JS errors captured from user browsers via `error-capture.js`. Filter by message, user, browser, time. Filters persist when results are empty. Dark-themed table for readability. |
+| **Configuration** | Site identity, pricing, Stripe keys, feature flags, email templates |
+| **Email Templates** | Edit HTML + subject for 6 transactional email types. Content confined to max-width container. |
+
+### Revenue / discount tracking
+
+The Revenue Estimate stat uses list prices from config. If any paying users have active Stripe coupons:
+- A gold **DISC** badge appears next to their plan in the users table
+- The user popup shows coupon name, discount percentage/amount, and effective price
+- The Revenue stat card shows `· N discounted` to flag that actuals may differ
+
+---
+
+## Stripe & Subscription Management (`stripe.js`)
+
+- **Checkout**: `createCheckout` → Stripe Checkout session → redirect → webhook
+- **Portal**: `createPortalSession` → Stripe billing portal for self-service
+- **Status**: `getSubscriptionStatus` → current sub details including payment method
+
+### Discount tracking
+
+When `checkout.session.completed` fires, `extractDiscountInfo()` pulls coupon details from `session.discount`:
+```
+stripeDiscountInfo: {
+  couponId, couponName,
+  percentOff,           // e.g. 66.67
+  amountOffCents,       // e.g. 600
+  currency,             // e.g. "aud"
+  effectiveAmountCents, // base price - discount
+  appliedAt             // timestamp
+}
+```
+Stored on the user Redis record. Cleared on downgrade. Updated on `customer.subscription.updated`.
+
+---
+
+## Contact Form (`contact.js`)
+
+- Accepts: `name`, `email`, `subject` (enum), `message` (max 5000 chars)
+- Sends email via **Resend API** to the `supportEmail` from `config:site` (or fallback)
+- Requires `RESEND_API_KEY` env var; logs to console if not set (graceful dev fallback)
+- HTML is escaped before embedding in email body
+
+---
+
+## Error Capture (`error-capture.js` + `client-errors.js`)
+
+- `error-capture.js` loaded on authenticated pages — attaches `window.onerror` and `unhandledrejection` listeners
+- Posts errors to `/.netlify/functions/client-errors` with: message, source, line, col, stack, userAgent, URL, userId/email
+- `client-errors.js` stores up to 500 most recent errors in Redis (`client-errors:log`)
+- Admin Error Log tab reads these via `adminGetClientErrors` action
 
 ---
 
@@ -134,11 +214,12 @@ Set these in **Netlify → Site Settings → Environment Variables**:
 
 | Variable | Used by | Purpose |
 |----------|---------|---------|
-| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js | Upstash Redis endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js | Upstash Redis auth token |
-| `AUTH_SALT` | auth.js | Password hashing salt — must be a strong random secret |
+| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js, client-errors.js | Upstash Redis endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js, client-errors.js | Upstash Redis auth token |
+| `AUTH_SALT` | auth.js | Password hashing salt — **required in production**, must be strong random secret. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `STRIPE_SECRET_KEY` | stripe.js | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | stripe.js | Stripe webhook signing secret |
+| `RESEND_API_KEY` | contact.js | Resend API key for sending contact form emails |
 
 ---
 
@@ -152,26 +233,14 @@ The CSP `connect-src` currently allows:
 
 ---
 
-## TODO.txt
+## Security Notes
 
-`TODO.txt` in the repo root is the live task list. Claude and devs update it as tasks complete.
-Format: numbered list, `!` prefix = urgent. Remove completed items.
-
-### Current open items summary (see TODO.txt for full detail)
-1. Property image disappears after page refresh
-2. Auto-fill suburb growth rate + cache (suburb data caching)
-3. Projection tab: show quarter labels (Q1/Q2/Q3/Q4)
-4. Stripe cancellation not reflecting in account settings
-5. ~~CSP fix~~ DONE
-6. ~~Admin IP location popup~~ DONE
-7. Automated email (signup confirmation, invoices)
-8. Better PDF export library
-9. Dark mode / light mode toggle
-10. Admin: suburb growth config + shared 30-day cache
-11. Forgot password functionality
-12. Collaborate / share scenario with another user
-13. ~~Restructure~~ DONE
-- PWA 7: Projection graph tooltip unusable on mobile — custom slider solution
+- **XSS**: All user-supplied data rendered into HTML goes through `escHtml()` in admin.js, which escapes `&`, `<`, `>`, `"`, and `'`. Do not embed user data in HTML without this.
+- **Admin auth**: Every admin action in auth.js verifies `user.role === 'admin'` via token. Never skip this check.
+- **Stripe webhooks**: Verified via HMAC-SHA256 signature (`STRIPE_WEBHOOK_SECRET`) with replay protection (5-minute timestamp window).
+- **AUTH_SALT**: Throws a hard error at startup if not set in production (`NODE_ENV=production` or `CONTEXT=production`). Never deploy without this set.
+- **Password hashing**: HMAC-SHA256 with global salt. Adequate for this app's risk profile; consider bcrypt migration if requirements change.
+- **CORS**: Functions return `Access-Control-Allow-Origin: *`. Sensitive actions are all token-gated.
 
 ---
 
@@ -184,3 +253,4 @@ Format: numbered list, `!` prefix = urgent. Remove completed items.
 - **Pro features**: check `isPro()` before enabling. Plan stored in session (`session.plan === 'pro'`)
 - **Mobile breakpoint**: `@media(max-width:600px)` is the main PWA/mobile breakpoint in app.css
 - **Print/PDF**: `exportPDF()` in app.js generates a full standalone HTML document in a new window, captures current scenario state as a snapshot
+- **Admin pages**: admin.css hides `.site-nav-links` and `.nav-hamburger` — profile icon stays pinned via `grid-column:3`
