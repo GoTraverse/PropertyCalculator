@@ -34,27 +34,73 @@ const H = {
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'onboarding@resend.dev').trim();
 
+// Default email templates — used when no custom template is saved in Redis
+const DEFAULT_TEMPLATES = {
+  verification: {
+    subject: 'Verify your EquitySight account',
+    html: '<p>Your verification code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 15 minutes.</p>',
+    variables: ['{{code}}'],
+  },
+  welcome: {
+    subject: 'Welcome to EquitySight!',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Welcome, {{firstName}}! 🎉</h2><p>Your EquitySight account is verified and ready to go.</p><p>You can now:</p><ul><li>Calculate property investment scenarios</li><li>Save and compare multiple properties</li><li>Track growth projections over time</li></ul><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a><p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p></div>',
+    variables: ['{{firstName}}', '{{name}}'],
+  },
+  password_reset: {
+    subject: 'Reset your EquitySight password',
+    html: '<p>Your password reset code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 30 minutes. If you did not request this, you can ignore this email.</p>',
+    variables: ['{{code}}'],
+  },
+  subscription: {
+    subject: 'Your EquitySight plan has been updated',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Plan updated</h2><p>Hi {{firstName}},</p><p>Your plan has been updated to <strong>{{plan}}</strong>.</p><p>You now have access to all features included in your new plan.</p><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a></div>',
+    variables: ['{{firstName}}', '{{name}}', '{{plan}}'],
+  },
+  security_alert: {
+    subject: 'Security alert — EquitySight',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C45A5A;">⚠ Security alert</h2><p>Hi {{firstName}},</p><p>We detected the following activity on your account: <strong>{{event}}</strong>.</p><p>If this was you, no action is needed. If you did not do this, please reset your password immediately.</p><a href="https://equitysight.app/login.html" style="display:inline-block;padding:12px 24px;background:#1C1C1E;color:#F5F0E8;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Reset Password</a></div>',
+    variables: ['{{firstName}}', '{{name}}', '{{event}}'],
+  },
+  promotional: {
+    subject: 'What\'s new at EquitySight',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">What\'s new</h2><p>Hi {{firstName}},</p><p>We\'ve been working hard on new features for EquitySight. Here\'s what\'s new:</p><p style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:12px 16px;border-radius:0 4px 4px 0;">Your message here...</p><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:16px;">Open Calculator</a><p style="margin-top:24px;font-size:11px;color:#9CA3AF;">You\'re receiving this because you have an EquitySight account.</p></div>',
+    variables: ['{{firstName}}', '{{name}}'],
+  },
+};
+
+// Substitute {{variable}} placeholders in a template string
+function applyVars(str, vars){
+  return Object.entries(vars).reduce((s,[k,v])=>s.replace(new RegExp('\\{\\{'+k+'\\}\\}','g'),v||''), str);
+}
+
+async function getEmailTemplate(type){
+  try{
+    const saved = await rGet('email-template:'+type);
+    if(saved && saved.subject && saved.html) return saved;
+  }catch(e){}
+  return DEFAULT_TEMPLATES[type] || null;
+}
+
+async function sendResend(to, subject, html){
+  const r = await fetch('https://api.resend.com/emails',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({from:VERIFY_EMAIL_FROM, to:[to], subject, html})
+  });
+  if(!r.ok){ const e=await r.text(); console.warn('[auth] Resend error %s: %s',r.status,e); return false; }
+  return true;
+}
+
 async function sendVerificationEmail(email, code){
   if(!RESEND_API_KEY){
     console.log('[auth] RESEND_API_KEY not configured. Verification code for %s: %s', email, code);
     return {sent:false,provider:'log'};
   }
   try{
-    const r = await fetch('https://api.resend.com/emails',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        from:VERIFY_EMAIL_FROM,
-        to:[email],
-        subject:'Verify your EquitySight account',
-        html:'<p>Your verification code is <strong style="font-size:18px;letter-spacing:2px;">'+code+'</strong>.</p><p>This code expires in 15 minutes.</p>'
-      })
-    });
-    if(!r.ok){
-      const errBody = await r.text();
-      console.warn('[auth] Failed to send verification email (%s): %s', r.status, errBody);
-      return {sent:false,provider:'resend'};
-    }
+    const tpl = await getEmailTemplate('verification');
+    const html = applyVars(tpl.html, {code});
+    const sent = await sendResend(email, tpl.subject, html);
+    if(!sent) return {sent:false,provider:'resend'};
     return {sent:true,provider:'resend'};
   }catch(e){
     console.warn('[auth] Verification email error for %s: %s', email, e.message);
@@ -66,24 +112,10 @@ async function sendWelcomeEmail(email, name){
   if(!RESEND_API_KEY) return {sent:false,provider:'log'};
   try{
     const firstName = (name||'').split(' ')[0] || 'there';
-    const r = await fetch('https://api.resend.com/emails',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        from:VERIFY_EMAIL_FROM,
-        to:[email],
-        subject:'Welcome to EquitySight!',
-        html:'<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;">'
-          +'<h2 style="color:#C9A84C;">Welcome, '+firstName+'! 🎉</h2>'
-          +'<p>Your EquitySight account is verified and ready to go.</p>'
-          +'<p>You can now:</p>'
-          +'<ul><li>Calculate property investment scenarios</li><li>Save and compare multiple properties</li><li>Track growth projections over time</li></ul>'
-          +'<a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a>'
-          +'<p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p>'
-          +'</div>'
-      })
-    });
-    return {sent:r.ok,provider:'resend'};
+    const tpl = await getEmailTemplate('welcome');
+    const html = applyVars(tpl.html, {firstName, name: name||'there'});
+    await sendResend(email, tpl.subject, html);
+    return {sent:true,provider:'resend'};
   }catch(e){
     return {sent:false,provider:'resend'};
   }
@@ -95,17 +127,10 @@ async function sendPasswordResetEmail(email, code){
     return {sent:false,provider:'log'};
   }
   try{
-    const r = await fetch('https://api.resend.com/emails',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        from:VERIFY_EMAIL_FROM,
-        to:[email],
-        subject:'Reset your EquitySight password',
-        html:'<p>Your password reset code is <strong style="font-size:18px;letter-spacing:2px;">'+code+'</strong>.</p><p>This code expires in 30 minutes. If you did not request this, you can ignore this email.</p>'
-      })
-    });
-    if(!r.ok){ const e=await r.text(); console.warn('[auth] Failed to send reset email (%s): %s',r.status,e); return {sent:false}; }
+    const tpl = await getEmailTemplate('password_reset');
+    const html = applyVars(tpl.html, {code});
+    const sent = await sendResend(email, tpl.subject, html);
+    if(!sent) return {sent:false};
     return {sent:true};
   }catch(e){ console.warn('[auth] Reset email error: %s',e.message); return {sent:false}; }
 }
@@ -668,6 +693,37 @@ exports.handler = async function(event){
     await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
     // Also update any active tokens for this user
     return ok({ok:true,plan});
+  }
+
+  if(action==='adminGetEmailTemplates'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const types=Object.keys(DEFAULT_TEMPLATES);
+    const templates={};
+    for(const t of types){
+      const saved=await rGet('email-template:'+t).catch(()=>null);
+      templates[t]={ ...DEFAULT_TEMPLATES[t], ...(saved||{}), _isCustom:!!(saved&&saved.subject) };
+    }
+    return ok({ok:true,templates});
+  }
+
+  if(action==='adminSetEmailTemplate'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {type,subject,html}=body;
+    if(!type||!DEFAULT_TEMPLATES[type]) return fail('Invalid template type');
+    if(!subject||!html) return fail('subject and html required');
+    await rSet('email-template:'+type, {subject:String(subject).slice(0,300), html:String(html).slice(0,20000)});
+    return ok({ok:true});
+  }
+
+  if(action==='adminResetEmailTemplate'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {type}=body;
+    if(!type||!DEFAULT_TEMPLATES[type]) return fail('Invalid template type');
+    await rDel('email-template:'+type);
+    return ok({ok:true, template:DEFAULT_TEMPLATES[type]});
   }
 
   return fail('Unknown action');

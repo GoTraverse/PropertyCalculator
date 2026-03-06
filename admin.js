@@ -1918,4 +1918,70 @@ function closeHistoryModal(){
   document.getElementById('history-modal-overlay').style.display = 'none';
 }
 
+// ── Email Templates ──────────────────────────────────────────────────────────
+let _emailTemplates = {};
+
+const ET_VARS = {
+  verification:  '{{code}}',
+  welcome:       '{{firstName}}, {{name}}',
+  password_reset:'{{code}}',
+  subscription:  '{{firstName}}, {{name}}, {{plan}}',
+  security_alert:'{{firstName}}, {{name}}, {{event}}',
+  promotional:   '{{firstName}}, {{name}}',
+};
+
+async function loadEmailTemplates(){
+  const d = await callAuth('adminGetEmailTemplates');
+  if(!d.ok){ console.warn('Failed to load email templates'); return; }
+  _emailTemplates = d.templates || {};
+  onEmailTemplateTypeChange();
+}
+
+function onEmailTemplateTypeChange(){
+  const type = (document.getElementById('et-type-select')||{}).value;
+  if(!type) return;
+  const tpl = _emailTemplates[type] || {};
+  const subj = document.getElementById('et-subject');
+  const html = document.getElementById('et-html');
+  const vars = document.getElementById('et-vars');
+  const badge = document.getElementById('et-custom-badge');
+  if(subj) subj.value = tpl.subject || '';
+  if(html) html.value = tpl.html || '';
+  if(vars) vars.textContent = ET_VARS[type] || '';
+  if(badge) badge.style.display = tpl._isCustom ? '' : 'none';
+}
+
+async function saveEmailTemplate(){
+  const type    = (document.getElementById('et-type-select')||{}).value;
+  const subject = (document.getElementById('et-subject')||{}).value||'';
+  const html    = (document.getElementById('et-html')||{}).value||'';
+  const st = document.getElementById('et-status');
+  if(!subject||!html){ if(st){st.className='admin-status error';st.textContent='Subject and HTML are required.';} return; }
+  if(st){st.className='admin-status';st.textContent='Saving…';}
+  const d = await callAuth('adminSetEmailTemplate', {type, subject, html});
+  if(d.ok){
+    if(st){st.className='admin-status success';st.textContent='✓ Template saved';}
+    if(_emailTemplates[type]){ _emailTemplates[type].subject=subject; _emailTemplates[type].html=html; _emailTemplates[type]._isCustom=true; }
+    const badge = document.getElementById('et-custom-badge');
+    if(badge) badge.style.display='';
+    setTimeout(()=>{ if(st) st.className='admin-status'; },3000);
+  } else {
+    if(st){st.className='admin-status error';st.textContent='Error: '+(d.error||'Failed to save');}
+  }
+}
+
+async function resetEmailTemplate(){
+  const type = (document.getElementById('et-type-select')||{}).value;
+  if(!type) return;
+  const confirmed = await customConfirm('Reset template?', 'This will remove your custom template and revert to the built-in default.', {danger:true, confirmLabel:'Reset'});
+  if(!confirmed) return;
+  const d = await callAuth('adminResetEmailTemplate', {type});
+  if(d.ok){
+    if(_emailTemplates[type]){ _emailTemplates[type]={...d.template,_isCustom:false}; }
+    onEmailTemplateTypeChange();
+    const st = document.getElementById('et-status');
+    if(st){st.className='admin-status success';st.textContent='✓ Reset to default';setTimeout(()=>{st.className='admin-status';},3000);}
+  }
+}
+
 document.addEventListener('DOMContentLoaded', init);
