@@ -21,19 +21,11 @@ General(DO NOT REMOVE THIS LINE)
 10. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
 11. Add forgot password functionality.
 12. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
-13. DONE
 
 
 Desktop(DO NOT REMOVE THIS LINE)
 1.
 
 PWA(DO NOT REMOVE THIS LINE)
-1.
-2.
-3.
-4.
-5.
-6.
-7. In projection tab on the graph, the tooltip that comes uo when you tap somehwhere on the graph is unusable. maybe for mobile only do we make a little custom slider that changes values in little boxes next to the graph but plots the graph dot as it goes maybe?
-8.
-9.
+1. In projection tab on the graph, the tooltip that comes uo when you tap somehwhere on the graph is unusable. maybe for mobile only do we make a little custom slider that changes values in little boxes next to the graph but plots the graph dot as it goes maybe?
+
