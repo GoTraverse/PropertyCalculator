@@ -10,6 +10,10 @@ Never delete anything above this line.
 
 General(DO NOT REMOVE THIS LINE)
 1. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
+2. App page, admin page and account settings page all have different profile drop down menus? I like the menu on the app page. can we copy that to all pages so they are the same?
+3. Need to add a history of major events per user that i can view as an admin. Things like: signup date, password changes, plan purchases, changes or cancelations, etc.
+4. Is it possible to collect information from the users experience like any problems for html css or javascript loading ot any errors and then log it all to a log file that can be seen in another tab in admin app and a file that Claude can use for fixing?
+5. 
 
 Desktop(DO NOT REMOVE THIS LINE)
 1.
