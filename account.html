@@ -249,13 +249,20 @@
       <div class="acct-card" id="billing-card" style="display:none;">
         <div class="acct-card-head">
           <h3>Billing</h3>
-          <p>Manage your payment method and billing history.</p>
+          <p>Manage your payment method and billing details.</p>
         </div>
         <div class="acct-card-body">
           <div class="security-row">
             <div>
+              <div class="security-label">Current plan</div>
+              <div class="security-meta" id="billing-plan-text">—</div>
+            </div>
+            <button class="acct-btn acct-btn-outline" onclick="openBillingPortal()">Manage</button>
+          </div>
+          <div class="security-row">
+            <div>
               <div class="security-label">Payment method</div>
-              <div class="security-meta" id="payment-method-text">Visa ending in ••••</div>
+              <div class="security-meta" id="payment-method-text">Loading…</div>
             </div>
             <button class="acct-btn acct-btn-outline" onclick="openBillingPortal()">Update</button>
           </div>
@@ -264,7 +271,6 @@
               <div class="security-label">Next billing date</div>
               <div class="security-meta" id="next-billing-text">—</div>
             </div>
-            <button class="acct-btn acct-btn-outline" onclick="openBillingPortal()">Manage</button>
           </div>
           <div id="cancel-at-note" style="display:none;margin:10px 0;padding:10px 14px;background:rgba(196,112,74,0.08);border:1px solid rgba(196,112,74,0.25);border-radius:4px;font-size:13px;color:var(--terracotta);"></div>
           <div style="margin-top:16px;">
@@ -683,6 +689,10 @@
   async function loadBillingStatus(){
     const token = session && session.token;
     if(!token) return;
+    // Show loading state
+    var pmEl   = document.getElementById('payment-method-text');
+    var planEl = document.getElementById('billing-plan-text');
+    if(pmEl) pmEl.textContent = 'Loading…';
     try{
       const r = await fetch('/.netlify/functions/stripe',{
         method:'POST',
@@ -690,7 +700,30 @@
         body:JSON.stringify({action:'getSubscriptionStatus'})
       });
       const d = await r.json();
-      if(!d.ok) return;
+      if(!d.ok){ if(pmEl) pmEl.textContent='—'; return; }
+
+      // Plan + price
+      if(planEl){
+        var planLabel = (d.plan||'').charAt(0).toUpperCase()+(d.plan||'').slice(1);
+        if(d.priceAmount != null && d.priceCurrency){
+          var amt = (d.priceAmount/100).toLocaleString('en-AU',{style:'currency',currency:d.priceCurrency.toUpperCase()});
+          var interval = d.priceInterval ? ' / '+d.priceInterval : '';
+          planLabel += ' — '+amt+interval;
+        }
+        planEl.textContent = planLabel;
+      }
+
+      // Payment method
+      if(pmEl){
+        if(d.cardBrand && d.cardLast4){
+          var brand = d.cardBrand.charAt(0).toUpperCase()+d.cardBrand.slice(1);
+          pmEl.textContent = brand+' ending in '+d.cardLast4;
+        } else {
+          pmEl.textContent = 'Managed via Stripe';
+        }
+      }
+
+      // Next billing date
       const periodEndEl = document.getElementById('next-billing-text');
       const cancelNote  = document.getElementById('cancel-at-note');
       if(d.currentPeriodEnd && periodEndEl){
@@ -702,7 +735,7 @@
         cancelNote.textContent = '⚠️ Your subscription is cancelled and will end on '+endDate+'. You have full access until then.';
         cancelNote.style.display = 'block';
       }
-    }catch(e){}
+    }catch(e){ if(pmEl) pmEl.textContent='—'; }
   }
 
   async function openBillingPortal(){
