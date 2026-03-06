@@ -418,7 +418,8 @@ exports.handler = async function(event){
     const users=await Promise.all(keys.map(async k=>{
       const u=await rGet(k);
       return u?{email:u.email,name:u.name,plan:u.plan,id:u.id,createdAt:u.createdAt,role:u.role,
-                lastLoginAt:u.lastLoginAt,loginCount:u.loginCount,lastLoginIp:u.lastLoginIp}:null;
+                lastLoginAt:u.lastLoginAt,loginCount:u.loginCount,lastLoginIp:u.lastLoginIp,
+                stripeDiscountInfo:u.stripeDiscountInfo||null}:null;
     }));
     return ok({ok:true,users:users.filter(Boolean)});
   }

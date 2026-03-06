@@ -153,8 +153,28 @@ function verifyStripeSignature(rawBody, sigHeader, secret) {
 function ok(b)         { return { statusCode: 200, headers: H, body: JSON.stringify(b) }; }
 function fail(msg, code) { return { statusCode: code || 400, headers: H, body: JSON.stringify({ ok: false, error: msg }) }; }
 
+// ── Extract discount info from a Stripe discount object ───────────────────────
+function extractDiscountInfo(discount, baseAmountCents, currency) {
+  if (!discount || !discount.coupon) return null;
+  const c = discount.coupon;
+  let effectiveAmountCents = null;
+  if (baseAmountCents != null) {
+    if (c.percent_off)        effectiveAmountCents = Math.round(baseAmountCents * (1 - c.percent_off / 100));
+    else if (c.amount_off != null) effectiveAmountCents = Math.max(0, baseAmountCents - c.amount_off);
+  }
+  return {
+    couponId:            c.id || null,
+    couponName:          c.name || c.id || null,
+    percentOff:          c.percent_off || null,
+    amountOffCents:      c.amount_off  || null,
+    currency:            c.currency || currency || null,
+    effectiveAmountCents,
+    appliedAt:           Date.now(),
+  };
+}
+
 // ── Upgrade user plan in Redis ────────────────────────────────────────────────
-async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId) {
+async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId, discountInfo) {
   const key = 'user:' + email.toLowerCase().trim();
   const userData = await rGet(key);
   if (!userData) {
@@ -162,11 +182,13 @@ async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId) 
     return false;
   }
   userData.plan = plan;
-  if (stripeCustomerId)    userData.stripeCustomerId    = stripeCustomerId;
+  if (stripeCustomerId)     userData.stripeCustomerId    = stripeCustomerId;
   if (stripeSubscriptionId) userData.stripeSubscriptionId = stripeSubscriptionId;
+  if (discountInfo)         userData.stripeDiscountInfo  = discountInfo;
+  else if (discountInfo === null) delete userData.stripeDiscountInfo; // explicitly cleared
   await rSet(key, userData);
   await logEvent(userData.id, 'plan_upgraded', { plan, stripeCustomerId, stripeSubscriptionId });
-  console.log('[stripe] Upgraded', email, '→', plan);
+  console.log('[stripe] Upgraded', email, '→', plan, discountInfo ? '(discounted)' : '');
   return true;
 }
 
@@ -182,6 +204,7 @@ async function downgradePlan(stripeCustomerId) {
   }
   userData.plan = 'free';
   delete userData.stripeSubscriptionId;
+  delete userData.stripeDiscountInfo;
   await rSet('user:' + userData.email.toLowerCase().trim(), userData);
   await logEvent(userData.id, 'plan_downgraded', { plan: 'free', stripeCustomerId });
   console.log('[stripe] Downgraded', userData.email, '→ free');
@@ -218,7 +241,11 @@ exports.handler = async function (event) {
         const meta  = session.metadata || {};
         const plan  = meta.plan || 'pro';
         if (email) {
-          await upgradePlan(email, plan, session.customer, session.subscription);
+          // Extract discount from checkout session (total_details gives total discount in cents)
+          const baseAmount = session.amount_subtotal;
+          const currency   = session.currency;
+          const discountInfo = extractDiscountInfo(session.discount, baseAmount, currency);
+          await upgradePlan(email, plan, session.customer, session.subscription, discountInfo);
         } else {
           console.warn('[stripe] checkout.session.completed: no email in session');
         }
@@ -236,13 +263,19 @@ exports.handler = async function (event) {
           const meta = sub.metadata || {};
           const plan = meta.plan;
           if (plan && sub.customer) {
-            // Find user by customerId and update plan
+            // Find user by customerId and update plan + discount info
             const userKeys = await redisCmd('KEYS', 'user:*');
             if (userKeys && userKeys.length) {
               const users = await Promise.all(userKeys.map(k => rGet(k)));
               const userData = users.find(u => u && u.stripeCustomerId === sub.customer);
-              if (userData && userData.plan !== plan) {
-                await upgradePlan(userData.email, plan, sub.customer, sub.id);
+              if (userData) {
+                const baseAmount   = sub.items && sub.items.data && sub.items.data[0] && sub.items.data[0].price ? sub.items.data[0].price.unit_amount : null;
+                const currency     = sub.currency || null;
+                // discountInfo=null means clear existing discount; extractDiscountInfo returns null if no discount
+                const discountInfo = extractDiscountInfo(sub.discount, baseAmount, currency);
+                if (userData.plan !== plan || JSON.stringify(userData.stripeDiscountInfo) !== JSON.stringify(discountInfo)) {
+                  await upgradePlan(userData.email, plan, sub.customer, sub.id, discountInfo);
+                }
               }
             }
           }

@@ -176,13 +176,23 @@ async function loadUsers(){
 
 function updateStats(users){
   // Keep counts in sync when user list changes; sparklines come from loadStats()
-  const nFree    = users.filter(u=>u.plan==='free'||!u.plan).length;
-  const nPro     = users.filter(u=>u.plan==='pro').length;
-  const nAdviser = users.filter(u=>u.plan==='adviser').length;
+  const nFree     = users.filter(u=>u.plan==='free'||!u.plan).length;
+  const nPro      = users.filter(u=>u.plan==='pro').length;
+  const nAdviser  = users.filter(u=>u.plan==='adviser').length;
+  const nDiscount = users.filter(u=>u.stripeDiscountInfo && (u.plan==='pro'||u.plan==='adviser')).length;
   document.getElementById('stat-total').textContent   = users.length;
   document.getElementById('stat-free').textContent    = nFree;
   document.getElementById('stat-pro').textContent     = nPro;
   document.getElementById('stat-adviser').textContent = nAdviser;
+  const discNote = document.getElementById('stat-discount-note');
+  if(discNote){
+    if(nDiscount > 0){
+      discNote.textContent = `· ${nDiscount} discounted`;
+      discNote.style.display = '';
+    } else {
+      discNote.style.display = 'none';
+    }
+  }
 }
 
 // ── 7-day SVG sparkline ──────────────────────────────────────────────────────
@@ -332,7 +342,7 @@ function renderUsers(users){
     return `<tr data-email="${escHtml(u.email)}" style="cursor:pointer;" title="Click to view user details">
       <td style="font-weight:500;">${escHtml(u.name||'—')}</td>
       <td><span class="user-email">${escHtml(u.email||'—')}</span></td>
-      <td><span class="plan-badge plan-${escHtml(plan)}">${escHtml(plan)}</span></td>
+      <td><span class="plan-badge plan-${escHtml(plan)}">${escHtml(plan)}</span>${u.stripeDiscountInfo?`<span title="${escHtml(u.stripeDiscountInfo.couponName||'Discounted')}" style="margin-left:4px;font-size:9px;font-family:var(--font-mono);background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);border-radius:3px;padding:1px 4px;letter-spacing:0.5px;">DISC</span>`:''}</td>
       <td style="font-family:var(--font-mono);font-size:11px;">${joined}</td>
       <td style="font-family:var(--font-mono);font-size:11px;">${lastLogin}</td>
       <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">${ipDisplay}</td>
@@ -561,6 +571,20 @@ async function openUserDetails(email){
     <div style="margin-top:10px;">${_udErrRows}</div>
   </details>`;
 
+  // Pre-compute discount display HTML (Task 6)
+  let _udDiscountHtml = '';
+  if (u.stripeDiscountInfo) {
+    const di = u.stripeDiscountInfo;
+    const discLabel = di.percentOff
+      ? `${di.percentOff}% off`
+      : (di.amountOffCents ? `${(di.amountOffCents/100).toFixed(2)} off` : 'discounted');
+    const effectiveLabel = di.effectiveAmountCents != null
+      ? ` → $${(di.effectiveAmountCents/100).toFixed(2)}/${di.currency||'mo'}`
+      : '';
+    const appliedDate = di.appliedAt ? new Date(di.appliedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '';
+    _udDiscountHtml = `<span style="margin-left:6px;font-size:10px;font-family:var(--font-mono);background:rgba(201,168,76,0.12);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);border-radius:3px;padding:2px 6px;">${escHtml(di.couponName||'Coupon')}: ${escHtml(discLabel)}${escHtml(effectiveLabel)}</span>${appliedDate?`<div style="font-size:10px;color:var(--slate);margin-top:3px;">Applied ${escHtml(appliedDate)}</div>`:''}`;
+  }
+
   body.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;padding:8px 0 16px;">
       <div>
@@ -573,7 +597,7 @@ async function openUserDetails(email){
       </div>
       <div>
         <div class="config-label">Plan</div>
-        <div style="margin-top:4px;"><span class="plan-badge plan-${escHtml(u.plan||'free')}">${escHtml(u.plan||'free')}</span></div>
+        <div style="margin-top:4px;"><span class="plan-badge plan-${escHtml(u.plan||'free')}">${escHtml(u.plan||'free')}</span>${_udDiscountHtml}</div>
       </div>
       <div>
         <div class="config-label">Role</div>
@@ -856,7 +880,7 @@ const STAT_META = {
   sessions:   { title: 'Login Tokens',        desc: 'One token per device/browser per user (30-day TTL). High counts are normal — each device sign-in creates a new token. Use Database → Purge Expired Sessions to clean up stale tokens.',   valueId: 'stat-sessions',      histKey: 'activeSessions',      stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
   scenarios:  { title: 'Scenario Sets',       desc: 'Saved property scenario lists',        valueId: 'stat-scenarios-top', histKey: 'totalScenarioLists',  stroke: 'rgba(70,140,110,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
   'new-users':{ title: 'New This Week',       desc: 'Signups in last 7 days',               valueId: 'stat-new-users',     histKey: 'newUsersLast7',       stroke: 'rgba(90,158,123,0.9)',    fill: 'rgba(90,158,123,0.5)',    prefix: '', suffix: '' },
-  revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
+  revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans at list price — may differ if discounts are active', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
   avg:        { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',      valueId: 'stat-avg-scenarios', histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
 };
 
