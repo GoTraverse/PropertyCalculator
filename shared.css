@@ -343,7 +343,7 @@ img { max-width: 100%; display: block; }
 }
 @media(max-width: 480px) {
   .site-footer-grid { grid-template-columns: 1fr; }
-  .site-nav-inner { padding: 0 12px; gap: 8px; min-height: 70px; }
+  .site-nav-inner { padding: 0 20px; gap: 8px; min-height: 70px; }
   .site-nav-links a { font-size: 12px; padding: 8px 10px; }
   .site-logo-name { font-size: 17px; }
   .site-logo-mark { width: 40px; height: 40px; font-size: 21px; }
