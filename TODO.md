@@ -9,16 +9,13 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-1. Automatically bring up the suburb growth rate if there is a suburb listed and keep that data on file so we dont have to keep pingingthe API unless the suburb is different.
-2. Stripe testing works, except it doesnt seem to show in my account settings when it gets redirected back that i have cancelled the subscription? Or is that because its still in the subscription period?
-3. Need to add automated email functional for confirming email addresses at sign up and then sending an email once signed up. this can also be used for sending invoices. Maybe we use a temporary free mail server until i setup an O365.
-4. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
-5. Add dark mode/light mode. can be toggled from theprofile drop down.
-6. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
-7. Add forgot password functionality.
-8. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
-9. Can we add an auto save to library feature after certain changes like property image, property details etc, dont have auto save for changing calculator values, tha can stay manual.
-10. I like the profile menu tha comes up on the app page so can we make that the same accross all pages?
+1. Stripe testing works, except it doesnt seem to show in my account settings when it gets redirected back that i have cancelled the subscription? Or is that because its still in the subscription period?
+2. Need to add automated email functional for confirming email addresses at sign up and then sending an email once signed up. this can also be used for sending invoices. Maybe we use a temporary free mail server until i setup an O365.
+3. we need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
+4. Add dark mode/light mode. can be toggled from theprofile drop down.
+5. In the admin page. maybe we should add some info or configuration for the get annual growth data. like how do i kkow what suburbs i can chose or how can i add mire to the database? Any time a user puts in a suburb and gets the growth value, that needs to be stored im the database so otherusers can use that same value, make it expire in 30 days so its always cutrent data.
+6. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
+7. I like the profile menu tha comes up on the app page so can we make that the same accross all pages?
 
 Desktop(DO NOT REMOVE THIS LINE)
 1.

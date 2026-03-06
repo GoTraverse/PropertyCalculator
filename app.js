@@ -757,6 +757,7 @@
     const prevPhoto = document.getElementById('pd-preview-photo');
     if(prevPhoto) prevPhoto.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;">`;
     updatePropertyDetails();
+    triggerAutoSaveToLibrary();
   }
 
   function clearPropPhoto(){
@@ -941,6 +942,7 @@
   function updatePropertyDetails(){
     if(!_restoringDraft) _forceDirty = true;
     autosaveDraft();
+    triggerAutoSaveToLibrary();
     const address = document.getElementById('pd-address').value;
     const suburb  = document.getElementById('pd-suburb').value;
     const state   = document.getElementById('pd-state').value;
@@ -1174,7 +1176,19 @@
     };
   }
 
-  async function saveScenario(){
+  // Auto-save to library after property detail changes (not calculator values)
+  var _autoSaveLibTimer = null;
+  function triggerAutoSaveToLibrary(){
+    if(!_lastSavedAddr) return; // only auto-save scenarios already in library
+    clearTimeout(_autoSaveLibTimer);
+    _autoSaveLibTimer = setTimeout(function(){
+      var addr = document.getElementById('pd-address')?.value?.trim();
+      if(!addr) return; // need an address to save
+      saveScenario(true); // quiet mode
+    }, 4000);
+  }
+
+  async function saveScenario(quiet){
     const state    = collectCurrentState();
     const addr     = state.values['pd-address'] || '';
     if(!addr.trim()){
@@ -1225,18 +1239,20 @@
       state,
     };
     const saveBtns = document.querySelectorAll('button[onclick*="saveScenario"]');
-    saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
+    if(!quiet) saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
     _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
-    saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
+    if(!quiet) saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
     _lastSavedAddr = fullAddr; _isDirty = false; updateUnsavedBadge();
     const action = existIdx>=0 ? 'Updated' : 'Saved';
-    if(usedCloud){
-      showToast(`☁️ ${action} to cloud — visible on all devices`);
-    } else if(ON_NETLIFY){
-      showToast(`⚠️ Cloud save failed — saved locally only. Check Netlify Functions.`);
-    } else {
-      showToast(`💾 ${action} locally (open via Netlify for shared sync)`);
+    if(!quiet){
+      if(usedCloud){
+        showToast(`☁️ ${action} to cloud — visible on all devices`);
+      } else if(ON_NETLIFY){
+        showToast(`⚠️ Cloud save failed — saved locally only. Check Netlify Functions.`);
+      } else {
+        showToast(`💾 ${action} locally (open via Netlify for shared sync)`);
+      }
     }
     updateSavedCount();
   }
@@ -1934,71 +1950,134 @@
   }
 
   // ── SUBURB GROWTH LOOKUP (item 7) ──
+  const GROWTH_CACHE_KEY = 'equitySight_growth_cache_v1';
+  const GROWTH_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
+
+  function getCachedGrowth(suburb, state){
+    try{
+      const cache = JSON.parse(localStorage.getItem(GROWTH_CACHE_KEY)||'{}');
+      const entry = cache[(suburb+'|'+state).toLowerCase()];
+      if(entry && (Date.now() - entry.ts) < GROWTH_CACHE_TTL) return entry;
+    }catch(e){}
+    return null;
+  }
+  function setCachedGrowth(suburb, state, rate, note){
+    try{
+      const cache = JSON.parse(localStorage.getItem(GROWTH_CACHE_KEY)||'{}');
+      cache[(suburb+'|'+state).toLowerCase()] = {rate, note, ts: Date.now()};
+      localStorage.setItem(GROWTH_CACHE_KEY, JSON.stringify(cache));
+    }catch(e){}
+  }
+
+  // Brisbane/QLD suburb growth rate lookup table (5-yr average % p.a.)
+  const qldGrowthTable = {
+    'kedron':6.8,'stafford':6.5,'stafford heights':6.2,'chermside':6.0,
+    'chermside west':5.8,'everton park':6.3,'nundah':7.1,'wavell heights':6.9,
+    'aspley':6.0,'zillmere':5.5,'geebung':5.8,'virginia':5.6,'northgate':6.4,
+    'nudgee':5.2,'banyo':5.0,'hendra':7.5,'eagle farm':5.8,'hamilton':7.2,
+    'ascot':7.8,'clayfield':7.3,'wooloowin':7.0,'gordon park':6.8,'grange':7.2,
+    'newmarket':6.9,'alderley':7.0,'enoggera':5.8,'keperra':5.5,'mitchelton':6.2,
+    'gaythorne':6.5,'oxley':5.5,'rocklea':5.0,'moorooka':5.8,'salisbury':5.5,
+    'nathan':5.8,'sunnybank':5.5,'sunnybank hills':5.2,'macgregor':5.0,'eight mile plains':5.3,
+    'mansfield':5.8,'wishart':5.5,'belmont':5.3,'tingalpa':5.0,'cannon hill':6.5,
+    'morningside':6.8,'murarrie':5.8,'hawthorne':7.5,'balmoral':8.0,'bulimba':8.2,
+    'new farm':9.0,'newstead':8.5,'teneriffe':9.2,'bowen hills':7.0,'fortitude valley':7.5,
+    'spring hill':7.8,'paddington':7.5,'red hill':7.8,'kelvin grove':7.0,'herston':7.5,
+    'taringa':7.0,'toowong':7.5,'auchenflower':7.8,'west end':8.5,'south brisbane':8.0,
+    'woolloongabba':8.0,'east brisbane':8.2,'coorparoo':7.5,'greenslopes':7.0,'dutton park':7.8,
+    'annerley':7.0,'yeronga':6.8,'graceville':7.5,'sherwood':7.0,'corinda':6.5,
+    'indooroopilly':7.0,'st lucia':7.5,'fig tree pocket':7.0,'kenmore':6.5,'pullenvale':6.0,
+    'chapel hill':6.5,'tarragindi':6.5,'holland park':6.8,'mount gravatt':6.0,'upper mount gravatt':5.8,
+    'carindale':5.5,'mount ommaney':6.0,'jindalee':5.8,'westlake':5.5,'seventeen mile rocks':5.5,
+    'sinnamon park':6.0,'riverhills':5.3,'middle park':5.5,'darra':4.8,'richlands':4.5,
+    'inala':4.2,'durack':4.5,'forest lake':4.8,'ellen grove':4.5,'heathwood':4.8,
+    'algester':5.0,'parkinson':5.2,'calamvale':5.5,'drewvale':5.0,'kuraby':5.0,
+    'coopers plains':5.5,'acacia ridge':4.5,'pallara':5.2,'willawong':4.8,'larapinta':5.0,
+    'springwood':5.0,'slacks creek':4.5,'woodridge':4.0,'logan central':3.8,'loganlea':4.0,
+    'meadowbrook':4.5,'marsden':4.5,'kingston':4.0,'waterford west':4.5,'logan reserve':4.8,
+    'crestmead':4.5,'berrinba':4.5,'browns plains':4.5,'heritage park':5.0,'regents park':4.8,
+    'boronia heights':4.5,'park ridge':5.0,'hillcrest':4.8,'forestdale':4.5,'greenbank':4.8,
+    'jimboomba':5.5,'dakabin':5.0,'mango hill':5.5,'kippa-ring':5.2,
+    'redcliffe':5.5,'margate':5.8,'clontarf':5.5,'scarborough':6.0,'woody point':5.8,
+    'kallangur':5.0,'murrumba downs':5.2,'griffin':5.5,'narangba':5.2,'caboolture':4.5,
+    'morayfield':4.8,'burpengary':4.5,'deception bay':4.5,'north lakes':5.5,'rothwell':5.2,
+    'ormiston':6.5,'cleveland':6.8,'thornlands':6.0,'victoria point':6.2,'redland bay':6.0,
+    'capalaba':5.8,'alexandra hills':5.5,'wynnum':7.0,'manly':7.5,'lota':6.8,
+    'ipswich':5.2,'redbank plains':5.8,'redbank':5.5,'goodna':5.0,'springfield':5.8,
+    'springfield lakes':6.0,'collingwood park':5.5,'bellbird park':5.5,'camira':5.8,
+    'silkstone':5.2,'leichhardt':5.0,'booval':5.2,'bundamba':5.0,'east ipswich':5.2,
+    'north ipswich':5.0,'west ipswich':5.0,'brassall':5.5,'ripley':6.2,'deebing heights':5.8,
+    'flinders view':5.5,'brookwater':6.0,'augustine heights':5.8,'raceview':5.2,
+    'one mile':5.0,'pine mountain':5.5,'karalee':5.8,'moores pocket':5.0,
+    'riverview':5.2,'dinmore':4.8,'gailes':5.0,'blackstone':5.0,'sadliers crossing':5.2,
+    'woodend':5.0,'tivoli':5.2,'newtown':5.0,'coalfalls':5.0,'churchill':5.2,
+  };
+
+  // Auto-check when suburb field changes — applies cached/table data silently
+  var _suburbCheckTimer = null;
+  function onSuburbChange(){
+    updatePropertyDetails();
+    clearTimeout(_suburbCheckTimer);
+    _suburbCheckTimer = setTimeout(function(){
+      const suburb = document.getElementById('pd-suburb')?.value?.trim();
+      const state  = document.getElementById('pd-state')?.value?.trim() || 'QLD';
+      if(!suburb) return;
+      const hint = document.getElementById('suburb-growth-hint');
+      // 1. Check localStorage cache
+      const cached = getCachedGrowth(suburb, state);
+      if(cached){
+        document.getElementById('proj-growth').value = cached.rate;
+        document.getElementById('proj-growth-lbl').textContent = cached.rate.toFixed(1)+'%';
+        if(hint) hint.textContent = `📍 ${suburb}: ~${cached.rate}% p.a. — ${cached.note||'cached'}`;
+        drawProjection();
+        return;
+      }
+      // 2. Check built-in table (QLD only)
+      const key = suburb.toLowerCase().trim();
+      const tableRate = qldGrowthTable[key];
+      if(tableRate){
+        setCachedGrowth(suburb, state, tableRate, 'historical estimate');
+        document.getElementById('proj-growth').value = tableRate;
+        document.getElementById('proj-growth-lbl').textContent = tableRate.toFixed(1)+'%';
+        if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${tableRate}% p.a. avg (historical estimate)`;
+        drawProjection();
+      }
+    }, 800);
+  }
+
   async function fetchSuburbGrowth(){
     const suburb = document.getElementById('pd-suburb')?.value?.trim();
     const state  = document.getElementById('pd-state')?.value?.trim() || 'QLD';
     if(!suburb){ showToast('⚠️ Enter a suburb in the Property tab first'); return; }
     const btn = document.getElementById('fetch-growth-btn');
     const hint = document.getElementById('suburb-growth-hint');
+
+    // Check cache first
+    const cached = getCachedGrowth(suburb, state);
+    if(cached){
+      document.getElementById('proj-growth').value = cached.rate;
+      document.getElementById('proj-growth-lbl').textContent = cached.rate.toFixed(1)+'%';
+      if(hint) hint.textContent = `📍 ${suburb}: ~${cached.rate}% p.a. — ${cached.note||'cached'}`;
+      drawProjection();
+      showToast(`📈 Growth rate for ${suburb} loaded from cache`);
+      return;
+    }
+
     btn.textContent = '⏳ Looking up...';
     btn.disabled = true;
-
-    // Brisbane/QLD suburb growth rate lookup table (5-yr average % p.a.)
-    // Based on CoreLogic/PropTrack historical data for common QLD suburbs
-    const qldGrowthTable = {
-      'kedron':6.8,'stafford':6.5,'stafford heights':6.2,'chermside':6.0,
-      'chermside west':5.8,'everton park':6.3,'nundah':7.1,'wavell heights':6.9,
-      'aspley':6.0,'zillmere':5.5,'geebung':5.8,'virginia':5.6,'northgate':6.4,
-      'nudgee':5.2,'banyo':5.0,'hendra':7.5,'eagle farm':5.8,'hamilton':7.2,
-      'ascot':7.8,'clayfield':7.3,'wooloowin':7.0,'gordon park':6.8,'grange':7.2,
-      'newmarket':6.9,'alderley':7.0,'enoggera':5.8,'keperra':5.5,'mitchelton':6.2,
-      'gaythorne':6.5,'oxley':5.5,'rocklea':5.0,'moorooka':5.8,'salisbury':5.5,
-      'nathan':5.8,'sunnybank':5.5,'sunnybank hills':5.2,'macgregor':5.0,'eight mile plains':5.3,
-      'mansfield':5.8,'wishart':5.5,'belmont':5.3,'tingalpa':5.0,'cannon hill':6.5,
-      'morningside':6.8,'murarrie':5.8,'hawthorne':7.5,'balmoral':8.0,'bulimba':8.2,
-      'new farm':9.0,'newstead':8.5,'teneriffe':9.2,'bowen hills':7.0,'fortitude valley':7.5,
-      'spring hill':7.8,'paddington':7.5,'red hill':7.8,'kelvin grove':7.0,'herston':7.5,
-      'taringa':7.0,'toowong':7.5,'auchenflower':7.8,'west end':8.5,'south brisbane':8.0,
-      'woolloongabba':8.0,'east brisbane':8.2,'coorparoo':7.5,'greenslopes':7.0,'dutton park':7.8,
-      'annerley':7.0,'yeronga':6.8,'graceville':7.5,'sherwood':7.0,'corinda':6.5,
-      'indooroopilly':7.0,'st lucia':7.5,'fig tree pocket':7.0,'kenmore':6.5,'pullenvale':6.0,
-      'chapel hill':6.5,'tarragindi':6.5,'holland park':6.8,'mount gravatt':6.0,'upper mount gravatt':5.8,
-      'carindale':5.5,'mount ommaney':6.0,'jindalee':5.8,'westlake':5.5,'seventeen mile rocks':5.5,
-      'sinnamon park':6.0,'riverhills':5.3,'middle park':5.5,'darra':4.8,'richlands':4.5,
-      'inala':4.2,'durack':4.5,'forest lake':4.8,'ellen grove':4.5,'heathwood':4.8,
-      'algester':5.0,'parkinson':5.2,'calamvale':5.5,'drewvale':5.0,'kuraby':5.0,
-      'coopers plains':5.5,'acacia ridge':4.5,'pallara':5.2,'willawong':4.8,'larapinta':5.0,
-      'springwood':5.0,'slacks creek':4.5,'woodridge':4.0,'logan central':3.8,'loganlea':4.0,
-      'meadowbrook':4.5,'marsden':4.5,'kingston':4.0,'waterford west':4.5,'logan reserve':4.8,
-      'crestmead':4.5,'berrinba':4.5,'browns plains':4.5,'heritage park':5.0,'regents park':4.8,
-      'boronia heights':4.5,'park ridge':5.0,'hillcrest':4.8,'forestdale':4.5,'greenbank':4.8,
-      'jimboomba':5.5,'august':5.8,'dakabin':5.0,'mango hill':5.5,'kippa-ring':5.2,
-      'redcliffe':5.5,'margate':5.8,'clontarf':5.5,'scarborough':6.0,'woody point':5.8,
-      'kallangur':5.0,'murrumba downs':5.2,'griffin':5.5,'narangba':5.2,'caboolture':4.5,
-      'morayfield':4.8,'burpengary':4.5,'deception bay':4.5,'north lakes':5.5,'rothwell':5.2,
-      'ormiston':6.5,'cleveland':6.8,'thornlands':6.0,'victoria point':6.2,'redland bay':6.0,
-      'capalaba':5.8,'alexandra hills':5.5,'wynnum':7.0,'manly':7.5,'lota':6.8,
-      'ipswich':5.2,'redbank plains':5.8,'redbank':5.5,'goodna':5.0,'springfield':5.8,
-      'springfield lakes':6.0,'collingwood park':5.5,'bellbird park':5.5,'camira':5.8,
-      'silkstone':5.2,'leichhardt':5.0,'booval':5.2,'bundamba':5.0,'east ipswich':5.2,
-      'north ipswich':5.0,'west ipswich':5.0,'brassall':5.5,'ripley':6.2,'deebing heights':5.8,
-      'flinders view':5.5,'brookwater':6.0,'augustine heights':5.8,'raceview':5.2,
-      'one mile':5.0,'pine mountain':5.5,'karalee':5.8,'moores pocket':5.0,
-      'riverview':5.2,'dinmore':4.8,'gailes':5.0,'blackstone':5.0,'sadliers crossing':5.2,
-      'woodend':5.0,'tivoli':5.2,'newtown':5.0,'coalfalls':5.0,'churchill':5.2,
-    };
 
     const key = suburb.toLowerCase().trim();
     const rate = qldGrowthTable[key];
 
     if(rate){
+      setCachedGrowth(suburb, state, rate, 'historical estimate');
       document.getElementById('proj-growth').value = rate;
       document.getElementById('proj-growth-lbl').textContent = rate.toFixed(1)+'%';
       if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${rate}% p.a. avg (historical estimate)`;
       drawProjection();
       showToast(`📈 Set growth to ${rate}% for ${suburb}`);
     } else {
-      // Try Claude API for unknown suburbs (item 7)
+      // Try Claude API for unknown suburbs
       try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
           method:'POST',
@@ -2015,9 +2094,11 @@
         if(match){
           const parsed = JSON.parse(match[0]);
           const r = Math.min(12, Math.max(1, parseFloat(parsed.rate)||5));
+          const note = parsed.note||'AI estimate';
+          setCachedGrowth(suburb, state, r, note);
           document.getElementById('proj-growth').value = r;
           document.getElementById('proj-growth-lbl').textContent = r.toFixed(1)+'%';
-          if(hint) hint.textContent = `📍 ${suburb}: ~${r}% p.a. — ${parsed.note||'AI estimate'}`;
+          if(hint) hint.textContent = `📍 ${suburb}: ~${r}% p.a. — ${note}`;
           drawProjection();
           showToast(`📈 Set growth to ${r}% for ${suburb}`);
         } else {
