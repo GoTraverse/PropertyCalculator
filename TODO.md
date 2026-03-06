@@ -19,7 +19,8 @@ General(DO NOT REMOVE THIS LINE)
 8. When clicking property type in the app, it scrolls to top of the page automatically, that is not right, just make it so it changes the house type.
 9. Receive this error when clicking get image from map: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://staticmap.openstreetmap.de/staticmap.php?center=-27.6163558,152.9389839&zoom=17&size=640x480&markers=-27.6163558,152.9389839,red-pushpin. (Reason: CORS request did not succeed). Status code: (null)"
 10. I think for all billing changes we offload to stripe portal for that individual user. Maybe we can pull basic data from stripe, like next billing cycle, current plan and price per month?
-11. 
+11. Growth data tabin admin page. Add CSV import for bulk suburb data import.
+12. 
 
 Desktop(DO NOT REMOVE THIS LINE)
 1. Property scenario side bar, when closed there is another tiny arrow that is still present, clean up.
