@@ -62,6 +62,33 @@ async function sendVerificationEmail(email, code){
   }
 }
 
+async function sendWelcomeEmail(email, name){
+  if(!RESEND_API_KEY) return {sent:false,provider:'log'};
+  try{
+    const firstName = (name||'').split(' ')[0] || 'there';
+    const r = await fetch('https://api.resend.com/emails',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        from:VERIFY_EMAIL_FROM,
+        to:[email],
+        subject:'Welcome to EquitySight!',
+        html:'<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;">'
+          +'<h2 style="color:#C9A84C;">Welcome, '+firstName+'! 🎉</h2>'
+          +'<p>Your EquitySight account is verified and ready to go.</p>'
+          +'<p>You can now:</p>'
+          +'<ul><li>Calculate property investment scenarios</li><li>Save and compare multiple properties</li><li>Track growth projections over time</li></ul>'
+          +'<a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a>'
+          +'<p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p>'
+          +'</div>'
+      })
+    });
+    return {sent:r.ok,provider:'resend'};
+  }catch(e){
+    return {sent:false,provider:'resend'};
+  }
+}
+
 async function sendPasswordResetEmail(email, code){
   if(!RESEND_API_KEY){
     console.log('[auth] RESEND_API_KEY not configured. Password reset code for %s: %s', email, code);
@@ -232,6 +259,7 @@ exports.handler = async function(event){
     delete user.emailVerificationExpiresAt;
     delete user.emailVerificationAttempts;
     await rSet('user:'+normalizedEmail,user);
+    sendWelcomeEmail(normalizedEmail, user.name).catch(()=>{});
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
     return ok({ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'});

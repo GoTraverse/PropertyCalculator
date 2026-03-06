@@ -174,6 +174,7 @@
     <button class="admin-tab active" onclick="showAdminTab('users',this)">Users</button>
     <button class="admin-tab" onclick="showAdminTab('scenarios',this);loadAllScenarios();">Scenarios</button>
     <button class="admin-tab" onclick="showAdminTab('schemes',this);loadSchemes();">Gov Schemes</button>
+    <button class="admin-tab" onclick="showAdminTab('growth',this);loadGrowthData();">Growth Data</button>
     <button class="admin-tab" onclick="showAdminTab('database',this);">Database</button>
     <button class="admin-tab" onclick="showAdminTab('config',this);loadConfig();">Configuration</button>
   </div>
@@ -520,6 +521,55 @@
   </div>
 
   <!-- DATABASE TAB -->
+  <!-- GROWTH DATA TAB -->
+  <div class="admin-section" id="tab-growth">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>Suburb Growth Cache</h3>
+        <span style="font-size:11px;color:var(--slate);">Shared growth rates looked up by users — cached for 30 days, then refreshed automatically</span>
+      </div>
+      <div style="padding:16px 20px 4px;">
+        <div style="font-size:12px;color:var(--slate);margin-bottom:12px;line-height:1.6;">
+          When a user looks up suburb growth data it is stored here so all users benefit from the same data. Entries automatically expire after 30 days to stay current.
+          You can manually add, edit or delete entries below.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+          <button class="btn-admin" onclick="loadGrowthData()" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+          <button class="btn-admin" onclick="showAddGrowthEntry()" style="font-size:10px;padding:7px 14px;">+ Add Entry</button>
+        </div>
+        <div id="growth-add-form" style="display:none;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.15);border-radius:6px;padding:16px;margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--gold);">Add / Override Growth Entry</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;color:var(--slate);">Suburb</label>
+              <input id="growth-add-suburb" class="config-input" placeholder="e.g. Kedron" style="width:160px;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;color:var(--slate);">State</label>
+              <select id="growth-add-state" class="config-input" style="width:90px;">
+                <option>QLD</option><option>NSW</option><option>VIC</option><option>SA</option>
+                <option>WA</option><option>TAS</option><option>NT</option><option>ACT</option>
+              </select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;color:var(--slate);">Rate % p.a.</label>
+              <input id="growth-add-rate" class="config-input" type="number" step="0.1" min="0" max="25" placeholder="6.5" style="width:90px;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;color:var(--slate);">Note (optional)</label>
+              <input id="growth-add-note" class="config-input" placeholder="historical estimate" style="width:200px;">
+            </div>
+            <button class="btn-admin" onclick="saveGrowthEntry()" style="font-size:10px;padding:7px 14px;">Save</button>
+            <button class="btn-admin-outline" onclick="hideAddGrowthEntry()" style="font-size:10px;padding:7px 14px;">Cancel</button>
+          </div>
+        </div>
+        <div id="growth-table-wrap" style="overflow-x:auto;">
+          <div id="growth-loading" style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="admin-section" id="tab-database">
     <div class="admin-card">
       <div class="admin-card-head">

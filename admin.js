@@ -1597,4 +1597,77 @@ async function saveSchemes(){
   }
 }
 
+// ── GROWTH DATA ───────────────────────────────────────────────────────────────
+async function callGrowth(payload){
+  const sess = getSession();
+  const token = sess && sess.token;
+  const r = await fetch('/.netlify/functions/growth', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + (token || '')
+    },
+    body: JSON.stringify(payload)
+  });
+  return r.json();
+}
+
+async function loadGrowthData(){
+  const wrap = document.getElementById('growth-table-wrap');
+  const loading = document.getElementById('growth-loading');
+  if(loading) loading.style.display = 'block';
+  const d = await callGrowth({action:'list'});
+  if(loading) loading.style.display = 'none';
+  if(!d.ok){ wrap.innerHTML = `<div style="padding:16px;color:#c45a5a;font-size:13px;">Error: ${escHtml(d.error||'Failed to load')}</div>`; return; }
+  const entries = d.entries || [];
+  if(!entries.length){
+    wrap.innerHTML = '<div style="padding:16px;color:var(--slate);font-size:13px;">No growth data cached yet. Data is stored when users look up suburb growth rates.</div>';
+    return;
+  }
+  const rows = entries.map(e => {
+    const age = Math.floor((Date.now() - e.fetchedAt) / (1000*60*60*24));
+    const expiry = 30 - age;
+    return `<tr>
+      <td style="font-weight:600;">${escHtml(e.suburb)}</td>
+      <td>${escHtml(e.state)}</td>
+      <td style="font-family:var(--font-mono);color:var(--gold);">${parseFloat(e.rate).toFixed(1)}%</td>
+      <td style="font-size:11px;color:var(--slate);">${escHtml(e.note||'')}</td>
+      <td style="font-size:11px;color:${expiry<=7?'#c45a5a':'var(--slate)'};">${expiry}d left</td>
+      <td><button class="act-btn danger" onclick="deleteGrowthEntry('${escHtml(e.suburb)}','${escHtml(e.state)}')">Delete</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<table class="user-table" style="min-width:600px;">
+    <thead><tr><th>Suburb</th><th>State</th><th>Rate</th><th>Note</th><th>Expires</th><th>Action</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function showAddGrowthEntry(){ document.getElementById('growth-add-form').style.display='block'; }
+function hideAddGrowthEntry(){ document.getElementById('growth-add-form').style.display='none'; }
+
+async function saveGrowthEntry(){
+  const suburb = document.getElementById('growth-add-suburb').value.trim();
+  const state  = document.getElementById('growth-add-state').value;
+  const rate   = parseFloat(document.getElementById('growth-add-rate').value);
+  const note   = document.getElementById('growth-add-note').value.trim() || 'admin entry';
+  if(!suburb || isNaN(rate)){ alert('Suburb and rate are required'); return; }
+  const d = await callGrowth({action:'set', suburb, state, rate, note});
+  if(d.ok){
+    hideAddGrowthEntry();
+    document.getElementById('growth-add-suburb').value='';
+    document.getElementById('growth-add-rate').value='';
+    document.getElementById('growth-add-note').value='';
+    loadGrowthData();
+  } else {
+    alert('Failed: '+(d.error||'Unknown error'));
+  }
+}
+
+async function deleteGrowthEntry(suburb, state){
+  if(!confirm(`Delete growth data for ${suburb}, ${state}?`)) return;
+  const d = await callGrowth({action:'delete', suburb, state});
+  if(d.ok) loadGrowthData();
+  else alert('Failed: '+(d.error||'Unknown error'));
+}
+
 document.addEventListener('DOMContentLoaded', init);

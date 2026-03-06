@@ -1892,6 +1892,63 @@
       [5,7,10,15,20,25,30].forEach(y => rows.push(mkRow(y * 4)));
       tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Q':'Quarter'}</span><span>Value</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
     }
+
+    // Reset mobile slider to start and update display boxes
+    const sliderEl = document.getElementById('proj-slider-input');
+    if(sliderEl){ sliderEl.max = projData.length - 1; sliderEl.value = 0; }
+    projSliderMove(0);
+  }
+
+  // ── Mobile projection slider ──
+  function projSliderMove(idx){
+    if(!projData || !projData.length) return;
+    const d = projData[Math.min(idx, projData.length-1)];
+    if(!d) return;
+
+    // Label for quarter
+    const settleYr = getSettleYear();
+    const wholeYr = Math.floor(d.yr);
+    const qNum = (d.q % 4) + 1;
+    const label = settleYr ? `${settleYr + wholeYr} Q${qNum}` : `Year ${wholeYr} Q${qNum}`;
+
+    const qEl = document.getElementById('psb-quarter');
+    const vEl = document.getElementById('psb-value');
+    const lEl = document.getElementById('psb-loan');
+    const gEl = document.getElementById('psb-govt');
+    const eEl = document.getElementById('psb-equity');
+    if(qEl) qEl.textContent = label;
+    if(vEl) vEl.textContent = fmtK(d.baseVal);
+    if(lEl) lEl.textContent = fmtK(d.loanBal);
+    if(gEl) gEl.textContent = fmtK(d.govtOwed);
+    if(eEl) eEl.textContent = fmtK(d.yourEquity);
+
+    // Move marker dot on chart
+    const svg = document.getElementById('proj-chart');
+    if(!svg) return;
+    const vb = svg.viewBox.baseVal;
+    if(!vb || !vb.width) return;
+    const W = vb.width, H = vb.height;
+    const years = 30;
+    const padL=64, padR=16, padT=18, padB=36;
+    const cW2=W-padL-padR, cH=H-padT-padB;
+    const maxVal = Math.max(...projData.map(p=>p.baseVal)) * 1.08;
+    const sx = padL + (d.yr / years) * cW2;
+    const sy = padT + cH - (d.baseVal / maxVal) * cH;
+
+    let dot = document.getElementById('proj-slider-dot');
+    if(!dot){
+      dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('id','proj-slider-dot');
+      dot.setAttribute('r','6');
+      dot.setAttribute('fill','#C9A84C');
+      dot.setAttribute('stroke','white');
+      dot.setAttribute('stroke-width','2');
+      dot.setAttribute('pointer-events','none');
+      svg.appendChild(dot);
+    }
+    dot.setAttribute('cx', sx.toFixed(1));
+    dot.setAttribute('cy', sy.toFixed(1));
+    dot.style.display = '';
   }
 
   function projHover(e, padL, padR, cW, totalQ){
@@ -1967,6 +2024,25 @@
       cache[(suburb+'|'+state).toLowerCase()] = {rate, note, ts: Date.now()};
       localStorage.setItem(GROWTH_CACHE_KEY, JSON.stringify(cache));
     }catch(e){}
+    // Also push to shared Redis cache (fire-and-forget)
+    fetch('/.netlify/functions/growth',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'set',suburb,state,rate,note})
+    }).catch(()=>{});
+  }
+  // Check shared Redis growth cache (returns {rate, note} or null)
+  async function getSharedGrowth(suburb, state){
+    try{
+      const r = await fetch('/.netlify/functions/growth',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'get',suburb,state})
+      });
+      const d = await r.json();
+      if(d.ok && d.found) return {rate:d.rate, note:d.note, ts:d.fetchedAt};
+    }catch(e){}
+    return null;
   }
 
   // Brisbane/QLD suburb growth rate lookup table (5-yr average % p.a.)
@@ -2018,7 +2094,7 @@
   function onSuburbChange(){
     updatePropertyDetails();
     clearTimeout(_suburbCheckTimer);
-    _suburbCheckTimer = setTimeout(function(){
+    _suburbCheckTimer = setTimeout(async function(){
       const suburb = document.getElementById('pd-suburb')?.value?.trim();
       const state  = document.getElementById('pd-state')?.value?.trim() || 'QLD';
       if(!suburb) return;
@@ -2032,7 +2108,17 @@
         drawProjection();
         return;
       }
-      // 2. Check built-in table (QLD only)
+      // 2. Check shared Redis cache
+      const shared = await getSharedGrowth(suburb, state);
+      if(shared){
+        setCachedGrowth(suburb, state, shared.rate, shared.note); // store locally too
+        document.getElementById('proj-growth').value = shared.rate;
+        document.getElementById('proj-growth-lbl').textContent = shared.rate.toFixed(1)+'%';
+        if(hint) hint.textContent = `📍 ${suburb}: ~${shared.rate}% p.a. — ${shared.note||'shared data'}`;
+        drawProjection();
+        return;
+      }
+      // 3. Check built-in table (QLD only)
       const key = suburb.toLowerCase().trim();
       const tableRate = qldGrowthTable[key];
       if(tableRate){
@@ -2052,7 +2138,7 @@
     const btn = document.getElementById('fetch-growth-btn');
     const hint = document.getElementById('suburb-growth-hint');
 
-    // Check cache first
+    // Check local cache first
     const cached = getCachedGrowth(suburb, state);
     if(cached){
       document.getElementById('proj-growth').value = cached.rate;
@@ -2060,6 +2146,17 @@
       if(hint) hint.textContent = `📍 ${suburb}: ~${cached.rate}% p.a. — ${cached.note||'cached'}`;
       drawProjection();
       showToast(`📈 Growth rate for ${suburb} loaded from cache`);
+      return;
+    }
+    // Check shared Redis cache
+    const shared = await getSharedGrowth(suburb, state);
+    if(shared){
+      setCachedGrowth(suburb, state, shared.rate, shared.note);
+      document.getElementById('proj-growth').value = shared.rate;
+      document.getElementById('proj-growth-lbl').textContent = shared.rate.toFixed(1)+'%';
+      if(hint) hint.textContent = `📍 ${suburb}: ~${shared.rate}% p.a. — ${shared.note||'shared data'}`;
+      drawProjection();
+      showToast(`📈 Growth rate for ${suburb} loaded from shared database`);
       return;
     }
 

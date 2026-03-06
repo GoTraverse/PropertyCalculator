@@ -686,3 +686,14 @@ html.dark-mode .app-dialog-btn-cancel{background:rgba(255,255,255,0.06)!importan
 html.dark-mode .dyn-cost-row input,html.dark-mode .kd-row input,html.dark-mode .comms-row input{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;}
 html.dark-mode .tld{border-color:#111113!important;background:#111113!important;}
 html.dark-mode .section-label{color:rgba(245,240,232,0.4)!important;border-bottom-color:rgba(255,255,255,0.06)!important;}
+
+
+/* ── Mobile projection slider ── */
+.proj-slider-box{background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.1);border-radius:6px;padding:10px 12px;}
+.proj-slider-box-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:4px;}
+.proj-slider-box-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:600;}
+@media(max-width:600px){
+  #proj-mobile-slider{display:block!important;}
+  .proj-desktop-hint{display:none;}
+}
+html.dark-mode .proj-slider-box{background:rgba(255,255,255,0.05)!important;border-color:rgba(255,255,255,0.1)!important;}
