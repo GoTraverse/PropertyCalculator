@@ -32,7 +32,7 @@ const H = {
 };
 
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
-const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'EquitySight <no-reply@equitysight.app>').trim();
+const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'onboarding@resend.dev').trim();
 
 async function sendVerificationEmail(email, code){
   if(!RESEND_API_KEY){

@@ -9,7 +9,6 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-6. No emails are sending out — CODE IS CORRECT. Owner action needed: (1) Add RESEND_API_KEY env var in Netlify → Site Settings → Environment Variables. (2) Verify the domain equitysight.app in your Resend dashboard (resend.com → Domains). (3) Optionally set VERIFY_EMAIL_FROM env var if you want a custom sender name/address.
 
 Desktop(DO NOT REMOVE THIS LINE)
 
