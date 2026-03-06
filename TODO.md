@@ -9,7 +9,6 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-1. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
 6. No emails are sending out — CODE IS CORRECT. Owner action needed: (1) Add RESEND_API_KEY env var in Netlify → Site Settings → Environment Variables. (2) Verify the domain equitysight.app in your Resend dashboard (resend.com → Domains). (3) Optionally set VERIFY_EMAIL_FROM env var if you want a custom sender name/address.
 
 Desktop(DO NOT REMOVE THIS LINE)
