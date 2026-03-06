@@ -144,8 +144,11 @@ Set these in **Netlify → Site Settings → Environment Variables**:
 
 ## Content Security Policy (netlify.toml)
 
-The CSP currently allows:
-- `connect-src 'self' https://api.stripe.com` — **Note**: nominatim.openstreetmap.org is NOT whitelisted, which blocks suburb geocoding (TODO #5). To fix, add `https://nominatim.openstreetmap.org` to `connect-src`.
+The CSP `connect-src` currently allows:
+- `'self'` — same-origin Netlify Functions
+- `https://api.stripe.com` — Stripe payment flow
+- `https://nominatim.openstreetmap.org` — suburb geocoding / address lookup
+- `https://ipwho.is`, `https://ipapi.co` — IP geolocation (admin user detail popup)
 
 ---
 
@@ -159,8 +162,8 @@ Format: numbered list, `!` prefix = urgent. Remove completed items.
 2. Auto-fill suburb growth rate + cache (suburb data caching)
 3. Projection tab: show quarter labels (Q1/Q2/Q3/Q4)
 4. Stripe cancellation not reflecting in account settings
-5. **CSP blocks nominatim.openstreetmap.org** (suburb geocoding broken)
-6. Admin: IP location popup not showing location
+5. ~~CSP fix~~ DONE
+6. ~~Admin IP location popup~~ DONE
 7. Automated email (signup confirmation, invoices)
 8. Better PDF export library
 9. Dark mode / light mode toggle
