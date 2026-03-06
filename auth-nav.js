@@ -1,6 +1,25 @@
 /**
  * EquitySight.app — Shared Auth Header Nav
  */
+
+// ── Theme (dark/light) — applied before render to avoid flash ──
+(function(){
+  try{
+    if(localStorage.getItem('equitySight_theme')==='dark'){
+      document.documentElement.classList.add('dark-mode');
+    }
+  }catch(e){}
+})();
+
+window.toggleTheme = function(){
+  var isDark = document.documentElement.classList.toggle('dark-mode');
+  try{ localStorage.setItem('equitySight_theme', isDark ? 'dark' : 'light'); }catch(e){}
+  // Update all toggle button labels on the page
+  document.querySelectorAll('[data-theme-toggle]').forEach(function(b){
+    b.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
+  });
+};
+
 (function() {
   const SESSION_KEY = 'propCalc_session_v1';
   const PK_BASE     = 'propCalc_profile_v1';
@@ -96,6 +115,7 @@
               '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">🏠 Open Calculator</a>' +
               '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">⚙ Account Settings</a>' +
               (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">🔒 Admin Dashboard</a>' : '') +
+              '<button onclick="toggleTheme()" data-theme-toggle class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
               '<button onclick="siteSignOut()" class="anav-item anav-item-danger">→ Sign Out</button>' +
             '</div>' +
           '</div>' +

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Account — EquitySight.app</title>
 <link rel="stylesheet" href="shared.css">
@@ -259,6 +260,7 @@
             </div>
             <button class="acct-btn acct-btn-outline" onclick="openBillingPortal()">Manage</button>
           </div>
+          <div id="cancel-at-note" style="display:none;margin:10px 0;padding:10px 14px;background:rgba(196,112,74,0.08);border:1px solid rgba(196,112,74,0.25);border-radius:4px;font-size:13px;color:var(--terracotta);"></div>
           <div style="margin-top:16px;">
             <button class="acct-btn acct-btn-danger" onclick="openBillingPortal()">Cancel subscription</button>
           </div>
@@ -491,6 +493,7 @@
       else upgradeEl.innerHTML='<button class="acct-btn acct-btn-outline" onclick="openBillingPortal()">Manage billing</button>';
     }
     if(billCard) billCard.style.display = (plan==='free') ? 'none' : 'block';
+    if(plan !== 'free') loadBillingStatus();
   }
 
   function pickColor(el){
@@ -568,6 +571,31 @@
         st.className = 'acct-status-msg err';
       }
     } catch(e){ st.textContent = 'Network error — please try again'; st.className = 'acct-status-msg err'; }
+  }
+
+  async function loadBillingStatus(){
+    const token = session && session.token;
+    if(!token) return;
+    try{
+      const r = await fetch('/.netlify/functions/stripe',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({action:'getSubscriptionStatus'})
+      });
+      const d = await r.json();
+      if(!d.ok) return;
+      const periodEndEl = document.getElementById('next-billing-text');
+      const cancelNote  = document.getElementById('cancel-at-note');
+      if(d.currentPeriodEnd && periodEndEl){
+        const dt = new Date(d.currentPeriodEnd * 1000);
+        periodEndEl.textContent = dt.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+      }
+      if(d.cancelAtPeriodEnd && cancelNote){
+        const endDate = d.currentPeriodEnd ? new Date(d.currentPeriodEnd*1000).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}) : 'end of billing period';
+        cancelNote.textContent = '⚠️ Your subscription is cancelled and will end on '+endDate+'. You have full access until then.';
+        cancelNote.style.display = 'block';
+      }
+    }catch(e){}
   }
 
   async function openBillingPortal(){
