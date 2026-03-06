@@ -9,14 +9,7 @@ Never delete anything above this line.
 ------------------------------------------
 
 General(DO NOT REMOVE THIS LINE)
-1. We need to look at making the pdf export better. not all the options change the final export and sometimes when exporting things are cut off mid page. do we have another js package or library that is better at handling pdf export? wha can we do?
-2. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
-3. The annual growth rate slider/setting in the projection tab, maybe we get rud of that section and put it in a popup window where the user can click a button somehere under the graph to open the settings.
-4. Instead of writing into a text field directly in each reno item, make it open a custom themed text box.
-5. Some dark mode colours clash, like background is black and text is black, can you fix this? also library popup and pdf export popup don't adhere to dark mode rules.
-6. I never receive an email when trying to sign up. how do i get that working?
-7. Make it impossible to revoke or delete the last admin if there is only one left.
-8. 
+1. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
 
 Desktop(DO NOT REMOVE THIS LINE)
 1.
