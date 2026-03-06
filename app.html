@@ -913,11 +913,40 @@
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#5A9E7B;display:inline-block;border-radius:2px;opacity:0.4;"></span>Your Equity</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;"></span>Early Payoff</span>
         </div>
-        <div style="font-size:11px;color:var(--slate);margin-bottom:8px;font-style:italic;">Click or hover to see quarterly values · Chart is quarterly (120 data points)</div>
+        <div class="proj-desktop-hint" style="font-size:11px;color:var(--slate);margin-bottom:8px;font-style:italic;">Click or hover to see quarterly values · Chart is quarterly (120 data points)</div>
         <div id="proj-svg-wrap" style="overflow:hidden;position:relative;width:100%;aspect-ratio:800/300;">
           <svg id="proj-chart" width="100%" height="100%" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;cursor:crosshair;"></svg>
           <!-- Click tooltip (item 6) -->
           <div id="proj-tooltip" style="display:none;position:absolute;background:var(--charcoal);color:var(--cream);border-radius:6px;padding:16px 22px;font-family:'DM Mono',monospace;font-size:13px;min-width:210px;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.35);min-width:210px;z-index:10;"></div>
+        </div>
+        <!-- Mobile-only slider explorer -->
+        <div id="proj-mobile-slider" style="display:none;margin-top:12px;">
+          <div style="font-size:10px;color:var(--slate);font-style:italic;margin-bottom:8px;">Drag to explore quarters</div>
+          <input type="range" id="proj-slider-input" min="0" max="120" step="1" value="0"
+            style="width:100%;accent-color:var(--gold);height:28px;"
+            oninput="projSliderMove(parseInt(this.value))">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+            <div class="proj-slider-box">
+              <div class="proj-slider-box-lbl">Quarter</div>
+              <div class="proj-slider-box-val" id="psb-quarter" style="color:var(--gold);">—</div>
+            </div>
+            <div class="proj-slider-box">
+              <div class="proj-slider-box-lbl">Property Value</div>
+              <div class="proj-slider-box-val" id="psb-value" style="color:var(--gold);">—</div>
+            </div>
+            <div class="proj-slider-box">
+              <div class="proj-slider-box-lbl">Loan Balance</div>
+              <div class="proj-slider-box-val" id="psb-loan" style="color:#5B8FAB;">—</div>
+            </div>
+            <div class="proj-slider-box">
+              <div class="proj-slider-box-lbl">Govt Equity Owed</div>
+              <div class="proj-slider-box-val" id="psb-govt" style="color:#C4704A;">—</div>
+            </div>
+            <div class="proj-slider-box" style="grid-column:1/-1;">
+              <div class="proj-slider-box-lbl">Your Equity</div>
+              <div class="proj-slider-box-val" id="psb-equity" style="color:var(--reward-green);font-size:20px;">—</div>
+            </div>
+          </div>
         </div>
       </div>
 
