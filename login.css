@@ -1,0 +1,43 @@
+/* EquitySight.app — Login / Sign-up page styles */
+
+html { height: 100%; overflow: hidden; }
+body {
+  background: var(--charcoal);
+  height: 100%; height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  position: fixed; /* prevents iOS rubber-band bounce scroll */
+  width: 100%; left: 0; top: 0;
+  display: flex; flex-direction: column;
+}
+.login-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.login-box { width: min(420px, 100%); }
+.login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; justify-content: center; }
+.login-heading { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--cream); margin-bottom: 6px; }
+.login-sub { font-size: 14px; color: rgba(245,240,232,0.4); margin-bottom: 28px; }
+.login-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+.login-tab { flex: 1; padding: 10px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; background: rgba(255,255,255,0.03); color: rgba(245,240,232,0.4); border: none; cursor: pointer; transition: all 0.15s; }
+.login-tab.active { background: rgba(201,168,76,0.15); color: var(--gold); }
+.form-field { margin-bottom: 16px; }
+.form-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(245,240,232,0.4); margin-bottom: 6px; display: block; }
+.form-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; padding: 12px 14px; font-family: var(--font-body); font-size: 15px; color: var(--cream); outline: none; transition: border-color 0.15s; box-sizing: border-box; }
+.form-input:focus { border-color: rgba(201,168,76,0.6); background: rgba(255,255,255,0.07); }
+.form-submit { width: 100%; background: var(--gold); color: var(--charcoal); border: none; border-radius: 3px; padding: 14px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; margin-top: 8px; transition: opacity 0.15s; }
+.form-submit:hover { opacity: 0.88; }
+.form-submit:disabled { opacity: 0.4; cursor: default; }
+.form-error { font-size: 12px; color: #E8956A; min-height: 18px; font-family: var(--font-mono); margin-top: 6px; }
+.verify-note { font-size: 12px; color: rgba(245,240,232,0.6); line-height: 1.5; margin: 6px 0 14px; }
+.divider { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-family: var(--font-mono); font-size: 9px; color: rgba(245,240,232,0.2); letter-spacing: 1px; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.07); }
+.btn-guest { width: 100%; background: rgba(255,255,255,0.04); color: rgba(245,240,232,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 3px; padding: 12px; font-family: var(--font-mono); font-size: 11px; cursor: pointer; transition: all 0.15s; }
+.btn-guest:hover { background: rgba(255,255,255,0.07); color: rgba(245,240,232,0.7); }
+.login-footer { padding: 20px; text-align: center; font-family: var(--font-mono); font-size: 10px; color: rgba(245,240,232,0.2); border-top: 1px solid rgba(255,255,255,0.05); }
+.login-footer a { color: rgba(201,168,76,0.5); text-decoration: none; }
+.login-footer a:hover { color: var(--gold); }
+
+/* Page transition spinner */
+#page-spinner { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(28,28,30,0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+#page-spinner.show { display: flex; }
+.spinner-ring { width: 40px; height: 40px; border: 3px solid rgba(201,168,76,0.2); border-top-color: #C9A84C; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -190,7 +190,7 @@
   .app-body{display:grid;grid-template-columns:340px 1fr;overflow:hidden;height:calc(100vh - var(--hdr-h-desktop) - 44px);margin-top:44px;transition:grid-template-columns 0.25s cubic-bezier(0.4,0,0.2,1);}
 
   /* ── SIDEBAR ── */
-  .sidebar{background:var(--charcoal-soft);color:var(--cream);padding:24px 20px;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.05);height:100%;}
+  .sidebar{background:var(--charcoal-soft);color:var(--cream);padding:24px 20px;overflow-y:auto;overflow-x:hidden;border-right:1px solid rgba(255,255,255,0.05);height:100%;}
   
   .sidebar-title{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);}
   .s-head{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.28);margin-bottom:10px;}
@@ -1237,8 +1237,8 @@
               <input type="email" id="ag-email" placeholder="agent@agency.com" oninput="markAgentDirty()">
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <a id="ag-call-link" href="#" style="display:none;background:var(--sage);color:white;padding:6px 12px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;">📞 Call</a>
-              <a id="ag-email-link" href="#" style="display:none;background:var(--sky);color:white;padding:6px 12px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;">✉ Email</a>
+              <a id="ag-call-link" href="#" style="display:none;background:var(--sage);color:white;padding:7px 12px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;line-height:1;align-items:center;">📞 Call</a>
+              <a id="ag-email-link" href="#" style="display:none;background:var(--sky);color:white;padding:7px 12px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;line-height:1;align-items:center;">✉ Email</a>
             </div>
           </div>
         </div>
@@ -1255,19 +1255,6 @@
         </div>
       </div>
 
-      <!-- Live preview of header -->
-      <div class="card" style="background:var(--charcoal);color:var(--cream);">
-        <div class="ca" style="background:var(--gold)"></div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:12px;">HEADER PREVIEW — updates live as you type</div>
-        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-          <div id="pd-preview-photo" style="width:80px;height:56px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">📷</div>
-          <div>
-            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(245,240,232,0.4);text-transform:uppercase;margin-bottom:4px;">Property Finance Calculator</div>
-            <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;" id="pd-preview-title">New Property</div>
-            <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap;" id="pd-preview-stats"></div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- TAB 1: COSTS -->
@@ -1410,7 +1397,7 @@
                    transition:background 0.15s;">Show Schedule</button>
         </div>
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:0;">Year-by-year breakdown of principal, interest and remaining balance over the full loan term.</p>
-        <div id="amort-table-wrap" style="display:none;margin-top:16px;overflow-x:auto;">
+        <div id="amort-table-wrap" style="display:none;margin-top:16px;overflow-x:auto;max-width:100%;box-sizing:border-box;">
           <table id="amort-table" style="width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:12px;min-width:380px;"></table>
         </div>
       </div>
@@ -4271,8 +4258,8 @@
     const email = document.getElementById('ag-email')?.value?.trim();
     const callLink  = document.getElementById('ag-call-link');
     const emailLink = document.getElementById('ag-email-link');
-    if(callLink)  { callLink.href  = phone ? `tel:${phone}` : '#';       callLink.style.display  = phone ? '' : 'none'; }
-    if(emailLink) { emailLink.href = email ? `mailto:${email}` : '#';    emailLink.style.display = email ? '' : 'none'; }
+    if(callLink)  { callLink.href  = phone ? `tel:${phone}` : '#';       callLink.style.display  = phone ? 'inline-flex' : 'none'; }
+    if(emailLink) { emailLink.href = email ? `mailto:${email}` : '#';    emailLink.style.display = email ? 'inline-flex' : 'none'; }
   }
 
   // ══════════════════════════════════════════════

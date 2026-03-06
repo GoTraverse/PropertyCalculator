@@ -22,19 +22,19 @@ General(DO NOT REMOVE THIS LINE)
 11. Add forgot password functionality.
 12. Add colaborate with another user feature/share scenario feature with another user. so the users library will have a section for shared with me.
 13. !Restructure my HTML/CSS/JS into modular, reusable components (header, footer, sidebar, modals, scenario cards), move all inline CSS/JS into separate files per component, preserve all current functionality, keep the investment engine separate, make it mobile-friendly, use consistent naming, and include comments for clarity.
+    [PARTIAL - Phase 2 done: index.css extracted. Remaining: admin.html, app.html JS extraction]
 
 
 Desktop(DO NOT REMOVE THIS LINE)
-1. Profile button needs to be padded away from edge of window a bit more. Seems very cramped.
-3. 
+1.
 
 PWA(DO NOT REMOVE THIS LINE)
-1. Amortisation table still can scroll sideways a but when generated
-2. Disable horizontal scrolling on the scenario calculator menu. and also when scrolling to the bottom go that little but further so the calculator button doesnt cover anything.
-3. Admin page tabs scroll across fine but i can scroll them vertically and it looks and feels weird please fix.
-4. Admin pge users make it so i dont have to scroll across in the list to see all the info and access the buttons.
-5. In property tab, make yhe call and emal buttons the same height.
-6. In the property tab, remove the header preview at the bottom.
+1.
+2.
+3.
+4.
+5.
+6.
 7. In projection tab on the graph, the tooltip that comes uo when you tap somehwhere on the graph is unusable. maybe for mobile only do we make a little custom slider that changes values in little boxes next to the graph but plots the graph dot as it goes maybe?
-8. Index landing page cuts off stuff to the right in what it does section. 
-9. 
+8.
+9.

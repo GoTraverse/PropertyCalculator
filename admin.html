@@ -79,6 +79,7 @@
     border-bottom: 2px solid rgba(28,28,30,0.08);
     margin-bottom: 24px;
     overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -423,6 +424,16 @@
     .config-grid { grid-template-columns: 1fr; }
     .user-table td:nth-child(4), .user-table th:nth-child(4) { display: none; }
     .admin-stats { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    /* On mobile: hide Joined, Last Login, Last IP, Role — show Name, Email, Plan, Actions */
+    .user-table td:nth-child(4), .user-table th:nth-child(4),
+    .user-table td:nth-child(5), .user-table th:nth-child(5),
+    .user-table td:nth-child(6), .user-table th:nth-child(6),
+    .user-table td:nth-child(7), .user-table th:nth-child(7) { display: none; }
+    .user-actions { flex-direction: column; gap: 4px; }
+    .act-btn { font-size: 10px; padding: 5px 8px; white-space: nowrap; }
+    #users-table-wrap { overflow-x: visible; }
   }
   @media (max-width: 600px) {
     /* Scheme panels — fix clipping and overflow on PWA/mobile */
