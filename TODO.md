@@ -16,6 +16,8 @@ General(DO NOT REMOVE THIS LINE)
 6. No emails are sending out, not for new sign ups and even for fogot password, can we please fix and let me know what i need to do on my end.
 7. Give an individual user for account settings/preferences.
 10. I think for all billing changes we offload to stripe portal for that individual user. Maybe we can pull basic data from stripe, like next billing cycle, current plan and price per month?
+11. Growth data tabin admin page. Add CSV import for bulk suburb data import.
+12. 
 
 Desktop(DO NOT REMOVE THIS LINE)
 
