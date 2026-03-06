@@ -1,4 +1,24 @@
-/* admin.js — EquitySight admin page logic */
+/**
+ * admin.js — EquitySight Admin Dashboard Logic
+ *
+ * Loaded by admin.html. Requires role='admin' in the session — page redirects
+ * unauthenticated or non-admin users on load.
+ *
+ * Tabs: Users | Config | Schemes | Stats | Tools
+ *
+ * Key functions:
+ *   loadUsers()         — fetches all users via adminListUsers action
+ *   renderUsers()       — builds the users table from allUsers[]
+ *   filterUsers()       — filters/sorts allUsers[] and re-renders
+ *   saveConfig()        — POSTs site config to adminSetConfig
+ *   loadSchemes()       — fetches government grant schemes via adminGetSchemes
+ *   saveSchemes()       — POSTs updated schemes to adminSetSchemes
+ *   loadStats()         — fetches signup/login stats via adminGetStats
+ *   callAuth(action)    — helper: POST to /.netlify/functions/auth with session token
+ *
+ * All backend calls go to /.netlify/functions/auth with { action, token, ...params }
+ * Session token stored in localStorage 'propCalc_session_v1'.token
+ */
 
 const SESSION_KEY = 'propCalc_session_v1';
 let adminSession = null;

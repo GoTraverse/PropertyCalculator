@@ -1,4 +1,30 @@
-/* app.js — EquitySight calculator app logic */
+/**
+ * app.js — EquitySight Calculator App Logic
+ *
+ * Loaded by app.html (authenticated users only — auth guard in app.html <head>).
+ *
+ * Key sections (search these strings to jump):
+ *   "── HELPERS"          fmt(), v(), set(), syncRange() — utility functions
+ *   "── DYNAMIC COST"     addCostItem(), renderDynCosts() — purchase/move-out costs
+ *   "── RENO ITEMS"       addRenoItem(), renderRenoItems() — renovation budget
+ *   "── MAIN RECALC"      recalc() — master calc, called on every input change
+ *   "── PROPERTY DETAILS" setPropType(), handlePhotoDrop(), address autocomplete
+ *   "── PROJECTION"       30-year chart, quarterly table, milestones
+ *   "── SUBURB GROWTH"    lookupSuburbGrowth() — Netlify fn + localStorage cache
+ *   "── EXPORT PDF"       exportPDF() — builds standalone print HTML in new window
+ *   "── SCHEME SELECTOR"  government grant/scheme logic (config from admin)
+ *   "── PROFILE WIDGET"   top-right profile button + floating account panel
+ *   "── Custom Dialog"    appAlert(), appConfirm() — replaces browser alert/confirm
+ *
+ * Global state:
+ *   scenarios[]      — loaded from /.netlify/functions/scenarios
+ *   currentScenario  — active scenario object (null = new unsaved)
+ *   renoItems[]      — renovation line items
+ *   purchaseCosts[], moveOutCosts[] — dynamic cost line items
+ *
+ * Session: localStorage 'propCalc_session_v1' → { id, email, name, plan, token, role }
+ * Draft:   localStorage 'propCalc_draft_v1'   → auto-saved current inputs
+ */
 
 // ── PWA: Prevent iOS back-swipe from leaving the app ──────────────────
   // PWA back-swipe trap — prevent iOS edge swipe from leaving the app
