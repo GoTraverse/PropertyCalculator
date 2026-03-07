@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Page Not Found — EquitySight.app</title>
+<meta name="description" content="The page you're looking for doesn't exist. Head back to EquitySight to calculate your property investment scenarios.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .notfound-wrap {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+  }
+  .notfound-code {
+    font-family: var(--font-display);
+    font-size: clamp(80px, 20vw, 160px);
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    margin: 0;
+  }
+  .notfound-title {
+    font-family: var(--font-display);
+    font-size: clamp(20px, 5vw, 32px);
+    color: var(--charcoal);
+    margin: 16px 0 12px;
+  }
+  html.dark-mode .notfound-title { color: var(--cream); }
+  .notfound-sub {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--slate);
+    max-width: 400px;
+    line-height: 1.6;
+    margin: 0 0 32px;
+  }
+  html.dark-mode .notfound-sub { color: rgba(245,240,232,0.6); }
+  .notfound-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn-primary {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--gold);
+    color: var(--charcoal);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .btn-secondary {
+    display: inline-block;
+    padding: 12px 28px;
+    background: transparent;
+    color: var(--charcoal);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 15px;
+    border: 1.5px solid rgba(28,28,30,0.25);
+  }
+  html.dark-mode .btn-secondary { color: var(--cream); border-color: rgba(245,240,232,0.25); }
+</style>
+</head>
+<body>
+<div id="auth-nav-root"></div>
+<div class="notfound-wrap">
+  <p class="notfound-code">404</p>
+  <h1 class="notfound-title">Page not found</h1>
+  <p class="notfound-sub">The page you're looking for doesn't exist or may have moved. Head back and keep calculating.</p>
+  <div class="notfound-actions">
+    <a href="index.html" class="btn-primary">Go home</a>
+    <a href="app.html" class="btn-secondary">Open calculator</a>
+  </div>
+</div>
+<div id="site-footer-root"></div>
+<script src="auth-nav.js"></script>
+<script src="footer.js"></script>
+</body>
+</html>

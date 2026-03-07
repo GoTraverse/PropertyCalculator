@@ -235,8 +235,10 @@ The CSP `connect-src` currently allows:
 
 ## Security Notes
 
-- **XSS**: All user-supplied data rendered into HTML goes through `escHtml()` in admin.js, which escapes `&`, `<`, `>`, `"`, and `'`. Do not embed user data in HTML without this.
-- **Admin auth**: Every admin action in auth.js verifies `user.role === 'admin'` via token. Never skip this check.
+- **XSS**: All user-supplied data rendered into HTML goes through `escHtml()` in admin.js / `_escBanner()` in app.js, which escape `&`, `<`, `>`. Do not embed user data in HTML without this.
+- **Photo URLs**: Profile photos inserted via `innerHTML` must pass `safePhotoSrc()` (defined in `account-panel.js` and `auth-nav.js`). Only `data:image/(jpeg|png|gif|webp);base64,` and `https://` URLs are allowed.
+- **Admin auth**: Every admin action in auth.js verifies `user.role === 'admin'` via token. Never skip this check. `growth.js set` action also requires admin.
+- **Growth rate writes**: `growth.js` action `set` is admin-only and validates rate is a finite number between -30 and 100.
 - **Stripe webhooks**: Verified via HMAC-SHA256 signature (`STRIPE_WEBHOOK_SECRET`) with replay protection (5-minute timestamp window).
 - **AUTH_SALT**: Throws a hard error at startup if not set in production (`NODE_ENV=production` or `CONTEXT=production`). Never deploy without this set.
 - **Password hashing**: HMAC-SHA256 with global salt. Adequate for this app's risk profile; consider bcrypt migration if requirements change.
@@ -248,9 +250,11 @@ The CSP `connect-src` currently allows:
 
 - **No build step**: edit files directly, push to git, Netlify deploys automatically
 - **No framework**: plain JS, no React/Vue/etc. DOM manipulation is direct.
-- **`recalc()` in app.js**: master recalculation function — called whenever any input changes. Reads all inputs, computes everything, updates all DOM output elements.
+- **`recalc()` in app.js**: master recalculation function — called whenever any input changes. Reads all inputs, computes everything, updates all DOM output elements. Called directly for immediate updates (tab switch, load). Use `dRecalc()` from oninput handlers to debounce rapid user input (180ms).
+- **`dRecalc()` in app.js**: debounced wrapper around `recalc()` — use this in all `oninput` HTML attributes to avoid firing recalc on every keystroke.
 - **Tab system in app.js**: `showTab(id, btn)` shows/hides `<section id="tab-{id}">` panels
 - **Pro features**: check `isPro()` before enabling. Plan stored in session (`session.plan === 'pro'`)
 - **Mobile breakpoint**: `@media(max-width:600px)` is the main PWA/mobile breakpoint in app.css
+- **PWA-only styles**: use `@media (display-mode: standalone)` to hide/show elements only in PWA mode (no JS needed)
 - **Print/PDF**: `exportPDF()` in app.js generates a full standalone HTML document in a new window, captures current scenario state as a snapshot
 - **Admin pages**: admin.css hides `.site-nav-links` and `.nav-hamburger` — profile icon stays pinned via `grid-column:3`

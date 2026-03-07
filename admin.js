@@ -688,6 +688,39 @@ async function loadConfig(){
   }
   setV('cfg-site-name',       c.siteName       || 'EquitySight.app');
   setV('cfg-site-tagline',    c.siteTagline    || '');
+  setV('cfg-logo-mark',       c.logoMark       || '🏠');
+  setV('cfg-logo-name',       c.logoName       || 'EquitySight');
+  setV('cfg-logo-tld',        c.logoTld        !== undefined ? c.logoTld : '.app');
+  setV('cfg-brand-color',     c.brandColor     || '#C9A84C');
+  setV('cfg-brand-color-hex', c.brandColor     || '#C9A84C');
+  setV('cfg-color-theme',     c.colorTheme     || '');
+  if(c.colorTheme && BRAND_THEMES[c.colorTheme]) {
+    selectTheme(c.colorTheme);
+  } else {
+    // Just highlight swatches without re-applying colors (color picker already set above)
+    document.querySelectorAll('.brand-theme-swatch').forEach(function(el) {
+      el.classList.remove('active');
+    });
+  }
+  var bpMark = document.getElementById('brand-preview-mark');
+  var bpName = document.getElementById('brand-preview-name');
+  var bpTld  = document.getElementById('brand-preview-tld');
+  if(bpMark) bpMark.textContent = c.logoMark || '🏠';
+  if(bpName) bpName.textContent = c.logoName || 'EquitySight';
+  if(bpTld)  bpTld.textContent  = c.logoTld  !== undefined ? c.logoTld : '.app';
+  if(c.brandColor) applyBrandColor(c.brandColor);
+  // Logo image
+  _logoImageData = c.logoImage || null;
+  if(c.logoImage){
+    _applyLogoImagePreview(c.logoImage);
+  } else {
+    var emojiEl2 = document.getElementById('logo-img-emoji');
+    var imgEl2   = document.getElementById('logo-img-preview');
+    var clrBtn2  = document.getElementById('logo-img-clear-btn');
+    if(emojiEl2) { emojiEl2.textContent = c.logoMark || '🏠'; emojiEl2.style.display = ''; }
+    if(imgEl2)   { imgEl2.src = ''; imgEl2.style.display = 'none'; }
+    if(clrBtn2)  clrBtn2.style.display = 'none';
+  }
   setV('cfg-support-email',   c.supportEmail   || 'support@equitysight.app');
   setV('cfg-site-url',        c.siteUrl        || '');
   setV('cfg-discord',         c.contactDiscord || '');
@@ -721,6 +754,108 @@ async function loadConfig(){
   // NOTE: stats are NOT auto-refreshed here — use the Refresh Stats button
 }
 
+// ── Logo image upload helpers ──────────────────────────────────────────────
+var _logoImageData = null;
+
+function handleLogoImageUpload(input){
+  var file = input.files[0];
+  if(!file) return;
+  if(file.size > 200 * 1024){
+    customAlert('Image too large', 'Please choose an image smaller than 200 KB.', {icon:'⚠'});
+    input.value = '';
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    _logoImageData = e.target.result;
+    _applyLogoImagePreview(_logoImageData);
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearLogoImage(){
+  _logoImageData = null;
+  var inp  = document.getElementById('logo-img-input');
+  var imgEl = document.getElementById('logo-img-preview');
+  var emojiEl = document.getElementById('logo-img-emoji');
+  var clearBtn = document.getElementById('logo-img-clear-btn');
+  var previewMark = document.getElementById('brand-preview-mark');
+  if(inp) inp.value = '';
+  if(imgEl)  { imgEl.src = ''; imgEl.style.display = 'none'; }
+  if(emojiEl) emojiEl.style.display = '';
+  if(clearBtn) clearBtn.style.display = 'none';
+  if(previewMark) previewMark.textContent = getV('cfg-logo-mark','') || '🏠';
+}
+
+function _applyLogoImagePreview(dataUri){
+  var imgEl = document.getElementById('logo-img-preview');
+  var emojiEl = document.getElementById('logo-img-emoji');
+  var clearBtn = document.getElementById('logo-img-clear-btn');
+  var previewMark = document.getElementById('brand-preview-mark');
+  if(imgEl)  { imgEl.src = dataUri; imgEl.style.display = 'block'; }
+  if(emojiEl) emojiEl.style.display = 'none';
+  if(clearBtn) clearBtn.style.display = '';
+  if(previewMark) previewMark.innerHTML = '<img src="'+dataUri+'" style="width:100%;height:100%;object-fit:contain;" alt="">';
+}
+
+function updateLogoEmojiPreview(val){
+  var emojiEl = document.getElementById('logo-img-emoji');
+  if(emojiEl) emojiEl.textContent = val || '🏠';
+  if(!_logoImageData){
+    var previewMark = document.getElementById('brand-preview-mark');
+    if(previewMark) previewMark.textContent = val || '🏠';
+  }
+}
+// ── Colour theme presets ───────────────────────────────────────────────────
+var BRAND_THEMES = {
+  gold:       { label: 'Classic Gold',    accent: '#C9A84C', accentLight: '#E8D080', dark: '#1C1C1E', darkSoft: '#2C2C2E' },
+  navy:       { label: 'Deep Navy',       accent: '#4B88C8', accentLight: '#8AB8DC', dark: '#0D1B2A', darkSoft: '#162840' },
+  forest:     { label: 'Forest Green',    accent: '#5A9E6F', accentLight: '#8DC4A0', dark: '#0F2318', darkSoft: '#1A3D28' },
+  terracotta: { label: 'Terracotta',      accent: '#C4714A', accentLight: '#E0A880', dark: '#2B1407', darkSoft: '#4A2510' },
+  indigo:     { label: 'Midnight Indigo', accent: '#7B6FD0', accentLight: '#A89EE0', dark: '#12102A', darkSoft: '#1E1B45' },
+  slate:      { label: 'Cool Slate',      accent: '#6B8FAF', accentLight: '#9AB5CC', dark: '#14202E', darkSoft: '#1E3045' }
+};
+
+function selectTheme(key) {
+  var theme = BRAND_THEMES[key];
+  var themeInput = document.getElementById('cfg-color-theme');
+  if(themeInput) themeInput.value = key || '';
+  document.querySelectorAll('.brand-theme-swatch').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.theme === key);
+  });
+  if(!theme) return;
+  var pickerEl = document.getElementById('cfg-brand-color');
+  var hexEl    = document.getElementById('cfg-brand-color-hex');
+  if(pickerEl) pickerEl.value = theme.accent;
+  if(hexEl)    hexEl.value    = theme.accent;
+  document.documentElement.style.setProperty('--gold',          theme.accent);
+  document.documentElement.style.setProperty('--gold-light',    theme.accentLight);
+  document.documentElement.style.setProperty('--charcoal',      theme.dark);
+  document.documentElement.style.setProperty('--charcoal-soft', theme.darkSoft);
+}
+
+// ── Brand colour helpers ───────────────────────────────────────────────────
+function applyBrandColor(hex){
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  document.documentElement.style.setProperty('--gold', hex);
+}
+function syncBrandColor(hex){
+  // Called from color picker — deselects any preset theme
+  var textEl = document.getElementById('cfg-brand-color-hex');
+  if(textEl) textEl.value = hex;
+  applyBrandColor(hex);
+  selectTheme('');
+}
+function syncBrandColorHex(val){
+  // Called from text input — deselects any preset theme
+  if(/^#[0-9a-fA-F]{6}$/.test(val)){
+    var pickerEl = document.getElementById('cfg-brand-color');
+    if(pickerEl) pickerEl.value = val;
+    applyBrandColor(val);
+    selectTheme('');
+  }
+}
+
 function updateBannerPreview(){
   const text = getV('cfg-banner','');
   const type = getV('cfg-banner-type','info');
@@ -744,6 +879,12 @@ async function saveConfig(){
   const config = {
     siteName:            getV('cfg-site-name',''),
     siteTagline:         getV('cfg-site-tagline',''),
+    logoImage:           _logoImageData || '',
+    logoMark:            getV('cfg-logo-mark','🏠'),
+    logoName:            getV('cfg-logo-name','EquitySight'),
+    logoTld:             getV('cfg-logo-tld','.app'),
+    brandColor:          getV('cfg-brand-color','#C9A84C'),
+    colorTheme:          getV('cfg-color-theme',''),
     supportEmail:        getV('cfg-support-email',''),
     siteUrl:             getV('cfg-site-url',''),
     contactDiscord:      getV('cfg-discord',''),

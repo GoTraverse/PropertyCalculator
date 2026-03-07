@@ -1,6 +1,6 @@
 {
-  "name": "mypropertymate",
-  "short_name": "PropMate",
+  "name": "EquitySight",
+  "short_name": "EquitySight",
   "description": "Property finance calculator for Australian home buyers",
   "start_url": "/app.html",
   "scope": "/",

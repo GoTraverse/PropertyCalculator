@@ -13,6 +13,9 @@
   /* Fill notch/status-bar area on iPhone with nav dark colour */
   html { background: rgba(28,28,30,0.97); }
   body { background: var(--warm-white); }
+  @media (display-mode: standalone) {
+    #site-footer-root, .site-footer { display: none !important; }
+  }
 
   .account-layout {
     max-width: 900px;
