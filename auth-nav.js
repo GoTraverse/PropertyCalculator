@@ -337,13 +337,21 @@ window.toggleTheme = function(){
 // Reads cached config from localStorage and applies logo + accent colour
 // to all logo elements already rendered in the page HTML.
 (function applyBranding() {
+  var THEMES = {
+    gold:       { accent: '#C9A84C', accentLight: '#E8D080', dark: '#1C1C1E', darkSoft: '#2C2C2E' },
+    navy:       { accent: '#4B88C8', accentLight: '#8AB8DC', dark: '#0D1B2A', darkSoft: '#162840' },
+    forest:     { accent: '#5A9E6F', accentLight: '#8DC4A0', dark: '#0F2318', darkSoft: '#1A3D28' },
+    terracotta: { accent: '#C4714A', accentLight: '#E0A880', dark: '#2B1407', darkSoft: '#4A2510' },
+    indigo:     { accent: '#7B6FD0', accentLight: '#A89EE0', dark: '#12102A', darkSoft: '#1E1B45' },
+    slate:      { accent: '#6B8FAF', accentLight: '#9AB5CC', dark: '#14202E', darkSoft: '#1E3045' }
+  };
+
   function apply() {
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e) {}
     var mark  = cfg.logoMark;
     var name  = cfg.logoName;
     var tld   = cfg.logoTld;
-    var color = cfg.brandColor;
 
     if (cfg.logoImage) {
       document.querySelectorAll('.site-logo-mark').forEach(function(el) {
@@ -364,8 +372,16 @@ window.toggleTheme = function(){
         el.textContent = tld;
       });
     }
-    if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
-      document.documentElement.style.setProperty('--gold', color);
+
+    // Apply colour theme (preset overrides standalone brandColor)
+    var theme = cfg.colorTheme && THEMES[cfg.colorTheme];
+    if (theme) {
+      document.documentElement.style.setProperty('--gold',          theme.accent);
+      document.documentElement.style.setProperty('--gold-light',    theme.accentLight);
+      document.documentElement.style.setProperty('--charcoal',      theme.dark);
+      document.documentElement.style.setProperty('--charcoal-soft', theme.darkSoft);
+    } else if (cfg.brandColor && /^#[0-9a-fA-F]{6}$/.test(cfg.brandColor)) {
+      document.documentElement.style.setProperty('--gold', cfg.brandColor);
     }
   }
 

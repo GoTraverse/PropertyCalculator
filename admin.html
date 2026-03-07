@@ -356,6 +356,19 @@
               oninput="document.getElementById('brand-preview-tld').textContent=this.value">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Suffix after brand name (e.g. .app, .io, .com — or leave blank)</div>
           </div>
+          <div class="config-field" style="grid-column:1/-1;">
+            <label class="config-label">Colour Theme</label>
+            <input type="hidden" id="cfg-color-theme" value="">
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;" id="brand-theme-swatches">
+              <button type="button" class="brand-theme-swatch" data-theme="gold"       onclick="selectTheme('gold')"       title="Classic Gold"    style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#1C1C1E;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#C9A84C;"></span></span>Classic Gold</button>
+              <button type="button" class="brand-theme-swatch" data-theme="navy"       onclick="selectTheme('navy')"       title="Deep Navy"       style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#0D1B2A;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#4B88C8;"></span></span>Deep Navy</button>
+              <button type="button" class="brand-theme-swatch" data-theme="forest"     onclick="selectTheme('forest')"     title="Forest Green"    style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#0F2318;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#5A9E6F;"></span></span>Forest Green</button>
+              <button type="button" class="brand-theme-swatch" data-theme="terracotta" onclick="selectTheme('terracotta')" title="Terracotta"       style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#2B1407;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#C4714A;"></span></span>Terracotta</button>
+              <button type="button" class="brand-theme-swatch" data-theme="indigo"     onclick="selectTheme('indigo')"     title="Midnight Indigo" style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#12102A;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#7B6FD0;"></span></span>Midnight Indigo</button>
+              <button type="button" class="brand-theme-swatch" data-theme="slate"      onclick="selectTheme('slate')"      title="Cool Slate"      style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#14202E;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#6B8FAF;"></span></span>Cool Slate</button>
+            </div>
+            <div style="font-size:11px;color:var(--slate);margin-top:6px;">Pick a preset to apply colours site-wide, or customise the accent below</div>
+          </div>
           <div class="config-field">
             <label class="config-label">Accent Colour</label>
             <div style="display:flex;gap:8px;align-items:center;">
@@ -365,7 +378,7 @@
               <input type="text" class="config-input" id="cfg-brand-color-hex" placeholder="#C9A84C" maxlength="7" style="flex:1;font-family:var(--font-mono);"
                 oninput="syncBrandColorHex(this.value)">
             </div>
-            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Primary accent colour — updates buttons, links, and highlights across the site</div>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Primary accent colour — or pick a theme above for a full colour set</div>
           </div>
         </div>
       </div>

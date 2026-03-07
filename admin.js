@@ -693,6 +693,15 @@ async function loadConfig(){
   setV('cfg-logo-tld',        c.logoTld        !== undefined ? c.logoTld : '.app');
   setV('cfg-brand-color',     c.brandColor     || '#C9A84C');
   setV('cfg-brand-color-hex', c.brandColor     || '#C9A84C');
+  setV('cfg-color-theme',     c.colorTheme     || '');
+  if(c.colorTheme && BRAND_THEMES[c.colorTheme]) {
+    selectTheme(c.colorTheme);
+  } else {
+    // Just highlight swatches without re-applying colors (color picker already set above)
+    document.querySelectorAll('.brand-theme-swatch').forEach(function(el) {
+      el.classList.remove('active');
+    });
+  }
   var bpMark = document.getElementById('brand-preview-mark');
   var bpName = document.getElementById('brand-preview-name');
   var bpTld  = document.getElementById('brand-preview-tld');
@@ -797,23 +806,53 @@ function updateLogoEmojiPreview(val){
     if(previewMark) previewMark.textContent = val || '🏠';
   }
 }
+// ── Colour theme presets ───────────────────────────────────────────────────
+var BRAND_THEMES = {
+  gold:       { label: 'Classic Gold',    accent: '#C9A84C', accentLight: '#E8D080', dark: '#1C1C1E', darkSoft: '#2C2C2E' },
+  navy:       { label: 'Deep Navy',       accent: '#4B88C8', accentLight: '#8AB8DC', dark: '#0D1B2A', darkSoft: '#162840' },
+  forest:     { label: 'Forest Green',    accent: '#5A9E6F', accentLight: '#8DC4A0', dark: '#0F2318', darkSoft: '#1A3D28' },
+  terracotta: { label: 'Terracotta',      accent: '#C4714A', accentLight: '#E0A880', dark: '#2B1407', darkSoft: '#4A2510' },
+  indigo:     { label: 'Midnight Indigo', accent: '#7B6FD0', accentLight: '#A89EE0', dark: '#12102A', darkSoft: '#1E1B45' },
+  slate:      { label: 'Cool Slate',      accent: '#6B8FAF', accentLight: '#9AB5CC', dark: '#14202E', darkSoft: '#1E3045' }
+};
+
+function selectTheme(key) {
+  var theme = BRAND_THEMES[key];
+  var themeInput = document.getElementById('cfg-color-theme');
+  if(themeInput) themeInput.value = key || '';
+  document.querySelectorAll('.brand-theme-swatch').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.theme === key);
+  });
+  if(!theme) return;
+  var pickerEl = document.getElementById('cfg-brand-color');
+  var hexEl    = document.getElementById('cfg-brand-color-hex');
+  if(pickerEl) pickerEl.value = theme.accent;
+  if(hexEl)    hexEl.value    = theme.accent;
+  document.documentElement.style.setProperty('--gold',          theme.accent);
+  document.documentElement.style.setProperty('--gold-light',    theme.accentLight);
+  document.documentElement.style.setProperty('--charcoal',      theme.dark);
+  document.documentElement.style.setProperty('--charcoal-soft', theme.darkSoft);
+}
+
 // ── Brand colour helpers ───────────────────────────────────────────────────
 function applyBrandColor(hex){
   if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
   document.documentElement.style.setProperty('--gold', hex);
 }
 function syncBrandColor(hex){
-  // Called from color picker input
+  // Called from color picker — deselects any preset theme
   var textEl = document.getElementById('cfg-brand-color-hex');
   if(textEl) textEl.value = hex;
   applyBrandColor(hex);
+  selectTheme('');
 }
 function syncBrandColorHex(val){
-  // Called from text input
+  // Called from text input — deselects any preset theme
   if(/^#[0-9a-fA-F]{6}$/.test(val)){
     var pickerEl = document.getElementById('cfg-brand-color');
     if(pickerEl) pickerEl.value = val;
     applyBrandColor(val);
+    selectTheme('');
   }
 }
 
@@ -845,6 +884,7 @@ async function saveConfig(){
     logoName:            getV('cfg-logo-name','EquitySight'),
     logoTld:             getV('cfg-logo-tld','.app'),
     brandColor:          getV('cfg-brand-color','#C9A84C'),
+    colorTheme:          getV('cfg-color-theme',''),
     supportEmail:        getV('cfg-support-email',''),
     siteUrl:             getV('cfg-site-url',''),
     contactDiscord:      getV('cfg-discord',''),

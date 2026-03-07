@@ -197,6 +197,9 @@
   }
   .config-input:focus { border-color: var(--gold); background: white; }
   .config-input[readonly] { color: var(--slate); background: rgba(28,28,30,0.02); cursor: default; }
+  .brand-theme-swatch { transition: border-color 0.15s, box-shadow 0.15s; }
+  .brand-theme-swatch:hover { border-color: rgba(28,28,30,0.4) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .brand-theme-swatch.active { border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(201,168,76,0.2); }
 
   /* Status / alerts */
   .admin-status { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 12px; font-family: var(--font-mono); margin-top: 12px; display: none; }
