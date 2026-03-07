@@ -51,11 +51,11 @@ window.toggleTheme = function(){
       '.anav-item-danger{color:rgba(245,240,232,0.4);}',
       '.anav-item-danger:hover{background:rgba(255,255,255,0.04);color:rgba(245,240,232,0.65);}',
       // Help button
-      '#anav-help-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.12);',
-        'border:1px solid rgba(255,255,255,0.2);color:rgba(245,240,232,0.75);font-size:16px;font-weight:700;',
+      '#anav-help-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.18);',
+        'border:1.5px solid rgba(255,255,255,0.35);color:#F5F0E8;font-size:16px;font-weight:700;',
         'cursor:pointer;display:flex;align-items:center;justify-content:center;',
-        'transition:background 0.15s,box-shadow 0.15s;flex-shrink:0;}',
-      '#anav-help-btn:hover{background:rgba(255,255,255,0.2);box-shadow:0 0 0 3px rgba(201,168,76,0.2);}',
+        'transition:background 0.15s,box-shadow 0.15s;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.25);}',
+      '#anav-help-btn:hover{background:rgba(255,255,255,0.28);box-shadow:0 0 0 3px rgba(201,168,76,0.3);}',
       // Help modal
       '#anav-help-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.65);',
         'align-items:center;justify-content:center;padding:16px;}',

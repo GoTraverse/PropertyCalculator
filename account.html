@@ -648,7 +648,7 @@
     }
     const st = document.getElementById('profile-status');
     if(st){ st.textContent='✓ Saved'; st.className='acct-status-msg ok'; setTimeout(function(){st.textContent='';},2000); }
-    renderNavUser();
+    if (window.renderSiteNav) window.renderSiteNav();
   }
 
   function showPasswordForm(){
@@ -904,7 +904,7 @@
         session.name = d.name || session.name;
         try{ localStorage.setItem(SK, JSON.stringify(session)); }catch(e){}
         renderPlan();   // re-render subscription panel with fresh plan
-        renderNavUser();
+        if (window.renderSiteNav) window.renderSiteNav();
       }
     }).catch(function(){});
   }

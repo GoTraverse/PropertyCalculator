@@ -805,13 +805,31 @@
       const { lat, lon } = geoData[0];
 
       // 2. Fetch static map via server-side proxy (avoids browser CORS restriction)
-      const proxyRes = await fetch(`/.netlify/functions/mapproxy?lat=${lat}&lon=${lon}&zoom=17`);
+      const proxyRes = await fetch(`/.netlify/functions/mapproxy?lat=${lat}&lon=${lon}&zoom=16`);
       const proxyData = await proxyRes.json();
       if(!proxyData.ok) throw new Error(proxyData.error || 'Map proxy failed');
 
-      // 3. Load the returned data URL into an image for canvas resize + thumbnail
+      // 3. Stitch tiles onto a canvas (new tile-based format) or load dataUrl directly (legacy)
+      let imgSrc;
+      if(proxyData.tiles){
+        const { tiles, cols, rows, tileSize } = proxyData;
+        const ts = tileSize || 256;
+        const stitchCanvas = document.createElement('canvas');
+        stitchCanvas.width = cols * ts; stitchCanvas.height = rows * ts;
+        const sctx = stitchCanvas.getContext('2d');
+        await Promise.all(tiles.map((dataUrl, i) => {
+          if(!dataUrl) return Promise.resolve();
+          const col = i % cols, row = Math.floor(i / cols);
+          const tileImg = new Image();
+          return new Promise(res => { tileImg.onload = () => { sctx.drawImage(tileImg, col * ts, row * ts); res(); }; tileImg.onerror = res; tileImg.src = dataUrl; });
+        }));
+        imgSrc = stitchCanvas.toDataURL('image/png');
+      } else {
+        imgSrc = proxyData.dataUrl;
+      }
+
       const img = new Image();
-      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = proxyData.dataUrl; });
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = imgSrc; });
 
       const MAX = 1200;
       const ratio = Math.min(1, MAX / Math.max(img.width, img.height));
