@@ -333,6 +333,45 @@ window.toggleTheme = function(){
   window.renderSiteNav = renderNav;
 })();
 
+// ── Site-wide branding ────────────────────────────────────────────────────
+// Reads cached config from localStorage and applies logo + accent colour
+// to all logo elements already rendered in the page HTML.
+(function applyBranding() {
+  function apply() {
+    var cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e) {}
+    var mark  = cfg.logoMark;
+    var name  = cfg.logoName;
+    var tld   = cfg.logoTld;
+    var color = cfg.brandColor;
+
+    if (mark) {
+      document.querySelectorAll('.site-logo-mark').forEach(function(el) {
+        el.textContent = mark;
+      });
+    }
+    if (name) {
+      document.querySelectorAll('.site-logo-name').forEach(function(el) {
+        el.textContent = name;
+      });
+    }
+    if (tld !== undefined) {
+      document.querySelectorAll('.site-logo-tld').forEach(function(el) {
+        el.textContent = tld;
+      });
+    }
+    if (color && /^#[0-9a-fA-F]{6}$/.test(color)) {
+      document.documentElement.style.setProperty('--gold', color);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+})();
+
 // Hamburger menu toggle — shared across all pages that include this script
 (function () {
   function initHamburger() {

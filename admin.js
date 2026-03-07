@@ -688,6 +688,18 @@ async function loadConfig(){
   }
   setV('cfg-site-name',       c.siteName       || 'EquitySight.app');
   setV('cfg-site-tagline',    c.siteTagline    || '');
+  setV('cfg-logo-mark',       c.logoMark       || '🏠');
+  setV('cfg-logo-name',       c.logoName       || 'EquitySight');
+  setV('cfg-logo-tld',        c.logoTld        !== undefined ? c.logoTld : '.app');
+  setV('cfg-brand-color',     c.brandColor     || '#C9A84C');
+  setV('cfg-brand-color-hex', c.brandColor     || '#C9A84C');
+  var bpMark = document.getElementById('brand-preview-mark');
+  var bpName = document.getElementById('brand-preview-name');
+  var bpTld  = document.getElementById('brand-preview-tld');
+  if(bpMark) bpMark.textContent = c.logoMark || '🏠';
+  if(bpName) bpName.textContent = c.logoName || 'EquitySight';
+  if(bpTld)  bpTld.textContent  = c.logoTld  !== undefined ? c.logoTld : '.app';
+  if(c.brandColor) applyBrandColor(c.brandColor);
   setV('cfg-support-email',   c.supportEmail   || 'support@equitysight.app');
   setV('cfg-site-url',        c.siteUrl        || '');
   setV('cfg-discord',         c.contactDiscord || '');
@@ -721,6 +733,25 @@ async function loadConfig(){
   // NOTE: stats are NOT auto-refreshed here — use the Refresh Stats button
 }
 
+function applyBrandColor(hex){
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  document.documentElement.style.setProperty('--gold', hex);
+}
+function syncBrandColor(hex){
+  // Called from color picker input
+  var textEl = document.getElementById('cfg-brand-color-hex');
+  if(textEl) textEl.value = hex;
+  applyBrandColor(hex);
+}
+function syncBrandColorHex(val){
+  // Called from text input
+  if(/^#[0-9a-fA-F]{6}$/.test(val)){
+    var pickerEl = document.getElementById('cfg-brand-color');
+    if(pickerEl) pickerEl.value = val;
+    applyBrandColor(val);
+  }
+}
+
 function updateBannerPreview(){
   const text = getV('cfg-banner','');
   const type = getV('cfg-banner-type','info');
@@ -744,6 +775,10 @@ async function saveConfig(){
   const config = {
     siteName:            getV('cfg-site-name',''),
     siteTagline:         getV('cfg-site-tagline',''),
+    logoMark:            getV('cfg-logo-mark','🏠'),
+    logoName:            getV('cfg-logo-name','EquitySight'),
+    logoTld:             getV('cfg-logo-tld','.app'),
+    brandColor:          getV('cfg-brand-color','#C9A84C'),
     supportEmail:        getV('cfg-support-email',''),
     siteUrl:             getV('cfg-site-url',''),
     contactDiscord:      getV('cfg-discord',''),

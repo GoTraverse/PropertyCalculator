@@ -298,6 +298,58 @@
       </div>
     </div>
 
+    <!-- Logo & Branding -->
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>Logo &amp; Branding</h3>
+        <span style="font-size:11px;color:var(--slate);">Logo mark, name, and accent colour applied across the site</span>
+      </div>
+      <div style="padding:24px;">
+        <!-- Live preview -->
+        <div style="margin-bottom:24px;padding:14px 20px;background:var(--charcoal);border-radius:8px;display:flex;align-items:center;gap:16px;">
+          <span style="font-size:11px;color:rgba(245,240,232,0.35);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">Preview</span>
+          <span class="site-logo" style="pointer-events:none;display:flex;align-items:center;gap:10px;">
+            <span class="site-logo-mark" id="brand-preview-mark">🏠</span>
+            <span class="site-logo-text">
+              <span class="site-logo-name" id="brand-preview-name">EquitySight</span>
+              <span class="site-logo-tld" id="brand-preview-tld">.app</span>
+            </span>
+          </span>
+        </div>
+        <div class="config-grid">
+          <div class="config-field">
+            <label class="config-label">Logo Mark</label>
+            <input type="text" class="config-input" id="cfg-logo-mark" placeholder="🏠" maxlength="4"
+              oninput="document.getElementById('brand-preview-mark').textContent=this.value||'🏠'">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Emoji shown in the logo tile (e.g. 🏠 🏡 🏢)</div>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Brand Name</label>
+            <input type="text" class="config-input" id="cfg-logo-name" placeholder="EquitySight"
+              oninput="document.getElementById('brand-preview-name').textContent=this.value||'EquitySight'">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Main logo text</div>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Logo Suffix</label>
+            <input type="text" class="config-input" id="cfg-logo-tld" placeholder=".app"
+              oninput="document.getElementById('brand-preview-tld').textContent=this.value">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Suffix after brand name (e.g. .app, .io, .com — or leave blank)</div>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Accent Colour</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="color" id="cfg-brand-color" value="#C9A84C"
+                style="width:44px;height:36px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;cursor:pointer;padding:2px;background:none;"
+                oninput="syncBrandColor(this.value)">
+              <input type="text" class="config-input" id="cfg-brand-color-hex" placeholder="#C9A84C" maxlength="7" style="flex:1;font-family:var(--font-mono);"
+                oninput="syncBrandColorHex(this.value)">
+            </div>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Primary accent colour — updates buttons, links, and highlights across the site</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Announcement Banner -->
     <div class="admin-card">
       <div class="admin-card-head">
