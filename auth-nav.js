@@ -345,7 +345,11 @@ window.toggleTheme = function(){
     var tld   = cfg.logoTld;
     var color = cfg.brandColor;
 
-    if (mark) {
+    if (cfg.logoImage) {
+      document.querySelectorAll('.site-logo-mark').forEach(function(el) {
+        el.innerHTML = '<img src="' + cfg.logoImage + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" alt="">';
+      });
+    } else if (mark) {
       document.querySelectorAll('.site-logo-mark').forEach(function(el) {
         el.textContent = mark;
       });

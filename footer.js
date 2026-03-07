@@ -6,9 +6,12 @@
 (function () {
   var cfg = {};
   try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e) {}
-  var logoMark = cfg.logoMark || '🏠';
-  var logoName = cfg.logoName || 'EquitySight';
-  var logoTld  = cfg.logoTld  !== undefined ? cfg.logoTld : '.app';
+  var logoMark    = cfg.logoMark || '🏠';
+  var logoName    = cfg.logoName || 'EquitySight';
+  var logoTld     = cfg.logoTld  !== undefined ? cfg.logoTld : '.app';
+  var logoMarkHtml = cfg.logoImage
+    ? '<img src="' + cfg.logoImage + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" alt="">'
+    : logoMark;
 
   var FOOTER_HTML = [
     '<footer class="site-footer">',
@@ -16,7 +19,7 @@
     '    <div class="site-footer-grid">',
     '      <div class="footer-brand">',
     '        <a href="index.html" class="site-logo" style="margin-bottom:14px;">',
-    '          <div class="site-logo-mark">' + logoMark + '</div>',
+    '          <div class="site-logo-mark">' + logoMarkHtml + '</div>',
     '          <div class="site-logo-text"><span class="site-logo-name">' + logoName + '</span><span class="site-logo-tld">' + logoTld + '</span></div>',
     '        </a>',
     '        <p>Australia\'s smartest property finance calculator for first home buyers.</p>',

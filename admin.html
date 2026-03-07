@@ -317,11 +317,32 @@
           </span>
         </div>
         <div class="config-grid">
+          <!-- Logo image upload — spans full width -->
+          <div class="config-field" style="grid-column:1/-1;">
+            <label class="config-label">Logo Image</label>
+            <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+              <!-- Tile preview -->
+              <div id="logo-img-tile"
+                style="width:52px;height:52px;border-radius:12px;background:var(--gold);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative;"
+                onclick="document.getElementById('logo-img-input').click()" title="Click to upload">
+                <img id="logo-img-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:contain;">
+                <span id="logo-img-emoji" style="font-size:22px;">🏠</span>
+              </div>
+              <div style="flex:1;min-width:180px;">
+                <input type="file" id="logo-img-input" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none;" onchange="handleLogoImageUpload(this)">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                  <button type="button" class="btn-admin-outline" style="font-size:11px;padding:7px 14px;" onclick="document.getElementById('logo-img-input').click()">Upload image…</button>
+                  <button type="button" class="btn-admin-outline" id="logo-img-clear-btn" style="display:none;font-size:11px;padding:7px 14px;color:var(--risk-red);border-color:rgba(196,90,90,0.3);" onclick="clearLogoImage()">Remove image</button>
+                </div>
+                <div style="font-size:11px;color:var(--slate);">PNG, SVG, JPG or WebP — max 200 KB. When set, replaces the emoji in the logo tile sitewide.</div>
+              </div>
+            </div>
+          </div>
           <div class="config-field">
-            <label class="config-label">Logo Mark</label>
+            <label class="config-label">Fallback Emoji</label>
             <input type="text" class="config-input" id="cfg-logo-mark" placeholder="🏠" maxlength="4"
-              oninput="document.getElementById('brand-preview-mark').textContent=this.value||'🏠'">
-            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Emoji shown in the logo tile (e.g. 🏠 🏡 🏢)</div>
+              oninput="updateLogoEmojiPreview(this.value)">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Shown in the logo tile when no image is uploaded (e.g. 🏠 🏡 🏢)</div>
           </div>
           <div class="config-field">
             <label class="config-label">Brand Name</label>
