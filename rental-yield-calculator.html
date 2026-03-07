@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rental Yield Calculator Australia 2026 | Gross & Net Yield | Free Tool</title>
+<meta name="description" content="Calculate gross and net rental yield for any Australian investment property. Enter property value, weekly rent, and expenses to see if your investment stacks up.">
+<meta name="keywords" content="rental yield calculator Australia, gross rental yield, net rental yield, investment property yield, property yield calculator">
+<link rel="canonical" href="https://equitysight.app/rental-yield-calculator.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rental Yield Calculator Australia 2026 — Free Tool">
+<meta property="og:description" content="Calculate gross and net rental yield for Australian investment properties instantly.">
+<meta property="og:url" content="https://equitysight.app/rental-yield-calculator.html">
+<meta property="og:site_name" content="EquitySight.app">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Rental Yield Calculator Australia — Free Tool">
+<meta name="twitter:description" content="Calculate gross and net rental yield for Australian investment properties instantly.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="tools.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Rental Yield Calculator Australia","url":"https://equitysight.app/rental-yield-calculator.html","description":"Free rental yield calculator for Australian investment properties. Calculate gross and net yield instantly.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+
+<section class="tool-hero">
+  <div class="tool-eyebrow">Free Tool · Investment Property</div>
+  <h1>Rental Yield Calculator Australia</h1>
+  <p>Calculate gross and net rental yield for any Australian investment property — and find out if the numbers stack up.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Property details</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="propval">Property value</label>
+        <input class="tool-input" type="text" id="propval" placeholder="e.g. 750,000" oninput="fmtNum(this)">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="weekly">Weekly rent ($)</label>
+        <input class="tool-input" type="text" id="weekly" placeholder="e.g. 550" oninput="fmtNum(this)">
+      </div>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:4px;">Annual expenses <span style="font-weight:400;text-transform:none;letter-spacing:0;font-family:var(--font-body);font-size:11px;color:var(--slate);">(for net yield)</span></div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="rates">Council rates ($/yr)</label>
+        <input class="tool-input" type="text" id="rates" placeholder="e.g. 2,000" oninput="fmtNum(this)">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="insurance">Landlord insurance ($/yr)</label>
+        <input class="tool-input" type="text" id="insurance" placeholder="e.g. 1,500" oninput="fmtNum(this)">
+      </div>
+    </div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="mgmt">Property management (%)</label>
+        <input class="tool-input" type="number" id="mgmt" placeholder="e.g. 8.5" step="0.1" min="0" max="20">
+        <div class="tool-hint">Typically 7–10% of rent</div>
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="maintenance">Maintenance ($/yr)</label>
+        <input class="tool-input" type="text" id="maintenance" placeholder="e.g. 2,500" oninput="fmtNum(this)">
+      </div>
+    </div>
+    <div class="tool-field">
+      <label class="tool-label" for="vacancy">Vacancy allowance (weeks/yr)</label>
+      <input class="tool-input" type="number" id="vacancy" placeholder="e.g. 2" step="0.5" min="0" max="52">
+      <div class="tool-hint">Allow 1–3 weeks for typical properties</div>
+    </div>
+
+    <button class="tool-btn" onclick="calculate()">Calculate Rental Yield</button>
+  </div>
+
+  <div class="tool-result" id="result" style="display:none">
+    <div class="tool-result-title">Your rental yield</div>
+    <div class="tool-grid">
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Gross Yield</div>
+        <div class="tool-stat-value gold" id="r-gross">—</div>
+      </div>
+      <div class="tool-stat" id="r-net-wrap">
+        <div class="tool-stat-label">Net Yield</div>
+        <div class="tool-stat-value" id="r-net">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Annual Rent (effective)</div>
+        <div class="tool-stat-value" id="r-annualrent">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Annual Expenses</div>
+        <div class="tool-stat-value" id="r-expenses">—</div>
+      </div>
+      <div class="tool-stat full" id="r-verdict-wrap">
+        <div class="tool-stat-label">Verdict</div>
+        <div style="font-size:14px;color:var(--slate);margin-top:4px;" id="r-verdict">—</div>
+      </div>
+    </div>
+    <p class="tool-disclaimer">Estimates only. Does not include depreciation, interest costs, or tax impacts. Consult a financial adviser before investing.</p>
+  </div>
+
+  <div class="tool-cta" id="cta" style="display:none">
+    <div class="tool-cta-eye">Go deeper</div>
+    <h3>Model the full investment scenario</h3>
+    <p>Add mortgage repayments, capital growth projections, equity buildup, and compare multiple properties — free in EquitySight.</p>
+    <a href="login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
+  </div>
+
+</div>
+
+<section class="tool-content">
+  <h2>What is rental yield?</h2>
+  <p>Rental yield measures the annual return from rent as a percentage of the property's value. It's one of the most important metrics for evaluating an investment property.</p>
+  <ul>
+    <li><strong>Gross yield</strong> — annual rent ÷ property value × 100. Simple and quick.</li>
+    <li><strong>Net yield</strong> — (annual rent − expenses) ÷ property value × 100. More accurate — accounts for real costs.</li>
+  </ul>
+
+  <h2>What's a good rental yield in Australia?</h2>
+  <table>
+    <tr><th>Yield range</th><th>Assessment</th></tr>
+    <tr><td>Below 3%</td><td>Low — likely negative cashflow</td></tr>
+    <tr><td>3% – 4%</td><td>Average for capital cities</td></tr>
+    <tr><td>4% – 6%</td><td>Good — approaching neutral cashflow</td></tr>
+    <tr><td>Above 6%</td><td>Strong — typically regional areas</td></tr>
+  </table>
+  <p>Note: Higher yield often comes with lower capital growth. Balancing yield and growth is the key to a strong investment strategy.</p>
+
+  <h2>Typical annual expenses to include</h2>
+  <ul>
+    <li>Council rates: $1,500–$3,000/year</li>
+    <li>Water rates: $800–$1,500/year</li>
+    <li>Landlord insurance: $1,000–$2,500/year</li>
+    <li>Property management: 7–10% of rent</li>
+    <li>Maintenance: 0.5–1% of property value/year</li>
+    <li>Vacancy allowance: 1–4 weeks per year</li>
+  </ul>
+
+  <h2>Gross vs net yield — which matters more?</h2>
+  <p>Gross yield is useful for quick comparisons between properties. Net yield tells you what you actually keep — use it when assessing cashflow and whether the property is negatively or positively geared.</p>
+</section>
+
+<footer class="tool-footer">
+  <a href="index.html">EquitySight.app</a> ·
+  <a href="stamp-duty-qld.html">Stamp Duty QLD</a> ·
+  <a href="rental-yield-calculator.html">Rental Yield</a> ·
+  <a href="mortgage-stress-calculator.html">Mortgage Stress</a> ·
+  <a href="privacy.html">Privacy</a>
+  <div style="margin-top:8px;">© 2026 EquitySight. General information only — not financial advice.</div>
+</footer>
+
+<script>
+function fmtNum(el) {
+  var v = el.value.replace(/[^0-9]/g, '');
+  el.value = v ? parseInt(v).toLocaleString() : '';
+}
+function parseNum(id) {
+  return parseFloat((document.getElementById(id).value || '0').replace(/,/g, '')) || 0;
+}
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+
+function calculate() {
+  var propVal  = parseNum('propval');
+  var weekly   = parseNum('weekly');
+  if (!propVal || !weekly) { alert('Please enter property value and weekly rent.'); return; }
+
+  var vacancy  = parseFloat(document.getElementById('vacancy').value) || 0;
+  var mgmtPct  = parseFloat(document.getElementById('mgmt').value) || 0;
+  var rates    = parseNum('rates');
+  var insurance= parseNum('insurance');
+  var maint    = parseNum('maintenance');
+
+  var annualRent  = weekly * (52 - vacancy);
+  var mgmtCost    = annualRent * (mgmtPct / 100);
+  var totalExpenses = rates + insurance + maint + mgmtCost;
+  var netRent     = annualRent - totalExpenses;
+
+  var grossYield  = (weekly * 52 / propVal) * 100;
+  var netYield    = (netRent / propVal) * 100;
+
+  var verdict = '';
+  if (netYield >= 6)      verdict = 'Strong yield — this property is likely positively geared.';
+  else if (netYield >= 4) verdict = 'Healthy yield — approaching cash-flow neutral.';
+  else if (netYield >= 2) verdict = 'Moderate yield — likely negatively geared. Factor in tax benefits and capital growth.';
+  else                    verdict = 'Low yield — significant negative gearing. Ensure capital growth outlook justifies the shortfall.';
+
+  var netEl = document.getElementById('r-net');
+  netEl.textContent = netYield.toFixed(2) + '%';
+  netEl.className = 'tool-stat-value ' + (netYield >= 4 ? 'green' : netYield < 2 ? 'red' : '');
+
+  document.getElementById('r-gross').textContent    = grossYield.toFixed(2) + '%';
+  document.getElementById('r-annualrent').textContent = fmt(annualRent);
+  document.getElementById('r-expenses').textContent = totalExpenses > 0 ? fmt(totalExpenses) : 'Not entered';
+  document.getElementById('r-verdict').textContent  = verdict;
+
+  document.getElementById('result').style.display = '';
+  document.getElementById('cta').style.display    = '';
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>

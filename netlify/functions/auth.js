@@ -207,7 +207,7 @@ exports.handler = async function(event){
   const {action}=body;
 
   if(action==='signup'){
-    const {email,password,name,plan}=body;
+    const {email,password,name,plan,ref}=body;
     if(!email||!password) return fail('Email and password required');
     const siteCfgSu=await rGet('config:site')||{};
     if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
@@ -222,6 +222,7 @@ exports.handler = async function(event){
     if(await rGet(ekey)) return fail('An account with this email already exists');
     const userId=Date.now().toString(36)+crypto.randomBytes(4).toString('hex');
     const code=makeEmailCode();
+    const refCode=(userId.slice(0,8)).toUpperCase();
     const user={
       name:(name||normalizedEmail.split('@')[0]).trim(),
       hash:hashPw(password),
@@ -233,9 +234,18 @@ exports.handler = async function(event){
       emailVerificationCodeHash:hashEmailCode(code),
       emailVerificationExpiresAt:Date.now()+EMAIL_CODE_TTL_MS,
       emailVerificationAttempts:0,
-      emailVerificationSentAt:Date.now()
+      emailVerificationSentAt:Date.now(),
+      referralCode:refCode,
+      referralCount:0
     };
+    // Handle incoming referral
+    const incomingRef=(ref||'').trim().toUpperCase().slice(0,16);
+    if(incomingRef){
+      const referrerId=await rGet('referral:'+incomingRef);
+      if(referrerId&&referrerId!==userId) user.referredBy=referrerId;
+    }
     await rSet(ekey,user);
+    await rSet('referral:'+refCode,userId);
     await logEvent(userId,'signup',{name:user.name,email:normalizedEmail,plan:user.plan});
     await sendVerificationEmail(normalizedEmail, code);
     return ok({ok:true,requiresEmailVerification:true,email:user.email,plan:user.plan,name:user.name});
@@ -741,6 +751,23 @@ exports.handler = async function(event){
       if(!sent) return fail('Failed to send via Resend — check RESEND_API_KEY');
       return ok({ok:true,sentTo:user.email});
     }catch(e){ return fail('Send error: '+e.message); }
+  }
+
+  if(action==='getReferralCode'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user) return fail('Unauthorized',401);
+    const userData=await rGet('user:'+user.email);
+    if(!userData) return fail('User not found',404);
+    let code=userData.referralCode;
+    if(!code){
+      code=(userData.id.slice(0,8)).toUpperCase();
+      userData.referralCode=code;
+      userData.referralCount=userData.referralCount||0;
+      await rSet('user:'+user.email,userData);
+      await rSet('referral:'+code,userData.id);
+    }
+    const siteUrl='https://equitysight.app';
+    return ok({ok:true,code,link:siteUrl+'/login.html?ref='+code+'&tab=signup',referralCount:userData.referralCount||0});
   }
 
   return fail('Unknown action');
