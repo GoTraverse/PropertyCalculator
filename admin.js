@@ -104,6 +104,8 @@ document.addEventListener('DOMContentLoaded', function(){
   });
   document.addEventListener('keydown', function(e){
     if(e.key === 'Escape'){
+      var epOverlay = document.getElementById('email-preview-overlay');
+      if(epOverlay && epOverlay.style.display === 'flex'){ closeEmailPreview(); return; }
       if(document.getElementById('stat-popup-overlay').classList.contains('open')){ closeStatPopup(); return; }
       if(document.getElementById('custom-dialog-overlay').classList.contains('open')){ _dialogResolve(false); }
     }
@@ -874,8 +876,13 @@ document.addEventListener('change', function(e){ if(e.target.id==='cfg-banner'||
 document.addEventListener('input',  function(e){ if(e.target.id==='cfg-banner') updateBannerPreview(); });
 
 async function saveConfig(){
-  const st = document.getElementById('config-status');
-  st.textContent = 'Saving…'; st.className = 'admin-status info';
+  const st  = document.getElementById('config-status');
+  const stB = document.getElementById('branding-status');
+  function setStatus(msg, cls) {
+    if(st)  { st.textContent  = msg; st.className  = 'admin-status ' + cls; }
+    if(stB) { stB.textContent = msg; stB.className = 'admin-status ' + cls; }
+  }
+  setStatus('Saving…', 'info');
   const config = {
     siteName:            getV('cfg-site-name',''),
     siteTagline:         getV('cfg-site-tagline',''),
@@ -918,13 +925,13 @@ async function saveConfig(){
   if(d.ok){
     // Also cache config locally so the app can apply settings without an API call
     try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(config)); } catch(e){}
-    st.textContent = '✓ Configuration saved'; st.className = 'admin-status ok';
-    setTimeout(()=>{ st.className='admin-status'; }, 3000);
+    setStatus('✓ Configuration saved', 'ok');
+    setTimeout(()=>{ setStatus('', ''); }, 3000);
   } else {
     // If API fails, still save locally so frontend settings are applied
     try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(config)); } catch(e){}
-    st.textContent = '✓ Saved locally (API: ' + (d.error||'check backend') + ')'; st.className = 'admin-status ok';
-    setTimeout(()=>{ st.className='admin-status'; }, 4000);
+    setStatus('✓ Saved locally (API: ' + (d.error||'check backend') + ')', 'ok');
+    setTimeout(()=>{ setStatus('', ''); }, 4000);
   }
 }
 
@@ -2223,13 +2230,20 @@ function previewEmailTemplate(){
   const fill = s => s.replace(/\{\{(\w+)\}\}/g, (m,k) => sampleVars[k]||m);
   const filledHtml = fill(html);
   const filledSubj = fill(subject);
-  const win = window.open('', '_blank', 'width=720,height=700');
-  if(!win){ alert('Allow pop-ups for this page to preview email templates.'); return; }
-  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+escHtml(filledSubj)+'</title>'
-    +'<style>body{margin:0;padding:20px;background:#eee;font-family:system-ui,sans-serif;}'
-    +'.subj{background:#333;color:#fff;padding:10px 16px;font-size:12px;font-family:monospace;border-radius:4px;margin-bottom:16px;max-width:640px;margin-left:auto;margin-right:auto;}</style></head>'
-    +'<body><div class="subj">Subject: '+escHtml(filledSubj)+'</div>'+filledHtml+'</body></html>');
-  win.document.close();
+  const overlay = document.getElementById('email-preview-overlay');
+  const frame   = document.getElementById('email-preview-frame');
+  const subjEl  = document.getElementById('email-preview-subject');
+  if(!overlay || !frame) return;
+  if(subjEl) subjEl.textContent = filledSubj;
+  frame.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    +'<style>body{margin:0;padding:20px;background:#eeeeee;font-family:system-ui,sans-serif;}</style></head>'
+    +'<body>'+filledHtml+'</body></html>';
+  overlay.style.display = 'flex';
+}
+
+function closeEmailPreview(){
+  const overlay = document.getElementById('email-preview-overlay');
+  if(overlay) overlay.style.display = 'none';
 }
 
 async function sendTestEmail(){
