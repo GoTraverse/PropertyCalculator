@@ -8,6 +8,9 @@
 <style>
   body{background:var(--warm-white);}
   .legal-hero{background:var(--charcoal);padding:72px 24px 48px;text-align:center;}
+  @media (display-mode: standalone) {
+    .site-nav, .site-footer { display: none !important; }
+  }
   .legal-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
   .legal-title{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--cream);margin-bottom:12px;}
   .legal-meta{font-family:var(--font-mono);font-size:11px;color:rgba(245,240,232,0.35);letter-spacing:1px;}
