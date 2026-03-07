@@ -1806,8 +1806,17 @@ function renderClientErrors(errors){
   const rows = errors.map(e => {
     const time    = e.at ? new Date(e.at).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
     const browser = parseBrowser(e.userAgent||'');
-    const src     = [e.source ? escHtml(e.source.replace(/^https?:\/\/[^/]+/,'')) : '', e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
-    const page    = e.url ? escHtml(e.url.replace(/^https?:\/\/[^/]+/,'').slice(0,60)) : '';
+    const rawSrc  = e.source || '';
+    const srcPath = rawSrc ? rawSrc.replace(/^https?:\/\/[^/]+/,'') : '';
+    // If source path matches the page URL path, the error is from an inline script
+    const pageUrl = e.url || '';
+    const pagePath = pageUrl ? pageUrl.replace(/^https?:\/\/[^/]+/,'').split('?')[0] : '';
+    const isInline = srcPath && pagePath && (srcPath === pagePath || srcPath.endsWith(pagePath));
+    const srcLabel = isInline
+      ? `[inline] ${escHtml(srcPath)}`
+      : (srcPath ? escHtml(srcPath) : '');
+    const src     = [srcLabel, e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
+    const page    = pageUrl ? escHtml(pagePath.slice(0,60)) : '';
     const user    = e.userEmail ? escHtml(e.userEmail) : (e.userName ? escHtml(e.userName) : '<span style="color:rgba(245,240,232,0.5)">guest</span>');
     const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:var(--slate);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:var(--slate);margin:4px 0 0;line-height:1.4;background:rgba(28,28,30,0.04);padding:6px;border-radius:3px;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
     return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);">
