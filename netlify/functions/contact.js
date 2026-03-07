@@ -44,7 +44,7 @@ exports.handler = async function(event) {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch(e) { return fail('Invalid JSON'); }
 
-  const { name, email, subject, message } = body;
+  const { name, email, subject, message, diagnostics } = body;
   if (!name || !email || !subject || !message) return fail('All fields required');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Invalid email');
   if (message.length > 5000) return fail('Message too long (max 5000 characters)');
@@ -71,6 +71,20 @@ exports.handler = async function(event) {
     return ok({ ok: true });
   }
 
+  function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  let diagHtml = '';
+  if (subject === 'bug' && diagnostics && typeof diagnostics === 'object') {
+    const rows = Object.entries(diagnostics)
+      .map(([k, v]) => `<tr><td style="padding:3px 10px 3px 0;color:#9CA3AF;font-size:11px;white-space:nowrap;vertical-align:top;">${escHtml(k)}</td><td style="padding:3px 0;font-size:11px;color:#4B5563;word-break:break-all;">${escHtml(String(v))}</td></tr>`)
+      .join('');
+    diagHtml = `
+  <div style="margin-top:20px;background:#F3F4F6;border-radius:4px;padding:12px 16px;">
+    <div style="font-family:monospace;font-size:10px;font-weight:600;color:#9CA3AF;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Diagnostics</div>
+    <table style="border-collapse:collapse;width:100%;font-family:monospace;">${rows}</table>
+  </div>`;
+  }
+
   const html = `
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
   <h2 style="color:#1C1C1E;margin-bottom:4px;">New contact form submission</h2>
@@ -81,11 +95,9 @@ exports.handler = async function(event) {
   </table>
   <div style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:16px;border-radius:0 4px 4px 0;">
     <p style="margin:0;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escHtml(message)}</p>
-  </div>
+  </div>${diagHtml}
   <p style="font-size:12px;color:#9CA3AF;margin-top:24px;">Reply directly to this email to respond to ${escHtml(name)}.</p>
 </div>`;
-
-  function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   try {
     const r = await fetch('https://api.resend.com/emails', {
