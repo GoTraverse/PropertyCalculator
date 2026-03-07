@@ -75,7 +75,7 @@
 </div>
 
 <!-- Reset Password Modal -->
-<div class="reset-modal-overlay" id="reset-modal-overlay">
+<div class="reset-modal-overlay" id="reset-modal-overlay" style="z-index:3000;">
   <div class="reset-modal">
     <h3>Reset Password</h3>
     <p id="reset-modal-desc">Set a new password for this account.</p>
@@ -243,7 +243,7 @@
           Shows up to the 500 most recent errors. Useful for diagnosing CSS/JS loading issues and runtime exceptions in production.
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-          <button class="btn-admin" onclick="loadClientErrors()" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+          <button class="btn-admin" id="ce-refresh-btn" onclick="loadClientErrors()" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
           <button class="btn-admin-outline" onclick="clearClientErrors()" style="font-size:10px;padding:7px 14px;color:#c45a5a;border-color:rgba(196,90,90,0.4);">🗑 Clear All</button>
         </div>
         <div id="client-errors-wrap" style="overflow-x:auto;">
@@ -634,7 +634,7 @@
 
 <!-- EMAIL TEMPLATES TAB -->
 <div class="admin-section" id="tab-email-templates">
-  <div class="admin-card">
+  <div class="admin-card" style="max-width:760px;">
     <div class="admin-card-head">
       <h3>Email Templates</h3>
       <p class="admin-card-desc">Customise the emails sent by EquitySight. Use <code style="background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:3px;font-size:11px;">{{variable}}</code> placeholders listed for each template.</p>
@@ -665,6 +665,8 @@
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <button class="btn-admin btn-admin-primary" onclick="saveEmailTemplate()">Save Template</button>
+      <button class="btn-admin-outline" onclick="previewEmailTemplate()">Preview</button>
+      <button class="btn-admin-outline" id="et-test-btn" onclick="sendTestEmail()">Send Test Email</button>
       <div id="et-status" class="admin-status" style="margin:0;"></div>
     </div>
     </div>
@@ -694,7 +696,7 @@
 </div>
 
 <!-- Plan Change Modal -->
-<div class="reset-modal-overlay" id="plan-modal-overlay">
+<div class="reset-modal-overlay" id="plan-modal-overlay" style="z-index:3000;">
   <div class="reset-modal">
     <h3>Change Plan</h3>
     <p id="plan-modal-desc">Select a new plan for this account.</p>

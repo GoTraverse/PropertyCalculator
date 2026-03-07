@@ -25,7 +25,7 @@ let adminSession = null;
 let allUsers = [];
 let resetTarget = null;
 let _detailReturnEmail = null;
-function _openFromDetail(email, fn){ _detailReturnEmail = email; document.getElementById('user-detail-overlay').classList.remove('open'); fn(); }
+function _openFromDetail(email, fn){ _detailReturnEmail = email; fn(); }
 function backToUserDetail(){ if(_detailReturnEmail) openUserDetails(_detailReturnEmail); }
 
 function getSession(){
@@ -1894,9 +1894,12 @@ function filterClientErrors(){
 async function loadClientErrors(){
   const wrap = document.getElementById('client-errors-wrap');
   const loading = document.getElementById('client-errors-loading');
+  const refreshBtn = document.getElementById('ce-refresh-btn');
   if(loading){ loading.style.display='block'; loading.textContent='Loading…'; }
+  if(refreshBtn){ refreshBtn.disabled=true; refreshBtn.textContent='↻ Refreshing…'; }
   const d = await callClientErrors({action:'adminGetClientErrors'});
   if(loading) loading.style.display='none';
+  if(refreshBtn){ refreshBtn.disabled=false; refreshBtn.textContent='↻ Refresh'; }
   if(!d.ok){
     wrap.innerHTML = `<div style="padding:16px;color:#c45a5a;font-size:13px;">Error: ${escHtml(d.error||'Failed to load')}</div>`;
     return;
@@ -2069,6 +2072,41 @@ async function resetEmailTemplate(){
     onEmailTemplateTypeChange();
     const st = document.getElementById('et-status');
     if(st){st.className='admin-status success';st.textContent='✓ Reset to default';setTimeout(()=>{st.className='admin-status';},3000);}
+  }
+}
+
+function previewEmailTemplate(){
+  const html    = (document.getElementById('et-html')||{}).value||'';
+  const subject = (document.getElementById('et-subject')||{}).value||'(no subject)';
+  const sampleVars = { code:'123456', firstName:'Jamie', name:'Jamie Smith', plan:'Pro', event:'Password changed' };
+  const fill = s => s.replace(/\{\{(\w+)\}\}/g, (m,k) => sampleVars[k]||m);
+  const filledHtml = fill(html);
+  const filledSubj = fill(subject);
+  const win = window.open('', '_blank', 'width=720,height=700');
+  if(!win){ alert('Allow pop-ups for this page to preview email templates.'); return; }
+  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+escHtml(filledSubj)+'</title>'
+    +'<style>body{margin:0;padding:20px;background:#eee;font-family:system-ui,sans-serif;}'
+    +'.subj{background:#333;color:#fff;padding:10px 16px;font-size:12px;font-family:monospace;border-radius:4px;margin-bottom:16px;max-width:640px;margin-left:auto;margin-right:auto;}</style></head>'
+    +'<body><div class="subj">Subject: '+escHtml(filledSubj)+'</div>'+filledHtml+'</body></html>');
+  win.document.close();
+}
+
+async function sendTestEmail(){
+  const type    = (document.getElementById('et-type-select')||{}).value;
+  const subject = (document.getElementById('et-subject')||{}).value||'';
+  const html    = (document.getElementById('et-html')||{}).value||'';
+  const st = document.getElementById('et-status');
+  const btn = document.getElementById('et-test-btn');
+  if(!subject||!html){ if(st){st.className='admin-status error';st.textContent='Subject and HTML are required.';} return; }
+  if(st){st.className='admin-status';st.textContent='Sending test email…';}
+  if(btn){ btn.disabled=true; btn.textContent='Sending…'; }
+  const d = await callAuth('adminSendTestEmail', {type, subject, html});
+  if(btn){ btn.disabled=false; btn.textContent='Send Test Email'; }
+  if(d.ok){
+    if(st){st.className='admin-status success';st.textContent='✓ Test email sent to '+(d.sentTo||'your email');}
+    setTimeout(()=>{ if(st) st.className='admin-status'; },4000);
+  } else {
+    if(st){st.className='admin-status error';st.textContent='Error: '+(d.error||'Failed to send');}
   }
 }
 
