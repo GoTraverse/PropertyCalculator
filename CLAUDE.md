@@ -6,8 +6,8 @@
 See `CODEBASE.md` for full architecture, file map, auth patterns, and conventions.
 
 ## Git Branch
-All Claude work goes on branch: `claude/process-todo-tasks-UTplf`
-- Push: `git push -u origin claude/process-todo-tasks-UTplf`
+All Claude work goes on branch "main".
+Read from main and push changes to main.
 
 ## Task Tracking
 `TODO.md` is the source of truth for outstanding work. After completing a task, **remove its line** from the file. Urgent tasks are marked with `!`.
