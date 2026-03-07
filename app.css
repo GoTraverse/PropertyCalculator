@@ -375,7 +375,9 @@
   /* ── MOBILE OVERHAUL ── */
   /* Hide profile btn when overlays are open */
   body.sidebar-open #app-profile-widget,
-  body.modal-open #app-profile-widget { opacity:0; pointer-events:none; }
+  body.sidebar-open .site-nav-actions,
+  body.modal-open #app-profile-widget,
+  body.modal-open .site-nav-actions { opacity:0; pointer-events:none; }
 
   @media(max-width:600px){
     /* Sidebar */

@@ -194,10 +194,30 @@ window.toggleTheme = function(){
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ if(errEl)errEl.textContent='Please enter a valid email address.'; return; }
     if(errEl)errEl.textContent='';
     btn.disabled=true; btn.textContent='Sending…';
+    // Collect diagnostics automatically for bug reports
+    var diagnostics = null;
+    if(subject==='bug'){
+      diagnostics = {};
+      try{
+        var _s=JSON.parse(localStorage.getItem('propCalc_session_v1')||'null');
+        if(_s){ diagnostics.userId=_s.id||''; diagnostics.plan=_s.plan||''; diagnostics.role=_s.role||''; }
+      }catch(_){}
+      diagnostics.userAgent   = navigator.userAgent;
+      diagnostics.screen      = screen.width+'x'+screen.height;
+      diagnostics.viewport    = window.innerWidth+'x'+window.innerHeight;
+      diagnostics.dpr         = String(window.devicePixelRatio||1);
+      diagnostics.page        = window.location.href;
+      diagnostics.standalone  = String(window.matchMedia('(display-mode: standalone)').matches);
+      diagnostics.darkMode    = String(document.documentElement.classList.contains('dark-mode'));
+      diagnostics.online      = String(navigator.onLine);
+      diagnostics.platform    = navigator.platform||'';
+      diagnostics.lang        = navigator.language||'';
+      try{ if(navigator.connection) diagnostics.connection = navigator.connection.effectiveType||''; }catch(_){}
+    }
     try{
       var r=await fetch('/.netlify/functions/contact',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name:(fname+' '+lname).trim(),email,subject,message})
+        body:JSON.stringify({name:(fname+' '+lname).trim(),email,subject,message,diagnostics:diagnostics})
       });
       var d=await r.json();
       if(!d.ok){ if(errEl)errEl.textContent=d.error||'Failed to send — please try again.'; btn.disabled=false; btn.textContent='Send Message →'; return; }
