@@ -70,10 +70,63 @@ window.toggleTheme = function(){
         'box-sizing:border-box;outline:none;}',
       '.anav-cf-input:focus,.anav-cf-select:focus,.anav-cf-textarea:focus{',
         'border-color:#C9A84C;box-shadow:0 0 0 2px rgba(201,168,76,0.15);}',
-      '.anav-cf-textarea{min-height:110px;resize:vertical;}'
+      '.anav-cf-textarea{min-height:110px;resize:vertical;}',
+      // Sign-out confirm modal
+      '#anav-signout-overlay{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.65);',
+        'align-items:center;justify-content:center;padding:16px;}',
+      '#anav-signout-overlay.open{display:flex!important;}',
+      '#anav-signout-modal{background:#F5F0E8;border-radius:8px;width:min(360px,96vw);',
+        'box-shadow:0 24px 80px rgba(0,0,0,0.55);padding:28px 24px 20px;}',
+      '#anav-signout-modal h3{margin:0 0 8px;font-size:17px;color:#1C1C1E;font-weight:600;}',
+      '#anav-signout-modal p{margin:0 0 20px;font-size:14px;color:#4A4A52;line-height:1.5;}',
+      '.anav-signout-actions{display:flex;gap:10px;justify-content:flex-end;}',
+      '.anav-signout-cancel{padding:9px 18px;border-radius:5px;border:1.5px solid rgba(28,28,30,0.2);',
+        'background:transparent;color:#4A4A52;font-size:14px;cursor:pointer;font-family:inherit;',
+        'transition:background 0.12s;}',
+      '.anav-signout-cancel:hover{background:rgba(28,28,30,0.06);}',
+      '.anav-signout-confirm{padding:9px 18px;border-radius:5px;border:none;',
+        'background:#C9A84C;color:#fff;font-size:14px;cursor:pointer;font-family:inherit;font-weight:600;',
+        'transition:background 0.12s;}',
+      '.anav-signout-confirm:hover{background:#b8963e;}'
     ].join('');
     document.head.appendChild(s);
   }
+
+  // Inject sign-out confirm modal HTML into body once
+  function injectSignOutModal() {
+    if (document.getElementById('anav-signout-overlay')) return;
+    var el = document.createElement('div');
+    el.id = 'anav-signout-overlay';
+    el.innerHTML =
+      '<div id="anav-signout-modal">' +
+        '<h3>Sign out?</h3>' +
+        '<p>You\'ll need to sign back in to access your saved scenarios.</p>' +
+        '<div class="anav-signout-actions">' +
+          '<button class="anav-signout-cancel" onclick="window.closeSignOutModal()">Cancel</button>' +
+          '<button class="anav-signout-confirm" onclick="window.confirmSignOut()">Sign out</button>' +
+        '</div>' +
+      '</div>';
+    el.addEventListener('click', function(e) { if (e.target === el) window.closeSignOutModal(); });
+    document.body.appendChild(el);
+  }
+
+  window.closeSignOutModal = function() {
+    var el = document.getElementById('anav-signout-overlay');
+    if (el) el.classList.remove('open');
+  };
+
+  window.confirmSignOut = function() {
+    window.closeSignOutModal();
+    var sess = getSession();
+    if (sess && sess.token) {
+      fetch('/.netlify/functions/auth', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({action:'signout', token:sess.token})
+      }).catch(function(){});
+    }
+    localStorage.removeItem(SESSION_KEY);
+    window.location.href = 'index.html';
+  };
 
   // Inject help modal HTML into body once
   function injectHelpModal() {
@@ -243,16 +296,9 @@ window.toggleTheme = function(){
   }
 
   window.siteSignOut = function() {
-    if (!window.confirm('Are you sure you want to sign out?')) return;
-    var sess = getSession();
-    if (sess && sess.token) {
-      fetch('/.netlify/functions/auth', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({action:'signout', token:sess.token})
-      }).catch(function(){});
-    }
-    localStorage.removeItem(SESSION_KEY);
-    window.location.href = 'index.html';
+    injectSignOutModal();
+    var el = document.getElementById('anav-signout-overlay');
+    if (el) el.classList.add('open');
   };
 
   function renderNav() {
