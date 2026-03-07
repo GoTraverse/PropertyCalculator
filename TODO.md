@@ -9,10 +9,11 @@ Never delete anything above this line.
 ------------------------------------------
 
 General - (DO NOT REMOVE THIS LINE)
-10.
+1. If sending a bug report from the help ? button, collect all useful iformation about browser errors environment and anything else you think will be good to collect.
+2. 
 
 Desktop - (DO NOT REMOVE THIS LINE)
 1.
 
 PWA - (DO NOT REMOVE THIS LINE)
-1.
+1. The profile icon and help ? hover over library and scenario calculator which it shouldnt.
