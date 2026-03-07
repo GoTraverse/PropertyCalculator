@@ -94,19 +94,26 @@ exports.handler = async function(event) {
       body: JSON.stringify({
         from: VERIFY_EMAIL_FROM,
         to: [toEmail],
-        reply_to: email,
+        reply_to: [email],
         subject: '[EquitySight] ' + subjectLabel + ' — from ' + name,
         html,
       }),
     });
     if (!r.ok) {
-      const e = await r.text();
-      console.warn('[contact] Resend error %s: %s', r.status, e);
-      return fail('Failed to send message — please try again');
+      let errMsg = 'Failed to send message — please try again';
+      try {
+        const errBody = await r.json();
+        console.warn('[contact] Resend error %s: %j', r.status, errBody);
+        if (errBody && errBody.message) errMsg = errBody.message;
+      } catch(_) {
+        const errText = await r.text().catch(() => '');
+        console.warn('[contact] Resend error %s: %s', r.status, errText);
+      }
+      return fail(errMsg);
     }
     return ok({ ok: true });
   } catch(e) {
     console.warn('[contact] Send error:', e.message);
-    return fail('Failed to send message');
+    return fail('Failed to send message — please try again');
   }
 };

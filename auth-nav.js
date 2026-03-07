@@ -253,7 +253,7 @@ window.toggleTheme = function(){
           '<button id="anav-help-btn" onclick="window.openHelpModal()" title="Send us a message">?</button>' +
         '<div style="position:relative;" id="site-profile-wrap">' +
           '<button id="site-profile-btn"' +
-          ' onclick="var m=document.getElementById(\'site-profile-menu\');m.classList.toggle(\'open\')"' +
+          ' onclick="var m=document.getElementById(\'site-profile-menu\'),r=this.getBoundingClientRect();m.style.top=(r.bottom+6)+\'px\';m.style.right=(window.innerWidth-r.right)+\'px\';m.classList.toggle(\'open\')"' +
           ' style="width:42px;height:42px;border-radius:50%;background:' + (photo ? 'transparent' : color) + ';' +
           'border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;' +
           'justify-content:center;font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;' +
@@ -261,7 +261,7 @@ window.toggleTheme = function(){
           'box-shadow:0 3px 16px rgba(0,0,0,0.35);" title="' + name + '">' +
           avatarHTML +
           '</button>' +
-          '<div id="site-profile-menu" style="display:none;position:fixed;top:70px;right:20px;' +
+          '<div id="site-profile-menu" style="display:none;position:fixed;top:0;right:0;' +
           'background:#1C1C1E;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px;' +
           'min-width:240px;box-shadow:0 16px 48px rgba(0,0,0,0.65);z-index:9999;">' +
             '<div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:6px;">' +
