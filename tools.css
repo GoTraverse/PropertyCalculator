@@ -1,0 +1,85 @@
+/* ═══════════════════════════════════════
+   EquitySight.app — Free Tools Stylesheet
+   ═══════════════════════════════════════ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-body); background: var(--warm-white); color: var(--charcoal); line-height: 1.6; }
+
+/* ── Header ── */
+.tool-header { background: var(--charcoal); padding: 13px 24px; display: flex; align-items: center; justify-content: space-between; }
+.tool-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+.tool-logo-mark { font-size: 20px; }
+.tool-logo-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--cream); }
+.tool-logo-tld { color: var(--gold); }
+.tool-header-link { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.5px; color: var(--gold); text-decoration: none; border: 1px solid rgba(201,168,76,0.35); padding: 6px 13px; border-radius: 4px; transition: background 0.15s; white-space: nowrap; }
+.tool-header-link:hover { background: rgba(201,168,76,0.1); }
+
+/* ── Hero ── */
+.tool-hero { background: var(--charcoal); color: var(--cream); padding: 44px 20px 52px; text-align: center; }
+.tool-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+.tool-hero h1 { font-family: var(--font-display); font-size: clamp(24px, 5vw, 38px); font-weight: 700; line-height: 1.2; margin-bottom: 12px; }
+.tool-hero p { font-size: 15px; color: rgba(245,240,232,0.68); max-width: 520px; margin: 0 auto; }
+
+/* ── Main layout ── */
+.tool-main { max-width: 640px; margin: -24px auto 48px; padding: 0 16px; }
+
+/* ── Card ── */
+.tool-card { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.11); margin-bottom: 14px; }
+.tool-card-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--slate); margin-bottom: 18px; }
+
+/* ── Form fields ── */
+.tool-field { margin-bottom: 14px; }
+.tool-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); display: block; margin-bottom: 5px; }
+.tool-input, .tool-select { width: 100%; padding: 10px 13px; border: 1.5px solid rgba(28,28,30,0.14); border-radius: 5px; font-family: var(--font-body); font-size: 15px; color: var(--charcoal); background: white; outline: none; transition: border-color 0.15s; }
+.tool-input:focus, .tool-select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+.tool-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 4.5L11 1' stroke='%234A4A52' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+.tool-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .tool-row { grid-template-columns: 1fr; } }
+.tool-check { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+.tool-check input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--gold); flex-shrink: 0; cursor: pointer; }
+.tool-check label { font-size: 14px; color: var(--slate); cursor: pointer; }
+.tool-hint { font-size: 11px; color: var(--slate); margin-top: 4px; opacity: 0.75; }
+
+.tool-btn { width: 100%; padding: 13px; background: var(--charcoal); color: var(--cream); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; border: none; border-radius: 5px; cursor: pointer; transition: background 0.15s; margin-top: 6px; }
+.tool-btn:hover { background: #2a2a2c; }
+
+/* ── Result card ── */
+.tool-result { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 22px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.09); margin-bottom: 14px; }
+.tool-result-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 400px) { .tool-grid { grid-template-columns: 1fr; } }
+.tool-stat { background: var(--warm-white); border-radius: 6px; padding: 13px 14px; }
+.tool-stat.highlight { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.22); }
+.tool-stat.full { grid-column: 1 / -1; }
+.tool-stat.good { background: rgba(90,158,123,0.08); border: 1px solid rgba(90,158,123,0.2); }
+.tool-stat.bad { background: rgba(196,90,90,0.07); border: 1px solid rgba(196,90,90,0.18); }
+.tool-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 3px; }
+.tool-stat-value { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--charcoal); }
+.tool-stat-value.green { color: var(--reward-green); }
+.tool-stat-value.red { color: var(--risk-red); }
+.tool-stat-value.gold { color: var(--gold); }
+.tool-disclaimer { font-size: 11px; color: var(--slate); margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(28,28,30,0.07); line-height: 1.5; opacity: 0.8; }
+
+/* ── CTA card ── */
+.tool-cta { background: var(--charcoal); border-radius: 10px; padding: 24px; color: var(--cream); text-align: center; margin-bottom: 14px; }
+.tool-cta-eye { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.tool-cta h3 { font-family: var(--font-display); font-size: 19px; font-weight: 700; margin-bottom: 7px; }
+.tool-cta p { font-size: 13px; color: rgba(245,240,232,0.65); margin-bottom: 16px; line-height: 1.5; }
+.tool-cta-btn { display: inline-block; padding: 12px 26px; background: var(--gold); color: var(--charcoal); font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; text-decoration: none; border-radius: 5px; transition: opacity 0.15s; }
+.tool-cta-btn:hover { opacity: 0.88; }
+
+/* ── SEO content ── */
+.tool-content { max-width: 640px; margin: 0 auto 56px; padding: 0 16px; }
+.tool-content h2 { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--charcoal); margin: 28px 0 10px; }
+.tool-content h2:first-child { margin-top: 0; }
+.tool-content p, .tool-content li { font-size: 14px; color: var(--slate); line-height: 1.7; margin-bottom: 10px; }
+.tool-content ul { padding-left: 20px; margin-bottom: 10px; }
+.tool-content table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 14px 0 20px; }
+.tool-content th { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); padding: 8px 10px; text-align: left; background: var(--warm-white); border: 1px solid rgba(28,28,30,0.09); }
+.tool-content td { padding: 7px 10px; border: 1px solid rgba(28,28,30,0.07); color: var(--charcoal); font-size: 13px; }
+.tool-content tr:nth-child(even) td { background: rgba(0,0,0,0.018); }
+
+/* ── Footer ── */
+.tool-footer { background: var(--charcoal); color: rgba(245,240,232,0.45); text-align: center; padding: 18px 24px; font-size: 11px; font-family: var(--font-mono); }
+.tool-footer a { color: rgba(245,240,232,0.45); text-decoration: none; margin: 0 8px; }
+.tool-footer a:hover { color: var(--gold); }

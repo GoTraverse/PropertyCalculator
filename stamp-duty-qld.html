@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stamp Duty Calculator QLD 2026 | Free Queensland Transfer Duty Tool</title>
+<meta name="description" content="Calculate Queensland stamp duty (transfer duty) instantly. Covers first home buyer concessions, foreign buyer surcharges, and all QLD property price brackets. Free, no sign-up required.">
+<meta name="keywords" content="stamp duty calculator QLD, Queensland stamp duty, transfer duty calculator, first home buyer stamp duty QLD, QLD property tax calculator">
+<link rel="canonical" href="https://equitysight.app/stamp-duty-qld.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Stamp Duty Calculator QLD 2026 — Free Tool">
+<meta property="og:description" content="Calculate Queensland stamp duty instantly. First home buyer concessions, foreign buyer surcharges included.">
+<meta property="og:url" content="https://equitysight.app/stamp-duty-qld.html">
+<meta property="og:site_name" content="EquitySight.app">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Stamp Duty Calculator QLD 2026 — Free Tool">
+<meta name="twitter:description" content="Calculate Queensland stamp duty instantly with first home buyer concessions and foreign buyer surcharges.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="tools.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Stamp Duty Calculator QLD","url":"https://equitysight.app/stamp-duty-qld.html","description":"Free Queensland stamp duty (transfer duty) calculator with first home buyer concessions and foreign buyer surcharges.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+
+<section class="tool-hero">
+  <div class="tool-eyebrow">Free Tool · Queensland</div>
+  <h1>Stamp Duty Calculator QLD</h1>
+  <p>Instantly calculate Queensland transfer duty — including first home buyer concessions and foreign buyer surcharges.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Enter property details</div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="price">Property purchase price</label>
+      <input class="tool-input" type="text" id="price" placeholder="e.g. 650,000" oninput="fmtNum(this)">
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="ptype">Property type</label>
+      <select class="tool-input tool-select" id="ptype">
+        <option value="home">Established home / new home</option>
+        <option value="land">Vacant land</option>
+      </select>
+    </div>
+
+    <div class="tool-check">
+      <input type="checkbox" id="fhb">
+      <label for="fhb">First home buyer (principal place of residence)</label>
+    </div>
+    <div class="tool-check">
+      <input type="checkbox" id="foreign">
+      <label for="foreign">Foreign buyer (additional 8% surcharge applies)</label>
+    </div>
+
+    <button class="tool-btn" onclick="calculate()">Calculate Stamp Duty</button>
+  </div>
+
+  <div class="tool-result" id="result" style="display:none">
+    <div class="tool-result-title">Your estimate</div>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">Transfer Duty</div>
+        <div class="tool-stat-value" id="r-duty">—</div>
+      </div>
+      <div class="tool-stat" id="r-foreign-wrap">
+        <div class="tool-stat-label">Foreign Surcharge (8%)</div>
+        <div class="tool-stat-value" id="r-foreign">—</div>
+      </div>
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Total Stamp Duty</div>
+        <div class="tool-stat-value gold" id="r-total">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Effective Rate</div>
+        <div class="tool-stat-value" id="r-rate">—</div>
+      </div>
+      <div class="tool-stat full">
+        <div class="tool-stat-label">Total Cost (Purchase + Duty)</div>
+        <div class="tool-stat-value" id="r-allin">—</div>
+      </div>
+    </div>
+    <div class="tool-disclaimer" id="r-note"></div>
+    <p class="tool-disclaimer">Estimates only. Rates based on QLD Revenue Office 2025–26 thresholds. Verify with a solicitor before settlement.</p>
+  </div>
+
+  <div class="tool-cta" id="cta" style="display:none">
+    <div class="tool-cta-eye">Go deeper</div>
+    <h3>Model the full property investment</h3>
+    <p>Add rental income, renovation costs, equity projections, and compare multiple properties side by side — all in EquitySight.</p>
+    <a href="login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
+  </div>
+
+</div>
+
+<section class="tool-content">
+  <h2>How Queensland stamp duty works</h2>
+  <p>Stamp duty (officially called <em>transfer duty</em> in Queensland) is a state government tax paid when you buy property. The amount depends on the purchase price, your buyer type, and whether any concessions apply.</p>
+
+  <h2>QLD transfer duty rates (2025–26)</h2>
+  <table>
+    <tr><th>Purchase price</th><th>Rate</th></tr>
+    <tr><td>Up to $5,000</td><td>Nil</td></tr>
+    <tr><td>$5,001 – $75,000</td><td>1.5c per $1 over $5,000</td></tr>
+    <tr><td>$75,001 – $540,000</td><td>$1,050 + 3.5c per $1 over $75,000</td></tr>
+    <tr><td>$540,001 – $1,000,000</td><td>$17,325 + 4.5c per $1 over $540,000</td></tr>
+    <tr><td>Over $1,000,000</td><td>$38,025 + 5.75c per $1 over $1,000,000</td></tr>
+  </table>
+
+  <h2>First home buyer concession</h2>
+  <p>Queensland first home buyers purchasing a principal place of residence (not investment) receive a transfer duty concession:</p>
+  <ul>
+    <li><strong>Home ≤ $500,000:</strong> Full concession — zero duty payable.</li>
+    <li><strong>Home $500,001–$550,000:</strong> Partial concession, reducing linearly to zero.</li>
+    <li><strong>Vacant land ≤ $250,000:</strong> Full concession.</li>
+    <li><strong>Vacant land $250,001–$400,000:</strong> Partial concession.</li>
+  </ul>
+
+  <h2>Foreign buyer surcharge</h2>
+  <p>Foreign persons purchasing Queensland residential land pay an additional 8% surcharge on the dutiable value, on top of standard transfer duty.</p>
+
+  <h2>When is stamp duty paid?</h2>
+  <p>Transfer duty must be paid within 30 days of settlement. Your conveyancer or solicitor will typically arrange this as part of the settlement process.</p>
+</section>
+
+<footer class="tool-footer">
+  <a href="index.html">EquitySight.app</a> ·
+  <a href="stamp-duty-qld.html">Stamp Duty QLD</a> ·
+  <a href="rental-yield-calculator.html">Rental Yield</a> ·
+  <a href="mortgage-stress-calculator.html">Mortgage Stress</a> ·
+  <a href="privacy.html">Privacy</a>
+  <div style="margin-top:8px;">© 2026 EquitySight. General information only — not financial or legal advice.</div>
+</footer>
+
+<script>
+function fmtNum(el) {
+  var v = el.value.replace(/[^0-9]/g, '');
+  el.value = v ? parseInt(v).toLocaleString() : '';
+}
+function parseNum(id) {
+  return parseFloat((document.getElementById(id).value || '0').replace(/,/g, '')) || 0;
+}
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+
+function calcTransferDuty(val) {
+  if (val <= 5000)    return 0;
+  if (val <= 75000)   return (val - 5000) * 0.015;
+  if (val <= 540000)  return 1050 + (val - 75000) * 0.035;
+  if (val <= 1000000) return 17325 + (val - 540000) * 0.045;
+  return 38025 + (val - 1000000) * 0.0575;
+}
+
+function calcLandDuty(val) {
+  // Vacant land uses standard rates (same thresholds)
+  return calcTransferDuty(val);
+}
+
+function calculate() {
+  var val = parseNum('price');
+  if (!val || val <= 0) { alert('Please enter the purchase price.'); return; }
+
+  var isLand  = document.getElementById('ptype').value === 'land';
+  var isFHB   = document.getElementById('fhb').checked;
+  var isForeign = document.getElementById('foreign').checked;
+
+  var duty = isLand ? calcLandDuty(val) : calcTransferDuty(val);
+  var note = '';
+
+  // FHB concession
+  if (isFHB) {
+    var fullLimit = isLand ? 250000 : 500000;
+    var partialLimit = isLand ? 400000 : 550000;
+    if (val <= fullLimit) {
+      duty = 0;
+      note = 'First home buyer full concession applied — no duty payable.';
+    } else if (val <= partialLimit) {
+      var concession = duty * (partialLimit - val) / (partialLimit - fullLimit);
+      duty = Math.max(0, duty - concession);
+      note = 'First home buyer partial concession applied.';
+    }
+  }
+
+  var foreignAmt = isForeign ? val * 0.08 : 0;
+  var total = duty + foreignAmt;
+  var rate  = val > 0 ? (total / val * 100) : 0;
+
+  document.getElementById('r-duty').textContent    = fmt(duty);
+  document.getElementById('r-foreign').textContent = isForeign ? fmt(foreignAmt) : 'N/A';
+  document.getElementById('r-total').textContent   = fmt(total);
+  document.getElementById('r-rate').textContent    = rate.toFixed(2) + '%';
+  document.getElementById('r-allin').textContent   = fmt(val + total);
+  document.getElementById('r-note').textContent    = note;
+  document.getElementById('r-note').style.display  = note ? '' : 'none';
+
+  document.getElementById('result').style.display = '';
+  document.getElementById('cta').style.display    = '';
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>
