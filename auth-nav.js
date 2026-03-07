@@ -237,6 +237,7 @@ window.toggleTheme = function(){
   }
 
   window.siteSignOut = function() {
+    if (!window.confirm('Are you sure you want to sign out?')) return;
     var sess = getSession();
     if (sess && sess.token) {
       fetch('/.netlify/functions/auth', {

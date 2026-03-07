@@ -3630,7 +3630,9 @@
 
   function showPageSpinner(){ var s=document.getElementById('page-spinner'); if(s) s.classList.add('show'); }
 
-  function signOut(){
+  async function signOut(){
+    var ok = await appConfirm('Sign Out', 'Are you sure you want to sign out?', {icon:'→', confirmLabel:'Sign Out'});
+    if(!ok) return;
     showPageSpinner();
     if(_currentUser && _currentUser.token){
       callAuthFn('signout', {token: _currentUser.token}).catch(function(){});
