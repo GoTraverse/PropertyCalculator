@@ -228,6 +228,12 @@ window.toggleTheme = function(){
     if(success)success.style.display='';
   };
 
+  function safePhotoSrc(url) {
+    if (!url) return null;
+    if (/^data:image\/(jpeg|png|gif|webp);base64,/.test(url)) return url;
+    try { var u = new URL(url); return u.protocol === 'https:' ? url : null; } catch(e) { return null; }
+  }
+
   function getInitials(name) {
     if (!name) return '?';
     var parts = name.trim().split(/\s+/).filter(Boolean);
@@ -261,7 +267,7 @@ window.toggleTheme = function(){
       var name     = session.name || session.email || 'Account';
       var email    = session.email || '';
       var color    = (profile && profile.color) || '#C9A84C';
-      var photo    = profile && profile.photo;
+      var photo    = safePhotoSrc(profile && profile.photo);
       var initials = getInitials(name);
       var page     = window.location.pathname.split('/').pop() || 'index.html';
 

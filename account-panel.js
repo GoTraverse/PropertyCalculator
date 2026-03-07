@@ -16,6 +16,12 @@
   function getProfile()  { try { return JSON.parse(localStorage.getItem(getProfileKey())) || {}; } catch(e) { return {}; } }
   function saveProfile(p){ localStorage.setItem(getProfileKey(), JSON.stringify(p)); }
   function getAuthHeader(){ var s = getSession(); return s && s.token ? 'Bearer ' + s.token : null; }
+  // Only allow data:image/* (from canvas) or https:// URLs in photo src attributes
+  function safePhotoSrc(url) {
+    if (!url) return null;
+    if (/^data:image\/(jpeg|png|gif|webp);base64,/.test(url)) return url;
+    try { var u = new URL(url); return u.protocol === 'https:' ? url : null; } catch(e) { return null; }
+  }
 
   // ── Inject CSS ──────────────────────────────────────────────────────────────
   var style = document.createElement('style');
@@ -194,8 +200,8 @@
       var parts = name.trim().split(/\s+/).filter(Boolean);
       var ini = parts.length === 1 ? parts[0][0].toUpperCase()
               : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-      if (p.photo) {
-        av.innerHTML = '<img src="' + p.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      if (p.photo && safePhotoSrc(p.photo)) {
+        av.innerHTML = '<img src="' + safePhotoSrc(p.photo) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
         av.style.background = 'transparent';
       } else {
         av.textContent = ini;
@@ -256,7 +262,7 @@
         _apProfile.photo = canvas.toDataURL('image/jpeg', 0.92);
         var av = el('ap2-avatar');
         if (av) {
-          av.innerHTML = '<img src="' + _apProfile.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+          av.innerHTML = '<img src="' + safePhotoSrc(_apProfile.photo) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
           av.style.background = 'transparent';
         }
       };
@@ -302,9 +308,9 @@
     if (navBtn) {
       var parts = nameVal.trim().split(/\s+/).filter(Boolean);
       var ini = parts.length === 0 ? '?' : parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
-      if (_apProfile.photo) {
+      if (_apProfile.photo && safePhotoSrc(_apProfile.photo)) {
         navBtn.style.background = 'transparent';
-        navBtn.innerHTML = '<img src="' + _apProfile.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;">';
+        navBtn.innerHTML = '<img src="' + safePhotoSrc(_apProfile.photo) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;">';
       } else {
         navBtn.style.background = _apProfile.color || '#C9A84C';
         navBtn.textContent = ini;

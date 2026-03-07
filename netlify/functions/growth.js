@@ -72,9 +72,13 @@ exports.handler = async (event) => {
   }
 
   if(action==='set'){
+    const isAdminSet = await verifyAdmin(event.headers.authorization||event.headers.Authorization||'');
+    if(!isAdminSet) return fail('Forbidden', 403);
     if(!suburb||rate==null) return fail('suburb and rate required');
+    const parsedRate = parseFloat(rate);
+    if(!isFinite(parsedRate) || parsedRate < -30 || parsedRate > 100) return fail('rate must be a number between -30 and 100');
     const s = (state||'QLD').toUpperCase();
-    const entry = {rate:parseFloat(rate), note:note||'', fetchedAt:Date.now()};
+    const entry = {rate:parsedRate, note:note||'', fetchedAt:Date.now()};
     await rSet(gKey(suburb, s), entry, GROWTH_TTL);
     // Update index (no TTL on index — we prune stale entries on list)
     const key = suburb.toLowerCase().trim()+'|'+s;

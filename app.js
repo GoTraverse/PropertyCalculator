@@ -178,7 +178,7 @@
       row.className = 'dyn-cost-row';
       row.innerHTML = `
         <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" oninput="updateDynCost('${cost.id}','name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var nxt=this.closest('.dyn-cost-row').querySelector('input[type=number]');if(nxt){nxt.focus();nxt.select();}}">
-        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" step="50" oninput="updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);recalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${cost.category||'purchase'}');}"></div>
+        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" step="50" oninput="updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);dRecalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${cost.category||'purchase'}');}"></div>
         <button class="dyn-del" onclick="removeCostItem('${cost.id}')" title="Remove">−</button>
       `;
       list.appendChild(row);
@@ -338,7 +338,7 @@
           <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" oninput="updateRenoItem('${r.id}','name',this.value)" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'" onkeydown="if(event.key==='Enter'){event.preventDefault();var amtInput=this.closest('[data-reno]').querySelector('input[type=number]');if(amtInput){amtInput.focus();amtInput.select();}}">
           <div class="rbt" style="max-width:60px;"><div class="rbf" style="width:${pct}%"></div></div>
           <div style="display:flex;align-items:center;gap:2px;min-width:90px;">
-            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" oninput="updateRenoItem('${r.id}','amount',parseFloat(this.value)||0);recalc();updateRenoBar('${r.id}',parseFloat(this.value)||0)" onkeydown="if(event.key==='Enter'){event.preventDefault();addRenoItem();}" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
+            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" oninput="updateRenoItem('${r.id}','amount',parseFloat(this.value)||0);dRecalc();updateRenoBar('${r.id}',parseFloat(this.value)||0)" onkeydown="if(event.key==='Enter'){event.preventDefault();addRenoItem();}" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
           </div>
           <button class="kd-del" onclick="removeRenoItem('${r.id}')" title="Remove" style="flex-shrink:0;">✕</button>
         </div>
@@ -402,6 +402,9 @@
       return true;
     }catch(e){ console.warn('restoreDraft failed:', e); _restoringDraft = false; return false; }
   }
+  var _dRecalcTimer;
+  function dRecalc(){ clearTimeout(_dRecalcTimer); _dRecalcTimer = setTimeout(recalc, 180); }
+
   function recalc(){
     if(!_restoringDraft) _forceDirty = true;
     autosaveDraft();
@@ -470,12 +473,12 @@
       const purchaseCosts = dynCosts.filter(c=>c.category!=='moveout');
       const moveoutCosts  = dynCosts.filter(c=>c.category==='moveout');
       purchaseCosts.forEach(c=>{
-        html+=`<div class="cr"><span class="nm">${(c.name||'Item').replace(/</g,'&lt;')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
+        html+=`<div class="cr"><span class="nm">${_escBanner(c.name||'Item')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
       });
       if(moveoutCosts.length>0){
         html+=`<div class="cr" style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--terracotta-light);text-transform:uppercase;border-bottom:1px solid rgba(28,28,30,0.05);padding-top:8px;padding-bottom:2px;"><span class="nm">Move-Out Costs</span><span class="am"></span></div>`;
         moveoutCosts.forEach(c=>{
-          html+=`<div class="cr"><span class="nm" style="color:var(--terracotta)">${(c.name||'Item').replace(/</g,'&lt;')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
+          html+=`<div class="cr"><span class="nm" style="color:var(--terracotta)">${_escBanner(c.name||'Item')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
         });
       }
       display.innerHTML=html;
@@ -1092,7 +1095,6 @@
           headers: Object.assign({'Content-Type':'application/json'}, authH ? {'Authorization': authH} : {}),
           body: JSON.stringify({ action:'save', userId:getUserId(), id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'', exportCount:record.exportCount||0, savedAt:record.savedAt||new Date().toISOString() })
         });
-        console.log('[storage] POST scenarios status:', r.status);
         if(r.ok){
           // Mirror updated list to localStorage immediately (belt-and-suspenders)
           getAllScenarios().then(latest => { if(latest.length) lsSet(STORAGE_KEY, JSON.stringify(latest)); }).catch(()=>{});
@@ -1102,8 +1104,7 @@
               method: 'POST',
               headers: {'Content-Type':'application/json','Authorization': authH},
               body: JSON.stringify({ action:'photo', userId:getUserId(), id: record.id, photo: photoSrc })
-            }).then(pr => console.log('[storage] photo upload:', pr.status))
-              .catch(e => console.warn('[storage] photo upload failed:', e.message));
+            }).catch(()=>{});
           }
           return true;
         }
@@ -3098,7 +3099,7 @@
             <span class="comms-type">${c.type||'Note'}</span>
             <button class="comms-del" onclick="deleteCommsEntry('${c.id}')" title="Delete">✕</button>
           </div>
-          <div class="comms-text">${c.text.replace(/</g,'&lt;')}</div>`;
+          <div class="comms-text">${_escBanner(c.text)}</div>`;
         list.appendChild(div);
       });
     }
