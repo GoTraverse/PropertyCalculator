@@ -728,5 +728,20 @@ exports.handler = async function(event){
     return ok({ok:true, template:DEFAULT_TEMPLATES[type]});
   }
 
+  if(action==='adminSendTestEmail'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    if(!RESEND_API_KEY) return fail('RESEND_API_KEY not configured — cannot send email',503);
+    const {subject,html}=body;
+    if(!subject||!html) return fail('subject and html required');
+    const sampleVars={code:'123456',firstName:user.name?(user.name.split(' ')[0]):'Admin',name:user.name||'Admin',plan:'Pro',event:'Password changed'};
+    const fill=s=>s.replace(/\{\{(\w+)\}\}/g,(m,k)=>sampleVars[k]||m);
+    try{
+      const sent=await sendResend(user.email,'[TEST] '+fill(subject),fill(html));
+      if(!sent) return fail('Failed to send via Resend — check RESEND_API_KEY');
+      return ok({ok:true,sentTo:user.email});
+    }catch(e){ return fail('Send error: '+e.message); }
+  }
+
   return fail('Unknown action');
 };

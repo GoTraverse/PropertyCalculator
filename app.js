@@ -1215,17 +1215,24 @@
       showTab('property', document.querySelector('.tab'));
       return;
     }
-    // Plan gate: free users limited to 1 saved scenario
-    if(!isPro()){
-      const existing = await getAllScenarios();
-      if(existing && existing.length >= 1){
-        showToast('🔒 Free plan allows 1 saved scenario. <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>', 6000);
-        return;
-      }
-    }
     const suburb   = state.values['pd-suburb']  || '';
     const stateV   = state.values['pd-state']   || '';
     const fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ') || 'Unnamed Property';
+    // Plan gate: free users limited to 1 saved scenario (but allow updating an existing saved scenario)
+    if(!isPro()){
+      const existing = await getAllScenarios();
+      if(existing && existing.length >= 1){
+        const addrKeyTest = fullAddr.toLowerCase().trim();
+        const isUpdate = existing.some(s =>
+          (s.addrKey||'') === addrKeyTest ||
+          (s.fullAddr||'').toLowerCase().trim() === addrKeyTest
+        );
+        if(!isUpdate){
+          showToast('🔒 Free plan allows 1 saved scenario. <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>', 6000);
+          return;
+        }
+      }
+    }
     const now      = new Date();
     const dd = String(now.getDate()).padStart(2,'0');
     const mm = String(now.getMonth()+1).padStart(2,'0');

@@ -90,11 +90,12 @@ window.toggleTheme = function(){
           '<button onclick="window.closeHelpModal()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>' +
         '</div>' +
         '<div style="padding:22px;">' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">' +
+          '<div id="anav-cf-name-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">' +
             '<div><label class="anav-cf-label">First name</label><input class="anav-cf-input" id="anav-cf-fname" type="text" placeholder="Jamie"></div>' +
             '<div><label class="anav-cf-label">Last name</label><input class="anav-cf-input" id="anav-cf-lname" type="text" placeholder="Smith"></div>' +
           '</div>' +
-          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Email</label><input class="anav-cf-input" id="anav-cf-email" type="email" placeholder="you@email.com"></div>' +
+          '<div id="anav-cf-email-row" style="margin-bottom:14px;"><label class="anav-cf-label">Email</label><input class="anav-cf-input" id="anav-cf-email" type="email" placeholder="you@email.com"></div>' +
+          '<div id="anav-cf-sending-as" style="display:none;margin-bottom:14px;font-size:12px;color:#6B7280;font-family:\'DM Mono\',monospace;padding:8px 10px;background:rgba(28,28,30,0.05);border-radius:4px;"></div>' +
           '<div style="margin-bottom:14px;"><label class="anav-cf-label">Subject</label>' +
             '<select class="anav-cf-select" id="anav-cf-subject">' +
               '<option value="">Select a topic...</option>' +
@@ -127,17 +128,40 @@ window.toggleTheme = function(){
 
   window.openHelpModal = function() {
     injectHelpModal();
-    // Pre-fill from session
+    // Pre-fill from session and hide identity fields if logged in
     try {
       var sess = JSON.parse(localStorage.getItem('propCalc_session_v1')||'{}');
-      var emailEl = document.getElementById('anav-cf-email');
-      if(emailEl && sess.email && !emailEl.value) emailEl.value = sess.email;
-      var fnEl = document.getElementById('anav-cf-fname');
-      if(fnEl && sess.name && !fnEl.value){
-        var parts = sess.name.trim().split(/\s+/);
-        fnEl.value = parts[0] || '';
-        var lnEl = document.getElementById('anav-cf-lname');
-        if(lnEl && parts.length > 1) lnEl.value = parts.slice(1).join(' ');
+      var loggedIn = !!(sess && (sess.id || sess.email));
+      var nameRow = document.getElementById('anav-cf-name-row');
+      var emailRow = document.getElementById('anav-cf-email-row');
+      var sendingAs = document.getElementById('anav-cf-sending-as');
+      if(loggedIn && sess.email) {
+        if(nameRow) nameRow.style.display = 'none';
+        if(emailRow) emailRow.style.display = 'none';
+        if(sendingAs) { sendingAs.style.display = ''; sendingAs.textContent = 'Sending as: ' + (sess.name || sess.email) + ' \u2014 ' + sess.email; }
+        // Still fill hidden inputs so submitHelpForm can read them
+        var emailEl = document.getElementById('anav-cf-email');
+        if(emailEl) emailEl.value = sess.email;
+        var fnEl = document.getElementById('anav-cf-fname');
+        if(fnEl && sess.name) {
+          var parts = sess.name.trim().split(/\s+/);
+          fnEl.value = parts[0] || '';
+          var lnEl = document.getElementById('anav-cf-lname');
+          if(lnEl) lnEl.value = parts.length > 1 ? parts.slice(1).join(' ') : '';
+        }
+      } else {
+        if(nameRow) nameRow.style.display = '';
+        if(emailRow) emailRow.style.display = '';
+        if(sendingAs) sendingAs.style.display = 'none';
+        var emailEl = document.getElementById('anav-cf-email');
+        if(emailEl && sess.email && !emailEl.value) emailEl.value = sess.email;
+        var fnEl = document.getElementById('anav-cf-fname');
+        if(fnEl && sess.name && !fnEl.value){
+          var parts = sess.name.trim().split(/\s+/);
+          fnEl.value = parts[0] || '';
+          var lnEl = document.getElementById('anav-cf-lname');
+          if(lnEl && parts.length > 1) lnEl.value = parts.slice(1).join(' ');
+        }
       }
     }catch(e){}
     // Reset state
