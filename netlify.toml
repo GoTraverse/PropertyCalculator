@@ -28,3 +28,8 @@
   from = "/favicon.ico"
   to = "/favicon.svg"
   status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

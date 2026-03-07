@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin.html
+Disallow: /account.html
+Disallow: /app.html
+Disallow: /.netlify/
+
+Sitemap: https://equitysight.app/sitemap.xml

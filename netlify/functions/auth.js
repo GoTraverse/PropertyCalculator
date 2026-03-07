@@ -33,7 +33,7 @@ const H = {
 };
 
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
-const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'onboarding@resend.dev').trim();
+const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
 
 // Default email templates — used when no custom template is saved in Redis
 const DEFAULT_TEMPLATES = {

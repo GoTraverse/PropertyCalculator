@@ -9,7 +9,7 @@
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 const RESEND_API_KEY    = (process.env.RESEND_API_KEY    || '').trim();
-const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'onboarding@resend.dev').trim();
+const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
 
 const H = {
   'Content-Type': 'application/json',

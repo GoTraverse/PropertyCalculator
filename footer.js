@@ -31,7 +31,7 @@
     '      </ul></div>',
     '    </div>',
     '    <div class="footer-bottom">',
-    '      <p>&#169; 2025 EquitySight.app &middot; Not financial advice &middot; ABN pending.</p>',
+    '      <p>&#169; ' + new Date().getFullYear() + ' EquitySight.app &middot; Not financial advice &middot; ABN pending.</p>',
     '      <div class="footer-bottom-links">',
     '        <a href="privacy.html">Privacy</a>',
     '        <a href="terms.html">Terms</a>',
