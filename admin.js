@@ -24,6 +24,9 @@ const SESSION_KEY = 'propCalc_session_v1';
 let adminSession = null;
 let allUsers = [];
 let resetTarget = null;
+let _detailReturnEmail = null;
+function _openFromDetail(email, fn){ _detailReturnEmail = email; document.getElementById('user-detail-overlay').classList.remove('open'); fn(); }
+function backToUserDetail(){ if(_detailReturnEmail) openUserDetails(_detailReturnEmail); }
 
 function getSession(){
   try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch(e){ return null; }
@@ -323,29 +326,22 @@ function countryFlag(code){
 function renderUsers(users){
   const tbody = document.getElementById('users-tbody');
   if(!users.length){
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No users found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No users found</td></tr>';
     return;
   }
   tbody.innerHTML = users.map(u => {
     const plan = u.plan || 'free';
     const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : '—';
     const lastLogin = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
-    const ip = u.lastLoginIp || '—';
-    const roleHtml = u.role === 'admin' ? '<span class="role-badge">admin</span>' : '';
+    const roleHtml = u.role === 'admin' ? '<span class="role-badge">admin</span>' : '<span style="font-size:11px;color:var(--slate);">user</span>';
     const roleAction = u.role !== 'admin' ? 'grant-admin' : 'revoke-admin';
     const roleLabel  = u.role !== 'admin' ? '→ Admin'      : 'Revoke Admin';
-    const ipCellId = 'ip-cell-' + escHtml(u.email).replace(/[^a-z0-9]/gi,'_');
-    // Show IP, then load location asynchronously
-    const ipDisplay = ip !== '—'
-      ? `<span style="display:block;">${escHtml(ip)}</span><span id="${ipCellId}" style="font-size:9px;color:var(--slate);letter-spacing:0;">…</span>`
-      : '—';
     return `<tr data-email="${escHtml(u.email)}" style="cursor:pointer;" title="Click to view user details">
       <td style="font-weight:500;">${escHtml(u.name||'—')}</td>
       <td><span class="user-email">${escHtml(u.email||'—')}</span></td>
       <td><span class="plan-badge plan-${escHtml(plan)}">${escHtml(plan)}</span>${u.stripeDiscountInfo?`<span title="${escHtml(u.stripeDiscountInfo.couponName||'Discounted')}" style="margin-left:4px;font-size:9px;font-family:var(--font-mono);background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);border-radius:3px;padding:1px 4px;letter-spacing:0.5px;">DISC</span>`:''}</td>
       <td style="font-family:var(--font-mono);font-size:11px;">${joined}</td>
       <td style="font-family:var(--font-mono);font-size:11px;">${lastLogin}</td>
-      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);">${ipDisplay}</td>
       <td>${roleHtml}</td>
       <td>
         <div class="user-cog-wrap">
@@ -362,22 +358,6 @@ function renderUsers(users){
     </tr>`;
   }).join('');
 
-  // Asynchronously populate location labels for each IP
-  users.forEach(u => {
-    const ip = u.lastLoginIp;
-    if(!ip) return;
-    const cellId = 'ip-cell-' + escHtml(u.email).replace(/[^a-z0-9]/gi,'_');
-    fetchIpGeo(ip).then(geo => {
-      const el = document.getElementById(cellId);
-      if(!el) return;
-      if(geo && (geo.city || geo.country)){
-        const parts = [geo.flag, geo.city, geo.region, geo.country].filter(Boolean);
-        el.textContent = parts.join(' ');
-      } else {
-        el.textContent = '';
-      }
-    });
-  });
 }
 
 function toggleUserCog(e, btn){
@@ -437,6 +417,7 @@ function openResetPw(email){
   document.getElementById('reset-modal-desc').textContent = 'Set a new password for: ' + email;
   document.getElementById('reset-new-pw').value = '';
   document.getElementById('reset-modal-status').className = 'admin-status';
+  document.getElementById('reset-back-btn').style.display = _detailReturnEmail ? '' : 'none';
   document.getElementById('reset-modal-overlay').classList.add('open');
   setTimeout(() => document.getElementById('reset-new-pw').focus(), 100);
 }
@@ -461,6 +442,7 @@ function openPlanModal(email, currentPlan){
   document.getElementById('plan-modal-current').textContent = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
   document.getElementById('plan-modal-select').value = currentPlan;
   document.getElementById('plan-modal-status').className = 'admin-status';
+  document.getElementById('plan-back-btn').style.display = _detailReturnEmail ? '' : 'none';
   document.getElementById('plan-modal-overlay').classList.add('open');
 }
 function closePlanModal(){
@@ -512,6 +494,7 @@ async function deleteUser(email){
 }
 
 async function openUserDetails(email){
+  _detailReturnEmail = null;
   const overlay = document.getElementById('user-detail-overlay');
   const body    = document.getElementById('user-detail-body');
   document.getElementById('user-detail-title').textContent = email;
@@ -542,11 +525,12 @@ async function openUserDetails(email){
   const _udRoleBtn = u.role === 'admin'
     ? `<button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setRole('${escHtml(_udEmail)}','user')">Revoke Admin</button>`
     : `<button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setRole('${escHtml(_udEmail)}','admin')">Grant Admin</button>`;
+
   const _udActionsHtml = `<div style="padding:14px 0 4px;border-top:1px solid rgba(28,28,30,0.08);display:flex;flex-wrap:wrap;gap:8px;">
-    <button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');openResetPw('${escHtml(_udEmail)}')">Reset Password</button>
-    <button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setPlan('${escHtml(_udEmail)}','${escHtml(_udPlan)}')">Change Plan</button>
+    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>openResetPw('${escHtml(_udEmail)}'))">Reset Password</button>
+    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>setPlan('${escHtml(_udEmail)}','${escHtml(_udPlan)}'))">Change Plan</button>
     ${_udRoleBtn}
-    <button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');openUserHistory('${escHtml(_udId)}','${escHtml(_udEmail)}')">View History</button>
+    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>openUserHistory('${escHtml(_udId)}','${escHtml(_udEmail)}'))">View History</button>
     <button class="btn-admin" style="color:var(--risk-red);border-color:rgba(196,90,90,0.4);" onclick="document.getElementById('user-detail-overlay').classList.remove('open');deleteUser('${escHtml(_udEmail)}')">Delete User</button>
   </div>`;
 
@@ -673,9 +657,11 @@ function showAdminTab(tab, btn){
   document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   btn.classList.add('active');
-  // Scroll active tab into center view on all screen sizes (especially useful on PWA/mobile)
+  // Scroll tab button into view horizontally (inline only) without affecting vertical scroll
   setTimeout(function(){
-    btn.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+    const savedY = window.scrollY;
+    btn.scrollIntoView({behavior:'instant', block:'nearest', inline:'center'});
+    window.scrollTo({ top: savedY, behavior: 'instant' });
   }, 30);
 }
 
@@ -914,21 +900,19 @@ function renderStatPopupChart(days){
 
   // Slice data to requested range (most recent N days)
   let data = _statPopupAllHistory.map(h => ({ date: h.date, value: h[meta.histKey] }));
-  const totalAvailable = data.length;
   if(days > 0 && data.length > days) data = data.slice(data.length - days);
-  // Show a note when less data is available than requested
-  const availNote = document.getElementById('stat-popup-avail-note') || (() => {
-    const el = document.createElement('span');
-    el.id = 'stat-popup-avail-note';
-    el.style.cssText = 'font-family:var(--font-mono);font-size:9px;color:var(--slate);margin-left:8px;';
-    document.getElementById('stat-popup-range-label')?.parentElement?.appendChild(el);
-    return el;
-  })();
-  if(days > 0 && totalAvailable < days){
-    availNote.textContent = `(only ${totalAvailable} day${totalAvailable !== 1 ? 's' : ''} of history available)`;
-    availNote.style.color = 'var(--gold)';
-  } else {
-    availNote.textContent = '';
+
+  // Pad missing days at the start with zeros so the chart always shows the full selected range
+  if(days > 0 && data.length < days){
+    const missing = days - data.length;
+    const firstDate = data.length > 0 ? new Date(data[0].date + 'T12:00:00') : new Date();
+    const pads = [];
+    for(let i = missing; i > 0; i--){
+      const d = new Date(firstDate);
+      d.setDate(d.getDate() - i);
+      pads.push({ date: d.toISOString().slice(0,10), value: 0 });
+    }
+    data = pads.concat(data);
   }
 
   // Forward-fill nulls
@@ -1811,7 +1795,7 @@ function renderClientErrors(errors){
   if(!errors.length){
     if(existingTbody){
       // Filters are already rendered — just show empty state inside the table
-      existingTbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:rgba(245,240,232,0.45);font-size:13px;">No errors match the current filters.</td></tr>`;
+      existingTbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">No errors match the current filters.</td></tr>`;
       const countEl = document.getElementById('ce-count');
       if(countEl) countEl.textContent = `0 of ${_allClientErrors.length} error${_allClientErrors.length!==1?'s':''}`;
     } else {
@@ -1825,16 +1809,16 @@ function renderClientErrors(errors){
     const src     = [e.source ? escHtml(e.source.replace(/^https?:\/\/[^/]+/,'')) : '', e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
     const page    = e.url ? escHtml(e.url.replace(/^https?:\/\/[^/]+/,'').slice(0,60)) : '';
     const user    = e.userEmail ? escHtml(e.userEmail) : (e.userName ? escHtml(e.userName) : '<span style="color:rgba(245,240,232,0.5)">guest</span>');
-    const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:rgba(245,240,232,0.65);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:rgba(245,240,232,0.6);margin:4px 0 0;line-height:1.4;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
-    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+    const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:var(--slate);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:var(--slate);margin:4px 0 0;line-height:1.4;background:rgba(28,28,30,0.04);padding:6px;border-radius:3px;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
+    return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);">
       <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 0;">${time}</td>
       <td style="vertical-align:top;padding:10px 8px;max-width:340px;">
-        <div style="font-size:12px;font-weight:600;color:#F5F0E8;">${escHtml(e.message||'')}</div>
-        ${src ? `<div style="font-family:var(--font-mono);font-size:10px;color:rgba(201,168,76,0.7);margin-top:2px;">${src}</div>` : ''}
-        ${page ? `<div style="font-size:10px;color:rgba(245,240,232,0.55);font-family:var(--font-mono);margin-top:1px;">${page}</div>` : ''}
+        <div style="font-size:12px;font-weight:600;color:var(--charcoal);">${escHtml(e.message||'')}</div>
+        ${src ? `<div style="font-family:var(--font-mono);font-size:10px;color:#C9A84C;margin-top:2px;">${src}</div>` : ''}
+        ${page ? `<div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);margin-top:1px;">${page}</div>` : ''}
         ${stack}
       </td>
-      <td style="vertical-align:top;padding:10px 8px;font-size:11px;white-space:nowrap;">${user}</td>
+      <td style="vertical-align:top;padding:10px 8px;font-size:11px;white-space:nowrap;color:var(--charcoal);">${user}</td>
       <td style="vertical-align:top;padding:10px 8px;font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;">${escHtml(browser)}</td>
     </tr>`;
   }).join('');
@@ -1864,13 +1848,13 @@ function renderClientErrors(errors){
     </select>
     <span id="ce-count" style="font-size:11px;color:var(--slate);margin-left:4px;"></span>
   </div>
-  <div style="overflow-x:auto;background:#1C1C1E;border-radius:6px;">
-  <table style="width:100%;border-collapse:collapse;min-width:600px;">
-    <thead><tr>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap;">Time</th>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Error</th>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">User</th>
-      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Browser</th>
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid rgba(28,28,30,0.1);">
+  <table style="width:100%;border-collapse:collapse;min-width:600px;background:white;">
+    <thead><tr style="background:rgba(28,28,30,0.04);">
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(28,28,30,0.1);white-space:nowrap;">Time</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(28,28,30,0.1);">Error</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(28,28,30,0.1);">User</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(28,28,30,0.1);">Browser</th>
     </tr></thead>
     <tbody id="ce-tbody">${rows}</tbody>
   </table></div>`;
@@ -1947,6 +1931,7 @@ async function openUserHistory(userId, email){
   const emailEl = document.getElementById('history-modal-email');
   overlay.style.display = 'flex';
   emailEl.textContent = email;
+  document.getElementById('history-back-btn').style.display = _detailReturnEmail ? '' : 'none';
   body.innerHTML = '<div style="text-align:center;color:var(--slate);padding:32px;font-size:13px;">Loading…</div>';
 
   const d = await callAuth('adminGetUserEvents', { targetUserId: userId });
@@ -1967,18 +1952,18 @@ async function openUserHistory(userId, email){
     if(ev.from && ev.to) meta.push(escHtml(ev.from)+' → '+escHtml(ev.to));
     if(ev.ip)    meta.push('IP: '+escHtml(ev.ip));
     if(ev.by)    meta.push('By: '+escHtml(ev.by));
-    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-      <td style="font-family:var(--font-mono);font-size:11px;color:rgba(245,240,232,0.5);white-space:nowrap;padding:8px 8px 8px 0;vertical-align:top;">${fmtEventTime(ev.at)}</td>
-      <td style="font-size:12px;color:#F5F0E8;padding:8px;vertical-align:top;">${label}</td>
-      <td style="font-family:var(--font-mono);font-size:11px;color:rgba(245,240,232,0.55);padding:8px 0 8px 8px;vertical-align:top;">${meta.join(' · ')}</td>
+    return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);">
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate);white-space:nowrap;padding:8px 8px 8px 0;vertical-align:top;">${fmtEventTime(ev.at)}</td>
+      <td style="font-size:12px;color:var(--charcoal);padding:8px;vertical-align:top;">${label}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate);padding:8px 0 8px 8px;vertical-align:top;">${meta.join(' · ')}</td>
     </tr>`;
   }).join('');
 
   body.innerHTML = `<table style="width:100%;border-collapse:collapse;">
     <thead><tr>
-      <th style="text-align:left;font-size:11px;color:rgba(245,240,232,0.4);padding:4px 8px 8px 0;border-bottom:1px solid rgba(255,255,255,0.07);">Time</th>
-      <th style="text-align:left;font-size:11px;color:rgba(245,240,232,0.4);padding:4px 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Event</th>
-      <th style="text-align:left;font-size:11px;color:rgba(245,240,232,0.4);padding:4px 0 8px 8px;border-bottom:1px solid rgba(255,255,255,0.07);">Details</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px 0;border-bottom:1px solid rgba(28,28,30,0.1);">Time</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 8px 8px;border-bottom:1px solid rgba(28,28,30,0.1);">Event</th>
+      <th style="text-align:left;font-size:11px;color:var(--slate);padding:4px 0 8px 8px;border-bottom:1px solid rgba(28,28,30,0.1);">Details</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
@@ -1990,6 +1975,30 @@ function closeHistoryModal(){
 
 // ── Email Templates ──────────────────────────────────────────────────────────
 let _emailTemplates = {};
+
+function formatHtml(html){
+  if(!html) return '';
+  // Simple HTML pretty-printer: add newlines and indentation
+  const INLINE = /^(a|abbr|b|bdi|bdo|br|cite|code|data|dfn|em|i|kbd|mark|q|rp|rt|ruby|s|samp|small|span|strong|sub|sup|time|u|var|wbr)$/i;
+  let out = '';
+  let indent = 0;
+  // Normalise: collapse whitespace between tags
+  html = html.replace(/>\s+</g,'><').trim();
+  const parts = html.split(/(<[^>]+>)/);
+  parts.forEach(function(p){
+    if(!p) return;
+    if(p[0] !== '<'){ out += p; return; }
+    const isClose  = p[1] === '/';
+    const isSelf   = /\/>$/.test(p) || /^<(br|hr|img|input|link|meta|col|area|base|embed|param|source|track)[\s>]/i.test(p);
+    const tagName  = (p.match(/<\/?([a-z0-9]+)/i)||[])[1]||'';
+    const isInline = INLINE.test(tagName);
+    if(isClose && !isInline){ indent = Math.max(0, indent - 2); }
+    if(!isInline){ out += (out ? '\n' : '') + ' '.repeat(indent); }
+    out += p;
+    if(!isClose && !isSelf && !isInline){ indent += 2; }
+  });
+  return out;
+}
 
 const ET_VARS = {
   verification:  '{{code}}',
@@ -2016,7 +2025,7 @@ function onEmailTemplateTypeChange(){
   const vars = document.getElementById('et-vars');
   const badge = document.getElementById('et-custom-badge');
   if(subj) subj.value = tpl.subject || '';
-  if(html) html.value = tpl.html || '';
+  if(html) html.value = formatHtml(tpl.html || '');
   if(vars) vars.textContent = ET_VARS[type] || '';
   if(badge) badge.style.display = tpl._isCustom ? '' : 'none';
 }

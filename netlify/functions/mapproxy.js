@@ -1,7 +1,7 @@
 /**
  * mapproxy.js — Netlify Function
- * Server-side proxy for static map images to bypass browser CORS restrictions.
- * Fetches the image and returns it as a base64 data URL.
+ * Server-side proxy: fetches OSM tiles and returns them for client-side stitching.
+ * Uses the main tile.openstreetmap.org servers which are far more reliable than staticmap.openstreetmap.de
  */
 
 const H = {
@@ -11,36 +11,60 @@ const H = {
   'Access-Control-Allow-Headers':'Content-Type',
 };
 
+function latLonToTile(lat, lon, zoom){
+  const n = Math.pow(2, zoom);
+  const x = Math.floor((lon + 180) / 360 * n);
+  const latRad = lat * Math.PI / 180;
+  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
+  return { x: Math.max(0, Math.min(n - 1, x)), y: Math.max(0, Math.min(n - 1, y)) };
+}
+
 exports.handler = async (event) => {
-  if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
+  if(event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
 
-  const lat = parseFloat(event.queryStringParameters?.lat);
-  const lon = parseFloat(event.queryStringParameters?.lon);
-  const zoom = parseInt(event.queryStringParameters?.zoom||'17');
+  const lat  = parseFloat(event.queryStringParameters?.lat);
+  const lon  = parseFloat(event.queryStringParameters?.lon);
+  const zoom = Math.min(18, Math.max(12, parseInt(event.queryStringParameters?.zoom || '16')));
 
-  if(isNaN(lat)||isNaN(lon)) return {statusCode:400,headers:H,body:JSON.stringify({ok:false,error:'lat and lon required'})};
+  if(isNaN(lat) || isNaN(lon)) return { statusCode: 400, headers: H, body: JSON.stringify({ ok: false, error: 'lat and lon required' }) };
 
-  // Clamp zoom to safe range
-  const z = Math.min(19, Math.max(1, zoom));
+  const center = latLonToTile(lat, lon, zoom);
+  const maxTile = Math.pow(2, zoom) - 1;
 
-  const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=${z}&size=640x480&markers=${lat},${lon},red-pushpin`;
+  // Fetch a 3x3 grid of tiles centred on the property
+  const grid = [-1, 0, 1];
+  const servers = ['a', 'b', 'c']; // round-robin across OSM tile CDN
+  let si = 0;
 
-  try{
-    const r = await fetch(mapUrl, {
-      headers: {
-        'User-Agent': 'EquitySight/1.0 (property-calculator)',
-        'Accept': 'image/png,image/*',
-      }
-    });
-    if(!r.ok) return {statusCode:502,headers:H,body:JSON.stringify({ok:false,error:'Map service returned '+r.status})};
-
-    const contentType = r.headers.get('content-type') || 'image/png';
-    const buffer = await r.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-    const dataUrl = `data:${contentType};base64,${base64}`;
-
-    return {statusCode:200,headers:H,body:JSON.stringify({ok:true,dataUrl})};
-  }catch(e){
-    return {statusCode:502,headers:H,body:JSON.stringify({ok:false,error:e.message})};
+  const tilePromises = [];
+  for(const dy of grid){
+    for(const dx of grid){
+      const tx = Math.max(0, Math.min(maxTile, center.x + dx));
+      const ty = Math.max(0, Math.min(maxTile, center.y + dy));
+      const sub = servers[si++ % 3];
+      const url = `https://${sub}.tile.openstreetmap.org/${zoom}/${tx}/${ty}.png`;
+      tilePromises.push(
+        fetch(url, {
+          headers: {
+            'User-Agent': 'EquitySight/1.0 (https://equitysight.app)',
+            'Accept': 'image/png',
+          },
+          signal: AbortSignal.timeout(8000),
+        }).then(async r => {
+          if(!r.ok) return null;
+          const buf = await r.arrayBuffer();
+          return 'data:image/png;base64,' + Buffer.from(buf).toString('base64');
+        }).catch(() => null)
+      );
+    }
   }
+
+  const tiles = await Promise.all(tilePromises);
+  if(tiles.every(t => t === null)) return { statusCode: 502, headers: H, body: JSON.stringify({ ok: false, error: 'All tile fetches failed' }) };
+
+  return {
+    statusCode: 200,
+    headers: H,
+    body: JSON.stringify({ ok: true, tiles, cols: 3, rows: 3, tileSize: 256 }),
+  };
 };

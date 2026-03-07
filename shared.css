@@ -104,6 +104,7 @@ img { max-width: 100%; display: block; }
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   padding: env(safe-area-inset-top, 0) 0 0;
+  overflow: visible;
 }
 .site-nav-inner {
   max-width: 1200px;
