@@ -114,10 +114,13 @@
     }catch(e){}
   })();
 
-  // Read plan from URL
+  // Read plan/ref from URL
   const params = new URLSearchParams(location.search);
   if(params.get('tab') === 'signup') setTab('signup');
   if(params.get('plan') === 'pro') document.getElementById('su-plan').value = 'pro';
+  // Store referral code so it survives the signup flow
+  const refParam = (params.get('ref') || '').trim().toUpperCase().slice(0, 16);
+  if(refParam) localStorage.setItem('equitySight_pendingRef', refParam);
 
   function setTab(t){
     document.getElementById('form-signin').style.display = t==='signin' ? '' : 'none';
@@ -285,8 +288,10 @@
     if(!/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(password)) pwErrors.push('one special character (!@#$…)');
     if(pwErrors.length){ errEl.textContent='Password needs: ' + pwErrors.join(', '); return; }
     btn.disabled=true; btn.textContent='Creating account…'; errEl.textContent='';
-    const res = await callAuth('signup', {email,password,name,plan});
+    const pendingRef = localStorage.getItem('equitySight_pendingRef') || '';
+    const res = await callAuth('signup', {email,password,name,plan,ref:pendingRef});
     if(res.ok && res.requiresEmailVerification){
+      localStorage.removeItem('equitySight_pendingRef');
       showVerificationStep(res);
       document.getElementById('verify-error').textContent='';
     } else {

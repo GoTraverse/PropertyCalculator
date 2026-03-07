@@ -9,7 +9,6 @@ Never delete anything above this line.
 ------------------------------------------
 
 General - (DO NOT REMOVE THIS LINE)
-6. Implement referal program. When a user shares their link to another user and they sign up for a paid plan, both users get 1 month 50% off.
 
 Desktop - (DO NOT REMOVE THIS LINE)
 1.

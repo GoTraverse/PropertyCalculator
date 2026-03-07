@@ -192,6 +192,57 @@ async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId, 
   return true;
 }
 
+// ── Ensure the referral coupon exists in Stripe ───────────────────────────────
+async function ensureReferralCoupon() {
+  try {
+    await stripeGet('/v1/coupons/REFERRAL_50_ONCE');
+  } catch (e) {
+    try {
+      await stripePost('/v1/coupons', {
+        'id': 'REFERRAL_50_ONCE',
+        'percent_off': '50',
+        'duration': 'once',
+        'name': 'Referral Reward — 50% Off',
+      });
+    } catch (createErr) {
+      if (!createErr.message.includes('already exists')) throw createErr;
+    }
+  }
+}
+
+// ── Reward referrer when a referred user subscribes ──────────────────────────
+async function processReferralReward(newUserEmail) {
+  const userKey = 'user:' + newUserEmail.toLowerCase().trim();
+  const userData = await rGet(userKey);
+  if (!userData || !userData.referredBy || userData.referralRewardClaimed) return;
+
+  // Mark reward claimed on the new user
+  userData.referralRewardClaimed = true;
+  await rSet(userKey, userData);
+
+  // Find referrer
+  const userKeys = await redisCmd('KEYS', 'user:*');
+  if (!userKeys || !userKeys.length) return;
+  const allUsers = await Promise.all(userKeys.map(k => rGet(k)));
+  const referrer = allUsers.find(u => u && u.id === userData.referredBy);
+  if (!referrer) return;
+
+  referrer.referralCount = (referrer.referralCount || 0) + 1;
+  await rSet('user:' + referrer.email.toLowerCase().trim(), referrer);
+  await logEvent(referrer.id, 'referral_reward', { referredEmail: newUserEmail });
+
+  // Apply 50% off coupon to referrer's next billing cycle if they have a subscription
+  if (referrer.stripeSubscriptionId) {
+    try {
+      await ensureReferralCoupon();
+      await stripePost('/v1/subscriptions/' + referrer.stripeSubscriptionId, { coupon: 'REFERRAL_50_ONCE' });
+      console.log('[stripe] Referral coupon applied to referrer:', referrer.email);
+    } catch (e) {
+      console.warn('[stripe] Failed to apply referral coupon to referrer:', e.message);
+    }
+  }
+}
+
 // ── Downgrade user to free by customer ID ────────────────────────────────────
 async function downgradePlan(stripeCustomerId) {
   const userKeys = await redisCmd('KEYS', 'user:*');
@@ -246,6 +297,8 @@ exports.handler = async function (event) {
           const currency   = session.currency;
           const discountInfo = extractDiscountInfo(session.discount, baseAmount, currency);
           await upgradePlan(email, plan, session.customer, session.subscription, discountInfo);
+          // Reward referrer if this user was referred
+          await processReferralReward(email).catch(e => console.warn('[stripe] processReferralReward error:', e.message));
         } else {
           console.warn('[stripe] checkout.session.completed: no email in session');
         }
@@ -346,6 +399,17 @@ exports.handler = async function (event) {
       if (userData && userData.stripeCustomerId) {
         params['customer'] = userData.stripeCustomerId;
         delete params['customer_email'];
+      }
+
+      // Apply referral coupon if user was referred and hasn't claimed yet
+      if (userData && userData.referredBy && !userData.referralRewardClaimed) {
+        try {
+          await ensureReferralCoupon();
+          params['discounts[0][coupon]'] = 'REFERRAL_50_ONCE';
+          delete params['allow_promotion_codes']; // cannot be used alongside discounts
+        } catch (e) {
+          console.warn('[stripe] Could not apply referral coupon at checkout:', e.message);
+        }
       }
 
       const session = await stripePost('/v1/checkout/sessions', params);

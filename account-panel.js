@@ -165,6 +165,24 @@
         '</div>',
       '</div>',
 
+      // Referral
+      '<div class="ap2-section">',
+        '<div class="ap2-section-title">Refer a Friend</div>',
+        '<div class="ap2-card">',
+          '<div style="font-size:13px;color:#4A4A52;line-height:1.5;margin-bottom:12px;">Share your link. When a friend signs up and upgrades to a paid plan, you both get <strong style="color:#1C1C1E;">1 month at 50% off</strong>.</div>',
+          '<div id="ap2-ref-loading" style="font-size:12px;color:#4A4A52;">Loading…</div>',
+          '<div id="ap2-ref-content" style="display:none;">',
+            '<div style="font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#4A4A52;margin-bottom:5px;">Your referral link</div>',
+            '<div style="display:flex;gap:8px;align-items:center;">',
+              '<input class="ap2-input" id="ap2-ref-link" type="text" readonly style="font-size:12px;color:#1C1C1E;cursor:default;">',
+              '<button class="ap2-btn ap2-btn-gold" onclick="ap2CopyRefLink()" style="white-space:nowrap;flex-shrink:0;">Copy</button>',
+            '</div>',
+            '<div id="ap2-ref-count" style="font-size:12px;color:#4A4A52;margin-top:8px;"></div>',
+          '</div>',
+          '<div class="ap2-status" id="ap2-ref-status"></div>',
+        '</div>',
+      '</div>',
+
       // Danger
       '<div class="ap2-section">',
         '<div class="ap2-section-title">Danger Zone</div>',
@@ -363,6 +381,44 @@
     el('ap-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
     apRenderPanel();
+    ap2LoadReferralCode();
+  };
+
+  function ap2LoadReferralCode() {
+    var auth = getAuthHeader();
+    if (!auth) return;
+    el('ap2-ref-loading').style.display = '';
+    el('ap2-ref-content').style.display = 'none';
+    fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': auth },
+      body: JSON.stringify({ action: 'getReferralCode' })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      el('ap2-ref-loading').style.display = 'none';
+      if (data.ok) {
+        el('ap2-ref-link').value = data.link;
+        var countEl = el('ap2-ref-count');
+        if (countEl) countEl.textContent = data.referralCount > 0
+          ? 'You\'ve referred ' + data.referralCount + ' user' + (data.referralCount === 1 ? '' : 's') + ' so far.'
+          : 'No referrals yet — share your link to get started.';
+        el('ap2-ref-content').style.display = '';
+      }
+    })
+    .catch(function(){ el('ap2-ref-loading').textContent = 'Could not load referral link.'; });
+  }
+
+  window.ap2CopyRefLink = function() {
+    var inp = el('ap2-ref-link');
+    if (!inp || !inp.value) return;
+    navigator.clipboard.writeText(inp.value).then(function(){
+      var s = el('ap2-ref-status');
+      if (s) { s.className = 'ap2-status ok'; s.textContent = 'Link copied!'; setTimeout(function(){ s.className = 'ap2-status'; }, 2000); }
+    }).catch(function(){
+      inp.select();
+      document.execCommand('copy');
+    });
   };
 
   window.closeAccountPanel = function () {
