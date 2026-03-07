@@ -9,7 +9,6 @@ Never delete anything above this line.
 ------------------------------------------
 
 General - (DO NOT REMOVE THIS LINE)
-1. There is no profile icon or help button in top right of any page, you said you fixed this before but it isnt fixed.
 6. Still get this in the error logs. lets finally fix this: "SyntaxError: invalid escape sequence/app.html · line 1 · col 23/app.html jacoby@gotraverse.com.au 	Firefox 148.0"
 13.
 
