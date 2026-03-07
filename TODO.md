@@ -9,6 +9,8 @@ Never delete anything above this line.
 ------------------------------------------
 
 General - (DO NOT REMOVE THIS LINE)
+6. Still get this in the error logs. lets finally fix this: "SyntaxError: invalid escape sequence/app.html · line 1 · col 23/app.html jacoby@gotraverse.com.au 	Firefox 148.0"
+13.
 1. There is no profile icon or help button in top right of any page, you said you fixed this before but it isnt fixed.
 4. In admin page > email templates tab, looks great but can there be a preveiw button that opens up a window with how it would look in the users inbox? Also a test email button that sends it to the logged in admins email address so it canbe verified working and viewing correctly before the template is save because as soon as the template is saved then all system users will get the new saved emails.
 5. In admin page > error logs tab, refresh button doesnt seem to work.
