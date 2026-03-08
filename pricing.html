@@ -50,11 +50,6 @@
     <div class="section-tag" style="color:var(--gold);">Pricing</div>
     <h1>Simple pricing,<br>no surprises.</h1>
     <p>Start free. Upgrade when you're ready for the full picture.</p>
-    <div class="toggle-wrap">
-      <span class="toggle-lbl active" id="lbl-m">Monthly</span>
-      <div class="billing-tog" id="bill-tog" onclick="toggleBill()"><div class="billing-tog-knob"></div></div>
-      <span class="toggle-lbl" id="lbl-a">Annual <span class="save-badge">Save 20%</span></span>
-    </div>
   </div>
 </section>
 
@@ -228,17 +223,6 @@
   }
 
   let annual=false;
-  function toggleBill(){
-    annual=!annual;
-    document.getElementById('bill-tog').classList.toggle('on',annual);
-    document.getElementById('lbl-m').classList.toggle('active',!annual);
-    document.getElementById('lbl-a').classList.toggle('active',annual);
-    document.getElementById('pro-amt').textContent=annual?'A$7':'A$2.99';
-    document.getElementById('pro-orig').style.display=annual?'none':'inline';
-    document.getElementById('pro-promo').style.display=annual?'none':'block';
-    document.getElementById('pro-sub').textContent=annual?'Billed A$86/yr · cancel any time':'Billed monthly AUD · cancel any time';
-    document.getElementById('tbl-pro').innerHTML=annual?'A$7/mo (A$86/yr)':'<span style="text-decoration:line-through;opacity:0.45;">$9</span> $2.99/mo';
-  }
   // Auto-trigger checkout if redirected back after login
   if(new URLSearchParams(location.search).get('checkout')==='1'){
     setTimeout(startCheckout, 800);

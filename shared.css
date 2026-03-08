@@ -104,6 +104,17 @@ img { max-width: 100%; display: block; }
   padding: env(safe-area-inset-top, 0) 0 0;
   overflow: visible;
 }
+.site-nav::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: rgba(28,28,30,0.95);
+  z-index: 899;
+  pointer-events: none;
+}
 .site-nav-inner {
   max-width: 1200px;
   margin: 0 auto;
