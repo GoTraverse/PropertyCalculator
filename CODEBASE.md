@@ -48,7 +48,7 @@ Browser (static files)
 | `stripe-config.js` | Stripe publishable key + plan IDs (client-side only) |
 | `account-panel.js` | Floating account panel shown from the app (plan info, sign out) |
 | `error-capture.js` | Captures unhandled JS errors + promise rejections, posts to `client-errors` function |
-| `netlify.toml` | Build config, CSP headers, CORS for functions |
+| `netlify.toml` | Build config, CSP headers, CORS for functions, static asset cache headers |
 
 ---
 
@@ -58,6 +58,9 @@ Every page that needs the nav and footer follows this pattern:
 
 ```html
 <!-- In <head> -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 
 <!-- Nav placeholder — auth-nav.js fills .site-nav-actions with login/profile buttons -->
@@ -192,7 +195,7 @@ Stored on the user Redis record. Cleared on downgrade. Updated on `customer.subs
 
 ## CSS Design Tokens (shared.css)
 
-All colours and fonts are CSS custom properties on `:root`:
+All colours and fonts are CSS custom properties on `:root`. Google Fonts are loaded via `<link>` tags in each page's `<head>` (with preconnect hints) — **not** via `@import` in shared.css, to avoid render-blocking delays.
 
 ```
 --cream, --warm-white          background colours

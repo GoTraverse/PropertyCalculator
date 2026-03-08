@@ -408,12 +408,12 @@
   function recalc(){
     if(!_restoringDraft) _forceDirty = true;
     autosaveDraft();
-    const price   = v('inp-price');
-    const savings = v('inp-savings');
+    const price   = Math.min(50000000, v('inp-price'));
+    const savings = Math.min(50000000, v('inp-savings'));
     const depPct  = v('inp-depp');
     const govtPct = v('inp-govt');
-    const rate    = v('inp-rate');
-    const term    = v('inp-term');
+    const rate    = Math.min(20, v('inp-rate'));
+    const term    = Math.min(50, Math.max(1, v('inp-term')));
     const contPct = v('inp-cont');
     const address = document.getElementById('inp-address').value||'your property';
 
@@ -808,7 +808,7 @@
       const { lat, lon } = geoData[0];
 
       // 2. Fetch static map via server-side proxy (avoids browser CORS restriction)
-      const proxyRes = await fetch(`/.netlify/functions/mapproxy?lat=${lat}&lon=${lon}&zoom=16`);
+      const proxyRes = await fetch(`/.netlify/functions/mapproxy?lat=${lat}&lon=${lon}&zoom=15`);
       const proxyData = await proxyRes.json();
       if(!proxyData.ok) throw new Error(proxyData.error || 'Map proxy failed');
 
@@ -826,6 +826,27 @@
           const tileImg = new Image();
           return new Promise(res => { tileImg.onload = () => { sctx.drawImage(tileImg, col * ts, row * ts); res(); }; tileImg.onerror = res; tileImg.src = dataUrl; });
         }));
+        // Draw red location pin at the centre of the stitched image
+        const cx = Math.round(cols * ts / 2), cy = Math.round(rows * ts / 2);
+        const r = 10, stem = 16;
+        sctx.beginPath();
+        sctx.arc(cx, cy - stem, r, 0, Math.PI * 2);
+        sctx.fillStyle = '#E03030';
+        sctx.fill();
+        sctx.strokeStyle = '#fff';
+        sctx.lineWidth = 2;
+        sctx.stroke();
+        sctx.beginPath();
+        sctx.moveTo(cx, cy - stem + r * 0.7);
+        sctx.lineTo(cx, cy);
+        sctx.strokeStyle = '#E03030';
+        sctx.lineWidth = 3;
+        sctx.stroke();
+        // White dot in pin
+        sctx.beginPath();
+        sctx.arc(cx, cy - stem, 4, 0, Math.PI * 2);
+        sctx.fillStyle = '#fff';
+        sctx.fill();
         imgSrc = stitchCanvas.toDataURL('image/png');
       } else {
         imgSrc = proxyData.dataUrl;
@@ -922,14 +943,18 @@
           const postcode = a.postcode || '';
           // Use display_name if we couldn't parse well
           const display = street || item.display_name.split(',')[0];
-          return { address: display, suburb, state: ({'queensland':'QLD','new south wales':'NSW','victoria':'VIC','western australia':'WA','south australia':'SA','tasmania':'TAS','northern territory':'NT','australian capital territory':'ACT'}[((a.state_code||a.state||'')).toLowerCase().replace(/^state of /,'')] || 'QLD'), postcode };
+          const _rawState = (a.state_code || a.state || '').trim();
+          const _validCodes = ['QLD','NSW','VIC','WA','SA','TAS','NT','ACT'];
+          const _nameMap = {'queensland':'QLD','new south wales':'NSW','victoria':'VIC','western australia':'WA','south australia':'SA','tasmania':'TAS','northern territory':'NT','australian capital territory':'ACT'};
+          const _resolvedState = _validCodes.includes(_rawState.toUpperCase()) ? _rawState.toUpperCase() : (_nameMap[_rawState.toLowerCase().replace(/^state of /,'')] || '');
+          return { address: display, suburb, state: _resolvedState, postcode };
         }).filter(r => r.address);
         if(!results.length){ hideAddrSuggestions(); return; }
         showAddrSuggestions(results);
       } catch(e) {
         hideAddrSuggestions();
       }
-    }, 400);
+    }, 200);
   }
 
   function showAddrSuggestions(results){

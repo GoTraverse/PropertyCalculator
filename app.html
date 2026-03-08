@@ -178,12 +178,12 @@
 
   <div class="ig">
     <div class="il">Purchase Price <span id="lbl-price">—</span></div>
-    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-price" value="0" min="100000" max="700000" step="1000" placeholder="650000" oninput="syncRange('price');dRecalc()"></div>
-    <input type="range" id="rng-price" min="300000" max="700000" step="5000" value="300000" oninput="syncInput('price');dRecalc()">
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-price" value="0" min="100000" max="50000000" step="1000" placeholder="650000" oninput="syncRange('price');dRecalc()"></div>
+    <input type="range" id="rng-price" min="300000" max="5000000" step="5000" value="300000" oninput="syncInput('price');dRecalc()">
   </div>
   <div class="ig">
     <div class="il">Your Savings <span id="lbl-savings">—</span></div>
-    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-savings" value="0" min="0" step="1000" placeholder="40000" oninput="syncRange('savings');dRecalc()"></div>
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-savings" value="0" min="0" max="50000000" step="1000" placeholder="40000" oninput="syncRange('savings');dRecalc()"></div>
     <input type="range" id="rng-savings" min="0" max="200000" step="1000" value="0" oninput="syncInput('savings');dRecalc()">
   </div>
 
@@ -213,13 +213,13 @@
   </div>
   <div class="ig">
     <div class="il">Interest Rate <span id="lbl-rate">6.2%</span></div>
-    <div class="iw"><input type="number" class="pct" id="inp-rate" value="0" min="1" max="15" step="0.1" oninput="syncRange('rate');dRecalc()"><span class="isfx">%</span></div>
-    <input type="range" id="rng-rate" min="1" max="15" step="0.1" value="1" oninput="syncInput('rate');dRecalc()">
+    <div class="iw"><input type="number" class="pct" id="inp-rate" value="0" min="1" max="20" step="0.1" oninput="syncRange('rate');dRecalc()"><span class="isfx">%</span></div>
+    <input type="range" id="rng-rate" min="1" max="20" step="0.1" value="1" oninput="syncInput('rate');dRecalc()">
   </div>
   <div class="ig">
     <div class="il">Loan Term <span id="lbl-term">30 yrs</span></div>
-    <div class="iw"><input type="number" id="inp-term" value="0" min="5" max="30" step="1" oninput="syncRange('term');dRecalc()"></div>
-    <input type="range" id="rng-term" min="5" max="30" step="1" value="5" oninput="syncInput('term');dRecalc()">
+    <div class="iw"><input type="number" id="inp-term" value="0" min="5" max="50" step="1" oninput="syncRange('term');dRecalc()"></div>
+    <input type="range" id="rng-term" min="5" max="50" step="1" value="5" oninput="syncInput('term');dRecalc()">
   </div>
   <div class="ig">
     <div class="il" style="font-size:12px;">Est. Settlement Date <span id="lbl-settle-date" style="font-size:11px;color:rgba(201,168,76,0.7);"></span></div>

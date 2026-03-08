@@ -1,6 +1,6 @@
 ---
 title: Disclaimer
-date: [DATE]
+date: 2026-03-08
 tag: Legal
 ---
 

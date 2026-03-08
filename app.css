@@ -661,6 +661,11 @@
     /* Mobile: body is the scroller — keep overflow-y:auto but no bounce */
     @media (max-width: 600px) {
       body { overflow-y: auto; }
+      /* PWA-1: Amortisation table — must scroll horizontally within its wrapper only */
+      #amort-table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+      /* PWA-2: Sidebar and scenario menus must not scroll sideways */
+      .sidebar { overflow-x: hidden !important; }
+      #scenarios-modal > div { overflow-x: hidden !important; }
     }
   }
 
