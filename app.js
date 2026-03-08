@@ -178,7 +178,7 @@
       row.className = 'dyn-cost-row';
       row.innerHTML = `
         <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" oninput="updateDynCost('${cost.id}','name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var nxt=this.closest('.dyn-cost-row').querySelector('input[type=number]');if(nxt){nxt.focus();nxt.select();}}">
-        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" step="50" oninput="updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);dRecalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${cost.category||'purchase'}');}"></div>
+        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" max="500000" step="50" oninput="var _v=parseFloat(this.value);if(_v>500000)this.value=500000;updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);dRecalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${cost.category||'purchase'}');}"></div>
         <button class="dyn-del" onclick="removeCostItem('${cost.id}')" title="Remove">−</button>
       `;
       list.appendChild(row);
@@ -254,9 +254,9 @@
           '<div class="rbt" style="max-width:60px;"><div class="rbf" style="width:'+pct+'%"></div></div>',
           '<div style="display:flex;align-items:center;gap:2px;min-width:90px;">',
             '<span style="font-size:14px;color:var(--slate);">$</span>',
-            '<input type="number" value="'+(amount||0)+'" min="0" step="100" id="reno-amt-'+id+'" ',
+            '<input type="number" value="'+(amount||0)+'" min="0" max="2000000" step="100" id="reno-amt-'+id+'" ',
               'style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:\"DM Mono\",monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" ',
-              'oninput="_renoAmt(this,this.value)" ',
+              'oninput="var _v=parseFloat(this.value);if(_v>2000000)this.value=2000000;_renoAmt(this,this.value)" ',
               'onkeydown="_renoAmtKey(this,event)">',
           '</div>',
           '<button class="kd-del" onclick="_renoDel(this)" title="Remove" style="flex-shrink:0;">✕</button>',
@@ -338,7 +338,7 @@
           <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" oninput="updateRenoItem('${r.id}','name',this.value)" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'" onkeydown="if(event.key==='Enter'){event.preventDefault();var amtInput=this.closest('[data-reno]').querySelector('input[type=number]');if(amtInput){amtInput.focus();amtInput.select();}}">
           <div class="rbt" style="max-width:60px;"><div class="rbf" style="width:${pct}%"></div></div>
           <div style="display:flex;align-items:center;gap:2px;min-width:90px;">
-            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" oninput="updateRenoItem('${r.id}','amount',parseFloat(this.value)||0);dRecalc();updateRenoBar('${r.id}',parseFloat(this.value)||0)" onkeydown="if(event.key==='Enter'){event.preventDefault();addRenoItem();}" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
+            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" max="2000000" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" oninput="var _v=parseFloat(this.value);if(_v>2000000)this.value=2000000;updateRenoItem('${r.id}','amount',parseFloat(this.value)||0);dRecalc();updateRenoBar('${r.id}',parseFloat(this.value)||0)" onkeydown="if(event.key==='Enter'){event.preventDefault();addRenoItem();}" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
           </div>
           <button class="kd-del" onclick="removeRenoItem('${r.id}')" title="Remove" style="flex-shrink:0;">✕</button>
         </div>
