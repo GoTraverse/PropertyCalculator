@@ -261,7 +261,7 @@
   <div id="rent-sidebar-section">
   <div class="ig">
     <div class="il">Current Rent/wk <span id="lbl-rent">$450</span></div>
-    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-rent" value="0" min="0" step="10" oninput="syncRange('rent');dRecalc()"></div>
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-rent" value="0" min="0" max="5000" step="10" oninput="var _v=parseFloat(this.value);if(_v>5000)this.value=5000;syncRange('rent');dRecalc()"></div>
     <input type="range" id="rng-rent" min="0" max="2000" step="10" value="0" oninput="syncInput('rent');dRecalc()">
   </div>
   <div class="ig">
@@ -438,14 +438,14 @@
             <div class="pd-field">
               <label class="pd-label">Street Address</label>
               <div class="addr-wrap">
-                <input type="text" id="pd-address" value="" autocomplete="off" oninput="updatePropertyDetails();addrAutocomplete(this.value)" onblur="setTimeout(()=>hideAddrSuggestions(),200)" placeholder="e.g. 54 Southampton St">
+                <input type="text" id="pd-address" value="" autocomplete="off" maxlength="60" oninput="updatePropertyDetails();addrAutocomplete(this.value)" onblur="setTimeout(()=>hideAddrSuggestions(),200)" placeholder="e.g. 54 Southampton St">
                 <div id="addr-suggestions" class="addr-suggestions"></div>
               </div>
             </div>
             <div class="g2" style="gap:10px;margin-top:10px;">
               <div class="pd-field">
                 <label class="pd-label">Suburb</label>
-                <input type="text" id="pd-suburb" value="" oninput="onSuburbChange()" placeholder="e.g. Kedron">
+                <input type="text" id="pd-suburb" value="" maxlength="30" oninput="onSuburbChange()" placeholder="e.g. Kedron">
               </div>
               <div class="pd-field">
                 <label class="pd-label">State</label>
@@ -491,15 +491,15 @@
               </div>
               <div class="pd-field">
                 <label class="pd-label">Land Size (m²)</label>
-                <div class="iw" style="position:relative;"><input type="number" id="pd-land" value="" oninput="updatePropertyDetails()" placeholder="e.g. 405" style="padding-left:8px;"></div>
+                <div class="iw" style="position:relative;"><input type="number" id="pd-land" value="" min="0" max="100000" oninput="var _v=parseFloat(this.value);if(_v>100000)this.value=100000;updatePropertyDetails()" placeholder="e.g. 405" style="padding-left:8px;"></div>
               </div>
               <div class="pd-field">
                 <label class="pd-label">House Size (m²)</label>
-                <div class="iw" style="position:relative;"><input type="number" id="pd-house" value="" oninput="updatePropertyDetails()" placeholder="e.g. 120" style="padding-left:8px;"></div>
+                <div class="iw" style="position:relative;"><input type="number" id="pd-house" value="" min="0" max="10000" oninput="var _v=parseFloat(this.value);if(_v>10000)this.value=10000;updatePropertyDetails()" placeholder="e.g. 120" style="padding-left:8px;"></div>
               </div>
               <div class="pd-field">
                 <label class="pd-label">Year Built</label>
-                <div class="iw" style="position:relative;"><input type="number" id="pd-year" value="" oninput="updatePropertyDetails()" placeholder="e.g. 1985" style="padding-left:8px;"></div>
+                <div class="iw" style="position:relative;"><input type="number" id="pd-year" value="" min="1800" max="2026" oninput="var _v=parseFloat(this.value);if(_v>2026)this.value=2026;if(_v<1800&&this.value.length>=4)this.value=1800;updatePropertyDetails()" placeholder="e.g. 1985" style="padding-left:8px;"></div>
               </div>
             </div>
           </div>
@@ -1004,7 +1004,7 @@
               <span style="font-family:'DM Mono',monospace;font-size:14px;color:var(--slate);">$</span>
               <input type="number" id="proj-extra-payment" min="0" max="50000" step="50" value="0" placeholder="0"
                 style="width:110px;font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;"
-                oninput="drawProjection()">
+                oninput="var _v=parseFloat(this.value);if(_v>50000)this.value=50000;drawProjection()">
               <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">/month</span>
             </div>
           </div>
@@ -1188,7 +1188,7 @@
 </div>
 
 <!-- ══ TOP-RIGHT PROFILE WIDGET — rendered by auth-nav.js ══ -->
-<div class="site-nav-actions" style="position:fixed;top:max(12px, calc(env(safe-area-inset-top) + 8px));right:28px;z-index:1900;"></div>
+<div class="site-nav-actions" style="position:fixed;top:max(28px, calc(env(safe-area-inset-top) + 20px));right:28px;z-index:1900;"></div>
 
 </body>
 </html>

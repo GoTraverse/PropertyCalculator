@@ -342,9 +342,9 @@ window.toggleTheme = function(){
               '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
             '</div>' +
             '<div style="padding:2px 0;">' +
-              '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">🏠 Open Calculator</a>' +
-              '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">⚙ Account Settings</a>' +
-              (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">🔒 Admin Dashboard</a>' : '') +
+              '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">Open Calculator</a>' +
+              '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">Account Settings</a>' +
+              (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">Admin Dashboard</a>' : '') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
               '<button onclick="toggleTheme()" data-theme-toggle class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +

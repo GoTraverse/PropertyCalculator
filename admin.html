@@ -445,17 +445,17 @@
           </div>
           <div class="config-field">
             <label class="config-label">Pro Monthly Price (AUD $)</label>
-            <input type="number" class="config-input" id="cfg-pro-monthly" value="9" min="0">
+            <input type="number" class="config-input" id="cfg-pro-monthly" value="9" min="0" max="99999999" oninput="if(parseFloat(this.value)>99999999)this.value=99999999;">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Displayed on the Pricing page. Must match your Stripe price configuration.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Pro Annual Price (AUD $)</label>
-            <input type="number" class="config-input" id="cfg-pro-annual" value="86" min="0">
+            <input type="number" class="config-input" id="cfg-pro-annual" value="86" min="0" max="99999999" oninput="if(parseFloat(this.value)>99999999)this.value=99999999;">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Yearly Pro price shown on Pricing page. Typically ~20% discount vs monthly.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Adviser Monthly Price (AUD $)</label>
-            <input type="number" class="config-input" id="cfg-adviser-monthly" value="29" min="0">
+            <input type="number" class="config-input" id="cfg-adviser-monthly" value="29" min="0" max="99999999" oninput="if(parseFloat(this.value)>99999999)this.value=99999999;">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Displayed on the Pricing page for the Adviser tier. Includes multi-client access.</div>
           </div>
         </div>
