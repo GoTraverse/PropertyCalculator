@@ -9,13 +9,13 @@ Never delete anything above this line.
 ------------------------------------------
 
 General - (DO NOT REMOVE THIS LINE)
-1.
+1. Remove emojis from profile drop down except for dark/lightmode.
+2. Please cap all other number input fields  except phone number to 99999999
+3. State should be a drop down not text feild. Or confine text to states abbreviation.
+4. Address and suburb and name feilds should be capped at like 30 characters.
 
 Desktop - (DO NOT REMOVE THIS LINE)
-1.
-2.
+1. Need to pad profile icon and help icon on the app page a bunch more. still is too close to the top right
 
 PWA - (DO NOT REMOVE THIS LINE)
 1.
-2.
-3.
