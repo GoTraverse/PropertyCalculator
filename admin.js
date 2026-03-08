@@ -2495,21 +2495,25 @@ async function loadLegalPage(page){
 
   const d = await callAuth('adminGetLegalPage', {page});
 
-  let content = DEFAULT_LEGAL_PAGES[page];
+  let content = null;
   if(d.ok && d.content){
+    // Use Redis-stored version (previously edited by admin)
     content = d.content;
+  } else {
+    // No Redis version yet — load the actual .md file from root
+    try {
+      const r = await fetch(`/${page}.md?_=${Date.now()}`);
+      if(r.ok) content = await r.text();
+    } catch(e){}
+    if(!content) content = DEFAULT_LEGAL_PAGES[page] || '';
   }
 
   const editor = document.getElementById('legal-content-editor');
   editor.value = content;
-  try {
-    const pages = JSON.parse(localStorage.getItem(LEGAL_PAGES_KEY) || '{}');
-    pages[page] = content;
-    localStorage.setItem(LEGAL_PAGES_KEY, JSON.stringify(pages));
-  } catch(e){}
 
-  st.textContent = '';
-  st.className = 'admin-status';
+  st.textContent = d.ok && d.content ? '(loaded from saved version)' : '(loaded from .md file)';
+  st.className = 'admin-status info';
+  setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 2500);
 }
 
 async function saveLegalPage(){
