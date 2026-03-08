@@ -9,14 +9,9 @@ Never delete anything above this line.
 ------------------------------------------
 
 General - (DO NOT REMOVE THIS LINE)
-1. Is there a way you can give me to edit the pricing on the website and also the product feature tiers? So i can adjust it as needed from a spreadsheet or from check boxes on the admin page? Need it to change the price everywhere on the website etc, i can update stripe myself if it cant be pushed to stripe automatically. Any features adjusted like how many scenarios allowed needs to be pushed to user limits correct.
-2. Remove the monthly/annual toggle slider.
+1. Is there a way you can give me to edit the pricing on the website and also the product feature tiers? So i can adjust it as needed from a spreadsheet or from check boxes on the admin page? Need it to change the price everywhere on the website etc, i can update stripe yourself if it cant be pushed to stripe automatically. Any features adjusted like how many scenarios allowed needs to be pushed to user limits correct.
 3. Give me an easy way to change the about page.
 4. With updating all the legal .md file, maybe lets create an .md editor and preview in the admin page?
 
 Desktop - (DO NOT REMOVE THIS LINE)
-1. 
-
-PWA/MOBILE - (DO NOT REMOVE THIS LINE)
-1. There is a dropdown to get to pricing/support/about but it already shows. remove the handburger menu.
-2. Around the notch on iphone is white, please extend header to top in all other pages except app.html becasue app.html is working.
+1.
