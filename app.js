@@ -1255,17 +1255,23 @@
     const suburb   = state.values['pd-suburb']  || '';
     const stateV   = state.values['pd-state']   || '';
     const fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ') || 'Unnamed Property';
-    // Plan gate: free users limited to 1 saved scenario (but allow updating an existing saved scenario)
+    // Plan gate: check scenario limit from config
     if(!isPro()){
+      let freeLimit = 1; // default
+      try {
+        const cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}');
+        freeLimit = cfg.freeScenarioLimit || 1;
+      } catch(e) {}
       const existing = await getAllScenarios();
-      if(existing && existing.length >= 1){
+      if(existing && existing.length >= freeLimit){
         const addrKeyTest = fullAddr.toLowerCase().trim();
         const isUpdate = existing.some(s =>
           (s.addrKey||'') === addrKeyTest ||
           (s.fullAddr||'').toLowerCase().trim() === addrKeyTest
         );
         if(!isUpdate){
-          showToast('🔒 Free plan allows 1 saved scenario. <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>', 6000);
+          const plural = freeLimit > 1 ? 's' : '';
+          showToast(`🔒 Free plan allows ${freeLimit} saved scenario${plural}. <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>`, 6000);
           return;
         }
       }
@@ -3838,9 +3844,21 @@
     var pn = document.getElementById('ap-plan-name');
     var pdesc = document.getElementById('ap-plan-desc');
     var ub = document.getElementById('ap-upgrade-btn');
+    var cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); } catch(e) {}
+    var freeLimit = cfg.freeScenarioLimit || 1;
+    var proPrice = cfg.proMonthlyPrice || 9;
+    var advPrice = cfg.adviserMonthlyPrice || 29;
     if(pd) pd.textContent = plan==='free'?'⭐ Starter':(plan==='pro'?'⚡ Pro':'👑 Adviser');
-    if(pn) pn.textContent = plan==='free'?'Starter (Free)':(plan==='pro'?'Pro — A$9/mo AUD':'Adviser — A$29/mo AUD');
-    if(pdesc) pdesc.textContent = plan==='free'?'1 saved scenario · Core calculator':'Unlimited scenarios · Cloud sync · PDF export · Projection chart';
+    if(pn) pn.textContent = plan==='free'?'Starter (Free)':(plan==='pro'?`Pro — A$${proPrice.toFixed(2)}/mo AUD`:`Adviser — A$${advPrice.toFixed(2)}/mo AUD`);
+    if(pdesc) {
+      if(plan==='free') {
+        var pluralS = freeLimit > 1 ? 's' : '';
+        pdesc.textContent = `${freeLimit} saved scenario${pluralS} · Core calculator`;
+      } else {
+        pdesc.textContent = 'Unlimited scenarios · Cloud sync · PDF export · Projection chart';
+      }
+    }
     if(ub) ub.style.display = plan==='free'?'':'none';
     
     // Color swatches

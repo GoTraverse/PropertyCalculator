@@ -65,7 +65,7 @@
         </div>
         <div class="pcard-body">
           <ul class="pcard-feats">
-            <li><div class="ck ck-y">✓</div>2 saved scenarios</li>
+            <li><div class="ck ck-y">✓</div><span id="free-saved-limit">1 saved scenario</span></li>
             <li><div class="ck ck-y">✓</div>Shared equity calculator</li>
             <li><div class="ck ck-y">✓</div>Renovation budget tracker</li>
             <li><div class="ck ck-y">✓</div>Key dates &amp; timeline</li>
@@ -139,7 +139,7 @@
             <tr><td class="fname">30-year projection chart</td><td class="tv tn">—</td><td class="tv tg fc">✓</td><td class="tv ty">✓</td></tr>
             <tr><td class="fname">Suburb growth data lookup</td><td class="tv tn">—</td><td class="tv tg fc">✓</td><td class="tv ty">✓</td></tr>
             <tr class="sec-row"><td colspan="4">Property Library</td></tr>
-            <tr><td class="fname">Saved property scenarios</td><td class="tv">2</td><td class="tv tg fc">Unlimited</td><td class="tv ty">Unlimited</td></tr>
+            <tr><td class="fname">Saved property scenarios</td><td class="tv" id="tbl-free-limit">1</td><td class="tv tg fc">Unlimited</td><td class="tv ty">Unlimited</td></tr>
             <tr><td class="fname">Cloud sync across devices</td><td class="tv tn">—</td><td class="tv tg fc">✓</td><td class="tv ty">✓</td></tr>
             <tr class="sec-row"><td colspan="4">Export</td></tr>
             <tr><td class="fname">PDF export</td><td class="tv tn">—</td><td class="tv tg fc">✓</td><td class="tv ty">✓</td></tr>
@@ -223,6 +223,39 @@
   }
 
   let annual=false;
+
+  // Load pricing from config (admin panel can update these)
+  (function(){
+    try{
+      const cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}');
+      const proMonthly = cfg.proMonthlyPrice || 2.99;
+      const proAnnual = cfg.proAnnualPrice || 86;
+      const adviserMonthly = cfg.adviserMonthlyPrice || 29;
+      const freeScenarioLimit = cfg.freeScenarioLimit || 1;
+
+      // Update Pro price
+      const proAmtEl = document.getElementById('pro-amt');
+      if(proAmtEl) proAmtEl.textContent = 'A$' + proMonthly.toFixed(2);
+      const proOrigEl = document.getElementById('pro-orig');
+      if(proOrigEl) proOrigEl.textContent = 'A$9';
+      const tblProEl = document.getElementById('tbl-pro');
+      if(tblProEl) tblProEl.innerHTML = `<span style="text-decoration:line-through;opacity:0.45;">$9</span> $${proMonthly.toFixed(2)}/mo`;
+
+      // Update Adviser price
+      const advAmtEl = document.getElementById('adv-amt');
+      if(advAmtEl) advAmtEl.textContent = 'A$' + adviserMonthly.toFixed(2);
+      const tblAdvEl = document.getElementById('tbl-adv');
+      if(tblAdvEl) tblAdvEl.textContent = `A$${adviserMonthly.toFixed(2)}/mo`;
+
+      // Update saved scenarios limit in free plan
+      const freeLimitText = `${freeScenarioLimit} saved scenario${freeScenarioLimit > 1 ? 's' : ''}`;
+      const freeLimitEl = document.getElementById('free-saved-limit');
+      if(freeLimitEl) freeLimitEl.textContent = freeLimitText;
+      const tblFreeLimitEl = document.getElementById('tbl-free-limit');
+      if(tblFreeLimitEl) tblFreeLimitEl.textContent = freeScenarioLimit;
+    }catch(e){ console.warn('[pricing] Config load error:', e); }
+  })();
+
   // Auto-trigger checkout if redirected back after login
   if(new URLSearchParams(location.search).get('checkout')==='1'){
     setTimeout(startCheckout, 800);
