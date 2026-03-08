@@ -178,12 +178,12 @@
 
   <div class="ig">
     <div class="il">Purchase Price <span id="lbl-price">—</span></div>
-    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-price" value="0" min="100000" max="50000000" step="1000" placeholder="650000" oninput="syncRange('price');dRecalc()"></div>
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-price" value="0" min="100000" max="50000000" step="1000" placeholder="650000" oninput="var _v=parseFloat(this.value);if(_v>50000000)this.value=50000000;syncRange('price');dRecalc()"></div>
     <input type="range" id="rng-price" min="300000" max="5000000" step="5000" value="300000" oninput="syncInput('price');dRecalc()">
   </div>
   <div class="ig">
     <div class="il">Your Savings <span id="lbl-savings">—</span></div>
-    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-savings" value="0" min="0" max="50000000" step="1000" placeholder="40000" oninput="syncRange('savings');dRecalc()"></div>
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-savings" value="0" min="0" max="50000000" step="1000" placeholder="40000" oninput="var _v=parseFloat(this.value);if(_v>50000000)this.value=50000000;syncRange('savings');dRecalc()"></div>
     <input type="range" id="rng-savings" min="0" max="200000" step="1000" value="0" oninput="syncInput('savings');dRecalc()">
   </div>
 
@@ -203,22 +203,22 @@
 
   <div class="ig">
     <div class="il">Deposit % <span id="lbl-depp">2.0%</span></div>
-    <div class="iw"><input type="number" class="pct" id="inp-depp" value="0" min="2" max="20" step="0.5" oninput="syncRange('depp');dRecalc()"><span class="isfx">%</span></div>
+    <div class="iw"><input type="number" class="pct" id="inp-depp" value="0" min="2" max="20" step="0.5" oninput="var _v=parseFloat(this.value);if(_v>20)this.value=20;syncRange('depp');dRecalc()"><span class="isfx">%</span></div>
     <input type="range" id="rng-depp" min="2" max="20" step="0.5" value="2" oninput="syncInput('depp');dRecalc()">
   </div>
   <div class="ig">
     <div class="il">Govt Scheme % <span id="lbl-govt">28.7%</span></div>
-    <div class="iw"><input type="number" class="pct" id="inp-govt" value="0" min="0" max="40" step="0.1" oninput="syncRange('govt');dRecalc()"><span class="isfx">%</span></div>
+    <div class="iw"><input type="number" class="pct" id="inp-govt" value="0" min="0" max="40" step="0.1" oninput="var _v=parseFloat(this.value);if(_v>40)this.value=40;syncRange('govt');dRecalc()"><span class="isfx">%</span></div>
     <input type="range" id="rng-govt" min="0" max="40" step="0.1" value="0" oninput="syncInput('govt');dRecalc()">
   </div>
   <div class="ig">
     <div class="il">Interest Rate <span id="lbl-rate">6.2%</span></div>
-    <div class="iw"><input type="number" class="pct" id="inp-rate" value="0" min="1" max="20" step="0.1" oninput="syncRange('rate');dRecalc()"><span class="isfx">%</span></div>
+    <div class="iw"><input type="number" class="pct" id="inp-rate" value="0" min="1" max="20" step="0.1" oninput="var _v=parseFloat(this.value);if(_v>20)this.value=20;syncRange('rate');dRecalc()"><span class="isfx">%</span></div>
     <input type="range" id="rng-rate" min="1" max="20" step="0.1" value="1" oninput="syncInput('rate');dRecalc()">
   </div>
   <div class="ig">
     <div class="il">Loan Term <span id="lbl-term">30 yrs</span></div>
-    <div class="iw"><input type="number" id="inp-term" value="0" min="5" max="50" step="1" oninput="syncRange('term');dRecalc()"></div>
+    <div class="iw"><input type="number" id="inp-term" value="0" min="5" max="50" step="1" oninput="var _v=parseFloat(this.value);if(_v>50)this.value=50;syncRange('term');dRecalc()"></div>
     <input type="range" id="rng-term" min="5" max="50" step="1" value="5" oninput="syncInput('term');dRecalc()">
   </div>
   <div class="ig">
@@ -253,7 +253,7 @@
   </div>
   <div class="ig" style="display:none;">
     <div class="il">Contingency % <span id="lbl-cont">15%</span></div>
-    <div class="iw"><input type="number" class="pct" id="inp-cont" value="0" min="0" max="50" step="1" oninput="syncRange('cont');dRecalc()"><span class="isfx">%</span></div>
+    <div class="iw"><input type="number" class="pct" id="inp-cont" value="0" min="0" max="50" step="1" oninput="var _v=parseFloat(this.value);if(_v>50)this.value=50;syncRange('cont');dRecalc()"><span class="isfx">%</span></div>
     <input type="range" id="rng-cont" min="0" max="50" step="1" value="0" oninput="syncInput('cont');dRecalc()">
   </div>
   </div>
