@@ -282,21 +282,7 @@
   var page = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
   var mdUrl = page + '.md';
 
-  // Check for admin-edited content in localStorage first
-  var customContent = null;
-  try {
-    var stored = localStorage.getItem('propCalc_legalPages_v1');
-    if (stored) {
-      var pages = JSON.parse(stored);
-      customContent = pages[page] || null;
-    }
-  } catch (e) {}
-
-  if (customContent) {
-    // Use custom content from localStorage
-    render(customContent);
-  } else {
-    // Fall back to fetching .md file
+  function loadFromMd() {
     fetch(mdUrl)
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -311,5 +297,23 @@
         console.warn('[legal.js] Failed to load ' + mdUrl + ':', err);
       });
   }
+
+  // Try API for admin-edited content, fall back to .md file
+  fetch('/.netlify/functions/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'getLegalPage', page: page })
+  })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (d && d.ok && d.content) {
+        render(d.content);
+      } else {
+        loadFromMd();
+      }
+    })
+    .catch(function () {
+      loadFromMd();
+    });
 
 })();

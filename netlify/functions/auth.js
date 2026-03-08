@@ -786,6 +786,14 @@ exports.handler = async function(event){
     return ok({ok:true});
   }
 
+  // Public endpoint — no auth required (used by legal pages to check for admin-edited content)
+  if(action==='getLegalPage'){
+    const {page}=body;
+    if(!page||!['privacy','terms','disclaimer','cookies'].includes(page)) return fail('Invalid page');
+    const content=await rGet('siteConfig:legal:'+page).catch(()=>null);
+    return ok({ok:true, content: content || null});
+  }
+
   if(action==='adminGetLegalPage'){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
