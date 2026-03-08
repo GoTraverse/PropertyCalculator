@@ -2561,6 +2561,24 @@ async function resetLegalPage(){
   }
 }
 
+async function reloadLegalFromFile(){
+  const page = document.getElementById('legal-page-select').value || 'privacy';
+  const st = document.getElementById('legal-page-status');
+
+  st.textContent = 'Fetching current .md file…'; st.className = 'admin-status info';
+
+  try {
+    const r = await fetch(`/${page}.md?_=${Date.now()}`);
+    if(!r.ok) throw new Error(`Failed to fetch ${page}.md`);
+    const content = await r.text();
+    document.getElementById('legal-content-editor').value = content;
+    st.textContent = '✓ Loaded from .md file. Click "Save & Update" to import into Redis.'; st.className = 'admin-status success';
+    setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 4000);
+  } catch(e) {
+    st.textContent = 'Error: ' + e.message; st.className = 'admin-status error';
+  }
+}
+
 function previewLegalPage(){
   const content = document.getElementById('legal-content-editor').value;
   const overlay = document.getElementById('legal-preview-overlay');
