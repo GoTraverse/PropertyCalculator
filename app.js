@@ -392,6 +392,17 @@
         try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.photo; applyPropPhoto(draft.photo); }catch(pe){}
       }
       applyScenarioState(draft.state, null);
+      // Clamp any extreme values that may have been saved before limits were added
+      const _draftClamps = [
+        {id:'inp-price',  max:50000000},
+        {id:'inp-savings',max:50000000},
+        {id:'inp-rate',   max:20},
+        {id:'inp-term',   max:50},
+      ];
+      _draftClamps.forEach(function(c){
+        const el = document.getElementById(c.id);
+        if(el && parseFloat(el.value) > c.max){ el.value = c.max; }
+      });
       // Always land on property tab after restore
       const propTabBtn = document.querySelector('.tab[onclick*="property"]');
       if(propTabBtn) showTab('property', propTabBtn);
@@ -3180,6 +3191,12 @@
   let _currentUser  = null; // null=guest, {name,email,id}=logged in
 
   var SPLASH_SEEN_KEY = 'propCalc_splash_seen';
+  // ?reset URL param clears stuck draft (useful if extreme values broke the app)
+  if(new URLSearchParams(window.location.search).has('reset')){
+    try{ lsSet('propCalc_draft_v1', null); localStorage.removeItem('propCalc_draft_v1'); }catch(e){}
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState(null, '', cleanUrl);
+  }
   const _hadDraft = restoreDraft();
   recalc();
   updatePropertyDetails();
