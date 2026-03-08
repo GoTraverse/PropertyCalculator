@@ -282,8 +282,8 @@
   .site-footer-grid { grid-template-columns: 1fr!important; gap: 28px; }
   .footer-bottom { flex-direction: column!important; gap: 10px; text-align: center; }
   .footer-bottom-links { justify-content: center!important; }
-  .nav-hamburger { display: flex!important; }
-  .site-nav-links { display: none; }
+  .nav-hamburger { display: none !important; }
+  .site-nav-links { display: flex !important; }
   .site-nav-inner { padding: 0 16px; }
   /* "What it does" 3-col strip — stack on small screens */
   .feat-strip-grid { grid-template-columns: 1fr!important; }

@@ -47,8 +47,8 @@
   <div class="about-hero-inner">
     <div>
       <div class="about-eyebrow">Our story</div>
-      <h1 class="about-h1">Built by buyers,<br>for buyers.</h1>
-      <p class="about-lead">We got frustrated trying to understand the Shared Equity Scheme using government PDFs and a spreadsheet. So we built the tool we wished existed.</p>
+      <h1 class="about-h1" id="about-h1">Built by buyers,<br>for buyers.</h1>
+      <p class="about-lead" id="about-lead">We got frustrated trying to understand the Shared Equity Scheme using government PDFs and a spreadsheet. So we built the tool we wished existed.</p>
     </div>
     <div class="about-stat-grid">
       <div class="about-stat"><div class="about-stat-n">3</div><div class="about-stat-l">State schemes supported</div></div>
@@ -62,8 +62,8 @@
 <section class="about-story">
   <div class="about-story-inner">
     <div class="section-tag">How it started</div>
-    <h2>The spreadsheet that became an app.</h2>
-    <p>In 2023, trying to figure out whether the Queensland Shared Equity Scheme actually made sense for our budget, we built a spreadsheet. It had 14 tabs, nested formulas, and still couldn't tell us what we owed the government in year 10.</p>
+    <h2 id="about-story-h2">The spreadsheet that became an app.</h2>
+    <p id="about-story-p1">In 2023, trying to figure out whether the Queensland Shared Equity Scheme actually made sense for our budget, we built a spreadsheet. It had 14 tabs, nested formulas, and still couldn't tell us what we owed the government in year 10.</p>
     <p>We started talking to other first home buyers and heard the same story over and over. The scheme is genuinely useful — it lets people who couldn't otherwise afford a deposit get into the market. But it's complex, and the complexity was stopping people from using it confidently.</p>
     <div class="pullquote">
       <p>"We wanted a tool that told you the full cost, the 30-year picture, and the break-even point — all from one place."</p>
@@ -145,6 +145,22 @@
 
 <div id="site-footer-root"></div>
 <script src="footer.js"></script>
+
+<script>
+// Load custom about page content if admin has edited it
+(function(){
+  try {
+    const stored = localStorage.getItem('propCalc_aboutPage_v1');
+    if(stored) {
+      const data = JSON.parse(stored);
+      if(data.heroH1) document.getElementById('about-h1').innerHTML = data.heroH1;
+      if(data.heroLead) document.getElementById('about-lead').textContent = data.heroLead;
+      if(data.storyH2) document.getElementById('about-story-h2').textContent = data.storyH2;
+      if(data.storyP1) document.getElementById('about-story-p1').textContent = data.storyP1;
+    }
+  } catch(e) {}
+})();
+</script>
 
 </body>
 </html>

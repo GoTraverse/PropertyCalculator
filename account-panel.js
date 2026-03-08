@@ -231,9 +231,14 @@
     if (el('ap2-email-display')) el('ap2-email-display').textContent = email;
     if (el('ap2-name'))          el('ap2-name').value                = name;
 
+    var cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); } catch(e) {}
+    var freeLimit = cfg.freeScenarioLimit || 1;
+    var proPrice = cfg.proMonthlyPrice || 9;
+    var advPrice = cfg.adviserMonthlyPrice || 29;
     var planLabel = plan === 'free' ? '&#x2B50; Starter' : (plan === 'pro' ? '&#x26A1; Pro' : '&#x1F451; Adviser');
-    var planName  = plan === 'free' ? 'Starter (Free)'  : (plan === 'pro' ? 'Pro \u2014 A$9/mo AUD' : 'Adviser \u2014 A$29/mo AUD');
-    var planDesc  = plan === 'free' ? '1 saved scenario \u00B7 Core calculator' : 'Unlimited scenarios \u00B7 Cloud sync \u00B7 PDF export';
+    var planName  = plan === 'free' ? 'Starter (Free)'  : (plan === 'pro' ? `Pro \u2014 A$${proPrice.toFixed(2)}/mo AUD` : `Adviser \u2014 A$${advPrice.toFixed(2)}/mo AUD`);
+    var planDesc  = plan === 'free' ? `${freeLimit} saved scenario${freeLimit > 1 ? 's' : ''} \u00B7 Core calculator` : 'Unlimited scenarios \u00B7 Cloud sync \u00B7 PDF export';
 
     if (el('ap2-plan-display')) el('ap2-plan-display').innerHTML   = planLabel;
     if (el('ap2-plan-name'))    el('ap2-plan-name').textContent     = planName;
