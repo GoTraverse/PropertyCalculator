@@ -282,18 +282,34 @@
   var page = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
   var mdUrl = page + '.md';
 
-  fetch(mdUrl)
-    .then(function (r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.text();
-    })
-    .then(render)
-    .catch(function (err) {
-      var el = document.getElementById('legal-content');
-      if (el) el.innerHTML =
-        '<p style="color:rgba(28,28,30,0.4);text-align:center;padding:40px 0;">' +
-        'Content unavailable. Please try refreshing the page.</p>';
-      console.warn('[legal.js] Failed to load ' + mdUrl + ':', err);
-    });
+  // Check for admin-edited content in localStorage first
+  var customContent = null;
+  try {
+    var stored = localStorage.getItem('propCalc_legalPages_v1');
+    if (stored) {
+      var pages = JSON.parse(stored);
+      customContent = pages[page] || null;
+    }
+  } catch (e) {}
+
+  if (customContent) {
+    // Use custom content from localStorage
+    render(customContent);
+  } else {
+    // Fall back to fetching .md file
+    fetch(mdUrl)
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      })
+      .then(render)
+      .catch(function (err) {
+        var el = document.getElementById('legal-content');
+        if (el) el.innerHTML =
+          '<p style="color:rgba(28,28,30,0.4);text-align:center;padding:40px 0;">' +
+          'Content unavailable. Please try refreshing the page.</p>';
+        console.warn('[legal.js] Failed to load ' + mdUrl + ':', err);
+      });
+  }
 
 })();

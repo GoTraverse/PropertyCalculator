@@ -2340,4 +2340,257 @@ async function resetAboutPage(){
   }
 }
 
+// ── Legal Pages Editor ─────────────────────────────────────────────────────
+const LEGAL_PAGES_KEY = 'propCalc_legalPages_v1';
+const LEGAL_PAGES = ['privacy', 'terms', 'disclaimer', 'cookies'];
+
+const DEFAULT_LEGAL_PAGES = {
+  privacy: `---
+title: Privacy Policy
+date: 2026-03-08
+tag: Legal
+---
+
+> **Summary:** We collect only what we need, never sell your data, and you can request deletion anytime.
+
+## 1. Who we are
+
+[COMPANY NAME] operates equitysight.app. This Privacy Policy explains how we collect and protect your information.
+
+## 2. Information we collect
+
+- Account information (name, email)
+- Property scenarios you enter
+- Device and usage data
+
+## 3. How we use your information
+
+We use your information to:
+- Provide and operate the service
+- Keep your account secure
+- Respond to support requests
+- Improve features based on usage
+
+## 4. Data protection
+
+Your data is protected with encryption and stored securely.
+
+## 5. Your rights
+
+You can request a copy of your data or deletion of your account at any time.
+`,
+
+  terms: `---
+title: Terms of Service
+date: 2026-03-08
+tag: Legal
+---
+
+> **Summary:** EquitySight is provided as-is. Use it to model scenarios, not as financial advice.
+
+## 1. Acceptance of terms
+
+By using EquitySight, you agree to these terms.
+
+## 2. Use license
+
+You may use this service for personal, non-commercial property planning only.
+
+## 3. Disclaimer
+
+EquitySight is a calculator, not financial advice. Always consult a licensed adviser before major decisions.
+
+## 4. Limitation of liability
+
+We are not liable for indirect damages or loss of data.
+
+## 5. Changes to terms
+
+We may update these terms at any time.
+`,
+
+  disclaimer: `---
+title: Disclaimer
+date: 2026-03-08
+tag: Legal
+---
+
+> ⚠ **Important:** EquitySight is a property finance calculator, not financial advice.
+
+## What this tool does
+
+EquitySight helps you model property investment scenarios and understand long-term costs.
+
+## What this tool does NOT do
+
+- Provide licensed financial advice
+- Guarantee accuracy of government scheme details
+- Replace consultation with professionals
+
+## Important limitations
+
+- Property values and growth are estimates
+- Market conditions change frequently
+- Tax and legal rules vary by jurisdiction
+- Shared equity schemes have complex eligibility rules
+
+## Always consult professionals
+
+Before making any property decision, consult:
+- A licensed financial adviser
+- Your bank or mortgage broker
+- A tax professional
+- A lawyer (for legal matters)
+
+Your decisions are your responsibility.
+`,
+
+  cookies: `---
+title: Cookies Policy
+date: 2026-03-08
+tag: Legal
+---
+
+> **Summary:** We use minimal cookies. Your session is stored locally on your device.
+
+## What are cookies?
+
+Cookies are small text files stored on your device.
+
+## How we use cookies
+
+We use:
+- Session tokens (30-day expiry, stored in localStorage)
+- Theme preference (light/dark mode)
+- No tracking cookies
+
+## Third-party services
+
+We use Stripe (payments) and Resend (email). They have their own privacy policies.
+
+## Disabling cookies
+
+Most browsers let you disable cookies in settings. You can still use EquitySight without cookies.
+
+## Questions?
+
+If you have questions about our privacy practices, contact us via the support form on the site.
+`
+};
+
+async function loadLegalPagesList(){
+  const st = document.getElementById('legal-page-status');
+  st.textContent = 'Loading…'; st.className = 'admin-status info';
+
+  const page = document.getElementById('legal-page-select').value || 'privacy';
+  await loadLegalPage(page);
+}
+
+async function loadLegalPage(page){
+  if(!LEGAL_PAGES.includes(page)) page = 'privacy';
+  document.getElementById('legal-page-select').value = page;
+
+  const st = document.getElementById('legal-page-status');
+  st.textContent = 'Loading…'; st.className = 'admin-status info';
+
+  const d = await callAuth('adminGetLegalPage', {page});
+
+  let content = DEFAULT_LEGAL_PAGES[page];
+  if(d.ok && d.content){
+    content = d.content;
+  }
+
+  const editor = document.getElementById('legal-content-editor');
+  editor.value = content;
+  try {
+    const pages = JSON.parse(localStorage.getItem(LEGAL_PAGES_KEY) || '{}');
+    pages[page] = content;
+    localStorage.setItem(LEGAL_PAGES_KEY, JSON.stringify(pages));
+  } catch(e){}
+
+  st.textContent = '';
+  st.className = 'admin-status';
+}
+
+async function saveLegalPage(){
+  const page = document.getElementById('legal-page-select').value || 'privacy';
+  const content = document.getElementById('legal-content-editor').value;
+  const st = document.getElementById('legal-page-status');
+
+  st.textContent = 'Saving…'; st.className = 'admin-status info';
+
+  const d = await callAuth('adminSetLegalPage', {page, content});
+
+  if(d.ok){
+    try {
+      const pages = JSON.parse(localStorage.getItem(LEGAL_PAGES_KEY) || '{}');
+      pages[page] = content;
+      localStorage.setItem(LEGAL_PAGES_KEY, JSON.stringify(pages));
+    } catch(e){}
+    st.textContent = '✓ Saved. Page will update on next visit.'; st.className = 'admin-status success';
+    setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 3000);
+  } else {
+    st.textContent = 'Error: ' + (d.error || 'Failed to save'); st.className = 'admin-status error';
+  }
+}
+
+async function resetLegalPage(){
+  const page = document.getElementById('legal-page-select').value || 'privacy';
+  const ok = await customConfirm('Reset to default?', `This will restore the default ${page} page content.`, {danger: true});
+  if(!ok) return;
+
+  const d = await callAuth('adminResetLegalPage', {page});
+  const st = document.getElementById('legal-page-status');
+
+  if(d.ok){
+    const content = DEFAULT_LEGAL_PAGES[page];
+    document.getElementById('legal-content-editor').value = content;
+    try {
+      const pages = JSON.parse(localStorage.getItem(LEGAL_PAGES_KEY) || '{}');
+      pages[page] = content;
+      localStorage.setItem(LEGAL_PAGES_KEY, JSON.stringify(pages));
+    } catch(e){}
+    st.textContent = '✓ Reset to defaults'; st.className = 'admin-status success';
+    setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 3000);
+  } else {
+    st.textContent = 'Error: ' + (d.error || 'Failed to reset'); st.className = 'admin-status error';
+  }
+}
+
+function previewLegalPage(){
+  const content = document.getElementById('legal-content-editor').value;
+  const overlay = document.getElementById('legal-preview-overlay');
+  const titleEl = document.getElementById('legal-preview-title');
+  const bodyEl = document.getElementById('legal-preview-body');
+
+  // Simple frontmatter parser
+  let title = 'Legal Page';
+  let body = content;
+  const fmMatch = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
+  if(fmMatch){
+    const fm = {};
+    fmMatch[1].split('\n').forEach(line=>{
+      const [k,v] = line.split(':');
+      if(k) fm[k.trim()] = v.trim();
+    });
+    title = fm.title || 'Legal Page';
+    body = fmMatch[2];
+  }
+
+  titleEl.textContent = title;
+
+  // Basic markdown preview (just render as HTML-safe text with line breaks)
+  const preview = body.split('\n').map(line=>{
+    if(/^## /.test(line)) return '<h2 style="margin:20px 0 12px;font-size:18px;font-weight:600;">' + line.slice(3) + '</h2>';
+    if(/^### /.test(line)) return '<h3 style="margin:16px 0 8px;font-size:15px;font-weight:600;">' + line.slice(4) + '</h3>';
+    if(/^> /.test(line)) return '<div style="background:#F9F5ED;border-left:3px solid #C9A84C;padding:12px 16px;margin:12px 0;border-radius:0 4px 4px 0;">' + line.slice(2) + '</div>';
+    if(/^- /.test(line)) return '<li style="margin-left:20px;">' + line.slice(2) + '</li>';
+    if(line.trim() === '') return '<br>';
+    return '<p style="margin:8px 0;">' + line + '</p>';
+  }).join('');
+
+  bodyEl.innerHTML = preview;
+  overlay.style.display = 'flex';
+}
+
 document.addEventListener('DOMContentLoaded', init);

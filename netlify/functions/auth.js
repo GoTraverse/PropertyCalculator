@@ -786,5 +786,33 @@ exports.handler = async function(event){
     return ok({ok:true});
   }
 
+  if(action==='adminGetLegalPage'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {page}=body;
+    if(!page||!['privacy','terms','disclaimer','cookies'].includes(page)) return fail('Invalid page');
+    const content=await rGet('siteConfig:legal:'+page).catch(()=>null);
+    return ok({ok:true, content: content || null});
+  }
+
+  if(action==='adminSetLegalPage'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {page, content}=body;
+    if(!page||!['privacy','terms','disclaimer','cookies'].includes(page)) return fail('Invalid page');
+    if(!content) return fail('content required');
+    await rSet('siteConfig:legal:'+page, String(content).slice(0,50000));
+    return ok({ok:true});
+  }
+
+  if(action==='adminResetLegalPage'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {page}=body;
+    if(!page||!['privacy','terms','disclaimer','cookies'].includes(page)) return fail('Invalid page');
+    await rDel('siteConfig:legal:'+page);
+    return ok({ok:true});
+  }
+
   return fail('Unknown action');
 };
