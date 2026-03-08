@@ -2265,4 +2265,79 @@ async function sendTestEmail(){
   }
 }
 
+// ── About Page Editor ─────────────────────────────────────────────────────
+const ABOUT_PAGE_KEY = 'propCalc_aboutPage_v1';
+
+const DEFAULT_ABOUT = {
+  heroH1: 'Built by buyers,<br>for buyers.',
+  heroLead: 'We got frustrated trying to understand the Shared Equity Scheme using government PDFs and a spreadsheet. So we built the tool we wished existed.',
+  storyH2: 'The spreadsheet that became an app.',
+  storyP1: 'In 2023, trying to figure out whether the Queensland Shared Equity Scheme actually made sense for our budget, we built a spreadsheet. It had 14 tabs, nested formulas, and still couldn\'t tell us what we owed the government in year 10.'
+};
+
+async function loadAboutPage(){
+  const st = document.getElementById('about-page-status');
+  st.textContent = 'Loading…'; st.className = 'admin-status info';
+
+  const d = await callAuth('adminGetAboutPage');
+  let aboutData = DEFAULT_ABOUT;
+
+  if(d.ok && d.about){
+    aboutData = d.about;
+  }
+
+  setV('about-hero-h1', aboutData.heroH1);
+  setV('about-hero-lead', aboutData.heroLead);
+  setV('about-story-h2', aboutData.storyH2);
+  setV('about-story-p1', aboutData.storyP1);
+
+  // Cache locally
+  try { localStorage.setItem(ABOUT_PAGE_KEY, JSON.stringify(aboutData)); } catch(e){}
+
+  st.textContent = '';
+  st.className = 'admin-status';
+}
+
+async function saveAboutPage(){
+  const st = document.getElementById('about-page-status');
+  st.textContent = 'Saving…'; st.className = 'admin-status info';
+
+  const aboutData = {
+    heroH1: getV('about-hero-h1', ''),
+    heroLead: getV('about-hero-lead', ''),
+    storyH2: getV('about-story-h2', ''),
+    storyP1: getV('about-story-p1', '')
+  };
+
+  const d = await callAuth('adminSetAboutPage', { about: aboutData });
+
+  if(d.ok){
+    try { localStorage.setItem(ABOUT_PAGE_KEY, JSON.stringify(aboutData)); } catch(e){}
+    st.textContent = '✓ Changes saved'; st.className = 'admin-status success';
+    setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 3000);
+  } else {
+    st.textContent = 'Error: ' + (d.error || 'Failed to save'); st.className = 'admin-status error';
+  }
+}
+
+async function resetAboutPage(){
+  const ok = await customConfirm('Reset about page?', 'This will restore the default content. Your custom changes will be lost.', { danger: true });
+  if(!ok) return;
+
+  const d = await callAuth('adminSetAboutPage', { about: DEFAULT_ABOUT });
+  const st = document.getElementById('about-page-status');
+
+  if(d.ok){
+    try { localStorage.setItem(ABOUT_PAGE_KEY, JSON.stringify(DEFAULT_ABOUT)); } catch(e){}
+    setV('about-hero-h1', DEFAULT_ABOUT.heroH1);
+    setV('about-hero-lead', DEFAULT_ABOUT.heroLead);
+    setV('about-story-h2', DEFAULT_ABOUT.storyH2);
+    setV('about-story-p1', DEFAULT_ABOUT.storyP1);
+    st.textContent = '✓ Reset to defaults'; st.className = 'admin-status success';
+    setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 3000);
+  } else {
+    st.textContent = 'Error: ' + (d.error || 'Failed to reset'); st.className = 'admin-status error';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', init);

@@ -770,5 +770,21 @@ exports.handler = async function(event){
     return ok({ok:true,code,link:siteUrl+'/login.html?ref='+code+'&tab=signup',referralCount:userData.referralCount||0});
   }
 
+  if(action==='adminGetAboutPage'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const about=await rGet('siteConfig:aboutPage').catch(()=>null);
+    return ok({ok:true, about: about || null});
+  }
+
+  if(action==='adminSetAboutPage'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {about}=body;
+    if(!about) return fail('about data required');
+    await rSet('siteConfig:aboutPage', about);
+    return ok({ok:true});
+  }
+
   return fail('Unknown action');
 };

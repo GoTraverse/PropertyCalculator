@@ -183,6 +183,7 @@
     <button class="admin-tab" onclick="showAdminTab('config',this);loadConfig();">Configuration</button>
     <button class="admin-tab" onclick="showAdminTab('branding',this);loadConfig();">Branding</button>
     <button class="admin-tab" onclick="showAdminTab('email-templates',this);loadEmailTemplates();">Email Templates</button>
+    <button class="admin-tab" onclick="showAdminTab('about-page',this);loadAboutPage();">About Page</button>
   </div>
 
   <!-- USERS TAB -->
@@ -761,6 +762,40 @@
           <button class="btn-admin-outline" onclick="previewEmailTemplate()">Preview</button>
           <button class="btn-admin-outline" id="et-test-btn" onclick="sendTestEmail()">Send Test Email</button>
           <div id="et-status" class="admin-status" style="margin:0;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT PAGE TAB -->
+  <div class="admin-section" id="tab-about-page">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>About Page</h3>
+        <span style="font-size:11px;color:var(--slate);">Edit the hero section and main story text. Changes appear immediately on about.html.</span>
+      </div>
+      <div style="padding:24px;">
+        <div style="margin-bottom:16px;">
+          <label class="config-label">Hero Headline</label>
+          <input class="config-input" id="about-hero-h1" type="text" style="width:100%;" placeholder="Built by buyers,&#10;for buyers.">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="config-label">Hero Subheading</label>
+          <textarea id="about-hero-lead" class="config-input" style="width:100%;min-height:60px;resize:vertical;" placeholder="We got frustrated trying to understand..."></textarea>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="config-label">Story Heading</label>
+          <input class="config-input" id="about-story-h2" type="text" style="width:100%;" placeholder="The spreadsheet that became an app.">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="config-label">Story Body (first paragraph)</label>
+          <textarea id="about-story-p1" class="config-input" style="width:100%;min-height:80px;resize:vertical;font-family:var(--font-mono);font-size:12px;" placeholder="In 2023, trying to figure out..."></textarea>
+        </div>
+        <div id="about-page-status" class="admin-status" style="margin-bottom:16px;"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-admin btn-admin-primary" onclick="saveAboutPage()">Save Changes</button>
+          <button class="btn-admin-outline" onclick="resetAboutPage()">Reset to Default</button>
+          <a href="about.html" class="btn-admin-outline" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;padding:10px 18px;">Preview on Site →</a>
         </div>
       </div>
     </div>
