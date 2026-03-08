@@ -438,14 +438,14 @@
             <div class="pd-field">
               <label class="pd-label">Street Address</label>
               <div class="addr-wrap">
-                <input type="text" id="pd-address" value="" autocomplete="off" oninput="updatePropertyDetails();addrAutocomplete(this.value)" onblur="setTimeout(()=>hideAddrSuggestions(),200)" placeholder="e.g. 54 Southampton St">
+                <input type="text" id="pd-address" value="" autocomplete="off" maxlength="60" oninput="updatePropertyDetails();addrAutocomplete(this.value)" onblur="setTimeout(()=>hideAddrSuggestions(),200)" placeholder="e.g. 54 Southampton St">
                 <div id="addr-suggestions" class="addr-suggestions"></div>
               </div>
             </div>
             <div class="g2" style="gap:10px;margin-top:10px;">
               <div class="pd-field">
                 <label class="pd-label">Suburb</label>
-                <input type="text" id="pd-suburb" value="" oninput="onSuburbChange()" placeholder="e.g. Kedron">
+                <input type="text" id="pd-suburb" value="" maxlength="30" oninput="onSuburbChange()" placeholder="e.g. Kedron">
               </div>
               <div class="pd-field">
                 <label class="pd-label">State</label>
@@ -1188,7 +1188,7 @@
 </div>
 
 <!-- ══ TOP-RIGHT PROFILE WIDGET — rendered by auth-nav.js ══ -->
-<div class="site-nav-actions" style="position:fixed;top:max(12px, calc(env(safe-area-inset-top) + 8px));right:28px;z-index:1900;"></div>
+<div class="site-nav-actions" style="position:fixed;top:max(28px, calc(env(safe-area-inset-top) + 20px));right:28px;z-index:1900;"></div>
 
 </body>
 </html>
