@@ -978,6 +978,14 @@
         renderPlan();
         if(window.renderSiteNav) window.renderSiteNav();
       }
+      // Always update subscription status fields if present
+      if(d.canceledAt || d.expiresAt || d.renewsAt){
+        if(d.canceledAt) session.canceledAt = d.canceledAt;
+        if(d.expiresAt) session.expiresAt = d.expiresAt;
+        if(d.renewsAt) session.renewsAt = d.renewsAt;
+        try{ localStorage.setItem(SK, JSON.stringify(session)); }catch(e){}
+        renderPlan();
+      }
       return changed;
     }
 
