@@ -268,7 +268,11 @@ exports.handler = async function(event){
     await logEvent(user.id,'signin',{ip:user.lastLoginIp||''});
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email||email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    return ok({ok:true,token,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'});
+    const result={ok:true,token,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'};
+    if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
+    if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
+    if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
+    return ok(result);
   }
 
   if(action==='resendVerification'){
@@ -316,7 +320,11 @@ exports.handler = async function(event){
     sendWelcomeEmail(normalizedEmail, user.name).catch(()=>{});
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    return ok({ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'});
+    const result={ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'};
+    if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
+    if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
+    if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
+    return ok(result);
   }
 
   if(action==='verify'){
@@ -330,6 +338,10 @@ exports.handler = async function(event){
       if(userData){
         data.plan=userData.plan||data.plan;
         data.role=userData.role||data.role;
+        // Include subscription status fields
+        if(userData.subscription_canceled_at) data.canceledAt=userData.subscription_canceled_at;
+        if(userData.subscription_expires_at) data.expiresAt=userData.subscription_expires_at;
+        if(userData.subscription_renews_at) data.renewsAt=userData.subscription_renews_at;
       }
     }catch(e){}
     return ok({ok:true,...data});

@@ -223,14 +223,18 @@
   }
 
   function persistSession(res, fallback){
-    localStorage.setItem('propCalc_session_v1', JSON.stringify({
+    const session={
       id:res.id||fallback.email,
       name:res.name||fallback.name||fallback.email.split('@')[0],
       email:res.email||fallback.email,
       token:res.token||null,
       plan:res.plan||fallback.plan||'free',
       role:res.role||'user'
-    }));
+    };
+    if(res.canceledAt) session.canceledAt=res.canceledAt;
+    if(res.expiresAt) session.expiresAt=res.expiresAt;
+    if(res.renewsAt) session.renewsAt=res.renewsAt;
+    localStorage.setItem('propCalc_session_v1', JSON.stringify(session));
   }
 
   function postVerificationRedirect(plan){
