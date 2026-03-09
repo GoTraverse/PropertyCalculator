@@ -84,7 +84,7 @@
         <button class="export-btn hdr-desktop-btn" id="open-saved-btn" onclick="openScenariosModal()" title="Browse saved scenarios">
           📁 Library <span id="saved-count" style="display:none;background:var(--gold);color:var(--charcoal);border-radius:10px;padding:1px 6px;font-size:9px;margin-left:3px;vertical-align:middle;">0</span>
         </button>
-        <button class="export-btn hdr-desktop-btn" onclick="if(isPro()){showPDFOptionsPopup();}else{requirePro('PDF Export');}" title="Export to PDF (Pro)">
+        <button class="export-btn hdr-desktop-btn" onclick="if(window.isPro()){window.showPDFOptionsPopup();}else{window.requirePro('PDF Export');}" title="Export to PDF (Pro)">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           PDF
         </button>
@@ -1180,15 +1180,15 @@
 
       <!-- Action buttons -->
       <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
-        <button onclick="closePDFOptionsModal()" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>
-        <button onclick="showPDFPreview()" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">🖨 Generate PDF</button>
+        <button onclick="window.closePDFOptionsModal()" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>
+        <button onclick="window.showPDFPreview()" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">🖨 Generate PDF</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- PDF Preview Window with large Share/Print buttons -->
-<div id="pdf-preview-modal" style="display:none;position:fixed;inset:0;z-index:6001;background:rgba(0,0,0,0.5);padding:16px;align-items:center;justify-content:center;" onclick="if(event.target===this)closePDFPreview()">
+<div id="pdf-preview-modal" style="display:none;position:fixed;inset:0;z-index:6001;background:rgba(0,0,0,0.5);padding:16px;align-items:center;justify-content:center;" onclick="if(event.target===this)window.closePDFPreview()">
   <div style="background:#F5F0E8;border-radius:8px;width:min(520px,96vw);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.55);">
     <!-- Preview header -->
     <div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -1196,7 +1196,7 @@
         <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">PDF PREVIEW</div>
         <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#F5F0E8;" id="pdf-preview-title">Property Report</div>
       </div>
-      <button onclick="closePDFPreview()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+      <button onclick="window.closePDFPreview()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
     <!-- Preview content -->
     <div id="pdf-preview-content" style="flex:1;overflow-y:auto;padding:20px;">
@@ -1204,8 +1204,8 @@
     </div>
     <!-- Action buttons - fixed at bottom -->
     <div style="padding:16px 22px;background:#F5F0E8;border-top:1px solid rgba(28,28,30,0.1);display:grid;grid-template-columns:1fr 1fr;gap:10px;flex-shrink:0;border-radius:0 0 8px 8px;">
-      <button onclick="sharePDFExport()" style="padding:16px 14px;background:#7B9E87;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;color:white;letter-spacing:0.5px;">↗ Share</button>
-      <button onclick="printPDF()" style="padding:16px 14px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;color:#C9A84C;letter-spacing:0.5px;">🖨 Print</button>
+      <button onclick="window.sharePDFExport()" style="padding:16px 14px;background:#7B9E87;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;color:white;letter-spacing:0.5px;">↗ Share</button>
+      <button onclick="window.printPDF()" style="padding:16px 14px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;color:#C9A84C;letter-spacing:0.5px;">🖨 Print</button>
     </div>
   </div>
 </div>
