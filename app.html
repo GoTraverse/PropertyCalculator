@@ -1187,29 +1187,6 @@
   </div>
 </div>
 
-<!-- PDF Preview Window with large Share/Print buttons -->
-<div id="pdf-preview-modal" style="display:none;position:fixed;inset:0;z-index:6001;background:rgba(0,0,0,0.5);padding:16px;align-items:center;justify-content:center;" onclick="if(event.target===this)window.closePDFPreview()">
-  <div style="background:#F5F0E8;border-radius:8px;width:min(520px,96vw);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.55);">
-    <!-- Preview header -->
-    <div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">PDF PREVIEW</div>
-        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#F5F0E8;" id="pdf-preview-title">Property Report</div>
-      </div>
-      <button onclick="window.closePDFPreview()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
-    </div>
-    <!-- Preview content -->
-    <div id="pdf-preview-content" style="flex:1;overflow-y:auto;padding:20px;">
-      <div style="text-align:center;color:#4A4A52;padding:40px 20px;font-size:13px;">Generating PDF preview…</div>
-    </div>
-    <!-- Action buttons - fixed at bottom -->
-    <div style="padding:16px 22px;background:#F5F0E8;border-top:1px solid rgba(28,28,30,0.1);display:grid;grid-template-columns:1fr 1fr;gap:10px;flex-shrink:0;border-radius:0 0 8px 8px;">
-      <button onclick="window.sharePDFExport()" style="padding:16px 14px;background:#7B9E87;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;color:white;letter-spacing:0.5px;">↗ Share</button>
-      <button onclick="window.printPDF()" style="padding:16px 14px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;color:#C9A84C;letter-spacing:0.5px;">🖨 Print</button>
-    </div>
-  </div>
-</div>
-
 <!-- ══ TOP-RIGHT PROFILE WIDGET — rendered by auth-nav.js ══ -->
 <div class="site-nav-actions" style="position:fixed;top:max(28px, calc(env(safe-area-inset-top) + 20px));right:28px;z-index:1900;"></div>
 
