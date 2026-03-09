@@ -808,6 +808,20 @@
         cancelNote.textContent = '⚠️ Your subscription is cancelled and will end on '+endDate+'. You have full access until then.';
         cancelNote.style.display = 'block';
       }
+      // Also show session-based subscription status if available
+      if(cancelNote && !d.cancelAtPeriodEnd){
+        const canceledStatus = session?.canceledAt || session?.subscription_canceled_at;
+        const expiresAt = session?.expiresAt || session?.subscription_expires_at;
+        const renewsAt = session?.renewsAt || session?.subscription_renews_at;
+        if(canceledStatus && expiresAt){
+          const expiryDate = new Date(expiresAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+          cancelNote.textContent = '⚠️ Plan canceled — your access ends on '+expiryDate;
+          cancelNote.style.display = 'block';
+        } else if(renewsAt){
+          const renewDate = new Date(renewsAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+          if(periodEndEl) periodEndEl.textContent = renewDate;
+        }
+      }
     }catch(e){ if(pmEl) pmEl.textContent='—'; }
   }
 
@@ -985,6 +999,7 @@
         if(d.renewsAt) session.renewsAt = d.renewsAt;
         try{ localStorage.setItem(SK, JSON.stringify(session)); }catch(e){}
         renderPlan();
+        if(session.plan !== 'free') loadBillingStatus();
       }
       return changed;
     }

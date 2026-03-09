@@ -2453,52 +2453,13 @@
     const incTimeline  = document.getElementById('pdf-opt-timeline')?.checked === true;
     closePDFOptionsModal();
 
-    // Store options and show preview modal
-    window._pdfExportOptions = {size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline};
-    const previewModal = document.getElementById('pdf-preview-modal');
-    if(previewModal) {
-      previewModal.style.display = 'flex';
-      previewModal.style.alignItems = 'center';
-      previewModal.style.justifyContent = 'center';
-      const title = document.getElementById('pdf-preview-title');
-      const addr = document.getElementById('pd-address')?.value || 'Property';
-      if(title) title.textContent = addr;
-      incrementExportCount();
-    }
-  }
-  function closePDFPreview(){
-    const modal = document.getElementById('pdf-preview-modal');
-    if(modal) modal.style.display = 'none';
-    window._pdfExportOptions = null;
-  }
-  function printPDF(){
-    if(!window._pdfExportOptions) return;
-    closePDFPreview();
-    exportPDF(window._pdfExportOptions);
-  }
-  function sharePDFExport(){
-    const addr = document.getElementById('pd-address')?.value || 'Property';
-    const suburb = document.getElementById('pd-suburb')?.value || '';
-    const stateVal = document.getElementById('pd-state')?.value || '';
-    const fullAddr = [addr,suburb,stateVal].filter(Boolean).join(', ') || 'Property Scenario';
-
-    if(navigator.share){
-      navigator.share({
-        title: 'Property Analysis',
-        text: fullAddr + ' — Analysis from EquitySight',
-        url: window.location.href
-      }).catch(err => console.log('Share error:', err));
-    } else {
-      alert('Share not available on this device. Try copying the link instead.');
-    }
+    // Open PDF directly in new window with options
+    exportPDF({size, orient, colour: colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline});
   }
   // Assign all PDF functions to window for onclick handler access
   window.showPDFOptionsPopup = showPDFOptionsPopup;
   window.showPDFPreview = showPDFPreview;
-  window.closePDFPreview = closePDFPreview;
   window.closePDFOptionsModal = closePDFOptionsModal;
-  window.printPDF = printPDF;
-  window.sharePDFExport = sharePDFExport;
 
   function exportPDFWithOptions(){
     incrementExportCount(); // fire-and-forget — track export count against saved scenario
@@ -2839,6 +2800,12 @@
       <div style="font-size:10px;color:#666;line-height:1.5;">${p.desc}</div>
     </div>`).join('')}
   </div>` : ''}
+
+<!-- PDF Action Buttons -->
+<div style="padding:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;border-top:1px solid #eee;margin-top:20px;">
+  <button onclick="window.print()" style="padding:12px 20px;background:#1C1C1E;border:none;border-radius:4px;color:#C9A84C;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">🖨 Print</button>
+  <button onclick="navigator.share?navigator.share({title:'Property Analysis',text:'${fullAddr}',url:window.location.href}).catch(()=>{}):alert('Share not available');" style="padding:12px 20px;background:#7B9E87;border:none;border-radius:4px;color:white;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
+</div>
 </div>
 <script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
 
