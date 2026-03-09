@@ -133,9 +133,11 @@
         '<div class="ap2-section-title">Subscription</div>',
         '<div class="ap2-card">',
           '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">',
-            '<div>',
+            '<div style="flex:1;">',
               '<div style="font-size:13px;font-weight:600;color:#1C1C1E;" id="ap2-plan-name">Starter (Free)</div>',
               '<div style="font-size:12px;color:#4A4A52;margin-top:3px;" id="ap2-plan-desc">1 saved scenario · Core calculator</div>',
+              '<div style="font-size:11px;color:#C45A5A;margin-top:8px;display:none;padding:8px 10px;background:rgba(196,90,90,0.08);border-radius:3px;border-left:3px solid #C45A5A;" id="ap2-plan-canceled">Plan canceled — expires <span id="ap2-plan-expires"></span></div>',
+              '<div style="font-size:11px;color:#4A4A52;margin-top:8px;padding:8px 10px;background:rgba(201,168,76,0.08);border-radius:3px;" id="ap2-plan-renews" style="display:none;">Renews <span id="ap2-renew-date"></span></div>',
             '</div>',
             '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" onclick="location.href=\'pricing.html\'" style="display:none;">Upgrade to Pro &#x2192;</button>',
           '</div>',
@@ -244,6 +246,30 @@
     if (el('ap2-plan-name'))    el('ap2-plan-name').textContent     = planName;
     if (el('ap2-plan-desc'))    el('ap2-plan-desc').textContent     = planDesc;
     if (el('ap2-upgrade-btn'))  el('ap2-upgrade-btn').style.display = plan === 'free' ? '' : 'none';
+
+    // Show subscription status (canceled/expiry)
+    var canceledEl = el('ap2-plan-canceled');
+    var renewsEl = el('ap2-plan-renews');
+    if (canceledEl && renewsEl) {
+      var canceledStatus = sess.canceledAt || sess.subscription_canceled_at;
+      var expiresAt = sess.expiresAt || sess.subscription_expires_at;
+      var renewsAt = sess.renewsAt || sess.subscription_renews_at;
+
+      if (canceledStatus && expiresAt) {
+        var expiryDate = new Date(expiresAt).toLocaleDateString('en-AU', {year:'numeric', month:'short', day:'numeric'});
+        el('ap2-plan-expires').textContent = expiryDate;
+        canceledEl.style.display = '';
+        renewsEl.style.display = 'none';
+      } else if (renewsAt && plan !== 'free') {
+        var renewDate = new Date(renewsAt).toLocaleDateString('en-AU', {year:'numeric', month:'short', day:'numeric'});
+        el('ap2-renew-date').textContent = renewDate;
+        canceledEl.style.display = 'none';
+        renewsEl.style.display = '';
+      } else {
+        canceledEl.style.display = 'none';
+        renewsEl.style.display = 'none';
+      }
+    }
 
     // Colour swatches
     var cr = el('ap2-colors');
