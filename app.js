@@ -3317,6 +3317,7 @@
     // Load government schemes from backend/cache
     setTimeout(loadSchemesFromBackend, 200);
     // Background sync: refresh plan/role from server so admin changes take effect without re-login
+    // Also fetch latest profile including photo from Redis
     if(_currentUser && _currentUser.token && ON_NETLIFY){
       callAuthFn('verify', {token: _currentUser.token}).then(function(d){
         if(!d.ok) return;
@@ -3328,6 +3329,18 @@
           applyPlanUI();
           typeof renderSiteNav === 'function' && renderSiteNav();
         }
+        // Fetch latest profile from Redis (includes photo)
+        callAuthFn('getProfile', {}).then(function(p){
+          if(p.ok && p.profile){
+            try {
+              var PROFILE_BASE = 'propCalc_profile_v1';
+              var profileKey = PROFILE_BASE + '_' + (_currentUser.id || _currentUser.email || 'guest');
+              lsSet(profileKey, JSON.stringify(p.profile));
+              // Refresh profile display if panel is open
+              if(typeof apRenderPanel === 'function') apRenderPanel();
+            } catch(e) { console.log('Could not cache profile:', e); }
+          }
+        }).catch(function(){});
       }).catch(function(){});
     }
   }

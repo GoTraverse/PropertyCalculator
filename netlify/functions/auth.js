@@ -346,16 +346,29 @@ exports.handler = async function(event){
     if(!user) return fail('Unauthorized',401);
     if(action==='getProfile'){
       const p=await rGet('profile:'+user.userId)||{};
+      const photo=await rGet('photo:'+user.userId);
+      if(photo) p.photo=photo;
       return ok({ok:true,profile:p});
     }
     const {profile}=body;
     const existing=await rGet('profile:'+user.userId)||{};
     const merged={...existing,...profile};
-    delete merged.photo; // large photos use photo.js
+    delete merged.photo; // large photos use setPhoto action
     await rSet('profile:'+user.userId,merged);
     return ok({ok:true});
   }
 
+  if(action==='setPhoto'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user) return fail('Unauthorized',401);
+    const {photo}=body;
+    if(photo){
+      await rSet('photo:'+user.userId,photo);
+    } else {
+      await rDel('photo:'+user.userId);
+    }
+    return ok({ok:true});
+  }
 
   if(action==='changePassword'){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
