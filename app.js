@@ -3329,6 +3329,13 @@
           applyPlanUI();
           typeof renderSiteNav === 'function' && renderSiteNav();
         }
+        // Update subscription status fields
+        if(d.canceledAt || d.expiresAt || d.renewsAt){
+          if(d.canceledAt) _currentUser.canceledAt = d.canceledAt;
+          if(d.expiresAt) _currentUser.expiresAt = d.expiresAt;
+          if(d.renewsAt) _currentUser.renewsAt = d.renewsAt;
+          lsSet(SESSION_KEY, JSON.stringify(_currentUser));
+        }
         // Fetch latest profile from Redis (includes photo)
         callAuthFn('getProfile', {}).then(function(p){
           if(p.ok && p.profile){
