@@ -1,0 +1,5 @@
+﻿{
+  "Description": "Domain ownership verification file for Microsoft 365 - place in the website root",
+  "Domain": "EquitySight.app",
+  "Id": "b6fa176e-02e6-4ce8-b216-02ea3bc26c65"
+}
