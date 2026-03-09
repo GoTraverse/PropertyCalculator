@@ -2458,6 +2458,8 @@
     const previewModal = document.getElementById('pdf-preview-modal');
     if(previewModal) {
       previewModal.style.display = 'flex';
+      previewModal.style.alignItems = 'center';
+      previewModal.style.justifyContent = 'center';
       const title = document.getElementById('pdf-preview-title');
       const addr = document.getElementById('pd-address')?.value || 'Property';
       if(title) title.textContent = addr;
