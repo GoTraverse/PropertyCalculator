@@ -360,7 +360,20 @@ exports.handler = async function(event){
       const p=await rGet('profile:'+user.userId)||{};
       const photo=await rGet('photo:'+user.userId);
       if(photo) p.photo=photo;
-      return ok({ok:true,profile:p});
+      const result={ok:true,profile:p};
+      // Include latest plan and subscription status from user record
+      try{
+        const userData=await rGet('user:'+user.email);
+        if(userData){
+          result.plan=userData.plan||'free';
+          result.name=userData.name||user.name;
+          result.role=userData.role||'user';
+          if(userData.subscription_canceled_at) result.canceledAt=userData.subscription_canceled_at;
+          if(userData.subscription_expires_at) result.expiresAt=userData.subscription_expires_at;
+          if(userData.subscription_renews_at) result.renewsAt=userData.subscription_renews_at;
+        }
+      }catch(e){}
+      return ok(result);
     }
     const {profile}=body;
     const existing=await rGet('profile:'+user.userId)||{};
