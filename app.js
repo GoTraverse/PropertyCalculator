@@ -2437,6 +2437,23 @@
     const modal = document.getElementById('pdf-options-modal');
     if(modal) modal.style.display = 'none';
   }
+  function sharePDFExport(){
+    const addr = document.getElementById('pd-address')?.value || 'Property';
+    const suburb = document.getElementById('pd-suburb')?.value || '';
+    const stateVal = document.getElementById('pd-state')?.value || '';
+    const fullAddr = [addr,suburb,stateVal].filter(Boolean).join(', ') || 'Property Scenario';
+
+    if(navigator.share){
+      navigator.share({
+        title: 'Property Analysis',
+        text: fullAddr + ' — Analysis from EquitySight',
+        url: window.location.href
+      }).catch(err => console.log('Share error:', err));
+    } else {
+      alert('Share not available on this device. Try copying the link instead.');
+    }
+  }
+
   function exportPDFWithOptions(){
     incrementExportCount(); // fire-and-forget — track export count against saved scenario
     // Read values BEFORE closing modal so elements are still in DOM
