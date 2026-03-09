@@ -802,6 +802,8 @@
       if(d.currentPeriodEnd && periodEndEl){
         const dt = new Date(d.currentPeriodEnd * 1000);
         periodEndEl.textContent = dt.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+      } else if(periodEndEl && d.ok){
+        periodEndEl.textContent = 'Active subscription';
       }
       if(d.cancelAtPeriodEnd && cancelNote){
         const endDate = d.currentPeriodEnd ? new Date(d.currentPeriodEnd*1000).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}) : 'end of billing period';
