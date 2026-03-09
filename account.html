@@ -175,12 +175,7 @@
     <div class="acct-nav-divider"></div>
     <button class="acct-nav-item" onclick="showPanel('security',this)"><span class="ni">🔒</span> Security</button>
     <div class="acct-nav-divider"></div>
-    <div class="acct-nav-title">Tools</div>
-    <a href="mortgage-stress-calculator.html" class="acct-nav-item" style="text-decoration:none;cursor:pointer;"><span class="ni">💰</span> Stress Calculator</a>
-    <a href="rental-yield-calculator.html" class="acct-nav-item" style="text-decoration:none;cursor:pointer;"><span class="ni">📊</span> Rental Yield</a>
-    <a href="house-flip-calculator.html" class="acct-nav-item" style="text-decoration:none;cursor:pointer;"><span class="ni">🏗</span> House Flip</a>
-    <a href="renovation-cost-calculator.html" class="acct-nav-item" style="text-decoration:none;cursor:pointer;"><span class="ni">🔨</span> Renovation Cost</a>
-    <a href="stamp-duty-qld.html" class="acct-nav-item" style="text-decoration:none;cursor:pointer;"><span class="ni">📋</span> Stamp Duty (QLD)</a>
+    <button class="acct-nav-item" onclick="showPanel('tools',this)"><span class="ni">🛠</span> Tools</button>
     <div class="acct-nav-divider"></div>
     <button class="acct-nav-item" style="color:#C45A5A;" onclick="doSignOut()"><span class="ni">↩</span> Sign Out</button>
   </nav>
@@ -452,6 +447,55 @@
         <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
         <button class="acct-btn acct-btn-danger" onclick="confirmDeleteAccount()">Delete account</button>
         <div id="delete-status" class="acct-status-msg" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- TOOLS PANEL -->
+    <div class="acct-panel" id="panel-tools">
+      <div class="acct-card">
+        <div class="acct-card-head">
+          <h3>Tools & Calculators</h3>
+          <p>Access additional property analysis tools.</p>
+        </div>
+        <div class="acct-card-body">
+          <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+            <a href="mortgage-stress-calculator.html" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
+              <span style="font-size: 20px;">💰</span>
+              <div>
+                <div style="font-weight: 600; font-size: 14px;">Stress Calculator</div>
+                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Test affordability under interest rate stress</div>
+              </div>
+            </a>
+            <a href="rental-yield-calculator.html" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
+              <span style="font-size: 20px;">📊</span>
+              <div>
+                <div style="font-weight: 600; font-size: 14px;">Rental Yield</div>
+                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Calculate gross and net rental yields</div>
+              </div>
+            </a>
+            <a href="house-flip-calculator.html" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
+              <span style="font-size: 20px;">🏗</span>
+              <div>
+                <div style="font-weight: 600; font-size: 14px;">House Flip</div>
+                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Analyze property flip projects and profits</div>
+              </div>
+            </a>
+            <a href="renovation-cost-calculator.html" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
+              <span style="font-size: 20px;">🔨</span>
+              <div>
+                <div style="font-weight: 600; font-size: 14px;">Renovation Cost</div>
+                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Budget and itemize renovation expenses</div>
+              </div>
+            </a>
+            <a href="stamp-duty-qld.html" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
+              <span style="font-size: 20px;">📋</span>
+              <div>
+                <div style="font-weight: 600; font-size: 14px;">Stamp Duty (QLD)</div>
+                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Calculate Queensland stamp duty costs</div>
+              </div>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
 

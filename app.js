@@ -2437,6 +2437,43 @@
     const modal = document.getElementById('pdf-options-modal');
     if(modal) modal.style.display = 'none';
   }
+  function showPDFPreview(){
+    // Collect options and close options modal
+    const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
+    const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
+    const colour  = document.getElementById('pdf-opt-colour')?.value   || 'full';
+    const fsz     = document.getElementById('pdf-opt-fontsize')?.value || 'normal';
+    const incFinancial = document.getElementById('pdf-opt-financial')?.checked !== false;
+    const incReno      = document.getElementById('pdf-opt-reno')?.checked !== false;
+    const incRepay     = document.getElementById('pdf-opt-repay')?.checked !== false;
+    const incAmort     = document.getElementById('pdf-opt-amort')?.checked === true;
+    const incOverlap   = document.getElementById('pdf-opt-overlap')?.checked !== false;
+    const incRisks     = document.getElementById('pdf-opt-risks')?.checked !== false;
+    const incNotes     = document.getElementById('pdf-opt-notes')?.checked !== false;
+    const incTimeline  = document.getElementById('pdf-opt-timeline')?.checked === true;
+    closePDFOptionsModal();
+
+    // Store options and show preview modal
+    window._pdfExportOptions = {size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline};
+    const previewModal = document.getElementById('pdf-preview-modal');
+    if(previewModal) {
+      previewModal.style.display = 'flex';
+      const title = document.getElementById('pdf-preview-title');
+      const addr = document.getElementById('pd-address')?.value || 'Property';
+      if(title) title.textContent = addr;
+      incrementExportCount();
+    }
+  }
+  function closePDFPreview(){
+    const modal = document.getElementById('pdf-preview-modal');
+    if(modal) modal.style.display = 'none';
+    window._pdfExportOptions = null;
+  }
+  function printPDF(){
+    if(!window._pdfExportOptions) return;
+    closePDFPreview();
+    exportPDF(window._pdfExportOptions);
+  }
   function sharePDFExport(){
     const addr = document.getElementById('pd-address')?.value || 'Property';
     const suburb = document.getElementById('pd-suburb')?.value || '';
