@@ -17,9 +17,9 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-window.STRIPE_PUBLISHABLE_KEY = 'pk_test_51T5NUnHkMNI1P3r9FNzhL8ogbs5rmL2i9UFFB2E0Ok7djPT51T4RoCMoe5yUcImfsHZwTiOhBde4kYj6EFep4iiB00nUh68nNB';
+window.STRIPE_PUBLISHABLE_KEY = 'pk_live_51T5NUPHtPo8iuYxgJGxUfWFWX1AiLCylPcJDG4I5KXf85xXabgzWbemRg2irrpxeVBPd5mnRFWCprTQxPwbWB9KN00bshOyNDQ';
 
 window.STRIPE_PRICES = {
-  pro_monthly: 'price_1T7NsYHkMNI1P3r9sEbBLq1D',
-  pro_annual:  'price_1T7NtGHkMNI1P3r9grUmHy5t',
+  pro_monthly: 'price_1T9AdDHtPo8iuYxg6DJzXa8r',
+  pro_annual:  'price_1T9AdDHtPo8iuYxgFajx5SQW',
 };
