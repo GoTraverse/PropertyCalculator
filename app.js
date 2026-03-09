@@ -2428,11 +2428,11 @@
   }
 
   // ── EXPORT PDF (Fix 2) — opens a clean read-only print-optimised view ──
-  function showPDFOptionsPopup(){
+  window.showPDFOptionsPopup = function(){
     const modal = document.getElementById('pdf-options-modal');
     if(!modal) return exportPDF();
     modal.style.display = 'flex';
-  }
+  };
   window.closePDFOptionsModal = function(){
     const modal = document.getElementById('pdf-options-modal');
     if(modal) modal.style.display = 'none';
@@ -3537,14 +3537,14 @@
   function getUserPlan(){
     return (_currentUser && _currentUser.plan) || 'free';
   }
-  function isPro(){
+  window.isPro = function(){
     return getUserPlan() === 'pro' || getUserPlan() === 'adviser';
-  }
-  function requirePro(featureName){
-    if(isPro()) return true;
+  };
+  window.requirePro = function(featureName){
+    if(window.isPro()) return true;
     showToast('🔒 ' + featureName + ' is a Pro feature — <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);
     return false;
-  }
+  };
 
   // Returns current user ID for body-fallback auth (works even without token)
   function getUserId(){
