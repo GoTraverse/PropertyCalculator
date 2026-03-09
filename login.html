@@ -255,6 +255,20 @@
     const res = await callAuth('signin', {email,password});
     if(res.ok){
       persistSession(res, {email});
+      // Fetch latest profile including photo from Redis and cache it
+      try{
+        const authH = 'Bearer ' + (res.token||'');
+        const profileRes = await fetch('/.netlify/functions/auth', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':authH},
+          body:JSON.stringify({action:'getProfile'})
+        }).then(r=>r.json());
+        if(profileRes.ok && profileRes.profile){
+          const PROFILE_BASE = 'propCalc_profile_v1';
+          const profileKey = PROFILE_BASE + '_' + (res.id || email);
+          localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
+        }
+      }catch(e){ console.log('Could not fetch profile:', e); }
       goTo('app.html');
       return;
     }
@@ -315,6 +329,20 @@
     const res = await callAuth('verifyEmail', {email,code});
     if(res.ok){
       persistSession(res, {email,name,plan});
+      // Fetch latest profile including photo from Redis and cache it
+      try{
+        const authH = 'Bearer ' + (res.token||'');
+        const profileRes = await fetch('/.netlify/functions/auth', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':authH},
+          body:JSON.stringify({action:'getProfile'})
+        }).then(r=>r.json());
+        if(profileRes.ok && profileRes.profile){
+          const PROFILE_BASE = 'propCalc_profile_v1';
+          const profileKey = PROFILE_BASE + '_' + (res.id || email);
+          localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
+        }
+      }catch(e){ console.log('Could not fetch profile:', e); }
       postVerificationRedirect(res.plan || plan);
     } else {
       errEl.textContent = res.error || 'Could not verify email';
