@@ -2428,16 +2428,16 @@
   }
 
   // ── EXPORT PDF (Fix 2) — opens a clean read-only print-optimised view ──
-  window.showPDFOptionsPopup = function(){
+  function showPDFOptionsPopup(){
     const modal = document.getElementById('pdf-options-modal');
     if(!modal) return exportPDF();
     modal.style.display = 'flex';
-  };
-  window.closePDFOptionsModal = function(){
+  }
+  function closePDFOptionsModal(){
     const modal = document.getElementById('pdf-options-modal');
     if(modal) modal.style.display = 'none';
-  };
-  window.showPDFPreview = function(){
+  }
+  function showPDFPreview(){
     // Collect options and close options modal
     const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
     const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
@@ -2451,7 +2451,7 @@
     const incRisks     = document.getElementById('pdf-opt-risks')?.checked !== false;
     const incNotes     = document.getElementById('pdf-opt-notes')?.checked !== false;
     const incTimeline  = document.getElementById('pdf-opt-timeline')?.checked === true;
-    window.closePDFOptionsModal();
+    closePDFOptionsModal();
 
     // Store options and show preview modal
     window._pdfExportOptions = {size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline};
@@ -2465,18 +2465,18 @@
       if(title) title.textContent = addr;
       incrementExportCount();
     }
-  };
-  window.closePDFPreview = function(){
+  }
+  function closePDFPreview(){
     const modal = document.getElementById('pdf-preview-modal');
     if(modal) modal.style.display = 'none';
     window._pdfExportOptions = null;
-  };
-  window.printPDF = function(){
+  }
+  function printPDF(){
     if(!window._pdfExportOptions) return;
-    window.closePDFPreview();
+    closePDFPreview();
     exportPDF(window._pdfExportOptions);
-  };
-  window.sharePDFExport = function(){
+  }
+  function sharePDFExport(){
     const addr = document.getElementById('pd-address')?.value || 'Property';
     const suburb = document.getElementById('pd-suburb')?.value || '';
     const stateVal = document.getElementById('pd-state')?.value || '';
@@ -2491,7 +2491,14 @@
     } else {
       alert('Share not available on this device. Try copying the link instead.');
     }
-  };
+  }
+  // Assign all PDF functions to window for onclick handler access
+  window.showPDFOptionsPopup = showPDFOptionsPopup;
+  window.showPDFPreview = showPDFPreview;
+  window.closePDFPreview = closePDFPreview;
+  window.closePDFOptionsModal = closePDFOptionsModal;
+  window.printPDF = printPDF;
+  window.sharePDFExport = sharePDFExport;
 
   function exportPDFWithOptions(){
     incrementExportCount(); // fire-and-forget — track export count against saved scenario
@@ -3544,14 +3551,16 @@
   function getUserPlan(){
     return (_currentUser && _currentUser.plan) || 'free';
   }
-  window.isPro = function(){
+  function isPro(){
     return getUserPlan() === 'pro' || getUserPlan() === 'adviser';
-  };
-  window.requirePro = function(featureName){
-    if(window.isPro()) return true;
+  }
+  window.isPro = isPro;
+  function requirePro(featureName){
+    if(isPro()) return true;
     showToast('🔒 ' + featureName + ' is a Pro feature — <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);
     return false;
-  };
+  }
+  window.requirePro = requirePro;
 
   // Returns current user ID for body-fallback auth (works even without token)
   function getUserId(){
