@@ -2496,24 +2496,40 @@ async function loadLegalPage(page){
   const d = await callAuth('adminGetLegalPage', {page});
 
   let content = null;
+  let source = 'default';
+
   if(d.ok && d.content){
     // Use Redis-stored version (previously edited by admin)
     content = d.content;
+    source = 'saved';
   } else {
     // No Redis version yet — load the actual .md file from root
     try {
       const r = await fetch(`/${page}.md?_=${Date.now()}`);
-      if(r.ok) content = await r.text();
-    } catch(e){}
-    if(!content) content = DEFAULT_LEGAL_PAGES[page] || '';
+      if(r.ok) {
+        content = await r.text();
+        source = 'file';
+      } else {
+        console.warn(`Failed to fetch ${page}.md: ${r.status}`);
+      }
+    } catch(e){
+      console.warn(`Error fetching ${page}.md:`, e);
+    }
+    if(!content) {
+      content = DEFAULT_LEGAL_PAGES[page] || '';
+      source = 'default';
+    }
   }
 
   const editor = document.getElementById('legal-content-editor');
   editor.value = content;
 
-  st.textContent = d.ok && d.content ? '(loaded from saved version)' : '(loaded from .md file)';
-  st.className = 'admin-status info';
-  setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 2500);
+  if(source === 'saved') st.textContent = '(loaded from saved version in Redis)';
+  else if(source === 'file') st.textContent = '✓ Loaded from current .md file';
+  else st.textContent = '⚠ Using default template (run "Reload from .md" to sync the file)';
+
+  st.className = source === 'file' ? 'admin-status success' : (source === 'default' ? 'admin-status warning' : 'admin-status info');
+  setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 3000);
 }
 
 async function saveLegalPage(){
@@ -2568,14 +2584,27 @@ async function reloadLegalFromFile(){
   st.textContent = 'Fetching current .md file…'; st.className = 'admin-status info';
 
   try {
-    const r = await fetch(`/${page}.md?_=${Date.now()}`);
-    if(!r.ok) throw new Error(`Failed to fetch ${page}.md`);
+    const timestamp = Date.now();
+    const url = `/${page}.md?t=${timestamp}`;
+    console.log(`Fetching legal page from: ${url}`);
+
+    const r = await fetch(url);
+    if(!r.ok) throw new Error(`HTTP ${r.status}: Could not fetch ${page}.md from server`);
+
     const content = await r.text();
+    if(!content || content.trim().length === 0) {
+      throw new Error(`${page}.md file is empty or missing`);
+    }
+
     document.getElementById('legal-content-editor').value = content;
-    st.textContent = '✓ Loaded from .md file. Click "Save & Update" to import into Redis.'; st.className = 'admin-status success';
+    st.textContent = `✓ Loaded ${page}.md (${Math.round(content.length / 1024)}KB). Click "Save & Update" to import into Redis.`;
+    st.className = 'admin-status success';
     setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 4000);
+    console.log(`Successfully loaded ${page}.md: ${content.length} bytes`);
   } catch(e) {
-    st.textContent = 'Error: ' + e.message; st.className = 'admin-status error';
+    console.error(`Error loading ${page}.md:`, e);
+    st.textContent = `Error: ${e.message} — Check console for details. Make sure ${page}.md exists in the root directory.`;
+    st.className = 'admin-status error';
   }
 }
 
