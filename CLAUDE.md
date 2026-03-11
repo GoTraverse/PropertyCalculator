@@ -6,8 +6,8 @@
 See `CODEBASE.md` for full architecture, file map, auth patterns, and conventions.
 
 ## Git Branch
-All Claude work goes on branch "main".
-Read from main and push changes to main.
+All Claude work goes on branch "staging".
+Read from main and push changes to staging.
 
 ## Task Tracking
 `TODO.md` is the source of truth for outstanding work. After completing a task, **remove its line** from the file. Urgent tasks are marked with `!`.
