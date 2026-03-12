@@ -9,6 +9,9 @@ Never delete anything above this line.
 ------------------------------------------
 
 General - (DO NOT REMOVE THIS LINE)
+- Email admins when a new user signs up.
+- I have teo new users in the data base but they dont have a login session count and also no IP and location recorded, how could this be? fix.
+- 
 
 Desktop - (DO NOT REMOVE THIS LINE)
 
