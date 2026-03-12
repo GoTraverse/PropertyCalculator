@@ -74,6 +74,22 @@ function applyVars(str, vars){
   return Object.entries(vars).reduce((s,[k,v])=>s.replace(new RegExp('\\{\\{'+k+'\\}\\}','g'),v||''), str);
 }
 
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function notifyAdminsNewUser(email, name, plan){
+  if(!RESEND_API_KEY) return;
+  try{
+    const keys=await redisCmd('KEYS','user:*');
+    if(!keys||!keys.length) return;
+    const users=await Promise.all(keys.map(k=>rGet(k)));
+    const admins=users.filter(u=>u&&u.role==='admin'&&u.email);
+    if(!admins.length) return;
+    const subject='New user signed up — EquitySight';
+    const html='<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">New user signed up</h2><p><strong>Name:</strong> '+escHtml(name)+'</p><p><strong>Email:</strong> '+escHtml(email)+'</p><p><strong>Plan:</strong> '+escHtml(plan)+'</p><p><strong>Time:</strong> '+new Date().toISOString()+'</p><a href="https://equitysight.app/admin.html" style="display:inline-block;padding:10px 20px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View in Admin</a></div>';
+    await Promise.all(admins.map(a=>sendResend(a.email,subject,html)));
+  }catch(e){ console.warn('[auth] Admin new-user notification failed:',e.message); }
+}
+
 async function getEmailTemplate(type){
   try{
     const saved = await rGet('email-template:'+type);
@@ -315,9 +331,14 @@ exports.handler = async function(event){
     delete user.emailVerificationCodeHash;
     delete user.emailVerificationExpiresAt;
     delete user.emailVerificationAttempts;
+    // Record first login stats (same fields captured on signin)
+    user.lastLoginAt=Date.now();
+    user.loginCount=1;
+    user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
     await rSet('user:'+normalizedEmail,user);
-    await logEvent(user.id,'email_verified',{});
+    await logEvent(user.id,'email_verified',{ip:user.lastLoginIp||''});
     sendWelcomeEmail(normalizedEmail, user.name).catch(()=>{});
+    notifyAdminsNewUser(normalizedEmail, user.name, user.plan||'free').catch(()=>{});
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
     const result={ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'};
