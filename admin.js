@@ -590,6 +590,10 @@ async function openUserDetails(email){
         <div style="margin-top:4px;">${u.role==='admin'?'<span class="role-badge">admin</span>':'<span style="color:var(--slate);font-size:13px;">user</span>'}</div>
       </div>
       <div>
+        <div class="config-label">Login Status</div>
+        <div style="margin-top:4px;"><span style="font-size:12px;padding:4px 8px;border-radius:3px;background:${u.emailVerified&&u.lastLoginAt?'rgba(90,158,111,0.15);color:#5A9E6F':u.emailVerified?'rgba(201,168,76,0.15);color:#C9A84C':u.emailVerificationCodeHash?'rgba(91,143,171,0.15);color:#5B8FAB':'rgba(107,127,128,0.15);color:#6B7F80'};font-weight:500;">${u.emailVerified&&u.lastLoginAt?'✓ Active':u.emailVerified?'✓ Email Verified':'⏳ Awaiting Verification'}</span></div>
+      </div>
+      <div>
         <div class="config-label">Date Joined</div>
         <div style="font-family:var(--font-mono);font-size:12px;margin-top:3px;">${fmt(u.createdAt)}</div>
       </div>
