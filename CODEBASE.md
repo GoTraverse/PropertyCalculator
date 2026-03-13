@@ -10,11 +10,13 @@ No framework, no build step — what you see in the repo is what gets deployed.
 ```
 Browser (static files)
   │
-  ├── HTML pages + per-page CSS/JS
-  ├── shared.css       — design tokens & shared component styles
-  ├── auth-nav.js      — injects nav header + session refresh into every page
-  ├── footer.js        — injects site footer into every page
-  ├── error-capture.js — captures JS errors and sends to client-errors function
+  ├── HTML pages (19 total) + per-page CSS/JS
+  ├── shared.css          — design tokens & shared component styles
+  ├── auth-nav.js         — injects nav header + session refresh into every page
+  ├── footer.js           — injects site footer into every page
+  ├── error-capture.js    — captures JS errors and sends to client-errors function
+  ├── account-panel.js    — standalone account settings panel
+  ├── legal.js            — markdown parser for legal pages
   │
   └── /.netlify/functions/   (Node.js serverless, Netlify deploys automatically)
         ├── auth.js           — all user auth + admin actions (Upstash Redis)
@@ -23,32 +25,195 @@ Browser (static files)
         ├── contact.js        — contact/support form → Resend email
         ├── client-errors.js  — stores/retrieves JS error logs from browsers
         ├── growth.js         — suburb growth rate lookup + 30-day cache
-        ├── mapproxy.js       — map tile proxy
-        └── photo.js          — property photo proxy/upload
+        ├── photo.js          — property photo storage/retrieval proxy
+        └── mapproxy.js       — OpenStreetMap tile proxy for map rendering
 ```
 
 ---
 
-## File Map
+## File Map — Complete
 
+### Core Application
+| File | Size | Purpose |
+|------|------|---------|
+| `app.html` + `app.css` + `app.js` | 89K + 54K + 212K | **Main calculator app** (authenticated) — 30-year projections, cost breakdown, reno items, loan amortization, suburb growth, scenario save/load, PDF export, PWA capable |
+| `admin.html` + `admin.css` + `admin.js` | 63K + 21K + 134K | **Admin dashboard** (role=admin only) — 8 tabs: Users, Config, Schemes, Stats, Growth Data, Database, Error Log, Emails |
+| `account.html` | 52K | User account & subscription management panel |
+| `login.html` + `login.css` | 21K + 3.9K | Sign-in & sign-up page — email verification flow |
+
+### Marketing Pages
+| File | Size | Purpose |
+|------|------|---------|
+| `index.html` + `index.css` | 15K + 17K | Landing/marketing page — hero, features, pricing preview, CTAs |
+| `pricing.html` + `pricing.css` | 17K + 5.9K | Pricing page — plan cards, feature comparison |
+| `about.html` + `about.css` | 9.1K + 3.5K | About page — company mission & values |
+| `contact.html` + `contact.css` | 13K + 4.3K | Contact/support page — form submission via Resend |
+
+### Legal Pages (rendered from .md sources)
 | File | Purpose |
 |------|---------|
-| `index.html` + `index.css` | Marketing landing page |
-| `app.html` + `app.css` + `app.js` | Main calculator app (authenticated) |
-| `admin.html` + `admin.css` + `admin.js` | Admin dashboard (role=admin only) |
-| `account.html` | User account / subscription management |
-| `login.html` + `login.css` | Sign-in / sign-up page |
-| `pricing.html` + `pricing.css` | Pricing page |
-| `about.html` + `about.css` | About page |
-| `contact.html` + `contact.css` | Contact / support page |
-| `privacy.html`, `terms.html`, `cookies.html`, `disclaimer.html` | Legal pages |
-| `shared.css` | CSS custom properties (design tokens), nav, footer, buttons — included on every page |
-| `auth-nav.js` | Renders nav header into `.site-nav-actions`, help modal, session display, background session refresh |
-| `footer.js` | Renders full site footer into `#site-footer-root` |
-| `stripe-config.js` | Stripe publishable key + plan IDs (client-side only) |
-| `account-panel.js` | Floating account panel shown from the app (plan info, sign out) |
-| `error-capture.js` | Captures unhandled JS errors + promise rejections, posts to `client-errors` function |
-| `netlify.toml` | Build config, CSP headers, CORS for functions, static asset cache headers |
+| `privacy.html` + `privacy.md` | Privacy policy |
+| `terms.html` + `terms.md` | Terms of service |
+| `cookies.html` + `cookies.md` | Cookie policy |
+| `disclaimer.html` + `disclaimer.md` | Financial disclaimer |
+
+### Free SEO Tools (marketing lead generation)
+| File | Size | Purpose |
+|------|------|---------|
+| `rental-yield-calculator.html` | 12K | Rental yield, cash flow, ROI calculator |
+| `renovation-cost-calculator.html` | 13K | Renovation budget with itemized costs |
+| `house-flip-calculator.html` | 14K | Buy/renovate/sell profit analysis |
+| `mortgage-stress-calculator.html` | 14K | Loan repayment stress testing |
+| `stamp-duty-qld.html` | 11K | Queensland-specific stamp duty calculator |
+| `tools.css` | 7.6K | Shared styles for all 5 calculators |
+
+### Utilities & Configuration
+| File | Size | Purpose |
+|------|------|---------|
+| `shared.css` | 15K | **Design system** — CSS variables (colors, fonts, radii, shadows), nav, footer, buttons, dark mode, responsive breakpoints |
+| `auth-nav.js` | 489 lines | Injects sticky nav header with profile button, help modal, background session refresh (every 5 min) |
+| `footer.js` | 65 lines | Injects site footer with dynamic branding from localStorage config |
+| `error-capture.js` | 67 lines | Captures unhandled JS errors & promise rejections, POSTs to client-errors function |
+| `account-panel.js` | 26K | Standalone account settings component — profile pic, color theme, plan info, sign out |
+| `legal.js` | 300+ lines | Markdown → HTML parser — frontmatter, headings, TOC, safe links |
+| `stripe-config.js` | 25 lines | Exports Stripe publishable key + plan IDs (client-safe config) |
+| `manifest.json` | 1.2K | PWA manifest — app name, icons, start URL, display mode, theme colors |
+| `netlify.toml` | 2.5K | Build config, CSP headers, CORS, cache headers for static assets |
+| `404.html` + `import-test.html` | 3.1K + 697B | Error page & dev test page |
+| `robots.txt` | Site crawling directives — allows public pages, blocks admin/app/account |
+| `sitemap.xml` | XML sitemap for search engines — 10+ URLs with priority/change frequency |
+| `favicon.svg` | SVG favicon (logo mark) |
+| `BingSiteAuth.xml` + `ms43432176.txt` | Search engine verification tokens |
+
+---
+
+---
+
+## Netlify Functions — Complete Reference
+
+### auth.js (User Authentication & Admin)
+**~800 lines** — Upstash Redis backed auth engine.
+
+**User Actions:**
+- `signup` — register with email, creates user record + sends verification email
+- `signin` — lookup by email (not password) + sends verification code
+- `verifyEmail` — verify code, set `emailVerified=true`, create token
+- `verify` — validate token TTL + check user still exists (logs out deleted users)
+- `signout` — delete token from Redis
+- `getProfile` — retrieve profile settings + photo
+- `setProfile` — save profile color/theme
+- `setPhoto` — save base64 photo
+- `changePassword` — update password hash
+- `requestPasswordReset` — send reset code email
+- `resetPasswordWithToken` — set new password with code
+- `deleteAccount` — purge all user data from Redis
+
+**Admin Actions** (require `role === 'admin'` + token):
+- `adminListUsers` — returns all users (no passwords)
+- `adminGetUserDetails` — full user record + profile + scenario count + active tokens + error count
+- `adminSetPlan` — upgrade/downgrade plan
+- `adminSetRole` — grant/revoke admin
+- `adminResetPassword` — admin forces password reset
+- `adminDeleteUser` — purge user from system
+- `adminGetConfig` — site config (logo, pricing, feature flags)
+- `adminSetConfig` — update site config
+- `adminGetStats` — signup/login metrics + revenue estimate
+- `adminGetSchemes` — government grant schemes per state
+- `adminSetSchemes` — update schemes
+- `adminGetClientErrors` — retrieve JS error logs with filters
+- `adminGetEmailTemplates` — 6 transactional email templates
+- `adminSetEmailTemplate` — update email template (HTML + subject)
+
+**Data stored in Redis:**
+- `user:<email>` → full user record (name, hash, id, plan, role, createdAt, lastLoginAt, loginCount, emailVerified, etc.)
+- `token:<token>` → {userId, email, name, plan, role, expires} with 30-day TTL
+- `profile:<userId>` → {color, ...settings}
+- `photo:<userId>` → base64 image data
+- `email-template:*` → 6 types (verification, welcome, password_reset, subscription, security_alert, promotional)
+- `events:<userId>` → user action history
+
+### scenarios.js (Scenario Save/Load)
+**~300 lines** — Per-user property scenario library.
+
+**Actions:**
+- `listScenarios` — get all scenarios for user (index + metadata)
+- `saveScenario` — create/update scenario with full state
+- `deleteScenario` — purge scenario
+- `getScenario` — retrieve single scenario full state
+- `getScenarioIndex` — list of scenario IDs + metadata only (for listing)
+
+**Data stored:**
+- `scenarios:<userId>:index` → [{id, address, type, createdAt, ...}]
+- `scenarios:<userId>:state:<id>` → full calculator state (inputs + outputs)
+- `scenarios:<userId>:photo:<id>` → base64 property photo
+
+### stripe.js (Payment Processing)
+**~500 lines** — Stripe checkout, portal, webhooks, discount tracking.
+
+**Actions:**
+- `createCheckout` — create Stripe Checkout session, return redirect URL
+- `createPortalSession` — create Stripe Billing Portal session URL for self-service
+- `getSubscriptionStatus` — current subscription details for user
+
+**Webhooks** (verified via STRIPE_WEBHOOK_SECRET HMAC):
+- `checkout.session.completed` — new subscription, extract discount, upgrade plan
+- `customer.subscription.updated` — plan/status change
+- `customer.subscription.deleted` — downgrade to free
+- `invoice.payment_failed` — send failure email (future)
+
+**Discount tracking** — when coupon applied:
+```
+stripeDiscountInfo: {
+  couponId, couponName, percentOff, amountOffCents,
+  currency, effectiveAmountCents, appliedAt
+}
+```
+
+### contact.js (Contact Form)
+**~100 lines** — Contact form submission via Resend email.
+
+**Action:**
+- `POST /contact` with {name, email, subject, message, diagnostics}
+- Validates email format, escapes HTML
+- Sends via Resend API to `supportEmail` from `config:site`
+- If RESEND_API_KEY missing, logs to console (dev fallback)
+
+### client-errors.js (Error Logging)
+**~150 lines** — Aggregates JS errors from browsers.
+
+**Actions:**
+- `submitError` — receives error log from `error-capture.js` (message, stack, userAgent, URL, userId, etc.)
+- `adminGetClientErrors` — retrieve logs with filters (message, userEmail, browser, dateRange)
+
+**Data stored:**
+- `client-errors:log` → array of up to 500 recent errors (FIFO, oldest dropped)
+
+### growth.js (Suburb Growth Cache)
+**~200 lines** — Growth rate lookup + 30-day cache.
+
+**Actions:**
+- `get` → lookup growth rate for suburb:state (from cache or return null)
+- `set` — **admin only** — store growth rate (validates: finite number, -30 to 100)
+- `clear` — **admin only** — purge growth cache
+
+**Data stored:**
+- `growth:<suburb>:<state>` → {rate, timestamp} with 30-day TTL
+
+### photo.js (Photo Storage)
+**~80 lines** — Property photo proxy.
+
+**Actions:**
+- `get` — retrieve base64 photo by scenario ID (actually handled by scenarios.js)
+- Stores base64 in `photo:<userId>` key
+
+### mapproxy.js (Map Tile Proxy)
+**~120 lines** — OpenStreetMap tile fetching.
+
+**Actions:**
+- `POST /mapproxy` with {lat, lng} — fetches 3×3 grid of map tiles
+- Round-robins across tile servers (a/b/c.tile.openstreetmap.org)
+- Returns base64-encoded PNG grid to client for stitching
+- No auth required (public data)
 
 ---
 
@@ -120,19 +285,20 @@ Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setPr
 
 ## Admin Dashboard (`admin.html` / `admin.js`)
 
-Role=admin only. Tabs:
+**Role=admin only.** 8 tabs with full user/system management:
 
 | Tab | Key features |
 |-----|-------------|
-| **Users** | Table of all users with plan badges + DISC badge for discounted subscriptions. Click row → user detail popup. Cog menu per row → quick actions. |
-| **User Popup** | Full user details, collapsible Recent Errors section (from error log), all cog-wheel actions inline (Reset PW, Change Plan, Grant/Revoke Admin, View History, Delete). |
-| **Scenarios** | Browse and delete user scenarios |
-| **Gov Schemes** | Configure government grant/scheme eligibility per state |
-| **Growth Data** | View and clear suburb growth cache |
-| **Database** | Purge sessions / profiles / scenarios |
-| **Error Log** | JS errors captured from user browsers via `error-capture.js`. Filter by message, user, browser, time. Filters persist when results are empty. Dark-themed table for readability. |
-| **Configuration** | Site identity, pricing, Stripe keys, feature flags, email templates |
-| **Email Templates** | Edit HTML + subject for 6 transactional email types. Content confined to max-width container. |
+| **Users** | Table of all users (sortable by name/email/plan/joined). Plan badges (free/pro/adviser) + DISC badge for coupon discounts. Click row → detailed popup. Cog menu per row → quick actions. |
+| **User Popup** | Full user record (name, email, plan, role, dates, login count, tokens, scenarios, error count). **Login Status badge**: ✓ Active (green), ✓ Email Verified (gold), ⏳ Awaiting Verification (slate). Collapsible Recent Errors section. Inline action buttons (Reset PW, Change Plan, Grant/Revoke Admin, View History, Delete User). |
+| **Scenarios** | Browse all saved property scenarios per user with details. Delete individual scenarios. |
+| **Config** | Site branding (logo, name, colors), pricing plans, Stripe keys, feature flags, support email, mail provider. |
+| **Schemes** | Government grant/scheme eligibility per Australian state (NSW, VIC, QLD, WA, SA, TAS). Edit scheme details, active status. |
+| **Stats** | Signup/login metrics, revenue estimates, user growth chart, subscription breakdown. |
+| **Growth Data** | Cached suburb growth rates (20-year average, LGA, etc.). Admin can update rates or clear entire cache. 30-day Redis TTL. |
+| **Database** | Maintenance tools — purge sessions, profiles, or scenarios for testing/recovery. |
+| **Error Log** | JS error logs captured from user browsers. Filter by message keyword, user email, browser type, date range. Errors include stack trace, user agent, page URL. Dark theme for readability. |
+| **Emails** | Edit 6 transactional email templates (verification, welcome, password reset, subscription update, security alert, promotional). Supports `{{variable}}` interpolation. |
 
 ### Revenue / discount tracking
 

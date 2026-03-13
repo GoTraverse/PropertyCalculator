@@ -1,42 +1,126 @@
 # CLAUDE.md — Working Notes for Claude Code
 
 ## Project Summary
-**EquitySight.app** — static HTML/CSS/JS site on Netlify. No build step, no framework. Push to git → auto-deploys.
+**EquitySight.app** — Australian property investment calculator. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys.
 
-See `CODEBASE.md` for full architecture, file map, auth patterns, and conventions.
+**19 HTML pages** | **8 Netlify functions** | **10 CSS files** | **4046 lines** of calculator logic in app.js | **2651 lines** of admin logic in admin.js
 
-## Git Branch
-All Claude work goes on branch "staging".
-Read from main and push changes to staging.
+See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
+See **`README.md`** for feature overview and quick start guide.
+
+## Git Workflow
+- **Main branch** — production code, read-only; pull latest tasks from here
+- **Staging branch** — pre-production/testing branch
+- **Feature branches** — temporary `claude/***` branches (automatically cleaned up after merge)
+- **Push targets**: Feature branches go to `claude/***` (with matching session ID), merge/PR to Staging
 
 ## Task Tracking
-`TODO.md` is the source of truth for outstanding work. After completing a task, **remove its line** from the file. Urgent tasks are marked with `!`.
+**`TODO.md`** is the source of truth. After completing a task, **remove its line** from the file.
+- Urgent tasks marked with `!` at the start of the line
+- Sections: General, Desktop, PWA/Mobile
+- Never delete section headers
 
-## Key Files at a Glance
-| File | What it does |
-|------|-------------|
-| `app.js` | Main calculator — `recalc()` is master fn, `showTab()` for tabs |
-| `auth-nav.js` | Injects nav + help modal into every page |
-| `footer.js` | Injects footer into every page |
-| `shared.css` | Design tokens (CSS custom properties), nav, footer styles |
-| `error-capture.js` | Captures JS errors → sends to `client-errors` function |
-| `netlify/functions/` | Serverless backend (auth, scenarios, stripe, contact, etc.) |
+## Core Files Reference
 
-## Common Patterns
-- **XSS**: always use `escHtml()` before inserting user data into HTML
-- **Pro gate**: check `isPro()` before enabling premium features
-- **Session**: `propCalc_session_v1` in localStorage → `{ id, email, name, plan, token, role }`
-- **Auth guard**: inline `<script>` at top of `<head>` on every authenticated page
-- **Nav**: `.site-nav-actions` div filled by `auth-nav.js`; `window.renderSiteNav()` to re-render
+### Application Logic
+| File | Lines | Key Functions |
+|------|-------|----------------|
+| `app.js` | 4046 | `recalc()` = master calculation function; `dRecalc()` = debounced wrapper; `showTab(id, btn)` = tab switcher; `exportPDF()` = snapshot export |
+| `admin.js` | 2651 | `loadUsers()`, `openUserDetails(email)`, `showTab(id, btn)`, `callAuth(action, payload)`, admin dashboard logic |
+| `auth-nav.js` | 489 | Injects nav header + profile dropdown + help modal; `window.renderSiteNav()` re-renders after profile changes |
+| `account-panel.js` | 26K | Standalone account panel with profile pic upload, color theme selection, plan display |
+
+### Styling & Injection
+| File | Lines | Purpose |
+|------|-------|---------|
+| `shared.css` | 15K | CSS variables (colors, fonts, radii, shadows), nav, footer, buttons, dark mode, responsive breakpoints |
+| `footer.js` | 65 | Renders footer into `#site-footer-root` with branding from localStorage config |
+| `error-capture.js` | 67 | Global error handler — POSTs errors to `client-errors` function |
+
+### Supporting Scripts
+| File | Purpose |
+|------|---------|
+| `stripe-config.js` | Exports `STRIPE_PUBLISHABLE_KEY` and `STRIPE_PRICES` for client use |
+| `legal.js` | Markdown → HTML parser for legal pages (frontmatter, TOC, safe links) |
+
+## Critical Patterns & Conventions
+
+### Security
+- **XSS Prevention**: Always use `escHtml()` before inserting user data into HTML
+  ```javascript
+  div.innerHTML = '<p>' + escHtml(userInput) + '</p>';
+  ```
+- **Photo URLs**: Validate via `safePhotoSrc()` — only `data:image/*;base64,` or `https://` allowed
+- **Admin Actions**: Every admin function verifies `user.role === 'admin'` + bearer token
+- **Token Auth**: Bearer token in Authorization header — verified on every backend call
+- **Password Hashing**: HMAC-SHA256 with `AUTH_SALT` (required in production)
+
+### Session Management
+- **Session Key**: `propCalc_session_v1` in localStorage
+- **Session Shape**: `{ id, email, name, plan, token, role, ...subscription fields }`
+- **Token TTL**: 30 days (stored in Redis as `token:<token>`)
+- **Verification**: `auth.js` action `verify` checks token + user existence (logs out deleted users)
+- **Re-render Nav**: Call `window.renderSiteNav()` after session changes
+
+### Feature Gating
+- **Pro Check**: `isPro()` — returns true if `session.plan === 'pro'`
+- **Admin Check**: `session.role === 'admin'` for admin.html access
+- **Plan Types**: `free` | `pro` | `adviser` (stored in session + Redis)
+
+### Calculator Logic
+- **Master Function**: `recalc()` in app.js — reads all inputs, computes all outputs
+- **Debouncing**: Use `dRecalc()` in oninput handlers (180ms debounce to avoid recalc on every keystroke)
+- **Tab System**: `showTab(id, btn)` shows/hides sections, updates button states
+- **PDF Export**: `exportPDF()` generates standalone HTML snapshot of current state
+
+### Layout & Responsive
+- **Mobile Breakpoint**: `@media(max-width:600px)` for PWA/mobile
+- **PWA Styles**: `@media(display-mode:standalone)` to hide/show elements in standalone mode (no JS needed)
+- **Admin Layout**: Hides `.site-nav-links` + `.nav-hamburger` but keeps profile icon via `grid-column:3`
+- **Sticky Header**: Nav is `position:sticky; top:0` with backdrop filter
+- **Profile Dropdown**: Uses `position:fixed` to escape `backdrop-filter` stacking context
+
+### Data Flow
+- **Frontend**: HTML → auth-nav.js/footer.js inject nav/footer → app.js/admin.js handle interactions
+- **Backend**: POST to `/.netlify/functions/{name}` with JSON body + Authorization header
+- **Storage**: Redis for user data (auth.js), scenarios (scenarios.js), errors (client-errors.js), growth (growth.js)
+- **Cache**: localStorage for session, draft state, profile preferences, site config
 
 ## Dev Workflow
-1. Edit files directly (no build)
-2. Test in browser — check both desktop and mobile (600px breakpoint)
-3. Check Firefox compatibility (no invalid escape sequences, CSP issues)
-4. Commit + push → Netlify deploys automatically
+1. **Edit** files directly (no build step, no bundler)
+2. **Test** in browser — check desktop (1200px) + mobile (600px breakpoint)
+3. **Test browsers** — Chrome, Firefox (stricter about JS syntax), Safari (test notch styles)
+4. **Validate** — no new external APIs without updating CSP in `netlify.toml`
+5. **Commit** — clear commit message with why (not just what)
+6. **Push** — to assigned feature branch (e.g., `claude/feature-abc-KVfMN`)
+7. **PR/Merge** — to Staging for staging deploy, then to main for production
 
-## Known Gotchas
-- CSP in `netlify.toml` must be updated if new external domains are fetched
-- Admin pages hide `.site-nav-links` and `.nav-hamburger` — profile icon stays via `grid-column:3`
-- Profile dropdown uses `position:fixed` to avoid `backdrop-filter` stacking context clipping
-- Firefox is stricter about JS syntax than Chrome — test there for escape sequence errors
+## Known Gotchas & Pitfalls
+
+### CSP & External APIs
+- **CSP in netlify.toml** — if adding new external API (Stripe, Nominatim, IP geo), update `connect-src` policy
+- **Stripe JS** — loaded from Stripe CDN (allowed via CSP); check for CSP violations if checkout breaks
+
+### Admin Pages
+- **Nav Layout** — admin.css hides `.site-nav-links` + `.nav-hamburger` but keeps profile icon
+- **Grid Column** — profile button stays via `grid-column:3` on admin pages
+- **Profile Dropdown** — uses `position:fixed` to avoid being clipped by nav's `backdrop-filter` stacking context
+
+### Browser Compatibility
+- **Firefox** — stricter about invalid escape sequences in JS strings; test there
+- **Safari** — check `env(safe-area-inset-*)` for notch devices; backdrop-filter support varies
+- **Dark Mode** — toggle via `toggleTheme()`, persisted in localStorage `equitySight_theme`
+
+### Common Mistakes
+- ❌ Inserting user data without `escHtml()` → XSS vulnerability
+- ❌ Using `innerHTML` with photo URLs without `safePhotoSrc()` → XSS or broken images
+- ❌ Calling `recalc()` in oninput directly (not `dRecalc()`) → performance issues on rapid input
+- ❌ Forgetting auth guard in `<head>` on authenticated pages → logged-out users see content briefly
+- ❌ Changing `@media` breakpoint without checking mobile layout → layout breaks on PWA
+- ❌ Adding external API without CSP update → network requests blocked by browser
+
+## Recent Changes (March 2026)
+- ✅ Deleted user logout — `verify` action now checks user existence
+- ✅ Admin user login status — popup shows "Active", "Email Verified", or "Awaiting Verification"
+- ✅ Header styling — increased bar height & button padding for mobile readability
+- All .md files updated with complete file map and architecture
