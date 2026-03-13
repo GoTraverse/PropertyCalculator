@@ -353,17 +353,17 @@ exports.handler = async function(event){
     if(!token) return fail('Token required');
     const data=await rGet('token:'+token);
     if(!data||(data.expires&&Date.now()>data.expires)) return fail('Invalid or expired session');
+    // Check if user still exists (deleted users should be logged out)
+    const userData=await rGet('user:'+data.email);
+    if(!userData) return fail('User account has been deleted');
     // Always return latest plan/role from user record so admin changes take effect immediately
     try{
-      const userData=await rGet('user:'+data.email);
-      if(userData){
-        data.plan=userData.plan||data.plan;
-        data.role=userData.role||data.role;
-        // Include subscription status fields
-        if(userData.subscription_canceled_at) data.canceledAt=userData.subscription_canceled_at;
-        if(userData.subscription_expires_at) data.expiresAt=userData.subscription_expires_at;
-        if(userData.subscription_renews_at) data.renewsAt=userData.subscription_renews_at;
-      }
+      data.plan=userData.plan||data.plan;
+      data.role=userData.role||data.role;
+      // Include subscription status fields
+      if(userData.subscription_canceled_at) data.canceledAt=userData.subscription_canceled_at;
+      if(userData.subscription_expires_at) data.expiresAt=userData.subscription_expires_at;
+      if(userData.subscription_renews_at) data.renewsAt=userData.subscription_renews_at;
     }catch(e){}
     return ok({ok:true,...data});
   }
