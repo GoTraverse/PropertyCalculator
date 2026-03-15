@@ -1,0 +1,180 @@
+================================================================================
+BROKEN EXTERNAL LINKS - QUICK REFERENCE & FIX GUIDE
+================================================================================
+
+17 TOTAL BROKEN LINKS (404 Not Found)
+Generated: 15 March 2026
+
+================================================================================
+CATEGORY 1: ASIC LINKS (10 broken - used in 8 calculator files)
+================================================================================
+
+1. ✗ https://www.asic.gov.au/for-consumers/buying-a-home/
+   Status: 404 | Used in: renovation-cost-calculator.html, stamp-duty-calculator.html
+   Fix: Search ASIC for "Buying a Home" guide - URL structure has changed
+
+2. ✗ https://www.asic.gov.au/for-consumers/money-and-debt/budgeting/
+   Status: 404 | Used in: mortgage-stress-calculator.html
+   Fix: Find ASIC budgeting tools - likely moved to main "money-and-debt" section
+
+3. ✗ https://www.asic.gov.au/for-consumers/money-and-debt/getting-loans/home-loans/
+   Status: 404 | Used in: loan-serviceability-calculator.html, mortgage-stress-calculator.html
+   Fix: Search ASIC for "Home Loan Guide" - main home loans resource page
+
+4. ✗ https://www.asic.gov.au/for-consumers/money-and-debt/getting-loans/home-loans/borrowing-and-your-finances/
+   Status: 404 | Used in: loan-serviceability-calculator.html
+   Fix: Find under main home loans section or "Borrowing Guidance" page
+
+5. ✗ https://www.asic.gov.au/for-consumers/money-and-debt/getting-loans/home-loans/building-inspections-and-valuations/
+   Status: 404 | Used in: equity-release-calculator.html
+   Fix: Look for "Building Inspections" guide on ASIC main site
+
+6. ✗ https://www.asic.gov.au/for-consumers/money-and-debt/getting-loans/home-loans/choosing-a-home-loan/
+   Status: 404 | Used in: mortgage-stress-calculator.html
+   Fix: Find under "Choosing a Home Loan" guide or home loans main section
+
+7. ✗ https://www.asic.gov.au/for-consumers/money-and-debt/getting-loans/investment-loans/
+   Status: 404 | Used in: rental-yield-calculator.html
+   Fix: Search for "Investment Loans" guide on ASIC
+
+8. ✗ https://www.asic.gov.au/for-consumers/money-and-debt/saving-and-investing/
+   Status: 404 | Used in: rental-yield-calculator.html
+   Fix: Look for "Saving and Investing" or "Investment" section on ASIC
+
+9. ✗ https://www.asic.gov.au/for-financial-advisers/
+   Status: 404 | Used in: equity-release-calculator.html
+   Fix: Find adviser resources or directory under ASIC main site
+
+10. ✗ https://www.asic.gov.au/regulatory-resources/standards/standards-for-responsible-lending-conduct/
+    Status: 404 | Used in: loan-serviceability-calculator.html
+    Fix: Search for "Responsible Lending" standards on ASIC
+
+ACTION: Visit https://www.asic.gov.au/ and search for each topic. ASIC has
+recently reorganized their information architecture.
+
+================================================================================
+CATEGORY 2: STATE GOVERNMENT LINKS (4 broken)
+================================================================================
+
+1. ✗ https://www.dnrme.qld.gov.au/property/transfer-duty
+   Status: 404 | Used in: stamp-duty-qld.html
+   Note: DNRME is old QLD domain - should be revenue.qld.gov.au
+   Fix: Use https://www.revenue.qld.gov.au/transfer-duty (WORKING)
+
+2. ✗ https://www.nsw.gov.au/property-and-conveyancing/stamp-duty
+   Status: 404 | Used in: cost-of-purchase-calculator.html
+   Fix: Find NSW stamp duty info via https://www.nsw.gov.au/ main search
+
+3. ✗ https://www.nsw.gov.au/property-and-conveyancing/first-home-buyer
+   Status: 404 | Used in: first-home-buyer-grants-calculator.html
+   Fix: Search NSW site for "First Home Buyer" assistance information
+
+4. ✗ https://www.qld.gov.au/housing/buying-owning-home/first-home-buyers
+   Status: 404 | Used in: first-home-buyer-grants-calculator.html
+   Fix: Verify correct URL path on https://www.qld.gov.au/housing/
+
+ACTION: Contact NSW and QLD government information departments or use
+their website search to find correct current URLs.
+
+================================================================================
+CATEGORY 3: OTHER BROKEN LINKS (3)
+================================================================================
+
+1. ✗ https://fonts.gstatic.com
+   Status: 404 | Used in: All calculator files
+   Note: Google Fonts CDN - may be a font-loading issue in HEAD
+   Fix: Verify Google Fonts integration in <link> tags
+
+2. ✗ https://www.rba.gov.au/education/resources/explainers/housing-and-mortgages.html
+   Status: 404 | Used in: mortgage-stress-calculator.html, loan-serviceability-calculator.html
+   Fix: Search RBA education section for housing/mortgages explainer
+   Alternative: Use https://www.rba.gov.au/education/ (WORKING) as base
+
+3. ✗ https://www.vba.vic.gov.au/first-home-buyer
+   Status: 404 | Used in: first-home-buyer-grants-calculator.html
+   Note: VBA = Victorian Building Authority
+   Fix: Find on VBA site or use alternate VIC housing resource
+
+================================================================================
+CALCULATOR FILES WITH BROKEN LINKS (8 files affected)
+================================================================================
+
+1. cost-of-purchase-calculator.html
+   Broken: ASIC buying guide, NSW stamp duty
+
+2. mortgage-stress-calculator.html
+   Broken: ASIC home loans, budgeting, choosing loans guides
+
+3. loan-serviceability-calculator.html
+   Broken: ASIC home loans, borrowing guidance, responsible lending
+
+4. equity-release-calculator.html
+   Broken: ASIC building inspections, financial advisers guide
+
+5. stamp-duty-calculator.html
+   Broken: ASIC buying guide, NSW stamp duty/FHB
+
+6. first-home-buyer-grants-calculator.html
+   Broken: NSW/QLD government FHB pages, VBA link
+
+7. house-flip-calculator.html
+   Broken: ASIC links
+
+8. rental-yield-calculator.html
+   Broken: ASIC investment loans, saving/investing guides
+
+================================================================================
+IMPLEMENTATION CHECKLIST
+================================================================================
+
+STEP 1: Find Working URLs
+[ ] Visit ASIC (https://www.asic.gov.au/) and locate each consumer guide
+[ ] Visit NSW government (https://www.nsw.gov.au/) for stamp duty/FHB
+[ ] Visit QLD government (https://www.qld.gov.au/) for housing info
+[ ] Visit VBA (https://www.vba.vic.gov.au/) for FHB info
+[ ] Visit RBA (https://www.rba.gov.au/) for housing explainers
+
+STEP 2: Update HTML Files
+[ ] cost-of-purchase-calculator.html
+[ ] mortgage-stress-calculator.html
+[ ] loan-serviceability-calculator.html
+[ ] equity-release-calculator.html
+[ ] stamp-duty-calculator.html
+[ ] first-home-buyer-grants-calculator.html
+[ ] house-flip-calculator.html
+[ ] rental-yield-calculator.html
+
+STEP 3: Test
+[ ] Open each calculator in browser
+[ ] Click each resource link
+[ ] Verify no 404 errors
+[ ] Confirm links lead to relevant content
+
+STEP 4: Deploy
+[ ] Commit changes with message: "Fix: Update broken external resource links"
+[ ] Push to staging for review
+[ ] Deploy to production
+
+================================================================================
+REFERENCE: WORKING LINKS (DO NOT CHANGE)
+================================================================================
+
+✓ https://moneysmart.gov.au/
+✓ https://moneysmart.gov.au/home-loans
+✓ https://moneysmart.gov.au/property-investment
+✓ https://www.apra.gov.au/
+✓ https://www.firsthome.gov.au/
+✓ https://www.lawsociety.com.au/
+✓ https://www.masterbuilders.com.au/
+✓ https://www.rba.gov.au/
+✓ https://www.rba.gov.au/education/
+✓ https://www.sro.vic.gov.au/land-transfer-duty
+✓ https://www.tenants.org.au/
+✓ https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme
+
+Plus two ASIC paths that ARE working:
+✓ https://www.asic.gov.au/asic/ASIC.NSF/byheadline/Financial%20difficulty
+✓ https://www.asic.gov.au/asic/ASIC.NSF/byheadline/Mortgage%20insurance
+
+================================================================================
+For full details, see: LINK_AUDIT_REPORT.md
