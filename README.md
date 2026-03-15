@@ -53,7 +53,7 @@
 
 ---
 
-## Project Structure (19 HTML pages, 8 Netlify functions)
+## Project Structure (23 HTML pages, 8 Netlify functions, 9 SEO tools)
 
 ### Application Pages
 ```
@@ -71,14 +71,25 @@ about.html              # About page
 contact.html            # Contact form
 ```
 
-### Free SEO Tool Calculators (lead generation)
+### Free SEO Tool Calculators (lead generation — 9 tools)
 ```
-rental-yield-calculator.html        # Rental yield analysis
+stamp-duty-calculator.html           # All 8 Australian states (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) with state dropdown
+equity-release-calculator.html       # Home equity release & borrowing capacity based on LVR
+loan-serviceability-calculator.html  # Mortgage affordability based on income & expenses
+first-home-buyer-grants-calculator.html # State-specific FHB grants & stamp duty exemptions
+rental-yield-calculator.html         # Rental yield analysis
 renovation-cost-calculator.html      # Renovation budget
 house-flip-calculator.html           # Buy/renovate/sell profit
 mortgage-stress-calculator.html      # Loan stress testing
-stamp-duty-qld.html                 # QLD stamp duty lookup
+stamp-duty-qld.html                  # Legacy QLD-only stamp duty (backward compat)
 ```
+
+All SEO tools feature:
+- **Comprehensive SEO**: Meta tags, keywords, structured data (JSON-LD schema)
+- **Mobile-optimized**: Responsive design, PWA-ready
+- **Lead generation**: CTAs linking to main app signup
+- **Educational**: Built-in content sections with explanations
+- **Accurate rates**: 2025-26 Australian government rates, conditions, and thresholds
 
 ### Legal Pages (rendered from Markdown)
 ```
