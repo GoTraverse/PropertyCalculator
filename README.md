@@ -53,7 +53,7 @@
 
 ---
 
-## Project Structure (23 HTML pages, 8 Netlify functions, 9 SEO tools)
+## Project Structure (20 HTML pages, 9 Netlify functions, 10 SEO tools)
 
 ### Application Pages
 ```
@@ -71,9 +71,10 @@ about.html              # About page
 contact.html            # Contact form
 ```
 
-### Free SEO Tool Calculators (lead generation — 9 tools)
+### Free SEO Tool Calculators (lead generation — 10 tools)
 ```
 stamp-duty-calculator.html           # All 8 Australian states (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) with state dropdown
+cost-of-purchase-calculator.html     # **NEW** Total cost breakdown — stamp duty, legal, bank fees, inspections, insurance, moving, lease break
 equity-release-calculator.html       # Home equity release & borrowing capacity based on LVR
 loan-serviceability-calculator.html  # Mortgage affordability based on income & expenses
 first-home-buyer-grants-calculator.html # State-specific FHB grants & stamp duty exemptions
