@@ -87,6 +87,18 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-resources ul li a { text-decoration: none; transition: color 0.15s; }
 .tool-resources ul li a:hover { color: var(--charcoal); text-decoration: underline; }
 
+/* ── Share & Related ── */
+.tool-share { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 20px; margin-bottom: 14px; text-align: center; }
+.tool-share h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--charcoal); }
+.tool-share-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.tool-share-btn { padding: 9px 16px; background: var(--gold); color: var(--charcoal); border: none; border-radius: 5px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.tool-share-btn:hover { opacity: 0.88; }
+.tool-related { background: white; border: 1px solid rgba(28,28,30,0.1); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.tool-related h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--charcoal); }
+.tool-related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.tool-related-link { padding: 12px; background: var(--warm-white); border-radius: 6px; border: 1px solid rgba(28,28,30,0.08); text-decoration: none; color: var(--charcoal); font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.tool-related-link:hover { background: white; border-color: var(--gold); color: var(--gold); }
+
 /* ── Footer ── */
 .tool-footer { background: var(--charcoal); color: rgba(245,240,232,0.45); text-align: center; padding: 18px 24px; font-size: 11px; font-family: var(--font-mono); }
 .tool-footer a { color: rgba(245,240,232,0.45); text-decoration: none; margin: 0 8px; }
