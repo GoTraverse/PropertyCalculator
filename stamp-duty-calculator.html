@@ -27,6 +27,10 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Stamp Duty Calculator Australia","url":"https://equitysight.app/stamp-duty-calculator.html","description":"Free stamp duty calculator for all Australian states. Calculate conveyancing duty, transfer duty, or land duty instantly with first home buyer exemptions.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </head>
 <body>
 
@@ -94,26 +98,14 @@
     <div class="tool-result-title">Your estimate</div>
     <div class="tool-grid">
       <div class="tool-stat">
-        <div class="tool-stat-label" id="r-duty-label">Stamp Duty</div>
-        <div class="tool-stat-value" id="r-duty">—</div>
       </div>
       <div class="tool-stat" id="r-foreign-wrap">
-        <div class="tool-stat-label" id="r-foreign-label">Foreign Surcharge</div>
-        <div class="tool-stat-value" id="r-foreign">—</div>
       </div>
       <div class="tool-stat highlight">
-        <div class="tool-stat-label">Total Stamp Duty</div>
-        <div class="tool-stat-value gold" id="r-total">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Effective Rate</div>
-        <div class="tool-stat-value" id="r-rate">—</div>
       </div>
       <div class="tool-stat full">
-        <div class="tool-stat-label">Total Cost (Purchase + Duty)</div>
-        <div class="tool-stat-value" id="r-allin">—</div>
-      </div>
-    </div>
     <div class="tool-disclaimer" id="r-note"></div>
     <p class="tool-disclaimer" id="disclaimer"></p>
   </div>
@@ -160,10 +152,13 @@
           <li style="margin-bottom:6px;"><a href="https://www.asic.gov.au/for-consumers/money-and-debt/getting-loans/home-loans/choosing-a-home-loan/" target="_blank">Choosing a Home Loan</a></li>
           <li style="margin-bottom:6px;"><a href="https://moneysmart.gov.au/" target="_blank">MoneySmart Comparison</a></li>
         </ul>
-      </div>
     </div>
     <p style="font-size:11px;color:var(--slate);margin-top:16px;border-top:1px solid rgba(28,28,30,0.1);padding-top:16px;"><strong>Disclaimer:</strong> This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Rates change regularly — verify current rates with your state revenue office.</p>
   </div>
+
+<!-- ══ FOOTER ══ -->
+<div id="site-footer-root"></div>
+</div>
 
   <!-- Share & Related -->
   <div class="tool-share">
@@ -172,7 +167,6 @@
       <a href="https://www.facebook.com/sharer/sharer.php?u=https://equitysight.app/stamp-duty-calculator.html" target="_blank" class="tool-share-btn">Share on Facebook</a>
       <a href="https://twitter.com/intent/tweet?url=https://equitysight.app/stamp-duty-calculator.html&text=Just calculated my stamp duty instantly!" target="_blank" class="tool-share-btn">Share on Twitter/X</a>
       <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://equitysight.app/stamp-duty-calculator.html" target="_blank" class="tool-share-btn">Share on LinkedIn</a>
-    </div>
   </div>
 
   <!-- Related Calculators -->
@@ -183,7 +177,6 @@
       <a href="loan-serviceability-calculator.html" class="tool-related-link">📊 Loan Serviceability</a>
       <a href="first-home-buyer-grants-calculator.html" class="tool-related-link">🎁 FHB Grants</a>
       <a href="equity-release-calculator.html" class="tool-related-link">💰 Equity Release</a>
-    </div>
   </div>
 
 </div>
@@ -202,7 +195,6 @@
     <a href="about.html">About</a> ·
     <a href="contact.html">Support</a> ·
     <a href="privacy.html">Privacy</a>
-  </div>
   <div class="tool-footer-bottom">© 2026 EquitySight. All calculators are general information only — always consult professionals before major decisions.</div>
 </footer>
 
@@ -429,5 +421,9 @@ window.addEventListener('DOMContentLoaded', function() {
   updateState();
 });
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </body>
 </html>

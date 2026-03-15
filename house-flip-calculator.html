@@ -27,6 +27,10 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"House Flip Profit Calculator Australia","url":"https://equitysight.app/house-flip-calculator.html","description":"Free house flip profit calculator for Australian properties. Calculate ROI, net profit, and annualised return.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </head>
 <body>
 
@@ -56,8 +60,6 @@
       <div class="tool-field">
         <label class="tool-label" for="stamp">Stamp duty</label>
         <input class="tool-input" type="text" id="stamp" placeholder="e.g. 18,000" oninput="fmtNum(this)">
-        <div class="tool-hint"><a href="stamp-duty-qld.html" style="color:var(--gold);">Calculate stamp duty →</a></div>
-      </div>
     </div>
     <div class="tool-row">
       <div class="tool-field">
@@ -67,7 +69,6 @@
       <div class="tool-field">
         <label class="tool-label" for="buyinspect">Inspections / due diligence</label>
         <input class="tool-input" type="text" id="buyinspect" placeholder="e.g. 800" oninput="fmtNum(this)">
-      </div>
     </div>
 
     <div class="tool-card-title" style="margin-top:4px;">Renovation costs</div>
@@ -75,12 +76,10 @@
       <div class="tool-field">
         <label class="tool-label" for="reno">Renovation budget</label>
         <input class="tool-input" type="text" id="reno" placeholder="e.g. 85,000" oninput="fmtNum(this)">
-        <div class="tool-hint"><a href="renovation-cost-calculator.html" style="color:var(--gold);">Estimate reno cost →</a></div>
       </div>
       <div class="tool-field">
         <label class="tool-label" for="renocontingency">Contingency (15%)</label>
         <input class="tool-input" type="text" id="renocontingency" placeholder="Auto-calculated" readonly style="background:var(--warm-white);color:var(--slate);">
-      </div>
     </div>
 
     <div class="tool-card-title" style="margin-top:4px;">Holding costs</div>
@@ -92,8 +91,6 @@
       <div class="tool-field">
         <label class="tool-label" for="monthly">Monthly holding costs ($)</label>
         <input class="tool-input" type="text" id="monthly" placeholder="e.g. 3,200" oninput="fmtNum(this)">
-        <div class="tool-hint">Mortgage + rates + insurance</div>
-      </div>
     </div>
 
     <div class="tool-card-title" style="margin-top:4px;">Sale</div>
@@ -105,7 +102,6 @@
       <div class="tool-field">
         <label class="tool-label" for="commission">Agent commission (%)</label>
         <input class="tool-input" type="number" id="commission" placeholder="e.g. 2.2" step="0.1" min="0" max="10" value="2.2">
-      </div>
     </div>
     <div class="tool-row">
       <div class="tool-field">
@@ -115,7 +111,6 @@
       <div class="tool-field">
         <label class="tool-label" for="staging">Styling / staging</label>
         <input class="tool-input" type="text" id="staging" placeholder="e.g. 3,000" oninput="fmtNum(this)">
-      </div>
     </div>
 
     <button class="tool-btn" onclick="calculate()">Calculate Flip Profit</button>
@@ -125,29 +120,16 @@
     <div class="tool-result-title">Flip analysis</div>
     <div class="tool-grid">
       <div class="tool-stat">
-        <div class="tool-stat-label">Total all-in cost</div>
-        <div class="tool-stat-value" id="r-cost">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Net proceeds</div>
-        <div class="tool-stat-value" id="r-proceeds">—</div>
       </div>
       <div class="tool-stat highlight full">
-        <div class="tool-stat-label">Net profit (pre-tax)</div>
-        <div class="tool-stat-value" id="r-profit">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">ROI on total invested</div>
-        <div class="tool-stat-value" id="r-roi">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Annualised return</div>
-        <div class="tool-stat-value" id="r-annual">—</div>
       </div>
       <div class="tool-stat full" id="r-verdict-wrap">
-        <div class="tool-stat-label">Assessment</div>
-        <div style="font-size:14px;color:var(--slate);margin-top:4px;" id="r-verdict">—</div>
-      </div>
     </div>
     <p class="tool-disclaimer">Pre-tax estimate only. Does not include CGT (Capital Gains Tax), income tax on profits, GST (for developers), or finance costs beyond the holding period entered. Consult an accountant before proceeding.</p>
   </div>
@@ -187,11 +169,12 @@
           <li style="margin-bottom:6px;"><a href="https://www.rba.gov.au/education/resources/explainers/housing-and-mortgages.html" target="_blank">RBA: Housing & Mortgages</a></li>
           <li style="margin-bottom:6px;"><a href="https://www.asic.gov.au/for-consumers/money-and-debt/getting-loans/investment-loans/" target="_blank">ASIC: Investment Loans</a></li>
         </ul>
-      </div>
     </div>
     <p style="font-size:11px;color:var(--slate);margin-top:16px;border-top:1px solid rgba(28,28,30,0.1);padding-top:16px;"><strong>Disclaimer:</strong> This is general information only. House flipping involves significant tax and financial complexity. Always consult a tax accountant, financial adviser, and lawyer before proceeding.</p>
   </div>
 
+<!-- ══ FOOTER ══ -->
+<div id="site-footer-root"></div>
 </div>
 
 <section class="tool-content">
@@ -290,5 +273,9 @@ function calculate() {
   document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </body>
 </html>

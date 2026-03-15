@@ -27,6 +27,10 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"First Home Buyer Grants Calculator","url":"https://equitysight.app/first-home-buyer-grants-calculator.html","description":"Check first home buyer grants, stamp duty exemptions, and concessions available in your Australian state.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </head>
 <body>
 
@@ -83,7 +87,6 @@
   </div>
 
   <div class="tool-result" id="result" style="display:none">
-    <div class="tool-result-title">Your FHB assistance</div>
     <div id="results-container"></div>
     <p class="tool-disclaimer" id="disclaimer" style="margin-top:12px;"></p>
   </div>
@@ -122,11 +125,12 @@
           <li style="margin-bottom:6px;"><a href="https://www.asic.gov.au/for-consumers/money-and-debt/getting-loans/home-loans/" target="_blank">ASIC: Home Loan Guide</a></li>
           <li style="margin-bottom:6px;"><a href="https://moneysmart.gov.au/home-loans" target="_blank">MoneySmart: Home Loans</a></li>
         </ul>
-      </div>
     </div>
     <p style="font-size:11px;color:var(--slate);margin-top:16px;border-top:1px solid rgba(28,28,30,0.1);padding-top:16px;"><strong>Disclaimer:</strong> Grant eligibility changes by state and varies by scheme. Always verify with your state's housing authority and consult a financial adviser before purchasing.</p>
   </div>
 
+<!-- ══ FOOTER ══ -->
+<div id="site-footer-root"></div>
 </div>
 
 <section class="tool-content" id="content-section">
@@ -289,5 +293,9 @@ window.addEventListener('DOMContentLoaded', function() {
   updateState();
 });
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </body>
 </html>

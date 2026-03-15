@@ -75,12 +75,24 @@ See **`README.md`** for feature overview and quick start guide.
 - **Tab System**: `showTab(id, btn)` shows/hides sections, updates button states
 - **PDF Export**: `exportPDF()` generates standalone HTML snapshot of current state
 
+### Calculator Architecture (Unified Pattern)
+- **All 10 free calculators** use identical HTML/CSS structure + `tools.css` (no duplication)
+- **Template pattern**: `.tool-header` → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (outputs) → `.tool-cta` → `.tool-resources` → footer div
+- **Shared utilities**: `shared-calcs.js` contains `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()`, etc.
+- **Injected components**:
+  - `auth-nav.js` — injects site nav + profile dropdown (optional for calculators)
+  - `footer.js` — injects footer into `#site-footer-root` div
+  - `error-capture.js` — global error handler POSTs to `client-errors` function
+- **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
+- **To update all calculators**: Edit `tools.css` (no need to touch 10 HTML files)
+
 ### Layout & Responsive
 - **Mobile Breakpoint**: `@media(max-width:600px)` for PWA/mobile
 - **PWA Styles**: `@media(display-mode:standalone)` to hide/show elements in standalone mode (no JS needed)
 - **Admin Layout**: Hides `.site-nav-links` + `.nav-hamburger` but keeps profile icon via `grid-column:3`
 - **Sticky Header**: Nav is `position:sticky; top:0` with backdrop filter
 - **Profile Dropdown**: Uses `position:fixed` to escape `backdrop-filter` stacking context
+- **Tool layout**: `.tool-main` max-width 640px, centered, with consistent card + result patterns
 
 ### Data Flow
 - **Frontend**: HTML → auth-nav.js/footer.js inject nav/footer → app.js/admin.js handle interactions
