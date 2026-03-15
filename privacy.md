@@ -104,6 +104,6 @@ We may update this Privacy Policy from time to time. We will notify you of signi
 >
 > For privacy-related questions or to exercise your rights, contact our privacy team.
 >
-> Email: [privacy@equitysight.app](mailto:privacy@equitysight.app)
+> Email: [support@equitysight.app](mailto:support@equitysight.app)
 >
 > Post: [MAILING ADDRESS], [CITY, STATE, POSTCODE], [COUNTRY]
