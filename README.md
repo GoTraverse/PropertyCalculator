@@ -1,6 +1,8 @@
 # EquitySight.app
 
-**Australian property investment calculator** — model property purchase costs, renovation budgets, loan repayments, rental overlap, 30-year value projections, and risk indicators in one integrated platform.
+**Australia's smartest property investment calculator** — Built for Australian first home buyers and investors. Model property purchase costs, renovation budgets, loan repayments, rental overlap, 30-year projections, and risk indicators in one integrated platform.
+
+🇦🇺 **Australian-focused:** All 8 states (NSW, VIC, QLD, SA, WA, TAS, ACT, NT), AUD currency, Australian regulatory frameworks (ATO, ASIC, RBA), and state-specific grant/duty rules.
 
 ---
 

@@ -1,9 +1,11 @@
 # EquitySight.app — Codebase Guide
 
-Static HTML/CSS/JS site hosted on **Netlify** with **Netlify Functions** as the backend.
+**Australia's smartest property finance calculator** — Static HTML/CSS/JS site hosted on Netlify with Netlify Functions backend.
 No framework, no build step — what you see in the repo is what gets deployed.
 
-**20 HTML pages** | **9 Netlify functions** | **10 CSS files** | **4046+ lines** of calculator logic in app.js | **2651+ lines** of admin logic in admin.js
+**Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
+
+**20 HTML pages** (incl. 10 free calculators) | **9 Netlify functions** | **10 CSS files** | **4046+ lines** of calculator logic in app.js | **2651+ lines** of admin logic in admin.js
 
 ---
 
