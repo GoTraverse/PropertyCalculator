@@ -79,6 +79,14 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-content td { padding: 7px 10px; border: 1px solid rgba(28,28,30,0.07); color: var(--charcoal); font-size: 13px; }
 .tool-content tr:nth-child(even) td { background: rgba(0,0,0,0.018); }
 
+/* ── Resources ── */
+.tool-resources { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 24px; margin-bottom: 14px; }
+.tool-resources h4 { color: var(--charcoal); margin-bottom: 8px; }
+.tool-resources a { color: var(--gold); text-decoration: none; }
+.tool-resources a:hover { text-decoration: underline; }
+.tool-resources ul li a { text-decoration: none; transition: color 0.15s; }
+.tool-resources ul li a:hover { color: var(--charcoal); text-decoration: underline; }
+
 /* ── Footer ── */
 .tool-footer { background: var(--charcoal); color: rgba(245,240,232,0.45); text-align: center; padding: 18px 24px; font-size: 11px; font-family: var(--font-mono); }
 .tool-footer a { color: rgba(245,240,232,0.45); text-decoration: none; margin: 0 8px; }
