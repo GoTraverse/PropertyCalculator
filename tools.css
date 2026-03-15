@@ -99,6 +99,20 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-related-link { padding: 12px; background: var(--warm-white); border-radius: 6px; border: 1px solid rgba(28,28,30,0.08); text-decoration: none; color: var(--charcoal); font-size: 13px; font-weight: 600; transition: all 0.15s; }
 .tool-related-link:hover { background: white; border-color: var(--gold); color: var(--gold); }
 
+
+/* ── Cost Breakdown (for detailed cost breakdowns) ── */
+.tool-cost-breakdown { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 20px; margin-bottom: 14px; }
+.tool-cost-breakdown-section { margin-bottom: 16px; }
+.tool-cost-breakdown-section:last-child { margin-bottom: 0; }
+.tool-cost-breakdown-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; font-weight: 600; }
+.tool-cost-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(28,28,30,0.06); font-size: 14px; }
+.tool-cost-row:last-child { border-bottom: none; }
+.tool-cost-row.total { border-top: 2px solid rgba(28,28,30,0.1); border-bottom: none; padding-top: 10px; margin-top: 6px; font-weight: 700; font-family: var(--font-display); font-size: 16px; color: var(--charcoal); }
+.tool-cost-row.subtotal { font-weight: 600; color: var(--charcoal); opacity: 0.85; }
+.tool-cost-row-label { color: var(--slate); flex: 1; }
+.tool-cost-row-value { color: var(--charcoal); font-family: var(--font-mono); text-align: right; min-width: 120px; }
+.tool-cost-row.total .tool-cost-row-value { font-family: var(--font-display); font-size: 18px; color: var(--charcoal); }
+
 /* ── Footer ── */
 .tool-footer { background: var(--charcoal); color: rgba(245,240,232,0.45); text-align: center; padding: 24px; font-size: 11px; font-family: var(--font-mono); }
 .tool-footer a { color: rgba(245,240,232,0.45); text-decoration: none; margin: 0 8px; transition: color 0.15s; }
@@ -107,3 +121,4 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-footer-top a { color: var(--gold); margin: 0 12px; }
 .tool-footer-top a:hover { text-decoration: underline; }
 .tool-footer-bottom { opacity: 0.7; }
+

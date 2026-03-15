@@ -27,6 +27,10 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Stamp Duty Calculator QLD","url":"https://equitysight.app/stamp-duty-qld.html","description":"Free Queensland stamp duty (transfer duty) calculator with first home buyer concessions and foreign buyer surcharges.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </head>
 <body>
 
@@ -78,26 +82,14 @@
     <div class="tool-result-title">Your estimate</div>
     <div class="tool-grid">
       <div class="tool-stat">
-        <div class="tool-stat-label">Transfer Duty</div>
-        <div class="tool-stat-value" id="r-duty">—</div>
       </div>
       <div class="tool-stat" id="r-foreign-wrap">
-        <div class="tool-stat-label">Foreign Surcharge (8%)</div>
-        <div class="tool-stat-value" id="r-foreign">—</div>
       </div>
       <div class="tool-stat highlight">
-        <div class="tool-stat-label">Total Stamp Duty</div>
-        <div class="tool-stat-value gold" id="r-total">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Effective Rate</div>
-        <div class="tool-stat-value" id="r-rate">—</div>
       </div>
       <div class="tool-stat full">
-        <div class="tool-stat-label">Total Cost (Purchase + Duty)</div>
-        <div class="tool-stat-value" id="r-allin">—</div>
-      </div>
-    </div>
     <div class="tool-disclaimer" id="r-note"></div>
     <p class="tool-disclaimer">Estimates only. Rates based on QLD Revenue Office 2025–26 thresholds. Verify with a solicitor before settlement.</p>
   </div>
@@ -136,11 +128,12 @@
           <li style="margin-bottom:6px;"><a href="https://www.ato.gov.au/individuals/capital-gains-tax/" target="_blank">ATO: Capital Gains Tax</a></li>
           <li style="margin-bottom:6px;"><a href="https://www.firsthome.gov.au/" target="_blank">First Home Guarantee Scheme</a></li>
         </ul>
-      </div>
     </div>
     <p style="font-size:11px;color:var(--slate);margin-top:16px;border-top:1px solid rgba(28,28,30,0.1);padding-top:16px;"><strong>Disclaimer:</strong> This is QLD-specific information. Stamp duty rates and exemptions change — always verify with the QLD Revenue Office and consult a solicitor before settlement.</p>
   </div>
 
+<!-- ══ FOOTER ══ -->
+<div id="site-footer-root"></div>
 </div>
 
 <section class="tool-content">
@@ -247,5 +240,9 @@ function calculate() {
   document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </body>
 </html>

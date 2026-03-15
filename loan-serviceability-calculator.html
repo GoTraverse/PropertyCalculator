@@ -27,6 +27,10 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Loan Serviceability Calculator","url":"https://equitysight.app/loan-serviceability-calculator.html","description":"Free loan serviceability calculator for Australian property buyers. Estimate borrowing capacity based on income, expenses, and bank lending criteria.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </head>
 <body>
 
@@ -57,13 +61,11 @@
       <div class="tool-field">
         <label class="tool-label" for="partner">Partner salary/wages ($/yr)</label>
         <input class="tool-input" type="text" id="partner" placeholder="e.g. 85,000" oninput="fmtNum(this)">
-      </div>
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="other">Other income (rental, investment, etc.)</label>
       <input class="tool-input" type="text" id="other" placeholder="e.g. 15,000" oninput="fmtNum(this)">
-      <div class="tool-hint">Typically discounted by lenders; include conservatively</div>
     </div>
 
     <div class="tool-card-title" style="margin-top:20px;">Monthly expenses</div>
@@ -72,13 +74,10 @@
       <div class="tool-field">
         <label class="tool-label" for="expenses">Living expenses (rent, utilities, food, transport, etc.)</label>
         <input class="tool-input" type="text" id="expenses" placeholder="e.g. 4,500" oninput="fmtNum(this)">
-        <div class="tool-hint">$/month estimate</div>
       </div>
       <div class="tool-field">
         <label class="tool-label" for="debt">Existing debt repayments (credit cards, car loans, HECS)</label>
         <input class="tool-input" type="text" id="debt" placeholder="e.g. 1,200" oninput="fmtNum(this)">
-        <div class="tool-hint">$/month total</div>
-      </div>
     </div>
 
     <button class="tool-btn" onclick="calculate()">Calculate Borrowing Capacity</button>
@@ -88,22 +87,12 @@
     <div class="tool-result-title">Your serviceability estimate</div>
     <div class="tool-grid">
       <div class="tool-stat">
-        <div class="tool-stat-label">Gross Annual Income</div>
-        <div class="tool-stat-value" id="r-income">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Monthly Commitments</div>
-        <div class="tool-stat-value" id="r-monthly">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Disposable Income (Monthly)</div>
-        <div class="tool-stat-value" id="r-disposable">—</div>
       </div>
       <div class="tool-stat highlight">
-        <div class="tool-stat-label">Estimated Max Borrowing</div>
-        <div class="tool-stat-value gold" id="r-borrow">—</div>
-      </div>
-    </div>
     <div class="tool-disclaimer" id="r-note"></div>
     <p class="tool-disclaimer">Estimates only. Actual borrowing capacity varies by lender, loan product, interest rate assumptions, and serviceability calculations. Get pre-approved for an exact amount.</p>
   </div>
@@ -143,11 +132,12 @@
           <li style="margin-bottom:6px;"><a href="https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme" target="_blank">First Home Super Saver</a></li>
           <li style="margin-bottom:6px;"><a href="https://www.asic.gov.au/for-consumers/buying-a-home/" target="_blank">ASIC: Buying a Home</a></li>
         </ul>
-      </div>
     </div>
     <p style="font-size:11px;color:var(--slate);margin-top:16px;border-top:1px solid rgba(28,28,30,0.1);padding-top:16px;"><strong>Disclaimer:</strong> This is general information only. Always consult with a financial adviser and your lender about your specific borrowing capacity, as calculations vary by circumstance.</p>
   </div>
 
+<!-- ══ FOOTER ══ -->
+<div id="site-footer-root"></div>
 </div>
 
 <section class="tool-content">
@@ -242,5 +232,9 @@ function calculate() {
   document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </body>
 </html>

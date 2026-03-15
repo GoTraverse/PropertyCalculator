@@ -27,6 +27,10 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Mortgage Stress Calculator Australia","url":"https://equitysight.app/mortgage-stress-calculator.html","description":"Free Australian mortgage stress calculator. Calculate repayments, stress test against rate rises, and check debt-to-income ratio.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </head>
 <body>
 
@@ -56,7 +60,6 @@
       <div class="tool-field">
         <label class="tool-label" for="rate">Interest rate (% p.a.)</label>
         <input class="tool-input" type="number" id="rate" placeholder="e.g. 6.25" step="0.05" min="0.1" max="20">
-      </div>
     </div>
     <div class="tool-row">
       <div class="tool-field">
@@ -75,7 +78,6 @@
           <option value="pi">Principal & Interest</option>
           <option value="io">Interest Only</option>
         </select>
-      </div>
     </div>
 
     <div class="tool-card-title" style="margin-top:4px;">Household income & expenses</div>
@@ -83,13 +85,10 @@
       <div class="tool-field">
         <label class="tool-label" for="income">Gross monthly income ($)</label>
         <input class="tool-input" type="text" id="income" placeholder="e.g. 12,500" oninput="fmtNum(this)">
-        <div class="tool-hint">Combined household gross income</div>
       </div>
       <div class="tool-field">
         <label class="tool-label" for="expenses">Other monthly debt ($)</label>
         <input class="tool-input" type="text" id="expenses" placeholder="e.g. 800" oninput="fmtNum(this)">
-        <div class="tool-hint">Car loans, personal loans, credit cards</div>
-      </div>
     </div>
 
     <div class="tool-field">
@@ -108,33 +107,18 @@
     <div class="tool-result-title">Stress test results</div>
     <div class="tool-grid">
       <div class="tool-stat highlight">
-        <div class="tool-stat-label">Monthly repayment</div>
-        <div class="tool-stat-value gold" id="r-repay">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Repayment at stress rate</div>
-        <div class="tool-stat-value" id="r-stressed">—</div>
       </div>
       <div class="tool-stat" id="r-dsr-wrap">
-        <div class="tool-stat-label">% of gross income (current)</div>
-        <div class="tool-stat-value" id="r-dsr">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">% of gross income (stressed)</div>
-        <div class="tool-stat-value" id="r-dsr-stress">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Total debt service ratio</div>
-        <div class="tool-stat-value" id="r-tdsr">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Monthly surplus (after all debt)</div>
-        <div class="tool-stat-value" id="r-surplus">—</div>
       </div>
       <div class="tool-stat full" id="r-verdict-wrap">
-        <div class="tool-stat-label">Assessment</div>
-        <div style="font-size:14px;line-height:1.5;margin-top:4px;" id="r-verdict">—</div>
-      </div>
     </div>
     <p class="tool-disclaimer">Based on the 30% income rule and APRA's mortgage serviceability guidance. Gross income used — net (after-tax) income will be lower. Consult a mortgage broker for personalised advice.</p>
   </div>
@@ -174,11 +158,12 @@
           <li style="margin-bottom:6px;"><a href="https://moneysmart.gov.au/" target="_blank">MoneySmart: Money Management</a></li>
           <li style="margin-bottom:6px;"><a href="https://www.asic.gov.au/asic/ASIC.NSF/byheadline/Financial%20difficulty" target="_blank">ASIC: Financial Difficulty Help</a></li>
         </ul>
-      </div>
     </div>
     <p style="font-size:11px;color:var(--slate);margin-top:16px;border-top:1px solid rgba(28,28,30,0.1);padding-top:16px;"><strong>Disclaimer:</strong> This is general information only. Interest rates, serviceability criteria, and lending standards change over time. Always consult your lender and a financial adviser about your situation.</p>
   </div>
 
+<!-- ══ FOOTER ══ -->
+<div id="site-footer-root"></div>
 </div>
 
 <section class="tool-content">
@@ -289,5 +274,9 @@ function calculate() {
   document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 </script>
+
+<script src="footer.js"></script>
+<script src="auth-nav.js"></script>
+<script src="error-capture.js"></script>
 </body>
 </html>
