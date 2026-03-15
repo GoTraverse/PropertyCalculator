@@ -64,8 +64,12 @@ Browser (static files)
 | `renovation-cost-calculator.html` | 13K | Renovation budget with itemized costs |
 | `house-flip-calculator.html` | 14K | Buy/renovate/sell profit analysis |
 | `mortgage-stress-calculator.html` | 14K | Loan repayment stress testing |
-| `stamp-duty-qld.html` | 11K | Queensland-specific stamp duty calculator |
-| `tools.css` | 7.6K | Shared styles for all 5 calculators |
+| `stamp-duty-calculator.html` | 18K | **All Australian states** stamp duty calculator (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) with state dropdown |
+| `stamp-duty-qld.html` | 11K | Legacy QLD-specific stamp duty calculator |
+| `equity-release-calculator.html` | 12K | Home equity release & borrowing capacity based on LVR |
+| `loan-serviceability-calculator.html` | 13K | Mortgage affordability & borrowing capacity based on income/expenses |
+| `first-home-buyer-grants-calculator.html` | 14K | State-specific FHB grants, exemptions, and concessions |
+| `tools.css` | 7.6K | Shared styles for all calculators |
 
 ### Utilities & Configuration
 | File | Size | Purpose |
