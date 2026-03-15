@@ -96,6 +96,6 @@ We reserve the right to modify these Terms at any time. We will notify you of ma
 
 > **Legal enquiries**
 >
-> Email: [legal@equitysight.app](mailto:legal@equitysight.app)
+> Email: [support@equitysight.app](mailto:support@equitysight.app)
 >
 > Post: [MAILING ADDRESS], [CITY, STATE, POSTCODE], [COUNTRY]
