@@ -1,7 +1,11 @@
 # EquitySight.app — Codebase Guide
 
-Static HTML/CSS/JS site hosted on **Netlify** with **Netlify Functions** as the backend.
+**Australia's smartest property finance calculator** — Static HTML/CSS/JS site hosted on Netlify with Netlify Functions backend.
 No framework, no build step — what you see in the repo is what gets deployed.
+
+**Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
+
+**20 HTML pages** (incl. 10 free calculators) | **9 Netlify functions** | **10 CSS files** | **4046+ lines** of calculator logic in app.js | **2651+ lines** of admin logic in admin.js
 
 ---
 
@@ -65,6 +69,7 @@ Browser (static files)
 | `house-flip-calculator.html` | 14K | Buy/renovate/sell profit analysis |
 | `mortgage-stress-calculator.html` | 14K | Loan repayment stress testing |
 | `stamp-duty-calculator.html` | 18K | **All Australian states** stamp duty calculator (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) with state dropdown |
+| `cost-of-purchase-calculator.html` | 16K | **Total cost of purchase** breakdown — all costs when buying (stamp duty, legal, bank, inspections, insurance, moving, lease break) — all Australian states |
 | `stamp-duty-qld.html` | 11K | Legacy QLD-specific stamp duty calculator |
 | `equity-release-calculator.html` | 12K | Home equity release & borrowing capacity based on LVR |
 | `loan-serviceability-calculator.html` | 13K | Mortgage affordability & borrowing capacity based on income/expenses |

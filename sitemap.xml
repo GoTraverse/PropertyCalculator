@@ -28,6 +28,11 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://equitysight.app/cost-of-purchase-calculator.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
     <loc>https://equitysight.app/stamp-duty-qld.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

@@ -1,9 +1,11 @@
 # CLAUDE.md — Working Notes for Claude Code
 
 ## Project Summary
-**EquitySight.app** — Australian property investment calculator. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys.
+**EquitySight.app** — Australia's smartest property investment calculator. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys to production.
 
-**19 HTML pages** | **8 Netlify functions** | **10 CSS files** | **4046 lines** of calculator logic in app.js | **2651 lines** of admin logic in admin.js
+**Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
+
+**20 HTML pages** (incl. 10 free calculators) | **9 Netlify functions** | **10 CSS files** | **4046+ lines** of calculator logic | **2651+ lines** of admin logic
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
@@ -119,8 +121,26 @@ See **`README.md`** for feature overview and quick start guide.
 - ❌ Changing `@media` breakpoint without checking mobile layout → layout breaks on PWA
 - ❌ Adding external API without CSP update → network requests blocked by browser
 
+## Australian Geo-Targeting & SEO (March 2026)
+
+### All 10 Calculators Now Australian-Optimized
+- ✅ All titles include "Australian" for geo-targeting (e.g., "Australian Rental Yield Calculator")
+- ✅ All meta descriptions emphasize Australian focus + no signup messaging
+- ✅ Social sharing tags (og:image, twitter:image) added to all 10 calculators
+- ✅ 10-deep free calculator suite linked on landing page tools grid (responsive 2-col desktop, 1-col mobile)
+- ✅ Government resources sections on all 10 calculators (ATO, ASIC, RBA, APRA, state revenue offices)
+- ✅ Social share buttons (Facebook, Twitter, LinkedIn) on key calculators
+- ✅ Related calculator cross-links encourage exploration & reduce bounce rate
+- ✅ Sitemap.xml updated with all 10 calculator URLs + proper priorities
+
+### For Google Search Console Setup
+- Submit sitemap.xml: https://search.google.com/search-console
+- Set target country to Australia in GSC settings
+- Monitor search traffic by country & CTR from Australian searches
+
 ## Recent Changes (March 2026)
 - ✅ Deleted user logout — `verify` action now checks user existence
 - ✅ Admin user login status — popup shows "Active", "Email Verified", or "Awaiting Verification"
 - ✅ Header styling — increased bar height & button padding for mobile readability
-- All .md files updated with complete file map and architecture
+- ✅ Australian geo-targeting — all calculator titles, descriptions, and resources emphasize Australia focus
+- ✅ All .md files updated with Australian focus and current page counts
