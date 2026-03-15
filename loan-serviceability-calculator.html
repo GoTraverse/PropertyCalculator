@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Serviceability Calculator Australia 2026 | Free Mortgage Affordability Tool</title>
+<meta name="description" content="Check if you can afford a mortgage. Our serviceability calculator uses Australian bank lending criteria to estimate your borrowing capacity based on income and expenses.">
+<meta name="keywords" content="loan serviceability calculator, mortgage affordability calculator, how much can I borrow, borrowing capacity calculator, loan serviceability Australia">
+<link rel="canonical" href="https://equitysight.app/loan-serviceability-calculator.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Loan Serviceability Calculator Australia 2026 — Free Tool">
+<meta property="og:description" content="Check how much you can borrow based on Australian bank lending criteria.">
+<meta property="og:url" content="https://equitysight.app/loan-serviceability-calculator.html">
+<meta property="og:site_name" content="EquitySight.app">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Loan Serviceability Calculator Australia — Free Tool">
+<meta name="twitter:description" content="Calculate mortgage borrowing capacity using Australian bank lending criteria.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="tools.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Loan Serviceability Calculator","url":"https://equitysight.app/loan-serviceability-calculator.html","description":"Free loan serviceability calculator for Australian property buyers. Estimate borrowing capacity based on income, expenses, and bank lending criteria.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+
+<section class="tool-hero">
+  <div class="tool-eyebrow">Free Tool · Mortgage Planning</div>
+  <h1>Loan Serviceability Calculator</h1>
+  <p>See how much you can borrow based on Australian bank lending criteria and your income and expenses.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Gross annual income</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="salary">Your salary/wages ($/yr)</label>
+        <input class="tool-input" type="text" id="salary" placeholder="e.g. 120,000" oninput="fmtNum(this)">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="partner">Partner salary/wages ($/yr)</label>
+        <input class="tool-input" type="text" id="partner" placeholder="e.g. 85,000" oninput="fmtNum(this)">
+      </div>
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="other">Other income (rental, investment, etc.)</label>
+      <input class="tool-input" type="text" id="other" placeholder="e.g. 15,000" oninput="fmtNum(this)">
+      <div class="tool-hint">Typically discounted by lenders; include conservatively</div>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Monthly expenses</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="expenses">Living expenses (rent, utilities, food, transport, etc.)</label>
+        <input class="tool-input" type="text" id="expenses" placeholder="e.g. 4,500" oninput="fmtNum(this)">
+        <div class="tool-hint">$/month estimate</div>
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="debt">Existing debt repayments (credit cards, car loans, HECS)</label>
+        <input class="tool-input" type="text" id="debt" placeholder="e.g. 1,200" oninput="fmtNum(this)">
+        <div class="tool-hint">$/month total</div>
+      </div>
+    </div>
+
+    <button class="tool-btn" onclick="calculate()">Calculate Borrowing Capacity</button>
+  </div>
+
+  <div class="tool-result" id="result" style="display:none">
+    <div class="tool-result-title">Your serviceability estimate</div>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">Gross Annual Income</div>
+        <div class="tool-stat-value" id="r-income">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Monthly Commitments</div>
+        <div class="tool-stat-value" id="r-monthly">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Disposable Income (Monthly)</div>
+        <div class="tool-stat-value" id="r-disposable">—</div>
+      </div>
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Estimated Max Borrowing</div>
+        <div class="tool-stat-value gold" id="r-borrow">—</div>
+      </div>
+    </div>
+    <div class="tool-disclaimer" id="r-note"></div>
+    <p class="tool-disclaimer">Estimates only. Actual borrowing capacity varies by lender, loan product, interest rate assumptions, and serviceability calculations. Get pre-approved for an exact amount.</p>
+  </div>
+
+  <div class="tool-cta" id="cta" style="display:none">
+    <div class="tool-cta-eye">Go deeper</div>
+    <h3>Model the full investment</h3>
+    <p>See how a property fits into your investment plan. Model multiple properties, rental scenarios, and track equity growth — all in EquitySight.</p>
+    <a href="login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
+  </div>
+
+</div>
+
+<section class="tool-content">
+  <h2>How mortgage serviceability works in Australia</h2>
+  <p>Australian banks assess serviceability — your ability to repay the loan — using strict lending criteria. They typically use a 3% interest rate buffer when assessing your ability to repay, regardless of the actual rate.</p>
+
+  <h2>Key serviceability metrics</h2>
+  <ul>
+    <li><strong>Debt-to-income ratio:</strong> Banks typically limit total debt repayments to 40–50% of gross income.</li>
+    <li><strong>Living expense allowances:</strong> Banks apply minimum living expense guidelines ($2,600–$3,500/month for individuals) to ensure you can meet other obligations.</li>
+    <li><strong>Interest rate buffer:</strong> Most banks assume a 3% buffer above the current rate for repayment capacity.</li>
+    <li><strong>Loan-to-value (LVR):</strong> Typically limited to 80–90% depending on loan type and circumstances.</li>
+  </ul>
+
+  <h2>What can affect your borrowing capacity?</h2>
+  <ul>
+    <li>Income stability and type (employment vs. self-employed)</li>
+    <li>Credit history and existing debts</li>
+    <li>Deposit size and LVR</li>
+    <li>Interest rate environment</li>
+    <li>Employment in key sectors (some lenders restrict mining, defence, etc.)</li>
+    <li>Age of applicants</li>
+  </ul>
+
+  <h2>Next steps</h2>
+  <p>Use this estimate to understand your rough borrowing capacity, then get pre-approved by a lender for an exact amount. Mortgage brokers can shop multiple lenders and often get better rates.</p>
+</section>
+
+<footer class="tool-footer">
+  <a href="index.html">EquitySight.app</a> ·
+  <a href="loan-serviceability-calculator.html">Loan Serviceability</a> ·
+  <a href="equity-release-calculator.html">Equity Release</a> ·
+  <a href="stamp-duty-calculator.html">Stamp Duty</a> ·
+  <a href="privacy.html">Privacy</a>
+  <div style="margin-top:8px;">© 2026 EquitySight. General information only — not financial or legal advice.</div>
+</footer>
+
+<script>
+function fmtNum(el) {
+  var v = el.value.replace(/[^0-9]/g, '');
+  el.value = v ? parseInt(v).toLocaleString() : '';
+}
+function parseNum(id) {
+  return parseFloat((document.getElementById(id).value || '0').replace(/,/g, '')) || 0;
+}
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+
+function calculate() {
+  var salary = parseNum('salary');
+  var partner = parseNum('partner');
+  var other = parseNum('other');
+  var expenses = parseNum('expenses');
+  var debt = parseNum('debt');
+
+  if (!salary && !partner && !other) { alert('Please enter at least one income source.'); return; }
+
+  var gross = salary + partner + (other * 0.7); // Other income discounted by 30%
+  var monthlyIncome = gross / 12;
+  var monthlyCommitments = expenses + debt;
+  var monthlyDisposable = monthlyIncome - monthlyCommitments;
+
+  // Estimate max loan using DTI ratio of 45% of gross income for debt
+  var maxMonthlyDebt = gross * 0.45 / 12;
+  var maxMortgagePayment = maxMonthlyDebt - debt;
+
+  // Assume 3% interest rate for serviceability stress test
+  var interestRate = 0.06; // 6% gross rate, 3% buffer = ~5% effective
+  var monthlyRate = interestRate / 12;
+  var loanTerm = 360; // 30 years
+
+  // Calculate max loan: P = M * [((1 + r)^n - 1) / (r * (1 + r)^n)]
+  // Simplified: max loan is roughly max payment / monthly rate at 5% over 30 years
+  var maxLoan = maxMortgagePayment / 0.0054; // Rough approximation for 5% over 30yr
+
+  document.getElementById('r-income').textContent    = fmt(gross);
+  document.getElementById('r-monthly').textContent   = fmt(monthlyCommitments);
+  document.getElementById('r-disposable').textContent= fmt(Math.max(0, monthlyDisposable));
+  document.getElementById('r-borrow').textContent    = fmt(Math.max(0, maxLoan));
+
+  var note = '';
+  if (monthlyDisposable < 0) {
+    note = 'Your current expenses exceed income. Consider reducing expenses or increasing income before applying for a mortgage.';
+  } else if (maxLoan < 200000) {
+    note = 'Your borrowing capacity is limited. A mortgage broker can help explore options or improve your serviceability.';
+  }
+
+  document.getElementById('r-note').textContent = note;
+  document.getElementById('r-note').style.display = note ? '' : 'none';
+
+  document.getElementById('result').style.display = '';
+  document.getElementById('cta').style.display    = '';
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>
