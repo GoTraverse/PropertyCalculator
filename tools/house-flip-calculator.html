@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="tool-page.js"></script>
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Australian House Flip Calculator 2026 — Profit & ROI Tool</title>
+<meta name="description" content="Free Australian house flip calculator. Calculate profit, ROI, and annualised return for property flips. No signup, instant results.">
+<meta name="keywords" content="house flip calculator Australia, property flip profit calculator, flip profit calculator, buy renovate sell calculator, property investment calculator Australia">
+<link rel="canonical" href="https://equitysight.app/tools/house-flip-calculator.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="House Flip Profit Calculator Australia 2026 — Free Tool">
+<meta property="og:description" content="Calculate your house flip profit, ROI, and annualised return before you buy.">
+<meta property="og:url" content="https://equitysight.app/tools/house-flip-calculator.html">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="House Flip Calculator Australia — Free Tool">
+<meta name="twitter:description" content="Calculate house flip profit, ROI and annualised return for Australian properties.">
+<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"House Flip Profit Calculator Australia","url":"https://equitysight.app/tools/house-flip-calculator.html","description":"Free house flip profit calculator for Australian properties. Calculate ROI, net profit, and annualised return.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="../index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="../login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
+
+<section class="tool-hero">
+  <div class="tool-eyebrow">Free Tool · Property Flipping</div>
+  <h1>House Flip Profit Calculator</h1>
+  <p>Run the numbers on a buy-renovate-sell strategy before you commit. See net profit, ROI, and annualised return.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Purchase costs</div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="purchase">Purchase price</label>
+        <input class="tool-input" type="text" id="purchase" value="520,000" placeholder="e.g. 520,000" oninput="fmtInput(this)">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="stamp">Stamp duty</label>
+        <input class="tool-input" type="text" id="stamp" placeholder="e.g. 18,000" oninput="fmtInput(this)">
+      </div>
+    </div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="buyconvey">Conveyancing (buy)</label>
+        <input class="tool-input" type="text" id="buyconvey" placeholder="e.g. 1,500" oninput="fmtInput(this)">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="buyinspect">Inspections / due diligence</label>
+        <input class="tool-input" type="text" id="buyinspect" placeholder="e.g. 800" oninput="fmtInput(this)">
+      </div>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Renovation costs</div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="reno">Renovation budget</label>
+        <input class="tool-input" type="text" id="reno" placeholder="e.g. 85,000" oninput="fmtInput(this); updateContingency();">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="renocontingency">Contingency (15%)</label>
+        <input class="tool-input" type="text" id="renocontingency" placeholder="Auto-calculated" readonly style="background:var(--warm-white);color:var(--slate);">
+      </div>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Holding costs</div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="months">Hold period (months)</label>
+        <input class="tool-input" type="number" id="months" placeholder="e.g. 8" min="1" max="60">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="monthly">Monthly holding costs ($)</label>
+        <input class="tool-input" type="text" id="monthly" placeholder="e.g. 3,200" oninput="fmtInput(this)">
+      </div>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Sale</div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="saleprice">Expected sale price</label>
+        <input class="tool-input" type="text" id="saleprice" value="750,000" placeholder="e.g. 750,000" oninput="fmtInput(this)">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="commission">Agent commission (%)</label>
+        <input class="tool-input" type="number" id="commission" placeholder="e.g. 2.2" step="0.1" min="0" max="10" value="2.2">
+      </div>
+    </div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="sellconvey">Conveyancing (sell)</label>
+        <input class="tool-input" type="text" id="sellconvey" placeholder="e.g. 1,500" oninput="fmtInput(this)">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="staging">Styling / staging</label>
+        <input class="tool-input" type="text" id="staging" placeholder="e.g. 3,000" oninput="fmtInput(this)">
+      </div>
+    </div>
+
+    <button class="tool-btn" onclick="calculate()">Calculate Flip Profit</button>
+  </div>
+
+  <div class="tool-result" id="result" style="display:none">
+    <div class="tool-result-title">Flip analysis</div>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">Total Cost (in)</div>
+        <div class="tool-stat-value" id="r-cost">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Net Proceeds (out)</div>
+        <div class="tool-stat-value" id="r-proceeds">—</div>
+      </div>
+      <div class="tool-stat highlight full">
+        <div class="tool-stat-label">Net Profit (pre-tax)</div>
+        <div class="tool-stat-value" id="r-profit">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">ROI</div>
+        <div class="tool-stat-value" id="r-roi">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Annualised Return</div>
+        <div class="tool-stat-value" id="r-annual">—</div>
+      </div>
+      <div class="tool-stat full" id="r-verdict-wrap">
+        <div class="tool-stat-label">Verdict</div>
+        <div style="font-size:14px;color:var(--slate);margin-top:4px;" id="r-verdict">—</div>
+      </div>
+    </div>
+    <p class="tool-disclaimer">Pre-tax estimate only. Does not include CGT (Capital Gains Tax), income tax on profits, GST (for developers), or finance costs beyond the holding period entered. Consult an accountant before proceeding.</p>
+  </div>
+
+  <div id="tool-cta-root"></div>
+  <div id="tool-resources-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>What makes a good house flip in Australia?</h2>
+  <p>A profitable flip typically targets a gross profit margin of at least 15–20% of the purchase price — enough to cover costs and provide a reasonable return. Tight margins get eaten up by unexpected expenses.</p>
+
+  <h2>The 70% rule explained</h2>
+  <p>A widely used rule in property flipping: don't pay more than <strong>70% of the After-Repair Value (ARV)</strong> minus renovation costs.</p>
+  <p><em>Maximum purchase price = (ARV × 0.70) − renovation costs</em></p>
+  <p>This leaves room for holding costs, selling costs, and profit margin.</p>
+
+  <h2>Common costs that kill flip margins</h2>
+  <ul>
+    <li><strong>Stamp duty:</strong> 3–6%+ of purchase price depending on state</li>
+    <li><strong>Agent commission:</strong> Typically 1.5–3% of sale price in Australia</li>
+    <li><strong>Renovation blowouts:</strong> Budget 15–20% contingency on top of quotes</li>
+    <li><strong>Holding costs:</strong> Mortgage, council rates, insurance for every month you hold</li>
+    <li><strong>Capital Gains Tax:</strong> If held under 12 months, the full profit is taxable as income</li>
+    <li><strong>GST:</strong> May apply if you're classified as a developer — seek advice</li>
+  </ul>
+
+  <h2>CGT and the 12-month rule</h2>
+  <p>In Australia, if you sell within 12 months of purchase, the full capital gain is added to your income and taxed at your marginal rate. Holding for more than 12 months halves the taxable gain (50% CGT discount). This can dramatically affect net profit on flips.</p>
+</section>
+
+<div id="tool-footer-root"></div>
+
+<script>
+function updateContingency() {
+  var reno = parseVal('reno');
+  var cont = Math.round(reno * 0.15);
+  document.getElementById('renocontingency').value = cont > 0 ? cont.toLocaleString() : '';
+}
+
+function calculate() {
+  var purchase = parseVal('purchase');
+  var sale = parseVal('saleprice');
+  if (!purchase || !sale) { if (!_isInit) alert('Please enter purchase price and expected sale price.'); return; }
+
+  var stamp = parseVal('stamp');
+  var buyconvey = parseVal('buyconvey');
+  var buyinspect = parseVal('buyinspect');
+  var reno = parseVal('reno');
+  var renocont = Math.round(reno * 0.15);
+  var months = parseFloat(document.getElementById('months').value) || 0;
+  var monthly = parseVal('monthly');
+  var commission = (parseFloat(document.getElementById('commission').value) || 0) / 100;
+  var sellconvey = parseVal('sellconvey');
+  var staging = parseVal('staging');
+
+  var holdingTotal = months * monthly;
+  var agentFee = sale * commission;
+  var totalCost = purchase + stamp + buyconvey + buyinspect + reno + renocont + holdingTotal;
+  var netProceeds = sale - agentFee - sellconvey - staging;
+  var netProfit = netProceeds - totalCost;
+  var roi = totalCost > 0 ? (netProfit / totalCost * 100) : 0;
+  var annualised = months > 0 ? roi / months * 12 : 0;
+
+  var profitEl = document.getElementById('r-profit');
+  profitEl.textContent = fmt(netProfit);
+  profitEl.className = 'tool-stat-value ' + (netProfit > 0 ? 'green' : 'red');
+
+  var verdict = '';
+  if (netProfit <= 0) verdict = '\u26A0\uFE0F This flip appears unprofitable at these figures. Review costs or target a higher sale price.';
+  else if (annualised >= 20) verdict = '\u2713 Strong projected return. Ensure your renovation and sale price estimates are realistic.';
+  else if (annualised >= 10) verdict = '\u2713 Reasonable return. Verify renovation costs and allow for contingency.';
+  else verdict = 'Marginal return. Consider whether the risk justifies the effort compared to other strategies.';
+
+  document.getElementById('r-cost').textContent = fmt(totalCost);
+  document.getElementById('r-proceeds').textContent = fmt(netProceeds);
+  document.getElementById('r-roi').textContent = roi.toFixed(1) + '%';
+  document.getElementById('r-annual').textContent = months > 0 ? annualised.toFixed(1) + '% p.a.' : 'N/A';
+  document.getElementById('r-verdict').textContent = verdict;
+
+  document.getElementById('result').style.display = '';
+  document.getElementById('cta').style.display = '';
+  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ═══ TOOL CONFIG ═══ */
+ToolPage.init({
+  cta: {
+    eyebrow: 'Go deeper',
+    title: 'Model the full buy\u2013hold\u2013sell strategy',
+    description: 'Track equity, rental yield during hold, tax implications, and compare against a buy-and-hold strategy \u2014 in EquitySight.',
+    buttonText: 'Get started free \u2192',
+    buttonHref: '../login.html?tab=signup'
+  },
+  resources: {
+    groups: [
+      {
+        icon: '\uD83D\uDCB0', title: 'Tax & Capital Gains',
+        links: [
+          { text: 'ATO: Capital Gains Tax Guide', href: 'https://www.ato.gov.au/individuals/capital-gains-tax/' },
+          { text: 'ATO: GST for Developers', href: 'https://www.ato.gov.au/business/gst/' },
+          { text: 'ATO: Income Deductions', href: 'https://www.ato.gov.au/individuals/income-and-deductions/' },
+          { text: 'ATO: Property Tax Guide', href: 'https://www.ato.gov.au/individuals/rental-properties-and-shared-equity-schemes/' }
+        ]
+      },
+      {
+        icon: '\uD83C\uDFE2', title: 'Renovation & Building',
+        links: [
+          { text: 'Building Inspections Info', href: 'https://www.consumeraffairs.vic.gov.au/housing-and-property/building-and-property/building-inspections' },
+          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Law Society Australia', href: 'https://www.lawsociety.com.au/' }
+        ]
+      },
+      {
+        icon: '\uD83D\uDCCB', title: 'Investment & Finance',
+        links: [
+          { text: 'MoneySmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' },
+          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
+          { text: 'ASIC: Investment Loans', href: 'https://moneysmart.gov.au/property-investment' }
+        ]
+      }
+    ],
+    disclaimer: 'This is general information only. House flipping involves significant tax and financial complexity. Always consult a tax accountant, financial adviser, and lawyer before proceeding.'
+  },
+  share: {
+    url: 'https://equitysight.app/tools/house-flip-calculator.html',
+    text: 'Just calculated my house flip profit!'
+  },
+  related: [
+    { href: 'renovation-cost-calculator.html', icon: '\uD83D\uDD28', label: 'Renovation Costs' },
+    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
+    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' }
+  ],
+  footer: [
+    { href: '../index.html', text: 'EquitySight.app' },
+    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
+    { href: 'renovation-cost-calculator.html', text: 'Reno Cost' },
+    { href: 'rental-yield-calculator.html', text: 'Rental Yield' },
+    { href: '../privacy.html', text: 'Privacy' }
+  ]
+});
+
+var _isInit = true;
+calculate();
+_isInit = false;
+</script>
+
+</body>
+</html>

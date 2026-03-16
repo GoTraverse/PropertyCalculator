@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script src="tool-page.js"></script>
 <script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Australian cost of purchase calculator. See all costs when buying a property — stamp duty, legal fees, bank charges, inspections, insurance, and moving costs. State-specific breakdown.">
@@ -11,51 +12,47 @@
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:title" content="Australian Cost of Purchase Calculator — EquitySight">
 <meta property="og:description" content="Calculate all property buying costs in Australia — stamp duty, conveyancing, bank fees, inspections, insurance.">
-<meta property="og:url" content="https://equitysight.app/cost-of-purchase-calculator.html">
+<meta property="og:url" content="https://equitysight.app/tools/cost-of-purchase-calculator.html">
 <meta property="og:image" content="https://equitysight.app/favicon.svg">
-<link rel="canonical" href="https://equitysight.app/cost-of-purchase-calculator.html">
+<link rel="canonical" href="https://equitysight.app/tools/cost-of-purchase-calculator.html">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Australian Cost of Purchase Calculator">
 <meta name="twitter:description" content="Calculate all property buying costs — stamp duty, fees, inspections, insurance. Australian state-specific.">
 <meta name="twitter:image" content="https://equitysight.app/favicon.svg">
 <meta name="keywords" content="cost of purchase calculator Australia, buying costs breakdown, stamp duty, conveyancing fees, bank fees, building inspection, moving costs">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"Cost of Purchase Calculator","description":"Calculate all costs when buying property in Australia","url":"https://equitysight.app/cost-of-purchase-calculator.html","applicationCategory":"FinanceApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"Cost of Purchase Calculator","description":"Calculate all costs when buying property in Australia","url":"https://equitysight.app/tools/cost-of-purchase-calculator.html","applicationCategory":"FinanceApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"}}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css">
-<link rel="stylesheet" href="tools.css">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="alternate icon" href="favicon.svg">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" href="../favicon.svg">
 </head>
 <body>
 
-<!-- ══ SITE NAV ══ -->
 <header class="tool-header">
-  <a href="index.html" class="tool-logo">
+  <a href="../index.html" class="tool-logo">
     <span class="tool-logo-mark">🏠</span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+  <a href="../login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
 </header>
-<script src="auth-nav.js"></script>
-<script src="error-capture.js"></script>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
 
-<!-- ══ HERO ══ -->
 <section class="tool-hero">
   <div class="tool-eyebrow">Free Tool · Buying Costs</div>
   <h1>Cost of Purchase Breakdown</h1>
   <p>See all costs when buying a property in Australia — stamp duty, legal fees, bank charges, inspections, insurance, and moving costs. State-specific estimates.</p>
 </section>
 
-<!-- ══ CALCULATOR ══ -->
 <div class="tool-main">
   <div class="tool-card">
     <div class="tool-card-title">Inputs</div>
 
-    <!-- Purchase Details + State -->
     <div class="cost-input-grid">
       <div class="cost-inputs-left">
         <div class="tool-field">
@@ -100,7 +97,6 @@
       </div>
     </div>
 
-    <!-- Conditional Rental Fields -->
     <div id="rentGroup" style="display: none;">
       <div class="tool-field">
         <label class="tool-label">Weekly Rent</label>
@@ -115,7 +111,6 @@
     <button class="tool-btn" onclick="calc()">Calculate Costs</button>
   </div>
 
-  <!-- Cost Breakdown -->
   <div class="tool-cost-breakdown">
     <div class="tool-cost-breakdown-section">
       <div class="tool-cost-breakdown-title">💰 Cost Breakdown</div>
@@ -170,7 +165,6 @@
     </div>
   </div>
 
-  <!-- Results Summary -->
   <div class="tool-result">
     <div class="tool-result-title">Summary</div>
     <div class="tool-grid">
@@ -192,73 +186,13 @@
     </div>
   </div>
 
-  <!-- CTA -->
-  <div class="tool-cta" id="cta" style="display:none">
-    <div class="tool-cta-eye">Go deeper</div>
-    <h3>Ready to buy?</h3>
-    <p>Now that you know the upfront costs, use EquitySight to model your entire investment — including ongoing costs, rental income, and 30-year projections.</p>
-    <a href="login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
-  </div>
-
-  <!-- Resources -->
-  <div class="tool-resources">
-    <h3 class="tool-resources-title">📚 Government Resources & Further Reading</h3>
-    <div class="tool-resources-grid">
-      <div>
-        <h4>💰 Stamp Duty</h4>
-        <ul>
-          <li><a href="https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty" target="_blank">NSW Revenue: Stamp Duty</a></li>
-          <li><a href="https://www.sro.vic.gov.au/land-transfer-duty" target="_blank">VIC: Land Transfer Duty</a></li>
-          <li><a href="https://www.revenue.qld.gov.au/transfer-duty" target="_blank">QLD: Transfer Duty</a></li>
-          <li><a href="https://www.ato.gov.au/individuals/rental-properties-and-shared-equity-schemes/" target="_blank">ATO: Shared Equity Schemes</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>🏦 Borrowing & LMI</h4>
-        <ul>
-          <li><a href="https://www.asic.gov.au/asic/ASIC.NSF/byheadline/Mortgage%20insurance" target="_blank">ASIC: Mortgage Insurance</a></li>
-          <li><a href="https://www.rba.gov.au/education/" target="_blank">RBA: Interest Rates</a></li>
-          <li><a href="https://moneysmart.gov.au/home-loans" target="_blank">ASIC: Home Loan Guide</a></li>
-          <li><a href="https://www.ato.gov.au/" target="_blank">ATO: Tax Info</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>🎯 First Home Buyer</h4>
-        <ul>
-          <li><a href="https://www.firsthome.gov.au/" target="_blank">First Home Guarantee Scheme</a></li>
-          <li><a href="https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme" target="_blank">FHSS Scheme</a></li>
-          <li><a href="https://moneysmart.gov.au/buying-a-house" target="_blank">ASIC: Buying a Home</a></li>
-          <li><a href="https://www.lawsociety.com.au/" target="_blank">Law Society of Australia</a></li>
-        </ul>
-      </div>
-    </div>
-    <p class="tool-resources-disclaimer"><strong>Disclaimer:</strong> These are 2026 estimates based on typical costs. Actual costs vary by location, property, lender, and circumstance. Consult your lender, lawyer, and financial adviser before purchasing.</p>
-  </div>
-
-  <!-- Share -->
-  <div class="tool-share">
-    <h3>📤 Share This Calculator</h3>
-    <div class="tool-share-btns">
-      <a href="https://www.facebook.com/sharer/sharer.php?u=https://equitysight.app/cost-of-purchase-calculator.html" target="_blank" class="tool-share-btn">📘 Facebook</a>
-      <a href="https://twitter.com/intent/tweet?url=https://equitysight.app/cost-of-purchase-calculator.html&text=Just%20calculated%20my%20property%20buying%20costs!" target="_blank" class="tool-share-btn">𝕏 Twitter</a>
-      <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://equitysight.app/cost-of-purchase-calculator.html" target="_blank" class="tool-share-btn">💼 LinkedIn</a>
-    </div>
-  </div>
-
-  <!-- Related -->
-  <div class="tool-related">
-    <h3>🔗 Related Calculators</h3>
-    <div class="tool-related-grid">
-      <a href="stamp-duty-calculator.html" class="tool-related-link">🏛️ Stamp Duty</a>
-      <a href="loan-serviceability-calculator.html" class="tool-related-link">📊 Loan Serviceability</a>
-      <a href="first-home-buyer-grants-calculator.html" class="tool-related-link">🎁 FHB Grants</a>
-      <a href="mortgage-stress-calculator.html" class="tool-related-link">📈 Mortgage Stress</a>
-    </div>
-  </div>
+  <div id="tool-cta-root"></div>
+  <div id="tool-resources-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
 
 </div>
 
-<!-- SEO Content -->
 <section class="tool-content">
   <h2>How We Calculate Your Buying Costs</h2>
   <p>When buying property in Australia, the headline purchase price is just the beginning. You'll face numerous additional costs that can easily reach 10-15% of the property price. Our calculator breaks down all these costs by state and buyer type.</p>
@@ -278,60 +212,15 @@
   <h3>State-Specific Stamp Duty Rates</h3>
   <p>Stamp duty is the largest variable cost and varies significantly by state:</p>
   <table>
-    <tr>
-      <th>State</th>
-      <th>Base Rate</th>
-      <th>FHB Threshold</th>
-      <th>Max Discount</th>
-    </tr>
-    <tr>
-      <td>NSW</td>
-      <td>4.5%</td>
-      <td>$500k</td>
-      <td>50%</td>
-    </tr>
-    <tr>
-      <td>VIC</td>
-      <td>4.0%</td>
-      <td>$600k</td>
-      <td>50%</td>
-    </tr>
-    <tr>
-      <td>QLD</td>
-      <td>3.0%</td>
-      <td>$500k</td>
-      <td>Full exemption</td>
-    </tr>
-    <tr>
-      <td>WA</td>
-      <td>4.0%</td>
-      <td>$600k</td>
-      <td>Full exemption</td>
-    </tr>
-    <tr>
-      <td>SA</td>
-      <td>3.2%</td>
-      <td>$450k</td>
-      <td>Full exemption</td>
-    </tr>
-    <tr>
-      <td>TAS</td>
-      <td>3.0%</td>
-      <td>$360k</td>
-      <td>Full exemption</td>
-    </tr>
-    <tr>
-      <td>ACT</td>
-      <td>3.5%</td>
-      <td>$475k</td>
-      <td>Partial</td>
-    </tr>
-    <tr>
-      <td>NT</td>
-      <td>3.0%</td>
-      <td>$450k</td>
-      <td>Full exemption</td>
-    </tr>
+    <tr><th>State</th><th>Base Rate</th><th>FHB Threshold</th><th>Max Discount</th></tr>
+    <tr><td>NSW</td><td>4.5%</td><td>$500k</td><td>50%</td></tr>
+    <tr><td>VIC</td><td>4.0%</td><td>$600k</td><td>50%</td></tr>
+    <tr><td>QLD</td><td>3.0%</td><td>$500k</td><td>Full exemption</td></tr>
+    <tr><td>WA</td><td>4.0%</td><td>$600k</td><td>Full exemption</td></tr>
+    <tr><td>SA</td><td>3.2%</td><td>$450k</td><td>Full exemption</td></tr>
+    <tr><td>TAS</td><td>3.0%</td><td>$360k</td><td>Full exemption</td></tr>
+    <tr><td>ACT</td><td>3.5%</td><td>$475k</td><td>Partial</td></tr>
+    <tr><td>NT</td><td>3.0%</td><td>$450k</td><td>Full exemption</td></tr>
   </table>
 
   <h3>First Home Buyer Advantages</h3>
@@ -360,25 +249,20 @@
   </ul>
 </section>
 
-<script src="shared-calcs.js"></script>
+<div id="tool-footer-root"></div>
 
 <script>
-// State-specific costs (2026 estimates)
-const stateCosts = {
+/* ═══ STATE COSTS ═══ */
+var stateCosts = {
   NSW: { conveyancing: { min: 800, max: 1500 }, stampDutyRate: 0.045, fhbThreshold: 500000 },
   VIC: { conveyancing: { min: 1000, max: 1800 }, stampDutyRate: 0.04, fhbThreshold: 600000 },
   QLD: { conveyancing: { min: 600, max: 1200 }, stampDutyRate: 0.03, fhbThreshold: 500000 },
-  SA: { conveyancing: { min: 700, max: 1400 }, stampDutyRate: 0.032, fhbThreshold: 450000 },
-  WA: { conveyancing: { min: 900, max: 1600 }, stampDutyRate: 0.04, fhbThreshold: 600000 },
+  SA:  { conveyancing: { min: 700, max: 1400 }, stampDutyRate: 0.032, fhbThreshold: 450000 },
+  WA:  { conveyancing: { min: 900, max: 1600 }, stampDutyRate: 0.04, fhbThreshold: 600000 },
   TAS: { conveyancing: { min: 600, max: 1200 }, stampDutyRate: 0.03, fhbThreshold: 360000 },
   ACT: { conveyancing: { min: 800, max: 1500 }, stampDutyRate: 0.035, fhbThreshold: 475000 },
-  NT: { conveyancing: { min: 700, max: 1300 }, stampDutyRate: 0.03, fhbThreshold: 450000 }
+  NT:  { conveyancing: { min: 700, max: 1300 }, stampDutyRate: 0.03, fhbThreshold: 450000 }
 };
-
-function escHtml(text) {
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return String(text).replace(/[&<>"']/g, m => map[m]);
-}
 
 function getNumVal(id) {
   return parseFloat(document.getElementById(id).value) || 0;
@@ -389,70 +273,49 @@ function setTextContent(id, val) {
 }
 
 function calc() {
-  const purchasePrice = getNumVal('purchasePrice');
-  const depositPct = getNumVal('depositPct');
-  const loan = getNumVal('loanAmount');
-  const state = document.getElementById('state').value;
-  const isFhb = document.getElementById('fhb').checked;
-  const isForeignBuyer = document.getElementById('foreignBuyer').checked;
-  const isRenting = document.getElementById('currentlyRenting').checked;
-  const weeklyRent = getNumVal('weeklyRent');
-  const leaseBreak = getNumVal('leaseBreak');
+  var purchasePrice = getNumVal('purchasePrice');
+  var depositPct = getNumVal('depositPct');
+  var loan = getNumVal('loanAmount');
+  var state = document.getElementById('state').value;
+  var isFhb = document.getElementById('fhb').checked;
+  var isForeignBuyer = document.getElementById('foreignBuyer').checked;
+  var isRenting = document.getElementById('currentlyRenting').checked;
+  var weeklyRent = getNumVal('weeklyRent');
+  var leaseBreak = getNumVal('leaseBreak');
 
-  // Auto-calculate loan
-  const deposit = purchasePrice * (depositPct / 100);
-  const calculatedLoan = purchasePrice - deposit;
+  var deposit = purchasePrice * (depositPct / 100);
+  var calculatedLoan = purchasePrice - deposit;
   document.getElementById('loanAmount').value = Math.round(calculatedLoan);
 
-  // === STAMP DUTY ===
-  let stampDuty = 0;
-  const costs = stateCosts[state];
+  var stampDuty = 0;
+  var costs = stateCosts[state];
   if (costs) {
-    const baseRate = costs.stampDutyRate;
+    var baseRate = costs.stampDutyRate;
     stampDuty = purchasePrice * baseRate;
-    if (isFhb && purchasePrice <= costs.fhbThreshold) {
-      stampDuty = stampDuty * 0.5;
-    }
-    if (isForeignBuyer) {
-      stampDuty = stampDuty * 1.08;
-    }
+    if (isFhb && purchasePrice <= costs.fhbThreshold) stampDuty = stampDuty * 0.5;
+    if (isForeignBuyer) stampDuty = stampDuty * 1.08;
   }
 
-  // === BANK FEES ===
-  const bankValuation = Math.max(300, Math.min(700, purchasePrice / 1000));
-  const loanFee = Math.max(150, loan * 0.002);
-  const settlementFee = 250;
+  var bankValuation = Math.max(300, Math.min(700, purchasePrice / 1000));
+  var loanFee = Math.max(150, calculatedLoan * 0.002);
+  var settlementFee = 250;
+  var conveyancing = costs.conveyancing.min + (costs.conveyancing.max - costs.conveyancing.min) * 0.5;
+  var inspection = 500;
 
-  // === CONVEYANCING ===
-  const conveyancing = costs.conveyancing.min + (costs.conveyancing.max - costs.conveyancing.min) * 0.5;
-
-  // === INSPECTION ===
-  const inspection = 500;
-
-  // === LMI ===
-  let lmi = 0;
+  var lmi = 0;
   if (depositPct < 20) {
-    const lvr = (loan / purchasePrice) * 100;
-    if (lvr >= 95) lmi = loan * 0.018;
-    else if (lvr >= 90) lmi = loan * 0.012;
-    else if (lvr >= 85) lmi = loan * 0.008;
-    else if (lvr >= 80) lmi = loan * 0.005;
+    var lvr = (calculatedLoan / purchasePrice) * 100;
+    if (lvr >= 95) lmi = calculatedLoan * 0.018;
+    else if (lvr >= 90) lmi = calculatedLoan * 0.012;
+    else if (lvr >= 85) lmi = calculatedLoan * 0.008;
+    else if (lvr >= 80) lmi = calculatedLoan * 0.005;
   }
 
-  // === INSURANCE ===
-  const buildingIns = purchasePrice * 0.004;
-  const contentsIns = 500;
+  var buildingIns = purchasePrice * 0.004;
+  var contentsIns = 500;
+  var movingCosts = 2500;
+  var leaseBreakCost = isRenting ? leaseBreak : 0;
 
-  // === MOVING ===
-  const movingCosts = 2500;
-
-  // === LEASE BREAK ===
-  let leaseBreakCost = 0;
-  if (isRenting) {
-    leaseBreakCost = leaseBreak;
-  }
-
-  // === DISPLAY ===
   setTextContent('stampDuty', stampDuty);
   setTextContent('conveyancing', conveyancing);
   setTextContent('bankValuation', bankValuation);
@@ -463,21 +326,15 @@ function calc() {
   setTextContent('contentsIns', contentsIns);
   setTextContent('movingCosts', movingCosts);
 
-  // Show/hide LMI
   document.getElementById('lmiRow').style.display = depositPct < 20 ? 'flex' : 'none';
   setTextContent('lmi', lmi);
-
-  // Show/hide lease break
   document.getElementById('leaseBreakRow').style.display = isRenting ? 'flex' : 'none';
   setTextContent('leaseBreakCost', leaseBreakCost);
-
-  // Show/hide rent inputs
   document.getElementById('rentGroup').style.display = isRenting ? 'block' : 'none';
 
-  // === TOTALS ===
-  const totalCosts = stampDuty + conveyancing + bankValuation + loanFee + settlementFee + inspection + buildingIns + contentsIns + movingCosts + lmi + leaseBreakCost;
-  const totalPct = (totalCosts / purchasePrice) * 100;
-  const cashNeeded = totalCosts + deposit;
+  var totalCosts = stampDuty + conveyancing + bankValuation + loanFee + settlementFee + inspection + buildingIns + contentsIns + movingCosts + lmi + leaseBreakCost;
+  var totalPct = (totalCosts / purchasePrice) * 100;
+  var cashNeeded = totalCosts + deposit;
 
   setTextContent('totalCosts', totalCosts);
   setTextContent('summaryUpfront', totalCosts);
@@ -487,24 +344,74 @@ function calc() {
   document.getElementById('cta').style.display = '';
 }
 
-let calcTimeout;
+var calcTimeout;
 function dCalc() {
   clearTimeout(calcTimeout);
   calcTimeout = setTimeout(calc, 180);
 }
 
-// Init
+/* ═══ TOOL CONFIG ═══ */
+ToolPage.init({
+  cta: {
+    eyebrow: 'Go deeper',
+    title: 'Ready to buy?',
+    description: 'Now that you know the upfront costs, use EquitySight to model your entire investment — including ongoing costs, rental income, and 30-year projections.',
+    buttonText: 'Get started free \u2192',
+    buttonHref: '../login.html?tab=signup'
+  },
+  resources: {
+    groups: [
+      {
+        icon: '\uD83D\uDCB0', title: 'Stamp Duty',
+        links: [
+          { text: 'NSW Revenue: Stamp Duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
+          { text: 'VIC: Land Transfer Duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
+          { text: 'QLD: Transfer Duty', href: 'https://www.revenue.qld.gov.au/transfer-duty' },
+          { text: 'ATO: Shared Equity Schemes', href: 'https://www.ato.gov.au/individuals/rental-properties-and-shared-equity-schemes/' }
+        ]
+      },
+      {
+        icon: '\uD83C\uDFE6', title: 'Borrowing & LMI',
+        links: [
+          { text: 'ASIC: Mortgage Insurance', href: 'https://www.asic.gov.au/asic/ASIC.NSF/byheadline/Mortgage%20insurance' },
+          { text: 'RBA: Interest Rates', href: 'https://www.rba.gov.au/education/' },
+          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: Tax Info', href: 'https://www.ato.gov.au/' }
+        ]
+      },
+      {
+        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        links: [
+          { text: 'First Home Guarantee Scheme', href: 'https://www.firsthome.gov.au/' },
+          { text: 'FHSS Scheme', href: 'https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme' },
+          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Law Society of Australia', href: 'https://www.lawsociety.com.au/' }
+        ]
+      }
+    ],
+    disclaimer: 'These are 2026 estimates based on typical costs. Actual costs vary by location, property, lender, and circumstance. Consult your lender, lawyer, and financial adviser before purchasing.'
+  },
+  share: {
+    url: 'https://equitysight.app/tools/cost-of-purchase-calculator.html',
+    text: 'Just calculated my property buying costs!'
+  },
+  related: [
+    { href: 'stamp-duty-calculator.html', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
+    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: 'first-home-buyer-grants-calculator.html', icon: '\uD83C\uDF81', label: 'FHB Grants' },
+    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
+  ],
+  footer: [
+    { href: '../index.html', text: 'EquitySight.app' },
+    { href: 'house-flip-calculator.html', text: 'House Flip' },
+    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
+    { href: 'loan-serviceability-calculator.html', text: 'Loan Serviceability' },
+    { href: '../privacy.html', text: 'Privacy' }
+  ]
+});
+
 calc();
 </script>
-
-<footer class="tool-footer">
-  <a href="index.html">EquitySight.app</a> ·
-  <a href="house-flip-calculator.html">House Flip</a> ·
-  <a href="stamp-duty-calculator.html">Stamp Duty</a> ·
-  <a href="loan-serviceability-calculator.html">Loan Serviceability</a> ·
-  <a href="privacy.html">Privacy</a>
-  <div style="margin-top:8px;">© 2026 EquitySight. General information only — not financial advice.</div>
-</footer>
 
 </body>
 </html>

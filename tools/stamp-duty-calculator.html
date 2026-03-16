@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="tool-page.js"></script>
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Stamp Duty Calculator Australia 2026 | All States | Free Tool</title>
+<meta name="description" content="Calculate stamp duty for any Australian state. NSW, VIC, QLD, SA, WA, TAS, ACT, NT. Includes first home buyer exemptions and foreign buyer surcharges. Free, instant, no sign-up.">
+<meta name="keywords" content="stamp duty calculator Australia, stamp duty calculator, transfer duty, conveyancing duty, first home buyer, property tax calculator, NSW VIC QLD">
+<link rel="canonical" href="https://equitysight.app/tools/stamp-duty-calculator.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Stamp Duty Calculator Australia 2026 — All States — Free Tool">
+<meta property="og:description" content="Calculate stamp duty instantly for any Australian state. All states, first home buyer exemptions, foreign buyer surcharges.">
+<meta property="og:url" content="https://equitysight.app/tools/stamp-duty-calculator.html">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Stamp Duty Calculator Australia 2026 — Free Tool">
+<meta name="twitter:description" content="Calculate stamp duty instantly for NSW, VIC, QLD, SA, WA, TAS, ACT, NT with first home buyer exemptions.">
+<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Stamp Duty Calculator Australia","url":"https://equitysight.app/tools/stamp-duty-calculator.html","description":"Free stamp duty calculator for all Australian states. Calculate conveyancing duty, transfer duty, or land duty instantly with first home buyer exemptions.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="../index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="../login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
+
+<section class="tool-hero">
+  <div class="tool-eyebrow">Free Tool · All Australian States</div>
+  <h1>Stamp Duty Calculator</h1>
+  <p>Instantly calculate stamp duty for any Australian state — NSW, VIC, QLD, SA, WA, TAS, ACT, NT.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Select your state</div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="state">State or territory</label>
+      <select class="tool-input tool-select" id="state" onchange="updateState()">
+        <option value="nsw">New South Wales (NSW)</option>
+        <option value="vic">Victoria (VIC)</option>
+        <option value="qld">Queensland (QLD)</option>
+        <option value="sa">South Australia (SA)</option>
+        <option value="wa">Western Australia (WA)</option>
+        <option value="tas">Tasmania (TAS)</option>
+        <option value="act">Australian Capital Territory (ACT)</option>
+        <option value="nt">Northern Territory (NT)</option>
+      </select>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Enter property details</div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="price">Property purchase price</label>
+      <input class="tool-input" type="text" id="price" value="650,000" placeholder="e.g. 650,000" oninput="fmtInput(this)">
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="ptype">Property type</label>
+      <select class="tool-input tool-select" id="ptype">
+        <option value="home">Residential dwelling</option>
+        <option value="land">Vacant land</option>
+      </select>
+    </div>
+
+    <div class="tool-check">
+      <input type="checkbox" id="fhb">
+      <label for="fhb" id="fhb-label">First home buyer (principal place of residence)</label>
+    </div>
+    <div class="tool-check" id="foreign-check">
+      <input type="checkbox" id="foreign">
+      <label for="foreign" id="foreign-label">Foreign buyer</label>
+    </div>
+
+    <button class="tool-btn" onclick="calculate()">Calculate Stamp Duty</button>
+  </div>
+
+  <div class="tool-result" id="result" style="display:none">
+    <div class="tool-result-title">Your estimate</div>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label" id="r-duty-label">Stamp Duty</div>
+        <div class="tool-stat-value" id="r-duty">—</div>
+      </div>
+      <div class="tool-stat" id="r-foreign-wrap">
+        <div class="tool-stat-label" id="r-foreign-label">Foreign Surcharge</div>
+        <div class="tool-stat-value" id="r-foreign">—</div>
+      </div>
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Total Duty</div>
+        <div class="tool-stat-value" id="r-total">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Effective Rate</div>
+        <div class="tool-stat-value" id="r-rate">—</div>
+      </div>
+      <div class="tool-stat full">
+        <div class="tool-stat-label">All-In Price (Property + Duty)</div>
+        <div class="tool-stat-value" id="r-allin">—</div>
+      </div>
+    </div>
+    <div class="tool-disclaimer" id="r-note" style="display:none"></div>
+    <p class="tool-disclaimer" id="disclaimer"></p>
+  </div>
+
+  <div id="tool-cta-root"></div>
+  <div id="tool-resources-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>How We Calculate Australian Stamp Duty</h2>
+  <p>Stamp duty (also called transfer duty or conveyancing duty) is a state government tax charged when you buy property. Each Australian state calculates it differently using tiered bracket systems based on the property price, type, and buyer status.</p>
+
+  <h3>State-by-State Stamp Duty Rates (2026)</h3>
+  <p>Rates vary significantly between states. Here are the key thresholds:</p>
+  <ul>
+    <li><strong>NSW:</strong> Tiered rates from 1.25% to 7% on portions above $3M. First home buyers exempt up to $800,000</li>
+    <li><strong>VIC:</strong> Tiered rates from 1.4% to 6.5%. First home buyers exempt up to $600,000, concessions to $750,000</li>
+    <li><strong>QLD:</strong> Tiered rates from 1.0% to 5.75%. First home buyers get concessions up to $550,000</li>
+    <li><strong>SA:</strong> Tiered rates from 1.0% to 5.5%. No stamp duty for first home buyers on properties up to $650,000</li>
+    <li><strong>WA:</strong> Tiered rates from 1.9% to 5.15%. First home buyers exempt up to $430,000</li>
+    <li><strong>TAS:</strong> Tiered rates from 1.75% to 4.5%. First home buyers get 50% discount up to $400,000</li>
+    <li><strong>ACT:</strong> Tiered rates from 0.68% to 7.17%. First home buyers exempt up to $1,000,000</li>
+    <li><strong>NT:</strong> Tiered rates starting at 0%. First home buyers get concessions up to $650,000</li>
+  </ul>
+
+  <h3>First Home Buyer Exemptions</h3>
+  <p>Every Australian state offers some form of stamp duty relief for first home buyers. The exemption typically applies up to a price threshold, with partial concessions available above that. Our calculator automatically applies these when you check the "First home buyer" box.</p>
+
+  <h3>Foreign Buyer Surcharges</h3>
+  <p>Foreign buyers face additional stamp duty surcharges in most states, typically 7–8% on top of the standard rate. This calculator includes these surcharges when you check the "Foreign buyer" box.</p>
+
+  <h3>Residential vs Vacant Land</h3>
+  <p>Stamp duty rates often differ between residential dwellings and vacant land. Vacant land typically attracts lower duty in most states. Select your property type to see the correct calculation.</p>
+
+  <h2>Using Your Results</h2>
+  <p>Stamp duty is usually the largest upfront cost when buying property. Once you know your stamp duty, use the full EquitySight calculator to model your complete investment — including all buying costs, loan repayments, rental income, and long-term growth projections.</p>
+</section>
+
+<div id="tool-footer-root"></div>
+
+<script>
+/* ═══ STATE DATA ═══ */
+var stateData = {
+  nsw: {
+    name: 'New South Wales', dutyName: 'Conveyancing Duty', foreignRate: 0.08,
+    fhbFull: 400000, fhbPartial: 530000, fhbExemption: 8000,
+    rates: [
+      { min: 0, max: 14000, formula: function() { return 0; } },
+      { min: 14001, max: 30000, formula: function(v) { return v * 0.0125; } },
+      { min: 30001, max: 130000, formula: function(v) { return 200 + (v - 30000) * 0.015; } },
+      { min: 130001, max: 205000, formula: function(v) { return 1700 + (v - 130000) * 0.0175; } },
+      { min: 205001, max: 305000, formula: function(v) { return 2631.25 + (v - 205000) * 0.035; } },
+      { min: 305001, max: 405000, formula: function(v) { return 6131.25 + (v - 305000) * 0.04; } },
+      { min: 405001, max: 550000, formula: function(v) { return 10131.25 + (v - 405000) * 0.045; } },
+      { min: 550001, max: Infinity, formula: function(v) { return 16256.25 + (v - 550000) * 0.055; } }
+    ]
+  },
+  vic: {
+    name: 'Victoria', dutyName: 'Duty of Transfer', foreignRate: 0.08,
+    fhbFull: 600000, fhbPartial: 750000, fhbExemption: 25000,
+    rates: [
+      { min: 0, max: 25000, formula: function() { return 0; } },
+      { min: 25001, max: 130000, formula: function(v) { return v * 0.014; } },
+      { min: 130001, max: 440000, formula: function(v) { return 1470 + (v - 130000) * 0.024; } },
+      { min: 440001, max: 870000, formula: function(v) { return 8910 + (v - 440000) * 0.055; } },
+      { min: 870001, max: Infinity, formula: function(v) { return 43605 + (v - 870000) * 0.065; } }
+    ]
+  },
+  qld: {
+    name: 'Queensland', dutyName: 'Transfer Duty', foreignRate: 0.08,
+    fhbFull: 500000, fhbPartial: 550000, fhbExemption: Infinity,
+    landFhbFull: 250000, landFhbPartial: 400000,
+    rates: [
+      { min: 0, max: 5000, formula: function() { return 0; } },
+      { min: 5001, max: 75000, formula: function(v) { return (v - 5000) * 0.015; } },
+      { min: 75001, max: 540000, formula: function(v) { return 1050 + (v - 75000) * 0.035; } },
+      { min: 540001, max: 1000000, formula: function(v) { return 17325 + (v - 540000) * 0.045; } },
+      { min: 1000001, max: Infinity, formula: function(v) { return 38025 + (v - 1000000) * 0.0575; } }
+    ]
+  },
+  sa: {
+    name: 'South Australia', dutyName: 'Transfer Duty', foreignRate: 0.08,
+    fhbFull: 575000, fhbPartial: 650000, fhbExemption: Infinity,
+    rates: [
+      { min: 0, max: 16000, formula: function() { return 0; } },
+      { min: 16001, max: 19000, formula: function(v) { return v * 0.015; } },
+      { min: 19001, max: 250000, formula: function(v) { return 45 + (v - 19000) * 0.03; } },
+      { min: 250001, max: 300000, formula: function(v) { return 6915 + (v - 250000) * 0.035; } },
+      { min: 300001, max: Infinity, formula: function(v) { return 8665 + (v - 300000) * 0.04; } }
+    ]
+  },
+  wa: {
+    name: 'Western Australia', dutyName: 'Stamp Duty', foreignRate: 0.07,
+    fhbFull: 430000, fhbPartial: 500000, fhbExemption: Infinity,
+    rates: [
+      { min: 0, max: 2000, formula: function() { return 0; } },
+      { min: 2001, max: 4000, formula: function(v) { return v * 0.01; } },
+      { min: 4001, max: 500000, formula: function(v) { return 20 + (v - 4000) * 0.02; } },
+      { min: 500001, max: 1000000, formula: function(v) { return 9920 + (v - 500000) * 0.035; } },
+      { min: 1000001, max: Infinity, formula: function(v) { return 27420 + (v - 1000000) * 0.0475; } }
+    ]
+  },
+  tas: {
+    name: 'Tasmania', dutyName: 'Conveyancing Duty', foreignRate: 0,
+    fhbFull: 400000, fhbPartial: 500000, fhbExemption: Infinity,
+    rates: [
+      { min: 0, max: 3000, formula: function() { return 0; } },
+      { min: 3001, max: 100000, formula: function(v) { return v * 0.036; } },
+      { min: 100001, max: 150000, formula: function(v) { return 3492 + (v - 100000) * 0.041; } },
+      { min: 150001, max: 250000, formula: function(v) { return 5542 + (v - 150000) * 0.0425; } },
+      { min: 250001, max: Infinity, formula: function(v) { return 9792 + (v - 250000) * 0.0475; } }
+    ]
+  },
+  act: {
+    name: 'Australian Capital Territory', dutyName: 'Duty', foreignRate: 0.08,
+    fhbFull: 450000, fhbPartial: 570000, fhbExemption: Infinity,
+    rates: [
+      { min: 0, max: 7500, formula: function() { return 0; } },
+      { min: 7501, max: 30000, formula: function(v) { return v * 0.0125; } },
+      { min: 30001, max: 200000, formula: function(v) { return 281.25 + (v - 30000) * 0.02; } },
+      { min: 200001, max: Infinity, formula: function(v) { return 4681.25 + (v - 200000) * 0.035; } }
+    ]
+  },
+  nt: {
+    name: 'Northern Territory', dutyName: 'Duty', foreignRate: 0.08,
+    fhbFull: 400000, fhbPartial: 500000, fhbExemption: Infinity,
+    rates: [
+      { min: 0, max: 3000, formula: function() { return 0; } },
+      { min: 3001, max: 100000, formula: function(v) { return v * 0.0075; } },
+      { min: 100001, max: 150000, formula: function(v) { return 727.50 + (v - 100000) * 0.01; } },
+      { min: 150001, max: 250000, formula: function(v) { return 1227.50 + (v - 150000) * 0.015; } },
+      { min: 250001, max: Infinity, formula: function(v) { return 2727.50 + (v - 250000) * 0.025; } }
+    ]
+  }
+};
+
+function calcDuty(state, val) {
+  var data = stateData[state];
+  for (var i = 0; i < data.rates.length; i++) {
+    var bracket = data.rates[i];
+    if (val >= bracket.min && val <= bracket.max) return bracket.formula(val);
+  }
+  return 0;
+}
+
+function updateState() {
+  var state = document.getElementById('state').value;
+  var data = stateData[state];
+  document.getElementById('r-duty-label').textContent = data.dutyName;
+  document.getElementById('r-foreign-label').textContent = 'Foreign Surcharge (' + Math.round(data.foreignRate * 100) + '%)';
+  var foreignCheck = document.getElementById('foreign-check');
+  if (data.foreignRate > 0) {
+    foreignCheck.style.display = '';
+    document.getElementById('foreign').checked = false;
+  } else {
+    foreignCheck.style.display = 'none';
+    document.getElementById('foreign').checked = false;
+  }
+}
+
+function calculate() {
+  var state = document.getElementById('state').value;
+  var data = stateData[state];
+  var val = parseVal('price');
+  if (!val || val <= 0) { if (!_isInit) alert('Please enter the purchase price.'); return; }
+
+  var isFHB = document.getElementById('fhb').checked;
+  var isForeign = document.getElementById('foreign').checked;
+  var isLand = document.getElementById('ptype').value === 'land';
+  var duty = calcDuty(state, val);
+  var note = '';
+
+  if (isFHB && !isLand) {
+    var fullLimit = data.fhbFull;
+    var partialLimit = data.fhbPartial;
+    if (val <= fullLimit) {
+      var exemption = Math.min(data.fhbExemption, duty);
+      duty = Math.max(0, duty - exemption);
+      note = 'First home buyer exemption applied.';
+    } else if (val <= partialLimit) {
+      var concession = duty * (partialLimit - val) / (partialLimit - fullLimit);
+      duty = Math.max(0, duty - concession);
+      note = 'First home buyer partial exemption applied.';
+    }
+  }
+
+  var foreignAmt = isForeign ? val * data.foreignRate : 0;
+  var total = duty + foreignAmt;
+  var rate = val > 0 ? (total / val * 100) : 0;
+
+  document.getElementById('r-duty').textContent = fmt(duty);
+  document.getElementById('r-foreign').textContent = isForeign ? fmt(foreignAmt) : 'N/A';
+  document.getElementById('r-total').textContent = fmt(total);
+  document.getElementById('r-rate').textContent = rate.toFixed(2) + '%';
+  document.getElementById('r-allin').textContent = fmt(val + total);
+  document.getElementById('r-note').textContent = note;
+  document.getElementById('r-note').style.display = note ? '' : 'none';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2025\u201326 thresholds. Verify with a solicitor before settlement.';
+
+  document.getElementById('result').style.display = '';
+  document.getElementById('cta').style.display = '';
+  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ═══ TOOL CONFIG ═══ */
+ToolPage.init({
+  cta: {
+    eyebrow: 'Go deeper',
+    title: 'Model the full property investment',
+    description: 'Add rental income, renovation costs, equity projections, and compare multiple properties side by side — all in EquitySight.',
+    buttonText: 'Get started free \u2192',
+    buttonHref: '../login.html?tab=signup'
+  },
+  resources: {
+    groups: [
+      {
+        icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Offices',
+        links: [
+          { text: 'NSW Stamp Duty Guide', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
+          { text: 'VIC Land Transfer Duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
+          { text: 'QLD Transfer Duty', href: 'https://www.revenue.qld.gov.au/transfer-duty' },
+          { text: 'SA Stamp Duty', href: 'https://www.sa.gov.au/business/land-and-property/stamp-duty' },
+          { text: 'WA Land Titles Office', href: 'https://www.landgate.wa.gov.au/land-information/transfer-of-land/duties' },
+          { text: 'TAS Land Titles Office', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
+          { text: 'ACT Stamp Duty', href: 'https://www.act.gov.au/rates-and-duties/stamp-duty' },
+          { text: 'NT Land Titles Office', href: 'https://ntlis.nt.gov.au/' }
+        ]
+      },
+      {
+        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        links: [
+          { text: 'First Home Guarantee Scheme', href: 'https://www.firsthome.gov.au/' },
+          { text: 'First Home Super Saver', href: 'https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme' },
+          { text: 'ASIC Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Law Society Australia', href: 'https://www.lawsociety.com.au/' },
+          { text: 'RBA Housing Guide', href: 'https://www.rba.gov.au/education/resources/explainers/' }
+        ]
+      },
+      {
+        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        links: [
+          { text: 'ATO: Shared Equity Schemes', href: 'https://www.ato.gov.au/individuals/rental-properties-and-shared-equity-schemes/shared-equity-schemes/' },
+          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
+          { text: 'MoneySmart Comparison', href: 'https://moneysmart.gov.au/' }
+        ]
+      }
+    ],
+    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Rates change regularly \u2014 verify current rates with your state revenue office.'
+  },
+  share: {
+    url: 'https://equitysight.app/tools/stamp-duty-calculator.html',
+    text: 'Just calculated my stamp duty instantly!'
+  },
+  related: [
+    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Total Cost of Purchase' },
+    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: 'first-home-buyer-grants-calculator.html', icon: '\uD83C\uDF81', label: 'FHB Grants' },
+    { href: 'equity-release-calculator.html', icon: '\uD83D\uDCB0', label: 'Equity Release' }
+  ],
+  footer: [
+    { href: '../index.html', text: 'EquitySight.app' },
+    { href: 'mortgage-stress-calculator.html', text: 'Mortgage Stress' },
+    { href: 'cost-of-purchase-calculator.html', text: 'Cost of Purchase' },
+    { href: 'loan-serviceability-calculator.html', text: 'Loan Serviceability' },
+    { href: '../privacy.html', text: 'Privacy' }
+  ]
+});
+
+var _isInit = true;
+window.addEventListener('DOMContentLoaded', function() {
+  updateState();
+  calculate();
+  _isInit = false;
+});
+</script>
+
+</body>
+</html>
