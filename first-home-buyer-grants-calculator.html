@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Australian First Home Buyer Grants Calculator 2026 — State Assistance</title>
 <meta name="description" content="Free Australian FHB grants calculator. Check eligibility for state-specific grants, exemptions, and assistance across all Australian states.">
 <meta name="keywords" content="first home buyer grants Australia, first home owner grant, first home buyer assistance, stamp duty exemption first home buyer, FHB grants by state">
@@ -86,6 +87,7 @@
   </div>
 
   <div class="tool-result" id="result" style="display:none">
+    <div class="tool-result-title">Available assistance</div>
     <div id="results-container"></div>
     <p class="tool-disclaimer" id="disclaimer" style="margin-top:12px;"></p>
   </div>
@@ -154,8 +156,37 @@
 <script src="footer.js"></script>
 </div>
 
-<section class="tool-content" id="content-section">
-  <!-- Dynamically populated -->
+<section class="tool-content">
+  <h2>How We Calculate Your First Home Buyer Assistance</h2>
+  <p>Each Australian state and territory offers a different combination of grants, stamp duty exemptions, and concessions for first home buyers. Our calculator checks your eligibility based on your state, property price, and property type.</p>
+
+  <h3>Types of Assistance Available</h3>
+  <ul>
+    <li><strong>First Home Owner Grant (FHOG):</strong> A one-off payment (typically $10,000–$30,000) for eligible first home buyers purchasing or building a new home</li>
+    <li><strong>Stamp duty exemptions:</strong> Full exemption from transfer duty if your property is below the state threshold</li>
+    <li><strong>Stamp duty concessions:</strong> Partial reduction in stamp duty for properties between the exemption and concession thresholds</li>
+    <li><strong>First Home Super Saver Scheme (FHSSS):</strong> Federal scheme allowing you to save for a deposit inside your super fund</li>
+    <li><strong>First Home Guarantee:</strong> Federal scheme allowing purchase with as little as 5% deposit without paying LMI</li>
+  </ul>
+
+  <h3>State-by-State Grant Amounts (2026)</h3>
+  <p>Grant amounts and thresholds vary significantly by state:</p>
+  <ul>
+    <li><strong>NSW:</strong> $10,000 FHOG for new homes up to $600,000; stamp duty exemption up to $800,000</li>
+    <li><strong>VIC:</strong> $10,000 FHOG for new homes up to $750,000; stamp duty exemption up to $600,000</li>
+    <li><strong>QLD:</strong> $30,000 FHOG for new homes up to $750,000; stamp duty concession up to $500,000</li>
+    <li><strong>SA:</strong> $15,000 FHOG for new homes; no price cap</li>
+    <li><strong>WA:</strong> $10,000 FHOG for new homes up to $750,000</li>
+    <li><strong>TAS:</strong> $30,000 FHOG for new homes; stamp duty concession up to $400,000</li>
+    <li><strong>ACT:</strong> No FHOG but stamp duty exemption for properties up to $1,000,000</li>
+    <li><strong>NT:</strong> $10,000 FHOG; stamp duty concession for properties up to $650,000</li>
+  </ul>
+
+  <h3>New vs Established Homes</h3>
+  <p>The First Home Owner Grant typically applies only to new homes (newly built, off-the-plan, or owner-built). Established homes generally don't qualify for the grant but may still qualify for stamp duty concessions in most states.</p>
+
+  <h2>Using Your Results</h2>
+  <p>Once you know what assistance is available, use the full EquitySight calculator to model your complete purchase — including all buying costs, loan repayments, and long-term investment projections.</p>
 </section>
 
 <footer class="tool-footer">

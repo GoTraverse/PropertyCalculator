@@ -100,11 +100,6 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .cost-breakdown-section { margin-bottom: 14px; }
 .cost-breakdown-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--charcoal); }
 .cost-section-info { background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.15); border-radius: 6px; padding: 12px 14px; font-size: 12px; color: var(--slate); line-height: 1.5; }
-.results-3col { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.result-stat { background: var(--warm-white); border-radius: 6px; padding: 16px 14px; text-align: center; }
-.result-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 8px; }
-.result-stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--gold); }
-
 /* ── Share & Related ── */
 .tool-share { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 20px; margin-bottom: 14px; text-align: center; }
 .tool-share h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--charcoal); }
