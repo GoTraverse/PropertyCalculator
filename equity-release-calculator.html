@@ -56,11 +56,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="propval">Current property value</label>
-        <input class="tool-input" type="text" id="propval" placeholder="e.g. 650,000" oninput="fmtNum(this)">
+        <input class="tool-input" type="text" id="propval" value="650,000" placeholder="e.g. 650,000" oninput="fmtNum(this)">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="mortgage">Outstanding mortgage</label>
-        <input class="tool-input" type="text" id="mortgage" placeholder="e.g. 400,000" oninput="fmtNum(this)">
+        <input class="tool-input" type="text" id="mortgage" value="400,000" placeholder="e.g. 400,000" oninput="fmtNum(this)">
     </div>
 
     <div class="tool-card-title" style="margin-top:20px;">Lending parameters</div>
@@ -200,9 +200,9 @@ function calculate() {
   var mortgage = parseNum('mortgage');
   var lvr = parseFloat(document.getElementById('lvr').value) / 100;
 
-  if (!propVal || propVal <= 0) { alert('Please enter the property value.'); return; }
-  if (!mortgage || mortgage < 0) { alert('Please enter the outstanding mortgage.'); return; }
-  if (mortgage > propVal) { alert('Mortgage cannot exceed property value.'); return; }
+  if (!propVal || propVal <= 0) { if (!_isInit) alert('Please enter the property value.'); return; }
+  if (!mortgage || mortgage < 0) { if (!_isInit) alert('Please enter the outstanding mortgage.'); return; }
+  if (mortgage > propVal) { if (!_isInit) alert('Mortgage cannot exceed property value.'); return; }
 
   var equity = propVal - mortgage;
   var currentLvr = mortgage / propVal;
@@ -216,8 +216,12 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display    = '';
-  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+var _isInit = true;
+calculate();
+_isInit = false;
 </script>
 
 </body>

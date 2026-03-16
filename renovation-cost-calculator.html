@@ -65,7 +65,7 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="area">Floor area (m²)</label>
-        <input class="tool-input" type="number" id="area" placeholder="e.g. 180" min="20" max="2000">
+        <input class="tool-input" type="number" id="area" value="180" placeholder="e.g. 180" min="20" max="2000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="finish">Finish quality</label>
@@ -255,7 +255,7 @@ function calculate() {
   var landscape = document.getElementById('landscaping').checked;
   var addCont   = document.getElementById('contingency').checked;
 
-  if (!area || area < 10) { alert('Please enter a floor area.'); return; }
+  if (!area || area < 10) { if (!_isInit) alert('Please enter a floor area.'); return; }
 
   var r = RATES[scope][finish];
   var baseLow  = area * r[0];
@@ -299,8 +299,12 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display    = '';
-  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+var _isInit = true;
+calculate();
+_isInit = false;
 </script>
 
 </body>
