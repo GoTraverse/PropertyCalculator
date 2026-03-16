@@ -2,45 +2,45 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script src="tool-page.js"></script>
 <script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Australian First Home Buyer Grants Calculator 2026 — State Assistance</title>
 <meta name="description" content="Free Australian FHB grants calculator. Check eligibility for state-specific grants, exemptions, and assistance across all Australian states.">
 <meta name="keywords" content="first home buyer grants Australia, first home owner grant, first home buyer assistance, stamp duty exemption first home buyer, FHB grants by state">
-<link rel="canonical" href="https://equitysight.app/first-home-buyer-grants-calculator.html">
+<link rel="canonical" href="https://equitysight.app/tools/first-home-buyer-grants-calculator.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="First Home Buyer Grants Calculator Australia 2026 — Free Tool">
 <meta property="og:description" content="Check FHB grants and concessions available in your state.">
-<meta property="og:url" content="https://equitysight.app/first-home-buyer-grants-calculator.html">
+<meta property="og:url" content="https://equitysight.app/tools/first-home-buyer-grants-calculator.html">
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:image" content="https://equitysight.app/favicon.svg">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="First Home Buyer Grants Calculator Australia — Free Tool">
 <meta name="twitter:description" content="Check your eligibility for first home buyer grants and assistance in your state.">
 <meta name="twitter:image" content="https://equitysight.app/favicon.svg">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css">
-<link rel="stylesheet" href="tools.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"First Home Buyer Grants Calculator","url":"https://equitysight.app/first-home-buyer-grants-calculator.html","description":"Check first home buyer grants, stamp duty exemptions, and concessions available in your Australian state.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"First Home Buyer Grants Calculator","url":"https://equitysight.app/tools/first-home-buyer-grants-calculator.html","description":"Check first home buyer grants, stamp duty exemptions, and concessions available in your Australian state.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
-
 </head>
 <body>
 
 <header class="tool-header">
-  <a href="index.html" class="tool-logo">
+  <a href="../index.html" class="tool-logo">
     <span class="tool-logo-mark">🏠</span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+  <a href="../login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
 </header>
-<script src="auth-nav.js"></script>
-<script src="error-capture.js"></script>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
 
 <section class="tool-hero">
   <div class="tool-eyebrow">Free Tool · First Home Buyer</div>
@@ -71,7 +71,7 @@
 
     <div class="tool-field">
       <label class="tool-label" for="price">Property purchase price</label>
-      <input class="tool-input" type="text" id="price" value="550,000" placeholder="e.g. 550,000" oninput="fmtNum(this)">
+      <input class="tool-input" type="text" id="price" value="550,000" placeholder="e.g. 550,000" oninput="fmtInput(this)">
     </div>
 
     <div class="tool-field">
@@ -92,64 +92,10 @@
     <p class="tool-disclaimer" id="disclaimer" style="margin-top:12px;"></p>
   </div>
 
-  <div class="tool-cta" id="cta" style="display:none">
-    <div class="tool-cta-eye">Go deeper</div>
-    <h3>Plan your purchase and investment</h3>
-    <p>Model your property purchase, plan renovations, and track how your investment grows over time in EquitySight.</p>
-    <a href="login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
-  </div>
-
-  <!-- Resources -->
-  <div class="tool-resources">
-    <h3 class="tool-resources-title">📚 Government Resources & Further Reading</h3>
-    <div class="tool-resources-grid">
-      <div>
-        <h4>🎯 Federal Programs</h4>
-        <ul>
-          <li><a href="https://www.firsthome.gov.au/" target="_blank">First Home Guarantee Scheme</a></li>
-          <li><a href="https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme" target="_blank">First Home Super Saver Scheme</a></li>
-          <li><a href="https://moneysmart.gov.au/buying-a-house" target="_blank">ASIC: Buying a Home Guide</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>📍 State Resources</h4>
-        <ul>
-          <li><a href="https://www.nsw.gov.au/housing-and-construction/first-home-buyer-grants-and-assistance" target="_blank">NSW First Home Buyer</a></li>
-          <li><a href="https://www.sro.vic.gov.au/buying-property/first-home-owner-grant" target="_blank">VIC First Home Buyer Scheme</a></li>
-          <li><a href="https://qro.qld.gov.au/property-concessions-grants/first-home-grant/" target="_blank">QLD First Home Buyers</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>💰 Stamp Duty & Tax</h4>
-        <ul>
-          <li><a href="https://www.ato.gov.au/individuals/capital-gains-tax/" target="_blank">ATO: Capital Gains Tax Guide</a></li>
-          <li><a href="https://moneysmart.gov.au/home-loans" target="_blank">ASIC: Home Loan Guide</a></li>
-          <li><a href="https://moneysmart.gov.au/home-loans" target="_blank">MoneySmart: Home Loans</a></li>
-        </ul>
-    </div>
-    <p class="tool-resources-disclaimer"><strong>Disclaimer:</strong> Grant eligibility changes by state and varies by scheme. Always verify with your state's housing authority and consult a financial adviser before purchasing.</p>
-  </div>
-
-  <!-- Share -->
-  <div class="tool-share">
-    <h3>📤 Share This Calculator</h3>
-    <div class="tool-share-btns">
-      <a href="https://www.facebook.com/sharer/sharer.php?u=https://equitysight.app/first-home-buyer-grants-calculator.html" target="_blank" class="tool-share-btn">📘 Facebook</a>
-      <a href="https://twitter.com/intent/tweet?url=https://equitysight.app/first-home-buyer-grants-calculator.html&text=Just%20checked%20my%20FHB%20grant%20eligibility!" target="_blank" class="tool-share-btn">𝕏 Twitter</a>
-      <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://equitysight.app/first-home-buyer-grants-calculator.html" target="_blank" class="tool-share-btn">💼 LinkedIn</a>
-    </div>
-  </div>
-
-  <!-- Related -->
-  <div class="tool-related">
-    <h3>🔗 Related Calculators</h3>
-    <div class="tool-related-grid">
-      <a href="loan-serviceability-calculator.html" class="tool-related-link">📊 Loan Serviceability</a>
-      <a href="stamp-duty-calculator.html" class="tool-related-link">🏛️ Stamp Duty</a>
-      <a href="cost-of-purchase-calculator.html" class="tool-related-link">💵 Cost of Purchase</a>
-      <a href="mortgage-stress-calculator.html" class="tool-related-link">📈 Mortgage Stress</a>
-    </div>
-  </div>
+  <div id="tool-cta-root"></div>
+  <div id="tool-resources-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
 
 </div>
 
@@ -186,32 +132,20 @@
   <p>Once you know what assistance is available, use the full EquitySight calculator to model your complete purchase — including all buying costs, loan repayments, and long-term investment projections.</p>
 </section>
 
-<footer class="tool-footer">
-  <a href="index.html">EquitySight.app</a> ·
-  <a href="mortgage-stress-calculator.html">Mortgage Stress</a> ·
-  <a href="stamp-duty-calculator.html">Stamp Duty</a> ·
-  <a href="loan-serviceability-calculator.html">Loan Serviceability</a> ·
-  <a href="privacy.html">Privacy</a>
-  <div style="margin-top:8px;">© 2026 EquitySight. General information only — not financial advice.</div>
-</footer>
+<div id="tool-footer-root"></div>
 
 <script>
-const stateGrants = {
+/* ═══ STATE GRANTS DATA ═══ */
+var stateGrants = {
   nsw: {
-    name: 'New South Wales',
-    stampExemptionPrice: 400000,
-    stampPartialPrice: 530000,
-    stampExemptionAmt: 8000,
+    name: 'New South Wales', stampExemptionPrice: 400000, stampPartialPrice: 530000, stampExemptionAmt: 8000,
     grants: [
       { label: 'Stamp Duty Exemption (≤$400k)', estimate: 'Full exemption', condition: 'Homes ≤ $400,000' },
       { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $400k–$530k' }
     ]
   },
   vic: {
-    name: 'Victoria',
-    stampExemptionPrice: 600000,
-    stampPartialPrice: 750000,
-    stampExemptionAmt: 25000,
+    name: 'Victoria', stampExemptionPrice: 600000, stampPartialPrice: 750000, stampExemptionAmt: 25000,
     grants: [
       { label: 'Stamp Duty Exemption (≤$600k)', estimate: 'Up to $25,000', condition: 'Homes ≤ $600,000' },
       { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $600k–$750k' },
@@ -219,10 +153,7 @@ const stateGrants = {
     ]
   },
   qld: {
-    name: 'Queensland',
-    stampExemptionPrice: 500000,
-    stampPartialPrice: 550000,
-    stampExemptionAmt: 15000,
+    name: 'Queensland', stampExemptionPrice: 500000, stampPartialPrice: 550000, stampExemptionAmt: 15000,
     grants: [
       { label: 'Stamp Duty Concession (≤$500k)', estimate: 'Full concession', condition: 'Homes ≤ $500,000' },
       { label: 'Stamp Duty Partial Concession', estimate: 'Reduces with price', condition: 'Homes $500k–$550k' },
@@ -230,50 +161,35 @@ const stateGrants = {
     ]
   },
   sa: {
-    name: 'South Australia',
-    stampExemptionPrice: 575000,
-    stampPartialPrice: 650000,
-    stampExemptionAmt: 18000,
+    name: 'South Australia', stampExemptionPrice: 575000, stampPartialPrice: 650000, stampExemptionAmt: 18000,
     grants: [
       { label: 'Stamp Duty Concession (≤$575k)', estimate: 'Full concession', condition: 'Homes ≤ $575,000' },
       { label: 'Stamp Duty Partial Concession', estimate: 'Reduces with price', condition: 'Homes $575k–$650k' }
     ]
   },
   wa: {
-    name: 'Western Australia',
-    stampExemptionPrice: 430000,
-    stampPartialPrice: 500000,
-    stampExemptionAmt: 12000,
+    name: 'Western Australia', stampExemptionPrice: 430000, stampPartialPrice: 500000, stampExemptionAmt: 12000,
     grants: [
       { label: 'Stamp Duty Exemption (≤$430k)', estimate: 'Full exemption', condition: 'Homes ≤ $430,000' },
       { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $430k–$500k' }
     ]
   },
   tas: {
-    name: 'Tasmania',
-    stampExemptionPrice: 400000,
-    stampPartialPrice: 500000,
-    stampExemptionAmt: 15000,
+    name: 'Tasmania', stampExemptionPrice: 400000, stampPartialPrice: 500000, stampExemptionAmt: 15000,
     grants: [
       { label: 'Stamp Duty Concession (≤$400k)', estimate: 'Full concession', condition: 'Homes ≤ $400,000' },
       { label: 'Stamp Duty Partial Concession', estimate: 'Reduces with price', condition: 'Homes $400k–$500k' }
     ]
   },
   act: {
-    name: 'Australian Capital Territory',
-    stampExemptionPrice: 450000,
-    stampPartialPrice: 570000,
-    stampExemptionAmt: 20000,
+    name: 'Australian Capital Territory', stampExemptionPrice: 450000, stampPartialPrice: 570000, stampExemptionAmt: 20000,
     grants: [
       { label: 'Stamp Duty Exemption (≤$450k)', estimate: 'Full exemption', condition: 'Homes ≤ $450,000' },
       { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $450k–$570k' }
     ]
   },
   nt: {
-    name: 'Northern Territory',
-    stampExemptionPrice: 400000,
-    stampPartialPrice: 500000,
-    stampExemptionAmt: 12000,
+    name: 'Northern Territory', stampExemptionPrice: 400000, stampPartialPrice: 500000, stampExemptionAmt: 12000,
     grants: [
       { label: 'Stamp Duty Exemption (≤$400k)', estimate: 'Full exemption', condition: 'Homes ≤ $400,000' },
       { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $400k–$500k' }
@@ -281,54 +197,32 @@ const stateGrants = {
   }
 };
 
-function fmtNum(el) {
-  var v = el.value.replace(/[^0-9]/g, '');
-  el.value = v ? parseInt(v).toLocaleString() : '';
-}
-
-function parseNum(id) {
-  return parseFloat((document.getElementById(id).value || '0').replace(/,/g, '')) || 0;
-}
-
-function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
-
-function updateState() {
-  // Can add state-specific UI updates here if needed
-}
+function updateState() {}
 
 function calculate() {
   var state = document.getElementById('state').value;
   var data = stateGrants[state];
-  var price = parseNum('price');
+  var price = parseVal('price');
   var ptype = document.getElementById('ptype').value;
 
   if (!price || price <= 0) { if (!_isInit) alert('Please enter the property price.'); return; }
 
   var html = '<div class="tool-grid">';
-
-  // Show applicable grants
   data.grants.forEach(function(grant) {
     var applicable = true;
-
-    if (grant.label.includes('≤')) {
+    if (grant.label.indexOf('≤') !== -1) {
       applicable = price <= data.stampExemptionPrice;
-    } else if (grant.label.includes('$500k–$550k') || grant.label.includes('$600k–$750k')) {
+    } else if (grant.label.indexOf('Partial') !== -1) {
       applicable = price > data.stampExemptionPrice && price <= data.stampPartialPrice;
     }
-
-    if (ptype === 'established' && grant.label.includes('New')) {
-      applicable = false;
-    }
-
+    if (ptype === 'established' && grant.label.indexOf('New') !== -1) applicable = false;
     var statusClass = applicable ? '' : 'style="opacity:0.5"';
-
     html += '<div class="tool-stat" ' + statusClass + '>' +
-            '<div class="tool-stat-label">' + grant.label + '</div>' +
-            '<div class="tool-stat-value">' + grant.estimate + '</div>' +
-            '<div style="font-size:12px;color:var(--slate);margin-top:4px;">' + grant.condition + '</div>' +
-            '</div>';
+      '<div class="tool-stat-label">' + escHtml(grant.label) + '</div>' +
+      '<div class="tool-stat-value">' + escHtml(grant.estimate) + '</div>' +
+      '<div style="font-size:12px;color:var(--slate);margin-top:4px;">' + escHtml(grant.condition) + '</div>' +
+      '</div>';
   });
-
   html += '</div>';
 
   document.getElementById('results-container').innerHTML = html;
@@ -337,6 +231,63 @@ function calculate() {
   document.getElementById('cta').style.display = '';
   if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+/* ═══ TOOL CONFIG ═══ */
+ToolPage.init({
+  cta: {
+    eyebrow: 'Go deeper',
+    title: 'Plan your purchase and investment',
+    description: 'Model your property purchase, plan renovations, and track how your investment grows over time in EquitySight.',
+    buttonText: 'Get started free →',
+    buttonHref: '../login.html?tab=signup'
+  },
+  resources: {
+    groups: [
+      {
+        icon: '🎯', title: 'Federal Programs',
+        links: [
+          { text: 'First Home Guarantee Scheme', href: 'https://www.firsthome.gov.au/' },
+          { text: 'First Home Super Saver Scheme', href: 'https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme' },
+          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' }
+        ]
+      },
+      {
+        icon: '📍', title: 'State Resources',
+        links: [
+          { text: 'NSW First Home Buyer', href: 'https://www.nsw.gov.au/housing-and-construction/first-home-buyer-grants-and-assistance' },
+          { text: 'VIC First Home Buyer Scheme', href: 'https://www.sro.vic.gov.au/buying-property/first-home-owner-grant' },
+          { text: 'QLD First Home Buyers', href: 'https://qro.qld.gov.au/property-concessions-grants/first-home-grant/' }
+        ]
+      },
+      {
+        icon: '💰', title: 'Stamp Duty & Tax',
+        links: [
+          { text: 'ATO: Capital Gains Tax Guide', href: 'https://www.ato.gov.au/individuals/capital-gains-tax/' },
+          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'MoneySmart: Home Loans', href: 'https://moneysmart.gov.au/home-loans' }
+        ]
+      }
+    ],
+    disclaimer: 'Grant eligibility changes by state and varies by scheme. Always verify with your state\'s housing authority and consult a financial adviser before purchasing.'
+  },
+  share: {
+    url: 'https://equitysight.app/tools/first-home-buyer-grants-calculator.html',
+    text: 'Just checked my FHB grant eligibility!'
+  },
+  related: [
+    { href: 'loan-serviceability-calculator.html', icon: '📊', label: 'Loan Serviceability' },
+    { href: 'stamp-duty-calculator.html', icon: '🏛️', label: 'Stamp Duty' },
+    { href: 'cost-of-purchase-calculator.html', icon: '💵', label: 'Cost of Purchase' },
+    { href: 'mortgage-stress-calculator.html', icon: '📈', label: 'Mortgage Stress' }
+  ],
+  footer: [
+    { href: '../index.html', text: 'EquitySight.app' },
+    { href: 'mortgage-stress-calculator.html', text: 'Mortgage Stress' },
+    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
+    { href: 'loan-serviceability-calculator.html', text: 'Loan Serviceability' },
+    { href: '../privacy.html', text: 'Privacy' }
+  ]
+});
 
 var _isInit = true;
 window.addEventListener('DOMContentLoaded', function() {

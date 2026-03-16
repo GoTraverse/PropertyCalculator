@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="tool-page.js"></script>
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Equity Release Calculator Australia 2026 — Free Home Equity Tool</title>
+<meta name="description" content="Free Australian equity release calculator. Calculate how much home equity you can release based on property value, mortgage, and LVR. Instant results, no signup.">
+<meta name="keywords" content="equity release calculator, home equity calculator, equity release calculator Australia, mortgage equity release, home loan equity, property equity">
+<link rel="canonical" href="https://equitysight.app/tools/equity-release-calculator.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Equity Release Calculator Australia 2026 — Free Tool">
+<meta property="og:description" content="Calculate how much home equity you can release instantly.">
+<meta property="og:url" content="https://equitysight.app/tools/equity-release-calculator.html">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Equity Release Calculator Australia — Free Tool">
+<meta name="twitter:description" content="Calculate home equity release and borrowing capacity based on LVR limits.">
+<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Equity Release Calculator","url":"https://equitysight.app/tools/equity-release-calculator.html","description":"Free home equity release calculator for Australian property owners. Calculate available equity and borrowing capacity based on LVR.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="../index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="../login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
+
+<section class="tool-hero">
+  <div class="tool-eyebrow">Free Tool · Property Financing</div>
+  <h1>Equity Release Calculator</h1>
+  <p>Calculate how much home equity you can release or refinance based on your loan-to-value ratio (LVR) limits.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Property & loan details</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="propval">Current property value</label>
+        <input class="tool-input" type="text" id="propval" value="650,000" placeholder="e.g. 650,000" oninput="fmtInput(this)">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="mortgage">Outstanding mortgage</label>
+        <input class="tool-input" type="text" id="mortgage" value="400,000" placeholder="e.g. 400,000" oninput="fmtInput(this)">
+      </div>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Lending parameters</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="lvr">Maximum LVR allowed (%)</label>
+        <input class="tool-input" type="number" id="lvr" placeholder="e.g. 80" step="1" min="50" max="95" value="80">
+      </div>
+    </div>
+
+    <button class="tool-btn" onclick="calculate()">Calculate Available Equity</button>
+  </div>
+
+  <div class="tool-result" id="result" style="display:none">
+    <div class="tool-result-title">Your equity position</div>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">Total Equity</div>
+        <div class="tool-stat-value" id="r-equity">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Current LVR</div>
+        <div class="tool-stat-value" id="r-current-lvr">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Max Borrowing (at LVR limit)</div>
+        <div class="tool-stat-value" id="r-max-borrow">—</div>
+      </div>
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Available to Release</div>
+        <div class="tool-stat-value" id="r-available">—</div>
+      </div>
+    </div>
+    <p class="tool-disclaimer">This estimate assumes the LVR limit is the only constraint. Lenders also consider income, expenses, and credit history. Speak with a mortgage broker for a pre-approval.</p>
+  </div>
+
+  <div id="tool-cta-root"></div>
+  <div id="tool-resources-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>What is equity release?</h2>
+  <p>Equity release means borrowing against the equity in your home — the difference between your property value and outstanding mortgage. It's commonly used to fund renovations, investment properties, or debt consolidation.</p>
+
+  <h2>How LVR (loan-to-value ratio) works</h2>
+  <p>LVR is the percentage of your property value you owe on the mortgage. For example, a $500,000 home with a $400,000 mortgage has an LVR of 80%.</p>
+  <ul>
+    <li><strong>Lower LVR</strong> = more equity released, easier to get approved</li>
+    <li><strong>Higher LVR</strong> = less equity available, may need LMI (Lenders Mortgage Insurance)</li>
+    <li><strong>Typical limits</strong>: 80% for owner-occupied homes, 70–75% for investment properties</li>
+  </ul>
+
+  <h2>What affects equity release approval?</h2>
+  <p>Lenders consider multiple factors beyond just LVR:</p>
+  <ul>
+    <li>Income and serviceability</li>
+    <li>Employment history and stability</li>
+    <li>Credit history and existing debts</li>
+    <li>Property type (residential, investment, commercial)</li>
+    <li>Loan structure (fixed vs. variable rate)</li>
+  </ul>
+
+  <h2>Next steps</h2>
+  <p>Use this calculator to understand your borrowing capacity, then contact a mortgage broker or your bank for a formal pre-approval with specific terms and rates.</p>
+</section>
+
+<div id="tool-footer-root"></div>
+
+<script>
+function calculate() {
+  var propVal = parseVal('propval');
+  var mortgage = parseVal('mortgage');
+  var lvr = parseFloat(document.getElementById('lvr').value) / 100;
+
+  if (!propVal || propVal <= 0) { if (!_isInit) alert('Please enter the property value.'); return; }
+  if (!mortgage || mortgage < 0) { if (!_isInit) alert('Please enter the outstanding mortgage.'); return; }
+  if (mortgage > propVal) { if (!_isInit) alert('Mortgage cannot exceed property value.'); return; }
+
+  var equity = propVal - mortgage;
+  var currentLvr = mortgage / propVal;
+  var maxBorrow = propVal * lvr;
+  var available = Math.max(0, maxBorrow - mortgage);
+
+  document.getElementById('r-equity').textContent = fmt(equity);
+  document.getElementById('r-current-lvr').textContent = (currentLvr * 100).toFixed(1) + '%';
+  document.getElementById('r-max-borrow').textContent = fmt(maxBorrow);
+  document.getElementById('r-available').textContent = fmt(available);
+
+  document.getElementById('result').style.display = '';
+  document.getElementById('cta').style.display = '';
+  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ═══ TOOL CONFIG ═══ */
+ToolPage.init({
+  cta: {
+    eyebrow: 'Go deeper',
+    title: 'Plan your renovation or investment',
+    description: 'Use EquitySight to model how equity release affects your loan, plan renovations, and project rental returns.',
+    buttonText: 'Get started free \u2192',
+    buttonHref: '../login.html?tab=signup'
+  },
+  resources: {
+    groups: [
+      {
+        icon: '\uD83C\uDFE6', title: 'Borrowing & LVR',
+        links: [
+          { text: 'ASIC: Lenders Mortgage Insurance', href: 'https://www.asic.gov.au/asic/ASIC.NSF/byheadline/Mortgage%20insurance' },
+          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
+          { text: 'MoneySmart: Compare Lenders', href: 'https://moneysmart.gov.au/' }
+        ]
+      },
+      {
+        icon: '\uD83C\uDFE0', title: 'Property & Renovation',
+        links: [
+          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Consumer Affairs: Housing Info', href: 'https://www.consumeraffairs.vic.gov.au/housing-and-property' },
+          { text: 'ASIC: Building Inspections', href: 'https://moneysmart.gov.au/home-loans/buying-a-house' }
+        ]
+      },
+      {
+        icon: '\uD83D\uDCB0', title: 'Tax & Investment',
+        links: [
+          { text: 'ATO: Rental Property Tax Guide', href: 'https://www.ato.gov.au/individuals/rental-properties-and-shared-equity-schemes/' },
+          { text: 'ATO: Shared Equity Schemes', href: 'https://www.ato.gov.au/individuals/rental-properties-and-shared-equity-schemes/shared-equity-schemes/' },
+          { text: 'ASIC: Financial Adviser Directory', href: 'https://www.asic.gov.au/for-financial-advisers/' }
+        ]
+      }
+    ],
+    disclaimer: 'This information is general only. Always consult with a licensed financial adviser, accountant, and bank before using equity release for investment or renovation.'
+  },
+  share: {
+    url: 'https://equitysight.app/tools/equity-release-calculator.html',
+    text: 'Just calculated my home equity release options!'
+  },
+  related: [
+    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
+    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: 'renovation-cost-calculator.html', icon: '\uD83D\uDD28', label: 'Renovation Costs' }
+  ],
+  footer: [
+    { href: '../index.html', text: 'EquitySight.app' },
+    { href: 'house-flip-calculator.html', text: 'House Flip' },
+    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
+    { href: 'rental-yield-calculator.html', text: 'Rental Yield' },
+    { href: '../privacy.html', text: 'Privacy' }
+  ]
+});
+
+var _isInit = true;
+calculate();
+_isInit = false;
+</script>
+
+</body>
+</html>
