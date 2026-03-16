@@ -55,7 +55,7 @@
 
     <div class="tool-field">
       <label class="tool-label" for="price">Property purchase price</label>
-      <input class="tool-input" type="text" id="price" placeholder="e.g. 650,000" oninput="fmtNum(this)">
+      <input class="tool-input" type="text" id="price" value="650,000" placeholder="e.g. 650,000" oninput="fmtNum(this)">
     </div>
 
     <div class="tool-field">
@@ -219,7 +219,7 @@ function calcLandDuty(val) {
 
 function calculate() {
   var val = parseNum('price');
-  if (!val || val <= 0) { alert('Please enter the purchase price.'); return; }
+  if (!val || val <= 0) { if (!_isInit) alert('Please enter the purchase price.'); return; }
 
   var isLand  = document.getElementById('ptype').value === 'land';
   var isFHB   = document.getElementById('fhb').checked;
@@ -256,8 +256,12 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display    = '';
-  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+var _isInit = true;
+calculate();
+_isInit = false;
 </script>
 
 </body>

@@ -55,11 +55,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="loan">Loan amount</label>
-        <input class="tool-input" type="text" id="loan" placeholder="e.g. 580,000" oninput="fmtNum(this)">
+        <input class="tool-input" type="text" id="loan" value="580,000" placeholder="e.g. 580,000" oninput="fmtNum(this)">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="rate">Interest rate (% p.a.)</label>
-        <input class="tool-input" type="number" id="rate" placeholder="e.g. 6.25" step="0.05" min="0.1" max="20">
+        <input class="tool-input" type="number" id="rate" value="6.25" placeholder="e.g. 6.25" step="0.05" min="0.1" max="20">
     </div>
     <div class="tool-row">
       <div class="tool-field">
@@ -84,7 +84,7 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="income">Gross monthly income ($)</label>
-        <input class="tool-input" type="text" id="income" placeholder="e.g. 12,500" oninput="fmtNum(this)">
+        <input class="tool-input" type="text" id="income" value="12,500" placeholder="e.g. 12,500" oninput="fmtNum(this)">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="expenses">Other monthly debt ($)</label>
@@ -249,7 +249,7 @@ function calculate() {
   var otherDebt = parseNum('expenses');
   var bufferPct = parseFloat(document.getElementById('buffer').value) || 3;
 
-  if (!loan || !rate || !income) { alert('Please enter loan amount, interest rate, and monthly income.'); return; }
+  if (!loan || !rate || !income) { if (!_isInit) alert('Please enter loan amount, interest rate, and monthly income.'); return; }
 
   var repay   = monthlyRepayment(loan, rate, term, io);
   var stressed= monthlyRepayment(loan, rate + bufferPct, term, io);
@@ -290,8 +290,12 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display    = '';
-  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+var _isInit = true;
+calculate();
+_isInit = false;
 </script>
 
 </body>

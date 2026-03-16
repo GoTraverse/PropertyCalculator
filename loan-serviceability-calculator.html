@@ -56,7 +56,7 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="salary">Your salary/wages ($/yr)</label>
-        <input class="tool-input" type="text" id="salary" placeholder="e.g. 120,000" oninput="fmtNum(this)">
+        <input class="tool-input" type="text" id="salary" value="120,000" placeholder="e.g. 120,000" oninput="fmtNum(this)">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="partner">Partner salary/wages ($/yr)</label>
@@ -211,7 +211,7 @@ function calculate() {
   var expenses = parseNum('expenses');
   var debt = parseNum('debt');
 
-  if (!salary && !partner && !other) { alert('Please enter at least one income source.'); return; }
+  if (!salary && !partner && !other) { if (!_isInit) alert('Please enter at least one income source.'); return; }
 
   var gross = salary + partner + (other * 0.7); // Other income discounted by 30%
   var monthlyIncome = gross / 12;
@@ -248,8 +248,12 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display    = '';
-  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+var _isInit = true;
+calculate();
+_isInit = false;
 </script>
 
 </body>
