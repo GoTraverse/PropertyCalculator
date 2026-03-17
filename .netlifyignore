@@ -1,0 +1,29 @@
+# Files that should never be deployed to the Netlify CDN.
+# This is the primary defence — these files won't be uploaded at all.
+# netlify.toml forced-404 redirects act as a secondary safety net.
+
+# Dev / AI working notes
+CLAUDE.md
+README.md
+CODEBASE.md
+TODO.md
+LINK_AUDIT_REPORT.md
+
+# Runtime error log (auto-synced from Redis — contains client stack traces)
+ERRORS.json
+
+# Build scripts (server-side only, not needed on CDN)
+build.js
+build-suburbs.js
+generate-suburbs-data.js
+fetch-abs-data.js
+
+# Raw suburb data (large; suburb pages are pre-built static HTML)
+data/abs-suburbs.json
+data/suburbs.json
+
+# HTML templates (used at build time only)
+templates/
+
+# Node artefacts
+node_modules/
