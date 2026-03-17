@@ -25,11 +25,7 @@ See **`README.md`** for feature overview and quick start guide.
 ## Error Tracking
 **`ERRORS.json`** — auto-synced from the production error log. Every client-side JS error is stored in Redis and auto-pushed to this file via GitHub API (throttled to max once per 5 min). Admin can also manually sync via "Sync to GitHub" button on the Error Log tab. Requires `GITHUB_TOKEN` env var in Netlify.
 
-**At the start of every session:**
-1. Read `ERRORS.json` and review all listed errors
-2. Fix any errors that can be actioned (trace source/line/stack to the relevant code)
-3. After fixing an error, remove it from `ERRORS.json` so it doesn't get re-triaged
-4. Commit the updated `ERRORS.json` alongside the fix
+**Run `/errors` to check for production errors** — reads `ERRORS.json`, traces each error to source code, fixes what's actionable, and removes processed errors from the file.
 
 ## Core Files Reference
 
