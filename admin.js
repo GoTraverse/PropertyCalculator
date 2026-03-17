@@ -2750,7 +2750,7 @@ async function saveSuburbDeployHook() {
   var url = (document.getElementById('suburbs-deploy-hook').value || '').trim();
   if (!url) return;
   try {
-    await callAuth('adminSetConfig', { key: 'suburbDeployHook', value: url });
+    await callAuth('adminSetConfig', { config: { suburbDeployHook: url } });
     showAdminToast('Deploy hook saved');
   } catch (e) {
     showAdminToast('Failed to save: ' + e.message, true);
@@ -2765,15 +2765,15 @@ async function triggerSuburbRebuild() {
   }
   if (!confirm('This will trigger a Netlify deploy that rebuilds all suburb pages. Continue?')) return;
   try {
-    // Save the rebuild timestamp
-    await callAuth('adminSetConfig', { key: 'suburbLastBuild', value: new Date().toISOString() });
-    // Trigger deploy hook with query param
-    var resp = await fetch(hookUrl + '?trigger_title=Suburb+rebuild+(admin)', { method: 'POST' });
-    if (resp.ok) {
+    // Save hook URL first if not saved yet
+    await saveSuburbDeployHook();
+    // Trigger via server-side function (avoids CORS)
+    var result = await callAuth('triggerSuburbBuild');
+    if (result && result.ok) {
       showAdminToast('Suburb rebuild triggered! Deploy will start shortly.');
       document.getElementById('suburbs-last-build').textContent = 'Building now...';
     } else {
-      showAdminToast('Deploy hook returned ' + resp.status + '. Check the URL.', true);
+      showAdminToast((result && result.error) || 'Failed to trigger rebuild', true);
     }
   } catch (e) {
     showAdminToast('Failed: ' + e.message, true);

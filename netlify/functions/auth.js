@@ -590,11 +590,27 @@ exports.handler = async function(event){
       'proMonthlyPrice','proAnnualPrice','adviserMonthlyPrice',
       'contactDiscord','contactTwitter','referralEnabled','referralBonus',
       'maxUploadMb','sessionTtlDays','requireEmailDomain',
-      'stripePubKey','stripeProMonthly','stripeProAnnual','stripePortal'];
+      'stripePubKey','stripeProMonthly','stripeProAnnual','stripePortal',
+      'suburbDeployHook','suburbLastBuild'];
     const sanitised={};
     for(const k of allowed) if(k in config) sanitised[k]=config[k];
     await rSet('config:site',sanitised);
     return ok({ok:true});
+  }
+
+  if(action==='triggerSuburbBuild'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const cfg=await rGet('config:site')||{};
+    const hookUrl=cfg.suburbDeployHook;
+    if(!hookUrl) return fail('No deploy hook URL configured');
+    // Proxy the deploy hook call server-side (avoids CORS)
+    const resp=await fetch(hookUrl+'?trigger_title=Suburb+rebuild+(admin)',{method:'POST'});
+    if(!resp.ok) return fail('Deploy hook returned '+resp.status);
+    // Save rebuild timestamp
+    cfg.suburbLastBuild=new Date().toISOString();
+    await rSet('config:site',cfg);
+    return ok({ok:true,message:'Suburb rebuild triggered'});
   }
 
   if(action==='adminGetStats'){
