@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>{{SUBURB}} {{STATE}} Property Investment Insights | EquitySight</title>
+<meta name="description" content="{{META_DESCRIPTION}}">
+<meta name="keywords" content="{{SUBURB}} property investment, {{SUBURB}} {{STATE}} real estate, {{SUBURB}} suburb profile, {{STATE_NAME}} property market">
+<link rel="canonical" href="https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{SUBURB}} {{STATE}} — Property Investment Insights | EquitySight">
+<meta property="og:description" content="{{META_DESCRIPTION}}">
+<meta property="og:url" content="https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{SUBURB}} {{STATE}} — Investment Insights">
+<meta name="twitter:description" content="{{META_DESCRIPTION}}">
+<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<link rel="stylesheet" href="/tools.css">
+<link rel="stylesheet" href="/suburb-insights.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Place","name":"{{SUBURB}}, {{STATE_NAME}}","description":"{{META_DESCRIPTION}}","address":{"@type":"PostalAddress","addressLocality":"{{SUBURB}}","addressRegion":"{{STATE}}","addressCountry":"AU"},"containedInPlace":{"@type":"AdministrativeArea","name":"{{STATE_NAME}}"}}
+</script>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="/index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="/login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="/auth-nav.js"></script>
+<script src="/error-capture.js"></script>
+
+<section class="tool-hero suburb-hero">
+  <nav class="suburb-breadcrumb">
+    <a href="/index.html">Home</a> <span>›</span>
+    <a href="/invest/{{STATE_LOWER}}/">{{STATE_NAME}}</a> <span>›</span>
+    <span>{{SUBURB}}</span>
+  </nav>
+  <div class="tool-eyebrow">Suburb Insights · {{STATE}}</div>
+  <h1>{{SUBURB}} {{STATE}} Investment Property Insights</h1>
+  <p>Key indicators and investment context for {{SUBURB}}, {{STATE_NAME}}.</p>
+</section>
+
+<div class="suburb-main">
+
+  <!-- Overview -->
+  <section class="suburb-section">
+    <h2>Suburb Overview</h2>
+    <p>{{OVERVIEW}}</p>
+  </section>
+
+  <!-- Key Indicators -->
+  <section class="suburb-section">
+    <h2>Key Indicators</h2>
+    <div class="suburb-grid">
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Population</div>
+        <div class="suburb-stat-value">{{POPULATION}}</div>
+      </div>
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Population Growth</div>
+        <div class="suburb-stat-value">{{POPULATION_GROWTH}}%</div>
+      </div>
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Distance to CBD</div>
+        <div class="suburb-stat-value">{{DISTANCE_TO_CBD}} km</div>
+      </div>
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Median Household Income</div>
+        <div class="suburb-stat-value">${{MEDIAN_INCOME}}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lifestyle & Amenities -->
+  <section class="suburb-section">
+    <h2>Lifestyle &amp; Amenities</h2>
+    <div class="suburb-grid">
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Schools</div>
+        <div class="suburb-stat-value">{{SCHOOL_COUNT}}</div>
+      </div>
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Parks</div>
+        <div class="suburb-stat-value">{{PARK_COUNT}}</div>
+      </div>
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Transport Access</div>
+        <div class="suburb-stat-value suburb-score">{{TRANSPORT_SCORE}}<span>/10</span></div>
+      </div>
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Amenity Score</div>
+        <div class="suburb-stat-value suburb-score">{{AMENITY_SCORE}}<span>/10</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Investment Insight -->
+  <section class="suburb-section">
+    <h2>Investment Insight</h2>
+    <p>{{INVESTMENT_INSIGHT}}</p>
+  </section>
+
+  <!-- CTA -->
+  <section class="suburb-cta">
+    <div class="tool-cta-eye">Full Property Analysis</div>
+    <h3>Run the numbers on a {{SUBURB}} property</h3>
+    <p>Use the full EquitySight calculator for 30-year projections, scenario comparison, cash flow analysis, and PDF export.</p>
+    <a href="/login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
+  </section>
+
+  <!-- FAQ -->
+  <section class="suburb-section suburb-faq">
+    <h2>Frequently Asked Questions</h2>
+    {{FAQ_HTML}}
+  </section>
+
+  <!-- Related Suburbs -->
+  <section class="suburb-section">
+    <h2>Explore Nearby Suburbs</h2>
+    <div class="suburb-related">
+      {{RELATED_SUBURBS_HTML}}
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section class="suburb-section">
+    <h2>{{STATE_NAME}} Property Resources</h2>
+    <div class="suburb-resources">
+      {{RESOURCES_HTML}}
+    </div>
+  </section>
+
+</div>
+
+<div id="site-footer-root"></div>
+<script src="/footer.js"></script>
+</body>
+</html>

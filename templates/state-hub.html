@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>{{STATE_NAME}} Property Investment Insights — Top Suburbs | EquitySight</title>
+<meta name="description" content="Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}} for property investment. Population data, income levels, amenity scores, and investment context for every suburb.">
+<meta name="keywords" content="{{STATE_NAME}} property investment, {{STATE}} suburbs, {{STATE_NAME}} real estate, best suburbs {{STATE}}">
+<link rel="canonical" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{STATE_NAME}} Property Investment — Top Suburbs | EquitySight">
+<meta property="og:description" content="Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}} for property investment.">
+<meta property="og:url" content="https://equitysight.app/invest/{{STATE_LOWER}}/">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{STATE_NAME}} Property Investment — Top Suburbs">
+<meta name="twitter:description" content="Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}} for property investment.">
+<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<link rel="stylesheet" href="/tools.css">
+<link rel="stylesheet" href="/suburb-insights.css">
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="/index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="/login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="/auth-nav.js"></script>
+<script src="/error-capture.js"></script>
+
+<section class="tool-hero">
+  <nav class="suburb-breadcrumb">
+    <a href="/index.html">Home</a> <span>›</span>
+    <span>{{STATE_NAME}}</span>
+  </nav>
+  <div class="tool-eyebrow">Property Investment · {{STATE}}</div>
+  <h1>{{STATE_NAME}} Property Investment Insights</h1>
+  <p>Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}} for property investment. Key indicators, lifestyle data, and investment context.</p>
+</section>
+
+<div class="suburb-main">
+
+  <!-- All States Navigation -->
+  <section class="suburb-section">
+    <h2>All States &amp; Territories</h2>
+    <div class="state-nav">
+      {{STATE_NAV_HTML}}
+    </div>
+  </section>
+
+  <!-- Suburb List -->
+  <section class="suburb-section">
+    <h2>Top {{SUBURB_COUNT}} Suburbs in {{STATE_NAME}}</h2>
+    <div class="hub-suburb-list">
+      {{SUBURB_LIST_HTML}}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="suburb-cta">
+    <div class="tool-cta-eye">Full Property Analysis</div>
+    <h3>Analyse any {{STATE_NAME}} property</h3>
+    <p>30-year projections, scenario comparison, cash flow analysis, and PDF export.</p>
+    <a href="/login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
+  </section>
+
+</div>
+
+<div id="site-footer-root"></div>
+<script src="/footer.js"></script>
+</body>
+</html>
