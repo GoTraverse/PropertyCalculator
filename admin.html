@@ -848,9 +848,15 @@
           <div style="font-size:10px;color:var(--slate);margin-bottom:8px;line-height:1.5;">
             Create a deploy hook in Netlify → Site Configuration → Build hooks. Paste the URL here. The rebuild button uses this to trigger deploys.
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">
+          <!-- Edit mode -->
+          <div id="suburbs-hook-edit" style="display:flex;gap:8px;align-items:center;">
             <input id="suburbs-deploy-hook" class="config-input" placeholder="https://api.netlify.com/build_hooks/..." style="flex:1;font-size:12px;">
             <button class="btn-admin" onclick="saveSuburbDeployHook()" style="font-size:10px;padding:7px 14px;">Save</button>
+          </div>
+          <!-- Saved display mode (hidden by default) -->
+          <div id="suburbs-hook-saved" style="display:none;align-items:center;gap:8px;">
+            <div id="suburbs-hook-display" style="flex:1;font-size:12px;color:var(--slate);font-family:var(--font-mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+            <button class="btn-admin" onclick="editSuburbDeployHook()" style="font-size:10px;padding:7px 14px;">Edit</button>
           </div>
         </div>
 
