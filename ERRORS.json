@@ -1,7 +1,46 @@
 {
-  "syncedAt": "2026-03-17T12:29:18.645Z",
-  "count": 11,
+  "syncedAt": "2026-03-17T12:36:32.380Z",
+  "count": 14,
   "errors": [
+    {
+      "at": 1773750991355,
+      "message": "Load failed",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/suburb/nsw/coledale/",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/145.0.7632.108 Mobile/15E148 Safari/604.1",
+      "userId": "",
+      "userName": "",
+      "userEmail": ""
+    },
+    {
+      "at": 1773750700247,
+      "message": "Load failed",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/login.html?tab=signup",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/145.0.7632.108 Mobile/15E148 Safari/604.1",
+      "userId": "",
+      "userName": "",
+      "userEmail": ""
+    },
+    {
+      "at": 1773750641362,
+      "message": "Load failed",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/app.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmj43i1f23e6611f",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "support@equitysight.app"
+    },
     {
       "at": 1773750557616,
       "message": "Load failed",
