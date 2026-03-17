@@ -2681,6 +2681,7 @@ async function loadSuburbsTab() {
     }
     if (cfg && cfg.config && cfg.config.suburbDeployHook) {
       document.getElementById('suburbs-deploy-hook').value = cfg.config.suburbDeployHook;
+      showSuburbHookSaved(cfg.config.suburbDeployHook);
     }
   } catch (e) { /* ignore */ }
 
@@ -2750,11 +2751,29 @@ async function saveSuburbDeployHook() {
   var url = (document.getElementById('suburbs-deploy-hook').value || '').trim();
   if (!url) return;
   try {
-    await callAuth('adminSetConfig', { config: { suburbDeployHook: url } });
-    showAdminToast('Deploy hook saved');
+    var result = await callAuth('adminSetConfig', { config: { suburbDeployHook: url } });
+    if (result && result.ok) {
+      showAdminToast('Deploy hook saved');
+      showSuburbHookSaved(url);
+    } else {
+      showAdminToast('Save failed: ' + (result && result.error || 'unknown error'), true);
+    }
   } catch (e) {
     showAdminToast('Failed to save: ' + e.message, true);
   }
+}
+
+function showSuburbHookSaved(url) {
+  var masked = url.replace(/\/([^\/]{6})[^\/]*$/, '/\u2026$1');
+  document.getElementById('suburbs-hook-display').textContent = masked;
+  document.getElementById('suburbs-hook-edit').style.display = 'none';
+  document.getElementById('suburbs-hook-saved').style.display = 'flex';
+}
+
+function editSuburbDeployHook() {
+  document.getElementById('suburbs-hook-saved').style.display = 'none';
+  document.getElementById('suburbs-hook-edit').style.display = 'flex';
+  document.getElementById('suburbs-deploy-hook').focus();
 }
 
 async function triggerSuburbRebuild() {
