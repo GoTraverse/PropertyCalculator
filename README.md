@@ -55,7 +55,7 @@
 
 ---
 
-## Project Structure (20 HTML pages, 9 Netlify functions, 10 SEO tools)
+## Project Structure (20 HTML pages + 14,512 suburb pages, 9 Netlify functions, 10 SEO tools)
 
 ### Application Pages
 ```
@@ -132,12 +132,25 @@ photo.js                # Property photo storage proxy
 mapproxy.js             # OpenStreetMap tile proxy
 ```
 
+### Suburb Insights System (14,512 generated pages)
+```
+fetch-abs-data.js               # Downloads ABS 2021 Census suburb data → data/abs-suburbs.json
+generate-suburbs-data.js        # Merges ABS data + postcodes → data/suburbs.json
+build-suburbs.js                # Generates suburb pages + state hubs + sitemap from templates
+data/suburbs.json               # 14,512 suburbs with real names, populations, postcodes
+templates/suburb-page.html      # Suburb page template (schema.org, BreadcrumbList)
+templates/state-hub.html        # State hub template (search, progressive loading)
+suburb-insights.css             # Shared styles for suburb/state pages
+suburb/{state}/{slug}/index.html  # Generated (gitignored, built on deploy)
+invest/{state}/index.html         # Generated state hub pages (gitignored)
+```
+
 ### Configuration
 ```
 netlify.toml            # Netlify build config, CSP headers, cache rules
 manifest.json           # PWA manifest (app name, icons, theme colors)
 robots.txt              # Search engine crawling directives
-sitemap.xml             # XML sitemap for SEO
+sitemap.xml             # Sitemap index → sitemap-core.xml (70 URLs) + sitemap-suburbs.xml (14,520 URLs)
 ```
 
 > **For detailed architecture, conventions, auth flows, and data models** — see **`CODEBASE.md`**

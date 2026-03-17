@@ -5,7 +5,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 
 **Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**20 HTML pages** (incl. 10 free calculators) | **9 Netlify functions** | **10 CSS files** | **4046+ lines** of calculator logic in app.js | **2651+ lines** of admin logic in admin.js
+**20 HTML pages** (incl. 10 free calculators) + **14,512 generated suburb pages** + **8 state hub pages** | **9 Netlify functions** | **11 CSS files** | **4046+ lines** of calculator logic in app.js | **2651+ lines** of admin logic in admin.js
 
 ---
 
@@ -14,7 +14,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 ```
 Browser (static files)
   │
-  ├── HTML pages (19 total) + per-page CSS/JS
+  ├── HTML pages (19 handwritten + 14,512 generated suburb pages + 8 state hubs)
   ├── shared.css          — design tokens & shared component styles
   ├── auth-nav.js         — injects nav header + session refresh into every page
   ├── footer.js           — injects site footer into every page
@@ -90,7 +90,20 @@ Browser (static files)
 | `netlify.toml` | 2.5K | Build config, CSP headers, CORS, cache headers for static assets |
 | `404.html` + `import-test.html` | 3.1K + 697B | Error page & dev test page |
 | `robots.txt` | Site crawling directives — allows public pages, blocks admin/app/account |
-| `sitemap.xml` | XML sitemap for search engines — 10+ URLs with priority/change frequency |
+| `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,520 URLs) |
+
+### Suburb Insights System (generated at build time)
+| File | Purpose |
+|------|---------|
+| `fetch-abs-data.js` | Downloads real ABS 2021 Census suburb data from ArcGIS FeatureServer → `data/abs-suburbs.json` |
+| `generate-suburbs-data.js` | Merges ABS population data + postcodes (`data/au_postcodes.csv`) → `data/suburbs.json` |
+| `build-suburbs.js` | Generates 14,512 suburb pages + 8 state hubs + directory index + `sitemap-suburbs.xml` from templates |
+| `data/suburbs.json` | 14,512 suburbs with real names, populations, postcodes + placeholder income/distance/scores |
+| `templates/suburb-page.html` | Suburb page template — `{{PLACEHOLDER}}` syntax, schema.org JSON-LD (Place + BreadcrumbList) |
+| `templates/state-hub.html` | State hub template — progressive loading (100 suburbs, "Show more"), search by name/postcode |
+| `suburb-insights.css` | Shared styles for suburb pages, state hubs, hub search, pagination |
+| `suburb/{state}/{slug}/index.html` | Generated suburb pages (gitignored, built on Netlify deploy) |
+| `invest/{state}/index.html` | Generated state hub pages (gitignored, built on Netlify deploy) |
 | `favicon.svg` | SVG favicon (logo mark) |
 | `BingSiteAuth.xml` + `ms43432176.txt` | Search engine verification tokens |
 
