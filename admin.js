@@ -2648,9 +2648,7 @@ function previewLegalPage(){
   overlay.style.display = 'flex';
 }
 
-// ═══════════════════════════════════════
-// SUBURBS TAB
-// ═══════════════════════════════════════
+// -- SUBURBS TAB --
 
 var _suburbsData = null; // cached suburb data from suburbs.json
 var _suburbsFilteredState = null;
