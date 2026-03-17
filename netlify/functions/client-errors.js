@@ -119,6 +119,7 @@ exports.handler = async function (event) {
       userId:    String(err.userId    || '').slice(0, 100),
       userName:  String(err.userName  || '').slice(0, 100),
       userEmail: String(err.userEmail || '').slice(0, 200),
+      severity:  ['error','warning','info'].includes(err.severity) ? err.severity : 'error',
     };
     try {
       await redisCmd('RPUSH', 'client-errors', JSON.stringify(entry));
