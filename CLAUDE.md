@@ -22,6 +22,9 @@ See **`README.md`** for feature overview and quick start guide.
 - Sections: General, Desktop, PWA/Mobile
 - Never delete section headers
 
+## Error Tracking
+**`ERRORS.md`** — paste errors from the admin error log here. Check this file at the start of each session and fix any listed errors. Remove errors from the file after they're fixed.
+
 ## Core Files Reference
 
 ### Application Logic
