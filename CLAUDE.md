@@ -125,9 +125,10 @@ See **`README.md`** for feature overview and quick start guide.
 2. **Test** in browser — check desktop (1200px) + mobile (600px breakpoint)
 3. **Test browsers** — Chrome, Firefox (stricter about JS syntax), Safari (test notch styles)
 4. **Validate** — no new external APIs without updating CSP in `netlify.toml`
-5. **Commit** — clear commit message with why (not just what)
-6. **Push** — to assigned feature branch (e.g., `claude/feature-abc-KVfMN`)
-7. **PR/Merge** — to Staging for staging deploy, then to main for production
+5. **Security** — if adding a new dev/build/data file, add it to `.netlifyignore` (see Deployment Security under Known Gotchas)
+6. **Commit** — clear commit message with why (not just what)
+7. **Push** — to assigned feature branch (e.g., `claude/feature-abc-KVfMN`)
+8. **PR/Merge** — to Staging for staging deploy, then to main for production
 
 ## Known Gotchas & Pitfalls
 
@@ -152,6 +153,19 @@ See **`README.md`** for feature overview and quick start guide.
 - ❌ Forgetting auth guard in `<head>` on authenticated pages → logged-out users see content briefly
 - ❌ Changing `@media` breakpoint without checking mobile layout → layout breaks on PWA
 - ❌ Adding external API without CSP update → network requests blocked by browser
+- ❌ Adding a new dev/internal file without updating `.netlifyignore` → file is publicly accessible on production (see Deployment Security below)
+
+### Deployment Security
+`publish = "."` means Netlify serves the **entire repo root**. Every file in the repo is a potential public URL unless explicitly blocked.
+
+**Two-layer defence:**
+1. **`.netlifyignore`** (primary) — listed files are never uploaded to Netlify CDN at all
+2. **`netlify.toml` force redirects** (safety net) — `force = true` redirects return 404 even if a file exists on CDN
+
+**Rule: When adding any new dev/internal file, add it to `.netlifyignore` immediately.**
+
+Files intentionally NOT blocked (needed at runtime):
+- `privacy.md`, `terms.md`, `cookies.md`, `disclaimer.md` — fetched by `legal.js` to render legal pages
 
 ## Australian Geo-Targeting & SEO (March 2026)
 
@@ -181,3 +195,4 @@ See **`README.md`** for feature overview and quick start guide.
 - ✅ **Postcodes** in page titles, meta descriptions, keywords, and schema.org for SEO
 - ✅ **Build optimization** — defer scripts, pre-computed related suburbs (O(n) build), .gitignore cleanup
 - ✅ Sitemap split: `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,520 URLs) indexed by `sitemap.xml`
+- ✅ **Security: blocked dev files from public CDN** — `.netlifyignore` prevents CLAUDE.md, README.md, CODEBASE.md, TODO.md, ERRORS.json, build scripts, and raw data files from being uploaded; `netlify.toml` force-404 redirects act as secondary safety net
