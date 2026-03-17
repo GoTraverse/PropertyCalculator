@@ -147,7 +147,8 @@ invest/{state}/index.html         # Generated state hub pages (gitignored)
 
 ### Configuration
 ```
-netlify.toml            # Netlify build config, CSP headers, cache rules
+netlify.toml            # Netlify build config, CSP headers, cache rules, force-404 redirects for dev files
+.netlifyignore          # Files excluded from Netlify CDN (dev docs, build scripts, ERRORS.json, raw data)
 manifest.json           # PWA manifest (app name, icons, theme colors)
 robots.txt              # Search engine crawling directives
 sitemap.xml             # Sitemap index → sitemap-core.xml (70 URLs) + sitemap-suburbs.xml (14,520 URLs)
@@ -203,6 +204,7 @@ npx netlify dev
 - **CSP Policy** — defined in `netlify.toml`; update if adding new external APIs
 - **Mobile breakpoint** — `@media(max-width:600px)` for PWA/iOS
 - **Password hashing** — HMAC-SHA256 with salt (adequate for this app; consider bcrypt if risk profile increases)
+- **Dev file security** — `publish = "."` serves the entire repo; new dev/internal files must be added to `.netlifyignore` or they'll be publicly accessible. See `CODEBASE.md` Security Notes for full details.
 
 ---
 
@@ -224,6 +226,7 @@ npx netlify dev
 4. **Run locally** — `npx netlify dev` (requires env vars)
 5. **Make changes** — edit HTML/CSS/JS directly (no build step)
 6. **Test** — open browser, check desktop + mobile (600px breakpoint)
-7. **Commit & push** — to `Staging` or feature branch
-8. **Update docs** — if architecture changes, update `CODEBASE.md` and `README.md`
-9. **Update TODO.md** — remove completed tasks, add new ones as discovered
+7. **Security check** — if adding a new dev/internal file, add it to `.netlifyignore`
+8. **Commit & push** — to `Staging` or feature branch
+9. **Update docs** — if architecture changes, update `CODEBASE.md` and `README.md`
+10. **Update TODO.md** — remove completed tasks, add new ones as discovered

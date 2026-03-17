@@ -87,7 +87,8 @@ Browser (static files)
 | `legal.js` | 300+ lines | Markdown → HTML parser — frontmatter, headings, TOC, safe links |
 | `stripe-config.js` | 25 lines | Exports Stripe publishable key + plan IDs (client-safe config) |
 | `manifest.json` | 1.2K | PWA manifest — app name, icons, start URL, display mode, theme colors |
-| `netlify.toml` | 2.5K | Build config, CSP headers, CORS, cache headers for static assets |
+| `netlify.toml` | 2.5K | Build config, CSP headers, CORS, cache headers for static assets; also contains `force=true` redirects blocking dev files |
+| `.netlifyignore` | — | Lists dev/internal files excluded from Netlify CDN uploads (CLAUDE.md, README.md, build scripts, ERRORS.json, raw data) — **add new dev files here** |
 | `404.html` + `import-test.html` | 3.1K + 697B | Error page & dev test page |
 | `robots.txt` | Site crawling directives — allows public pages, blocks admin/app/account |
 | `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,520 URLs) |
@@ -434,6 +435,11 @@ The CSP `connect-src` currently allows:
 - **AUTH_SALT**: Throws a hard error at startup if not set in production (`NODE_ENV=production` or `CONTEXT=production`). Never deploy without this set.
 - **Password hashing**: HMAC-SHA256 with global salt. Adequate for this app's risk profile; consider bcrypt migration if requirements change.
 - **CORS**: Functions return `Access-Control-Allow-Origin: *`. Sensitive actions are all token-gated.
+- **Dev file exposure**: `publish = "."` means Netlify serves the entire repo root. Two-layer defence keeps internal files off the CDN:
+  - **`.netlifyignore`** (primary) — CLAUDE.md, README.md, CODEBASE.md, TODO.md, ERRORS.json, build scripts (`build.js`, `build-suburbs.js`, `generate-suburbs-data.js`, `fetch-abs-data.js`), and raw data (`data/`) are never uploaded to the CDN.
+  - **`netlify.toml` force-404 redirects** (secondary) — `force = true` redirects return 404 for those paths even if a file somehow lands on CDN.
+  - **Rule**: When adding any new dev/internal file to the repo, add it to `.netlifyignore` immediately.
+  - **Exception**: `privacy.md`, `terms.md`, `cookies.md`, `disclaimer.md` must stay public — `legal.js` fetches them at runtime to render legal pages.
 
 ---
 
