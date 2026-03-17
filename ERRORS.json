@@ -1,7 +1,20 @@
 {
-  "syncedAt": "2026-03-17T11:47:26.594Z",
-  "count": 4,
+  "syncedAt": "2026-03-17T11:55:17.297Z",
+  "count": 5,
   "errors": [
+    {
+      "at": 1773748516072,
+      "message": "Load failed",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/145.0.7632.108 Mobile/15E148 Safari/604.1",
+      "userId": "",
+      "userName": "",
+      "userEmail": ""
+    },
     {
       "at": 1773748045349,
       "message": "Failed to fetch",
