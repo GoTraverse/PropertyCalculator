@@ -23,7 +23,7 @@ See **`README.md`** for feature overview and quick start guide.
 - Never delete section headers
 
 ## Error Tracking
-**`ERRORS.md`** — paste errors from the admin error log here. Check this file at the start of each session and fix any listed errors. Remove errors from the file after they're fixed.
+**`ERRORS.json`** — auto-synced from the production error log. Every client-side JS error is stored in Redis and auto-pushed to this file via GitHub API (throttled to max once per 5 min). Check this file at the start of each session and fix any listed errors. Admin can also manually sync via "Sync to GitHub" button on the Error Log tab. Requires `GITHUB_TOKEN` env var in Netlify.
 
 ## Core Files Reference
 
