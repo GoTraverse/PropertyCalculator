@@ -1955,26 +1955,33 @@ function renderClientErrors(errors){
     }
     return;
   }
+  const SEV_STYLE = {
+    error:   { badge: 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;', border: 'border-left:3px solid #f87171;' },
+    warning: { badge: 'background:#fef9c3;color:#854d0e;border:1px solid #fde047;', border: 'border-left:3px solid #facc15;' },
+    info:    { badge: 'background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;', border: 'border-left:3px solid #60a5fa;' },
+  };
   const rows = errors.map(e => {
+    const sev     = SEV_STYLE[e.severity] || SEV_STYLE.error;
+    const sevLabel = e.severity || 'error';
     const time    = e.at ? new Date(e.at).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
     const browser = parseBrowser(e.userAgent||'');
     const rawSrc  = e.source || '';
     const srcPath = rawSrc ? rawSrc.replace(/^https?:\/\/[^/]+/,'') : '';
-    // If source path matches the page URL path, the error is from an inline script
     const pageUrl = e.url || '';
     const pagePath = pageUrl ? pageUrl.replace(/^https?:\/\/[^/]+/,'').split('?')[0] : '';
     const isInline = srcPath && pagePath && (srcPath === pagePath || srcPath.endsWith(pagePath));
-    const srcLabel = isInline
-      ? `[inline] ${escHtml(srcPath)}`
-      : (srcPath ? escHtml(srcPath) : '');
+    const srcLabel = isInline ? `[inline] ${escHtml(srcPath)}` : (srcPath ? escHtml(srcPath) : '');
     const src     = [srcLabel, e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
     const page    = pageUrl ? escHtml(pagePath.slice(0,60)) : '';
     const user    = e.userEmail ? escHtml(e.userEmail) : (e.userName ? escHtml(e.userName) : '<span style="color:rgba(245,240,232,0.5)">guest</span>');
     const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:var(--slate);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:var(--slate);margin:4px 0 0;line-height:1.4;background:rgba(28,28,30,0.04);padding:6px;border-radius:3px;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
-    return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);">
-      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 0;">${time}</td>
+    return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);${sev.border}">
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 6px;">${time}</td>
       <td style="vertical-align:top;padding:10px 8px;max-width:340px;">
-        <div style="font-size:12px;font-weight:600;color:var(--charcoal);">${escHtml(e.message||'')}</div>
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;${sev.badge}">${sevLabel}</span>
+          <span style="font-size:12px;font-weight:600;color:var(--charcoal);">${escHtml(e.message||'')}</span>
+        </div>
         ${src ? `<div style="font-family:var(--font-mono);font-size:10px;color:#C9A84C;margin-top:2px;">${src}</div>` : ''}
         ${page ? `<div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);margin-top:1px;">${page}</div>` : ''}
         ${stack}
@@ -1994,6 +2001,12 @@ function renderClientErrors(errors){
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
     <input id="ce-filter-msg"  class="config-input" placeholder="Search message…"  oninput="filterClientErrors()" style="width:180px;font-size:11px;padding:6px 10px;">
     <input id="ce-filter-user" class="config-input" placeholder="User email/name…" oninput="filterClientErrors()" style="width:160px;font-size:11px;padding:6px 10px;">
+    <select id="ce-filter-severity" class="config-input" onchange="filterClientErrors()" style="width:120px;font-size:11px;padding:6px 10px;">
+      <option value="">All levels</option>
+      <option value="error">🔴 Error</option>
+      <option value="warning">🟡 Warning</option>
+      <option value="info">🔵 Info</option>
+    </select>
     <select id="ce-filter-browser" class="config-input" onchange="filterClientErrors()" style="width:130px;font-size:11px;padding:6px 10px;">
       <option value="">All browsers</option>
       <option value="Firefox">Firefox</option>
@@ -2027,17 +2040,19 @@ function renderClientErrors(errors){
 }
 
 function filterClientErrors(){
-  const msg     = (document.getElementById('ce-filter-msg')||{}).value||'';
-  const user    = (document.getElementById('ce-filter-user')||{}).value||'';
-  const browser = (document.getElementById('ce-filter-browser')||{}).value||'';
-  const time    = (document.getElementById('ce-filter-time')||{}).value||'';
-  const now     = Date.now();
-  const cutoffs = {'1h':3600000,'24h':86400000,'7d':604800000};
+  const msg      = (document.getElementById('ce-filter-msg')||{}).value||'';
+  const user     = (document.getElementById('ce-filter-user')||{}).value||'';
+  const severity = (document.getElementById('ce-filter-severity')||{}).value||'';
+  const browser  = (document.getElementById('ce-filter-browser')||{}).value||'';
+  const time     = (document.getElementById('ce-filter-time')||{}).value||'';
+  const now      = Date.now();
+  const cutoffs  = {'1h':3600000,'24h':86400000,'7d':604800000};
 
   let filtered = _allClientErrors;
-  if(msg)     filtered = filtered.filter(e => (e.message||'').toLowerCase().includes(msg.toLowerCase()));
-  if(user)    filtered = filtered.filter(e => ((e.userEmail||'')+(e.userName||'')).toLowerCase().includes(user.toLowerCase()));
-  if(browser) filtered = filtered.filter(e => parseBrowser(e.userAgent||'').startsWith(browser));
+  if(msg)      filtered = filtered.filter(e => (e.message||'').toLowerCase().includes(msg.toLowerCase()));
+  if(user)     filtered = filtered.filter(e => ((e.userEmail||'')+(e.userName||'')).toLowerCase().includes(user.toLowerCase()));
+  if(severity) filtered = filtered.filter(e => (e.severity||'error') === severity);
+  if(browser)  filtered = filtered.filter(e => parseBrowser(e.userAgent||'').startsWith(browser));
   if(time && cutoffs[time]) filtered = filtered.filter(e => e.at && (now - e.at) <= cutoffs[time]);
 
   renderClientErrors(filtered);
