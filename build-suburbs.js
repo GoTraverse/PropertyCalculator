@@ -208,7 +208,12 @@ for (const s of suburbs) {
 
 for (const s of suburbs) {
   const related = getRelatedSuburbs(s, suburbs);
-  const metaDesc = `Property investment insights for ${s.suburb}, ${s.state_name}. Population ${fmt(s.population)}, ${s.population_growth}% growth, ${s.suburb_type} suburb. Key indicators, amenities, and investment analysis.`;
+  const pc = s.postcode || '';
+  const pcTitle = pc ? `${pc} ` : '';           // "2148 " or ""
+  const pcComma = pc ? ` ${pc},` : ',';          // " 2148," or ","
+  const pcKw = pc ? `, ${pc} property` : '';     // ", 2148 property" or ""
+  const pcDisplay = pc || '—';
+  const metaDesc = `Property investment insights for ${s.suburb}${pc ? ' ' + pc : ''}, ${s.state_name}. Population ${fmt(s.population)}, ${s.population_growth}% growth, ${s.suburb_type} suburb. Key indicators, amenities, and investment analysis.`;
 
   let html = SUBURB_TPL
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
@@ -216,6 +221,11 @@ for (const s of suburbs) {
     .replace(/\{\{STATE_LOWER\}\}/g, s.state.toLowerCase())
     .replace(/\{\{STATE_NAME\}\}/g, escHtml(s.state_name))
     .replace(/\{\{SLUG\}\}/g, s.slug)
+    .replace(/\{\{POSTCODE\}\}/g, escHtml(pc))
+    .replace(/\{\{POSTCODE_TITLE\}\}/g, escHtml(pcTitle))
+    .replace(/\{\{POSTCODE_COMMA\}\}/g, escHtml(pcComma))
+    .replace(/\{\{POSTCODE_KW\}\}/g, escHtml(pcKw))
+    .replace(/\{\{POSTCODE_DISPLAY\}\}/g, escHtml(pcDisplay))
     .replace(/\{\{META_DESCRIPTION\}\}/g, escHtml(metaDesc))
     .replace(/\{\{OVERVIEW\}\}/g, generateOverview(s))
     .replace(/\{\{POPULATION\}\}/g, fmt(s.population))
@@ -254,7 +264,7 @@ for (const state of allStates) {
 
   // Suburb list cards
   const suburbListHTML = stateSuburbs.map(s =>
-    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd} km to CBD</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
+    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd} km to CBD</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
   let html = HUB_TPL
@@ -338,7 +348,7 @@ ${allStates.map(state => {
   const stateLower = state.toLowerCase();
   const links = subs.map(s =>
     `        <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">
-          <div class="hub-suburb-name">${escHtml(s.suburb)}</div>
+          <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>
           <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.suburb_type}</span></div>
         </a>`
   ).join('\n');

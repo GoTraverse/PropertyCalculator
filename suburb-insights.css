@@ -63,6 +63,7 @@
 .hub-suburb-card { display: block; background: var(--warm-white); border-radius: 8px; padding: 18px 20px; text-decoration: none; color: inherit; border: 1px solid rgba(28,28,30,0.06); transition: border-color 0.15s, box-shadow 0.15s; }
 .hub-suburb-card:hover { border-color: rgba(201,168,76,0.35); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
 .hub-suburb-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin-bottom: 6px; }
+.hub-suburb-pc { font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--slate); letter-spacing: 0.5px; }
 .hub-suburb-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); display: flex; gap: 14px; flex-wrap: wrap; }
 .hub-suburb-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.1); padding: 2px 8px; border-radius: 3px; margin-top: 8px; }
 
