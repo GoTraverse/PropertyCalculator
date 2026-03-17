@@ -22,6 +22,9 @@ See **`README.md`** for feature overview and quick start guide.
 - Sections: General, Desktop, PWA/Mobile
 - Never delete section headers
 
+## Error Tracking
+**`ERRORS.json`** — auto-synced from the production error log. Every client-side JS error is stored in Redis and auto-pushed to this file via GitHub API (throttled to max once per 5 min). Check this file at the start of each session and fix any listed errors. Admin can also manually sync via "Sync to GitHub" button on the Error Log tab. Requires `GITHUB_TOKEN` env var in Netlify.
+
 ## Core Files Reference
 
 ### Application Logic

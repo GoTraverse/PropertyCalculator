@@ -2064,6 +2064,22 @@ async function loadClientErrors(){
   renderClientErrors(_allClientErrors);
 }
 
+async function syncErrorsToGitHub(){
+  var btn = document.getElementById('ce-sync-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Syncing…'; }
+  try{
+    var d = await callClientErrors({action:'syncErrorsToGitHub'});
+    if(d.ok){
+      showAdminToast(d.message||'Errors synced to GitHub');
+    } else {
+      showAdminToast(d.error||'Sync failed', true);
+    }
+  }catch(e){
+    showAdminToast('Sync failed: '+e.message, true);
+  }
+  if(btn){ btn.disabled=false; btn.textContent='⬆ Sync to GitHub'; }
+}
+
 async function clearClientErrors(){
   if(!confirm('Clear all logged client errors?')) return;
   const d = await callClientErrors({action:'adminClearClientErrors'});

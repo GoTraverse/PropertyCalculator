@@ -257,6 +257,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
           <button class="btn-admin" id="ce-refresh-btn" onclick="loadClientErrors()" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
           <button class="btn-admin-outline" onclick="clearClientErrors()" style="font-size:10px;padding:7px 14px;color:#c45a5a;border-color:rgba(196,90,90,0.4);">🗑 Clear All</button>
+          <button class="btn-admin" id="ce-sync-btn" onclick="syncErrorsToGitHub()" style="font-size:10px;padding:7px 14px;">⬆ Sync to GitHub</button>
         </div>
         <div id="client-errors-wrap" style="overflow-x:auto;">
           <div id="client-errors-loading" style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">Click refresh to load errors.</div>

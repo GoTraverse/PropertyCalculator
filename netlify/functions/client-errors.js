@@ -47,6 +47,52 @@ async function verifyToken(authHeader) {
 const ok  = (b) => ({ statusCode: 200, headers: H, body: JSON.stringify(b) });
 const fail = (msg, code) => ({ statusCode: code || 400, headers: H, body: JSON.stringify({ ok: false, error: msg }) });
 
+const SYNC_THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
+
+async function syncToGitHubThrottled() {
+  const ghToken = (process.env.GITHUB_TOKEN || '').trim();
+  if (!ghToken) return; // silently skip if not configured
+  // Check throttle: only sync if last sync was >5 min ago
+  const lastSync = await rGet('client-errors:lastSync');
+  if (lastSync && (Date.now() - lastSync) < SYNC_THROTTLE_MS) return;
+  await redisCmd('SET', 'client-errors:lastSync', String(Date.now()));
+  await pushErrorsToGitHub(ghToken);
+}
+
+async function pushErrorsToGitHub(ghToken) {
+  const repo = (process.env.GITHUB_REPO || 'GoTraverse/PropertyCalculator').trim();
+  const branch = 'main';
+  const filePath = 'ERRORS.json';
+  const ghApi = 'https://api.github.com';
+  const ghHeaders = { Authorization: 'token ' + ghToken, 'User-Agent': 'EquitySight-Admin', 'Content-Type': 'application/json' };
+
+  // Get all errors from Redis
+  const raw = await redisCmd('LRANGE', 'client-errors', '0', '-1');
+  const errors = (raw || []).map(s => { try { return JSON.parse(s); } catch (e) { return { message: s, at: 0 }; } });
+  errors.reverse(); // newest first
+  const content = JSON.stringify({ syncedAt: new Date().toISOString(), count: errors.length, errors }, null, 2);
+  const encoded = Buffer.from(content).toString('base64');
+
+  // Get current file SHA (needed for updates)
+  let sha = null;
+  const existing = await fetch(`${ghApi}/repos/${repo}/contents/${filePath}?ref=${branch}`, { headers: ghHeaders });
+  if (existing.ok) {
+    const data = await existing.json();
+    sha = data.sha;
+  }
+
+  // Create or update file
+  const putBody = { message: 'Auto-sync client errors (' + errors.length + ' errors)', content: encoded, branch };
+  if (sha) putBody.sha = sha;
+  const putResp = await fetch(`${ghApi}/repos/${repo}/contents/${filePath}`, {
+    method: 'PUT', headers: ghHeaders, body: JSON.stringify(putBody),
+  });
+  if (!putResp.ok) {
+    const errText = await putResp.text();
+    throw new Error('GitHub API ' + putResp.status + ': ' + errText.slice(0, 200));
+  }
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
   if (event.httpMethod !== 'POST') return fail('POST only', 405);
@@ -80,6 +126,10 @@ exports.handler = async function (event) {
     } catch (e) {
       console.warn('[client-errors] Failed to store error:', e.message);
     }
+    // Auto-sync to GitHub (throttled: max once per 5 minutes)
+    try { await syncToGitHubThrottled(); } catch (e) {
+      console.warn('[client-errors] GitHub sync failed:', e.message);
+    }
     return ok({ ok: true });
   }
 
@@ -94,6 +144,21 @@ exports.handler = async function (event) {
       return ok({ ok: true, errors });
     } catch (e) {
       return ok({ ok: true, errors: [] });
+    }
+  }
+
+  // ── Admin: sync errors to GitHub repo ─────────────────────────────────────
+  if (action === 'syncErrorsToGitHub') {
+    const user = await verifyToken(event.headers?.authorization || event.headers?.Authorization);
+    if (!user || user.role !== 'admin') return fail('Unauthorized', 401);
+    const ghToken = (process.env.GITHUB_TOKEN || '').trim();
+    if (!ghToken) return fail('GITHUB_TOKEN env var not set. Add it in Netlify → Environment Variables.');
+    try {
+      await pushErrorsToGitHub(ghToken);
+      await redisCmd('SET', 'client-errors:lastSync', String(Date.now()));
+      return ok({ ok: true, message: 'Errors synced to GitHub' });
+    } catch (e) {
+      return fail('Sync failed: ' + e.message);
     }
   }
 
