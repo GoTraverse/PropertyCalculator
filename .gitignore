@@ -3,6 +3,9 @@ suburb/
 invest/
 sitemap-suburbs.xml
 
+# Build cache (suburb pages persisted between Netlify deploys)
+.cache/
+
 # Fetched/downloaded data caches (regenerate with fetch-abs-data.js)
 data/abs-suburbs.json
 data/abs-batch-*.json

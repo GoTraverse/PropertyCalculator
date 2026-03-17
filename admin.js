@@ -2648,4 +2648,148 @@ function previewLegalPage(){
   overlay.style.display = 'flex';
 }
 
+// ═══════════════════════════════════════
+// SUBURBS TAB
+// ═══════════════════════════════════════
+
+var _suburbsData = null; // cached suburb data from suburbs.json
+var _suburbsFilteredState = null;
+
+async function loadSuburbsTab() {
+  // Load suburbs.json if not cached
+  if (!_suburbsData) {
+    try {
+      const resp = await fetch('/data/suburbs.json');
+      _suburbsData = await resp.json();
+    } catch (e) {
+      document.getElementById('suburbs-loading').textContent = 'Failed to load suburbs data: ' + e.message;
+      return;
+    }
+  }
+
+  const data = _suburbsData;
+  const total = data.length;
+  const withPC = data.filter(s => s.postcode).length;
+
+  document.getElementById('suburbs-total').textContent = total.toLocaleString();
+  document.getElementById('suburbs-with-pc').textContent = withPC.toLocaleString() + ' (' + Math.round(100 * withPC / total) + '%)';
+
+  // Load last build time from config
+  try {
+    const cfg = await callAuth('adminGetConfig');
+    if (cfg && cfg.config && cfg.config.suburbLastBuild) {
+      var d = new Date(cfg.config.suburbLastBuild);
+      document.getElementById('suburbs-last-build').textContent = d.toLocaleDateString('en-AU') + ' ' + d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+    }
+    if (cfg && cfg.config && cfg.config.suburbDeployHook) {
+      document.getElementById('suburbs-deploy-hook').value = cfg.config.suburbDeployHook;
+    }
+  } catch (e) { /* ignore */ }
+
+  // State breakdown
+  var states = {};
+  for (var i = 0; i < data.length; i++) {
+    var st = data[i].state;
+    states[st] = (states[st] || 0) + 1;
+  }
+  var breakdownHTML = '';
+  var stateKeys = Object.keys(states).sort();
+  for (var j = 0; j < stateKeys.length; j++) {
+    var sk = stateKeys[j];
+    breakdownHTML += '<button class="btn-admin-outline" onclick="filterSuburbsByState(\'' + escHtml(sk) + '\')" style="font-size:11px;padding:8px 12px;text-align:left;">' +
+      '<div style="font-weight:600;">' + escHtml(sk) + '</div>' +
+      '<div style="font-size:10px;color:var(--slate);">' + states[sk].toLocaleString() + ' suburbs</div>' +
+      '</button>';
+  }
+  document.getElementById('suburbs-state-breakdown').innerHTML = breakdownHTML;
+}
+
+function filterSuburbsByState(state) {
+  _suburbsFilteredState = state;
+  document.getElementById('suburbs-admin-search').value = '';
+  renderSuburbTable(_suburbsData.filter(function(s) { return s.state === state; }).slice(0, 200), state);
+}
+
+function searchAdminSuburbs() {
+  var q = (document.getElementById('suburbs-admin-search').value || '').trim().toLowerCase();
+  if (q.length < 2) {
+    if (_suburbsFilteredState) {
+      renderSuburbTable(_suburbsData.filter(function(s) { return s.state === _suburbsFilteredState; }).slice(0, 200), _suburbsFilteredState);
+    } else {
+      document.getElementById('suburbs-table-wrap').innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">Type at least 2 characters to search</div>';
+    }
+    return;
+  }
+  var results = _suburbsData.filter(function(s) {
+    return s.suburb.toLowerCase().indexOf(q) >= 0 || (s.postcode && s.postcode.indexOf(q) >= 0);
+  });
+  renderSuburbTable(results.slice(0, 200), null, results.length);
+}
+
+function renderSuburbTable(rows, stateLabel, totalMatches) {
+  if (!rows || rows.length === 0) {
+    document.getElementById('suburbs-table-wrap').innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">No suburbs found</div>';
+    return;
+  }
+  var label = stateLabel ? escHtml(stateLabel) + ' — ' + rows.length + ' shown' : (totalMatches ? totalMatches + ' matches (showing ' + rows.length + ')' : rows.length + ' suburbs');
+  var html = '<div style="font-size:10px;color:var(--slate);margin-bottom:8px;font-family:var(--font-mono);">' + label + '</div>';
+  html += '<table class="admin-table"><thead><tr><th>Suburb</th><th>State</th><th>Postcode</th><th>Population</th><th>Type</th></tr></thead><tbody>';
+  for (var i = 0; i < rows.length; i++) {
+    var s = rows[i];
+    html += '<tr>' +
+      '<td><a href="/suburb/' + s.state.toLowerCase() + '/' + escHtml(s.slug) + '/" target="_blank" style="color:var(--gold);text-decoration:none;">' + escHtml(s.suburb) + ' ↗</a></td>' +
+      '<td>' + escHtml(s.state) + '</td>' +
+      '<td>' + escHtml(s.postcode || '—') + '</td>' +
+      '<td>' + (s.population || 0).toLocaleString() + '</td>' +
+      '<td>' + escHtml(s.suburb_type) + '</td>' +
+      '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('suburbs-table-wrap').innerHTML = html;
+}
+
+async function saveSuburbDeployHook() {
+  var url = (document.getElementById('suburbs-deploy-hook').value || '').trim();
+  if (!url) return;
+  try {
+    await callAuth('adminSetConfig', { key: 'suburbDeployHook', value: url });
+    showAdminToast('Deploy hook saved');
+  } catch (e) {
+    showAdminToast('Failed to save: ' + e.message, true);
+  }
+}
+
+async function triggerSuburbRebuild() {
+  var hookUrl = (document.getElementById('suburbs-deploy-hook').value || '').trim();
+  if (!hookUrl) {
+    showAdminToast('Set a deploy hook URL first (Netlify → Site Configuration → Build hooks)', true);
+    return;
+  }
+  if (!confirm('This will trigger a Netlify deploy that rebuilds all suburb pages. Continue?')) return;
+  try {
+    // Save the rebuild timestamp
+    await callAuth('adminSetConfig', { key: 'suburbLastBuild', value: new Date().toISOString() });
+    // Trigger deploy hook with query param
+    var resp = await fetch(hookUrl + '?trigger_title=Suburb+rebuild+(admin)', { method: 'POST' });
+    if (resp.ok) {
+      showAdminToast('Suburb rebuild triggered! Deploy will start shortly.');
+      document.getElementById('suburbs-last-build').textContent = 'Building now...';
+    } else {
+      showAdminToast('Deploy hook returned ' + resp.status + '. Check the URL.', true);
+    }
+  } catch (e) {
+    showAdminToast('Failed: ' + e.message, true);
+  }
+}
+
+function showAdminToast(msg, isError) {
+  // Simple toast — reuse existing pattern if available, or create one
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;padding:12px 24px;border-radius:8px;font-size:13px;font-family:var(--font-body);color:white;max-width:400px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);' +
+    (isError ? 'background:#C0392B;' : 'background:#27AE60;');
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 4000);
+}
+
 document.addEventListener('DOMContentLoaded', init);

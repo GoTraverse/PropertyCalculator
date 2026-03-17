@@ -96,7 +96,11 @@ See **`README.md`** for feature overview and quick start guide.
 - **SEO**: BreadcrumbList + Place schema.org JSON-LD, postcodes in titles/meta/keywords, structured data
 - **State hubs**: Progressive loading (100 suburbs initially, "Show more" button) + client-side search by name/postcode
 - **Performance**: Scripts use `defer` attribute; related suburbs pre-computed (O(n) not O(n²))
-- **Build command**: `node build-suburbs.js` — runs during Netlify deploy
+- **Build command**: `node build.js` — conditional build wrapper:
+  - Normal deploys: restores cached suburb pages (instant, no rebuild)
+  - Suburb rebuild: only when triggered by admin "Rebuild Suburb Pages" button (or REBUILD_SUBURBS=true env var)
+  - Uses Netlify build cache to persist pages between deploys
+- **Admin tab**: Admin → Suburbs — browse/search suburbs, state breakdown, trigger rebuilds via Netlify deploy hook
 - **To regenerate data**: `node fetch-abs-data.js` then `node generate-suburbs-data.js`
 
 ### Layout & Responsive
