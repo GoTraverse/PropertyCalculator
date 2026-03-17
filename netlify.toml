@@ -123,7 +123,7 @@
   force = true
 
 [[redirects]]
-  from = "/data/*"
+  from = "/data/abs-suburbs.json"
   to = "/404.html"
   status = 404
   force = true

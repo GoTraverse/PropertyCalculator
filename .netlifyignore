@@ -18,9 +18,9 @@ build-suburbs.js
 generate-suburbs-data.js
 fetch-abs-data.js
 
-# Raw suburb data (large; suburb pages are pre-built static HTML)
+# Raw ABS source data (large intermediate file, not needed at runtime)
 data/abs-suburbs.json
-data/suburbs.json
+# Note: data/suburbs.json must remain public — admin Suburbs tab fetches it directly
 
 # HTML templates (used at build time only)
 templates/
