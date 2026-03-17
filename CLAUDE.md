@@ -5,7 +5,7 @@
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**20 HTML pages** (incl. 10 free calculators) | **9 Netlify functions** | **10 CSS files** | **4046+ lines** of calculator logic | **2651+ lines** of admin logic
+**20 HTML pages** (incl. 10 free calculators) + **14,512 generated suburb pages** + **8 state hub pages** | **9 Netlify functions** | **11 CSS files** | **4046+ lines** of calculator logic | **2651+ lines** of admin logic
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
@@ -86,6 +86,23 @@ See **`README.md`** for feature overview and quick start guide.
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
 - **To update all calculators**: Edit `tools.css` (no need to touch 10 HTML files)
 
+### Suburb Insights System (14,512 pages)
+- **Data pipeline**: `fetch-abs-data.js` → `data/abs-suburbs.json` → `generate-suburbs-data.js` → `data/suburbs.json` → `build-suburbs.js` → HTML pages
+- **Real data**: Suburb names + populations from ABS 2021 Census (ArcGIS FeatureServer, SAL geography); postcodes from community dataset (`au_postcodes.csv`)
+- **Placeholder data**: Income, distance to CBD, suburb type, scores — to be replaced with live data later
+- **Build output**: `/suburb/{state}/{slug}/index.html` (14,512 pages) + `/invest/{state}/index.html` (8 state hubs) + directory index + sitemap
+- **Templates**: `templates/suburb-page.html` and `templates/state-hub.html` — use `{{PLACEHOLDER}}` syntax
+- **Styling**: `suburb-insights.css` — shared styles for suburb pages + state hubs
+- **SEO**: BreadcrumbList + Place schema.org JSON-LD, postcodes in titles/meta/keywords, structured data
+- **State hubs**: Progressive loading (100 suburbs initially, "Show more" button) + client-side search by name/postcode
+- **Performance**: Scripts use `defer` attribute; related suburbs pre-computed (O(n) not O(n²))
+- **Build command**: `node build.js` — conditional build wrapper:
+  - Normal deploys: restores cached suburb pages (instant, no rebuild)
+  - Suburb rebuild: only when triggered by admin "Rebuild Suburb Pages" button (or REBUILD_SUBURBS=true env var)
+  - Uses Netlify build cache to persist pages between deploys
+- **Admin tab**: Admin → Suburbs — browse/search suburbs, state breakdown, trigger rebuilds via Netlify deploy hook
+- **To regenerate data**: `node fetch-abs-data.js` then `node generate-suburbs-data.js`
+
 ### Layout & Responsive
 - **Mobile Breakpoint**: `@media(max-width:600px)` for PWA/mobile
 - **PWA Styles**: `@media(display-mode:standalone)` to hide/show elements in standalone mode (no JS needed)
@@ -155,4 +172,9 @@ See **`README.md`** for feature overview and quick start guide.
 - ✅ Admin user login status — popup shows "Active", "Email Verified", or "Awaiting Verification"
 - ✅ Header styling — increased bar height & button padding for mobile readability
 - ✅ Australian geo-targeting — all calculator titles, descriptions, and resources emphasize Australia focus
-- ✅ All .md files updated with Australian focus and current page counts
+- ✅ **14,512 suburb insight pages** generated from real ABS 2021 Census data (population + postcodes)
+- ✅ **8 state hub pages** with search and progressive loading (100 suburbs at a time)
+- ✅ **Schema.org structured data** — BreadcrumbList + Place + CollectionPage on all suburb/state pages
+- ✅ **Postcodes** in page titles, meta descriptions, keywords, and schema.org for SEO
+- ✅ **Build optimization** — defer scripts, pre-computed related suburbs (O(n) build), .gitignore cleanup
+- ✅ Sitemap split: `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,520 URLs) indexed by `sitemap.xml`

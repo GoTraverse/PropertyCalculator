@@ -13,9 +13,43 @@ const fs = require('fs');
 const path = require('path');
 
 const ABS_FILE = path.join(__dirname, 'data', 'abs-suburbs.json');
+const PC_FILE = path.join(__dirname, 'data', 'au_postcodes.csv');
 const OUT_FILE = path.join(__dirname, 'data', 'suburbs.json');
 
 const absData = JSON.parse(fs.readFileSync(ABS_FILE, 'utf8'));
+
+// Build postcode lookup from CSV: (SUBURB_UPPER, STATE) -> postcode
+// CSV has quoted fields, so use a simple state-machine parser
+const pcMap = {};
+function parseCSVLine(line) {
+  const fields = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQuotes = !inQuotes; continue; }
+    if (ch === ',' && !inQuotes) { fields.push(current.trim()); current = ''; continue; }
+    current += ch;
+  }
+  fields.push(current.trim());
+  return fields;
+}
+const pcLines = fs.readFileSync(PC_FILE, 'utf8').split('\n');
+const pcHeader = parseCSVLine(pcLines[0]);
+const pcIdx = pcHeader.indexOf('postcode');
+const locIdx = pcHeader.indexOf('locality');
+const stIdx = pcHeader.indexOf('state');
+for (let i = 1; i < pcLines.length; i++) {
+  if (!pcLines[i].trim()) continue;
+  const cols = parseCSVLine(pcLines[i]);
+  const postcode = (cols[pcIdx] || '').trim();
+  const locality = (cols[locIdx] || '').trim().toUpperCase();
+  const state = (cols[stIdx] || '').trim().toUpperCase();
+  if (!postcode || !locality) continue;
+  const key = `${locality}|${state}`;
+  if (!pcMap[key]) pcMap[key] = postcode;
+}
+console.log(`Loaded ${Object.keys(pcMap).length} postcode mappings`);
 
 const stateNames = {
   QLD: 'Queensland', NSW: 'New South Wales', VIC: 'Victoria',
@@ -125,12 +159,17 @@ for (const [state, subs] of Object.entries(stateSuburbs)) {
 
     const placeholders = makePlaceholders(name, state, r.population, i, total, r.sal_code);
 
+    // Lookup postcode (real data from Australia Post / community dataset)
+    const pcKey = `${name.toUpperCase()}|${state}`;
+    const postcode = pcMap[pcKey] || '';
+
     allSuburbs.push({
       suburb: name,
       slug: s,
       state: state,
       state_name: stateNames[state],
-      population: r.population,       // REAL ABS DATA
+      postcode: postcode,              // REAL DATA — from au_postcodes.csv
+      population: r.population,        // REAL ABS DATA
       ...placeholders                  // PLACEHOLDER — to be replaced with live data
     });
   }
@@ -157,7 +196,8 @@ for (const s of deduped) {
   stats[s.state] = (stats[s.state] || 0) + 1;
 }
 
-console.log(`Generated ${deduped.length} suburbs from real ABS data`);
+const withPC = deduped.filter(s => s.postcode).length;
+console.log(`Generated ${deduped.length} suburbs from real ABS data (${withPC} with postcodes, ${Math.round(100*withPC/deduped.length)}%)`);
 for (const [s, c] of Object.entries(stats).sort()) {
   console.log(`  ${s}: ${c} suburbs`);
 }

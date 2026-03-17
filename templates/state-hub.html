@@ -26,6 +26,9 @@
 <link rel="stylesheet" href="/shared.css">
 <link rel="stylesheet" href="/tools.css">
 <link rel="stylesheet" href="/suburb-insights.css">
+<script type="application/ld+json">
+[{"@context":"https://schema.org","@type":"CollectionPage","name":"{{STATE_NAME}} Property Investment Insights","description":"Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}} for property investment.","url":"https://equitysight.app/invest/{{STATE_LOWER}}/"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"{{STATE_NAME}}","item":"https://equitysight.app/invest/{{STATE_LOWER}}/"}]}]
+</script>
 </head>
 <body>
 
@@ -36,8 +39,8 @@
   </a>
   <a href="/login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
 </header>
-<script src="/auth-nav.js"></script>
-<script src="/error-capture.js"></script>
+<script src="/auth-nav.js" defer></script>
+<script src="/error-capture.js" defer></script>
 
 <section class="tool-hero">
   <nav class="suburb-breadcrumb">
@@ -61,10 +64,13 @@
 
   <!-- Suburb List -->
   <section class="suburb-section">
-    <h2>Top {{SUBURB_COUNT}} Suburbs in {{STATE_NAME}}</h2>
-    <div class="hub-suburb-list">
+    <h2>All {{SUBURB_COUNT}} Suburbs in {{STATE_NAME}}</h2>
+    <input type="text" id="suburb-search" class="hub-search" placeholder="Search suburbs by name or postcode..." autocomplete="off">
+    <div id="hub-suburb-list" class="hub-suburb-list">
       {{SUBURB_LIST_HTML}}
     </div>
+    <button id="hub-show-more" class="hub-show-more" style="display:none;">Show more suburbs</button>
+    <p id="hub-no-results" class="hub-no-results" style="display:none;">No suburbs match your search.</p>
   </section>
 
   <!-- CTA -->
@@ -78,6 +84,33 @@
 </div>
 
 <div id="site-footer-root"></div>
-<script src="/footer.js"></script>
+<script src="/footer.js" defer></script>
+<script>
+(function(){
+  var BATCH=100, cards=document.querySelectorAll('#hub-suburb-list .hub-suburb-card');
+  var shown=BATCH, btn=document.getElementById('hub-show-more'), search=document.getElementById('suburb-search');
+  var noRes=document.getElementById('hub-no-results');
+  function showCards(n){for(var i=0;i<cards.length;i++)cards[i].style.display=i<n?'':'none';shown=n;btn.style.display=n<cards.length?'':'none';}
+  showCards(BATCH);
+  btn.onclick=function(){showCards(shown+BATCH);};
+  var timer;
+  search.oninput=function(){
+    clearTimeout(timer);
+    timer=setTimeout(function(){
+      var q=search.value.trim().toLowerCase();if(!q){showCards(BATCH);noRes.style.display='none';return;}
+      var count=0;
+      for(var i=0;i<cards.length;i++){
+        var name=cards[i].querySelector('.hub-suburb-name');
+        var text=(name?name.textContent:'').toLowerCase();
+        var match=text.indexOf(q)>=0;
+        cards[i].style.display=match?'':'none';
+        if(match)count++;
+      }
+      btn.style.display='none';
+      noRes.style.display=count?'none':'';
+    },180);
+  };
+})();
+</script>
 </body>
 </html>

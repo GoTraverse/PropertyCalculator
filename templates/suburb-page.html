@@ -4,18 +4,18 @@
 <meta charset="UTF-8">
 <script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>{{SUBURB}} {{STATE}} Property Investment Insights | EquitySight</title>
+<title>{{SUBURB}} {{POSTCODE_TITLE}}{{STATE}} Property Investment Insights | EquitySight</title>
 <meta name="description" content="{{META_DESCRIPTION}}">
-<meta name="keywords" content="{{SUBURB}} property investment, {{SUBURB}} {{STATE}} real estate, {{SUBURB}} suburb profile, {{STATE_NAME}} property market">
+<meta name="keywords" content="{{SUBURB}} property investment, {{SUBURB}} {{POSTCODE_TITLE}}{{STATE}} real estate, {{SUBURB}} suburb profile, {{STATE_NAME}} property market{{POSTCODE_KW}}">
 <link rel="canonical" href="https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}">
 <meta property="og:type" content="article">
-<meta property="og:title" content="{{SUBURB}} {{STATE}} — Property Investment Insights | EquitySight">
+<meta property="og:title" content="{{SUBURB}} {{POSTCODE_TITLE}}{{STATE}} — Property Investment Insights | EquitySight">
 <meta property="og:description" content="{{META_DESCRIPTION}}">
 <meta property="og:url" content="https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}">
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:image" content="https://equitysight.app/favicon.svg">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="{{SUBURB}} {{STATE}} — Investment Insights">
+<meta name="twitter:title" content="{{SUBURB}} {{POSTCODE_TITLE}}{{STATE}} — Investment Insights">
 <meta name="twitter:description" content="{{META_DESCRIPTION}}">
 <meta name="twitter:image" content="https://equitysight.app/favicon.svg">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="/tools.css">
 <link rel="stylesheet" href="/suburb-insights.css">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Place","name":"{{SUBURB}}, {{STATE_NAME}}","description":"{{META_DESCRIPTION}}","address":{"@type":"PostalAddress","addressLocality":"{{SUBURB}}","addressRegion":"{{STATE}}","addressCountry":"AU"},"containedInPlace":{"@type":"AdministrativeArea","name":"{{STATE_NAME}}"}}
+[{"@context":"https://schema.org","@type":"Place","name":"{{SUBURB}}, {{STATE_NAME}}","description":"{{META_DESCRIPTION}}","address":{"@type":"PostalAddress","addressLocality":"{{SUBURB}}","addressRegion":"{{STATE}}","postalCode":"{{POSTCODE}}","addressCountry":"AU"},"containedInPlace":{"@type":"AdministrativeArea","name":"{{STATE_NAME}}"}},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"{{STATE_NAME}}","item":"https://equitysight.app/invest/{{STATE_LOWER}}/"},{"@type":"ListItem","position":3,"name":"{{SUBURB}}","item":"https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}/"}]}]
 </script>
 </head>
 <body>
@@ -39,8 +39,8 @@
   </a>
   <a href="/login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
 </header>
-<script src="/auth-nav.js"></script>
-<script src="/error-capture.js"></script>
+<script src="/auth-nav.js" defer></script>
+<script src="/error-capture.js" defer></script>
 
 <section class="tool-hero suburb-hero">
   <nav class="suburb-breadcrumb">
@@ -48,9 +48,9 @@
     <a href="/invest/{{STATE_LOWER}}/">{{STATE_NAME}}</a> <span>›</span>
     <span>{{SUBURB}}</span>
   </nav>
-  <div class="tool-eyebrow">Suburb Insights · {{STATE}}</div>
-  <h1>{{SUBURB}} {{STATE}} Investment Property Insights</h1>
-  <p>Key indicators and investment context for {{SUBURB}}, {{STATE_NAME}}.</p>
+  <div class="tool-eyebrow">Suburb Insights · {{STATE}} {{POSTCODE}}</div>
+  <h1>{{SUBURB}} {{POSTCODE_TITLE}}{{STATE}} Investment Property Insights</h1>
+  <p>Key indicators and investment context for {{SUBURB}}{{POSTCODE_COMMA}} {{STATE_NAME}}.</p>
 </section>
 
 <div class="suburb-main">
@@ -66,6 +66,10 @@
     <h2>Key Indicators</h2>
     <div class="suburb-grid">
       <div class="suburb-stat">
+        <div class="suburb-stat-label">Postcode</div>
+        <div class="suburb-stat-value">{{POSTCODE_DISPLAY}}</div>
+      </div>
+      <div class="suburb-stat">
         <div class="suburb-stat-label">Population</div>
         <div class="suburb-stat-value">{{POPULATION}}</div>
       </div>
@@ -74,12 +78,12 @@
         <div class="suburb-stat-value">{{POPULATION_GROWTH}}%</div>
       </div>
       <div class="suburb-stat">
-        <div class="suburb-stat-label">Distance to CBD</div>
-        <div class="suburb-stat-value">{{DISTANCE_TO_CBD}} km</div>
-      </div>
-      <div class="suburb-stat">
         <div class="suburb-stat-label">Median Household Income</div>
         <div class="suburb-stat-value">${{MEDIAN_INCOME}}</div>
+      </div>
+      <div class="suburb-stat">
+        <div class="suburb-stat-label">Distance to CBD</div>
+        <div class="suburb-stat-value">{{DISTANCE_TO_CBD}} km</div>
       </div>
     </div>
   </section>
@@ -146,6 +150,6 @@
 </div>
 
 <div id="site-footer-root"></div>
-<script src="/footer.js"></script>
+<script src="/footer.js" defer></script>
 </body>
 </html>

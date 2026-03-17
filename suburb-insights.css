@@ -63,8 +63,16 @@
 .hub-suburb-card { display: block; background: var(--warm-white); border-radius: 8px; padding: 18px 20px; text-decoration: none; color: inherit; border: 1px solid rgba(28,28,30,0.06); transition: border-color 0.15s, box-shadow 0.15s; }
 .hub-suburb-card:hover { border-color: rgba(201,168,76,0.35); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
 .hub-suburb-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin-bottom: 6px; }
+.hub-suburb-pc { font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--slate); letter-spacing: 0.5px; }
 .hub-suburb-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); display: flex; gap: 14px; flex-wrap: wrap; }
 .hub-suburb-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.1); padding: 2px 8px; border-radius: 3px; margin-top: 8px; }
+
+/* ── Hub search & pagination ── */
+.hub-search { width: 100%; max-width: 480px; padding: 10px 14px; margin-bottom: 20px; border: 1px solid rgba(28,28,30,0.12); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: var(--warm-white); color: var(--charcoal); outline: none; transition: border-color 0.15s; }
+.hub-search:focus { border-color: var(--gold); }
+.hub-show-more { display: block; width: 100%; max-width: 320px; margin: 24px auto 0; padding: 12px 24px; background: var(--charcoal); color: var(--warm-white); border: none; border-radius: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.hub-show-more:hover { background: var(--gold); color: var(--charcoal); }
+.hub-no-results { text-align: center; color: var(--slate); font-family: var(--font-body); font-size: 14px; padding: 24px 0; }
 
 /* ── Dark mode ── */
 html.dark-mode .suburb-section { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
@@ -80,3 +88,6 @@ html.dark-mode .suburb-resources a:hover { color: #F5F0E8; }
 html.dark-mode .state-nav a { background: rgba(255,255,255,0.04); color: #F5F0E8; border-color: rgba(255,255,255,0.08); }
 html.dark-mode .hub-suburb-card { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06); }
 html.dark-mode .hub-suburb-name { color: #F5F0E8; }
+html.dark-mode .hub-search { background: rgba(255,255,255,0.04); color: #F5F0E8; border-color: rgba(255,255,255,0.12); }
+html.dark-mode .hub-show-more { background: rgba(255,255,255,0.1); color: #F5F0E8; }
+html.dark-mode .hub-show-more:hover { background: var(--gold); color: var(--charcoal); }

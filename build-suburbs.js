@@ -176,11 +176,39 @@ function generateFAQ(s) {
   ).join('\n');
 }
 
-function getRelatedSuburbs(suburb, allSuburbs) {
-  // Get suburbs in the same state, sorted by proximity in distance_to_cbd
-  const sameState = allSuburbs.filter(s => s.state === suburb.state && s.slug !== suburb.slug);
-  sameState.sort((a, b) => Math.abs(a.distance_to_cbd - suburb.distance_to_cbd) - Math.abs(b.distance_to_cbd - suburb.distance_to_cbd));
-  return sameState.slice(0, 5);
+// Pre-compute related suburbs per state (O(n) instead of O(n²))
+// For each suburb, find 5 nearest by distance_to_cbd using a single pre-sorted pass
+function buildRelatedMap(allSuburbs) {
+  const byState = {};
+  for (const s of allSuburbs) {
+    if (!byState[s.state]) byState[s.state] = [];
+    byState[s.state].push(s);
+  }
+  // Sort each state's suburbs by distance_to_cbd
+  for (const state in byState) {
+    byState[state].sort((a, b) => a.distance_to_cbd - b.distance_to_cbd);
+  }
+  // For each suburb, the 5 nearest are its neighbours in the sorted list
+  const relatedMap = new Map();
+  for (const state in byState) {
+    const sorted = byState[state];
+    for (let i = 0; i < sorted.length; i++) {
+      const related = [];
+      let lo = i - 1, hi = i + 1;
+      while (related.length < 5 && (lo >= 0 || hi < sorted.length)) {
+        const dLo = lo >= 0 ? Math.abs(sorted[lo].distance_to_cbd - sorted[i].distance_to_cbd) : Infinity;
+        const dHi = hi < sorted.length ? Math.abs(sorted[hi].distance_to_cbd - sorted[i].distance_to_cbd) : Infinity;
+        if (dLo <= dHi) { related.push(sorted[lo]); lo--; }
+        else { related.push(sorted[hi]); hi++; }
+      }
+      relatedMap.set(`${sorted[i].state}/${sorted[i].slug}`, related);
+    }
+  }
+  return relatedMap;
+}
+
+function getRelatedSuburbs(suburb, relatedMap) {
+  return relatedMap.get(`${suburb.state}/${suburb.slug}`) || [];
 }
 
 function generateRelatedHTML(related, state) {
@@ -206,9 +234,16 @@ for (const s of suburbs) {
   stateGroups[s.state].push(s);
 }
 
+const relatedMap = buildRelatedMap(suburbs);
+
 for (const s of suburbs) {
-  const related = getRelatedSuburbs(s, suburbs);
-  const metaDesc = `Property investment insights for ${s.suburb}, ${s.state_name}. Population ${fmt(s.population)}, ${s.population_growth}% growth, ${s.suburb_type} suburb. Key indicators, amenities, and investment analysis.`;
+  const related = getRelatedSuburbs(s, relatedMap);
+  const pc = s.postcode || '';
+  const pcTitle = pc ? `${pc} ` : '';           // "2148 " or ""
+  const pcComma = pc ? ` ${pc},` : ',';          // " 2148," or ","
+  const pcKw = pc ? `, ${pc} property` : '';     // ", 2148 property" or ""
+  const pcDisplay = pc || '—';
+  const metaDesc = `Property investment insights for ${s.suburb}${pc ? ' ' + pc : ''}, ${s.state_name}. Population ${fmt(s.population)}, ${s.population_growth}% growth, ${s.suburb_type} suburb. Key indicators, amenities, and investment analysis.`;
 
   let html = SUBURB_TPL
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
@@ -216,6 +251,11 @@ for (const s of suburbs) {
     .replace(/\{\{STATE_LOWER\}\}/g, s.state.toLowerCase())
     .replace(/\{\{STATE_NAME\}\}/g, escHtml(s.state_name))
     .replace(/\{\{SLUG\}\}/g, s.slug)
+    .replace(/\{\{POSTCODE\}\}/g, escHtml(pc))
+    .replace(/\{\{POSTCODE_TITLE\}\}/g, escHtml(pcTitle))
+    .replace(/\{\{POSTCODE_COMMA\}\}/g, escHtml(pcComma))
+    .replace(/\{\{POSTCODE_KW\}\}/g, escHtml(pcKw))
+    .replace(/\{\{POSTCODE_DISPLAY\}\}/g, escHtml(pcDisplay))
     .replace(/\{\{META_DESCRIPTION\}\}/g, escHtml(metaDesc))
     .replace(/\{\{OVERVIEW\}\}/g, generateOverview(s))
     .replace(/\{\{POPULATION\}\}/g, fmt(s.population))
@@ -254,7 +294,7 @@ for (const state of allStates) {
 
   // Suburb list cards
   const suburbListHTML = stateSuburbs.map(s =>
-    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd} km to CBD</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
+    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd} km to CBD</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
   let html = HUB_TPL
@@ -338,7 +378,7 @@ ${allStates.map(state => {
   const stateLower = state.toLowerCase();
   const links = subs.map(s =>
     `        <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">
-          <div class="hub-suburb-name">${escHtml(s.suburb)}</div>
+          <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>
           <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.suburb_type}</span></div>
         </a>`
   ).join('\n');
