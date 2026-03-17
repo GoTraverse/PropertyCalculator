@@ -1,7 +1,20 @@
 {
-  "syncedAt": "2026-03-17T12:36:32.380Z",
-  "count": 14,
+  "syncedAt": "2026-03-17T12:43:44.400Z",
+  "count": 15,
   "errors": [
+    {
+      "at": 1773751423135,
+      "message": "Failed to fetch",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "TypeError: Failed to fetch\n    at window.fetch (/home/crawler/node-crawler/hook_script.js:267:38)\n    at Q (https://equitysight.app/.netlify/scripts/rum:1:5196)",
+      "url": "https://equitysight.app/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.186 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": ""
+    },
     {
       "at": 1773750991355,
       "message": "Load failed",
