@@ -25,5 +25,8 @@ data/abs-suburbs.json
 # HTML templates (used at build time only)
 templates/
 
+# Dev test pages
+import-test.html
+
 # Node artefacts
 node_modules/
