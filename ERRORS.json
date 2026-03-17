@@ -1,7 +1,46 @@
 {
-  "syncedAt": "2026-03-17T12:18:09.069Z",
-  "count": 6,
+  "syncedAt": "2026-03-17T12:24:10.408Z",
+  "count": 9,
   "errors": [
+    {
+      "at": 1773750249384,
+      "message": "Load failed",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/account.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmj43i1f23e6611f",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "support@equitysight.app"
+    },
+    {
+      "at": 1773750071821,
+      "message": "TypeError: null is not an object (evaluating '_suburbsData.filter')",
+      "source": "https://equitysight.app/admin.js?v=6",
+      "line": 2738,
+      "col": 29,
+      "stack": "searchAdminSuburbs@https://equitysight.app/admin.js:2738:29\noninput@https://equitysight.app/admin.html:870:19",
+      "url": "https://equitysight.app/admin.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmj43i1f23e6611f",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "support@equitysight.app"
+    },
+    {
+      "at": 1773750015450,
+      "message": "Load failed",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/admin.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmj43i1f23e6611f",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "support@equitysight.app"
+    },
     {
       "at": 1773749887825,
       "message": "Load failed",
