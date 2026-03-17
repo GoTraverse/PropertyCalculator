@@ -271,6 +271,104 @@ for (const state of allStates) {
   hubCount++;
 }
 
+// ── Generate suburb directory index ──
+
+const dirSections = allStates.map(state => {
+  const subs = stateGroups[state];
+  const stateName = stateNames[state];
+  const stateLower = state.toLowerCase();
+  const links = subs.map(s =>
+    `        <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">\n          <div class="hub-suburb-name">${escHtml(s.suburb)}</div>\n          <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.suburb_type}</span></div>\n        </a>`
+  ).join('\n');
+  return `    <section class="suburb-section">\n      <h2><a href="/invest/${stateLower}/">${escHtml(stateName)} (${state})</a> — ${subs.length} suburbs</h2>\n      <div class="hub-suburb-list">\n${links}\n      </div>\n    </section>`;
+}).join('\n\n');
+
+const dirIndexHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>All Australian Suburb Insights — ${suburbs.length} Suburbs | EquitySight</title>
+<meta name="description" content="Browse property investment insights for ${suburbs.length} Australian suburbs across all states and territories. Population data, amenity scores, and investment context.">
+<link rel="canonical" href="https://equitysight.app/suburb/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<link rel="stylesheet" href="/tools.css">
+<link rel="stylesheet" href="/suburb-insights.css">
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="/index.html" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="/login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="/auth-nav.js"></script>
+<script src="/error-capture.js"></script>
+
+<section class="tool-hero">
+  <nav class="suburb-breadcrumb">
+    <a href="/index.html">Home</a> <span>›</span>
+    <span>All Suburbs</span>
+  </nav>
+  <div class="tool-eyebrow">Suburb Insights · Australia</div>
+  <h1>Australian Suburb Investment Insights</h1>
+  <p>${suburbs.length} suburbs across ${allStates.length} states and territories — key indicators, amenity data, and investment context.</p>
+</section>
+
+<div class="suburb-main">
+
+  <section class="suburb-section">
+    <h2>Browse by State</h2>
+    <div class="state-nav">
+${allStates.map(st => `      <a href="#${st.toLowerCase()}">${st}</a>`).join('\n')}
+    </div>
+  </section>
+
+${allStates.map(state => {
+  const subs = stateGroups[state];
+  const stateName = stateNames[state];
+  const stateLower = state.toLowerCase();
+  const links = subs.map(s =>
+    `        <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">
+          <div class="hub-suburb-name">${escHtml(s.suburb)}</div>
+          <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.suburb_type}</span></div>
+        </a>`
+  ).join('\n');
+  return `  <section class="suburb-section" id="${stateLower}">
+    <h2><a href="/invest/${stateLower}/" style="color:inherit;text-decoration:none;">${escHtml(stateName)} (${state})</a> <span style="font-family:var(--font-mono);font-size:13px;color:var(--slate);font-weight:400;">${subs.length} suburbs</span></h2>
+    <div class="hub-suburb-list">
+${links}
+    </div>
+  </section>`;
+}).join('\n\n')}
+
+  <section class="suburb-cta">
+    <div class="tool-cta-eye">Full Property Analysis</div>
+    <h3>Analyse any Australian property</h3>
+    <p>30-year projections, scenario comparison, cash flow analysis, and PDF export.</p>
+    <a href="/login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
+  </section>
+
+</div>
+
+<div id="site-footer-root"></div>
+<script src="/footer.js"></script>
+</body>
+</html>`;
+
+const suburbIndexDir = path.join(ROOT, 'suburb');
+fs.mkdirSync(suburbIndexDir, { recursive: true });
+fs.writeFileSync(path.join(suburbIndexDir, 'index.html'), dirIndexHTML);
+console.log(`Generated suburb directory index (${suburbs.length} suburbs, ${allStates.length} states)`);
+
 // ── Generate suburb sitemap ──
 
 const sitemapHeader = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';

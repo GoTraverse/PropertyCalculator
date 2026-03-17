@@ -2,3 +2,7 @@
 suburb/
 invest/
 sitemap-suburbs.xml
+
+# Fetched ABS data cache (regenerate with fetch-abs-data.js / curl)
+data/abs-suburbs.json
+data/abs-batch-*.json
