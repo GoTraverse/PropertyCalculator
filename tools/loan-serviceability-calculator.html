@@ -45,6 +45,7 @@
 </header>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
+<script src="../market-rate.js" defer></script>
 
 <section class="tool-hero">
   <div class="tool-eyebrow">Free Tool · Mortgage Planning</div>
@@ -84,6 +85,12 @@
         <label class="tool-label" for="debt">Existing debt repayments (credit cards, car loans, HECS)</label>
         <input class="tool-input" type="text" id="debt" placeholder="e.g. 1,200" oninput="fmtInput(this)">
       </div>
+    </div>
+
+    <div class="tool-field" style="margin-top:16px;">
+      <label class="tool-label" for="base-rate">Assessment interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
+      <input class="tool-input" type="number" id="base-rate" value="6.50" placeholder="e.g. 6.50" step="0.05" min="1" max="20">
+      <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
     </div>
 
     <button class="tool-btn" onclick="calculate()">Calculate Borrowing Capacity</button>
@@ -163,9 +170,18 @@ function calculate() {
   var monthlyCommitments = expenses + debt;
   var monthlyDisposable = monthlyIncome - monthlyCommitments;
 
+  // Use live assessment rate (displayed to user) + 3% APRA buffer
+  var baseRateInput = parseFloat(document.getElementById('base-rate').value) || 6.50;
+  var assessmentRate = baseRateInput + 3.0; // APRA 3% buffer
+  var monthlyAssessmentRate = assessmentRate / 100 / 12;
+  // Monthly repayment factor for a 30-year P&I loan at the assessment rate
+  var repayFactor = monthlyAssessmentRate > 0
+    ? monthlyAssessmentRate / (1 - Math.pow(1 + monthlyAssessmentRate, -360))
+    : 1 / 360;
+
   var maxMonthlyDebt = gross * 0.45 / 12;
   var maxMortgagePayment = maxMonthlyDebt - debt;
-  var maxLoan = maxMortgagePayment / 0.0054;
+  var maxLoan = repayFactor > 0 ? maxMortgagePayment / repayFactor : 0;
 
   document.getElementById('r-income').textContent = fmt(gross);
   document.getElementById('r-monthly').textContent = fmt(monthlyCommitments);
@@ -185,6 +201,24 @@ function calculate() {
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
   if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ─ Hydrate assessment rate from live RBA data ─ */
+if (typeof MarketRate !== 'undefined') {
+  MarketRate.onReady(function(d) {
+    if (!d) return;
+    var el = document.getElementById('base-rate');
+    if (el && el.value === '6.50') {
+      el.value = d.suggestedRate;
+    }
+    var badge = document.getElementById('rate-live-badge');
+    var hint  = document.getElementById('rate-live-hint');
+    if (badge) badge.style.display = '';
+    if (hint)  hint.textContent = 'RBA cash rate ' + d.cashRate.toFixed(2) + '% + lender margin '
+      + d.lenderMargin.toFixed(2) + '% = ' + d.suggestedRate.toFixed(2) + '% (banks assess at this + 3% APRA buffer)'
+      + (d.rateDate ? ' — ' + d.rateDate : '');
+    if (hint) hint.style.display = '';
+  });
 }
 
 /* ═══ TOOL CONFIG ═══ */

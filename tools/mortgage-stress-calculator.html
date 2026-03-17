@@ -45,6 +45,7 @@
 </header>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
+<script src="../market-rate.js" defer></script>
 
 <section class="tool-hero">
   <div class="tool-eyebrow">Free Tool · Mortgage Affordability</div>
@@ -62,8 +63,9 @@
         <input class="tool-input" type="text" id="loan" value="580,000" placeholder="e.g. 580,000" oninput="fmtInput(this)">
       </div>
       <div class="tool-field">
-        <label class="tool-label" for="rate">Interest rate (% p.a.)</label>
+        <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
         <input class="tool-input" type="number" id="rate" value="6.25" placeholder="e.g. 6.25" step="0.05" min="0.1" max="20">
+        <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
       </div>
     </div>
     <div class="tool-row">
@@ -234,6 +236,24 @@ function calculate() {
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
   if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ─ Hydrate interest rate from live RBA data ─ */
+if (typeof MarketRate !== 'undefined') {
+  MarketRate.onReady(function(d) {
+    if (!d) return;
+    var el = document.getElementById('rate');
+    if (el && el.value === '6.25') { // only replace default, not user-set values
+      el.value = d.suggestedRate;
+    }
+    var badge = document.getElementById('rate-live-badge');
+    var hint  = document.getElementById('rate-live-hint');
+    if (badge) badge.style.display = '';
+    if (hint)  hint.textContent = 'RBA cash rate ' + d.cashRate.toFixed(2) + '% + lender margin '
+      + d.lenderMargin.toFixed(2) + '% = ' + d.suggestedRate.toFixed(2) + '% suggested'
+      + (d.rateDate ? ' (as of ' + d.rateDate + ')' : '');
+    if (hint) hint.style.display = '';
+  });
 }
 
 /* ═══ TOOL CONFIG ═══ */
