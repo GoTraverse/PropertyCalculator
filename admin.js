@@ -634,9 +634,9 @@ async function openUserDetails(email){
           <span style="font-family:var(--font-mono);font-size:11px;color:var(--slate);">${escHtml(profile.color)}</span>
         </div>
       </div>` : ''}
-      ${profile.photo ? `<div>
+      ${safePhotoSrc(profile.photo) ? `<div>
         <div class="config-label">Avatar</div>
-        <img src="${escHtml(profile.photo)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-top:4px;border:2px solid rgba(28,28,30,0.1);">
+        <img src="${safePhotoSrc(profile.photo)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-top:4px;border:2px solid rgba(28,28,30,0.1);">
       </div>` : ''}
     </div>
     <div style="padding:12px 0;border-top:1px solid rgba(28,28,30,0.08);font-size:11px;color:var(--slate);font-family:var(--font-mono);">
@@ -1008,6 +1008,14 @@ async function loadStats(){
 
 function escHtml(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function safePhotoSrc(url){
+  if(!url) return '';
+  var s = String(url);
+  if(s.startsWith('data:image/') && s.includes(';base64,')) return s;
+  if(s.startsWith('https://')) return s;
+  return '';
 }
 
 // ── STAT POPUP ────────────────────────────────────────────────

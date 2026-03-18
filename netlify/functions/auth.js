@@ -411,7 +411,17 @@ exports.handler = async function(event){
     }
     const {profile}=body;
     const existing=await rGet('profile:'+user.userId)||{};
-    const merged={...existing,...profile};
+    // Whitelist profile fields and sanitise values to prevent CSS/HTML injection
+    const sanitised={};
+    if('name'  in profile) sanitised.name  = String(profile.name ||'').trim().slice(0,100);
+    if('email' in profile) sanitised.email = String(profile.email||'').trim().slice(0,200);
+    if('color' in profile){
+      const c = String(profile.color||'');
+      // Only accept hex colours — prevents CSS injection via style="" attributes
+      if(/^#[0-9A-Fa-f]{3,8}$/.test(c)) sanitised.color = c;
+    }
+    if('theme' in profile) sanitised.theme = ['light','dark'].includes(profile.theme) ? profile.theme : 'light';
+    const merged={...existing,...sanitised};
     delete merged.photo; // large photos use setPhoto action
     await rSet('profile:'+user.userId,merged);
     return ok({ok:true});
