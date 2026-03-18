@@ -231,6 +231,11 @@ exports.handler = async function(event){
   if(action==='signup'){
     const {email,password,name,plan,ref}=body;
     if(!email||!password) return fail('Email and password required');
+    // Rate limit signups per IP to prevent email-bombing the transactional email service
+    const clientIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    const signupRateKey='signup:'+clientIp;
+    const signupCount=await rRateInc(signupRateKey,3600); // 1-hour window
+    if(signupCount>10) return fail('Too many signups from this IP — please try again later');
     const siteCfgSu=await rGet('config:site')||{};
     if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
     const pwMin=parseInt(siteCfgSu.minPasswordLength)||8;
@@ -307,8 +312,12 @@ exports.handler = async function(event){
   if(action==='resendVerification'){
     const normalizedEmail=(body.email||'').toLowerCase().trim();
     if(!normalizedEmail) return fail('Email required');
+    // Rate limit: max 3 resend requests per email per hour (prevent email bombing)
+    const rvKey='resendVerif:'+normalizedEmail;
+    const rvCount=await rRateInc(rvKey,3600);
+    if(rvCount>3) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // silent cap
     const user=await rGet('user:'+normalizedEmail);
-    if(!user) return fail('No account found for this email');
+    if(!user) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // don't reveal existence
     if(user.emailVerified) return ok({ok:true,alreadyVerified:true});
     const code=makeEmailCode();
     user.emailVerificationCodeHash=hashEmailCode(code);
