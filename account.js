@@ -1,6 +1,8 @@
 // account.js — Account page logic
 // Extracted from account.html inline script block.
 
+function safePhotoSrc(url){if(!url)return null;if(/^data:image\/(jpeg|png|gif|webp);base64,/.test(url))return url;try{var u=new URL(url);return u.protocol==='https:'?url:null;}catch(e){return null;}}
+
 // ── Custom Dialog ─────────────────────────────────────────────────────────────
 var _acctDialogResolveFn = null;
 function _acctDialogResolve(val){
@@ -69,8 +71,8 @@ function renderAvatar(){
   const el = document.getElementById('acct-avatar');
   const removeBtn = document.getElementById('avatar-remove');
   if(!el) return;
-  if(profileData.photo){
-    el.innerHTML = '<img src="'+profileData.photo+'">';
+  if(safePhotoSrc(profileData.photo)){
+    el.innerHTML = '<img src="'+safePhotoSrc(profileData.photo)+'">';
     el.style.background = 'transparent';
     if(removeBtn) removeBtn.style.display='inline-block';
   } else {
