@@ -102,12 +102,14 @@ window.toggleTheme = function(){
         '<h3>Sign out?</h3>' +
         '<p>You\'ll need to sign back in to access your saved scenarios.</p>' +
         '<div class="anav-signout-actions">' +
-          '<button class="anav-signout-cancel" onclick="window.closeSignOutModal()">Cancel</button>' +
-          '<button class="anav-signout-confirm" onclick="window.confirmSignOut()">Sign out</button>' +
+          '<button class="anav-signout-cancel" id="anav-signout-cancel-btn">Cancel</button>' +
+          '<button class="anav-signout-confirm" id="anav-signout-confirm-btn">Sign out</button>' +
         '</div>' +
       '</div>';
     el.addEventListener('click', function(e) { if (e.target === el) window.closeSignOutModal(); });
     document.body.appendChild(el);
+    document.getElementById('anav-signout-cancel-btn').addEventListener('click', window.closeSignOutModal);
+    document.getElementById('anav-signout-confirm-btn').addEventListener('click', window.confirmSignOut);
   }
 
   window.closeSignOutModal = function() {
@@ -140,7 +142,7 @@ window.toggleTheme = function(){
             '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">SUPPORT</div>' +
             '<div style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:700;color:#F5F0E8;">Send us a message</div>' +
           '</div>' +
-          '<button onclick="window.closeHelpModal()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>' +
+          '<button id="anav-cf-close-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>' +
         '</div>' +
         '<div style="padding:22px;">' +
           '<div id="anav-cf-name-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">' +
@@ -164,19 +166,23 @@ window.toggleTheme = function(){
           '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to our <a href="privacy.html" style="color:#C9A84C;">Privacy Policy</a>. We\'ll only use your email to respond.</div>' +
           '<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">' +
             '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:\'DM Mono\',monospace;"></div>' +
-            '<button onclick="window.closeHelpModal()" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
-            '<button id="anav-cf-submit" onclick="window.submitHelpForm()" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">Send Message →</button>' +
+            '<button id="anav-cf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
+            '<button id="anav-cf-submit" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">Send Message →</button>' +
           '</div>' +
         '</div>' +
         '<div id="anav-cf-success" style="display:none;padding:40px 22px;text-align:center;">' +
           '<div style="font-size:36px;margin-bottom:12px;">✅</div>' +
           '<div style="font-size:20px;font-weight:700;color:#1C1C1E;margin-bottom:8px;">Message sent!</div>' +
           '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">We\'ll get back to you within 24 hours.</div>' +
-          '<button onclick="window.closeHelpModal()" style="background:#1C1C1E;color:#C9A84C;border:none;padding:11px 24px;border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;font-weight:600;">Close</button>' +
+          '<button id="anav-cf-success-close-btn" style="background:#1C1C1E;color:#C9A84C;border:none;padding:11px 24px;border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;font-weight:600;">Close</button>' +
         '</div>' +
       '</div>';
     el.addEventListener('click', function(e){ if(e.target===el) window.closeHelpModal(); });
     document.body.appendChild(el);
+    document.getElementById('anav-cf-close-btn').addEventListener('click', window.closeHelpModal);
+    document.getElementById('anav-cf-cancel-btn').addEventListener('click', window.closeHelpModal);
+    document.getElementById('anav-cf-submit').addEventListener('click', window.submitHelpForm);
+    document.getElementById('anav-cf-success-close-btn').addEventListener('click', window.closeHelpModal);
   }
 
   window.openHelpModal = function() {
@@ -329,10 +335,9 @@ window.toggleTheme = function(){
 
       actions.innerHTML =
         '<div style="display:flex;align-items:center;gap:10px;">' +
-          '<button id="anav-help-btn" onclick="window.openHelpModal()" title="Send us a message">?</button>' +
+          '<button id="anav-help-btn" title="Send us a message">?</button>' +
         '<div style="position:relative;" id="site-profile-wrap">' +
           '<button id="site-profile-btn"' +
-          ' onclick="var m=document.getElementById(\'site-profile-menu\'),r=this.getBoundingClientRect();m.style.top=(r.bottom+6)+\'px\';m.style.right=(window.innerWidth-r.right)+\'px\';m.classList.toggle(\'open\')"' +
           ' style="width:42px;height:42px;border-radius:50%;background:' + (photo ? 'transparent' : color) + ';' +
           'border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;' +
           'justify-content:center;font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;' +
@@ -352,13 +357,26 @@ window.toggleTheme = function(){
               '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">Account Settings</a>' +
               (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">Admin Dashboard</a>' : '') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
-              '<button onclick="toggleTheme()" data-theme-toggle class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
+              '<button data-theme-toggle id="anav-theme-btn" class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
-              '<button onclick="siteSignOut()" class="anav-item anav-item-danger">→ Sign Out</button>' +
+              '<button id="anav-signout-btn" class="anav-item anav-item-danger">→ Sign Out</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
         '</div>';
+
+      document.getElementById('anav-help-btn').addEventListener('click', window.openHelpModal);
+      document.getElementById('site-profile-btn').addEventListener('click', function() {
+        var m = document.getElementById('site-profile-menu');
+        var r = this.getBoundingClientRect();
+        m.style.top = (r.bottom + 6) + 'px';
+        m.style.right = (window.innerWidth - r.right) + 'px';
+        m.classList.toggle('open');
+      });
+      var themeBtn = document.getElementById('anav-theme-btn');
+      if (themeBtn) themeBtn.addEventListener('click', window.toggleTheme);
+      var signOutBtn = document.getElementById('anav-signout-btn');
+      if (signOutBtn) signOutBtn.addEventListener('click', window.siteSignOut);
 
       document.addEventListener('click', function(e) {
         var wrap = document.getElementById('site-profile-wrap');
@@ -370,8 +388,8 @@ window.toggleTheme = function(){
 
     } else {
       actions.innerHTML =
-        '<button class="btn-ghost" onclick="location.href=\'login.html\'">Sign in</button>' +
-        '<button class="btn-gold" onclick="location.href=\'login.html?tab=signup\'">Get started free</button>';
+        '<a href="login.html" class="btn-ghost">Sign in</a>' +
+        '<a href="login.html?tab=signup" class="btn-gold">Get started free</a>';
     }
   }
 

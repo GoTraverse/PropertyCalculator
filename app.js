@@ -3661,7 +3661,7 @@
     const name  = (_currentUser && _currentUser.name)  || _profileData.name  || '';
     const email = (_currentUser && _currentUser.email) || _profileData.email || '';
     const color = _profileData.color || '#C9A84C';
-    const photo = _profileData.photo || '';
+    const photo = safePhotoSrc(_profileData.photo || '');
     if(photo){
       btn.style.background = 'transparent';
       btn.style.padding = '0';
