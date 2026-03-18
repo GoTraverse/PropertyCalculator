@@ -281,6 +281,10 @@ window.toggleTheme = function(){
     if(success)success.style.display='';
   };
 
+  function _esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   function safePhotoSrc(url) {
     if (!url) return null;
     if (/^data:image\/(jpeg|png|gif|webp);base64,/.test(url)) return url;
@@ -310,11 +314,13 @@ window.toggleTheme = function(){
     var profile = session ? getProfile(session.id || session.userId) : null;
 
     if (session && (session.id || session.email)) {
-      var name     = session.name || session.email || 'Account';
-      var email    = session.email || '';
-      var color    = (profile && profile.color) || '#C9A84C';
+      var rawName  = session.name || session.email || 'Account';
+      var name     = _esc(rawName);
+      var email    = _esc(session.email || '');
+      var rawColor = (profile && profile.color) || '';
+      var color    = /^#[0-9A-Fa-f]{3,8}$/.test(rawColor) ? rawColor : '#C9A84C';
       var photo    = safePhotoSrc(profile && profile.photo);
-      var initials = getInitials(name);
+      var initials = getInitials(rawName);
       var page     = window.location.pathname.split('/').pop() || 'index.html';
 
       var avatarHTML = photo

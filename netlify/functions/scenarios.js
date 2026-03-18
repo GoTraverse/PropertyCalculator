@@ -167,7 +167,9 @@ exports.handler = async function(event){
     if(!action || action==='save'){
       const {id, fullAddr, state, hasPhoto, status, thumb} = body;
       if(!id || !fullAddr || !state) return fail('id, fullAddr and state are required');
-      await rSet(stateKey(uid,id), typeof state==='string'?state:JSON.stringify(state));
+      const stateStr = typeof state==='string' ? state : JSON.stringify(state);
+      if(stateStr.length > 2_000_000) return fail('Scenario state too large');
+      await rSet(stateKey(uid,id), stateStr);
       const index = await readIndex(uid);
       const existing = index.findIndex(s=>s.id===id);
       const entry = {id, fullAddr, hasPhoto:!!hasPhoto, status:status||'browsing', savedAt:Date.now(), thumb:thumb||''};
@@ -180,7 +182,10 @@ exports.handler = async function(event){
       const {id, photo} = body;
       if(!id) return fail('id required');
       if(photo){
-        await rSet(photoKey(uid,id), photo);
+        const ps = String(photo);
+        if(!/^data:image\/(jpeg|png|webp|gif);base64,/.test(ps)) return fail('Invalid photo format');
+        if(ps.length > 1100000) return fail('Photo too large — maximum ~800 KB');
+        await rSet(photoKey(uid,id), ps);
         const index=await readIndex(uid);
         const idx=index.findIndex(s=>s.id===id);
         if(idx>=0){index[idx].hasPhoto=true; await writeIndex(uid,index);}
@@ -209,6 +214,8 @@ exports.handler = async function(event){
 
     if(action==='updateStatus'){
       const {id, status} = body;
+      const VALID_STATUSES = ['browsing','auction','for-sale','offered','under-offer','unconditional','sold'];
+      if(!VALID_STATUSES.includes(status)) return fail('Invalid status value');
       const index = await readIndex(uid);
       const idx = index.findIndex(s=>s.id===id);
       if(idx>=0){index[idx].status=status; await writeIndex(uid,index);}
