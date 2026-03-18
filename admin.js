@@ -35,15 +35,19 @@ function getSession(){
 async function callAuth(action, payload){
   const sess = getSession();
   const token = sess && sess.token;
-  const r = await fetch('/.netlify/functions/auth', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + (token || '')
-    },
-    body: JSON.stringify(Object.assign({action}, payload || {}))
-  });
-  return r.json();
+  try {
+    const r = await fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (token || '')
+      },
+      body: JSON.stringify(Object.assign({action}, payload || {}))
+    });
+    return r.json();
+  } catch(e) {
+    return { ok: false, error: 'Network error — check your connection and try again.' };
+  }
 }
 
 // ── Custom Dialog (replaces browser confirm/alert/prompt) ─────────────────
