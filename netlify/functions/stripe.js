@@ -187,9 +187,27 @@ async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId, 
   if (discountInfo)         userData.stripeDiscountInfo  = discountInfo;
   else if (discountInfo === null) delete userData.stripeDiscountInfo; // explicitly cleared
   await rSet(key, userData);
+  // Write cid: reverse index so downgradePlan can find user without KEYS scan
+  if (stripeCustomerId) await rSet('cid:' + stripeCustomerId, email.toLowerCase().trim());
   await logEvent(userData.id, 'plan_upgraded', { plan, stripeCustomerId, stripeSubscriptionId });
   console.log('[stripe] Upgraded', email, '→', plan, discountInfo ? '(discounted)' : '');
   return true;
+}
+
+// ── Lookup email by Stripe customerId (via cid: index, falls back to KEYS scan) ──
+async function emailByCustomerId(stripeCustomerId) {
+  if (!stripeCustomerId) return null;
+  const email = await rGet('cid:' + stripeCustomerId);
+  if (email) return email;
+  // Fallback: KEYS scan for existing users who predate the cid: index
+  const userKeys = await redisCmd('KEYS', 'user:*');
+  if (!userKeys || !userKeys.length) return null;
+  const allUsers = await Promise.all(userKeys.map(k => rGet(k)));
+  const found = allUsers.find(u => u && u.stripeCustomerId === stripeCustomerId);
+  if (!found) return null;
+  // Backfill the index so next lookup is fast
+  await rSet('cid:' + stripeCustomerId, found.email.toLowerCase().trim());
+  return found.email.toLowerCase().trim();
 }
 
 // ── Ensure the referral coupon exists in Stripe ───────────────────────────────
@@ -220,11 +238,10 @@ async function processReferralReward(newUserEmail) {
   userData.referralRewardClaimed = true;
   await rSet(userKey, userData);
 
-  // Find referrer
-  const userKeys = await redisCmd('KEYS', 'user:*');
-  if (!userKeys || !userKeys.length) return;
-  const allUsers = await Promise.all(userKeys.map(k => rGet(k)));
-  const referrer = allUsers.find(u => u && u.id === userData.referredBy);
+  // Find referrer via uid: reverse index (avoids KEYS scan)
+  const referrerEmail = await rGet('uid:' + userData.referredBy);
+  if (!referrerEmail) return;
+  const referrer = await rGet('user:' + referrerEmail);
   if (!referrer) return;
 
   referrer.referralCount = (referrer.referralCount || 0) + 1;
@@ -245,20 +262,19 @@ async function processReferralReward(newUserEmail) {
 
 // ── Downgrade user to free by customer ID ────────────────────────────────────
 async function downgradePlan(stripeCustomerId) {
-  const userKeys = await redisCmd('KEYS', 'user:*');
-  if (!userKeys || !userKeys.length) return false;
-  const users = await Promise.all(userKeys.map(k => rGet(k)));
-  const userData = users.find(u => u && u.stripeCustomerId === stripeCustomerId);
-  if (!userData) {
+  const email = await emailByCustomerId(stripeCustomerId);
+  if (!email) {
     console.warn('[stripe] downgradePlan: no user with customerId:', stripeCustomerId);
     return false;
   }
+  const userData = await rGet('user:' + email);
+  if (!userData) return false;
   userData.plan = 'free';
   delete userData.stripeSubscriptionId;
   delete userData.stripeDiscountInfo;
-  await rSet('user:' + userData.email.toLowerCase().trim(), userData);
+  await rSet('user:' + email, userData);
   await logEvent(userData.id, 'plan_downgraded', { plan: 'free', stripeCustomerId });
-  console.log('[stripe] Downgraded', userData.email, '→ free');
+  console.log('[stripe] Downgraded', email, '→ free');
   return true;
 }
 
@@ -316,15 +332,13 @@ exports.handler = async function (event) {
           const meta = sub.metadata || {};
           const plan = meta.plan;
           if (plan && sub.customer) {
-            // Find user by customerId and update plan + discount info
-            const userKeys = await redisCmd('KEYS', 'user:*');
-            if (userKeys && userKeys.length) {
-              const users = await Promise.all(userKeys.map(k => rGet(k)));
-              const userData = users.find(u => u && u.stripeCustomerId === sub.customer);
+            // Find user by customerId via cid: index (avoids KEYS scan)
+            const email = await emailByCustomerId(sub.customer);
+            if (email) {
+              const userData = await rGet('user:' + email);
               if (userData) {
                 const baseAmount   = sub.items && sub.items.data && sub.items.data[0] && sub.items.data[0].price ? sub.items.data[0].price.unit_amount : null;
                 const currency     = sub.currency || null;
-                // discountInfo=null means clear existing discount; extractDiscountInfo returns null if no discount
                 const discountInfo = extractDiscountInfo(sub.discount, baseAmount, currency);
                 if (userData.plan !== plan || JSON.stringify(userData.stripeDiscountInfo) !== JSON.stringify(discountInfo)) {
                   await upgradePlan(userData.email, plan, sub.customer, sub.id, discountInfo);
