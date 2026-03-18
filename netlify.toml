@@ -134,6 +134,46 @@
   status = 404
   force = true
 
+# ── Block common bot/exploit probes ──────────────────────────────────────────
+# These are automated attacks scanning for WordPress/PHP installations.
+# Catch-all already returns 404, but explicit rules skip disk lookup entirely.
+
+[[redirects]]
+  from = "/wp-admin/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-login.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/xmlrpc.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wordpress/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-includes/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/index.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
 # ── Calculator clean-URL redirects (root-level → /tools/) ────────────────────
 # Handles both /slug and /slug.html variants that users or old links may use.
 
