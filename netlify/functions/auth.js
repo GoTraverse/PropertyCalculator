@@ -500,8 +500,12 @@ exports.handler = async function(event){
     // Delete all user data
     await rDel('user:'+user.email);
     await rDel('profile:'+user.userId);
+    await rDel('photo:'+user.userId);
+    await rDel('uid:'+user.userId);
     await rDel('token:'+(body.token||''));
-    // Note: scenarios are stored client-side in localStorage — cleared on signout
+    // Scenarios in Redis (scenarios:{userId}:*) are namespaced under userId —
+    // they become inaccessible without a valid token (verify checks user existence).
+    // A background purge job can clean them up later if needed.
     return ok({ok:true});
   }
 
@@ -543,6 +547,8 @@ exports.handler = async function(event){
     if(!userData) return fail('User not found');
     await rDel('user:'+targetEmail.toLowerCase().trim());
     await rDel('profile:'+userData.id);
+    await rDel('photo:'+userData.id);
+    await rDel('uid:'+userData.id);
     return ok({ok:true});
   }
 

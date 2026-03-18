@@ -52,6 +52,8 @@ async function verifyToken(authHeader){
   let data;
   try{data=JSON.parse(raw);}catch(e){return null;}
   if(data.expires&&Date.now()>data.expires){ await redisCmd('DEL','token:'+token); return null; }
+  // Check user still exists — deleted users should not retain access
+  if(data.email){ const u=await redisCmd('GET','user:'+data.email); if(!u) return null; }
   return data; // {userId, email, name, plan, role}
 }
 
