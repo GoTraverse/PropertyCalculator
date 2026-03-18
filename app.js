@@ -59,6 +59,7 @@
   const CIRC = 263.89; // 2*pi*42
 
   // ── HELPERS ──
+  function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   function fmt(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(2)+'M';if(a>=1000)return s+'$'+Math.round(a).toLocaleString();return s+'$'+Math.round(a);}
   function fmtK(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';if(a>=1000)return s+'$'+Math.round(a/1000)+'k';return s+'$'+Math.round(a);}
   function pctS(n){return n.toFixed(1)+'%';}
@@ -953,7 +954,7 @@
     if(!box || !results.length){ hideAddrSuggestions(); return; }
     box.innerHTML = results.map(r =>
       `<div class="addr-suggestion" onmousedown="selectAddress(${JSON.stringify(r).replace(/"/g,'&quot;')})">
-        <strong>${r.address}</strong><br><span>${r.suburb}${r.postcode ? ', '+r.postcode : ''} ${r.state}</span>
+        <strong>${escHtml(r.address)}</strong><br><span>${escHtml(r.suburb)}${r.postcode ? ', '+escHtml(r.postcode) : ''} ${escHtml(r.state)}</span>
       </div>`
     ).join('');
     box.style.display = 'block';
@@ -1697,15 +1698,17 @@
     countEl.textContent = '('+items.length+')';
     section.style.display = 'block';
     const rows = items.map(s => {
-      const thumbHtml = s.thumb ? `<img src="${s.thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;">` : '<span style="font-size:24px;">🏠</span>';
-      return `<div class="lib-row" onclick="promptLoadSharedScenario('${s.ownerId}','${s.scenarioId}','${(s.fullAddr||'').replace(/'/g,"\\'")}')">
+      const thumbSrc = s.thumb && /^(https?:\/\/|data:image\/)/.test(s.thumb) ? escHtml(s.thumb) : '';
+      const thumbHtml = thumbSrc ? `<img src="${thumbSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;">` : '<span style="font-size:24px;">🏠</span>';
+      const oid = escHtml(s.ownerId); const sid = escHtml(s.scenarioId);
+      return `<div class="lib-row" onclick="promptLoadSharedScenario('${oid}','${sid}','${escHtml((s.fullAddr||'').replace(/'/g,"\\'"))}')">
         <div class="lib-thumb">${thumbHtml}</div>
         <div class="lib-info">
-          <div class="lib-addr">${s.fullAddr||'Shared property'}</div>
-          <div class="lib-meta" style="font-size:11px;color:var(--slate);">Shared by ${s.ownerName||s.ownerEmail||'someone'}</div>
+          <div class="lib-addr">${escHtml(s.fullAddr||'Shared property')}</div>
+          <div class="lib-meta" style="font-size:11px;color:var(--slate);">Shared by ${escHtml(s.ownerName||s.ownerEmail||'someone')}</div>
         </div>
         <div class="lib-shared-badge">Shared</div>
-        <button class="lib-del" onclick="event.stopPropagation();dismissSharedScenario('${s.ownerId}','${s.scenarioId}')" title="Remove from my list">✕</button>
+        <button class="lib-del" onclick="event.stopPropagation();dismissSharedScenario('${oid}','${sid}')" title="Remove from my list">✕</button>
       </div>`;
     });
     grid.innerHTML = rows.join('');
@@ -3037,9 +3040,9 @@
       if(empty) empty.style.display='none';
       list.innerHTML = [...keyDates].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(d=>`
         <div class="kd-row">
-          <input type="date" value="${d.date||''}" oninput="updateKeyDate('${d.id}','date',this.value)">
-          <input type="text" value="${(d.label||'').replace(/"/g,'&quot;')}" placeholder="Event (e.g. Inspection, Auction)" oninput="updateKeyDate('${d.id}','label',this.value)">
-          <button class="kd-del" onclick="removeKeyDate('${d.id}')">✕</button>
+          <input type="date" value="${escHtml(d.date||'')}" oninput="updateKeyDate('${escHtml(d.id)}','date',this.value)">
+          <input type="text" value="${escHtml(d.label||'')}" placeholder="Event (e.g. Inspection, Auction)" oninput="updateKeyDate('${escHtml(d.id)}','label',this.value)">
+          <button class="kd-del" onclick="removeKeyDate('${escHtml(d.id)}')">✕</button>
         </div>`).join('');
     }
     syncKeyDatesToTimeline();
@@ -3059,8 +3062,8 @@
       const fmt = d.date ? formatDate(d.date) : 'No date';
       return `<div class="tli">
         <div class="tld" style="color:${colors[i%colors.length]}"></div>
-        <div class="tlp" style="color:${colors[i%colors.length]}">${fmt}${isPast?' · past':isToday?' · TODAY':''}</div>
-        <div class="tlt">${d.label||'Unnamed Event'}</div>
+        <div class="tlp" style="color:${colors[i%colors.length]}">${escHtml(fmt)}${isPast?' · past':isToday?' · TODAY':''}</div>
+        <div class="tlt">${escHtml(d.label||'Unnamed Event')}</div>
       </div>`;
     }).join('');
   }
