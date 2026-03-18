@@ -1212,7 +1212,7 @@ async function loadAllScenarios(){
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;text-transform:capitalize;">${s.status||'browsing'}</div>
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;">${s.savedAt ? new Date(s.savedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
           <button class="act-btn" style="font-size:9px;padding:3px 7px;" onclick="event.stopPropagation();openScenarioDetail('${escHtml(s.id)}')">View</button>
-          <button class="act-btn danger" onclick="event.stopPropagation();adminDeleteScenario('${escHtml(user.id)}','${escHtml(s.id)}','${escHtml(s.fullAddr||'this scenario')}')">Delete</button>
+          <button class="act-btn danger" onclick="event.stopPropagation();adminDeleteScenario('${escHtml(user.id)}','${escHtml(s.id)}','${escHtml((s.fullAddr||'this scenario').replace(/'/g,"\\'"))}')">Delete</button>
         </div>`).join('')}
     </div>`).join('');
   st.textContent = '✓ Loaded ' + totalScenarios + ' scenario' + (totalScenarios!==1?'s':'') + ' across ' + valid.length + ' user' + (valid.length!==1?'s':'');
@@ -1863,7 +1863,7 @@ async function loadGrowthData(){
       <td style="font-family:var(--font-mono);color:var(--gold);">${parseFloat(e.rate).toFixed(1)}%</td>
       <td style="font-size:11px;color:var(--slate);">${escHtml(e.note||'')}</td>
       <td style="font-size:11px;color:${expiry<=7?'#c45a5a':'var(--slate)'};">${expiry}d left</td>
-      <td><button class="act-btn danger" onclick="deleteGrowthEntry('${escHtml(e.suburb)}','${escHtml(e.state)}')">Delete</button></td>
+      <td><button class="act-btn danger" onclick="deleteGrowthEntry('${escHtml(e.suburb).replace(/'/g,"\\'")}','${escHtml(e.state)}')">Delete</button></td>
     </tr>`;
   }).join('');
   wrap.innerHTML = `<table class="user-table" style="min-width:600px;">

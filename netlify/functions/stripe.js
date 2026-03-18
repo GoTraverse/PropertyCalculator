@@ -382,7 +382,7 @@ exports.handler = async function (event) {
 
   // ── createCheckout: start Stripe Checkout for plan upgrade ───────────────
   if (body.action === 'createCheckout') {
-    const { priceId, successUrl, cancelUrl } = body;
+    const { priceId } = body;
     if (!priceId) return fail('priceId required');
 
     // Fetch site config for URLs and to derive plan from priceId server-side
@@ -414,8 +414,8 @@ exports.handler = async function (event) {
         'line_items[0][price]': priceId,
         'line_items[0][quantity]': '1',
         'customer_email': user.email,
-        'success_url': successUrl || siteUrl + '/account.html?upgraded=1&session_id={CHECKOUT_SESSION_ID}',
-        'cancel_url': cancelUrl || siteUrl + '/pricing.html?cancelled=1',
+        'success_url': siteUrl + '/account.html?upgraded=1&session_id={CHECKOUT_SESSION_ID}',
+        'cancel_url': siteUrl + '/pricing.html?cancelled=1',
         'metadata[plan]': resolvedPlan,
         'metadata[userId]': user.userId,
         'allow_promotion_codes': 'true',
