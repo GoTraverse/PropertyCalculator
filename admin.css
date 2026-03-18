@@ -477,3 +477,4 @@
     .admin-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .admin-tab { white-space: nowrap; flex-shrink: 0; }
   }
+.admin-scenario-row:hover { background: rgba(28,28,30,0.04); }

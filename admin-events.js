@@ -266,3 +266,147 @@ if(emailPreviewOverlay) emailPreviewOverlay.addEventListener('click', function(e
     closeBtn.addEventListener('click', closeEmailPreview);
   }
 })();
+
+// ── Users table cog button delegation (#users-tbody) ─────────────────────────
+var usersTbody = document.getElementById('users-tbody');
+if(usersTbody){
+  usersTbody.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="toggle-cog"]');
+    if(btn) toggleUserCog(e, btn);
+  });
+}
+
+// ── All-scenarios view delegation (#scenarios-list-wrap) ─────────────────────
+var scenariosListWrap = document.getElementById('scenarios-list-wrap');
+if(scenariosListWrap){
+  scenariosListWrap.addEventListener('click', function(e){
+    var viewBtn = e.target.closest('[data-action="view-scenario"]');
+    if(viewBtn){ e.stopPropagation(); openScenarioDetail(viewBtn.dataset.scenarioid); return; }
+    var delBtn = e.target.closest('[data-action="del-scenario-admin"]');
+    if(delBtn){ e.stopPropagation(); adminDeleteScenario(delBtn.dataset.userid, delBtn.dataset.scenarioid, delBtn.dataset.addr); return; }
+    var row = e.target.closest('.admin-scenario-row[data-scenarioid]');
+    if(row) openScenarioDetail(row.dataset.scenarioid);
+  });
+}
+
+// ── Growth table delegation (delegated on the wrap container) ─────────────────
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('[data-action="del-growth"]');
+  if(btn) deleteGrowthEntry(btn.dataset.suburb, btn.dataset.state);
+});
+
+// ── Suburb state filter delegation (#suburbs-state-breakdown) ────────────────
+var suburbsBreakdown = document.getElementById('suburbs-state-breakdown');
+if(suburbsBreakdown){
+  suburbsBreakdown.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="filter-state"]');
+    if(btn) filterSuburbsByState(btn.dataset.state);
+  });
+}
+
+// ── Schemes editor delegation (#schemes-list) ────────────────────────────────
+var schemesList = document.getElementById('schemes-list');
+if(schemesList){
+  // Number fields that need parseInt
+  var _intFields = ['maxPropertyPrice','fixedGrantAmount'];
+  // Number fields that need parseFloat
+  var _floatFields = ['govtMinPct','govtMaxPct','govtDefaultPct'];
+
+  schemesList.addEventListener('input', function(e){
+    var panel = e.target.closest('[data-sidx]');
+    if(!panel) return;
+    var i = parseInt(panel.dataset.sidx);
+    if(!_schemes[i]) return;
+    var field = e.target.dataset.field;
+    if(!field) return;
+    // Suburb bonus row
+    var bonusRow = e.target.closest('.suburb-bonus-row[data-bidx]');
+    if(bonusRow){
+      var bi = parseInt(bonusRow.dataset.bidx);
+      if(!_schemes[i].suburbBonuses || !_schemes[i].suburbBonuses[bi]) return;
+      if(field === 'bonusAmount') _schemes[i].suburbBonuses[bi].bonusAmount = parseInt(e.target.value)||0;
+      else _schemes[i].suburbBonuses[bi][field] = e.target.value;
+      return;
+    }
+    // Income threshold row
+    var incomeRow = e.target.closest('.income-thresh-row[data-tidx]');
+    if(incomeRow){
+      var ti = parseInt(incomeRow.dataset.tidx);
+      if(!_schemes[i].incomeThresholds || !_schemes[i].incomeThresholds[ti]) return;
+      if(field === 'maxIncome') _schemes[i].incomeThresholds[ti].maxIncome = parseInt(e.target.value)||0;
+      else _schemes[i].incomeThresholds[ti][field] = e.target.value;
+      return;
+    }
+    // Top-level scheme field
+    if(_intFields.indexOf(field) >= 0) _schemes[i][field] = parseInt(e.target.value)||0;
+    else if(_floatFields.indexOf(field) >= 0) _schemes[i][field] = parseFloat(e.target.value)||0;
+    else _schemes[i][field] = e.target.value;
+    if(field === 'name') updateSchemeHeaderName(i, e.target.value);
+  });
+
+  schemesList.addEventListener('change', function(e){
+    var panel = e.target.closest('[data-sidx]');
+    if(!panel) return;
+    var i = parseInt(panel.dataset.sidx);
+    if(!_schemes[i]) return;
+    var field = e.target.dataset.field;
+    if(!field) return;
+    // Suburb bonus row
+    var bonusRow = e.target.closest('.suburb-bonus-row[data-bidx]');
+    if(bonusRow){
+      var bi = parseInt(bonusRow.dataset.bidx);
+      if(!_schemes[i].suburbBonuses || !_schemes[i].suburbBonuses[bi]) return;
+      if(field === 'bonusAmount') _schemes[i].suburbBonuses[bi].bonusAmount = parseInt(e.target.value)||0;
+      else _schemes[i].suburbBonuses[bi][field] = e.target.value;
+      return;
+    }
+    // Income threshold row
+    var incomeRow = e.target.closest('.income-thresh-row[data-tidx]');
+    if(incomeRow){
+      var ti = parseInt(incomeRow.dataset.tidx);
+      if(!_schemes[i].incomeThresholds || !_schemes[i].incomeThresholds[ti]) return;
+      if(field === 'maxIncome') _schemes[i].incomeThresholds[ti].maxIncome = parseInt(e.target.value)||0;
+      else _schemes[i].incomeThresholds[ti][field] = e.target.value;
+      return;
+    }
+    // Top-level scheme field
+    if(field === 'active') _schemes[i].active = e.target.checked;
+    else if(field === 'removesLMI') _schemes[i].removesLMI = e.target.checked;
+    else if(_intFields.indexOf(field) >= 0) _schemes[i][field] = parseInt(e.target.value)||0;
+    else if(_floatFields.indexOf(field) >= 0) _schemes[i][field] = parseFloat(e.target.value)||0;
+    else _schemes[i][field] = e.target.value;
+    if(field === 'type') renderSchemes(); // type change requires re-render
+  });
+
+  schemesList.addEventListener('click', function(e){
+    var panel = e.target.closest('[data-sidx]');
+    var i = panel ? parseInt(panel.dataset.sidx) : -1;
+
+    // Stop propagation on [data-stop-propagation] elements (e.g. the Active label)
+    if(e.target.closest('[data-stop-propagation]') && !e.target.closest('[data-action="toggle-scheme-panel"]')) {
+      // Let the click reach the checkbox but not the panel header toggle
+      if(e.target.tagName !== 'INPUT') e.stopPropagation();
+      return;
+    }
+
+    // Panel header toggle
+    if(e.target.closest('[data-action="toggle-scheme-panel"]') && !e.target.closest('[data-stop-propagation]') && !e.target.closest('[data-action="remove-scheme"]')){
+      if(i >= 0) toggleSchemePanel(i);
+      return;
+    }
+    var action = e.target.closest('[data-action]');
+    if(!action) return;
+    var act = action.dataset.action;
+    if(act === 'remove-scheme'){ e.stopPropagation(); if(i >= 0) removeScheme(i); }
+    else if(act === 'add-income-thresh'){ if(i >= 0) addIncomeThreshold(i); }
+    else if(act === 'add-suburb-bonus'){ if(i >= 0) addSuburbBonus(i); }
+    else if(act === 'del-income-thresh'){
+      var ti = parseInt(action.dataset.tidx);
+      if(i >= 0) removeIncomeThreshold(i, ti);
+    }
+    else if(act === 'del-suburb-bonus'){
+      var bi = parseInt(action.dataset.bidx);
+      if(i >= 0) removeSuburbBonus(i, bi);
+    }
+  });
+}

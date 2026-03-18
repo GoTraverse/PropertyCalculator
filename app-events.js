@@ -278,3 +278,163 @@ var pdfCancelBtn = document.getElementById('pdf-cancel-btn');
 if(pdfCancelBtn) pdfCancelBtn.addEventListener('click', function(){ window.closePDFOptionsModal(); });
 var pdfGenerateBtn = document.getElementById('pdf-generate-btn');
 if(pdfGenerateBtn) pdfGenerateBtn.addEventListener('click', function(){ window.showPDFPreview(); });
+
+// ── Dynamic cost items delegation (cost-items-purchase / cost-items-moveout) ──
+['cost-items-purchase','cost-items-moveout'].forEach(function(listId){
+  var list = document.getElementById(listId);
+  if(!list) return;
+  list.addEventListener('input', function(e){
+    var row = e.target.closest('.dyn-cost-row');
+    if(!row) return;
+    var id = row.dataset.costid;
+    var field = e.target.dataset.field;
+    if(!id || !field) return;
+    if(field === 'name'){
+      updateDynCost(id, 'name', e.target.value);
+    } else if(field === 'amount'){
+      var v = parseFloat(e.target.value);
+      if(v > 500000){ e.target.value = 500000; v = 500000; }
+      updateDynCost(id, 'amount', v || 0);
+      dRecalc();
+    }
+  });
+  list.addEventListener('keydown', function(e){
+    var row = e.target.closest('.dyn-cost-row');
+    if(!row || e.key !== 'Enter') return;
+    e.preventDefault();
+    var field = e.target.dataset.field;
+    if(field === 'name'){
+      var nxt = row.querySelector('input[type=number]');
+      if(nxt){ nxt.focus(); nxt.select(); }
+    } else if(field === 'amount'){
+      addCostItem(row.dataset.category || 'purchase');
+    }
+  });
+  list.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="del-cost"]');
+    if(!btn) return;
+    var row = btn.closest('.dyn-cost-row');
+    if(row) removeCostItem(row.dataset.costid);
+  });
+});
+
+// ── Reno items delegation (#reno-items-list) ─────────────────────────────────
+var renoList = document.getElementById('reno-items-list');
+if(renoList){
+  renoList.addEventListener('change', function(e){
+    var row = e.target.closest('[data-reno]');
+    if(!row || e.target.dataset.field !== 'emoji') return;
+    updateRenoItem(row.dataset.reno, 'emoji', e.target.value);
+    renderRenoItems();
+  });
+  renoList.addEventListener('input', function(e){
+    var row = e.target.closest('[data-reno]');
+    if(!row) return;
+    var id = row.dataset.reno;
+    var field = e.target.dataset.field;
+    if(field === 'name'){
+      updateRenoItem(id, 'name', e.target.value);
+    } else if(field === 'amount'){
+      var v = parseFloat(e.target.value);
+      if(v > 2000000){ e.target.value = 2000000; v = 2000000; }
+      updateRenoItem(id, 'amount', v || 0);
+      dRecalc();
+      updateRenoBar(id, v || 0);
+    } else if(field === 'note'){
+      updateRenoItem(id, 'note', e.target.value);
+      e.target.style.height = 'auto';
+      e.target.style.height = e.target.scrollHeight + 'px';
+    }
+  });
+  renoList.addEventListener('keydown', function(e){
+    var row = e.target.closest('[data-reno]');
+    if(!row || e.key !== 'Enter') return;
+    e.preventDefault();
+    var field = e.target.dataset.field;
+    if(field === 'name'){
+      var amt = row.querySelector('input[type=number]');
+      if(amt){ amt.focus(); amt.select(); }
+    } else if(field === 'amount'){
+      addRenoItem();
+    }
+  });
+  renoList.addEventListener('focusin', function(e){
+    if(e.target.dataset.field === 'name' || e.target.dataset.field === 'amount'){
+      e.target.style.borderColor = 'var(--sage)';
+    }
+  });
+  renoList.addEventListener('focusout', function(e){
+    if(e.target.dataset.field === 'name' || e.target.dataset.field === 'amount'){
+      e.target.style.borderColor = 'rgba(28,28,30,0.1)';
+    }
+  });
+  renoList.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="del-reno"]');
+    if(!btn) return;
+    var row = btn.closest('[data-reno]');
+    if(row) removeRenoItem(row.dataset.reno);
+  });
+}
+
+// ── Address suggestions delegation (#addr-suggestions) ───────────────────────
+var addrSuggestions = document.getElementById('addr-suggestions');
+if(addrSuggestions){
+  addrSuggestions.addEventListener('mousedown', function(e){
+    var item = e.target.closest('[data-idx]');
+    if(!item) return;
+    var idx = parseInt(item.dataset.idx);
+    if(typeof _addrResults !== 'undefined' && _addrResults[idx]) selectAddress(_addrResults[idx]);
+  });
+}
+
+// ── Scenarios library delegation (#scenarios-grid) ───────────────────────────
+var scenariosGrid = document.getElementById('scenarios-grid');
+if(scenariosGrid){
+  scenariosGrid.addEventListener('click', function(e){
+    var shareBtn = e.target.closest('[data-action="share-scenario"]');
+    if(shareBtn){ e.stopPropagation(); openShareModal(shareBtn.dataset.scenarioid, e); return; }
+    var delBtn = e.target.closest('[data-action="del-scenario"]');
+    if(delBtn){ e.stopPropagation(); deleteScenario(delBtn.dataset.scenarioid); return; }
+    var row = e.target.closest('.lib-row[data-scenarioid]');
+    if(row) promptLoadScenario(row.dataset.scenarioid);
+  });
+}
+
+// ── Shared scenarios delegation (#shared-grid) ───────────────────────────────
+var sharedGrid = document.getElementById('shared-grid');
+if(sharedGrid){
+  sharedGrid.addEventListener('click', function(e){
+    var dismissBtn = e.target.closest('[data-action="dismiss-shared"]');
+    if(dismissBtn){ e.stopPropagation(); dismissSharedScenario(dismissBtn.dataset.oid, dismissBtn.dataset.sid); return; }
+    var row = e.target.closest('[data-action="load-shared"]');
+    if(row) promptLoadSharedScenario(row.dataset.oid, row.dataset.sid, row.dataset.addr);
+  });
+}
+
+// ── Key dates delegation (#key-dates-list) ───────────────────────────────────
+var keyDatesList = document.getElementById('key-dates-list');
+if(keyDatesList){
+  keyDatesList.addEventListener('input', function(e){
+    var row = e.target.closest('.kd-row[data-dateid]');
+    if(!row) return;
+    var field = e.target.dataset.field;
+    if(field === 'date' || field === 'label') updateKeyDate(row.dataset.dateid, field, e.target.value);
+  });
+  keyDatesList.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="del-date"]');
+    if(!btn) return;
+    var row = btn.closest('.kd-row[data-dateid]');
+    if(row) removeKeyDate(row.dataset.dateid);
+  });
+}
+
+// ── Comms log delegation (#comms-list) ───────────────────────────────────────
+var commsList = document.getElementById('comms-list');
+if(commsList){
+  commsList.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-action="del-comm"]');
+    if(!btn) return;
+    var entry = btn.closest('.comms-entry[data-commid]');
+    if(entry) deleteCommsEntry(entry.dataset.commid);
+  });
+}

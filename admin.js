@@ -351,7 +351,7 @@ function renderUsers(users){
       <td>${roleHtml}</td>
       <td>
         <div class="user-cog-wrap">
-          <button class="user-cog-btn" data-cog-email="${escHtml(u.email)}" title="Actions" onclick="toggleUserCog(event,this)">⚙</button>
+          <button class="user-cog-btn" data-cog-email="${escHtml(u.email)}" title="Actions" data-action="toggle-cog">⚙</button>
           <div class="user-cog-menu">
             <button class="cog-menu-item" data-action="reset-pw"     data-email="${escHtml(u.email)}">Reset Password</button>
             <button class="cog-menu-item" data-action="set-plan"     data-email="${escHtml(u.email)}" data-plan="${escHtml(plan)}">Change Plan</button>
@@ -529,15 +529,15 @@ async function openUserDetails(email){
   const _udPlan  = u.plan  || 'free';
   const _udId    = u.id    || '';
   const _udRoleBtn = u.role === 'admin'
-    ? `<button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setRole('${escHtml(_udEmail)}','user')">Revoke Admin</button>`
-    : `<button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setRole('${escHtml(_udEmail)}','admin')">Grant Admin</button>`;
+    ? `<button class="btn-admin" data-udaction="revoke-admin" data-email="${escHtml(_udEmail)}">Revoke Admin</button>`
+    : `<button class="btn-admin" data-udaction="grant-admin" data-email="${escHtml(_udEmail)}">Grant Admin</button>`;
 
   const _udActionsHtml = `<div style="padding:14px 0 4px;border-top:1px solid rgba(28,28,30,0.08);display:flex;flex-wrap:wrap;gap:8px;">
-    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>openResetPw('${escHtml(_udEmail)}'))">Reset Password</button>
-    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>setPlan('${escHtml(_udEmail)}','${escHtml(_udPlan)}'))">Change Plan</button>
+    <button class="btn-admin" data-udaction="reset-pw" data-email="${escHtml(_udEmail)}">Reset Password</button>
+    <button class="btn-admin" data-udaction="change-plan" data-email="${escHtml(_udEmail)}" data-plan="${escHtml(_udPlan)}">Change Plan</button>
     ${_udRoleBtn}
-    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>openUserHistory('${escHtml(_udId)}','${escHtml(_udEmail)}'))">View History</button>
-    <button class="btn-admin" style="color:var(--risk-red);border-color:rgba(196,90,90,0.4);" onclick="document.getElementById('user-detail-overlay').classList.remove('open');deleteUser('${escHtml(_udEmail)}')">Delete User</button>
+    <button class="btn-admin" data-udaction="view-history" data-userid="${escHtml(_udId)}" data-email="${escHtml(_udEmail)}">View History</button>
+    <button class="btn-admin" style="color:var(--risk-red);border-color:rgba(196,90,90,0.4);" data-udaction="delete-user" data-email="${escHtml(_udEmail)}">Delete User</button>
   </div>`;
 
   // Pre-compute user errors section (Task 5)
@@ -645,6 +645,24 @@ async function openUserDetails(email){
     ${_udActionsHtml}
     ${_udErrorsHtml}
   `;
+
+  // Wire user detail action buttons (inline handlers removed for CSP compliance)
+  body.addEventListener('click', function _udHandler(e){
+    var btn = e.target.closest('[data-udaction]');
+    if(!btn) return;
+    var action = btn.dataset.udaction;
+    var email  = btn.dataset.email || '';
+    var plan   = btn.dataset.plan  || 'free';
+    var userid = btn.dataset.userid || '';
+    if(action === 'reset-pw')    { _openFromDetail(email, ()=>openResetPw(email)); }
+    else if(action === 'change-plan')   { _openFromDetail(email, ()=>setPlan(email, plan)); }
+    else if(action === 'revoke-admin')  { document.getElementById('user-detail-overlay').classList.remove('open'); setRole(email,'user'); }
+    else if(action === 'grant-admin')   { document.getElementById('user-detail-overlay').classList.remove('open'); setRole(email,'admin'); }
+    else if(action === 'view-history')  { _openFromDetail(email, ()=>openUserHistory(userid, email)); }
+    else if(action === 'delete-user')   { document.getElementById('user-detail-overlay').classList.remove('open'); deleteUser(email); }
+    // Remove this one-shot listener after use (re-added each time panel opens)
+    body.removeEventListener('click', _udHandler);
+  });
 
   // Asynchronously populate geolocation for this IP
   if(ip){
@@ -1202,17 +1220,17 @@ async function loadAllScenarios(){
         <span style="color:var(--charcoal);">${scenarios.length} scenario${scenarios.length!==1?'s':''}</span>
       </div>
       ${scenarios.map(s => `
-        <div onclick="openScenarioDetail('${escHtml(s.id)}')"
-             style="display:flex;align-items:center;gap:12px;padding:9px 8px;border-bottom:1px solid rgba(28,28,30,0.04);font-size:13px;cursor:pointer;border-radius:4px;transition:background 0.12s;"
-             onmouseover="this.style.background='rgba(28,28,30,0.04)'" onmouseout="this.style.background=''">
+        <div data-scenarioid="${escHtml(s.id)}" data-userid="${escHtml(user.id)}" data-addr="${escHtml(s.fullAddr||'this scenario')}"
+             class="admin-scenario-row"
+             style="display:flex;align-items:center;gap:12px;padding:9px 8px;border-bottom:1px solid rgba(28,28,30,0.04);font-size:13px;cursor:pointer;border-radius:4px;transition:background 0.12s;">
           <div style="flex:1;min-width:0;">
             <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.fullAddr||'Unnamed')}</div>
             ${s.type||s.state?.values?.['pd-type'] ? `<div style="font-size:11px;color:var(--slate);margin-top:2px;">${escHtml(s.type||s.state?.values?.['pd-type']||'')}${s.bed?` · ${s.bed}bd`:''}</div>` : ''}
           </div>
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;text-transform:capitalize;">${s.status||'browsing'}</div>
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;">${s.savedAt ? new Date(s.savedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
-          <button class="act-btn" style="font-size:9px;padding:3px 7px;" onclick="event.stopPropagation();openScenarioDetail('${escHtml(s.id)}')">View</button>
-          <button class="act-btn danger" onclick="event.stopPropagation();adminDeleteScenario('${escHtml(user.id)}','${escHtml(s.id)}','${escHtml((s.fullAddr||'this scenario').replace(/'/g,"\\'"))}')">Delete</button>
+          <button class="act-btn" style="font-size:9px;padding:3px 7px;" data-action="view-scenario" data-scenarioid="${escHtml(s.id)}">View</button>
+          <button class="act-btn danger" data-action="del-scenario-admin" data-userid="${escHtml(user.id)}" data-scenarioid="${escHtml(s.id)}" data-addr="${escHtml(s.fullAddr||'this scenario')}">Delete</button>
         </div>`).join('')}
     </div>`).join('');
   st.textContent = '✓ Loaded ' + totalScenarios + ' scenario' + (totalScenarios!==1?'s':'') + ' across ' + valid.length + ' user' + (valid.length!==1?'s':'');
@@ -1602,38 +1620,33 @@ function renderSchemes(){
     const isLMI     = type === 'lmi-waiver' || type === 'mixed';
 
     const suburbRows = (s.suburbBonuses||[]).map((b, bi) => `
-      <div class="suburb-bonus-row">
-        <input type="text" class="config-input" placeholder="Suburb name" value="${escHtml(b.suburb||'')}"
-          onchange="_schemes[${i}].suburbBonuses[${bi}].suburb=this.value">
-        <input type="number" class="config-input" placeholder="Bonus $" value="${b.bonusAmount||0}" min="0" step="1000"
-          onchange="_schemes[${i}].suburbBonuses[${bi}].bonusAmount=parseInt(this.value)||0" style="max-width:110px;">
-        <input type="text" class="config-input" placeholder="Notes (optional)" value="${escHtml(b.notes||'')}"
-          onchange="_schemes[${i}].suburbBonuses[${bi}].notes=this.value">
-        <button class="row-del-btn" onclick="removeSuburbBonus(${i},${bi})">−</button>
+      <div class="suburb-bonus-row" data-bidx="${bi}">
+        <input type="text" class="config-input" placeholder="Suburb name" value="${escHtml(b.suburb||'')}" data-field="suburb">
+        <input type="number" class="config-input" placeholder="Bonus $" value="${b.bonusAmount||0}" min="0" step="1000" data-field="bonusAmount" style="max-width:110px;">
+        <input type="text" class="config-input" placeholder="Notes (optional)" value="${escHtml(b.notes||'')}" data-field="notes">
+        <button class="row-del-btn" data-action="del-suburb-bonus" data-bidx="${bi}">−</button>
       </div>`).join('');
 
     const incomeRows = (s.incomeThresholds||[]).map((t, ti) => `
-      <div class="income-thresh-row">
-        <input type="text" class="config-input" placeholder="Label (e.g. Single)" value="${escHtml(t.label||'')}"
-          onchange="_schemes[${i}].incomeThresholds[${ti}].label=this.value">
-        <input type="number" class="config-input" placeholder="Max income $" value="${t.maxIncome||0}" min="0" step="1000"
-          onchange="_schemes[${i}].incomeThresholds[${ti}].maxIncome=parseInt(this.value)||0" style="max-width:140px;">
-        <button class="row-del-btn" onclick="removeIncomeThreshold(${i},${ti})">−</button>
+      <div class="income-thresh-row" data-tidx="${ti}">
+        <input type="text" class="config-input" placeholder="Label (e.g. Single)" value="${escHtml(t.label||'')}" data-field="label">
+        <input type="number" class="config-input" placeholder="Max income $" value="${t.maxIncome||0}" min="0" step="1000" data-field="maxIncome" style="max-width:140px;">
+        <button class="row-del-btn" data-action="del-income-thresh" data-tidx="${ti}">−</button>
       </div>`).join('');
 
     return `
-    <div class="scheme-panel ${i === _schemes.length - 1 ? 'open' : ''}" id="scheme-panel-${i}">
-      <div class="scheme-panel-header" onclick="toggleSchemePanel(${i})">
+    <div class="scheme-panel ${i === _schemes.length - 1 ? 'open' : ''}" id="scheme-panel-${i}" data-sidx="${i}">
+      <div class="scheme-panel-header" data-action="toggle-scheme-panel">
         <div class="scheme-panel-toggle">▼</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:14px;font-weight:600;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.name)}</div>
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:1px;">${escHtml(s.country||'')}</div>
         </div>
         <span class="scheme-type-badge ${typeBadgeClass(type)}">${typeBadgeLabel(type)}</span>
-        <label style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;" onclick="event.stopPropagation()">
-          <input type="checkbox" ${s.active?'checked':''} onchange="_schemes[${i}].active=this.checked" style="accent-color:var(--gold);width:13px;height:13px;"> Active
+        <label style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;" data-stop-propagation>
+          <input type="checkbox" ${s.active?'checked':''} data-field="active" style="accent-color:var(--gold);width:13px;height:13px;"> Active
         </label>
-        <button class="act-btn danger" style="white-space:nowrap;" onclick="event.stopPropagation();removeScheme(${i})">Remove</button>
+        <button class="act-btn danger" style="white-space:nowrap;" data-action="remove-scheme">Remove</button>
       </div>
       <div class="scheme-panel-body">
 
@@ -1641,41 +1654,41 @@ function renderSchemes(){
         <div class="config-grid" style="margin-bottom:10px;">
           <div class="config-field">
             <label class="config-label">Scheme Name</label>
-            <input type="text" class="config-input" value="${escHtml(s.name)}" oninput="_schemes[${i}].name=this.value;updateSchemeHeaderName(${i},this.value)">
+            <input type="text" class="config-input" value="${escHtml(s.name)}" data-field="name">
           </div>
           <div class="config-field">
             <label class="config-label">Type</label>
-            <select class="config-input" onchange="_schemes[${i}].type=this.value;renderSchemes()">
+            <select class="config-input" data-field="type">
               ${SCHEME_TYPES.map(t=>`<option value="${t.value}" ${type===t.value?'selected':''}>${t.label} — ${t.desc}</option>`).join('')}
             </select>
           </div>
           <div class="config-field">
             <label class="config-label">Country / State</label>
-            <input type="text" class="config-input" value="${escHtml(s.country||'')}" oninput="_schemes[${i}].country=this.value">
+            <input type="text" class="config-input" value="${escHtml(s.country||'')}" data-field="country">
           </div>
           <div class="config-field">
             <label class="config-label">Max Property Price (AUD $)</label>
-            <input type="number" class="config-input" value="${s.maxPropertyPrice||0}" min="0" step="10000" onchange="_schemes[${i}].maxPropertyPrice=parseInt(this.value)||0">
+            <input type="number" class="config-input" value="${s.maxPropertyPrice||0}" min="0" step="10000" data-field="maxPropertyPrice">
           </div>
         </div>
         <div class="config-field" style="margin-bottom:10px;">
           <label class="config-label">Description</label>
-          <input type="text" class="config-input" value="${escHtml(s.description||'')}" oninput="_schemes[${i}].description=this.value">
+          <input type="text" class="config-input" value="${escHtml(s.description||'')}" data-field="description">
         </div>
         <div class="config-field" style="margin-bottom:10px;">
           <label class="config-label">Eligibility Requirements</label>
-          <input type="text" class="config-input" value="${escHtml(s.eligibility||'')}" oninput="_schemes[${i}].eligibility=this.value">
+          <input type="text" class="config-input" value="${escHtml(s.eligibility||'')}" data-field="eligibility">
         </div>
         <div class="config-field" style="margin-bottom:10px;">
           <label class="config-label">Official Government Website</label>
           <div style="display:flex;gap:8px;align-items:center;">
-            <input type="url" class="config-input" value="${escHtml(s.websiteUrl||'')}" placeholder="https://www.housing.gov.au/..." oninput="_schemes[${i}].websiteUrl=this.value" style="flex:1;">
+            <input type="url" class="config-input" value="${escHtml(s.websiteUrl||'')}" placeholder="https://www.housing.gov.au/..." data-field="websiteUrl" style="flex:1;">
             ${s.websiteUrl ? `<a href="${escHtml(s.websiteUrl)}" target="_blank" rel="noopener" style="flex-shrink:0;font-family:var(--font-mono);font-size:11px;color:var(--sky);text-decoration:none;white-space:nowrap;padding:6px 10px;border:1px solid rgba(91,143,171,0.3);border-radius:3px;" title="Open website">Visit ↗</a>` : ''}
           </div>
         </div>
         <div class="config-field" style="margin-bottom:4px;">
           <label class="config-label">Admin Notes (internal only)</label>
-          <input type="text" class="config-input" value="${escHtml(s.notes||'')}" placeholder="Internal notes, caveats, links..." oninput="_schemes[${i}].notes=this.value">
+          <input type="text" class="config-input" value="${escHtml(s.notes||'')}" placeholder="Internal notes, caveats, links..." data-field="notes">
         </div>
 
         ${isEquity ? `
@@ -1683,15 +1696,15 @@ function renderSchemes(){
         <div class="config-grid" style="margin-bottom:4px;">
           <div class="config-field">
             <label class="config-label">Min Govt % Contribution</label>
-            <input type="number" class="config-input" value="${s.govtMinPct||0}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtMinPct=parseFloat(this.value)||0">
+            <input type="number" class="config-input" value="${s.govtMinPct||0}" min="0" max="50" step="0.5" data-field="govtMinPct">
           </div>
           <div class="config-field">
             <label class="config-label">Max Govt % Contribution</label>
-            <input type="number" class="config-input" value="${s.govtMaxPct||0}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtMaxPct=parseFloat(this.value)||0">
+            <input type="number" class="config-input" value="${s.govtMaxPct||0}" min="0" max="50" step="0.5" data-field="govtMaxPct">
           </div>
           <div class="config-field">
             <label class="config-label">Default Govt % (pre-fill in app)</label>
-            <input type="number" class="config-input" value="${s.govtDefaultPct||0}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtDefaultPct=parseFloat(this.value)||0">
+            <input type="number" class="config-input" value="${s.govtDefaultPct||0}" min="0" max="50" step="0.5" data-field="govtDefaultPct">
           </div>
         </div>` : ''}
 
@@ -1700,7 +1713,7 @@ function renderSchemes(){
         <div class="config-grid" style="margin-bottom:4px;">
           <div class="config-field">
             <label class="config-label">Fixed Grant Amount (AUD $)</label>
-            <input type="number" class="config-input" value="${s.fixedGrantAmount||0}" min="0" step="500" onchange="_schemes[${i}].fixedGrantAmount=parseInt(this.value)||0">
+            <input type="number" class="config-input" value="${s.fixedGrantAmount||0}" min="0" step="500" data-field="fixedGrantAmount">
             <div style="font-size:11px;color:var(--slate);margin-top:3px;">Base grant amount. Use Suburb Bonuses below for location-specific variations.</div>
           </div>
         </div>` : ''}
@@ -1709,7 +1722,7 @@ function renderSchemes(){
         <div class="scheme-section-label">LMI Waiver</div>
         <div class="config-field" style="margin-bottom:4px;">
           <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" ${s.removesLMI?'checked':''} onchange="_schemes[${i}].removesLMI=this.checked" style="accent-color:var(--gold);width:14px;height:14px;">
+            <input type="checkbox" ${s.removesLMI?'checked':''} data-field="removesLMI" style="accent-color:var(--gold);width:14px;height:14px;">
             This scheme removes Lenders Mortgage Insurance (LMI)
           </label>
           <div style="font-size:11px;color:var(--slate);margin-top:3px;">When enabled, the calculator will show $0 LMI cost for this scheme.</div>
@@ -1717,12 +1730,12 @@ function renderSchemes(){
 
         <div class="scheme-section-label">Income Thresholds</div>
         <div id="income-rows-${i}">${incomeRows}</div>
-        <button class="add-row-btn" onclick="addIncomeThreshold(${i})">＋ Add income threshold</button>
+        <button class="add-row-btn" data-action="add-income-thresh">＋ Add income threshold</button>
 
         <div class="scheme-section-label" style="margin-top:14px;">Suburb-Specific Bonuses</div>
         <div style="font-size:11px;color:var(--slate);margin-bottom:8px;">Some schemes pay more in certain suburbs or regions. Add suburb-specific bonus amounts here.</div>
         <div id="suburb-rows-${i}">${suburbRows}</div>
-        <button class="add-row-btn" onclick="addSuburbBonus(${i})">＋ Add suburb bonus</button>
+        <button class="add-row-btn" data-action="add-suburb-bonus">＋ Add suburb bonus</button>
 
       </div>
     </div>`;
@@ -1863,7 +1876,7 @@ async function loadGrowthData(){
       <td style="font-family:var(--font-mono);color:var(--gold);">${parseFloat(e.rate).toFixed(1)}%</td>
       <td style="font-size:11px;color:var(--slate);">${escHtml(e.note||'')}</td>
       <td style="font-size:11px;color:${expiry<=7?'#c45a5a':'var(--slate)'};">${expiry}d left</td>
-      <td><button class="act-btn danger" onclick="deleteGrowthEntry('${escHtml(e.suburb).replace(/'/g,"\\'")}','${escHtml(e.state)}')">Delete</button></td>
+      <td><button class="act-btn danger" data-action="del-growth" data-suburb="${escHtml(e.suburb)}" data-state="${escHtml(e.state)}">Delete</button></td>
     </tr>`;
   }).join('');
   wrap.innerHTML = `<table class="user-table" style="min-width:600px;">
@@ -2019,22 +2032,22 @@ function renderClientErrors(errors){
 
   wrap.innerHTML = `
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
-    <input id="ce-filter-msg"  class="config-input" placeholder="Search message…"  oninput="filterClientErrors()" style="width:180px;font-size:11px;padding:6px 10px;">
-    <input id="ce-filter-user" class="config-input" placeholder="User email/name…" oninput="filterClientErrors()" style="width:160px;font-size:11px;padding:6px 10px;">
-    <select id="ce-filter-severity" class="config-input" onchange="filterClientErrors()" style="width:120px;font-size:11px;padding:6px 10px;">
+    <input id="ce-filter-msg"  class="config-input" placeholder="Search message…"  style="width:180px;font-size:11px;padding:6px 10px;">
+    <input id="ce-filter-user" class="config-input" placeholder="User email/name…" style="width:160px;font-size:11px;padding:6px 10px;">
+    <select id="ce-filter-severity" class="config-input" style="width:120px;font-size:11px;padding:6px 10px;">
       <option value="">All levels</option>
       <option value="error">🔴 Error</option>
       <option value="warning">🟡 Warning</option>
       <option value="info">🔵 Info</option>
     </select>
-    <select id="ce-filter-browser" class="config-input" onchange="filterClientErrors()" style="width:130px;font-size:11px;padding:6px 10px;">
+    <select id="ce-filter-browser" class="config-input" style="width:130px;font-size:11px;padding:6px 10px;">
       <option value="">All browsers</option>
       <option value="Firefox">Firefox</option>
       <option value="Chrome">Chrome</option>
       <option value="Safari">Safari</option>
       <option value="Edge">Edge</option>
     </select>
-    <select id="ce-filter-time" class="config-input" onchange="filterClientErrors()" style="width:130px;font-size:11px;padding:6px 10px;">
+    <select id="ce-filter-time" class="config-input" style="width:130px;font-size:11px;padding:6px 10px;">
       <option value="">All time</option>
       <option value="1h">Last hour</option>
       <option value="24h">Last 24 hours</option>
@@ -2052,6 +2065,15 @@ function renderClientErrors(errors){
     </tr></thead>
     <tbody id="ce-tbody">${rows}</tbody>
   </table></div>`;
+  // Wire filter inputs after initial render (IDs are now in DOM)
+  ['ce-filter-msg','ce-filter-user'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('input', filterClientErrors);
+  });
+  ['ce-filter-severity','ce-filter-browser','ce-filter-time'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('change', filterClientErrors);
+  });
 
   if(countEl) countEl.textContent = `${errors.length} of ${_allClientErrors.length} error${_allClientErrors.length!==1?'s':''}`;
   // set count after re-render
@@ -2746,7 +2768,7 @@ async function loadSuburbsTab() {
   var stateKeys = Object.keys(states).sort();
   for (var j = 0; j < stateKeys.length; j++) {
     var sk = stateKeys[j];
-    breakdownHTML += '<button class="btn-admin-outline" onclick="filterSuburbsByState(\'' + escHtml(sk) + '\')" style="font-size:11px;padding:8px 12px;text-align:left;">' +
+    breakdownHTML += '<button class="btn-admin-outline" data-action="filter-state" data-state="' + escHtml(sk) + '" style="font-size:11px;padding:8px 12px;text-align:left;">' +
       '<div style="font-weight:600;">' + escHtml(sk) + '</div>' +
       '<div style="font-size:10px;color:var(--slate);">' + states[sk].toLocaleString() + ' suburbs</div>' +
       '</button>';
