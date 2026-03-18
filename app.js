@@ -809,14 +809,14 @@
     if(btn){ btn.disabled = true; btn.textContent = '⏳ Fetching map…'; }
 
     try {
-      // 1. Geocode with Nominatim (no API key required)
+      // 1. Geocode via address-suggest function (Domain API → Nominatim fallback)
       const geoRes = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
-        { headers: { 'Accept': 'application/json', 'User-Agent': 'PropertyCalculator/1.0' } }
+        `/.netlify/functions/address-suggest?mode=geocode&q=${encodeURIComponent(query)}`,
+        { signal: AbortSignal.timeout(8000) }
       );
       const geoData = await geoRes.json();
-      if(!geoData || !geoData.length){ showToast('⚠️ Address not found on map. Try including suburb and state.'); return; }
-      const { lat, lon } = geoData[0];
+      if(!geoData.ok || !geoData.lat){ showToast('⚠️ Address not found on map. Try including suburb and state.'); return; }
+      const { lat, lon } = geoData;
 
       // 2. Fetch static map via server-side proxy (avoids browser CORS restriction)
       const proxyRes = await fetch(`/.netlify/functions/mapproxy?lat=${lat}&lon=${lon}&zoom=15`);
@@ -920,9 +920,10 @@
   }
 
   // ══════════════════════════════════════════════
-  // ADDRESS AUTOCOMPLETE — QLD Open Data CKAN API
-  // Free, no sign-up, no API key required.
-  // Falls back gracefully if unavailable.
+  // ADDRESS AUTOCOMPLETE
+  // Primary:  Domain Address Suggestions API (server-side, AU-optimised)
+  // Fallback: Nominatim / OpenStreetMap
+  // Both handled transparently by /.netlify/functions/address-suggest
   // ══════════════════════════════════════════════
   let _addrTimer = null;
   let _lastAddrQuery = '';
@@ -935,33 +936,12 @@
     clearTimeout(_addrTimer);
     _addrTimer = setTimeout(async () => {
       try {
-        // Nominatim (OpenStreetMap) — free, no auth, covers all of Australia
-        const url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=au&limit=6&q=' + encodeURIComponent(val);
-        const r = await fetch(url, {
-          headers: {'Accept-Language':'en', 'User-Agent':'PropertyCalc/1.0'},
-          signal: AbortSignal.timeout(4000)
-        });
+        const url = '/.netlify/functions/address-suggest?limit=6&q=' + encodeURIComponent(val);
+        const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
         if(!r.ok) throw new Error('no response');
         const j = await r.json();
-        if(!j.length){ hideAddrSuggestions(); return; }
-        const results = j.map(item => {
-          const a = item.address || {};
-          const road    = a.road || a.pedestrian || a.path || '';
-          const houseNo = a.house_number || '';
-          const street  = houseNo ? houseNo + ' ' + road : road;
-          const suburb  = a.suburb || a.neighbourhood || a.city_district || a.town || a.village || a.hamlet || '';
-          const state   = a.state_code || a.state || '';
-          const postcode = a.postcode || '';
-          // Use display_name if we couldn't parse well
-          const display = street || item.display_name.split(',')[0];
-          const _rawState = (a.state_code || a.state || '').trim();
-          const _validCodes = ['QLD','NSW','VIC','WA','SA','TAS','NT','ACT'];
-          const _nameMap = {'queensland':'QLD','new south wales':'NSW','victoria':'VIC','western australia':'WA','south australia':'SA','tasmania':'TAS','northern territory':'NT','australian capital territory':'ACT'};
-          const _resolvedState = _validCodes.includes(_rawState.toUpperCase()) ? _rawState.toUpperCase() : (_nameMap[_rawState.toLowerCase().replace(/^state of /,'')] || '');
-          return { address: display, suburb, state: _resolvedState, postcode };
-        }).filter(r => r.address);
-        if(!results.length){ hideAddrSuggestions(); return; }
-        showAddrSuggestions(results);
+        if(!j.ok || !j.results || !j.results.length){ hideAddrSuggestions(); return; }
+        showAddrSuggestions(j.results);
       } catch(e) {
         hideAddrSuggestions();
       }

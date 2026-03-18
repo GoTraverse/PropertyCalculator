@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
 <meta charset="UTF-8">
 <script src="tool-page.js"></script>
@@ -9,6 +9,7 @@
 <meta name="description" content="Free Australian loan serviceability calculator. Check mortgage borrowing capacity using Australian bank lending criteria and your income/expenses.">
 <meta name="keywords" content="loan serviceability calculator, mortgage affordability calculator, how much can I borrow, borrowing capacity calculator, loan serviceability Australia">
 <link rel="canonical" href="https://equitysight.app/tools/loan-serviceability-calculator.html">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/loan-serviceability-calculator.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Loan Serviceability Calculator Australia 2026 — Free Tool">
 <meta property="og:description" content="Check how much you can borrow based on Australian bank lending criteria.">
@@ -29,6 +30,9 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Loan Serviceability Calculator","url":"https://equitysight.app/tools/loan-serviceability-calculator.html","description":"Free loan serviceability calculator for Australian property buyers. Estimate borrowing capacity based on income, expenses, and bank lending criteria.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Loan Serviceability Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do Australian banks calculate loan serviceability?","acceptedAnswer":{"@type":"Answer","text":"Banks assess your gross income minus tax, living expenses (HEM or declared expenses, whichever is higher), existing debt commitments, and credit card limits. They apply the current interest rate plus a 3% buffer (APRA requirement) and calculate whether your net surplus income can cover the proposed repayments."}},{"@type":"Question","name":"What income do I need to borrow $1 million in Australia?","acceptedAnswer":{"@type":"Answer","text":"As a rough guide, you typically need a household income of $150,000-$200,000 to borrow $1 million, depending on your existing debts, expenses, dependents, and the interest rate. Banks assess at the rate plus a 3% buffer, so actual serviceability is tighter than the advertised rate suggests."}},{"@type":"Question","name":"What reduces your borrowing capacity in Australia?","acceptedAnswer":{"@type":"Answer","text":"Key factors that reduce borrowing capacity include existing debts (car loans, personal loans, HECS/HELP), credit card limits (even if unused — lenders assume the full limit), high living expenses, dependents, short employment history, and casual or contract employment. Reducing credit card limits and paying off debts before applying can significantly increase capacity."}}]}]}
+</script>
 </head>
 <body>
 
@@ -41,6 +45,7 @@
 </header>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
+<script src="../market-rate.js" defer></script>
 
 <section class="tool-hero">
   <div class="tool-eyebrow">Free Tool · Mortgage Planning</div>
@@ -80,6 +85,12 @@
         <label class="tool-label" for="debt">Existing debt repayments (credit cards, car loans, HECS)</label>
         <input class="tool-input" type="text" id="debt" placeholder="e.g. 1,200" oninput="fmtInput(this)">
       </div>
+    </div>
+
+    <div class="tool-field" style="margin-top:16px;">
+      <label class="tool-label" for="base-rate">Assessment interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
+      <input class="tool-input" type="number" id="base-rate" value="6.50" placeholder="e.g. 6.50" step="0.05" min="1" max="20">
+      <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
     </div>
 
     <button class="tool-btn" onclick="calculate()">Calculate Borrowing Capacity</button>
@@ -159,9 +170,18 @@ function calculate() {
   var monthlyCommitments = expenses + debt;
   var monthlyDisposable = monthlyIncome - monthlyCommitments;
 
+  // Use live assessment rate (displayed to user) + 3% APRA buffer
+  var baseRateInput = parseFloat(document.getElementById('base-rate').value) || 6.50;
+  var assessmentRate = baseRateInput + 3.0; // APRA 3% buffer
+  var monthlyAssessmentRate = assessmentRate / 100 / 12;
+  // Monthly repayment factor for a 30-year P&I loan at the assessment rate
+  var repayFactor = monthlyAssessmentRate > 0
+    ? monthlyAssessmentRate / (1 - Math.pow(1 + monthlyAssessmentRate, -360))
+    : 1 / 360;
+
   var maxMonthlyDebt = gross * 0.45 / 12;
   var maxMortgagePayment = maxMonthlyDebt - debt;
-  var maxLoan = maxMortgagePayment / 0.0054;
+  var maxLoan = repayFactor > 0 ? maxMortgagePayment / repayFactor : 0;
 
   document.getElementById('r-income').textContent = fmt(gross);
   document.getElementById('r-monthly').textContent = fmt(monthlyCommitments);
@@ -181,6 +201,24 @@ function calculate() {
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
   if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ─ Hydrate assessment rate from live RBA data ─ */
+if (typeof MarketRate !== 'undefined') {
+  MarketRate.onReady(function(d) {
+    if (!d) return;
+    var el = document.getElementById('base-rate');
+    if (el && el.value === '6.50') {
+      el.value = d.suggestedRate;
+    }
+    var badge = document.getElementById('rate-live-badge');
+    var hint  = document.getElementById('rate-live-hint');
+    if (badge) badge.style.display = '';
+    if (hint)  hint.textContent = 'RBA cash rate ' + d.cashRate.toFixed(2) + '% + lender margin '
+      + d.lenderMargin.toFixed(2) + '% = ' + d.suggestedRate.toFixed(2) + '% (banks assess at this + 3% APRA buffer)'
+      + (d.rateDate ? ' — ' + d.rateDate : '');
+    if (hint) hint.style.display = '';
+  });
 }
 
 /* ═══ TOOL CONFIG ═══ */

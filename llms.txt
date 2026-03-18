@@ -1,0 +1,38 @@
+# EquitySight.app
+
+> Australia's smartest property finance calculator. Free tools for home buyers, investors, and financial planners.
+
+EquitySight is a web-based property finance platform designed for the Australian market. It provides 10 free calculator tools covering stamp duty, rental yield, mortgage stress testing, loan serviceability, equity release, renovation costs, house flipping profit, cost of purchase, and first home buyer grants across all 8 Australian states and territories.
+
+## Free Calculator Tools
+
+- [Stamp Duty Calculator](https://equitysight.app/tools/stamp-duty-calculator.html): Calculate stamp duty for NSW, VIC, QLD, SA, WA, TAS, ACT, NT with first home buyer exemptions and foreign buyer surcharges.
+- [Cost of Purchase Calculator](https://equitysight.app/tools/cost-of-purchase-calculator.html): See all costs when buying property — stamp duty, legal fees, bank charges, inspections, insurance, and moving costs.
+- [Rental Yield Calculator](https://equitysight.app/tools/rental-yield-calculator.html): Calculate gross and net rental yield for any Australian investment property.
+- [Mortgage Stress Calculator](https://equitysight.app/tools/mortgage-stress-calculator.html): Test if your repayments put you in mortgage stress. Check debt-to-income ratio and rate rise buffer.
+- [Loan Serviceability Calculator](https://equitysight.app/tools/loan-serviceability-calculator.html): Check mortgage borrowing capacity using Australian bank lending criteria.
+- [Equity Release Calculator](https://equitysight.app/tools/equity-release-calculator.html): Calculate how much home equity you can release based on property value, mortgage, and LVR.
+- [House Flip Calculator](https://equitysight.app/tools/house-flip-calculator.html): Calculate profit, ROI, and annualised return for Australian property flips.
+- [Renovation Cost Calculator](https://equitysight.app/tools/renovation-cost-calculator.html): Estimate property renovation budgets by scope, area, and finish level.
+- [First Home Buyer Grants Calculator](https://equitysight.app/tools/first-home-buyer-grants-calculator.html): Check eligibility for state-specific grants, exemptions, and assistance.
+
+## Suburb Insights
+
+EquitySight provides suburb-level property insights for over 14,500 Australian suburbs, organised by state:
+
+- [NSW Suburbs](https://equitysight.app/invest/nsw/)
+- [VIC Suburbs](https://equitysight.app/invest/vic/)
+- [QLD Suburbs](https://equitysight.app/invest/qld/)
+- [SA Suburbs](https://equitysight.app/invest/sa/)
+- [WA Suburbs](https://equitysight.app/invest/wa/)
+- [TAS Suburbs](https://equitysight.app/invest/tas/)
+- [ACT Suburbs](https://equitysight.app/invest/act/)
+- [NT Suburbs](https://equitysight.app/invest/nt/)
+
+## Other Pages
+
+- [Pricing](https://equitysight.app/pricing.html)
+- [About](https://equitysight.app/about.html)
+- [Contact / Support](https://equitysight.app/contact.html)
+- [Privacy Policy](https://equitysight.app/privacy.html)
+- [Terms of Service](https://equitysight.app/terms.html)

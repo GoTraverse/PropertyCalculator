@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
 <meta charset="UTF-8">
 <script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
@@ -41,6 +41,7 @@
 </header>
 <script src="/auth-nav.js" defer></script>
 <script src="/error-capture.js" defer></script>
+<script src="/suburb-insights.js" defer></script>
 
 <section class="tool-hero suburb-hero">
   <nav class="suburb-breadcrumb">
@@ -86,6 +87,14 @@
         <div class="suburb-stat-value">{{DISTANCE_TO_CBD}} km</div>
       </div>
     </div>
+  </section>
+
+  <!-- Live Market Data (Domain API) -->
+  <section class="suburb-section suburb-live-section" id="suburb-live-section"
+           data-suburb="{{SUBURB}}" data-state="{{STATE}}" style="display:none">
+    <h2>Live Market Data <span class="suburb-live-tag">Domain</span></h2>
+    <div class="suburb-grid" id="suburb-live-grid"></div>
+    <p class="suburb-live-note" id="suburb-live-note"></p>
   </section>
 
   <!-- Lifestyle & Amenities -->

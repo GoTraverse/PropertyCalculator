@@ -27,6 +27,16 @@
 .suburb-stat-value.suburb-score span { font-size: 13px; color: var(--slate); font-weight: 400; }
 @media (max-width: 480px) { .suburb-grid { grid-template-columns: 1fr; } }
 
+/* ── Live market data section ── */
+.suburb-live-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.12); padding: 2px 7px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
+.suburb-live-note { font-family: var(--font-mono); font-size: 10px; color: var(--slate); letter-spacing: 0.3px; margin-top: 12px; margin-bottom: 0; }
+.suburb-stat-sub { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.5px; color: var(--slate); margin-top: 3px; }
+.suburb-stat-value--green { color: #2e7d32; }
+.suburb-stat-value--red { color: #c62828; }
+/* Skeleton loading */
+.suburb-skel { background: linear-gradient(90deg, rgba(28,28,30,0.08) 25%, rgba(28,28,30,0.15) 50%, rgba(28,28,30,0.08) 75%); background-size: 200% 100%; animation: suburb-shimmer 1.4s infinite; border-radius: 4px; height: 26px; width: 80%; }
+@keyframes suburb-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
 /* ── CTA ── */
 .suburb-cta { background: var(--charcoal); border-radius: 10px; padding: 28px 24px; color: var(--cream); text-align: center; margin-bottom: 16px; }
 .suburb-cta h3 { font-family: var(--font-display); font-size: 19px; font-weight: 700; margin-bottom: 8px; color: var(--cream); }
