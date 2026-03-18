@@ -60,6 +60,7 @@
 
   // ── HELPERS ──
   function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+  function safePhotoSrc(url){if(!url)return null;if(/^data:image\/(jpeg|png|gif|webp);base64,/.test(url))return url;try{var u=new URL(url);return u.protocol==='https:'?url:null;}catch(e){return null;}}
   function fmt(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(2)+'M';if(a>=1000)return s+'$'+Math.round(a).toLocaleString();return s+'$'+Math.round(a);}
   function fmtK(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';if(a>=1000)return s+'$'+Math.round(a/1000)+'k';return s+'$'+Math.round(a);}
   function pctS(n){return n.toFixed(1)+'%';}
@@ -137,6 +138,7 @@
 
   // ── DYNAMIC COST ITEMS ──
   let dynCosts=[];
+  let _addrResults=[];
   let dynId=0;
 
   // ── ALL PURCHASE COSTS ARE NOW DYNAMIC (item 14) ──
@@ -177,10 +179,12 @@
     costs.forEach(cost=>{
       const row = document.createElement('div');
       row.className = 'dyn-cost-row';
+      row.dataset.costid = cost.id;
+      row.dataset.category = cost.category || 'purchase';
       row.innerHTML = `
-        <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" oninput="updateDynCost('${cost.id}','name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var nxt=this.closest('.dyn-cost-row').querySelector('input[type=number]');if(nxt){nxt.focus();nxt.select();}}">
-        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" max="500000" step="50" oninput="var _v=parseFloat(this.value);if(_v>500000)this.value=500000;updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);dRecalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${['purchase','moveout'].includes(cost.category)?cost.category:'purchase'}');}"></div>
-        <button class="dyn-del" onclick="removeCostItem('${cost.id}')" title="Remove">−</button>
+        <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" data-field="name">
+        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" max="500000" step="50" data-field="amount"></div>
+        <button class="dyn-del" title="Remove" data-action="del-cost">−</button>
       `;
       list.appendChild(row);
     });
@@ -247,24 +251,22 @@
       const safeName = name.replace(/"/g,'&quot;');
       div.innerHTML = [
         '<div class="reno-row">',
-          '<select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" onchange="_renoEmoji(this,this.value)">'+emojiOpts+'</select>',
+          '<select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" data-field="emoji">'+emojiOpts+'</select>',
           '<input type="text" value="'+safeName+'" placeholder="Item name" ',
             'style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" ',
-            'oninput="_renoName(this,this.value)" ',
-            'onkeydown="_renoNameKey(this,event)">',
+            'data-field="name">',
           '<div class="rbt" style="max-width:60px;"><div class="rbf" style="width:'+pct+'%"></div></div>',
           '<div style="display:flex;align-items:center;gap:2px;min-width:90px;">',
             '<span style="font-size:14px;color:var(--slate);">$</span>',
             '<input type="number" value="'+(amount||0)+'" min="0" max="2000000" step="100" id="reno-amt-'+id+'" ',
               'style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:\"DM Mono\",monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" ',
-              'oninput="var _v=parseFloat(this.value);if(_v>2000000)this.value=2000000;_renoAmt(this,this.value)" ',
-              'onkeydown="_renoAmtKey(this,event)">',
+              'data-field="amount">',
           '</div>',
-          '<button class="kd-del" onclick="_renoDel(this)" title="Remove" style="flex-shrink:0;">✕</button>',
+          '<button class="kd-del" title="Remove" style="flex-shrink:0;" data-action="del-reno">✕</button>',
         '</div>',
         '<div class="reno-note-wrap" style="padding-left:44px;">',
           '<textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" ',
-            'oninput="_renoNote(this,this.value)">'+(note||'')+'</textarea>',
+            'data-field="note">'+(note||'')+'</textarea>',
         '</div>'
       ].join('');
       list.appendChild(div);
@@ -335,16 +337,16 @@
       const emojiOpts = RENO_EMOJIS.map(e=>`<option value="${e}" ${e===r.emoji?'selected':''}>${e}</option>`).join('');
       return `<div data-reno="${r.id}" style="border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;">
         <div class="reno-row">
-          <select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" onchange="updateRenoItem('${r.id}','emoji',this.value);renderRenoItems()">${emojiOpts}</select>
-          <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" oninput="updateRenoItem('${r.id}','name',this.value)" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'" onkeydown="if(event.key==='Enter'){event.preventDefault();var amtInput=this.closest('[data-reno]').querySelector('input[type=number]');if(amtInput){amtInput.focus();amtInput.select();}}">
+          <select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" data-field="emoji">${emojiOpts}</select>
+          <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" data-field="name">
           <div class="rbt" style="max-width:60px;"><div class="rbf" style="width:${pct}%"></div></div>
           <div style="display:flex;align-items:center;gap:2px;min-width:90px;">
-            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" max="2000000" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" oninput="var _v=parseFloat(this.value);if(_v>2000000)this.value=2000000;updateRenoItem('${r.id}','amount',parseFloat(this.value)||0);dRecalc();updateRenoBar('${r.id}',parseFloat(this.value)||0)" onkeydown="if(event.key==='Enter'){event.preventDefault();addRenoItem();}" onfocus="this.style.borderColor='var(--sage)'" onblur="this.style.borderColor='rgba(28,28,30,0.1)'">
+            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" max="2000000" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" data-field="amount">
           </div>
-          <button class="kd-del" onclick="removeRenoItem('${r.id}')" title="Remove" style="flex-shrink:0;">✕</button>
+          <button class="kd-del" title="Remove" style="flex-shrink:0;" data-action="del-reno">✕</button>
         </div>
         <div class="reno-note-wrap" style="padding-left:44px;">
-          <textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" oninput="updateRenoItem('${r.id}','note',this.value);this.style.height='auto';this.style.height=this.scrollHeight+'px'">${escHtml(r.note||'')}</textarea>
+          <textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" data-field="note">${escHtml(r.note||'')}</textarea>
         </div>
       </div>`;
     }).join('');
@@ -405,7 +407,7 @@
         if(el && parseFloat(el.value) > c.max){ el.value = c.max; }
       });
       // Always land on property tab after restore
-      const propTabBtn = document.querySelector('.tab[onclick*="property"]');
+      const propTabBtn = document.querySelector('.tab[data-tab="property"]');
       if(propTabBtn) showTab('property', propTabBtn);
       // Restore saved address so unsaved badge doesn't fire
       if(draft.savedId) _lastSavedAddr = draft.savedId;
@@ -952,8 +954,9 @@
   function showAddrSuggestions(results){
     const box = document.getElementById('addr-suggestions');
     if(!box || !results.length){ hideAddrSuggestions(); return; }
-    box.innerHTML = results.map(r =>
-      `<div class="addr-suggestion" onmousedown="selectAddress(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+    _addrResults = results;
+    box.innerHTML = results.map((r,i) =>
+      `<div class="addr-suggestion" data-idx="${i}">
         <strong>${escHtml(r.address)}</strong><br><span>${escHtml(r.suburb)}${r.postcode ? ', '+escHtml(r.postcode) : ''} ${escHtml(r.state)}</span>
       </div>`
     ).join('');
@@ -1286,7 +1289,7 @@
       savedAt: new Date().toISOString(),
       state,
     };
-    const saveBtns = document.querySelectorAll('button[onclick*="saveScenario"]');
+    const saveBtns = document.querySelectorAll('.hdr-save-btn');
     if(!quiet) saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
     _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
@@ -1389,7 +1392,7 @@
       const sColor = STATUS_COLORS[status] || '#999';
       const sLabel = STATUS_LABELS[status] || '👀';
       return `
-        <div class="lib-row" onclick="promptLoadScenario('${s.id}')">
+        <div class="lib-row" data-scenarioid="${escHtml(s.id)}">
           <div class="lib-thumb" id="thumb-${s.id}"><span style="font-size:24px;">🏠</span></div>
           <div class="lib-info">
             <div class="lib-addr">${escHtml(s.fullAddr||'')}</div>
@@ -1398,8 +1401,8 @@
           <div class="lib-price">${price}</div>
           <div class="lib-badge" style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}55;">${sLabel}</div>
           <div class="lib-ts">${(s.timestamp||'').replace(/(\d+)\s([A-Za-z]+)\s(\d{4})/,(_,d,mo,y)=>{const mn={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};return String(d).padStart(2,'0')+'/'+(mn[mo]||'01')+'/'+y;})}</div>
-          <button class="lib-share" onclick="event.stopPropagation();openShareModal('${s.id}',event)" title="Share with another user">↗</button>
-          <button class="lib-del" onclick="event.stopPropagation();deleteScenario('${s.id}')" title="Delete">✕</button>
+          <button class="lib-share" data-action="share-scenario" data-scenarioid="${escHtml(s.id)}" title="Share with another user">↗</button>
+          <button class="lib-del" data-action="del-scenario" data-scenarioid="${escHtml(s.id)}" title="Delete">✕</button>
         </div>`;
     });
     grid.innerHTML = rows.join('');
@@ -1701,14 +1704,14 @@
       const thumbSrc = s.thumb && /^(https?:\/\/|data:image\/)/.test(s.thumb) ? escHtml(s.thumb) : '';
       const thumbHtml = thumbSrc ? `<img src="${thumbSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;">` : '<span style="font-size:24px;">🏠</span>';
       const oid = escHtml(s.ownerId); const sid = escHtml(s.scenarioId);
-      return `<div class="lib-row" onclick="promptLoadSharedScenario('${oid}','${sid}','${escHtml((s.fullAddr||'').replace(/'/g,"\\'"))}')">
+      return `<div class="lib-row" data-action="load-shared" data-oid="${oid}" data-sid="${sid}" data-addr="${escHtml(s.fullAddr||'')}">
         <div class="lib-thumb">${thumbHtml}</div>
         <div class="lib-info">
           <div class="lib-addr">${escHtml(s.fullAddr||'Shared property')}</div>
           <div class="lib-meta" style="font-size:11px;color:var(--slate);">Shared by ${escHtml(s.ownerName||s.ownerEmail||'someone')}</div>
         </div>
         <div class="lib-shared-badge">Shared</div>
-        <button class="lib-del" onclick="event.stopPropagation();dismissSharedScenario('${oid}','${sid}')" title="Remove from my list">✕</button>
+        <button class="lib-del" data-action="dismiss-shared" data-oid="${oid}" data-sid="${sid}" title="Remove from my list">✕</button>
       </div>`;
     });
     grid.innerHTML = rows.join('');
@@ -1829,7 +1832,7 @@
     const knob = document.getElementById('rent-toggle-knob');
     const track = document.getElementById('rent-toggle');
     const section = document.getElementById('rent-sidebar-section');
-    const tab = document.querySelector('.tab[onclick*="overlap"]');
+    const tab = document.querySelector('.tab[data-tab="overlap"]');
     if(enabled){
       if(knob) knob.style.left = '20px';
       if(track) track.style.background = 'var(--sky)';
@@ -2057,10 +2060,17 @@
     if(extraPayment > 0 && extraPaidOffQ != null){ const d=projDataExtra[extraPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#9B7FE8" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#9B7FE8">EARLY 🚀</text>`; }
 
     // Hit overlay — passes totalQ so hover snaps to quarters
-    html += `<rect id="proj-hit" x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="transparent" style="cursor:crosshair;" onmousemove="projHover(event,${padL},${padR},${cW},${totalQ})" onmouseleave="document.getElementById('proj-tooltip').style.display='none'" onclick="projHover(event,${padL},${padR},${cW},${totalQ})"/>`;
+    html += `<rect id="proj-hit" x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="transparent" style="cursor:crosshair;"/>`;
     html += `<line id="proj-crosshair" x1="0" y1="${padT}" x2="0" y2="${H-padB}" stroke="rgba(201,168,76,0.5)" stroke-width="1" stroke-dasharray="3 2" style="display:none;pointer-events:none;"/>`;
 
     svg.innerHTML = html;
+    // Attach chart interaction listeners after innerHTML is set (inline handlers blocked by CSP)
+    const projHit = svg.querySelector('#proj-hit');
+    if(projHit){
+      projHit.addEventListener('mousemove', function(e){ projHover(e,padL,padR,cW,totalQ); });
+      projHit.addEventListener('mouseleave', function(){ var t=document.getElementById('proj-tooltip'); if(t) t.style.display='none'; });
+      projHit.addEventListener('click', function(e){ projHover(e,padL,padR,cW,totalQ); });
+    }
 
     // ── QUARTERLY TABLE ──
     // Years 1-3: expand to all 4 quarters. Years 5+ show Q4 annual snapshot.
@@ -3010,10 +3020,10 @@
     } else {
       if(empty) empty.style.display='none';
       list.innerHTML = [...keyDates].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(d=>`
-        <div class="kd-row">
-          <input type="date" value="${escHtml(d.date||'')}" oninput="updateKeyDate('${escHtml(d.id)}','date',this.value)">
-          <input type="text" value="${escHtml(d.label||'')}" placeholder="Event (e.g. Inspection, Auction)" oninput="updateKeyDate('${escHtml(d.id)}','label',this.value)">
-          <button class="kd-del" onclick="removeKeyDate('${escHtml(d.id)}')">✕</button>
+        <div class="kd-row" data-dateid="${escHtml(d.id)}">
+          <input type="date" value="${escHtml(d.date||'')}" data-field="date">
+          <input type="text" value="${escHtml(d.label||'')}" placeholder="Event (e.g. Inspection, Auction)" data-field="label">
+          <button class="kd-del" data-action="del-date">✕</button>
         </div>`).join('');
     }
     syncKeyDatesToTimeline();
@@ -3079,10 +3089,14 @@
       <div style="margin-bottom:8px;"><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Note</div>
         <textarea id="cf-text" rows="3" placeholder="What was discussed? Any key info from the agent?" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;padding:8px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.5;"></textarea></div>
       <div style="display:flex;gap:8px;">
-        <button onclick="submitCommsEntry()" style="flex:1;background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:8px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Entry</button>
-        <button onclick="closeCommsForm()" style="padding:8px 14px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:var(--slate);">Cancel</button>
+        <button id="cf-submit-entry" style="flex:1;background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:8px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Entry</button>
+        <button id="cf-cancel-entry" style="padding:8px 14px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:var(--slate);">Cancel</button>
       </div>`;
     if(list) list.insertBefore(formDiv, list.firstChild);
+    var cfSubmit = document.getElementById('cf-submit-entry');
+    if(cfSubmit) cfSubmit.addEventListener('click', submitCommsEntry);
+    var cfCancel = document.getElementById('cf-cancel-entry');
+    if(cfCancel) cfCancel.addEventListener('click', closeCommsForm);
   }
 
   function closeCommsForm(){
@@ -3119,11 +3133,12 @@
         const fmtDate = c.date ? formatDate(c.date) : '';
         const div = document.createElement('div');
         div.className = 'comms-entry';
+        div.dataset.commid = c.id;
         div.innerHTML = `
           <div class="comms-meta">
             <span class="comms-date">${fmtDate}</span>
             <span class="comms-type">${c.type||'Note'}</span>
-            <button class="comms-del" onclick="deleteCommsEntry('${c.id}')" title="Delete">✕</button>
+            <button class="comms-del" data-action="del-comm" title="Delete">✕</button>
           </div>
           <div class="comms-text">${_escBanner(c.text)}</div>`;
         list.appendChild(div);
@@ -3416,9 +3431,11 @@
           banner.style.cssText = 'display:block;padding:9px 48px 9px 16px;font-size:13px;text-align:center;position:relative;line-height:1.4;'
             + 'background:' + bs.bg + ';color:' + bs.color + ';border-bottom:1px solid ' + bs.border + ';';
           banner.innerHTML = '<span>' + _escBanner(bannerText) + '</span>'
-            + '<button onclick="document.getElementById(\'announce-banner\').style.display=\'none\';setTimeout(setAppHeight,0);" '
+            + '<button id="announce-dismiss-btn" '
             + 'style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;'
             + 'color:currentColor;font-size:20px;cursor:pointer;opacity:0.55;padding:0 4px;line-height:1;" title="Dismiss">×</button>';
+          var dismissBtn = document.getElementById('announce-dismiss-btn');
+          if(dismissBtn) dismissBtn.addEventListener('click', function(){ banner.style.display='none'; setTimeout(setAppHeight,0); });
           // Recompute layout since header is now taller
           setTimeout(setAppHeight, 0);
         }
@@ -3493,10 +3510,10 @@
     if(!btn) return;
     const name  = (_currentUser && _currentUser.name) || _profileData.name || '';
     const color = _profileData.color || '#C9A84C';
-    if(_profileData.photo){
+    if(safePhotoSrc(_profileData.photo)){
       btn.style.background = 'transparent';
       btn.style.padding = '0';
-      btn.innerHTML = '<img src="' + _profileData.photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;display:block;">';
+      btn.innerHTML = '<img src="' + safePhotoSrc(_profileData.photo) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;pointer-events:none;display:block;">';
     } else {
       var ppParts = name ? name.trim().split(/\s+/).filter(Boolean) : [];
       var initials = ppParts.length===0?'?':ppParts.length===1?ppParts[0][0].toUpperCase():(ppParts[0][0]+ppParts[ppParts.length-1][0]).toUpperCase();
@@ -3522,8 +3539,8 @@
     if(nameI)  nameI.value  = name;
     if(emailI) emailI.value = email;
     if(avd){
-      if(_profileData.photo){
-        avd.innerHTML = '<img src="' + _profileData.photo + '">';
+      if(safePhotoSrc(_profileData.photo)){
+        avd.innerHTML = '<img src="' + safePhotoSrc(_profileData.photo) + '">';
         avd.style.background = 'transparent';
       } else {
         avd.innerHTML = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
@@ -3828,8 +3845,8 @@
     if(av){
       var parts = name.trim().split(/\s+/).filter(Boolean);
       var ini = parts.length===1?parts[0][0].toUpperCase():(parts[0][0]+parts[parts.length-1][0]).toUpperCase();
-      if(p.photo){
-        av.innerHTML='<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      if(safePhotoSrc(p.photo)){
+        av.innerHTML='<img src="'+safePhotoSrc(p.photo)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
         av.style.background='transparent';
       } else {
         av.textContent=ini;
@@ -3871,8 +3888,12 @@
     var cr = document.getElementById('ap-colors');
     if(cr){
       cr.innerHTML = AP_COLORS.map(function(c2){
-        return '<div class="ap-swatch'+(c2===color?' active':'')+'" style="background:'+c2+';" onclick="apSetColor(this,\''+c2+'\')"></div>';
+        return '<div class="ap-swatch'+(c2===color?' active':'')+'" style="background:'+c2+';" data-color="'+c2+'"></div>';
       }).join('');
+      cr.addEventListener('click', function(e){
+        var sw = e.target.closest('.ap-swatch[data-color]');
+        if(sw) apSetColor(sw, sw.dataset.color);
+      });
     }
   }
 
@@ -3899,7 +3920,8 @@
         var data = canvas.toDataURL('image/jpeg', 0.92);
         _profileData.photo = data;
         var av = document.getElementById('ap-avatar');
-        if(av){ av.innerHTML='<img src="'+data+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; av.style.background='transparent'; }
+        var safeSrc = safePhotoSrc(data);
+        if(av && safeSrc){ av.innerHTML='<img src="'+safeSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; av.style.background='transparent'; }
       };
       img.src = e.target.result;
     };

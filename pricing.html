@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="UTF-8">
-<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<script src="site-init.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Pricing — EquitySight.app</title>
 <meta name="description" content="Simple, transparent pricing for EquitySight. Start free, upgrade to Pro for unlimited saved scenarios, advanced modelling, and priority support.">
@@ -71,7 +71,7 @@
             <li><div class="ck ck-y">✓</div>Renovation budget tracker</li>
             <li><div class="ck ck-y">✓</div>Key dates &amp; timeline</li>
           </ul>
-          <button class="pcard-btn pb-outline" onclick="location.href='login.html?tab=signup'">Start free →</button>
+          <a href="login.html?tab=signup" class="pcard-btn pb-outline">Start free →</a>
         </div>
       </div>
 
@@ -97,7 +97,7 @@
             <li><div class="ck ck-y">✓</div>PDF export</li>
             <li><div class="ck ck-y">✓</div>Cloud sync + priority support</li>
           </ul>
-          <button class="pcard-btn pb-gold" id="pro-cta-btn" onclick="startCheckout()">Get Pro →</button>
+          <button class="pcard-btn pb-gold" id="pro-cta-btn">Get Pro →</button>
         </div>
       </div>
 
@@ -160,11 +160,11 @@
 <section class="faq-section">
   <div class="faq-inner">
     <h2 style="font-family:var(--font-display);font-size:32px;font-weight:700;text-align:center;margin-bottom:48px;">Questions</h2>
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Can I really use it for free?<span class="faq-icon">+</span></button><div class="faq-ans">Yes — the Starter plan is free forever with no credit card required. Save one property and use the core calculator indefinitely.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Can I cancel any time?<span class="faq-icon">+</span></button><div class="faq-ans">Yes — cancel any time from your account page and you won't be charged again. Your Pro access continues until the end of the billing period.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">What happens to my data if I cancel?<span class="faq-icon">+</span></button><div class="faq-ans">Your account stays on the Starter plan. Scenarios over the 2-scenario limit are archived (not deleted) and unlock again if you re-subscribe. All your data is exportable as PDF at any time.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Is this financial advice?<span class="faq-icon">+</span></button><div class="faq-ans">No. EquitySight is a planning and modelling tool. Always consult a licensed financial adviser or mortgage broker before making property decisions.</div></div>
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How does billing work?<span class="faq-icon">+</span></button><div class="faq-ans">Payments are processed securely via Stripe. Monthly or annual billing available. Cancel any time from your account page.</div></div>
+    <div class="faq-item"><button class="faq-q">Can I really use it for free?<span class="faq-icon">+</span></button><div class="faq-ans">Yes — the Starter plan is free forever with no credit card required. Save one property and use the core calculator indefinitely.</div></div>
+    <div class="faq-item"><button class="faq-q">Can I cancel any time?<span class="faq-icon">+</span></button><div class="faq-ans">Yes — cancel any time from your account page and you won't be charged again. Your Pro access continues until the end of the billing period.</div></div>
+    <div class="faq-item"><button class="faq-q">What happens to my data if I cancel?<span class="faq-icon">+</span></button><div class="faq-ans">Your account stays on the Starter plan. Scenarios over the 2-scenario limit are archived (not deleted) and unlock again if you re-subscribe. All your data is exportable as PDF at any time.</div></div>
+    <div class="faq-item"><button class="faq-q">Is this financial advice?<span class="faq-icon">+</span></button><div class="faq-ans">No. EquitySight is a planning and modelling tool. Always consult a licensed financial adviser or mortgage broker before making property decisions.</div></div>
+    <div class="faq-item"><button class="faq-q">How does billing work?<span class="faq-icon">+</span></button><div class="faq-ans">Payments are processed securely via Stripe. Monthly or annual billing available. Cancel any time from your account page.</div></div>
   </div>
 </section>
 
@@ -173,8 +173,8 @@
     <h2 style="font-family:var(--font-display);font-size:36px;font-weight:700;color:var(--cream);margin-bottom:14px;">Start for free today.</h2>
     <p style="color:rgba(245,240,232,0.45);margin-bottom:32px;font-size:15px;line-height:1.6;">No credit card. No commitment. Upgrade when you're ready.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-      <button onclick="location.href=\'login.html?tab=signup\'" style="background:var(--gold);color:var(--charcoal);border:none;padding:14px 30px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Open Calculator Free →</button>
-      <button onclick="location.href='contact.html'" style="background:rgba(255,255,255,0.06);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 26px;border-radius:3px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;cursor:pointer;">Talk to us first</button>
+      <button style="display:inline-block;" style="background:var(--gold);color:var(--charcoal);border:none;padding:14px 30px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Open Calculator Free →</a>
+      <a href="contact.html" style="background:rgba(255,255,255,0.06);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 26px;border-radius:3px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;cursor:pointer;">Talk to us first</a>
     </div>
   </div>
 </section>
@@ -182,87 +182,7 @@
 <div id="site-footer-root"></div>
 <script src="footer.js"></script>
 
-<script>
-  async function startCheckout(){
-    const SK = 'propCalc_session_v1';
-    let session = null;
-    try { session = JSON.parse(localStorage.getItem(SK)); } catch(e){}
-
-    // Not logged in → send to signup, then back here
-    if(!session || !session.token){
-      location.href = 'login.html?tab=signup&plan=pro&redirect=' + encodeURIComponent('pricing.html?checkout=1');
-      return;
-    }
-
-    const btn = document.getElementById('pro-cta-btn');
-    btn.textContent = 'Loading…';
-    btn.disabled = true;
-
-    const priceId = annual
-      ? (window.STRIPE_PRICES && window.STRIPE_PRICES.pro_annual)
-      : (window.STRIPE_PRICES && window.STRIPE_PRICES.pro_monthly);
-
-    try {
-      const r = await fetch('/.netlify/functions/stripe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
-        body: JSON.stringify({ action: 'createCheckout', priceId: priceId, plan: 'pro' }),
-      });
-      const d = await r.json();
-      if(d.ok && d.url){
-        location.href = d.url;
-      } else {
-        alert(d.error || 'Something went wrong. Please try again.');
-        btn.textContent = 'Get Pro — 7-day free trial →';
-        btn.disabled = false;
-      }
-    } catch(e){
-      alert('Network error. Please try again.');
-      btn.textContent = 'Get Pro — 7-day free trial →';
-      btn.disabled = false;
-    }
-  }
-
-  let annual=false;
-
-  // Load pricing from config (admin panel can update these)
-  (function(){
-    try{
-      const cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}');
-      const proMonthly = cfg.proMonthlyPrice || 2.99;
-      const proAnnual = cfg.proAnnualPrice || 86;
-      const adviserMonthly = cfg.adviserMonthlyPrice || 29;
-      const freeScenarioLimit = cfg.freeScenarioLimit || 1;
-
-      // Update Pro price
-      const proAmtEl = document.getElementById('pro-amt');
-      if(proAmtEl) proAmtEl.textContent = 'A$' + proMonthly.toFixed(2);
-      const proOrigEl = document.getElementById('pro-orig');
-      if(proOrigEl) proOrigEl.textContent = 'A$9';
-      const tblProEl = document.getElementById('tbl-pro');
-      if(tblProEl) tblProEl.innerHTML = `<span style="text-decoration:line-through;opacity:0.45;">$9</span> $${proMonthly.toFixed(2)}/mo`;
-
-      // Update Adviser price
-      const advAmtEl = document.getElementById('adv-amt');
-      if(advAmtEl) advAmtEl.textContent = 'A$' + adviserMonthly.toFixed(2);
-      const tblAdvEl = document.getElementById('tbl-adv');
-      if(tblAdvEl) tblAdvEl.textContent = `A$${adviserMonthly.toFixed(2)}/mo`;
-
-      // Update saved scenarios limit in free plan
-      const freeLimitText = `${freeScenarioLimit} saved scenario${freeScenarioLimit > 1 ? 's' : ''}`;
-      const freeLimitEl = document.getElementById('free-saved-limit');
-      if(freeLimitEl) freeLimitEl.textContent = freeLimitText;
-      const tblFreeLimitEl = document.getElementById('tbl-free-limit');
-      if(tblFreeLimitEl) tblFreeLimitEl.textContent = freeScenarioLimit;
-    }catch(e){ console.warn('[pricing] Config load error:', e); }
-  })();
-
-  // Auto-trigger checkout if redirected back after login
-  if(new URLSearchParams(location.search).get('checkout')==='1'){
-    setTimeout(startCheckout, 800);
-  }
-
-</script>
+<script src="pricing.js"></script>
 
 </body>
 </html>

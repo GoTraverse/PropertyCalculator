@@ -79,7 +79,7 @@ function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&l
 async function notifyAdminsNewUser(email, name, plan){
   if(!RESEND_API_KEY) return;
   try{
-    const keys=await redisCmd('KEYS','user:*');
+    const keys=await scanAll('user:*');
     if(!keys||!keys.length) return;
     const users=await Promise.all(keys.map(k=>rGet(k)));
     const admins=users.filter(u=>u&&u.role==='admin'&&u.email);
@@ -176,6 +176,48 @@ async function rListPush(key,val){
   await redisCmd('LTRIM',key,'0','199');
 }
 async function rListRange(key,start,stop){ return redisCmd('LRANGE',key,String(start),String(stop)); }
+
+// Delete all Redis keys associated with a user account.
+// userData must contain: email, id (userId), and optionally stripeCustomerId.
+async function deleteUserKeys(userData){
+  const uid = userData.id;
+  const email = userData.email.toLowerCase().trim();
+  const delOps = [
+    rDel('user:'+email),
+    rDel('profile:'+uid),
+    rDel('photo:'+uid),
+    rDel('uid:'+uid),
+    rDel('events:'+uid),
+  ];
+  if(userData.stripeCustomerId) delOps.push(rDel('cid:'+userData.stripeCustomerId));
+  // Delete all scenarios for this user
+  try{
+    const raw = await redisCmd('GET','scenarios:'+uid+':index');
+    const index = raw ? (()=>{ try{return JSON.parse(raw);}catch(e){return[];} })() : [];
+    if(Array.isArray(index) && index.length){
+      for(const s of index){
+        delOps.push(rDel('scenarios:'+uid+':state:'+s.id));
+        delOps.push(rDel('scenarios:'+uid+':photo:'+s.id));
+        delOps.push(rDel('share:'+uid+':'+s.id));
+      }
+    }
+    delOps.push(rDel('scenarios:'+uid+':index'));
+  }catch(e){ /* non-fatal — scenarios may not exist */ }
+  await Promise.all(delOps);
+}
+
+// Scan all keys matching a pattern. Safer than KEYS for large datasets.
+async function scanAll(pattern){
+  const results=[];
+  let cursor='0';
+  do{
+    const res=await redisCmd('SCAN',cursor,'MATCH',pattern,'COUNT','200');
+    cursor=String(res[0]);
+    if(res[1]&&res[1].length) results.push(...res[1]);
+  }while(cursor!=='0');
+  return results;
+}
+
 // Increment a rate-limit counter; sets TTL on first increment. Returns current count.
 async function rRateInc(key,ttlSecs){
   const count=await redisCmd('INCR',key);
@@ -511,15 +553,8 @@ exports.handler = async function(event){
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
     if(userData.hash!==hashPw(password)) return fail('Incorrect password');
-    // Delete all user data
-    await rDel('user:'+user.email);
-    await rDel('profile:'+user.userId);
-    await rDel('photo:'+user.userId);
-    await rDel('uid:'+user.userId);
-    await rDel('token:'+(body.token||''));
-    // Scenarios in Redis (scenarios:{userId}:*) are namespaced under userId —
-    // they become inaccessible without a valid token (verify checks user existence).
-    // A background purge job can clean them up later if needed.
+    await deleteUserKeys(userData);
+    if(body.token) await rDel('token:'+body.token);
     return ok({ok:true});
   }
 
@@ -528,7 +563,7 @@ exports.handler = async function(event){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     // Return limited user data — no passwords
-    const keys=await redisCmd('KEYS','user:*');
+    const keys=await scanAll('user:*');
     if(!keys||!keys.length) return ok({ok:true,users:[]});
     const users=await Promise.all(keys.map(async k=>{
       const u=await rGet(k);
@@ -559,10 +594,7 @@ exports.handler = async function(event){
     if(!targetEmail) return fail('targetEmail required');
     const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
     if(!userData) return fail('User not found');
-    await rDel('user:'+targetEmail.toLowerCase().trim());
-    await rDel('profile:'+userData.id);
-    await rDel('photo:'+userData.id);
-    await rDel('uid:'+userData.id);
+    await deleteUserKeys(userData);
     return ok({ok:true});
   }
 
@@ -600,7 +632,7 @@ exports.handler = async function(event){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user) return fail('Unauthorized',401);
     // Check if any admin exists
-    const keys=await redisCmd('KEYS','user:*');
+    const keys=await scanAll('user:*');
     if(keys&&keys.length){
       const users=await Promise.all(keys.map(async k=>rGet(k)));
       const hasAdmin=users.some(u=>u&&u.role==='admin');
@@ -664,9 +696,9 @@ exports.handler = async function(event){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
-      const userKeys=await redisCmd('KEYS','user:*');
-      const tokenKeys=await redisCmd('KEYS','token:*');
-      const scenarioKeys=await redisCmd('KEYS','scenarios:*:index');
+      const userKeys=await scanAll('user:*');
+      const tokenKeys=await scanAll('token:*');
+      const scenarioKeys=await scanAll('scenarios:*:index');
       // Get plan breakdown from user records
       const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
       const validUsers=users.filter(Boolean);
@@ -710,7 +742,7 @@ exports.handler = async function(event){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
-      const tokenKeys=await redisCmd('KEYS','token:*');
+      const tokenKeys=await scanAll('token:*');
       if(!tokenKeys||!tokenKeys.length) return ok({ok:true,count:0});
       let count=0;
       await Promise.all(tokenKeys.map(async k=>{
@@ -727,9 +759,9 @@ exports.handler = async function(event){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
-      const profileKeys=await redisCmd('KEYS','profile:*');
+      const profileKeys=await scanAll('profile:*');
       if(!profileKeys||!profileKeys.length) return ok({ok:true,count:0});
-      const userKeys=await redisCmd('KEYS','user:*');
+      const userKeys=await scanAll('user:*');
       // Build set of valid user IDs
       const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
       const validIds=new Set(users.filter(Boolean).map(u=>u.id));
@@ -746,9 +778,9 @@ exports.handler = async function(event){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
-      const scenarioKeys=await redisCmd('KEYS','scenarios:*');
+      const scenarioKeys=await scanAll('scenarios:*');
       if(!scenarioKeys||!scenarioKeys.length) return ok({ok:true,count:0});
-      const userKeys=await redisCmd('KEYS','user:*');
+      const userKeys=await scanAll('user:*');
       const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
       const validIds=new Set(users.filter(Boolean).map(u=>u.id));
       let count=0;
@@ -796,7 +828,7 @@ exports.handler = async function(event){
     // Count active tokens belonging to this user
     let activeTokens=0;
     try{
-      const tokenKeys=await redisCmd('KEYS','token:*');
+      const tokenKeys=await scanAll('token:*');
       if(tokenKeys&&tokenKeys.length){
         const tokens=await Promise.all(tokenKeys.map(k=>rGet(k)));
         activeTokens=tokens.filter(t=>t&&t.userId===userData.id&&(!t.expires||Date.now()<t.expires)).length;
