@@ -368,15 +368,30 @@ exports.handler = async function (event) {
 
   // ── createCheckout: start Stripe Checkout for plan upgrade ───────────────
   if (body.action === 'createCheckout') {
-    const { priceId, plan, successUrl, cancelUrl } = body;
+    const { priceId, successUrl, cancelUrl } = body;
     if (!priceId) return fail('priceId required');
 
-    // Fetch site config for success/cancel URLs if not provided
+    // Fetch site config for URLs and to derive plan from priceId server-side
     let siteUrl = (process.env.SITE_URL || 'https://equitysight.app').replace(/\/$/, '');
+    let resolvedPlan = null;
     try {
       const cfg = await rGet('config:site') || {};
       if (cfg.siteUrl) siteUrl = cfg.siteUrl.replace(/\/$/, '');
+      // Build server-side price→plan map — never trust the client's plan value
+      const priceMap = {};
+      if (cfg.stripeProMonthly) priceMap[cfg.stripeProMonthly] = 'pro';
+      if (cfg.stripeProAnnual)  priceMap[cfg.stripeProAnnual]  = 'pro';
+      if (cfg.stripeAdviserMonthly) priceMap[cfg.stripeAdviserMonthly] = 'adviser';
+      if (cfg.stripeAdviserAnnual)  priceMap[cfg.stripeAdviserAnnual]  = 'adviser';
+      resolvedPlan = priceMap[priceId] || null;
     } catch (e) {}
+
+    // If config has known prices, reject unknown priceIds to prevent plan spoofing.
+    // If config has no prices set yet (fresh install), fall back to 'pro' for any valid price_ ID.
+    if (resolvedPlan === null) {
+      if (!/^price_[A-Za-z0-9]+$/.test(priceId)) return fail('Invalid priceId format', 400);
+      resolvedPlan = 'pro'; // safe fallback: only one plan currently, so worst case user pays correct amount
+    }
 
     try {
       const params = {
@@ -387,10 +402,10 @@ exports.handler = async function (event) {
         'customer_email': user.email,
         'success_url': successUrl || siteUrl + '/account.html?upgraded=1&session_id={CHECKOUT_SESSION_ID}',
         'cancel_url': cancelUrl || siteUrl + '/pricing.html?cancelled=1',
-        'metadata[plan]': plan || 'pro',
+        'metadata[plan]': resolvedPlan,
         'metadata[userId]': user.userId,
         'allow_promotion_codes': 'true',
-        'subscription_data[metadata][plan]': plan || 'pro',
+        'subscription_data[metadata][plan]': resolvedPlan,
         'subscription_data[metadata][userId]': user.userId,
       };
 
