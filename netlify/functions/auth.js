@@ -176,6 +176,12 @@ async function rListPush(key,val){
   await redisCmd('LTRIM',key,'0','199');
 }
 async function rListRange(key,start,stop){ return redisCmd('LRANGE',key,String(start),String(stop)); }
+// Increment a rate-limit counter; sets TTL on first increment. Returns current count.
+async function rRateInc(key,ttlSecs){
+  const count=await redisCmd('INCR',key);
+  if(count===1) await redisCmd('EXPIRE',key,String(ttlSecs));
+  return count;
+}
 
 // Append a structured event for a userId
 async function logEvent(userId,type,extra){
@@ -271,9 +277,14 @@ exports.handler = async function(event){
     const {email,password}=body;
     if(!email||!password) return fail('Email and password required');
     const normalizedEmail=email.toLowerCase().trim();
+    // Rate limit: max 10 failed attempts per email per 15 minutes
+    const failKey='loginFail:'+normalizedEmail;
+    const failCount=Number(await rGet(failKey)||0);
+    if(failCount>=10) return fail('Too many failed sign-in attempts. Please wait 15 minutes or reset your password.');
     const user=await rGet('user:'+normalizedEmail);
-    if(!user) return fail('No account found for this email');
-    if(user.hash!==hashPw(password)) return fail('Incorrect password');
+    if(!user){ await rRateInc(failKey,900); return fail('No account found for this email'); }
+    if(user.hash!==hashPw(password)){ await rRateInc(failKey,900); return fail('Incorrect password'); }
+    await rDel(failKey); // clear on success
     if(user.emailVerified===false){
       return ok({ok:false,error:'Please verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
     }
@@ -435,6 +446,10 @@ exports.handler = async function(event){
     const {email}=body;
     if(!email) return fail('Email required');
     const normalizedEmail=email.toLowerCase().trim();
+    // Rate limit: max 3 reset emails per email per hour (prevent email bombing)
+    const rrKey='pwResetReq:'+normalizedEmail;
+    const rrCount=await rRateInc(rrKey,3600);
+    if(rrCount>3) return ok({ok:true,message:'If an account exists, a reset code has been sent.'}); // silent cap
     const userData=await rGet('user:'+normalizedEmail);
     // Always return ok to prevent email enumeration
     if(userData){

@@ -1819,15 +1819,19 @@ async function saveSchemes(){
 async function callGrowth(payload){
   const sess = getSession();
   const token = sess && sess.token;
-  const r = await fetch('/.netlify/functions/growth', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + (token || '')
-    },
-    body: JSON.stringify(payload)
-  });
-  return r.json();
+  try {
+    const r = await fetch('/.netlify/functions/growth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (token || '')
+      },
+      body: JSON.stringify(payload)
+    });
+    return r.json();
+  } catch(e) {
+    return { ok: false, error: 'Network error — check your connection and try again.' };
+  }
 }
 
 async function loadGrowthData(){
@@ -1926,12 +1930,16 @@ async function deleteGrowthEntry(suburb, state){
 async function callClientErrors(payload){
   const sess = getSession();
   const token = sess && sess.token;
-  const r = await fetch('/.netlify/functions/client-errors', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
-    body: JSON.stringify(payload)
-  });
-  return r.json();
+  try {
+    const r = await fetch('/.netlify/functions/client-errors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      body: JSON.stringify(payload)
+    });
+    return r.json();
+  } catch(e) {
+    return { ok: false, error: 'Network error — check your connection and try again.' };
+  }
 }
 
 let _allClientErrors = [];
