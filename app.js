@@ -1392,8 +1392,8 @@
         <div class="lib-row" onclick="promptLoadScenario('${s.id}')">
           <div class="lib-thumb" id="thumb-${s.id}"><span style="font-size:24px;">🏠</span></div>
           <div class="lib-info">
-            <div class="lib-addr">${s.fullAddr}</div>
-            <div class="lib-meta">${stats}</div>
+            <div class="lib-addr">${escHtml(s.fullAddr||'')}</div>
+            <div class="lib-meta">${escHtml(stats)}</div>
           </div>
           <div class="lib-price">${price}</div>
           <div class="lib-badge" style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}55;">${sLabel}</div>

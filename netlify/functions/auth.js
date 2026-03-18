@@ -268,6 +268,7 @@ exports.handler = async function(event){
     }
     await rSet(ekey,user);
     await rSet('referral:'+refCode,userId);
+    await rSet('uid:'+userId,normalizedEmail); // reverse index for scenarios auth
     await logEvent(userId,'signup',{name:user.name,email:normalizedEmail,plan:user.plan});
     await sendVerificationEmail(normalizedEmail, code);
     return ok({ok:true,requiresEmailVerification:true,email:user.email,plan:user.plan,name:user.name});
@@ -285,6 +286,7 @@ exports.handler = async function(event){
     if(!user){ await rRateInc(failKey,900); return fail('No account found for this email'); }
     if(user.hash!==hashPw(password)){ await rRateInc(failKey,900); return fail('Incorrect password'); }
     await rDel(failKey); // clear on success
+    if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
     if(user.emailVerified===false){
       return ok({ok:false,error:'Please verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
     }

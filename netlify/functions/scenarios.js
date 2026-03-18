@@ -59,12 +59,10 @@ async function verifyToken(authHeader){
 // Prevents arbitrary userId injection — must correspond to a real account
 async function verifyUserId(userId){
   if(!userId||typeof userId!=='string'||userId.length<4) return false;
-  // userId is the 'id' field stored in user records, e.g. "lp3x4a8f..."
-  // We look for it in the user index. Efficient: userId is in the token payload,
-  // and we store it on signup. We trust it here because the alternative (brute-forcing
-  // a valid userId) is rate-limited by Upstash and the IDs are random hex.
-  // For extra security you can add an allow-list check here.
-  return true; // Accept any non-empty userId — Redis namespacing isolates users
+  // Verify against the uid: reverse index written by auth.js on signup/signin.
+  // Prevents unauthenticated access to any userId — must be a real registered account.
+  const email = await redisCmd('GET','uid:'+userId);
+  return !!email;
 }
 
 function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
