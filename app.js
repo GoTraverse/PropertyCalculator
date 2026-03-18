@@ -2642,8 +2642,8 @@
 </style>
 </head>
 <body>
-<button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
-<button class="share-btn" onclick="(async()=>{try{const r=await fetch(location.href);const b=await r.blob();const f=new File([b],'property-report.html',{type:'text/html'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Property Finance Report'});}else if(navigator.share){await navigator.share({title:'Property Finance Report',url:location.href});}else{window.print();}}catch(e){window.print();}})()">↑ Share Report</button>
+<button class="print-btn" id="pdf-print-btn">🖨 Print / Save as PDF</button>
+<button class="share-btn" id="pdf-share-btn">↑ Share Report</button>
 <div class="page">
   <header>
     <div class="htext">
@@ -2767,151 +2767,34 @@
 
 <!-- PDF Action Buttons -->
 <div style="padding:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;border-top:1px solid #eee;margin-top:20px;">
-  <button onclick="window.print()" style="padding:12px 20px;background:#1C1C1E;border:none;border-radius:4px;color:#C9A84C;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">🖨 Print</button>
-  <button onclick="navigator.share?navigator.share({title:'Property Analysis',text:'${fullAddr}',url:window.location.href}).catch(()=>{}):alert('Share not available');" style="padding:12px 20px;background:#7B9E87;border:none;border-radius:4px;color:white;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
+  <button id="pdf-preview-print-btn" style="padding:12px 20px;background:#1C1C1E;border:none;border-radius:4px;color:#C9A84C;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">🖨 Print</button>
+  <button id="pdf-preview-share-btn" style="padding:12px 20px;background:#7B9E87;border:none;border-radius:4px;color:white;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
 </div>
 </div>
-<script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
-
-
-<!-- account panel intentionally hidden in PDF export -->
-<style>
-#account-panel-overlay{
-  display:none!important;position:fixed;inset:0;z-index:3000;
-  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
-}
-#account-panel-overlay.open{display:block;}
-#account-panel{
-  position:fixed;top:0;right:-480px;width:min(480px,100vw);height:100vh;
-  background:var(--warm-white);z-index:3001;overflow-y:auto;
-  transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
-  box-shadow:-8px 0 40px rgba(0,0,0,0.3);
-  padding-top:env(safe-area-inset-top,0px);
-}
-#account-panel.open{right:0;}
-.ap-header{
-  background:var(--charcoal);color:var(--cream);
-  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:1;
-}
-.ap-header h2{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.7);margin:0;}
-.ap-close{width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--cream);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
-.ap-body{padding:24px;}
-.ap-section{margin-bottom:24px;}
-.ap-section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--slate);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.08);}
-.ap-card{background:white;border-radius:8px;border:1px solid rgba(28,28,30,0.08);padding:16px;margin-bottom:12px;}
-.ap-field{margin-bottom:12px;}
-.ap-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate);display:block;margin-bottom:5px;}
-.ap-input{width:100%;background:var(--warm-white);border:1px solid rgba(28,28,30,0.12);border-radius:4px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--charcoal);outline:none;box-sizing:border-box;}
-.ap-input:focus{border-color:rgba(201,168,76,0.6);background:white;}
-.ap-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.ap-btn{padding:10px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.5px;cursor:pointer;border:none;font-weight:600;}
-.ap-btn-primary{background:var(--charcoal);color:var(--cream);}
-.ap-btn-primary:hover{opacity:0.85;}
-.ap-btn-gold{background:var(--gold);color:var(--charcoal);}
-.ap-btn-gold:hover{opacity:0.88;}
-.ap-btn-danger{background:transparent;border:1px solid rgba(196,90,90,0.4);color:var(--risk-red);}
-.ap-btn-danger:hover{background:rgba(196,90,90,0.06);}
-.ap-status{font-size:12px;margin-top:8px;padding:6px 10px;border-radius:3px;display:none;}
-.ap-status.ok{display:block;background:rgba(90,158,123,0.1);color:var(--reward-green);}
-.ap-status.err{display:block;background:rgba(196,90,90,0.08);color:var(--risk-red);}
-.ap-avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
-.ap-avatar{width:56px;height:56px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--charcoal);overflow:hidden;flex-shrink:0;}
-.ap-plan-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;border:1px solid rgba(201,168,76,0.3);background:rgba(201,168,76,0.08);color:var(--gold);}
-.ap-color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-.ap-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s,border-color 0.15s;}
-.ap-swatch:hover,.ap-swatch.active{transform:scale(1.2);border-color:white;box-shadow:0 0 0 1px rgba(0,0,0,0.2);}
-</style>
-
-<div id="account-panel-overlay" onclick="closeAccountPanel()"></div>
-<div id="account-panel">
-  <div class="ap-header">
-    <h2>Account Settings</h2>
-    <button class="ap-close" onclick="closeAccountPanel()">✕</button>
-  </div>
-  <div class="ap-body">
-    
-    <!-- Profile -->
-    <div class="ap-section">
-      <div class="ap-section-title">Profile</div>
-      <div class="ap-card">
-        <div class="ap-avatar-row">
-          <div class="ap-avatar" id="ap-avatar">ES</div>
-          <div>
-            <div style="font-size:14px;font-weight:600;color:var(--charcoal);" id="ap-name-display">Loading…</div>
-            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate);margin-top:2px;" id="ap-email-display"></div>
-            <div class="ap-plan-badge" id="ap-plan-display" style="margin-top:8px;">Starter</div>
-          </div>
-        </div>
-        <div class="ap-field">
-          <label class="ap-label">Display Name</label>
-          <input class="ap-input" id="ap-name" type="text" placeholder="Your name">
-        </div>
-        <div class="ap-field">
-          <label class="ap-label">Avatar Colour</label>
-          <div class="ap-color-row" id="ap-colors"></div>
-        </div>
-        <div class="ap-field">
-          <label class="ap-label">Profile Photo</label>
-          <input type="file" id="ap-photo-input" accept="image/*" style="display:none" onchange="apLoadPhoto(this)">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="ap-btn ap-btn-primary" onclick="document.getElementById('ap-photo-input').click()">📷 Upload Photo</button>
-            <button class="ap-btn" style="background:rgba(196,90,90,0.08);color:var(--risk-red);border:1px solid rgba(196,90,90,0.2);" onclick="apRemovePhoto()">Remove</button>
-          </div>
-        </div>
-        <button class="ap-btn ap-btn-gold" onclick="apSaveProfile()">Save Profile</button>
-        <div class="ap-status" id="ap-profile-status"></div>
-      </div>
-    </div>
-
-    <!-- Plan -->
-    <div class="ap-section">
-      <div class="ap-section-title">Subscription</div>
-      <div class="ap-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--charcoal);" id="ap-plan-name">Starter (Free)</div>
-            <div style="font-size:12px;color:var(--slate);margin-top:3px;" id="ap-plan-desc">1 saved scenario · Core calculator</div>
-          </div>
-          <button class="ap-btn ap-btn-gold" id="ap-upgrade-btn" onclick="location.href='pricing.html'" style="display:none;">Upgrade to Pro →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Security -->
-    <div class="ap-section">
-      <div class="ap-section-title">Security</div>
-      <div class="ap-card">
-        <div class="ap-field">
-          <label class="ap-label">Current Password</label>
-          <input class="ap-input" id="ap-pw-current" type="password" placeholder="Enter current password" autocomplete="current-password">
-        </div>
-        <div class="ap-row">
-          <div class="ap-field">
-            <label class="ap-label">New Password</label>
-            <input class="ap-input" id="ap-pw-new" type="password" placeholder="8+ characters" autocomplete="new-password">
-          </div>
-          <div class="ap-field">
-            <label class="ap-label">Confirm New</label>
-            <input class="ap-input" id="ap-pw-confirm" type="password" placeholder="Repeat password" autocomplete="new-password">
-          </div>
-        </div>
-        <button class="ap-btn ap-btn-primary" onclick="apChangePassword()">Update Password</button>
-        <div class="ap-status" id="ap-pw-status"></div>
-      </div>
-    </div>
-
-    <!-- Danger -->
-    <div class="ap-section">
-      <div class="ap-section-title">Danger Zone</div>
-      <div class="ap-card">
-        <div style="font-size:12px;color:var(--slate);margin-bottom:12px;">Permanently delete your account and all saved scenarios. This cannot be undone.</div>
-        <button class="ap-btn ap-btn-danger" onclick="apDeleteAccount()">Delete My Account</button>
-      </div>
-    </div>
-
-  </div>
-</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var printBtn = document.getElementById('pdf-print-btn');
+    if (printBtn) printBtn.addEventListener('click', function() { window.print(); });
+    var shareBtn = document.getElementById('pdf-share-btn');
+    if (shareBtn) shareBtn.addEventListener('click', async function() {
+      try {
+        var r = await fetch(location.href); var b = await r.blob();
+        var f = new File([b], 'property-report.html', {type:'text/html'});
+        if (navigator.canShare && navigator.canShare({files:[f]})) { await navigator.share({files:[f], title:'Property Finance Report'}); }
+        else if (navigator.share) { await navigator.share({title:'Property Finance Report', url:location.href}); }
+        else { window.print(); }
+      } catch(e) { window.print(); }
+    });
+    var previewPrint = document.getElementById('pdf-preview-print-btn');
+    if (previewPrint) previewPrint.addEventListener('click', function() { window.print(); });
+    var previewShare = document.getElementById('pdf-preview-share-btn');
+    if (previewShare) previewShare.addEventListener('click', function() {
+      if (navigator.share) { navigator.share({title:'Property Analysis', url:window.location.href}).catch(function(){}); }
+      else { alert('Share not available'); }
+    });
+  });
+  setTimeout(function(){if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);
+<\/script>
 </body></html>`;
 
     const blob = new Blob([html], {type:'text/html'});

@@ -169,9 +169,11 @@ var ToolPage = (function() {
       '</div>' +
       '<div class="tool-save-prompt-actions">' +
         '<a href="' + escHtml(signupHref || '../login.html?tab=signup') + '" class="tool-save-prompt-btn">Create free account \u2192</a>' +
-        '<button class="tool-save-prompt-dismiss" onclick="ToolPage.dismissSavePrompt()" aria-label="Dismiss">Not now</button>' +
+        '<button class="tool-save-prompt-dismiss" id="tool-save-prompt-dismiss-btn" aria-label="Dismiss">Not now</button>' +
       '</div>';
     document.body.appendChild(el);
+    var dismissBtn = document.getElementById('tool-save-prompt-dismiss-btn');
+    if (dismissBtn) dismissBtn.addEventListener('click', dismissSavePrompt);
   }
 
   function _maybeShowSavePrompt() {
