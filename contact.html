@@ -161,6 +161,10 @@
 <script src="footer.js"></script>
 
 <script>
+  function showChatNotice(){
+    alert('Live chat is available to Pro subscribers during business hours (AEST Mon\u2013Fri). Upgrade to Pro or send us an email and we\u2019ll get back to you within 24 hours.');
+  }
+
   async function submitForm(){
     const fname=document.getElementById('cf-fname').value.trim();
     const lname=(document.getElementById('cf-lname')||{}).value||'';
