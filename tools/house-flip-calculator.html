@@ -59,21 +59,21 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="purchase">Purchase price</label>
-        <input class="tool-input" type="text" id="purchase" value="520,000" placeholder="e.g. 520,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="purchase" value="520,000" placeholder="e.g. 520,000" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="stamp">Stamp duty</label>
-        <input class="tool-input" type="text" id="stamp" placeholder="e.g. 18,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="stamp" placeholder="e.g. 18,000" >
       </div>
     </div>
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="buyconvey">Conveyancing (buy)</label>
-        <input class="tool-input" type="text" id="buyconvey" placeholder="e.g. 1,500" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="buyconvey" placeholder="e.g. 1,500" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="buyinspect">Inspections / due diligence</label>
-        <input class="tool-input" type="text" id="buyinspect" placeholder="e.g. 800" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="buyinspect" placeholder="e.g. 800" >
       </div>
     </div>
 
@@ -81,7 +81,7 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="reno">Renovation budget</label>
-        <input class="tool-input" type="text" id="reno" placeholder="e.g. 85,000" oninput="fmtInput(this); updateContingency();">
+        <input class="tool-input" type="text" id="reno" placeholder="e.g. 85,000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="renocontingency">Contingency (15%)</label>
@@ -97,7 +97,7 @@
       </div>
       <div class="tool-field">
         <label class="tool-label" for="monthly">Monthly holding costs ($)</label>
-        <input class="tool-input" type="text" id="monthly" placeholder="e.g. 3,200" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="monthly" placeholder="e.g. 3,200" >
       </div>
     </div>
 
@@ -105,7 +105,7 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="saleprice">Expected sale price</label>
-        <input class="tool-input" type="text" id="saleprice" value="750,000" placeholder="e.g. 750,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="saleprice" value="750,000" placeholder="e.g. 750,000" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="commission">Agent commission (%)</label>
@@ -115,15 +115,15 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="sellconvey">Conveyancing (sell)</label>
-        <input class="tool-input" type="text" id="sellconvey" placeholder="e.g. 1,500" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="sellconvey" placeholder="e.g. 1,500" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="staging">Styling / staging</label>
-        <input class="tool-input" type="text" id="staging" placeholder="e.g. 3,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="staging" placeholder="e.g. 3,000" >
       </div>
     </div>
 
-    <button class="tool-btn" onclick="calculate()">Calculate Flip Profit</button>
+    <button class="tool-btn" id="flip-calc-btn">Calculate Flip Profit</button>
   </div>
 
   <div class="tool-result" id="result" style="display:none">
@@ -302,6 +302,11 @@ ToolPage.init({
 var _isInit = true;
 calculate();
 _isInit = false;
+['purchase','stamp','buyconvey','buyinspect','monthly','saleprice','sellconvey','staging'].forEach(function(id) {
+  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+});
+document.getElementById('reno').addEventListener('input', function(){ fmtInput(this); updateContingency(); });
+document.getElementById('flip-calc-btn').addEventListener('click', calculate);
 </script>
 
 </body>

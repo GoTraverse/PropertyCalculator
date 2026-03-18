@@ -59,7 +59,7 @@
 
     <div class="tool-field">
       <label class="tool-label" for="state">State or territory</label>
-      <select class="tool-input tool-select" id="state" onchange="updateState()">
+      <select class="tool-input tool-select" id="state">
         <option value="nsw">New South Wales (NSW)</option>
         <option value="vic">Victoria (VIC)</option>
         <option value="qld">Queensland (QLD)</option>
@@ -75,7 +75,7 @@
 
     <div class="tool-field">
       <label class="tool-label" for="price">Property purchase price</label>
-      <input class="tool-input" type="text" id="price" value="550,000" placeholder="e.g. 550,000" oninput="fmtInput(this)">
+      <input class="tool-input" type="text" id="price" value="550,000" placeholder="e.g. 550,000">
     </div>
 
     <div class="tool-field">
@@ -87,7 +87,7 @@
       </select>
     </div>
 
-    <button class="tool-btn" onclick="calculate()">Check Available Assistance</button>
+    <button class="tool-btn" id="fhb-calc-btn">Check Available Assistance</button>
   </div>
 
   <div class="tool-result" id="result" style="display:none">
@@ -298,6 +298,9 @@ window.addEventListener('DOMContentLoaded', function() {
   updateState();
   calculate();
   _isInit = false;
+  document.getElementById('state').addEventListener('change', updateState);
+  document.getElementById('price').addEventListener('input', function(){ fmtInput(this); });
+  document.getElementById('fhb-calc-btn').addEventListener('click', calculate);
 });
 </script>
 

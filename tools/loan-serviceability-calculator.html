@@ -61,17 +61,17 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="salary">Your salary/wages ($/yr)</label>
-        <input class="tool-input" type="text" id="salary" value="120,000" placeholder="e.g. 120,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="salary" value="120,000" placeholder="e.g. 120,000" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="partner">Partner salary/wages ($/yr)</label>
-        <input class="tool-input" type="text" id="partner" placeholder="e.g. 85,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="partner" placeholder="e.g. 85,000" >
       </div>
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="other">Other income (rental, investment, etc.)</label>
-      <input class="tool-input" type="text" id="other" placeholder="e.g. 15,000" oninput="fmtInput(this)">
+      <input class="tool-input" type="text" id="other" placeholder="e.g. 15,000" >
     </div>
 
     <div class="tool-card-title" style="margin-top:20px;">Monthly expenses</div>
@@ -79,11 +79,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="expenses">Living expenses (rent, utilities, food, transport, etc.)</label>
-        <input class="tool-input" type="text" id="expenses" placeholder="e.g. 4,500" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="expenses" placeholder="e.g. 4,500" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="debt">Existing debt repayments (credit cards, car loans, HECS)</label>
-        <input class="tool-input" type="text" id="debt" placeholder="e.g. 1,200" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="debt" placeholder="e.g. 1,200" >
       </div>
     </div>
 
@@ -93,7 +93,7 @@
       <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
     </div>
 
-    <button class="tool-btn" onclick="calculate()">Calculate Borrowing Capacity</button>
+    <button class="tool-btn" id="loan-calc-btn">Calculate Borrowing Capacity</button>
   </div>
 
   <div class="tool-result" id="result" style="display:none">
@@ -282,6 +282,10 @@ ToolPage.init({
 var _isInit = true;
 calculate();
 _isInit = false;
+['salary','partner','other','expenses','debt'].forEach(function(id) {
+  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+});
+document.getElementById('loan-calc-btn').addEventListener('click', calculate);
 </script>
 
 </body>

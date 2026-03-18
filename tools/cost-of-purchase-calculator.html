@@ -61,21 +61,21 @@
       <div class="cost-inputs-left">
         <div class="tool-field">
           <label class="tool-label">Purchase Price</label>
-          <input type="number" id="purchasePrice" class="tool-input" value="550000" oninput="dCalc()" min="0" step="10000">
+          <input type="number" id="purchasePrice" class="tool-input" value="550000" min="0" step="10000">
         </div>
         <div class="tool-field">
           <label class="tool-label">Your Deposit %</label>
-          <input type="number" id="depositPct" class="tool-input" value="10" oninput="dCalc()" min="0" max="100" step="0.5">
+          <input type="number" id="depositPct" class="tool-input" value="10" min="0" max="100" step="0.5">
         </div>
         <div class="tool-field">
           <label class="tool-label">Loan Amount (auto)</label>
-          <input type="number" id="loanAmount" class="tool-input" value="495000" oninput="dCalc()" min="0" step="10000" readonly style="opacity:0.6;">
+          <input type="number" id="loanAmount" class="tool-input" value="495000" min="0" step="10000" readonly style="opacity:0.6;">
         </div>
       </div>
       <div class="cost-inputs-right">
         <div class="tool-field">
           <label class="tool-label">State</label>
-          <select id="state" class="tool-select" oninput="dCalc()">
+          <select id="state" class="tool-select">
             <option value="NSW">New South Wales (NSW)</option>
             <option value="VIC">Victoria (VIC)</option>
             <option value="QLD">Queensland (QLD)</option>
@@ -87,15 +87,15 @@
           </select>
         </div>
         <div class="tool-check">
-          <input type="checkbox" id="fhb" oninput="dCalc()">
+          <input type="checkbox" id="fhb">
           <label for="fhb">First home buyer (may reduce stamp duty)</label>
         </div>
         <div class="tool-check">
-          <input type="checkbox" id="foreignBuyer" oninput="dCalc()">
+          <input type="checkbox" id="foreignBuyer">
           <label for="foreignBuyer">Foreign buyer (subject to surcharge)</label>
         </div>
         <div class="tool-check">
-          <input type="checkbox" id="currentlyRenting" oninput="dCalc()">
+          <input type="checkbox" id="currentlyRenting">
           <label for="currentlyRenting">Currently renting</label>
         </div>
       </div>
@@ -104,15 +104,15 @@
     <div id="rentGroup" style="display: none;">
       <div class="tool-field">
         <label class="tool-label">Weekly Rent</label>
-        <input type="number" id="weeklyRent" class="tool-input" value="500" oninput="dCalc()" min="0" step="10">
+        <input type="number" id="weeklyRent" class="tool-input" value="500" min="0" step="10">
       </div>
       <div class="tool-field">
         <label class="tool-label">Lease Break Cost</label>
-        <input type="number" id="leaseBreak" class="tool-input" value="2000" oninput="dCalc()" min="0" step="100">
+        <input type="number" id="leaseBreak" class="tool-input" value="2000" min="0" step="100">
       </div>
     </div>
 
-    <button class="tool-btn" onclick="calc()">Calculate Costs</button>
+    <button class="tool-btn" id="cop-calc-btn">Calculate Costs</button>
   </div>
 
   <div class="tool-cost-breakdown">
@@ -415,6 +415,14 @@ ToolPage.init({
 });
 
 calc();
+['purchasePrice','depositPct','weeklyRent','leaseBreak'].forEach(function(id) {
+  document.getElementById(id).addEventListener('input', dCalc);
+});
+document.getElementById('state').addEventListener('change', dCalc);
+['fhb','foreignBuyer','currentlyRenting'].forEach(function(id) {
+  document.getElementById(id).addEventListener('change', dCalc);
+});
+document.getElementById('cop-calc-btn').addEventListener('click', calc);
 </script>
 
 </body>

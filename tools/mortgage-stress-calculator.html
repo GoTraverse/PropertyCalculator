@@ -60,7 +60,7 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="loan">Loan amount</label>
-        <input class="tool-input" type="text" id="loan" value="580,000" placeholder="e.g. 580,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="loan" value="580,000" placeholder="e.g. 580,000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
@@ -92,11 +92,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="income">Gross monthly income ($)</label>
-        <input class="tool-input" type="text" id="income" value="12,500" placeholder="e.g. 12,500" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="income" value="12,500" placeholder="e.g. 12,500">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="expenses">Other monthly debt ($)</label>
-        <input class="tool-input" type="text" id="expenses" placeholder="e.g. 800" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="expenses" placeholder="e.g. 800">
       </div>
     </div>
 
@@ -109,7 +109,7 @@
       </select>
     </div>
 
-    <button class="tool-btn" onclick="calculate()">Run Stress Test</button>
+    <button class="tool-btn" id="stress-calc-btn">Run Stress Test</button>
   </div>
 
   <div class="tool-result" id="result" style="display:none">
@@ -317,6 +317,10 @@ ToolPage.init({
 var _isInit = true;
 calculate();
 _isInit = false;
+['loan','income','expenses'].forEach(function(id) {
+  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+});
+document.getElementById('stress-calc-btn').addEventListener('click', calculate);
 </script>
 
 </body>

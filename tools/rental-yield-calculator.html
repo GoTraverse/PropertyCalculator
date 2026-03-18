@@ -60,11 +60,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="propval">Property value</label>
-        <input class="tool-input" type="text" id="propval" value="750,000" placeholder="e.g. 750,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="propval" value="750,000" placeholder="e.g. 750,000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="weekly">Weekly rent ($)</label>
-        <input class="tool-input" type="text" id="weekly" value="550" placeholder="e.g. 550" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="weekly" value="550" placeholder="e.g. 550">
       </div>
     </div>
 
@@ -73,11 +73,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="rates">Council rates ($/yr)</label>
-        <input class="tool-input" type="text" id="rates" placeholder="e.g. 2,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="rates" placeholder="e.g. 2,000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="insurance">Landlord insurance ($/yr)</label>
-        <input class="tool-input" type="text" id="insurance" placeholder="e.g. 1,500" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="insurance" placeholder="e.g. 1,500">
       </div>
     </div>
     <div class="tool-row">
@@ -88,7 +88,7 @@
       </div>
       <div class="tool-field">
         <label class="tool-label" for="maintenance">Maintenance ($/yr)</label>
-        <input class="tool-input" type="text" id="maintenance" placeholder="e.g. 2,500" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="maintenance" placeholder="e.g. 2,500">
       </div>
     </div>
     <div class="tool-field">
@@ -97,7 +97,7 @@
       <div class="tool-hint">Allow 1–3 weeks for typical properties</div>
     </div>
 
-    <button class="tool-btn" onclick="calculate()">Calculate Rental Yield</button>
+    <button class="tool-btn" id="rent-calc-btn">Calculate Rental Yield</button>
   </div>
 
   <div class="tool-result" id="result" style="display:none">
@@ -268,6 +268,10 @@ ToolPage.init({
 var _isInit = true;
 calculate();
 _isInit = false;
+['propval','weekly','rates','insurance','maintenance'].forEach(function(id) {
+  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+});
+document.getElementById('rent-calc-btn').addEventListener('click', calculate);
 </script>
 
 </body>

@@ -112,7 +112,7 @@
       <label for="contingency">Add 15% contingency buffer (recommended)</label>
     </div>
 
-    <button class="tool-btn" onclick="calculate()">Estimate Renovation Cost</button>
+    <button class="tool-btn" id="reno-calc-btn">Estimate Renovation Cost</button>
   </div>
 
   <div class="tool-result" id="result" style="display:none">
@@ -307,6 +307,7 @@ ToolPage.init({
 var _isInit = true;
 calculate();
 _isInit = false;
+document.getElementById('reno-calc-btn').addEventListener('click', calculate);
 </script>
 
 </body>

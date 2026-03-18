@@ -60,11 +60,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="propval">Current property value</label>
-        <input class="tool-input" type="text" id="propval" value="650,000" placeholder="e.g. 650,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="propval" value="650,000" placeholder="e.g. 650,000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="mortgage">Outstanding mortgage</label>
-        <input class="tool-input" type="text" id="mortgage" value="400,000" placeholder="e.g. 400,000" oninput="fmtInput(this)">
+        <input class="tool-input" type="text" id="mortgage" value="400,000" placeholder="e.g. 400,000">
       </div>
     </div>
 
@@ -77,7 +77,7 @@
       </div>
     </div>
 
-    <button class="tool-btn" onclick="calculate()">Calculate Available Equity</button>
+    <button class="tool-btn" id="equity-calc-btn">Calculate Available Equity</button>
   </div>
 
   <div class="tool-result" id="result" style="display:none">
@@ -224,6 +224,10 @@ ToolPage.init({
 var _isInit = true;
 calculate();
 _isInit = false;
+['propval','mortgage'].forEach(function(id) {
+  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+});
+document.getElementById('equity-calc-btn').addEventListener('click', calculate);
 </script>
 
 </body>
