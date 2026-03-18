@@ -339,6 +339,9 @@ exports.handler = async (event) => {
   // ── POST suburb insights ─────────────────────────────────────────────────────
   if (action === 'suburbInsights') {
     if (!suburb || !state) return fail('suburb and state required');
+    const AU_STATES = ['NSW','VIC','QLD','SA','WA','TAS','NT','ACT'];
+    if (!AU_STATES.includes(String(state).toUpperCase())) return fail('Invalid state');
+    if (String(suburb).length > 100) return fail('suburb too long');
 
     const cacheKey = `market:suburb:${suburb.toLowerCase().replace(/\s+/g, '_')}:${state.toUpperCase()}`;
     const cached = await rGet(cacheKey);

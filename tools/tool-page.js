@@ -146,6 +146,60 @@ var ToolPage = (function() {
     root.innerHTML = html;
   }
 
+  /* ── Save-results prompt ── */
+
+  function _isLoggedIn() {
+    try { var s = JSON.parse(localStorage.getItem('propCalc_session_v1')); return !!(s && s.token); } catch(e) { return false; }
+  }
+
+  function _savePromptDismissed() {
+    try { return sessionStorage.getItem('esSavePromptDismissed') === '1'; } catch(e) { return false; }
+  }
+
+  function _injectSavePrompt(signupHref) {
+    var el = document.createElement('div');
+    el.id = 'tool-save-prompt';
+    el.className = 'tool-save-prompt';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-label', 'Save your results');
+    el.innerHTML =
+      '<div class="tool-save-prompt-text">' +
+        '<strong>Save these results</strong>' +
+        '<span>Free account \u2014 save scenarios, compare properties, export PDF.</span>' +
+      '</div>' +
+      '<div class="tool-save-prompt-actions">' +
+        '<a href="' + escHtml(signupHref || '../login.html?tab=signup') + '" class="tool-save-prompt-btn">Create free account \u2192</a>' +
+        '<button class="tool-save-prompt-dismiss" onclick="ToolPage.dismissSavePrompt()" aria-label="Dismiss">Not now</button>' +
+      '</div>';
+    document.body.appendChild(el);
+  }
+
+  function _maybeShowSavePrompt() {
+    if (_isLoggedIn() || _savePromptDismissed()) return;
+    var el = document.getElementById('tool-save-prompt');
+    if (!el) return;
+    setTimeout(function() { el.classList.add('visible'); }, 1500);
+  }
+
+  function dismissSavePrompt() {
+    var el = document.getElementById('tool-save-prompt');
+    if (el) el.classList.remove('visible');
+    try { sessionStorage.setItem('esSavePromptDismissed', '1'); } catch(e) {}
+  }
+
+  function _watchForResult(signupHref) {
+    _injectSavePrompt(signupHref);
+    var cta = document.getElementById('cta');
+    if (!cta) return;
+    var observer = new MutationObserver(function() {
+      if (cta.style.display !== 'none') {
+        _maybeShowSavePrompt();
+        observer.disconnect();
+      }
+    });
+    observer.observe(cta, { attributes: true, attributeFilter: ['style'] });
+  }
+
   /* ── Init ── */
 
   function init(config) {
@@ -153,6 +207,8 @@ var ToolPage = (function() {
 
     el = document.getElementById('tool-cta-root');
     if (el) renderCTA(el, config.cta);
+
+    _watchForResult(config.cta && config.cta.buttonHref);
 
     el = document.getElementById('tool-resources-root');
     if (el) renderResources(el, config.resources);
@@ -169,6 +225,6 @@ var ToolPage = (function() {
 
   /* ── Public API ── */
 
-  return { init: init };
+  return { init: init, dismissSavePrompt: dismissSavePrompt };
 
 })();

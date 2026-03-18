@@ -65,6 +65,7 @@ exports.handler = async (event) => {
 
   if(action==='get'){
     if(!suburb) return fail('suburb required');
+    if(String(suburb).length > 100) return fail('suburb too long');
     const s = (state||'QLD').toUpperCase();
     const entry = await rGet(gKey(suburb, s));
     if(!entry) return ok({ok:true, found:false});
@@ -75,10 +76,11 @@ exports.handler = async (event) => {
     const isAdminSet = await verifyAdmin(event.headers.authorization||event.headers.Authorization||'');
     if(!isAdminSet) return fail('Forbidden', 403);
     if(!suburb||rate==null) return fail('suburb and rate required');
+    if(String(suburb).length > 100) return fail('suburb too long');
     const parsedRate = parseFloat(rate);
     if(!isFinite(parsedRate) || parsedRate < -30 || parsedRate > 100) return fail('rate must be a number between -30 and 100');
     const s = (state||'QLD').toUpperCase();
-    const entry = {rate:parsedRate, note:note||'', fetchedAt:Date.now()};
+    const entry = {rate:parsedRate, note:String(note||'').slice(0,300), fetchedAt:Date.now()};
     await rSet(gKey(suburb, s), entry, GROWTH_TTL);
     // Update index (no TTL on index — we prune stale entries on list)
     const key = suburb.toLowerCase().trim()+'|'+s;

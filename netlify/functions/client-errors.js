@@ -105,6 +105,14 @@ exports.handler = async function (event) {
   // ── Log a client error ────────────────────────────────────────────────────
   if (action === 'logError') {
     if (!REDIS_URL || !REDIS_TOKEN) return ok({ ok: true }); // silently drop if not configured
+    // Rate limit: 50 errors per IP per hour to prevent log flooding
+    try {
+      const clientIp = (event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+      const rlKey = 'errl:' + clientIp;
+      const count = await redisCmd('INCR', rlKey);
+      if (count === 1) await redisCmd('EXPIRE', rlKey, '3600');
+      if (count > 50) return ok({ ok: true }); // silently drop
+    } catch (e) { /* don't block on rate limit errors */ }
     const err = body.error || {};
     // Sanitise: cap string lengths
     const entry = {

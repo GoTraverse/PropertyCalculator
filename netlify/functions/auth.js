@@ -176,6 +176,12 @@ async function rListPush(key,val){
   await redisCmd('LTRIM',key,'0','199');
 }
 async function rListRange(key,start,stop){ return redisCmd('LRANGE',key,String(start),String(stop)); }
+// Increment a rate-limit counter; sets TTL on first increment. Returns current count.
+async function rRateInc(key,ttlSecs){
+  const count=await redisCmd('INCR',key);
+  if(count===1) await redisCmd('EXPIRE',key,String(ttlSecs));
+  return count;
+}
 
 // Append a structured event for a userId
 async function logEvent(userId,type,extra){
@@ -225,6 +231,11 @@ exports.handler = async function(event){
   if(action==='signup'){
     const {email,password,name,plan,ref}=body;
     if(!email||!password) return fail('Email and password required');
+    // Rate limit signups per IP to prevent email-bombing the transactional email service
+    const clientIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    const signupRateKey='signup:'+clientIp;
+    const signupCount=await rRateInc(signupRateKey,3600); // 1-hour window
+    if(signupCount>10) return fail('Too many signups from this IP — please try again later');
     const siteCfgSu=await rGet('config:site')||{};
     if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
     const pwMin=parseInt(siteCfgSu.minPasswordLength)||8;
@@ -262,6 +273,7 @@ exports.handler = async function(event){
     }
     await rSet(ekey,user);
     await rSet('referral:'+refCode,userId);
+    await rSet('uid:'+userId,normalizedEmail); // reverse index for scenarios auth
     await logEvent(userId,'signup',{name:user.name,email:normalizedEmail,plan:user.plan});
     await sendVerificationEmail(normalizedEmail, code);
     return ok({ok:true,requiresEmailVerification:true,email:user.email,plan:user.plan,name:user.name});
@@ -271,9 +283,15 @@ exports.handler = async function(event){
     const {email,password}=body;
     if(!email||!password) return fail('Email and password required');
     const normalizedEmail=email.toLowerCase().trim();
+    // Rate limit: max 10 failed attempts per email per 15 minutes
+    const failKey='loginFail:'+normalizedEmail;
+    const failCount=Number(await rGet(failKey)||0);
+    if(failCount>=10) return fail('Too many failed sign-in attempts. Please wait 15 minutes or reset your password.');
     const user=await rGet('user:'+normalizedEmail);
-    if(!user) return fail('No account found for this email');
-    if(user.hash!==hashPw(password)) return fail('Incorrect password');
+    if(!user){ await rRateInc(failKey,900); return fail('No account found for this email'); }
+    if(user.hash!==hashPw(password)){ await rRateInc(failKey,900); return fail('Incorrect password'); }
+    await rDel(failKey); // clear on success
+    if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
     if(user.emailVerified===false){
       return ok({ok:false,error:'Please verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
     }
@@ -294,8 +312,12 @@ exports.handler = async function(event){
   if(action==='resendVerification'){
     const normalizedEmail=(body.email||'').toLowerCase().trim();
     if(!normalizedEmail) return fail('Email required');
+    // Rate limit: max 3 resend requests per email per hour (prevent email bombing)
+    const rvKey='resendVerif:'+normalizedEmail;
+    const rvCount=await rRateInc(rvKey,3600);
+    if(rvCount>3) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // silent cap
     const user=await rGet('user:'+normalizedEmail);
-    if(!user) return fail('No account found for this email');
+    if(!user) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // don't reveal existence
     if(user.emailVerified) return ok({ok:true,alreadyVerified:true});
     const code=makeEmailCode();
     user.emailVerificationCodeHash=hashEmailCode(code);
@@ -398,7 +420,17 @@ exports.handler = async function(event){
     }
     const {profile}=body;
     const existing=await rGet('profile:'+user.userId)||{};
-    const merged={...existing,...profile};
+    // Whitelist profile fields and sanitise values to prevent CSS/HTML injection
+    const sanitised={};
+    if('name'  in profile) sanitised.name  = String(profile.name ||'').trim().slice(0,100);
+    if('email' in profile) sanitised.email = String(profile.email||'').trim().slice(0,200);
+    if('color' in profile){
+      const c = String(profile.color||'');
+      // Only accept hex colours — prevents CSS injection via style="" attributes
+      if(/^#[0-9A-Fa-f]{3,8}$/.test(c)) sanitised.color = c;
+    }
+    if('theme' in profile) sanitised.theme = ['light','dark'].includes(profile.theme) ? profile.theme : 'light';
+    const merged={...existing,...sanitised};
     delete merged.photo; // large photos use setPhoto action
     await rSet('profile:'+user.userId,merged);
     return ok({ok:true});
@@ -409,7 +441,12 @@ exports.handler = async function(event){
     if(!user) return fail('Unauthorized',401);
     const {photo}=body;
     if(photo){
-      await rSet('photo:'+user.userId,photo);
+      const s=String(photo);
+      // Validate: must be a base64 image data URI
+      if(!/^data:image\/(jpeg|png|webp|gif);base64,/.test(s)) return fail('Invalid photo format');
+      // Cap at ~800 KB (base64 of ~600 KB image) to prevent Redis abuse
+      if(s.length>1100000) return fail('Photo too large — maximum ~800 KB');
+      await rSet('photo:'+user.userId,s);
     } else {
       await rDel('photo:'+user.userId);
     }
@@ -435,6 +472,10 @@ exports.handler = async function(event){
     const {email}=body;
     if(!email) return fail('Email required');
     const normalizedEmail=email.toLowerCase().trim();
+    // Rate limit: max 3 reset emails per email per hour (prevent email bombing)
+    const rrKey='pwResetReq:'+normalizedEmail;
+    const rrCount=await rRateInc(rrKey,3600);
+    if(rrCount>3) return ok({ok:true,message:'If an account exists, a reset code has been sent.'}); // silent cap
     const userData=await rGet('user:'+normalizedEmail);
     // Always return ok to prevent email enumeration
     if(userData){
@@ -473,8 +514,12 @@ exports.handler = async function(event){
     // Delete all user data
     await rDel('user:'+user.email);
     await rDel('profile:'+user.userId);
+    await rDel('photo:'+user.userId);
+    await rDel('uid:'+user.userId);
     await rDel('token:'+(body.token||''));
-    // Note: scenarios are stored client-side in localStorage — cleared on signout
+    // Scenarios in Redis (scenarios:{userId}:*) are namespaced under userId —
+    // they become inaccessible without a valid token (verify checks user existence).
+    // A background purge job can clean them up later if needed.
     return ok({ok:true});
   }
 
@@ -516,6 +561,8 @@ exports.handler = async function(event){
     if(!userData) return fail('User not found');
     await rDel('user:'+targetEmail.toLowerCase().trim());
     await rDel('profile:'+userData.id);
+    await rDel('photo:'+userData.id);
+    await rDel('uid:'+userData.id);
     return ok({ok:true});
   }
 
@@ -590,7 +637,7 @@ exports.handler = async function(event){
       'proMonthlyPrice','proAnnualPrice','adviserMonthlyPrice',
       'contactDiscord','contactTwitter','referralEnabled','referralBonus',
       'maxUploadMb','sessionTtlDays','requireEmailDomain',
-      'stripePubKey','stripeProMonthly','stripeProAnnual','stripePortal',
+      'stripePubKey','stripeProMonthly','stripeProAnnual','stripeAdviserMonthly','stripeAdviserAnnual','stripePortal',
       'suburbDeployHook','suburbLastBuild'];
     const sanitised={};
     for(const k of allowed) if(k in config) sanitised[k]=config[k];

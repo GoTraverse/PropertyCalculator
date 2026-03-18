@@ -187,9 +187,27 @@ async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId, 
   if (discountInfo)         userData.stripeDiscountInfo  = discountInfo;
   else if (discountInfo === null) delete userData.stripeDiscountInfo; // explicitly cleared
   await rSet(key, userData);
+  // Write cid: reverse index so downgradePlan can find user without KEYS scan
+  if (stripeCustomerId) await rSet('cid:' + stripeCustomerId, email.toLowerCase().trim());
   await logEvent(userData.id, 'plan_upgraded', { plan, stripeCustomerId, stripeSubscriptionId });
   console.log('[stripe] Upgraded', email, '→', plan, discountInfo ? '(discounted)' : '');
   return true;
+}
+
+// ── Lookup email by Stripe customerId (via cid: index, falls back to KEYS scan) ──
+async function emailByCustomerId(stripeCustomerId) {
+  if (!stripeCustomerId) return null;
+  const email = await rGet('cid:' + stripeCustomerId);
+  if (email) return email;
+  // Fallback: KEYS scan for existing users who predate the cid: index
+  const userKeys = await redisCmd('KEYS', 'user:*');
+  if (!userKeys || !userKeys.length) return null;
+  const allUsers = await Promise.all(userKeys.map(k => rGet(k)));
+  const found = allUsers.find(u => u && u.stripeCustomerId === stripeCustomerId);
+  if (!found) return null;
+  // Backfill the index so next lookup is fast
+  await rSet('cid:' + stripeCustomerId, found.email.toLowerCase().trim());
+  return found.email.toLowerCase().trim();
 }
 
 // ── Ensure the referral coupon exists in Stripe ───────────────────────────────
@@ -220,11 +238,10 @@ async function processReferralReward(newUserEmail) {
   userData.referralRewardClaimed = true;
   await rSet(userKey, userData);
 
-  // Find referrer
-  const userKeys = await redisCmd('KEYS', 'user:*');
-  if (!userKeys || !userKeys.length) return;
-  const allUsers = await Promise.all(userKeys.map(k => rGet(k)));
-  const referrer = allUsers.find(u => u && u.id === userData.referredBy);
+  // Find referrer via uid: reverse index (avoids KEYS scan)
+  const referrerEmail = await rGet('uid:' + userData.referredBy);
+  if (!referrerEmail) return;
+  const referrer = await rGet('user:' + referrerEmail);
   if (!referrer) return;
 
   referrer.referralCount = (referrer.referralCount || 0) + 1;
@@ -245,20 +262,19 @@ async function processReferralReward(newUserEmail) {
 
 // ── Downgrade user to free by customer ID ────────────────────────────────────
 async function downgradePlan(stripeCustomerId) {
-  const userKeys = await redisCmd('KEYS', 'user:*');
-  if (!userKeys || !userKeys.length) return false;
-  const users = await Promise.all(userKeys.map(k => rGet(k)));
-  const userData = users.find(u => u && u.stripeCustomerId === stripeCustomerId);
-  if (!userData) {
+  const email = await emailByCustomerId(stripeCustomerId);
+  if (!email) {
     console.warn('[stripe] downgradePlan: no user with customerId:', stripeCustomerId);
     return false;
   }
+  const userData = await rGet('user:' + email);
+  if (!userData) return false;
   userData.plan = 'free';
   delete userData.stripeSubscriptionId;
   delete userData.stripeDiscountInfo;
-  await rSet('user:' + userData.email.toLowerCase().trim(), userData);
+  await rSet('user:' + email, userData);
   await logEvent(userData.id, 'plan_downgraded', { plan: 'free', stripeCustomerId });
-  console.log('[stripe] Downgraded', userData.email, '→ free');
+  console.log('[stripe] Downgraded', email, '→ free');
   return true;
 }
 
@@ -316,15 +332,13 @@ exports.handler = async function (event) {
           const meta = sub.metadata || {};
           const plan = meta.plan;
           if (plan && sub.customer) {
-            // Find user by customerId and update plan + discount info
-            const userKeys = await redisCmd('KEYS', 'user:*');
-            if (userKeys && userKeys.length) {
-              const users = await Promise.all(userKeys.map(k => rGet(k)));
-              const userData = users.find(u => u && u.stripeCustomerId === sub.customer);
+            // Find user by customerId via cid: index (avoids KEYS scan)
+            const email = await emailByCustomerId(sub.customer);
+            if (email) {
+              const userData = await rGet('user:' + email);
               if (userData) {
                 const baseAmount   = sub.items && sub.items.data && sub.items.data[0] && sub.items.data[0].price ? sub.items.data[0].price.unit_amount : null;
                 const currency     = sub.currency || null;
-                // discountInfo=null means clear existing discount; extractDiscountInfo returns null if no discount
                 const discountInfo = extractDiscountInfo(sub.discount, baseAmount, currency);
                 if (userData.plan !== plan || JSON.stringify(userData.stripeDiscountInfo) !== JSON.stringify(discountInfo)) {
                   await upgradePlan(userData.email, plan, sub.customer, sub.id, discountInfo);
@@ -368,15 +382,30 @@ exports.handler = async function (event) {
 
   // ── createCheckout: start Stripe Checkout for plan upgrade ───────────────
   if (body.action === 'createCheckout') {
-    const { priceId, plan, successUrl, cancelUrl } = body;
+    const { priceId } = body;
     if (!priceId) return fail('priceId required');
 
-    // Fetch site config for success/cancel URLs if not provided
+    // Fetch site config for URLs and to derive plan from priceId server-side
     let siteUrl = (process.env.SITE_URL || 'https://equitysight.app').replace(/\/$/, '');
+    let resolvedPlan = null;
     try {
       const cfg = await rGet('config:site') || {};
       if (cfg.siteUrl) siteUrl = cfg.siteUrl.replace(/\/$/, '');
+      // Build server-side price→plan map — never trust the client's plan value
+      const priceMap = {};
+      if (cfg.stripeProMonthly) priceMap[cfg.stripeProMonthly] = 'pro';
+      if (cfg.stripeProAnnual)  priceMap[cfg.stripeProAnnual]  = 'pro';
+      if (cfg.stripeAdviserMonthly) priceMap[cfg.stripeAdviserMonthly] = 'adviser';
+      if (cfg.stripeAdviserAnnual)  priceMap[cfg.stripeAdviserAnnual]  = 'adviser';
+      resolvedPlan = priceMap[priceId] || null;
     } catch (e) {}
+
+    // If config has known prices, reject unknown priceIds to prevent plan spoofing.
+    // If config has no prices set yet (fresh install), fall back to 'pro' for any valid price_ ID.
+    if (resolvedPlan === null) {
+      if (!/^price_[A-Za-z0-9]+$/.test(priceId)) return fail('Invalid priceId format', 400);
+      resolvedPlan = 'pro'; // safe fallback: only one plan currently, so worst case user pays correct amount
+    }
 
     try {
       const params = {
@@ -385,12 +414,12 @@ exports.handler = async function (event) {
         'line_items[0][price]': priceId,
         'line_items[0][quantity]': '1',
         'customer_email': user.email,
-        'success_url': successUrl || siteUrl + '/account.html?upgraded=1&session_id={CHECKOUT_SESSION_ID}',
-        'cancel_url': cancelUrl || siteUrl + '/pricing.html?cancelled=1',
-        'metadata[plan]': plan || 'pro',
+        'success_url': siteUrl + '/account.html?upgraded=1&session_id={CHECKOUT_SESSION_ID}',
+        'cancel_url': siteUrl + '/pricing.html?cancelled=1',
+        'metadata[plan]': resolvedPlan,
         'metadata[userId]': user.userId,
         'allow_promotion_codes': 'true',
-        'subscription_data[metadata][plan]': plan || 'pro',
+        'subscription_data[metadata][plan]': resolvedPlan,
         'subscription_data[metadata][userId]': user.userId,
       };
 

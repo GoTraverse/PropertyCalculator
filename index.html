@@ -34,7 +34,8 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="index.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -60,8 +61,8 @@
     <button class="nav-hamburger" id="nav-ham">☰</button>
   </div>
 </nav>
-<script src="auth-nav.js"></script>
-<script src="error-capture.js"></script>
+<script src="error-capture.js" defer></script>
+<script src="auth-nav.js" defer></script>
 
 <!-- ══ HERO ══ -->
 <section class="hero">
@@ -79,8 +80,8 @@
         <button class="btn-hero-primary" onclick="location.href='login.html?tab=signup'">
           Get started free
         </button>
-        <button class="btn-hero-secondary" onclick="location.href='pricing.html'">
-          View pricing
+        <button class="btn-hero-secondary" onclick="document.getElementById('free-tools').scrollIntoView({behavior:'smooth'})">
+          Try free tools ↓
         </button>
       </div>
       <div class="hero-social-proof">
@@ -189,7 +190,7 @@
 </section>
 
 <!-- ── Free Tools ── -->
-<section style="background:var(--warm-white);padding:72px 0;">
+<section id="free-tools" style="background:var(--warm-white);padding:72px 0;">
   <div style="max-width:1200px;margin:0 auto;padding:0 24px;">
     <div style="text-align:center;margin-bottom:48px;">
       <div class="section-tag">Try First, Sign Up Later</div>
@@ -275,6 +276,27 @@
     <div style="text-align:center;padding:32px 24px;background:rgba(201,168,76,0.05);border-radius:10px;border:1px solid rgba(201,168,76,0.15);">
       <p style="font-size:14px;color:var(--slate);margin-bottom:16px;line-height:1.6;">Love the free tools? The full EquitySight calculator adds scenario comparison, 30-year projections, PDF export, property library, and cloud sync.</p>
       <button onclick="location.href='login.html?tab=signup'" style="background:var(--gold);color:var(--charcoal);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Get started with the full calculator →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── Suburb Insights ── -->
+<section style="background:var(--charcoal);padding:64px 0;">
+  <div style="max-width:960px;margin:0 auto;padding:0 24px;">
+    <div style="text-align:center;margin-bottom:36px;">
+      <div class="section-tag" style="color:var(--gold);">14,512 suburb profiles</div>
+      <h2 style="font-family:var(--font-display);font-size:clamp(22px,4vw,34px);font-weight:700;color:var(--cream);line-height:1.2;margin-top:8px;">Explore Australian suburbs</h2>
+      <p style="color:rgba(245,240,232,0.5);font-size:14px;margin-top:10px;">Population data, amenity scores, and investment context for every suburb across all 8 states and territories.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+      <a href="invest/nsw/" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">New South Wales</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">NSW suburbs →</div></a>
+      <a href="invest/vic/" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Victoria</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">VIC suburbs →</div></a>
+      <a href="invest/qld/" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Queensland</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">QLD suburbs →</div></a>
+      <a href="invest/wa/" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Western Australia</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">WA suburbs →</div></a>
+      <a href="invest/sa/" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">South Australia</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">SA suburbs →</div></a>
+      <a href="invest/tas/" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Tasmania</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">TAS suburbs →</div></a>
+      <a href="invest/act/" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">ACT</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">ACT suburbs →</div></a>
+      <a href="invest/nt/" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Northern Territory</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">NT suburbs →</div></a>
     </div>
   </div>
 </section>

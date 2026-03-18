@@ -11,7 +11,8 @@
 <meta name="theme-color" content="#1C1C1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
 <style>
   .notfound-wrap {
@@ -89,7 +90,21 @@
     <a href="index.html" class="btn-primary">Go home</a>
     <a href="app.html" class="btn-secondary">Open calculator</a>
   </div>
+  <div style="margin-top:48px;width:100%;max-width:560px;">
+    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--slate);margin-bottom:16px;">Popular free tools</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;text-align:left;">
+      <a href="tools/stamp-duty-calculator.html" style="display:block;padding:12px 14px;background:white;border:1px solid rgba(28,28,30,0.1);border-radius:8px;text-decoration:none;color:var(--charcoal);font-size:13px;font-weight:600;transition:border-color 0.15s;">🏛️ Stamp Duty</a>
+      <a href="tools/rental-yield-calculator.html" style="display:block;padding:12px 14px;background:white;border:1px solid rgba(28,28,30,0.1);border-radius:8px;text-decoration:none;color:var(--charcoal);font-size:13px;font-weight:600;transition:border-color 0.15s;">🏢 Rental Yield</a>
+      <a href="tools/loan-serviceability-calculator.html" style="display:block;padding:12px 14px;background:white;border:1px solid rgba(28,28,30,0.1);border-radius:8px;text-decoration:none;color:var(--charcoal);font-size:13px;font-weight:600;transition:border-color 0.15s;">📊 Loan Serviceability</a>
+      <a href="tools/first-home-buyer-grants-calculator.html" style="display:block;padding:12px 14px;background:white;border:1px solid rgba(28,28,30,0.1);border-radius:8px;text-decoration:none;color:var(--charcoal);font-size:13px;font-weight:600;transition:border-color 0.15s;">🎁 FHB Grants</a>
+    </div>
+    <div style="margin-top:16px;">
+      <a href="invest/nsw/" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);text-decoration:none;margin-right:16px;">NSW suburbs →</a>
+      <a href="invest/vic/" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);text-decoration:none;margin-right:16px;">VIC suburbs →</a>
+      <a href="invest/qld/" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);text-decoration:none;">QLD suburbs →</a>
+    </div>
+  </div>
 </div>
-<script src="auth-nav.js"></script>
+<script src="auth-nav.js" defer></script>
 </body>
 </html>

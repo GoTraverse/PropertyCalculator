@@ -108,7 +108,7 @@ function generateOverview(s) {
     : s.population > 5000 ? 'a smaller community'
     : 'a boutique locality';
 
-  return `${s.suburb} is ${typeLabel} with a population of approximately ${fmt(s.population)}, making it ${popDesc}. ${distDesc}, ${s.suburb} offers ${s.amenity_score >= 7 ? 'excellent' : s.amenity_score >= 5 ? 'good' : 'developing'} amenity access with a median household income of $${fmt(s.median_household_income)} per year.`;
+  return `${s.suburb} is ${typeLabel}, Australia, with a population of approximately ${fmt(s.population)}, making it ${popDesc}. ${distDesc}, ${s.suburb} offers ${s.amenity_score >= 7 ? 'excellent' : s.amenity_score >= 5 ? 'good' : 'developing'} amenity access with a median household income of $${fmt(s.median_household_income)} AUD per year.`;
 }
 
 function generateInsight(s) {
@@ -243,7 +243,7 @@ for (const s of suburbs) {
   const pcComma = pc ? ` ${pc},` : ',';          // " 2148," or ","
   const pcKw = pc ? `, ${pc} property` : '';     // ", 2148 property" or ""
   const pcDisplay = pc || '—';
-  const metaDesc = `Property investment insights for ${s.suburb}${pc ? ' ' + pc : ''}, ${s.state_name}. Population ${fmt(s.population)}, ${s.population_growth}% growth, ${s.suburb_type} suburb. Key indicators, amenities, and investment analysis.`;
+  const metaDesc = `Property investment insights for ${s.suburb}${pc ? ' ' + pc : ''}, ${s.state_name}, Australia. Population ${fmt(s.population)}, ${s.population_growth}% growth, ${s.suburb_type} suburb. Key indicators, amenities, and investment analysis.`;
 
   let html = SUBURB_TPL
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))

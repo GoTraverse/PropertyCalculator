@@ -47,7 +47,23 @@ exports.handler = async function(event) {
   const { name, email, subject, message, diagnostics } = body;
   if (!name || !email || !subject || !message) return fail('All fields required');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Invalid email');
+  if (String(name).length > 100) return fail('Name too long');
   if (message.length > 5000) return fail('Message too long (max 5000 characters)');
+
+  // Rate limit: max 5 contact submissions per IP per hour
+  if (REDIS_URL && REDIS_TOKEN) {
+    try {
+      const clientIp = (event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+      const rateKey = 'contact:' + clientIp;
+      const count = await (async () => {
+        const r = await fetch(REDIS_URL, { method:'POST', headers:{ Authorization:'Bearer '+REDIS_TOKEN, 'Content-Type':'application/json' }, body: JSON.stringify(['INCR', rateKey]) });
+        const n = r.ok ? (await r.json()).result : 1;
+        if (n === 1) await fetch(REDIS_URL, { method:'POST', headers:{ Authorization:'Bearer '+REDIS_TOKEN, 'Content-Type':'application/json' }, body: JSON.stringify(['EXPIRE', rateKey, '3600']) });
+        return n;
+      })();
+      if (count > 5) return fail('Too many messages — please try again later');
+    } catch(e) { /* don't block on rate limit errors */ }
+  }
 
   // Get support email from config
   let toEmail = 'support@equitysight.app';
@@ -64,7 +80,8 @@ exports.handler = async function(event) {
     calculator: 'Calculator question',
     other: 'Other',
   };
-  const subjectLabel = subjectLabels[subject] || subject;
+  if (!subjectLabels[subject]) return fail('Invalid subject');
+  const subjectLabel = subjectLabels[subject];
 
   if (!RESEND_API_KEY) {
     console.log('[contact] No RESEND_API_KEY. Would send from %s to %s — %s', email, toEmail, subjectLabel);
@@ -75,7 +92,7 @@ exports.handler = async function(event) {
 
   let diagHtml = '';
   if (subject === 'bug' && diagnostics && typeof diagnostics === 'object') {
-    const rows = Object.entries(diagnostics)
+    const rows = Object.entries(diagnostics).slice(0, 20)
       .map(([k, v]) => `<tr><td style="padding:3px 10px 3px 0;color:#9CA3AF;font-size:11px;white-space:nowrap;vertical-align:top;">${escHtml(k)}</td><td style="padding:3px 0;font-size:11px;color:#4B5563;word-break:break-all;">${escHtml(String(v))}</td></tr>`)
       .join('');
     diagHtml = `

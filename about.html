@@ -22,7 +22,8 @@
 <meta name="twitter:image" content="https://equitysight.app/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="about.css">
 </head>
@@ -41,7 +42,7 @@
     <button class="nav-hamburger" id="nav-ham">☰</button>
   </div>
 </nav>
-<script src="auth-nav.js"></script>
+<script src="auth-nav.js" defer></script>
 
 <section class="about-hero">
   <div class="about-hero-inner">
@@ -142,6 +143,15 @@
   </div>
 </section>
 
+
+<section style="background:var(--charcoal);padding:64px 24px;text-align:center;">
+  <div style="max-width:480px;margin:0 auto;">
+    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">Get started</div>
+    <h2 style="font-family:var(--font-display);font-size:clamp(24px,4vw,34px);font-weight:700;color:var(--cream);line-height:1.2;margin-bottom:12px;">Ready to run the numbers?</h2>
+    <p style="font-size:14px;color:rgba(245,240,232,0.55);line-height:1.6;margin-bottom:28px;">Free to start — no credit card required. The full calculator takes 30 seconds to set up.</p>
+    <a href="login.html?tab=signup" style="display:inline-block;padding:13px 28px;background:var(--gold);color:var(--charcoal);font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;text-decoration:none;border-radius:4px;">Create free account →</a>
+  </div>
+</section>
 
 <div id="site-footer-root"></div>
 <script src="footer.js"></script>
