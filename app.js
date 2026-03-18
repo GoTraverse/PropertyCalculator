@@ -179,7 +179,7 @@
       row.className = 'dyn-cost-row';
       row.innerHTML = `
         <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" oninput="updateDynCost('${cost.id}','name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var nxt=this.closest('.dyn-cost-row').querySelector('input[type=number]');if(nxt){nxt.focus();nxt.select();}}">
-        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" max="500000" step="50" oninput="var _v=parseFloat(this.value);if(_v>500000)this.value=500000;updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);dRecalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${cost.category||'purchase'}');}"></div>
+        <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" max="500000" step="50" oninput="var _v=parseFloat(this.value);if(_v>500000)this.value=500000;updateDynCost('${cost.id}','amount',parseFloat(this.value)||0);dRecalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCostItem('${['purchase','moveout'].includes(cost.category)?cost.category:'purchase'}');}"></div>
         <button class="dyn-del" onclick="removeCostItem('${cost.id}')" title="Remove">−</button>
       `;
       list.appendChild(row);
@@ -344,7 +344,7 @@
           <button class="kd-del" onclick="removeRenoItem('${r.id}')" title="Remove" style="flex-shrink:0;">✕</button>
         </div>
         <div class="reno-note-wrap" style="padding-left:44px;">
-          <textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" oninput="updateRenoItem('${r.id}','note',this.value);this.style.height='auto';this.style.height=this.scrollHeight+'px'">${r.note||''}</textarea>
+          <textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" oninput="updateRenoItem('${r.id}','note',this.value);this.style.height='auto';this.style.height=this.scrollHeight+'px'">${escHtml(r.note||'')}</textarea>
         </div>
       </div>`;
     }).join('');
@@ -2374,37 +2374,8 @@
       drawProjection();
       showToast(`📈 Set growth to ${rate}% for ${suburb}`);
     } else {
-      // Try Claude API for unknown suburbs
-      try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            model:'claude-sonnet-4-20250514',
-            max_tokens:200,
-            messages:[{role:'user',content:`What is the typical 5-year average annual capital growth rate (as a single number like 5.2) for residential property in ${suburb}, ${state}, Australia? Reply with only a JSON object like {"rate":5.2,"note":"brief context"} and nothing else.`}]
-          })
-        });
-        const data = await response.json();
-        const text = data.content?.find(c=>c.type==='text')?.text||'';
-        const match = text.match(/\{[^}]+\}/);
-        if(match){
-          const parsed = JSON.parse(match[0]);
-          const r = Math.min(12, Math.max(1, parseFloat(parsed.rate)||5));
-          const note = parsed.note||'AI estimate';
-          setCachedGrowth(suburb, state, r, note);
-          document.getElementById('proj-growth').value = r;
-          document.getElementById('proj-growth-lbl').textContent = r.toFixed(1)+'%';
-          if(hint) hint.textContent = `📍 ${suburb}: ~${r}% p.a. — ${note}`;
-          drawProjection();
-          showToast(`📈 Set growth to ${r}% for ${suburb}`);
-        } else {
-          throw new Error('No rate found');
-        }
-      } catch(e){
-        if(hint) hint.textContent = `No data found for ${suburb}. Try manual entry.`;
-        showToast(`⚠️ Could not find data for ${suburb} — adjust manually`);
-      }
+      if(hint) hint.textContent = `No data found for ${suburb}. Try manual entry.`;
+      showToast(`⚠️ Could not find data for ${suburb} — adjust manually`);
     }
     btn.textContent = '🔍 Look Up Suburb Growth';
     btn.disabled = false;

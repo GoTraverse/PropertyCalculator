@@ -189,7 +189,7 @@ exports.handler = async (event) => {
   const mode  = qs.mode || 'suggest';   // 'suggest' | 'geocode'
   const limit = Math.min(parseInt(qs.limit, 10) || 6, 10);
 
-  if (!query || query.length < 3) {
+  if (!query || query.length < 3 || query.length > 200) {
     return { statusCode: 200, headers: H, body: JSON.stringify({ ok: true, results: [] }) };
   }
 

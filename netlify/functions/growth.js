@@ -65,6 +65,7 @@ exports.handler = async (event) => {
 
   if(action==='get'){
     if(!suburb) return fail('suburb required');
+    if(String(suburb).length > 100) return fail('suburb too long');
     const s = (state||'QLD').toUpperCase();
     const entry = await rGet(gKey(suburb, s));
     if(!entry) return ok({ok:true, found:false});
