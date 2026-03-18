@@ -211,6 +211,10 @@ img { max-width: 100%; display: block; }
   letter-spacing: 0.5px;
   white-space: nowrap;
   transition: all 0.15s;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 .btn-ghost:hover { border-color: rgba(255,255,255,0.4); color: var(--cream); }
 .btn-gold {
@@ -225,6 +229,10 @@ img { max-width: 100%; display: block; }
   letter-spacing: 0.5px;
   white-space: nowrap;
   transition: opacity 0.15s, transform 0.1s;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 .btn-gold:hover { opacity: 0.88; transform: translateY(-1px); }
 .btn-primary {
