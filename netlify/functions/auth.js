@@ -441,7 +441,12 @@ exports.handler = async function(event){
     if(!user) return fail('Unauthorized',401);
     const {photo}=body;
     if(photo){
-      await rSet('photo:'+user.userId,photo);
+      const s=String(photo);
+      // Validate: must be a base64 image data URI
+      if(!/^data:image\/(jpeg|png|webp|gif);base64,/.test(s)) return fail('Invalid photo format');
+      // Cap at ~800 KB (base64 of ~600 KB image) to prevent Redis abuse
+      if(s.length>1100000) return fail('Photo too large — maximum ~800 KB');
+      await rSet('photo:'+user.userId,s);
     } else {
       await rDel('photo:'+user.userId);
     }
