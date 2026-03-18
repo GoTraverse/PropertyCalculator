@@ -2,13 +2,8 @@
 <html lang="en-AU">
 <head>
 <meta charset="UTF-8">
-<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
-<script>
-  // In PWA standalone mode, index.html is never the right page — go straight to app
-  if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
-    window.location.replace('app.html');
-  }
-</script>
+<script src="site-init.js"></script>
+<script src="index-init.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Australia's smartest property finance calculator. 10 free tools for stamp duty, rental yield, mortgage stress and more. No signup required.">
 <link rel="alternate" hreflang="en-AU" href="https://equitysight.app/">
@@ -77,10 +72,10 @@
       <h1 class="hero-h1">Property finance,<br><em>finally clear.</em></h1>
       <p class="hero-sub">Model the Shared Equity Scheme, track renovation budgets, compare scenarios side by side, and go from browsing to buying with total clarity — all in one place.</p>
       <div class="hero-ctas">
-        <button class="btn-hero-primary" onclick="location.href='login.html?tab=signup'">
+        <a href="login.html?tab=signup" class="btn-hero-primary" >
           Get started free
-        </button>
-        <button class="btn-hero-secondary" onclick="document.getElementById('free-tools').scrollIntoView({behavior:'smooth'})">
+        </a>
+        <button class="btn-hero-secondary" id="scroll-to-tools-btn">
           Try free tools ↓
         </button>
       </div>
@@ -182,7 +177,7 @@
         <div style="font-size:28px;margin-bottom:14px;">✨</div>
         <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:8px;color:var(--cream);">Free to Start</h3>
         <p style="font-size:13px;color:rgba(245,240,232,0.5);line-height:1.7;margin-bottom:16px;">No credit card. No time limit. Upgrade to Pro for unlimited properties, PDF export, and cloud sync.</p>
-        <button onclick="location.href='pricing.html'" style="background:var(--gold);color:var(--charcoal);border:none;padding:9px 18px;border-radius:3px;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">See pricing →</button>
+        <a href="pricing.html"  style="background:var(--gold);color:var(--charcoal);border:none;padding:9px 18px;border-radius:3px;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">See pricing →</a>
       </div>
     </div>
     <p style="text-align:center;font-size:12px;color:rgba(28,28,30,0.3);margin-top:32px;font-family:var(--font-mono);">Not financial advice. Always consult a licensed adviser.</p>
@@ -275,7 +270,7 @@
 
     <div style="text-align:center;padding:32px 24px;background:rgba(201,168,76,0.05);border-radius:10px;border:1px solid rgba(201,168,76,0.15);">
       <p style="font-size:14px;color:var(--slate);margin-bottom:16px;line-height:1.6;">Love the free tools? The full EquitySight calculator adds scenario comparison, 30-year projections, PDF export, property library, and cloud sync.</p>
-      <button onclick="location.href='login.html?tab=signup'" style="background:var(--gold);color:var(--charcoal);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Get started with the full calculator →</button>
+      <a href="login.html?tab=signup"  style="background:var(--gold);color:var(--charcoal);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Get started with the full calculator →</a>
     </div>
   </div>
 </section>
@@ -308,8 +303,8 @@
     <h2 style="font-family:var(--font-display);font-size:clamp(28px,5vw,42px);font-weight:700;color:var(--cream);line-height:1.15;margin-bottom:14px;">Start for free today.</h2>
     <p style="color:rgba(245,240,232,0.45);font-size:15px;line-height:1.6;margin-bottom:32px;">Create a free account and open the calculator in 30 seconds.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-      <button onclick="location.href='login.html?tab=signup'" style="background:var(--gold);color:var(--charcoal);border:none;padding:15px 32px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Create free account →</button>
-      <button onclick="location.href='about.html'" style="background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 24px;border-radius:3px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;cursor:pointer;">Learn about us</button>
+      <a href="login.html?tab=signup"  style="background:var(--gold);color:var(--charcoal);border:none;padding:15px 32px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Create free account →</a>
+      <a href="about.html"  style="background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 24px;border-radius:3px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;cursor:pointer;">Learn about us</a>
     </div>
   </div>
 </section>
@@ -318,6 +313,7 @@
 <!-- ══ FOOTER ══ -->
 <div id="site-footer-root"></div>
 <script src="footer.js"></script>
+<script src="index-events.js"></script>
 
 </body>
 </html>

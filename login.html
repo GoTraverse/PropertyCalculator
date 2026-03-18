@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="UTF-8">
-<script>(function(){ try{ if(localStorage.getItem('equitySight_theme')==='dark') document.documentElement.classList.add('dark-mode'); }catch(e){} })();</script>
+<script src="site-init.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Sign in — EquitySight.app</title>
@@ -33,41 +33,41 @@
       <div class="login-sub" id="login-sub">Sign in to access your property scenarios</div>
     </div>
     <div class="login-tabs">
-      <button class="login-tab active" id="tab-signin" onclick="setTab('signin')">Sign In</button>
-      <button class="login-tab" id="tab-signup" onclick="setTab('signup')">Create Account</button>
+      <button class="login-tab active" id="tab-signin">Sign In</button>
+      <button class="login-tab" id="tab-signup">Create Account</button>
     </div>
     <div id="form-signin">
-      <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="si-email" type="email" onkeydown="if(event.key==='Enter')doSignin()" placeholder="you@email.com" autocomplete="email"></div>
-      <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="si-password" onkeydown="if(event.key==='Enter')doSignin()" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="si-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
+      <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="si-password" type="password" placeholder="••••••••" autocomplete="current-password"></div>
       <div class="form-error" id="si-error"></div>
-      <button class="form-submit" id="si-btn" onclick="doSignin()">Sign In →</button>
+      <button class="form-submit" id="si-btn">Sign In →</button>
       <div style="text-align:center;margin-top:12px;">
-        <button onclick="showForgotPassword()" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">Forgot password?</button>
+        <button id="forgot-pw-btn" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">Forgot password?</button>
       </div>
     </div>
     <!-- Forgot Password Flow -->
     <div id="form-forgot" style="display:none;">
       <div id="forgot-step-request">
         <div style="font-size:13px;color:rgba(245,240,232,0.55);margin-bottom:14px;">Enter your email and we'll send a reset code.</div>
-        <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="fp-email" type="email" onkeydown="if(event.key==='Enter')requestReset()" placeholder="you@email.com" autocomplete="email"></div>
+        <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="fp-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
         <div class="form-error" id="fp-error"></div>
-        <button class="form-submit" id="fp-btn" onclick="requestReset()">Send Reset Code →</button>
+        <button class="form-submit" id="fp-btn">Send Reset Code →</button>
       </div>
       <div id="forgot-step-reset" style="display:none;">
         <div style="font-size:13px;color:rgba(245,240,232,0.55);margin-bottom:14px;">Enter the 6-digit code we sent to your email, then choose a new password.</div>
-        <div class="form-field"><label class="form-label">Reset Code</label><input class="form-input" id="fp-code" type="text" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter')document.getElementById('fp-newpw').focus()" placeholder="123456"></div>
-        <div class="form-field"><label class="form-label">New Password</label><input class="form-input" id="fp-newpw" type="password" onkeydown="if(event.key==='Enter')confirmReset()" placeholder="Min 8 characters" autocomplete="new-password"></div>
+        <div class="form-field"><label class="form-label">Reset Code</label><input class="form-input" id="fp-code" type="text" inputmode="numeric" maxlength="6" placeholder="123456"></div>
+        <div class="form-field"><label class="form-label">New Password</label><input class="form-input" id="fp-newpw" type="password" placeholder="Min 8 characters" autocomplete="new-password"></div>
         <div class="form-error" id="fp-reset-error"></div>
-        <button class="form-submit" id="fp-reset-btn" onclick="confirmReset()">Set New Password →</button>
+        <button class="form-submit" id="fp-reset-btn">Set New Password →</button>
       </div>
       <div style="text-align:center;margin-top:12px;">
-        <button onclick="setTab('signin')" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">← Back to Sign In</button>
+        <button id="back-to-signin-btn" style="background:none;border:none;color:rgba(245,240,232,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;">← Back to Sign In</button>
       </div>
     </div>
     <div id="form-signup" style="display:none;">
-      <div class="form-field"><label class="form-label">Your name</label><input class="form-input" id="su-name" onkeydown="if(event.key==='Enter')document.getElementById('su-email').focus()" type="text" placeholder="Jamie Smith" autocomplete="name"></div>
-      <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="su-email" onkeydown="if(event.key==='Enter')document.getElementById('su-password').focus()" type="email" placeholder="you@email.com" autocomplete="email"></div>
-      <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="su-password" onkeydown="if(event.key==='Enter')doSignup()" oninput="updatePwStrength(this.value)" type="password" placeholder="Min 8 characters" autocomplete="new-password"></div>
+      <div class="form-field"><label class="form-label">Your name</label><input class="form-input" id="su-name" type="text" placeholder="Jamie Smith" autocomplete="name"></div>
+      <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="su-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
+      <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="su-password" type="password" placeholder="Min 8 characters" autocomplete="new-password"></div>
       <div id="pw-strength-bar" style="height:3px;border-radius:2px;margin-top:5px;background:rgba(255,255,255,0.06);overflow:hidden;"><div id="pw-strength-fill" style="height:100%;width:0%;transition:width 0.3s,background 0.3s;border-radius:2px;"></div></div>
       <div id="pw-strength-label" style="font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:rgba(245,240,232,0.35);margin-top:3px;min-height:13px;"></div>
       <div class="form-field">
@@ -84,15 +84,15 @@
         </label>
       </div>
       <div class="form-error" id="su-error"></div>
-      <button class="form-submit" id="su-btn" onclick="doSignup()">Create Account →</button>
+      <button class="form-submit" id="su-btn">Create Account →</button>
 
       <div id="signup-verify-step" style="display:none;margin-top:18px;border-top:1px solid rgba(255,255,255,0.09);padding-top:18px;">
         <div class="form-label" style="margin-bottom:10px;">Step 2 — Verify email</div>
         <div class="verify-note" id="verify-note">Enter the 6-digit code we sent to your email.</div>
-        <div class="form-field"><label class="form-label">Verification code</label><input class="form-input" id="su-verify-code" type="text" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter')doVerifyEmail()" placeholder="123456"></div>
+        <div class="form-field"><label class="form-label">Verification code</label><input class="form-input" id="su-verify-code" type="text" inputmode="numeric" maxlength="6" placeholder="123456"></div>
         <div class="form-error" id="verify-error"></div>
-        <button class="form-submit" id="verify-btn" onclick="doVerifyEmail()">Verify Email →</button>
-        <button class="btn-guest" style="margin-top:10px;" onclick="resendVerificationCode()">Resend code</button>
+        <button class="form-submit" id="verify-btn">Verify Email →</button>
+        <button class="btn-guest" id="resend-code-btn" style="margin-top:10px;">Resend code</button>
       </div>
     </div>
   </div>
@@ -102,273 +102,6 @@
 </div>
 <script src="error-capture.js" defer></script>
 <script src="auth-nav.js" defer></script>
-<script>
-  const ALLOWED_NEXT = ['app.html', 'account.html', 'pricing.html'];
-
-  // Redirect if already logged in
-  (function(){
-    try{
-      const s = JSON.parse(localStorage.getItem('propCalc_session_v1'));
-      if(s && (s.id || s.email)){
-        const params = new URLSearchParams(location.search);
-        const raw = params.get('next') || '';
-        const next = ALLOWED_NEXT.includes(raw) ? raw : 'app.html';
-        goTo(next);
-      }
-    }catch(e){}
-  })();
-
-  // Read plan/ref from URL
-  const params = new URLSearchParams(location.search);
-  if(params.get('tab') === 'signup') setTab('signup');
-  if(params.get('plan') === 'pro') document.getElementById('su-plan').value = 'pro';
-  // Store referral code so it survives the signup flow
-  const refParam = (params.get('ref') || '').trim().toUpperCase().slice(0, 16);
-  if(refParam) localStorage.setItem('equitySight_pendingRef', refParam);
-
-  function setTab(t){
-    document.getElementById('form-signin').style.display = t==='signin' ? '' : 'none';
-    document.getElementById('form-signup').style.display = t==='signup' ? '' : 'none';
-    document.getElementById('form-forgot').style.display = 'none';
-    document.getElementById('tab-signin').classList.toggle('active', t==='signin');
-    document.getElementById('tab-signup').classList.toggle('active', t==='signup');
-    var h = document.getElementById('login-heading');
-    var s = document.getElementById('login-sub');
-    if(h) h.textContent = t==='signin' ? 'Welcome back' : 'Create your account';
-    if(s) s.textContent = t==='signin' ? 'Sign in to access your property scenarios' : 'Start for free — no credit card required';
-  }
-
-  function showForgotPassword(){
-    document.getElementById('form-signin').style.display = 'none';
-    document.getElementById('form-signup').style.display = 'none';
-    document.getElementById('form-forgot').style.display = '';
-    document.getElementById('forgot-step-request').style.display = '';
-    document.getElementById('forgot-step-reset').style.display = 'none';
-    document.getElementById('fp-error').textContent = '';
-    document.getElementById('fp-reset-error').textContent = '';
-    var h = document.getElementById('login-heading');
-    var s = document.getElementById('login-sub');
-    if(h) h.textContent = 'Reset password';
-    if(s) s.textContent = 'We\'ll send a code to your email';
-    // Pre-fill email from sign-in field
-    var siEmail = document.getElementById('si-email').value;
-    if(siEmail) document.getElementById('fp-email').value = siEmail;
-    setTimeout(function(){ document.getElementById('fp-email').focus(); }, 80);
-  }
-
-  var _fpEmail = '';
-  async function requestReset(){
-    const email = document.getElementById('fp-email').value.trim();
-    const errEl = document.getElementById('fp-error');
-    if(!email){ errEl.textContent = 'Please enter your email'; return; }
-    errEl.textContent = '';
-    const btn = document.getElementById('fp-btn');
-    btn.textContent = 'Sending…'; btn.disabled = true;
-    _fpEmail = email;
-    await callAuth('requestPasswordReset', {email});
-    // Always show next step (don't reveal if email exists)
-    btn.textContent = 'Send Reset Code →'; btn.disabled = false;
-    document.getElementById('forgot-step-request').style.display = 'none';
-    document.getElementById('forgot-step-reset').style.display = '';
-    setTimeout(function(){ document.getElementById('fp-code').focus(); }, 80);
-  }
-
-  async function confirmReset(){
-    const code = document.getElementById('fp-code').value.trim();
-    const newPw = document.getElementById('fp-newpw').value;
-    const errEl = document.getElementById('fp-reset-error');
-    if(!code){ errEl.textContent = 'Enter the reset code'; return; }
-    if(!newPw || newPw.length < 8){ errEl.textContent = 'Password must be at least 8 characters'; return; }
-    errEl.textContent = '';
-    const btn = document.getElementById('fp-reset-btn');
-    btn.textContent = 'Updating…'; btn.disabled = true;
-    const res = await callAuth('resetPasswordWithToken', {email: _fpEmail, code, newPassword: newPw});
-    btn.textContent = 'Set New Password →'; btn.disabled = false;
-    if(res.ok){
-      setTab('signin');
-      var s = document.getElementById('login-sub');
-      if(s){ s.textContent = '✓ Password updated — sign in with your new password'; s.style.color = '#5A9E7A'; }
-    } else {
-      errEl.textContent = res.error || 'Invalid or expired code. Please try again.';
-    }
-  }
-
-  async function callAuth(action, payload){
-    try {
-      const r = await fetch('/.netlify/functions/auth', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action,...payload})});
-      return await r.json();
-    } catch(e){ return {ok:false, error:'Network error — try again'}; }
-  }
-
-  function showSpinner(){ document.getElementById('page-spinner').classList.add('show'); }
-  function goTo(url){ showSpinner(); setTimeout(function(){ location.href=url; }, 80); }
-
-    function updatePwStrength(pw){
-    var fill = document.getElementById('pw-strength-fill');
-    var label = document.getElementById('pw-strength-label');
-    if(!fill||!label) return;
-    var score = 0;
-    if(pw.length >= 8) score++;
-    if(pw.length >= 12) score++;
-    if(/[A-Z]/.test(pw)) score++;
-    if(/[a-z]/.test(pw)) score++;
-    if(/[0-9]/.test(pw)) score++;
-    if(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) score++;
-    var pct = Math.round((score/6)*100);
-    var col = score<=2?'#C45A5A':score<=4?'#C9A84C':'#5A9E7A';
-    var lbl = score<=2?'Weak':score<=4?'Fair':'Strong';
-    fill.style.width = pct+'%';
-    fill.style.background = col;
-    label.textContent = pw.length ? lbl : '';
-    label.style.color = col;
-  }
-
-  function persistSession(res, fallback){
-    const session={
-      id:res.id||fallback.email,
-      name:res.name||fallback.name||fallback.email.split('@')[0],
-      email:res.email||fallback.email,
-      token:res.token||null,
-      plan:res.plan||fallback.plan||'free',
-      role:res.role||'user'
-    };
-    if(res.canceledAt) session.canceledAt=res.canceledAt;
-    if(res.expiresAt) session.expiresAt=res.expiresAt;
-    if(res.renewsAt) session.renewsAt=res.renewsAt;
-    localStorage.setItem('propCalc_session_v1', JSON.stringify(session));
-  }
-
-  function postVerificationRedirect(plan){
-    if(plan==='pro') goTo('account.html?checkout=1&panel=subscription');
-    else goTo('account.html?panel=subscription');
-  }
-
-  function showVerificationStep(data){
-    document.getElementById('signup-verify-step').style.display='block';
-    document.getElementById('su-btn').style.display='none';
-    const email = data.email || document.getElementById('su-email').value.trim();
-    document.getElementById('verify-note').textContent = 'Enter the 6-digit code sent to '+email+'.';
-  }
-
-  async function doSignin(){
-    const email = document.getElementById('si-email').value.trim();
-    const password = document.getElementById('si-password').value;
-    const errEl = document.getElementById('si-error');
-    const btn = document.getElementById('si-btn');
-    if(!email||!password){ errEl.textContent='Please enter email and password'; return; }
-    btn.disabled=true; btn.textContent='Signing in…'; errEl.textContent='';
-    const res = await callAuth('signin', {email,password});
-    if(res.ok){
-      persistSession(res, {email});
-      // Fetch latest profile including photo from Redis and cache it
-      try{
-        const authH = 'Bearer ' + (res.token||'');
-        const profileRes = await fetch('/.netlify/functions/auth', {
-          method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':authH},
-          body:JSON.stringify({action:'getProfile'})
-        }).then(r=>r.json());
-        if(profileRes.ok && profileRes.profile){
-          const PROFILE_BASE = 'propCalc_profile_v1';
-          const profileKey = PROFILE_BASE + '_' + (res.id || email);
-          localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
-        }
-      }catch(e){ console.log('Could not fetch profile:', e); }
-      goTo('app.html');
-      return;
-    }
-    if(res.requiresEmailVerification){
-      setTab('signup');
-      document.getElementById('su-email').value = email;
-      document.getElementById('su-name').value = res.name || document.getElementById('su-name').value;
-      document.getElementById('su-plan').value = res.plan || 'free';
-      showVerificationStep(res);
-      errEl.textContent = '';
-    } else {
-      errEl.textContent = res.error || 'Sign in failed — please try again';
-    }
-    btn.disabled=false; btn.textContent='Sign In →';
-  }
-
-  async function doSignup(){
-    const name = document.getElementById('su-name').value.trim();
-    const email = document.getElementById('su-email').value.trim();
-    const password = document.getElementById('su-password').value;
-    const plan = document.getElementById('su-plan').value;
-    const errEl = document.getElementById('su-error');
-    const btn = document.getElementById('su-btn');
-    const terms = document.getElementById('su-terms');
-    if(!name||!email||!password){ errEl.textContent='Please fill in all fields'; return; }
-    if(terms && !terms.checked){ errEl.textContent='Please accept the Terms & Conditions and Privacy Policy'; return; }
-    const emailRx = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-    if(!emailRx.test(email)){ errEl.textContent='Please enter a valid email address'; return; }
-    const pwErrors = [];
-    if(password.length < 8) pwErrors.push('at least 8 characters');
-    if(!/[A-Z]/.test(password)) pwErrors.push('one uppercase letter');
-    if(!/[a-z]/.test(password)) pwErrors.push('one lowercase letter');
-    if(!/[0-9]/.test(password)) pwErrors.push('one number');
-    if(!/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(password)) pwErrors.push('one special character (!@#$…)');
-    if(pwErrors.length){ errEl.textContent='Password needs: ' + pwErrors.join(', '); return; }
-    btn.disabled=true; btn.textContent='Creating account…'; errEl.textContent='';
-    const pendingRef = localStorage.getItem('equitySight_pendingRef') || '';
-    const res = await callAuth('signup', {email,password,name,plan,ref:pendingRef});
-    if(res.ok && res.requiresEmailVerification){
-      localStorage.removeItem('equitySight_pendingRef');
-      showVerificationStep(res);
-      document.getElementById('verify-error').textContent='';
-    } else {
-      errEl.textContent = res.error || 'Could not create account — please try again';
-      btn.disabled=false; btn.textContent='Create Account →';
-    }
-  }
-
-  async function doVerifyEmail(){
-    const code = document.getElementById('su-verify-code').value.trim();
-    const email = document.getElementById('su-email').value.trim();
-    const plan = document.getElementById('su-plan').value;
-    const name = document.getElementById('su-name').value.trim();
-    const errEl = document.getElementById('verify-error');
-    const btn = document.getElementById('verify-btn');
-    if(!code){ errEl.textContent='Enter your verification code'; return; }
-    btn.disabled = true; btn.textContent = 'Verifying…'; errEl.textContent='';
-    const res = await callAuth('verifyEmail', {email,code});
-    if(res.ok){
-      persistSession(res, {email,name,plan});
-      // Fetch latest profile including photo from Redis and cache it
-      try{
-        const authH = 'Bearer ' + (res.token||'');
-        const profileRes = await fetch('/.netlify/functions/auth', {
-          method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':authH},
-          body:JSON.stringify({action:'getProfile'})
-        }).then(r=>r.json());
-        if(profileRes.ok && profileRes.profile){
-          const PROFILE_BASE = 'propCalc_profile_v1';
-          const profileKey = PROFILE_BASE + '_' + (res.id || email);
-          localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
-        }
-      }catch(e){ console.log('Could not fetch profile:', e); }
-      postVerificationRedirect(res.plan || plan);
-    } else {
-      errEl.textContent = res.error || 'Could not verify email';
-      btn.disabled = false; btn.textContent = 'Verify Email →';
-    }
-  }
-
-  async function resendVerificationCode(){
-    const email = document.getElementById('su-email').value.trim();
-    const errEl = document.getElementById('verify-error');
-    if(!email){ errEl.textContent='Enter your email first'; return; }
-    const res = await callAuth('resendVerification', {email});
-    if(res.ok){
-      showVerificationStep(res);
-      errEl.textContent='A fresh verification code has been sent.';
-      errEl.style.color = '#5A9E7A';
-      setTimeout(function(){ errEl.style.color=''; }, 1200);
-    } else {
-      errEl.textContent = res.error || 'Could not resend code';
-    }
-  }
-</script>
+<script src="login.js"></script>
 </body>
 </html>
