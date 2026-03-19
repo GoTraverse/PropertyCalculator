@@ -80,7 +80,8 @@
   }
 
   function calcMonthly(principal,annualRate,years){
-    if(principal<=0)return 0;if(annualRate===0)return principal/(years*12);
+    if(principal<=0||years<=0)return 0;
+    if(annualRate===0)return principal/(years*12);
     const r=annualRate/100/12,n=years*12;
     return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
   }
@@ -182,7 +183,7 @@
       row.dataset.costid = cost.id;
       row.dataset.category = cost.category || 'purchase';
       row.innerHTML = `
-        <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" data-field="name">
+        <input type="text" value="${escHtml(cost.name||'')}" placeholder="Item name" style="flex:1.4" data-field="name">
         <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" max="500000" step="50" data-field="amount"></div>
         <button class="dyn-del" title="Remove" data-action="del-cost">−</button>
       `;
@@ -247,8 +248,7 @@
       const div = document.createElement('div');
       div.setAttribute('data-reno', id);
       div.style.cssText = 'border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;';
-      // Use safe name (no double quotes)
-      const safeName = name.replace(/"/g,'&quot;');
+      const safeName = escHtml(name||'');
       div.innerHTML = [
         '<div class="reno-row">',
           '<select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" data-field="emoji">'+emojiOpts+'</select>',
@@ -266,7 +266,7 @@
         '</div>',
         '<div class="reno-note-wrap" style="padding-left:44px;">',
           '<textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" ',
-            'data-field="note">'+(note||'')+'</textarea>',
+            'data-field="note">'+escHtml(note||'')+'</textarea>',
         '</div>'
       ].join('');
       list.appendChild(div);
@@ -338,7 +338,7 @@
       return `<div data-reno="${r.id}" style="border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;">
         <div class="reno-row">
           <select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" data-field="emoji">${emojiOpts}</select>
-          <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" data-field="name">
+          <input type="text" value="${escHtml(r.name||'')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" data-field="name">
           <div class="rbt" style="max-width:60px;"><div class="rbf" style="width:${pct}%"></div></div>
           <div style="display:flex;align-items:center;gap:2px;min-width:90px;">
             <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" max="2000000" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" data-field="amount">
@@ -389,10 +389,9 @@
       if(!draft || !draft.state) return false;
       _restoringDraft = true;
       // Restore photo — only if it fits (skip silently if corrupt)
-      if(draft.photo && draft.photo.startsWith('data:')){
-        try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.thumb||''; applyPropPhoto(draft.photo); }catch(pe){}
-      } else if(draft.photo && draft.photo.startsWith('http')){
-        try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.photo; applyPropPhoto(draft.photo); }catch(pe){}
+      const _safePhoto = safePhotoSrc(draft.photo);
+      if(_safePhoto){
+        try{ propPhotoDataUrl = _safePhoto; propThumbDataUrl = draft.thumb||_safePhoto; applyPropPhoto(_safePhoto); }catch(pe){}
       }
       applyScenarioState(draft.state, null);
       // Clamp any extreme values that may have been saved before limits were added
@@ -465,6 +464,20 @@
     const stEl2=document.getElementById('lbl-reno-total');
     if(stEl2) stEl2.textContent=fmtK(renoTotal);
 
+    // ─── deposit affordability hint ───
+    const depHint=document.getElementById('dep-hint');
+    if(depHint){
+      if(price>0 && savings>0){
+        const maxAffordDep=Math.min(20,Math.max(0,(savings-extraCosts)/price*100));
+        depHint.textContent='Max affordable: '+maxAffordDep.toFixed(1)+'%';
+        depHint.style.display='block';
+        depHint.style.color=depPct>maxAffordDep?'var(--risk-red)':'rgba(201,168,76,0.65)';
+      } else { depHint.style.display='none'; }
+    }
+
+    // ─── scheme eligibility warning ───
+    updateSchemeInfo();
+
     document.getElementById('page-title').textContent=address;
 
     // ─── TAB 1: COSTS ───
@@ -501,8 +514,15 @@
 
     const noteEl=document.getElementById('cost-note');
     if(noteEl){
-      if(remaining<0){noteEl.textContent=`⚠️ Shortfall of ${fmt(Math.abs(remaining))} — increase savings or reduce costs.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(196,90,90,0.1);color:var(--risk-red)';}
-      else{noteEl.textContent=`💡 ${fmt(remaining)} remaining after settlement — available for renovations or emergency buffer.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.1);color:var(--slate)';}
+      if(price===0||savings===0){noteEl.textContent='💡 Enter your purchase price and savings to see the full cost breakdown.';noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.08);color:var(--slate)';}
+      else if(remaining<0){noteEl.textContent=`⚠️ Shortfall of ${fmt(Math.abs(remaining))} — increase savings or reduce costs.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(196,90,90,0.1);color:var(--risk-red)';}
+      else{
+        const _stampMissing = price>0 && dynCosts.some(c=>c.category!=='moveout'&&/stamp/i.test(c.name)&&!(parseFloat(c.amount)>0));
+        const _note = _stampMissing
+          ? `💡 ${fmt(remaining)} after settlement. ⚠️ Stamp Duty is $0 — check your state's rate and update it above.`
+          : `💡 ${fmt(remaining)} remaining after settlement — available for renovations or emergency buffer.`;
+        noteEl.textContent=_note;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.1);color:var(--slate)';
+      }
     }
 
     // donut
@@ -516,11 +536,20 @@
     set('bp-bank',pctS(bP*100));css('bf-bank','width',pctS(bP*100));
     set('bp-govt',pctS(gP*100));css('bf-govt','width',pctS(gP*100));
     set('bp-dep',pctS(dP*100));css('bf-dep','width',pctS(dP*100));
+    // Hide government rows in funding structure when no scheme is active
+    const _legGovtRow=document.getElementById('leg-govt')?.closest('.li');
+    if(_legGovtRow)_legGovtRow.style.display=govtPct>0?'':'none';
+    const _bpGovtRow=document.getElementById('bp-govt')?.closest('.bi');
+    if(_bpGovtRow)_bpGovtRow.style.display=govtPct>0?'':'none';
+    // Also hide the t-govt summary tile when no scheme
+    const _tGovtEl=document.getElementById('t-govt');
+    if(_tGovtEl)_tGovtEl.closest('.tile').style.display=govtPct>0?'':'none';
 
     // sidebar alert
     const sa=document.getElementById('sidebar-alert');
     if(sa){
-      if(remaining<0)sa.innerHTML=`<div class="alert alert-warn">⚠️ Savings shortfall of ${fmt(Math.abs(remaining))}.</div>`;
+      if(price===0||savings===0)sa.innerHTML=`<div class="alert" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:3px;padding:8px 10px;font-size:11px;color:var(--slate);line-height:1.5;">Enter price &amp; savings to see your cash position.</div>`;
+      else if(remaining<0)sa.innerHTML=`<div class="alert alert-warn">⚠️ Savings shortfall of ${fmt(Math.abs(remaining))}.</div>`;
       else if(cashAfterOverlap<5000&&weeks>0)sa.innerHTML=`<div class="alert alert-warn">⚠️ After overlap, only ${fmt(cashAfterOverlap)} left for reno.</div>`;
       else sa.innerHTML=`<div class="alert alert-ok">✓ Cash position viable. ${fmt(remaining)} after settlement.</div>`;
     }
@@ -598,19 +627,22 @@
     // calendar grid
     const calEl=document.getElementById('cal-grid');
     if(calEl&&weeks>=0){
-      const totalW=Math.max(8,weeks+4);
-      let html=`<div style="display:grid;grid-template-columns:repeat(${Math.min(totalW,12)},1fr);gap:3px;margin-bottom:4px">`;
-      for(let i=0;i<Math.min(totalW,12);i++){
-        const label='Wk '+(i+1);
-        const cls=i<weeks?'cal-both':'cal-mortgage';
-        html+=`<div class="cal-cell ${cls}" title="${i<weeks?'Rent + Mortgage':'Mortgage only'}">${i+1}</div>`;
+      if(weeks===0){
+        calEl.innerHTML=`<div style="text-align:center;padding:18px 12px;color:var(--slate);font-size:12px;line-height:1.6;background:rgba(90,158,123,0.07);border-radius:4px;border:1px solid rgba(90,158,123,0.15);">✓ No overlap — single housing cost from Day 1. Your mortgage starts and rent ends at settlement.</div>`;
+      } else {
+        const totalW=Math.max(8,weeks+4);
+        let html=`<div style="display:grid;grid-template-columns:repeat(${Math.min(totalW,12)},1fr);gap:3px;margin-bottom:4px">`;
+        for(let i=0;i<Math.min(totalW,12);i++){
+          const cls=i<weeks?'cal-both':'cal-mortgage';
+          html+=`<div class="cal-cell ${cls}" title="${i<weeks?'Rent + Mortgage':'Mortgage only'}">${i+1}</div>`;
+        }
+        html+='</div>';
+        html+=`<div style="font-size:11px;color:var(--slate);margin-top:6px">`;
+        html+=`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px"><span style="width:10px;height:10px;border-radius:2px;background:var(--terracotta);display:inline-block"></span>Paying rent + mortgage</span>`;
+        html+=`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:var(--sky);display:inline-block"></span>Mortgage only</span>`;
+        html+='</div>';
+        calEl.innerHTML=html;
       }
-      html+='</div>';
-      html+=`<div style="font-size:11px;color:var(--slate);margin-top:6px">`;
-      html+=`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px"><span style="width:10px;height:10px;border-radius:2px;background:var(--terracotta);display:inline-block"></span>Paying rent + mortgage</span>`;
-      html+=`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:var(--sky);display:inline-block"></span>Mortgage only</span>`;
-      html+='</div>';
-      calEl.innerHTML=html;
     }
 
     // overlap scenarios
@@ -636,6 +668,16 @@
 
     // ─── TAB 5: TIMELINE ───
     set('tl-address',address);
+    // Settle date badge — show formatted date if entered, else generic timeframe
+    const _settleDateEl=document.getElementById('inp-settle-date');
+    const _settleBadge=document.getElementById('tl-settle-badge');
+    if(_settleBadge&&_settleDateEl&&_settleDateEl.value){
+      const _sd=new Date(_settleDateEl.value+'T00:00:00');
+      const _today=new Date(); _today.setHours(0,0,0,0);
+      const _daysUntil=Math.round((_sd-_today)/(86400000));
+      const _sdFmt=_sd.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+      _settleBadge.textContent=_daysUntil>0?`${_sdFmt} — ${_daysUntil}d away`:_daysUntil===0?`${_sdFmt} — Today!`:`${_sdFmt}`;
+    } else if(_settleBadge){ _settleBadge.textContent='Week 4–12'; }
     const ob=document.getElementById('tl-overlap-badge');
     if(ob)ob.textContent=weeks>0?weeks+' wks':'';
     const od=document.getElementById('tl-overlap-desc');
@@ -654,8 +696,12 @@
       35+(govtPct>0?20:0)+(remaining>20000?15:remaining>10000?8:0)+(renoTotal>10000?10:5)+(price<650000?5:0)
     ));
     css('risk-meter','width',riskScore+'%');css('reward-meter','width',rewardScore+'%');
-    set('risk-desc',riskScore<30?'Low risk — strong equity and healthy cash buffer.':riskScore<50?'Moderate risk — manageable with the government scheme reducing LVR.':riskScore<70?'Medium-high risk — consider increasing deposit or savings buffer.':'Higher risk — savings are tight. Build a larger buffer before proceeding.');
-    set('reward-desc',rewardScore>70?'High reward potential — strong equity uplift through renovation and capital growth.':rewardScore>50?'Good reward potential — renovation and scheme create solid upside.':'Modest reward potential — consider a higher reno budget or larger govt scheme.');
+    const _riskMsg = riskScore<30 ? 'Low risk — strong equity and healthy cash buffer.'
+      : riskScore<50 ? (govtPct>0 ? 'Moderate risk — manageable with the government scheme reducing LVR.' : 'Moderate risk — consider increasing your deposit to strengthen your position.')
+      : riskScore<70 ? 'Medium-high risk — consider increasing deposit or savings buffer.'
+      : 'Higher risk — savings are tight. Build a larger buffer before proceeding.';
+    set('risk-desc', _riskMsg);
+    set('reward-desc',rewardScore>70?'High reward potential — strong equity uplift through renovation and capital growth.':rewardScore>50?(govtPct>0?'Good reward potential — renovation and scheme create solid upside.':'Good reward potential — renovation can create solid equity uplift.'):'Modest reward potential — consider a higher reno budget or applying a govt scheme.');
     const m2=calcMonthly(loanAmt,rate+2,term);
     set('rr-rate-delta',fmt(m2-monthly));
     set('rr-dep-pct',pctS(depPct));set('rr-pool-val',fmtK(remaining));
@@ -663,6 +709,15 @@
     set('rr-dep-show',fmtK(deposit));set('rr-reno-show',fmtK(renoTotal));
     set('rr-price-show',fmtK(price));set('rr-govt-show',pctS(govtPct));
     set('rr-dep-ltg',fmtK(deposit));set('rr-price-ltg',fmtK(price));
+    // Conditionally show/hide risk rows that only apply in specific scenarios
+    const rriOverlap = document.getElementById('rri-overlap');
+    if(rriOverlap) rriOverlap.style.display = (weeks>0) ? '' : 'none';
+    const rriEquity = document.getElementById('rri-equity');
+    if(rriEquity) rriEquity.style.display = (depPct<20) ? '' : 'none';
+    const rriGovt = document.getElementById('rri-govt-reward');
+    if(rriGovt) rriGovt.style.display = (govtPct>0) ? '' : 'none';
+    const rriLmi = document.getElementById('rri-lmi');
+    if(rriLmi) rriLmi.style.display = (govtPct>0) ? '' : 'none';
   }
 
   function showTab(id,btn){
@@ -716,6 +771,7 @@
   let propPhotoDataUrl = '';
   let _lastSavedAddr = null;
   let _isDirty = false;
+  let _forceDirty = false;
   let _restoringDraft = false; // suppresses autosaveDraft during restore
   let propThumbDataUrl = ''; // small thumbnail for library
 
@@ -772,7 +828,7 @@
     if(hZone) hZone.style.display = 'none';
     // preview thumb in details tab
     const prevPhoto = document.getElementById('pd-preview-photo');
-    if(prevPhoto) prevPhoto.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;">`;
+    if(prevPhoto){ const s=safePhotoSrc(src); if(s) prevPhoto.innerHTML='<img src="'+s+'" style="width:100%;height:100%;object-fit:cover;">'; }
     updatePropertyDetails();
     triggerAutoSaveToLibrary();
   }
@@ -902,8 +958,10 @@
     const urlEl = document.getElementById('pd-photo-url');
     const url   = urlEl?.value?.trim();
     if(!url){ showToast('⚠️ Paste an image URL first'); return; }
-    propPhotoDataUrl = url;
-    applyPropPhoto(url);
+    const safe = safePhotoSrc(url);
+    if(!safe){ showToast('⚠️ Only https:// image URLs are allowed'); return; }
+    propPhotoDataUrl = safe;
+    applyPropPhoto(safe);
     showToast('🖼️ Photo loaded from URL');
   }
 
@@ -974,7 +1032,7 @@
     const stateEl  = document.getElementById('pd-state');
     if(addrEl)   addrEl.value   = r.address || '';
     if(suburbEl) suburbEl.value = r.suburb  || '';
-    if(stateEl)  stateEl.value  = r.state   || 'QLD';
+    if(stateEl && r.state)  stateEl.value = r.state;
     hideAddrSuggestions();
     updatePropertyDetails();
   }
@@ -1016,7 +1074,7 @@
     const STATUS_BADGE_COLORS = {'browsing':'#5B8FAB','auction':'#C4704A','for-sale':'#C9A84C','offered':'#7B9E87','under-offer':'#E8A882','unconditional':'#5A9E7B','sold':'#C45A5A'};
     const STATUS_BADGE_LABELS = {'browsing':'👀 Browsing','auction':'🔨 Auction','for-sale':'🏷 For Sale','offered':'📝 Offer Sent','under-offer':'⏳ Under Offer','unconditional':'✅ Unconditional','sold':'🔴 Sold'};
     let statusBadge = document.getElementById('header-status-badge');
-    if(!statusBadge){ statusBadge = document.createElement('div'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:2px 10px;border-radius:10px;font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;white-space:nowrap;width:auto;max-width:none;align-self:flex-start;margin-top:4px;'; const h1=document.getElementById('page-title'); if(h1&&h1.parentNode) h1.parentNode.insertBefore(statusBadge, h1.nextSibling); }
+    if(!statusBadge){ statusBadge = document.createElement('div'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:2px 10px;border-radius:10px;font-family:\u0027DM Mono\u0027,monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;white-space:nowrap;width:auto;max-width:none;align-self:flex-start;margin-top:4px;'; const h1=document.getElementById('page-title'); if(h1&&h1.parentNode) h1.parentNode.insertBefore(statusBadge, h1.nextSibling); }
     statusBadge.textContent = STATUS_BADGE_LABELS[statusVal] || statusVal;
     statusBadge.style.background = (STATUS_BADGE_COLORS[statusVal]||'#888') + '33';
     statusBadge.style.color = STATUS_BADGE_COLORS[statusVal] || '#888';
@@ -1046,14 +1104,14 @@
     const statsEl = document.getElementById('pd-preview-stats');
     if(statsEl){
       const chips = [];
-      if(type) chips.push(`🏠 ${type}`);
+      if(type) chips.push(`🏠 ${escHtml(type)}`);
       if(bed)  chips.push(`🛏 ${bed} bed`);
       if(bath) chips.push(`🚿 ${bath} bath`);
       if(car)  chips.push(`🚗 ${car} car`);
-      if(land) chips.push(`📐 ${land}m²`);
-      if(house)chips.push(`🏗 ${house}m² house`);
-      if(year) chips.push(`📅 Built ${year}`);
-      statsEl.innerHTML = chips.map(c=>`<span class="pd-stat-chip">${c}</span>`).join('') || '<span style="font-size:11px;color:rgba(245,240,232,0.3);font-family:\'DM Mono\',monospace;">Fill in details above to see preview</span>';
+      if(land) chips.push(`📐 ${escHtml(land)}m²`);
+      if(house)chips.push(`🏗 ${escHtml(house)}m² house`);
+      if(year) chips.push(`📅 Built ${escHtml(year)}`);
+      statsEl.innerHTML = chips.map(c=>`<span class="pd-stat-chip">${c}</span>`).join('') || '<span style="font-size:11px;color:rgba(245,240,232,0.3);font-family:\u0027DM Mono\u0027,monospace;">Fill in details above to see preview</span>';
     }
 
     recalc();
@@ -1358,7 +1416,7 @@
   async function renderScenariosList(){
     const grid = document.getElementById('scenarios-grid');
     if(!grid) return;
-    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\'DM Mono\',monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
+    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\u0027DM Mono\u0027,monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
     _scenariosCache = await getAllScenarios();
     _renderScenariosToDOM(_scenariosCache);
     loadSharedWithMe(); // load shared-with-me in parallel
@@ -1480,7 +1538,7 @@
     _forceDirty = false;
     lsDel(DRAFT_KEY);
     updateUnsavedBadge();
-    showToast('✓ Loaded: ' + sc.fullAddr);
+    showToast('✓ Loaded: ' + _escBanner(sc.fullAddr));
     pendingLoadId = null;
     // Keep _restoringDraft=true past the 800ms autosaveDraft timer (prevents dirty)
     setTimeout(function(){
@@ -1543,6 +1601,8 @@
       const inp = document.getElementById('inp-'+k), rng = document.getElementById('rng-'+k);
       if(inp && rng) rng.value = inp.value;
     });
+    // Refresh settle date label (not driven by recalc)
+    onSettleDateChange();
     updatePropertyDetails();
     recalc();
   }
@@ -1776,12 +1836,13 @@
 
   // beforeunload dialog removed — saving is automatic
 
-  function showToast(msg){
+  function showToast(msg, duration){
     const t = document.createElement('div');
     t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--charcoal);color:var(--gold);font-family:"DM Mono",monospace;font-size:11px;padding:10px 16px;border-radius:3px;border:1px solid rgba(201,168,76,0.3);z-index:9999;letter-spacing:0.5px;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.8s;';
-    t.textContent = msg;
+    // Use innerHTML so callers can embed anchor links (all toast messages are hardcoded, not user data)
+    t.innerHTML = msg;
     document.body.appendChild(t);
-    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 800); }, 3500);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 800); }, duration || 3500);
   }
 
   // ── RENO TOGGLE ──
@@ -1805,7 +1866,7 @@
       if(knob) knob.style.left = '2px';
       if(track) track.style.background = 'rgba(255,255,255,0.15)';
       if(section) section.style.display = 'none';
-      if(tab){ tab.style.display = 'none'; showTab('costs', document.querySelector('.tab')); }
+      if(tab){ tab.style.display = 'none'; showTab('costs', document.querySelector('.tab[data-tab="costs"]')); }
     }
   }
 
@@ -1843,6 +1904,9 @@
       if(track) track.style.background = 'rgba(255,255,255,0.15)';
       if(section) section.style.display = 'none';
       if(tab){ tab.style.display = 'none'; }
+      // Redirect away from overlap tab if currently active
+      const active = document.querySelector('.tab.active');
+      if(active && active.dataset.tab === 'overlap') showTab('costs', document.querySelector('.tab[data-tab="costs"]'));
     }
   }
 
@@ -1851,8 +1915,8 @@
     const el = document.getElementById('inp-settle-date');
     const lbl = document.getElementById('lbl-settle-date');
     if(el && el.value){
-      const d = new Date(el.value);
-      const yr = d.getFullYear();
+      // Parse as local time (append T00:00:00) to avoid UTC offset flipping the year/day
+      const yr = parseInt(el.value.split('-')[0], 10);
       if(lbl) lbl.textContent = yr;
     } else {
       if(lbl) lbl.textContent = '';
@@ -1863,7 +1927,7 @@
   function getSettleYear(){
     const el = document.getElementById('inp-settle-date');
     if(!el || !el.value) return null;
-    return new Date(el.value).getFullYear();
+    return parseInt(el.value.split('-')[0], 10);
   }
 
   // ── PROJECTION (items 6,7,8,9) ──
@@ -1955,6 +2019,12 @@
       }
     }
 
+    // ── Legend visibility ──
+    const _lgGovt = document.getElementById('proj-legend-govt');
+    if(_lgGovt) _lgGovt.style.display = govtPct > 0 ? 'flex' : 'none';
+    const _lgExtra = document.getElementById('proj-legend-extra');
+    if(_lgExtra) _lgExtra.style.display = extraPayment > 0 ? 'flex' : 'none';
+
     // ── Settlement year label helpers ──
     const settleYr = getSettleYear();
     const fmtQLabel = (q) => {
@@ -1977,11 +2047,28 @@
     const payEl = document.getElementById('proj-payoff-yr');
     if(payEl) payEl.textContent = payoffQ != null ? fmtQLabel(payoffQ) : (term < 30 ? `Year ${term}` : '30+ yrs');
     const buyEl = document.getElementById('proj-buyout-yr');
-    if(buyEl) buyEl.textContent = buyoutQ != null ? fmtQLabel(buyoutQ) : '30+ yrs';
+    if(buyEl){
+      if(govtPct <= 0){
+        buyEl.textContent = 'No scheme';
+        buyEl.closest('.tile').style.opacity = '0.4';
+      } else {
+        buyEl.textContent = buyoutQ != null ? fmtQLabel(buyoutQ) : '30+ yrs';
+        buyEl.closest('.tile').style.opacity = '';
+      }
+    }
 
     const d5 = projData[Math.min(20, projData.length - 1)]; // q=20 = year 5
     set('proj-val-5', fmtK(d5.baseVal));
-    set('proj-govt-5', fmtK(d5.govtOwed));
+    const govt5El = document.getElementById('proj-govt-5');
+    if(govt5El){
+      if(govtPct <= 0){
+        govt5El.textContent = 'No scheme';
+        govt5El.closest('.tile').style.opacity = '0.4';
+      } else {
+        govt5El.textContent = fmtK(d5.govtOwed);
+        govt5El.closest('.tile').style.opacity = '';
+      }
+    }
     const val5lbl = document.getElementById('proj-tiles')?.querySelectorAll('.tile-lbl');
     if(val5lbl && settleYr){
       if(val5lbl[2]) val5lbl[2].textContent = `Property Value @ ${settleYr + 5}`;
@@ -2306,9 +2393,9 @@
     clearTimeout(_suburbCheckTimer);
     _suburbCheckTimer = setTimeout(async function(){
       const suburb = document.getElementById('pd-suburb')?.value?.trim();
-      const state  = document.getElementById('pd-state')?.value?.trim() || 'QLD';
-      if(!suburb) return;
+      const state  = document.getElementById('pd-state')?.value?.trim() || '';
       const hint = document.getElementById('suburb-growth-hint');
+      if(!suburb){ if(hint) hint.textContent = ''; return; }
       // 1. Check localStorage cache
       const cached = getCachedGrowth(suburb, state);
       if(cached){
@@ -2337,14 +2424,18 @@
         document.getElementById('proj-growth-lbl').textContent = tableRate.toFixed(1)+'%';
         if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${tableRate}% p.a. avg (historical estimate)`;
         drawProjection();
+      } else {
+        // No data found — let the user know so they can use the manual "Look Up" button
+        if(hint) hint.textContent = `No data for ${suburb} — adjust growth rate manually or click "Look Up".`;
       }
     }, 800);
   }
 
   async function fetchSuburbGrowth(){
     const suburb = document.getElementById('pd-suburb')?.value?.trim();
-    const state  = document.getElementById('pd-state')?.value?.trim() || 'QLD';
+    const state  = document.getElementById('pd-state')?.value?.trim() || '';
     if(!suburb){ showToast('⚠️ Enter a suburb in the Property tab first'); return; }
+    if(!state){ showToast('⚠️ Select a state in the Property tab for accurate growth data'); return; }
     const btn = document.getElementById('fetch-growth-btn');
     const hint = document.getElementById('suburb-growth-hint');
 
@@ -2355,7 +2446,7 @@
       document.getElementById('proj-growth-lbl').textContent = cached.rate.toFixed(1)+'%';
       if(hint) hint.textContent = `📍 ${suburb}: ~${cached.rate}% p.a. — ${cached.note||'cached'}`;
       drawProjection();
-      showToast(`📈 Growth rate for ${suburb} loaded from cache`);
+      showToast(`📈 Growth rate for ${_escBanner(suburb)} loaded from cache`);
       return;
     }
     // Check shared Redis cache
@@ -2366,7 +2457,7 @@
       document.getElementById('proj-growth-lbl').textContent = shared.rate.toFixed(1)+'%';
       if(hint) hint.textContent = `📍 ${suburb}: ~${shared.rate}% p.a. — ${shared.note||'shared data'}`;
       drawProjection();
-      showToast(`📈 Growth rate for ${suburb} loaded from shared database`);
+      showToast(`📈 Growth rate for ${_escBanner(suburb)} loaded from shared database`);
       return;
     }
 
@@ -2382,10 +2473,10 @@
       document.getElementById('proj-growth-lbl').textContent = rate.toFixed(1)+'%';
       if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${rate}% p.a. avg (historical estimate)`;
       drawProjection();
-      showToast(`📈 Set growth to ${rate}% for ${suburb}`);
+      showToast(`📈 Set growth to ${rate}% for ${_escBanner(suburb)}`);
     } else {
       if(hint) hint.textContent = `No data found for ${suburb}. Try manual entry.`;
-      showToast(`⚠️ Could not find data for ${suburb} — adjust manually`);
+      showToast(`⚠️ Could not find data for ${_escBanner(suburb)} — adjust manually`);
     }
     btn.textContent = '🔍 Look Up Suburb Growth';
     btn.disabled = false;
@@ -2493,6 +2584,7 @@
       price: document.getElementById('t-price')?.textContent || '—',
       deposit: document.getElementById('t-deposit')?.textContent || '—',
       govt: document.getElementById('t-govt')?.textContent || '—',
+      hasGovt: (parseFloat(document.getElementById('inp-govt')?.value) || 0) > 0,
       remaining: document.getElementById('t-remaining')?.textContent || '—',
       remainingColor: document.getElementById('t-remaining')?.style.color || '',
       savings: document.getElementById('cb-savings')?.textContent || '—',
@@ -2535,9 +2627,9 @@
       : `<div style="width:100%;height:100%;background:#2C2C2E;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.2);font-size:32px;">🏠</div>`;
 
     const renoRowsHTML = snap.renoItems.map(it=>`
-      <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">${it.icon} ${it.name}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${it.amt}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;">${it.note}</td></tr>`).join('');
+      <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">${_escBanner(it.icon)} ${_escBanner(it.name)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${_escBanner(it.amt)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;">${_escBanner(it.note)}</td></tr>`).join('');
 
     // Build amortisation data for PDF if requested
     let amortTableHTML = '';
@@ -2563,7 +2655,7 @@
     const html = `<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
-<title>${snap.addr} — Finance Scenario</title>
+<title>${_escBanner(snap.addr)} — Finance Scenario</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -2592,6 +2684,7 @@
   .section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#888;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
   .section-title::after{content:'';flex:1;height:1px;background:#eee;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
   .card{background:#FAF7F2;border-radius:4px;padding:${fontSize==='large'?'18px 20px':fontSize==='compact'?'10px 12px':'14px 16px'};border:1px solid #eee;}
   .card-accent{width:4px;height:100%;position:absolute;top:0;left:0;border-radius:4px 0 0 4px;}
@@ -2618,10 +2711,10 @@
   @media(min-width:601px){.print-btn{top:16px;bottom:auto;right:16px;left:auto;transform:none;border-radius:4px;padding:10px 20px;font-size:12px;box-shadow:none;}}
   @media print{.print-btn,.share-btn{display:none!important;}#account-panel-overlay,#account-panel{display:none!important;}}
   /* Page-break fixes — prevent content being sliced mid-element */
-  .card,.tile,.section-title,.grid2,.grid4,.kv{page-break-inside:avoid;break-inside:avoid;}
+  .card,.tile,.section-title,.grid2,.grid3,.grid4,.kv{page-break-inside:avoid;break-inside:avoid;}
   .section-title{page-break-after:avoid;break-after:avoid;}
   header{page-break-inside:avoid;break-inside:avoid;page-break-after:avoid;break-after:avoid;}
-  .grid2,.grid4{display:grid;}
+  .grid2,.grid3,.grid4{display:grid;}
   ${colourMode==='mono'?`
   /* Monochrome — screen filter + explicit print overrides */
   html{filter:grayscale(1);}
@@ -2642,26 +2735,26 @@
 </style>
 </head>
 <body>
-<button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
-<button class="share-btn" onclick="(async()=>{try{const r=await fetch(location.href);const b=await r.blob();const f=new File([b],'property-report.html',{type:'text/html'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Property Finance Report'});}else if(navigator.share){await navigator.share({title:'Property Finance Report',url:location.href});}else{window.print();}}catch(e){window.print();}})()">↑ Share Report</button>
+<button class="print-btn" id="pdf-print-btn">🖨 Print / Save as PDF</button>
+<button class="share-btn" id="pdf-share-btn">↑ Share Report</button>
 <div class="page">
   <header>
     <div class="htext">
       <div class="htag">Property Finance Calculator</div>
-      <h1>${snap.addr}</h1>
-      <div class="hsub">${snap.sub}</div>
+      <h1>${_escBanner(snap.addr)}</h1>
+      <div class="hsub">${_escBanner(snap.sub)}</div>
       <div class="hstamp">Exported ${(()=>{const n=new Date();return String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();})()}  ·  ${pageSize} ${pageOrient.charAt(0).toUpperCase()+pageOrient.slice(1)}</div>
-      ${(snap.notes && incNotes) ? `<div style="margin-top:10px;font-size:11px;color:rgba(245,240,232,0.5);font-style:italic;max-width:360px;">"${snap.notes}"</div>` : ''}
+      ${(snap.notes && incNotes) ? `<div style="margin-top:10px;font-size:11px;color:rgba(245,240,232,0.5);font-style:italic;max-width:360px;">"${_escBanner(snap.notes)}"</div>` : ''}
     </div>
     <div class="hphoto">${photoHTML}</div>
   </header>
 
   ${incFinancial ? `
   <div class="section-title">01 · Financial Snapshot</div>
-  <div class="grid4">
+  <div class="${snap.hasGovt?'grid4':'grid3'}">
     <div class="tile"><div class="tile-val">${snap.price}</div><div class="tile-lbl">Purchase Price</div></div>
     <div class="tile"><div class="tile-val">${snap.deposit}</div><div class="tile-lbl">Your Deposit</div></div>
-    <div class="tile"><div class="tile-val">${snap.govt}</div><div class="tile-lbl">Govt Contribution</div></div>
+    ${snap.hasGovt ? `<div class="tile"><div class="tile-val">${snap.govt}</div><div class="tile-lbl">Govt Contribution</div></div>` : ''}
     <div class="tile"><div class="tile-val" style="color:${snap.remainingColor||'#A8C4B0'}">${snap.remaining}</div><div class="tile-lbl">Remaining Cash</div></div>
   </div>
   <div class="grid2">
@@ -2767,151 +2860,34 @@
 
 <!-- PDF Action Buttons -->
 <div style="padding:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;border-top:1px solid #eee;margin-top:20px;">
-  <button onclick="window.print()" style="padding:12px 20px;background:#1C1C1E;border:none;border-radius:4px;color:#C9A84C;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">🖨 Print</button>
-  <button onclick="navigator.share?navigator.share({title:'Property Analysis',text:'${fullAddr}',url:window.location.href}).catch(()=>{}):alert('Share not available');" style="padding:12px 20px;background:#7B9E87;border:none;border-radius:4px;color:white;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
+  <button id="pdf-preview-print-btn" style="padding:12px 20px;background:#1C1C1E;border:none;border-radius:4px;color:#C9A84C;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">🖨 Print</button>
+  <button id="pdf-preview-share-btn" style="padding:12px 20px;background:#7B9E87;border:none;border-radius:4px;color:white;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
 </div>
 </div>
-<script>setTimeout(()=>{if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);<\/script>
-
-
-<!-- account panel intentionally hidden in PDF export -->
-<style>
-#account-panel-overlay{
-  display:none!important;position:fixed;inset:0;z-index:3000;
-  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
-}
-#account-panel-overlay.open{display:block;}
-#account-panel{
-  position:fixed;top:0;right:-480px;width:min(480px,100vw);height:100vh;
-  background:var(--warm-white);z-index:3001;overflow-y:auto;
-  transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
-  box-shadow:-8px 0 40px rgba(0,0,0,0.3);
-  padding-top:env(safe-area-inset-top,0px);
-}
-#account-panel.open{right:0;}
-.ap-header{
-  background:var(--charcoal);color:var(--cream);
-  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:1;
-}
-.ap-header h2{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,0.7);margin:0;}
-.ap-close{width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:var(--cream);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
-.ap-body{padding:24px;}
-.ap-section{margin-bottom:24px;}
-.ap-section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--slate);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.08);}
-.ap-card{background:white;border-radius:8px;border:1px solid rgba(28,28,30,0.08);padding:16px;margin-bottom:12px;}
-.ap-field{margin-bottom:12px;}
-.ap-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate);display:block;margin-bottom:5px;}
-.ap-input{width:100%;background:var(--warm-white);border:1px solid rgba(28,28,30,0.12);border-radius:4px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--charcoal);outline:none;box-sizing:border-box;}
-.ap-input:focus{border-color:rgba(201,168,76,0.6);background:white;}
-.ap-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.ap-btn{padding:10px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.5px;cursor:pointer;border:none;font-weight:600;}
-.ap-btn-primary{background:var(--charcoal);color:var(--cream);}
-.ap-btn-primary:hover{opacity:0.85;}
-.ap-btn-gold{background:var(--gold);color:var(--charcoal);}
-.ap-btn-gold:hover{opacity:0.88;}
-.ap-btn-danger{background:transparent;border:1px solid rgba(196,90,90,0.4);color:var(--risk-red);}
-.ap-btn-danger:hover{background:rgba(196,90,90,0.06);}
-.ap-status{font-size:12px;margin-top:8px;padding:6px 10px;border-radius:3px;display:none;}
-.ap-status.ok{display:block;background:rgba(90,158,123,0.1);color:var(--reward-green);}
-.ap-status.err{display:block;background:rgba(196,90,90,0.08);color:var(--risk-red);}
-.ap-avatar-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
-.ap-avatar{width:56px;height:56px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--charcoal);overflow:hidden;flex-shrink:0;}
-.ap-plan-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;border:1px solid rgba(201,168,76,0.3);background:rgba(201,168,76,0.08);color:var(--gold);}
-.ap-color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-.ap-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s,border-color 0.15s;}
-.ap-swatch:hover,.ap-swatch.active{transform:scale(1.2);border-color:white;box-shadow:0 0 0 1px rgba(0,0,0,0.2);}
-</style>
-
-<div id="account-panel-overlay" onclick="closeAccountPanel()"></div>
-<div id="account-panel">
-  <div class="ap-header">
-    <h2>Account Settings</h2>
-    <button class="ap-close" onclick="closeAccountPanel()">✕</button>
-  </div>
-  <div class="ap-body">
-    
-    <!-- Profile -->
-    <div class="ap-section">
-      <div class="ap-section-title">Profile</div>
-      <div class="ap-card">
-        <div class="ap-avatar-row">
-          <div class="ap-avatar" id="ap-avatar">ES</div>
-          <div>
-            <div style="font-size:14px;font-weight:600;color:var(--charcoal);" id="ap-name-display">Loading…</div>
-            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate);margin-top:2px;" id="ap-email-display"></div>
-            <div class="ap-plan-badge" id="ap-plan-display" style="margin-top:8px;">Starter</div>
-          </div>
-        </div>
-        <div class="ap-field">
-          <label class="ap-label">Display Name</label>
-          <input class="ap-input" id="ap-name" type="text" placeholder="Your name">
-        </div>
-        <div class="ap-field">
-          <label class="ap-label">Avatar Colour</label>
-          <div class="ap-color-row" id="ap-colors"></div>
-        </div>
-        <div class="ap-field">
-          <label class="ap-label">Profile Photo</label>
-          <input type="file" id="ap-photo-input" accept="image/*" style="display:none" onchange="apLoadPhoto(this)">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="ap-btn ap-btn-primary" onclick="document.getElementById('ap-photo-input').click()">📷 Upload Photo</button>
-            <button class="ap-btn" style="background:rgba(196,90,90,0.08);color:var(--risk-red);border:1px solid rgba(196,90,90,0.2);" onclick="apRemovePhoto()">Remove</button>
-          </div>
-        </div>
-        <button class="ap-btn ap-btn-gold" onclick="apSaveProfile()">Save Profile</button>
-        <div class="ap-status" id="ap-profile-status"></div>
-      </div>
-    </div>
-
-    <!-- Plan -->
-    <div class="ap-section">
-      <div class="ap-section-title">Subscription</div>
-      <div class="ap-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--charcoal);" id="ap-plan-name">Starter (Free)</div>
-            <div style="font-size:12px;color:var(--slate);margin-top:3px;" id="ap-plan-desc">1 saved scenario · Core calculator</div>
-          </div>
-          <button class="ap-btn ap-btn-gold" id="ap-upgrade-btn" onclick="location.href='pricing.html'" style="display:none;">Upgrade to Pro →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Security -->
-    <div class="ap-section">
-      <div class="ap-section-title">Security</div>
-      <div class="ap-card">
-        <div class="ap-field">
-          <label class="ap-label">Current Password</label>
-          <input class="ap-input" id="ap-pw-current" type="password" placeholder="Enter current password" autocomplete="current-password">
-        </div>
-        <div class="ap-row">
-          <div class="ap-field">
-            <label class="ap-label">New Password</label>
-            <input class="ap-input" id="ap-pw-new" type="password" placeholder="8+ characters" autocomplete="new-password">
-          </div>
-          <div class="ap-field">
-            <label class="ap-label">Confirm New</label>
-            <input class="ap-input" id="ap-pw-confirm" type="password" placeholder="Repeat password" autocomplete="new-password">
-          </div>
-        </div>
-        <button class="ap-btn ap-btn-primary" onclick="apChangePassword()">Update Password</button>
-        <div class="ap-status" id="ap-pw-status"></div>
-      </div>
-    </div>
-
-    <!-- Danger -->
-    <div class="ap-section">
-      <div class="ap-section-title">Danger Zone</div>
-      <div class="ap-card">
-        <div style="font-size:12px;color:var(--slate);margin-bottom:12px;">Permanently delete your account and all saved scenarios. This cannot be undone.</div>
-        <button class="ap-btn ap-btn-danger" onclick="apDeleteAccount()">Delete My Account</button>
-      </div>
-    </div>
-
-  </div>
-</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var printBtn = document.getElementById('pdf-print-btn');
+    if (printBtn) printBtn.addEventListener('click', function() { window.print(); });
+    var shareBtn = document.getElementById('pdf-share-btn');
+    if (shareBtn) shareBtn.addEventListener('click', async function() {
+      try {
+        var r = await fetch(location.href); var b = await r.blob();
+        var f = new File([b], 'property-report.html', {type:'text/html'});
+        if (navigator.canShare && navigator.canShare({files:[f]})) { await navigator.share({files:[f], title:'Property Finance Report'}); }
+        else if (navigator.share) { await navigator.share({title:'Property Finance Report', url:location.href}); }
+        else { window.print(); }
+      } catch(e) { window.print(); }
+    });
+    var previewPrint = document.getElementById('pdf-preview-print-btn');
+    if (previewPrint) previewPrint.addEventListener('click', function() { window.print(); });
+    var previewShare = document.getElementById('pdf-preview-share-btn');
+    if (previewShare) previewShare.addEventListener('click', function() {
+      if (navigator.share) { navigator.share({title:'Property Analysis', url:window.location.href}).catch(function(){}); }
+      else { alert('Share not available'); }
+    });
+  });
+  setTimeout(function(){if(window.matchMedia&&window.matchMedia('print').matches||navigator.userAgent.match(/print/i))window.print();},300);
+<\/script>
 </body></html>`;
 
     const blob = new Blob([html], {type:'text/html'});
@@ -2976,6 +2952,7 @@
     if(existing>=0) keyDates[existing].date = date;
     else keyDates.push({id:'kd-status-'+Date.now(), date, label});
     renderKeyDates();
+    autosaveDraft();
   }
 
   // ══════════════════════════════════════════════
@@ -2986,16 +2963,18 @@
   function addKeyDate(date='', label=''){
     keyDates.push({id:'kd-'+Date.now(), date, label});
     renderKeyDates();
+    autosaveDraft();
   }
 
   function removeKeyDate(id){
     keyDates = keyDates.filter(d=>d.id!==id);
     renderKeyDates();
+    autosaveDraft();
   }
 
   function updateKeyDate(id, field, val){
     const d = keyDates.find(x=>x.id===id);
-    if(d){ d[field]=val; syncKeyDatesToTimeline(); }
+    if(d){ d[field]=val; syncKeyDatesToTimeline(); autosaveDraft(); }
   }
 
   function formatDate(iso){
@@ -3113,11 +3092,13 @@
     commsLog.unshift({id:'cm-'+Date.now(), date, type, text});
     closeCommsForm();
     renderCommsLog();
+    autosaveDraft();
   }
 
   function deleteCommsEntry(id){
     commsLog = commsLog.filter(c=>c.id!==id);
     renderCommsLog();
+    autosaveDraft();
   }
 
   function renderCommsLog(){
@@ -3136,8 +3117,8 @@
         div.dataset.commid = c.id;
         div.innerHTML = `
           <div class="comms-meta">
-            <span class="comms-date">${fmtDate}</span>
-            <span class="comms-type">${c.type||'Note'}</span>
+            <span class="comms-date">${_escBanner(fmtDate)}</span>
+            <span class="comms-type">${_escBanner(c.type||'Note')}</span>
             <button class="comms-del" data-action="del-comm" title="Delete">✕</button>
           </div>
           <div class="comms-text">${_escBanner(c.text)}</div>`;
@@ -3166,7 +3147,8 @@
 
   // ── SEED DEFAULT PURCHASE & MOVE-OUT COSTS ──
   dynCosts = [
-    {id:'dyn-'+dynId++, name:'Bank / Lender Fees', amount:800,  category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Stamp Duty',          amount:0,    category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Bank / Lender Fees',  amount:800,  category:'purchase'},
     {id:'dyn-'+dynId++, name:'Conveyancing',        amount:1600, category:'purchase'},
     {id:'dyn-'+dynId++, name:'Building & Pest',     amount:700,  category:'purchase'},
     {id:'dyn-'+dynId++, name:'Removalists',         amount:1200, category:'moveout'},
@@ -3217,9 +3199,14 @@
   // Auth guard handled in <head> script — redirects to login.html if not signed in
 
   if(_hadDraft){
+    // Re-fetch suburb growth rate for restored draft
+    setTimeout(function(){
+      var suburbEl = document.getElementById('pd-suburb');
+      if(suburbEl && suburbEl.value.trim()) onSuburbChange();
+    }, 500);
     setTimeout(function(){
       var addr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
-      showToast(addr ? '↩️ Restored: ' + addr : '↩️ Draft restored');
+      showToast(addr ? '↩️ Restored: ' + _escBanner(addr) : '↩️ Draft restored');
     }, 600);
   } else if(!localStorage.getItem('propCalc_splash_seen')) {
     setTimeout(showWelcomeSplash, 300);
@@ -3298,9 +3285,34 @@
   // ── SCHEME SELECTOR ──────────────────────────────────────────
   var _schemes = [];
 
+  function updateSchemeInfo(){
+    var infoEl = document.getElementById('scheme-info');
+    if(!infoEl) return;
+    var sel = document.getElementById('scheme-select');
+    if(!sel || !sel.value){ infoEl.style.display='none'; return; }
+    var opt = sel.querySelector('option[value="'+sel.value+'"]');
+    if(!opt){ infoEl.style.display='none'; return; }
+    var maxPrice = parseInt(opt.dataset.max) || 0;
+    if(!maxPrice){ infoEl.style.display='none'; return; }
+    var currentPrice = parseFloat(document.getElementById('inp-price').value) || 0;
+    infoEl.style.display = 'block';
+    if(currentPrice > 0 && currentPrice > maxPrice){
+      infoEl.innerHTML = '⚠️ Price exceeds scheme cap of <strong>'+fmt(maxPrice)+'</strong>. You may not qualify.';
+      infoEl.style.color = 'var(--risk-red)';
+      infoEl.style.borderColor = 'rgba(220,80,60,0.25)';
+      infoEl.style.background = 'rgba(220,80,60,0.06)';
+    } else {
+      infoEl.innerHTML = 'ℹ️ Max eligible price: <strong>'+fmt(maxPrice)+'</strong>';
+      infoEl.style.color = 'rgba(201,168,76,0.7)';
+      infoEl.style.borderColor = 'rgba(255,255,255,0.08)';
+      infoEl.style.background = 'rgba(255,255,255,0.04)';
+    }
+  }
+
   function applySelectedScheme(schemeId){
+    var infoEl = document.getElementById('scheme-info');
     if(!schemeId){
-      // Manual — don't change values, just clear any scheme info display
+      if(infoEl){ infoEl.style.display='none'; }
       return;
     }
     var sel = document.getElementById('scheme-select');
@@ -3311,13 +3323,11 @@
       var govtRange = document.getElementById('rng-govt');
       if(govtInput){ govtInput.value = pct; }
       if(govtRange){ govtRange.value = pct; }
-      // If scheme has a max price hint, update the range slider max too
-      var maxPrice = opt ? parseInt(opt.dataset.max) : null;
-      var priceRange = document.getElementById('rng-price');
-      if(maxPrice && priceRange){ priceRange.max = maxPrice; }
+      rl('govt', pct);
       recalc();
-      showToast('✓ Applied: ' + (opt ? opt.textContent.split('(')[0].trim() : schemeId));
+      showToast('✓ Applied: ' + _escBanner(opt ? opt.textContent.split('(')[0].trim() : schemeId));
     }
+    updateSchemeInfo();
   }
 
   function loadSchemesFromBackend(){
@@ -3356,8 +3366,8 @@
     // Keep the "no scheme" option, rebuild the rest
     sel.innerHTML = '<option value="">No scheme (manual entry below)</option>' +
       active.map(function(s){
-        return '<option value="'+s.id+'" data-pct="'+s.govtDefaultPct+'" data-max="'+(s.maxPropertyPrice||700000)+'">'
-          + s.name + ' (' + s.govtDefaultPct + '% — ' + (s.country||'') + ')'
+        return '<option value="'+escHtml(s.id)+'" data-pct="'+escHtml(String(s.govtDefaultPct))+'" data-max="'+(s.maxPropertyPrice||700000)+'">'
+          + escHtml(s.name) + ' (' + escHtml(String(s.govtDefaultPct)) + '% — ' + escHtml(s.country||'') + ')'
           + '</option>';
       }).join('');
   }
@@ -3519,7 +3529,7 @@
       var initials = ppParts.length===0?'?':ppParts.length===1?ppParts[0][0].toUpperCase():(ppParts[0][0]+ppParts[ppParts.length-1][0]).toUpperCase();
       btn.style.background = color;
       btn.style.padding = '';
-      btn.innerHTML = initials;
+      btn.textContent = initials;
     }
     // Keep top-right widget in sync
     typeof renderSiteNav === 'function' && renderSiteNav();
@@ -3543,7 +3553,7 @@
         avd.innerHTML = '<img src="' + safePhotoSrc(_profileData.photo) + '">';
         avd.style.background = 'transparent';
       } else {
-        avd.innerHTML = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+        avd.textContent = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
         avd.style.background = color;
       }
     }
@@ -3567,7 +3577,7 @@
     }
     const ppSt = document.getElementById('pp-stat-storage');
     if(ppSt) ppSt.textContent = _currentUser ? '☁ Cloud account' : (typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY ? '☁ Cloud (guest)' : '💾 Local');
-    document.querySelectorAll('.pp-color-swatch').forEach(function(el){
+    document.querySelectorAll('.pp-color-btn').forEach(function(el){
       el.classList.toggle('active', el.dataset.color === color);
     });
   }
@@ -3577,7 +3587,7 @@
     if(d) d.textContent = val || 'Your Name';
     const avd = document.getElementById('pp-avatar-display');
     if(avd && !_profileData.photo){
-      avd.innerHTML = val ? val.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+      avd.textContent = val ? val.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
     }
   }
 
@@ -3587,7 +3597,7 @@
     lsSet(getProfileKey(), JSON.stringify(_profileData));
     const avd = document.getElementById('pp-avatar-display');
     if(avd && !_profileData.photo) avd.style.background = color;
-    document.querySelectorAll('.pp-color-swatch').forEach(function(el){
+    document.querySelectorAll('.pp-color-btn').forEach(function(el){
       el.classList.toggle('active', el.dataset.color === color);
     });
     renderProfileBtn();
@@ -3615,6 +3625,8 @@
   function saveProfile(){
     _profileData.name  = (document.getElementById('pp-name-input')  && document.getElementById('pp-name-input').value.trim())  || '';
     _profileData.email = (document.getElementById('pp-email-input') && document.getElementById('pp-email-input').value.trim()) || '';
+    // Keep _currentUser in sync so renderProfilePanel shows the updated name immediately
+    if(_currentUser && _profileData.name) _currentUser.name = _profileData.name;
     lsSet(getProfileKey(), JSON.stringify(_profileData));
     renderProfileBtn(); renderProfilePanel();
     closeProfile();
@@ -3671,7 +3683,7 @@
       var ini = parts2.length===0?'?':parts2.length===1?parts2[0][0].toUpperCase():(parts2[0][0]+parts2[parts2.length-1][0]).toUpperCase();
       btn.style.background = color;
       btn.style.padding = '';
-      btn.innerHTML = ini;
+      btn.textContent = ini;
     }
     if(nameEl)  nameEl.textContent  = name  || 'Account';
     if(emailEl) emailEl.textContent = email || '';
@@ -3720,9 +3732,9 @@
       if(!ok) return;
     }
     var defaults = {
-      'inp-price':'0','inp-savings':'0','inp-depp':'0',
-      'inp-govt':'0','inp-rate':'0','inp-term':'0',
-      'inp-cont':'0','inp-rent':'0','inp-weeks':'0'
+      'inp-price':'0','inp-savings':'0','inp-depp':'10',
+      'inp-govt':'0','inp-rate':'6.5','inp-term':'30',
+      'inp-cont':'15','inp-rent':'0','inp-weeks':'4'
     };
     Object.keys(defaults).forEach(function(id){
       var val = defaults[id];
@@ -3732,6 +3744,18 @@
       if(rng) rng.value = val;
       rl(id.replace('inp-',''), parseFloat(val)||0);
     });
+    // Default settlement date to ~6 weeks from today
+    var inpSettle = document.getElementById('inp-settle-date');
+    if(inpSettle){
+      var sd = new Date(); sd.setDate(sd.getDate() + 42);
+      inpSettle.value = sd.toISOString().split('T')[0];
+      onSettleDateChange();
+    }
+    // Clear active scheme
+    var schemeSel = document.getElementById('scheme-select');
+    if(schemeSel) schemeSel.value = '';
+    var schemeInfo = document.getElementById('scheme-info');
+    if(schemeInfo){ schemeInfo.style.display='none'; }
     ['pd-address','pd-suburb','pd-state','pd-url','pd-notes','pd-photo-url',
      'ag-agency','ag-name','ag-phone','ag-email','inp-address'].forEach(function(id){
       var el = document.getElementById(id); if(el) el.value='';
@@ -3742,7 +3766,15 @@
     ['pd-land','pd-house','pd-year'].forEach(function(id){
       var el = document.getElementById(id); if(el) el.value='';
     });
-    dynCosts=[]; renderDynCosts();
+    dynCosts = [
+      {id:'dyn-'+dynId++, name:'Stamp Duty',          amount:0,    category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Bank / Lender Fees',  amount:800,  category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Conveyancing',        amount:1600, category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Building & Pest',     amount:700,  category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Removalists',         amount:1200, category:'moveout'},
+      {id:'dyn-'+dynId++, name:'Lease Break Fee',     amount:0,    category:'moveout'},
+    ];
+    renderDynCosts();
     renoItems=[]; renderRenoItems();
     keyDates=[]; renderKeyDates();
     commsLog=[]; renderCommsLog();
@@ -3753,7 +3785,7 @@
     if(houseBtn) setPropType(houseBtn,'House');
     _lastSavedAddr = null; _isDirty = false;
     lsDel(DRAFT_KEY);
-    var propTabBtn = document.querySelector('.tab[onclick*="property"]');
+    var propTabBtn = document.querySelector('.tab[data-tab="property"]');
     if(propTabBtn) showTab('property', propTabBtn);
     updateUnsavedBadge(); recalc();
     showToast('✨ New scenario ready');
@@ -3890,10 +3922,13 @@
       cr.innerHTML = AP_COLORS.map(function(c2){
         return '<div class="ap-swatch'+(c2===color?' active':'')+'" style="background:'+c2+';" data-color="'+c2+'"></div>';
       }).join('');
-      cr.addEventListener('click', function(e){
-        var sw = e.target.closest('.ap-swatch[data-color]');
-        if(sw) apSetColor(sw, sw.dataset.color);
-      });
+      if(!cr._apClickBound){
+        cr._apClickBound = true;
+        cr.addEventListener('click', function(e){
+          var sw = e.target.closest('.ap-swatch[data-color]');
+          if(sw) apSetColor(sw, sw.dataset.color);
+        });
+      }
     }
   }
 

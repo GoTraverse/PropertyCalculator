@@ -103,7 +103,7 @@
             '<div class="ap2-avatar" id="ap2-avatar">?</div>',
             '<div>',
               '<div style="font-size:14px;font-weight:600;color:#1C1C1E;" id="ap2-name-display">—</div>',
-              '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:#4A4A52;margin-top:2px;" id="ap2-email-display"></div>',
+              '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:10px;color:#4A4A52;margin-top:2px;" id="ap2-email-display"></div>',
               '<div class="ap2-plan-badge" id="ap2-plan-display" style="margin-top:8px;">Starter</div>',
             '</div>',
           '</div>',
@@ -119,7 +119,7 @@
             '<label class="ap2-label">Profile Photo</label>',
             '<input type="file" id="ap2-photo-input" accept="image/*" style="display:none" onchange="ap2LoadPhoto(this)">',
             '<div style="display:flex;gap:8px;flex-wrap:wrap;">',
-              '<button class="ap2-btn ap2-btn-primary" onclick="document.getElementById(\'ap2-photo-input\').click()">&#x1F4F7; Upload Photo</button>',
+              '<button class="ap2-btn ap2-btn-primary" onclick="document.getElementById(\u0027ap2-photo-input\u0027).click()">&#x1F4F7; Upload Photo</button>',
               '<button class="ap2-btn" style="background:rgba(196,90,90,0.08);color:#C45A5A;border:1px solid rgba(196,90,90,0.2);" onclick="ap2RemovePhoto()">Remove</button>',
             '</div>',
           '</div>',
@@ -139,7 +139,7 @@
               '<div style="font-size:11px;color:#C45A5A;margin-top:8px;display:none;padding:8px 10px;background:rgba(196,90,90,0.08);border-radius:3px;border-left:3px solid #C45A5A;" id="ap2-plan-canceled">Plan canceled — expires <span id="ap2-plan-expires"></span></div>',
               '<div style="font-size:11px;color:#4A4A52;margin-top:8px;padding:8px 10px;background:rgba(201,168,76,0.08);border-radius:3px;" id="ap2-plan-renews" style="display:none;">Renews <span id="ap2-renew-date"></span></div>',
             '</div>',
-            '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" onclick="location.href=\'pricing.html\'" style="display:none;">Upgrade to Pro &#x2192;</button>',
+            '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" onclick="location.href=\u0027pricing.html\u0027" style="display:none;">Upgrade to Pro &#x2192;</button>',
           '</div>',
         '</div>',
       '</div>',
@@ -174,7 +174,7 @@
           '<div style="font-size:13px;color:#4A4A52;line-height:1.5;margin-bottom:12px;">Share your link. When a friend signs up and upgrades to a paid plan, you both get <strong style="color:#1C1C1E;">1 month at 50% off</strong>.</div>',
           '<div id="ap2-ref-loading" style="font-size:12px;color:#4A4A52;">Loading…</div>',
           '<div id="ap2-ref-content" style="display:none;">',
-            '<div style="font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#4A4A52;margin-bottom:5px;">Your referral link</div>',
+            '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#4A4A52;margin-bottom:5px;">Your referral link</div>',
             '<div style="display:flex;gap:8px;align-items:center;">',
               '<input class="ap2-input" id="ap2-ref-link" type="text" readonly style="font-size:12px;color:#1C1C1E;cursor:default;">',
               '<button class="ap2-btn ap2-btn-gold" onclick="ap2CopyRefLink()" style="white-space:nowrap;flex-shrink:0;">Copy</button>',
@@ -275,7 +275,7 @@
     var cr = el('ap2-colors');
     if (cr) {
       cr.innerHTML = AP_COLORS.map(function (c) {
-        return '<div class="ap2-swatch' + (c === color ? ' active' : '') + '" style="background:' + c + ';" onclick="ap2SetColor(this,\'' + c + '\')"></div>';
+        return '<div class="ap2-swatch' + (c === color ? ' active' : '') + '" style="background:' + c + ';" onclick="ap2SetColor(this,\u0027' + c + '\u0027)"></div>';
       }).join('');
     }
   }
@@ -432,7 +432,7 @@
         el('ap2-ref-link').value = data.link;
         var countEl = el('ap2-ref-count');
         if (countEl) countEl.textContent = data.referralCount > 0
-          ? 'You\'ve referred ' + data.referralCount + ' user' + (data.referralCount === 1 ? '' : 's') + ' so far.'
+          ? 'You\u0027ve referred ' + data.referralCount + ' user' + (data.referralCount === 1 ? '' : 's') + ' so far.'
           : 'No referrals yet — share your link to get started.';
         el('ap2-ref-content').style.display = '';
       }

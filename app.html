@@ -169,15 +169,29 @@
     <select id="scheme-select"
       style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:10px 8px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;cursor:pointer;">
       <option value="">No scheme (manual entry below)</option>
-      <option value="help-to-buy" data-pct="30" data-max="700000">Help to Buy (30% federal)</option>
-      <option value="vic-homebuyer" data-pct="25" data-max="950000">VIC Homebuyer Fund (25%)</option>
+      <optgroup label="── Federal ──">
+        <option value="help-to-buy-existing" data-pct="30" data-max="700000">Help to Buy — Existing (30%)</option>
+        <option value="help-to-buy-new" data-pct="40" data-max="700000">Help to Buy — New Build (40%)</option>
+      </optgroup>
+      <optgroup label="── Victoria ──">
+        <option value="vic-homebuyer" data-pct="25" data-max="950000">VIC Homebuyer Fund (25%)</option>
+      </optgroup>
+      <optgroup label="── New South Wales ──">
+        <option value="nsw-shared-equity-new" data-pct="40" data-max="950000">NSW Shared Equity — New (40%)</option>
+        <option value="nsw-shared-equity-existing" data-pct="30" data-max="950000">NSW Shared Equity — Existing (30%)</option>
+      </optgroup>
+      <optgroup label="── Western Australia ──">
+        <option value="wa-shared" data-pct="30" data-max="750000">WA Shared Home Ownership (30%)</option>
+      </optgroup>
     </select>
+    <div id="scheme-info" style="display:none;font-size:11px;line-height:1.5;padding:6px 8px;margin-top:6px;border-radius:3px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);"></div>
   </div>
 
   <div class="ig">
     <div class="il">Deposit % <span id="lbl-depp">2.0%</span></div>
     <div class="iw"><input type="number" class="pct" id="inp-depp" value="0" min="2" max="20" step="0.5"><span class="isfx">%</span></div>
     <input type="range" id="rng-depp" min="2" max="20" step="0.5" value="2">
+    <div id="dep-hint" style="display:none;font-size:10px;color:rgba(201,168,76,0.65);margin-top:3px;font-style:italic;"></div>
   </div>
   <div class="ig">
     <div class="il">Govt Scheme % <span id="lbl-govt">28.7%</span></div>
@@ -824,7 +838,7 @@
             <div class="tld" style="color:var(--sky)"></div>
             <div class="tlp" style="color:var(--sky)">Phase 03 <span class="tldr-cal">Week 2–5</span></div>
             <div class="tlt">Finance & Loan Finalisation</div>
-            <div class="tldesc">Your bank formally approves the loan. Government scheme contribution confirmed. Solicitor prepares for settlement.</div>
+            <div class="tldesc">Your bank formally approves the loan. Solicitor prepares the settlement documents. Any government scheme contribution is confirmed at this stage.</div>
           </div>
           <div class="tli">
             <div class="tld" style="color:var(--sage)"></div>
@@ -867,16 +881,16 @@
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--risk-red);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--risk-red)">⚠ Risks</div>
           <div class="rri risk"><div class="rric">💸</div><div><div class="rrt">Interest Rate Sensitivity</div><div class="rrb">A 2% rate rise would add <strong id="rr-rate-delta">$xxx</strong>/month to repayments.</div></div></div>
           <div class="rri risk"><div class="rric">🏚</div><div><div class="rrt">Hidden Structural Issues</div><div class="rrb">Unforeseen defects can blow the renovation budget. B&P inspection is essential.</div></div></div>
-          <div class="rri risk"><div class="rric">📉</div><div><div class="rrt">Low Equity Buffer</div><div class="rrb">With <span id="rr-dep-pct">2%</span> personal deposit, any market correction leaves little buffer.</div></div></div>
+          <div class="rri risk" id="rri-equity"><div class="rric">📉</div><div><div class="rrt">Low Equity Buffer</div><div class="rrb">With <span id="rr-dep-pct">2%</span> personal deposit, any market correction leaves little buffer.</div></div></div>
           <div class="rri risk"><div class="rric">🔨</div><div><div class="rrt">Reno Cost Blowouts</div><div class="rrb">Reno pool is <span id="rr-pool-val">$24k</span>. Scope creep and tradie delays can rapidly eat through this.</div></div></div>
-          <div class="rri risk"><div class="rric">🏠</div><div><div class="rrt">Dual Housing Costs</div><div class="rrb">Paying <span id="rr-overlap-cost">$4k</span> in combined rent + mortgage during your <span id="rr-overlap-weeks">4</span>-week overlap reduces your reno buffer.</div></div></div>
+          <div class="rri risk" id="rri-overlap"><div class="rric">🏠</div><div><div class="rrt">Dual Housing Costs</div><div class="rrb">Paying <span id="rr-overlap-cost">$4k</span> in combined rent + mortgage during your <span id="rr-overlap-weeks">4</span>-week overlap reduces your reno buffer.</div></div></div>
         </div>
         <div>
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--reward-green);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--reward-green)">✦ Rewards</div>
           <div class="rri reward"><div class="rric">🏠</div><div><div class="rrt">Into the Market Now</div><div class="rrb">With <span id="rr-dep-show">$13k</span> deposit you stop rent leakage and start building equity immediately.</div></div></div>
           <div class="rri reward"><div class="rric">📈</div><div><div class="rrt">Renovation-Driven Equity</div><div class="rrb">A targeted <span id="rr-reno-show">$24k</span> reno on a <span id="rr-price-show">$650k</span> property can unlock $40k–$80k+ in uplift.</div></div></div>
-          <div class="rri reward"><div class="rric">🤝</div><div><div class="rrt">Government Co-Invests</div><div class="rrb">The scheme absorbs <span id="rr-govt-show">28.7%</span> of the purchase, reducing your LVR and preserving cash.</div></div></div>
-          <div class="rri reward"><div class="rric">🛡</div><div><div class="rrt">No LMI Required</div><div class="rrb">Avoiding Lenders Mortgage Insurance saves thousands in sunk costs.</div></div></div>
+          <div class="rri reward" id="rri-govt-reward"><div class="rric">🤝</div><div><div class="rrt">Government Co-Invests</div><div class="rrb">The scheme absorbs <span id="rr-govt-show">28.7%</span> of the purchase, reducing your LVR and preserving cash.</div></div></div>
+          <div class="rri reward" id="rri-lmi"><div class="rric">🛡</div><div><div class="rrt">No LMI Required</div><div class="rrb">Avoiding Lenders Mortgage Insurance saves thousands in sunk costs.</div></div></div>
           <div class="rri reward"><div class="rric">💰</div><div><div class="rrt">Long-Term Capital Growth</div><div class="rrb">Your <span id="rr-dep-ltg">$13k</span> deposit on a <span id="rr-price-ltg">$650k</span> asset gives leveraged exposure to property appreciation.</div></div></div>
         </div>
       </div>
@@ -919,9 +933,9 @@
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:11px;">
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C9A84C;display:inline-block;border-radius:2px;"></span>Property Value</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #5B8FAB;display:inline-block;"></span>Loan Balance</span>
-          <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C4704A;display:inline-block;border-radius:2px;"></span>Govt Equity Owed</span>
+          <span id="proj-legend-govt" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C4704A;display:inline-block;border-radius:2px;"></span>Govt Equity Owed</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#5A9E7B;display:inline-block;border-radius:2px;opacity:0.4;"></span>Your Equity</span>
-          <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;"></span>Early Payoff</span>
+          <span id="proj-legend-extra" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;"></span>Early Payoff</span>
         </div>
         <div class="proj-desktop-hint" style="font-size:11px;color:var(--slate);margin-bottom:8px;font-style:italic;">Click or hover to see quarterly values · Chart is quarterly (120 data points)</div>
         <div id="proj-svg-wrap" style="overflow:hidden;position:relative;width:100%;aspect-ratio:800/300;">
@@ -1061,7 +1075,7 @@
     <div class="splash-logo">Property Finance Calculator</div>
     <div class="splash-title">Where would you<br>like to start?</div>
     <div class="splash-deco"></div>
-    <div class="splash-sub">Track, analyse and compare properties<br>with the Shared Equity Scheme</div>
+    <div class="splash-sub">Track, analyse and compare<br>Australian property investments</div>
     <div class="splash-btns">
       <button class="splash-btn splash-btn-primary" id="splash-new-btn">＋ New Scenario</button>
       <button class="splash-btn splash-btn-secondary" id="splash-library-btn">📁 My Library</button>

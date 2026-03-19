@@ -2349,7 +2349,7 @@ const DEFAULT_ABOUT = {
   heroH1: 'Built by buyers,<br>for buyers.',
   heroLead: 'We got frustrated trying to understand the Shared Equity Scheme using government PDFs and a spreadsheet. So we built the tool we wished existed.',
   storyH2: 'The spreadsheet that became an app.',
-  storyP1: 'In 2023, trying to figure out whether the Queensland Shared Equity Scheme actually made sense for our budget, we built a spreadsheet. It had 14 tabs, nested formulas, and still couldn\'t tell us what we owed the government in year 10.'
+  storyP1: 'In 2023, trying to figure out whether the Queensland Shared Equity Scheme actually made sense for our budget, we built a spreadsheet. It had 14 tabs, nested formulas, and still couldn\u0027t tell us what we owed the government in year 10.'
 };
 
 async function loadAboutPage(){

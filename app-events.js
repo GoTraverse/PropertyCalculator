@@ -182,7 +182,8 @@ if(pdHouse) pdHouse.addEventListener('input', function(){
 });
 var pdYear = document.getElementById('pd-year');
 if(pdYear) pdYear.addEventListener('input', function(){
-  if(parseFloat(this.value) > 2026) this.value = 2026;
+  var curYear = new Date().getFullYear();
+  if(parseFloat(this.value) > curYear) this.value = curYear;
   if(parseFloat(this.value) < 1800 && this.value.length >= 4) this.value = 1800;
   updatePropertyDetails();
 });

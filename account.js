@@ -2,6 +2,7 @@
 // Extracted from account.html inline script block.
 
 function safePhotoSrc(url){if(!url)return null;if(/^data:image\/(jpeg|png|gif|webp);base64,/.test(url))return url;try{var u=new URL(url);return u.protocol==='https:'?url:null;}catch(e){return null;}}
+function escHtml(s){var m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};return String(s||'').replace(/[&<>"']/g,function(c){return m[c];});}
 
 // ── Custom Dialog ─────────────────────────────────────────────────────────────
 var _acctDialogResolveFn = null;
@@ -78,7 +79,7 @@ function renderAvatar(){
   } else {
     const name = session?.name || '';
     const initials = name ? name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?';
-    el.innerHTML = initials;
+    el.textContent = initials;
     el.style.background = profileData.color || '#C9A84C';
     el.style.color = '#1C1C1E';
     if(removeBtn) removeBtn.style.display='none';
@@ -311,7 +312,7 @@ async function openBillingPortal(){
     } else {
       const msg = d.error && d.error.includes('not configured')
         ? 'Billing portal is not yet configured. Email <a href="mailto:support@EquitySight.app">support@EquitySight.app</a> to manage your subscription.'
-        : (d.error || 'Unable to open billing portal. Please contact support.');
+        : (escHtml(d.error) || 'Unable to open billing portal. Please contact support.');
       acctAlert('Billing Portal', msg, {icon:'💳', alertOnly:true, confirmLabel:'OK'});
       if(st){ st.textContent=''; st.className='acct-status-msg'; }
     }
