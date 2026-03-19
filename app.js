@@ -1539,7 +1539,7 @@
     _forceDirty = false;
     lsDel(DRAFT_KEY);
     updateUnsavedBadge();
-    showToast('✓ Loaded: ' + sc.fullAddr);
+    showToast('✓ Loaded: ' + _escBanner(sc.fullAddr));
     pendingLoadId = null;
     // Keep _restoringDraft=true past the 800ms autosaveDraft timer (prevents dirty)
     setTimeout(function(){
@@ -1913,8 +1913,8 @@
     const el = document.getElementById('inp-settle-date');
     const lbl = document.getElementById('lbl-settle-date');
     if(el && el.value){
-      const d = new Date(el.value);
-      const yr = d.getFullYear();
+      // Parse as local time (append T00:00:00) to avoid UTC offset flipping the year/day
+      const yr = parseInt(el.value.split('-')[0], 10);
       if(lbl) lbl.textContent = yr;
     } else {
       if(lbl) lbl.textContent = '';
@@ -1925,7 +1925,7 @@
   function getSettleYear(){
     const el = document.getElementById('inp-settle-date');
     if(!el || !el.value) return null;
-    return new Date(el.value).getFullYear();
+    return parseInt(el.value.split('-')[0], 10);
   }
 
   // ── PROJECTION (items 6,7,8,9) ──
@@ -2444,7 +2444,7 @@
       document.getElementById('proj-growth-lbl').textContent = cached.rate.toFixed(1)+'%';
       if(hint) hint.textContent = `📍 ${suburb}: ~${cached.rate}% p.a. — ${cached.note||'cached'}`;
       drawProjection();
-      showToast(`📈 Growth rate for ${suburb} loaded from cache`);
+      showToast(`📈 Growth rate for ${_escBanner(suburb)} loaded from cache`);
       return;
     }
     // Check shared Redis cache
@@ -2455,7 +2455,7 @@
       document.getElementById('proj-growth-lbl').textContent = shared.rate.toFixed(1)+'%';
       if(hint) hint.textContent = `📍 ${suburb}: ~${shared.rate}% p.a. — ${shared.note||'shared data'}`;
       drawProjection();
-      showToast(`📈 Growth rate for ${suburb} loaded from shared database`);
+      showToast(`📈 Growth rate for ${_escBanner(suburb)} loaded from shared database`);
       return;
     }
 
@@ -2471,10 +2471,10 @@
       document.getElementById('proj-growth-lbl').textContent = rate.toFixed(1)+'%';
       if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${rate}% p.a. avg (historical estimate)`;
       drawProjection();
-      showToast(`📈 Set growth to ${rate}% for ${suburb}`);
+      showToast(`📈 Set growth to ${rate}% for ${_escBanner(suburb)}`);
     } else {
       if(hint) hint.textContent = `No data found for ${suburb}. Try manual entry.`;
-      showToast(`⚠️ Could not find data for ${suburb} — adjust manually`);
+      showToast(`⚠️ Could not find data for ${_escBanner(suburb)} — adjust manually`);
     }
     btn.textContent = '🔍 Look Up Suburb Growth';
     btn.disabled = false;
@@ -3204,7 +3204,7 @@
     }, 500);
     setTimeout(function(){
       var addr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
-      showToast(addr ? '↩️ Restored: ' + addr : '↩️ Draft restored');
+      showToast(addr ? '↩️ Restored: ' + _escBanner(addr) : '↩️ Draft restored');
     }, 600);
   } else if(!localStorage.getItem('propCalc_splash_seen')) {
     setTimeout(showWelcomeSplash, 300);
