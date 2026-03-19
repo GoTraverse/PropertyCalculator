@@ -1867,7 +1867,7 @@
       if(knob) knob.style.left = '2px';
       if(track) track.style.background = 'rgba(255,255,255,0.15)';
       if(section) section.style.display = 'none';
-      if(tab){ tab.style.display = 'none'; showTab('costs', document.querySelector('.tab')); }
+      if(tab){ tab.style.display = 'none'; showTab('costs', document.querySelector('.tab[data-tab="costs"]')); }
     }
   }
 
@@ -1905,6 +1905,9 @@
       if(track) track.style.background = 'rgba(255,255,255,0.15)';
       if(section) section.style.display = 'none';
       if(tab){ tab.style.display = 'none'; }
+      // Redirect away from overlap tab if currently active
+      const active = document.querySelector('.tab.active');
+      if(active && active.dataset.tab === 'overlap') showTab('costs', document.querySelector('.tab[data-tab="costs"]'));
     }
   }
 
