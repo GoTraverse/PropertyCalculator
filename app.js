@@ -517,7 +517,13 @@
     if(noteEl){
       if(price===0||savings===0){noteEl.textContent='💡 Enter your purchase price and savings to see the full cost breakdown.';noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.08);color:var(--slate)';}
       else if(remaining<0){noteEl.textContent=`⚠️ Shortfall of ${fmt(Math.abs(remaining))} — increase savings or reduce costs.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(196,90,90,0.1);color:var(--risk-red)';}
-      else{noteEl.textContent=`💡 ${fmt(remaining)} remaining after settlement — available for renovations or emergency buffer.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.1);color:var(--slate)';}
+      else{
+        const _stampMissing = price>0 && dynCosts.some(c=>c.category!=='moveout'&&/stamp/i.test(c.name)&&!(parseFloat(c.amount)>0));
+        const _note = _stampMissing
+          ? `💡 ${fmt(remaining)} after settlement. ⚠️ Stamp Duty is $0 — check your state's rate and update it above.`
+          : `💡 ${fmt(remaining)} remaining after settlement — available for renovations or emergency buffer.`;
+        noteEl.textContent=_note;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.1);color:var(--slate)';
+      }
     }
 
     // donut
@@ -1590,6 +1596,8 @@
       const inp = document.getElementById('inp-'+k), rng = document.getElementById('rng-'+k);
       if(inp && rng) rng.value = inp.value;
     });
+    // Refresh settle date label (not driven by recalc)
+    onSettleDateChange();
     updatePropertyDetails();
     recalc();
   }
@@ -3116,7 +3124,8 @@
 
   // ── SEED DEFAULT PURCHASE & MOVE-OUT COSTS ──
   dynCosts = [
-    {id:'dyn-'+dynId++, name:'Bank / Lender Fees', amount:800,  category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Stamp Duty',          amount:0,    category:'purchase'},
+    {id:'dyn-'+dynId++, name:'Bank / Lender Fees',  amount:800,  category:'purchase'},
     {id:'dyn-'+dynId++, name:'Conveyancing',        amount:1600, category:'purchase'},
     {id:'dyn-'+dynId++, name:'Building & Pest',     amount:700,  category:'purchase'},
     {id:'dyn-'+dynId++, name:'Removalists',         amount:1200, category:'moveout'},
@@ -3733,7 +3742,8 @@
       var el = document.getElementById(id); if(el) el.value='';
     });
     dynCosts = [
-      {id:'dyn-'+dynId++, name:'Bank / Lender Fees', amount:800,  category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Stamp Duty',          amount:0,    category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Bank / Lender Fees',  amount:800,  category:'purchase'},
       {id:'dyn-'+dynId++, name:'Conveyancing',        amount:1600, category:'purchase'},
       {id:'dyn-'+dynId++, name:'Building & Pest',     amount:700,  category:'purchase'},
       {id:'dyn-'+dynId++, name:'Removalists',         amount:1200, category:'moveout'},
