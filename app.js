@@ -3117,8 +3117,8 @@
         div.dataset.commid = c.id;
         div.innerHTML = `
           <div class="comms-meta">
-            <span class="comms-date">${fmtDate}</span>
-            <span class="comms-type">${c.type||'Note'}</span>
+            <span class="comms-date">${_escBanner(fmtDate)}</span>
+            <span class="comms-type">${_escBanner(c.type||'Note')}</span>
             <button class="comms-del" data-action="del-comm" title="Delete">✕</button>
           </div>
           <div class="comms-text">${_escBanner(c.text)}</div>`;
@@ -3325,7 +3325,7 @@
       if(govtRange){ govtRange.value = pct; }
       rl('govt', pct);
       recalc();
-      showToast('✓ Applied: ' + (opt ? opt.textContent.split('(')[0].trim() : schemeId));
+      showToast('✓ Applied: ' + _escBanner(opt ? opt.textContent.split('(')[0].trim() : schemeId));
     }
     updateSchemeInfo();
   }
@@ -3529,7 +3529,7 @@
       var initials = ppParts.length===0?'?':ppParts.length===1?ppParts[0][0].toUpperCase():(ppParts[0][0]+ppParts[ppParts.length-1][0]).toUpperCase();
       btn.style.background = color;
       btn.style.padding = '';
-      btn.innerHTML = initials;
+      btn.textContent = initials;
     }
     // Keep top-right widget in sync
     typeof renderSiteNav === 'function' && renderSiteNav();
@@ -3553,7 +3553,7 @@
         avd.innerHTML = '<img src="' + safePhotoSrc(_profileData.photo) + '">';
         avd.style.background = 'transparent';
       } else {
-        avd.innerHTML = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+        avd.textContent = name ? name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
         avd.style.background = color;
       }
     }
@@ -3587,7 +3587,7 @@
     if(d) d.textContent = val || 'Your Name';
     const avd = document.getElementById('pp-avatar-display');
     if(avd && !_profileData.photo){
-      avd.innerHTML = val ? val.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+      avd.textContent = val ? val.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
     }
   }
 
@@ -3683,7 +3683,7 @@
       var ini = parts2.length===0?'?':parts2.length===1?parts2[0][0].toUpperCase():(parts2[0][0]+parts2[parts2.length-1][0]).toUpperCase();
       btn.style.background = color;
       btn.style.padding = '';
-      btn.innerHTML = ini;
+      btn.textContent = ini;
     }
     if(nameEl)  nameEl.textContent  = name  || 'Account';
     if(emailEl) emailEl.textContent = email || '';
