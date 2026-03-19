@@ -5,7 +5,7 @@
 var ADSENSE_PUBLISHER_ID = 'ca-pub-8128501193606953';
 
 var ADSENSE_SLOTS = {
-  suburb:     'XXXXXXXXXX',  // Ad slot ID for suburb insight pages
+  suburb:     '9158606305',  // Ad slot ID for suburb insight pages
   calculator: '2056777808',  // Ad slot ID for calculator pages
 };
 
