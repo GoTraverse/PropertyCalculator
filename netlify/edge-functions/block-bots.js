@@ -7,7 +7,8 @@
  *
  * Deliberately NOT blocked: Googlebot, Bingbot, DuckDuckBot, Slurp,
  * Baiduspider, Twitterbot, facebookexternalhit, LinkedInBot, AdsBot-Google
- * (needed for AdSense), and ia_archiver (Internet Archive).
+ * (needed for AdSense), ia_archiver (Internet Archive), and AI crawlers
+ * (GPTBot, CCBot, Bytespider, PerplexityBot, etc.).
  */
 
 const BAD_BOTS = [
@@ -15,10 +16,6 @@ const BAD_BOTS = [
   'semrushbot', 'ahrefsbot', 'mj12bot', 'dotbot', 'blexbot',
   'petalbot', 'dataforseobot', 'serpstatbot', 'seokicks', 'rogerbot',
   'sitebulb', 'siteauditbot', 'seznambot', 'yandexbot',
-  // ── AI training scrapers ────────────────────────────────────────────────
-  'gptbot', 'ccbot', 'bytespider', 'claude-web', 'anthropic-ai',
-  'cohere-ai', 'perplexitybot', 'omgili', 'diffbot', 'timpibot',
-  'friendlycrawler', 'img2dataset',
   // ── Exploit / vulnerability scanners ───────────────────────────────────
   'nikto', 'zgrab', 'masscan', 'sqlmap', 'nmap', 'nuclei',
   'dirbuster', 'gobuster', 'wfuzz', 'acunetix',
