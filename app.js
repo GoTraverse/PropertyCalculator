@@ -2949,6 +2949,7 @@
     if(existing>=0) keyDates[existing].date = date;
     else keyDates.push({id:'kd-status-'+Date.now(), date, label});
     renderKeyDates();
+    autosaveDraft();
   }
 
   // ══════════════════════════════════════════════
