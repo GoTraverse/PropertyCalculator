@@ -883,14 +883,14 @@
           <div class="rri risk"><div class="rric">🏚</div><div><div class="rrt">Hidden Structural Issues</div><div class="rrb">Unforeseen defects can blow the renovation budget. B&P inspection is essential.</div></div></div>
           <div class="rri risk"><div class="rric">📉</div><div><div class="rrt">Low Equity Buffer</div><div class="rrb">With <span id="rr-dep-pct">2%</span> personal deposit, any market correction leaves little buffer.</div></div></div>
           <div class="rri risk"><div class="rric">🔨</div><div><div class="rrt">Reno Cost Blowouts</div><div class="rrb">Reno pool is <span id="rr-pool-val">$24k</span>. Scope creep and tradie delays can rapidly eat through this.</div></div></div>
-          <div class="rri risk"><div class="rric">🏠</div><div><div class="rrt">Dual Housing Costs</div><div class="rrb">Paying <span id="rr-overlap-cost">$4k</span> in combined rent + mortgage during your <span id="rr-overlap-weeks">4</span>-week overlap reduces your reno buffer.</div></div></div>
+          <div class="rri risk" id="rri-overlap"><div class="rric">🏠</div><div><div class="rrt">Dual Housing Costs</div><div class="rrb">Paying <span id="rr-overlap-cost">$4k</span> in combined rent + mortgage during your <span id="rr-overlap-weeks">4</span>-week overlap reduces your reno buffer.</div></div></div>
         </div>
         <div>
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--reward-green);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--reward-green)">✦ Rewards</div>
           <div class="rri reward"><div class="rric">🏠</div><div><div class="rrt">Into the Market Now</div><div class="rrb">With <span id="rr-dep-show">$13k</span> deposit you stop rent leakage and start building equity immediately.</div></div></div>
           <div class="rri reward"><div class="rric">📈</div><div><div class="rrt">Renovation-Driven Equity</div><div class="rrb">A targeted <span id="rr-reno-show">$24k</span> reno on a <span id="rr-price-show">$650k</span> property can unlock $40k–$80k+ in uplift.</div></div></div>
-          <div class="rri reward"><div class="rric">🤝</div><div><div class="rrt">Government Co-Invests</div><div class="rrb">The scheme absorbs <span id="rr-govt-show">28.7%</span> of the purchase, reducing your LVR and preserving cash.</div></div></div>
-          <div class="rri reward"><div class="rric">🛡</div><div><div class="rrt">No LMI Required</div><div class="rrb">Avoiding Lenders Mortgage Insurance saves thousands in sunk costs.</div></div></div>
+          <div class="rri reward" id="rri-govt-reward"><div class="rric">🤝</div><div><div class="rrt">Government Co-Invests</div><div class="rrb">The scheme absorbs <span id="rr-govt-show">28.7%</span> of the purchase, reducing your LVR and preserving cash.</div></div></div>
+          <div class="rri reward" id="rri-lmi"><div class="rric">🛡</div><div><div class="rrt">No LMI Required</div><div class="rrb">Avoiding Lenders Mortgage Insurance saves thousands in sunk costs.</div></div></div>
           <div class="rri reward"><div class="rric">💰</div><div><div class="rrt">Long-Term Capital Growth</div><div class="rrb">Your <span id="rr-dep-ltg">$13k</span> deposit on a <span id="rr-price-ltg">$650k</span> asset gives leveraged exposure to property appreciation.</div></div></div>
         </div>
       </div>
@@ -1075,7 +1075,7 @@
     <div class="splash-logo">Property Finance Calculator</div>
     <div class="splash-title">Where would you<br>like to start?</div>
     <div class="splash-deco"></div>
-    <div class="splash-sub">Track, analyse and compare properties<br>with the Shared Equity Scheme</div>
+    <div class="splash-sub">Track, analyse and compare<br>Australian property investments</div>
     <div class="splash-btns">
       <button class="splash-btn splash-btn-primary" id="splash-new-btn">＋ New Scenario</button>
       <button class="splash-btn splash-btn-secondary" id="splash-library-btn">📁 My Library</button>

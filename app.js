@@ -514,7 +514,8 @@
 
     const noteEl=document.getElementById('cost-note');
     if(noteEl){
-      if(remaining<0){noteEl.textContent=`⚠️ Shortfall of ${fmt(Math.abs(remaining))} — increase savings or reduce costs.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(196,90,90,0.1);color:var(--risk-red)';}
+      if(price===0||savings===0){noteEl.textContent='💡 Enter your purchase price and savings to see the full cost breakdown.';noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.08);color:var(--slate)';}
+      else if(remaining<0){noteEl.textContent=`⚠️ Shortfall of ${fmt(Math.abs(remaining))} — increase savings or reduce costs.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(196,90,90,0.1);color:var(--risk-red)';}
       else{noteEl.textContent=`💡 ${fmt(remaining)} remaining after settlement — available for renovations or emergency buffer.`;noteEl.style.cssText='margin-top:10px;padding:8px 10px;border-radius:3px;font-size:11px;line-height:1.6;background:rgba(201,168,76,0.1);color:var(--slate)';}
     }
 
@@ -529,11 +530,20 @@
     set('bp-bank',pctS(bP*100));css('bf-bank','width',pctS(bP*100));
     set('bp-govt',pctS(gP*100));css('bf-govt','width',pctS(gP*100));
     set('bp-dep',pctS(dP*100));css('bf-dep','width',pctS(dP*100));
+    // Hide government rows in funding structure when no scheme is active
+    const _legGovtRow=document.getElementById('leg-govt')?.closest('.li');
+    if(_legGovtRow)_legGovtRow.style.display=govtPct>0?'':'none';
+    const _bpGovtRow=document.getElementById('bp-govt')?.closest('.bi');
+    if(_bpGovtRow)_bpGovtRow.style.display=govtPct>0?'':'none';
+    // Also hide the t-govt summary tile when no scheme
+    const _tGovtEl=document.getElementById('t-govt');
+    if(_tGovtEl)_tGovtEl.closest('.tile').style.display=govtPct>0?'':'none';
 
     // sidebar alert
     const sa=document.getElementById('sidebar-alert');
     if(sa){
-      if(remaining<0)sa.innerHTML=`<div class="alert alert-warn">⚠️ Savings shortfall of ${fmt(Math.abs(remaining))}.</div>`;
+      if(price===0||savings===0)sa.innerHTML=`<div class="alert" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:3px;padding:8px 10px;font-size:11px;color:var(--slate);line-height:1.5;">Enter price &amp; savings to see your cash position.</div>`;
+      else if(remaining<0)sa.innerHTML=`<div class="alert alert-warn">⚠️ Savings shortfall of ${fmt(Math.abs(remaining))}.</div>`;
       else if(cashAfterOverlap<5000&&weeks>0)sa.innerHTML=`<div class="alert alert-warn">⚠️ After overlap, only ${fmt(cashAfterOverlap)} left for reno.</div>`;
       else sa.innerHTML=`<div class="alert alert-ok">✓ Cash position viable. ${fmt(remaining)} after settlement.</div>`;
     }
@@ -667,8 +677,12 @@
       35+(govtPct>0?20:0)+(remaining>20000?15:remaining>10000?8:0)+(renoTotal>10000?10:5)+(price<650000?5:0)
     ));
     css('risk-meter','width',riskScore+'%');css('reward-meter','width',rewardScore+'%');
-    set('risk-desc',riskScore<30?'Low risk — strong equity and healthy cash buffer.':riskScore<50?'Moderate risk — manageable with the government scheme reducing LVR.':riskScore<70?'Medium-high risk — consider increasing deposit or savings buffer.':'Higher risk — savings are tight. Build a larger buffer before proceeding.');
-    set('reward-desc',rewardScore>70?'High reward potential — strong equity uplift through renovation and capital growth.':rewardScore>50?'Good reward potential — renovation and scheme create solid upside.':'Modest reward potential — consider a higher reno budget or larger govt scheme.');
+    const _riskMsg = riskScore<30 ? 'Low risk — strong equity and healthy cash buffer.'
+      : riskScore<50 ? (govtPct>0 ? 'Moderate risk — manageable with the government scheme reducing LVR.' : 'Moderate risk — consider increasing your deposit to strengthen your position.')
+      : riskScore<70 ? 'Medium-high risk — consider increasing deposit or savings buffer.'
+      : 'Higher risk — savings are tight. Build a larger buffer before proceeding.';
+    set('risk-desc', _riskMsg);
+    set('reward-desc',rewardScore>70?'High reward potential — strong equity uplift through renovation and capital growth.':rewardScore>50?(govtPct>0?'Good reward potential — renovation and scheme create solid upside.':'Good reward potential — renovation can create solid equity uplift.'):'Modest reward potential — consider a higher reno budget or applying a govt scheme.');
     const m2=calcMonthly(loanAmt,rate+2,term);
     set('rr-rate-delta',fmt(m2-monthly));
     set('rr-dep-pct',pctS(depPct));set('rr-pool-val',fmtK(remaining));
@@ -676,6 +690,13 @@
     set('rr-dep-show',fmtK(deposit));set('rr-reno-show',fmtK(renoTotal));
     set('rr-price-show',fmtK(price));set('rr-govt-show',pctS(govtPct));
     set('rr-dep-ltg',fmtK(deposit));set('rr-price-ltg',fmtK(price));
+    // Conditionally show/hide risk rows that only apply in specific scenarios
+    const rriOverlap = document.getElementById('rri-overlap');
+    if(rriOverlap) rriOverlap.style.display = (weeks>0) ? '' : 'none';
+    const rriGovt = document.getElementById('rri-govt-reward');
+    if(rriGovt) rriGovt.style.display = (govtPct>0) ? '' : 'none';
+    const rriLmi = document.getElementById('rri-lmi');
+    if(rriLmi) rriLmi.style.display = (govtPct>0) ? '' : 'none';
   }
 
   function showTab(id,btn){
@@ -1992,11 +2013,28 @@
     const payEl = document.getElementById('proj-payoff-yr');
     if(payEl) payEl.textContent = payoffQ != null ? fmtQLabel(payoffQ) : (term < 30 ? `Year ${term}` : '30+ yrs');
     const buyEl = document.getElementById('proj-buyout-yr');
-    if(buyEl) buyEl.textContent = buyoutQ != null ? fmtQLabel(buyoutQ) : '30+ yrs';
+    if(buyEl){
+      if(govtPct <= 0){
+        buyEl.textContent = 'No scheme';
+        buyEl.closest('.tile').style.opacity = '0.4';
+      } else {
+        buyEl.textContent = buyoutQ != null ? fmtQLabel(buyoutQ) : '30+ yrs';
+        buyEl.closest('.tile').style.opacity = '';
+      }
+    }
 
     const d5 = projData[Math.min(20, projData.length - 1)]; // q=20 = year 5
     set('proj-val-5', fmtK(d5.baseVal));
-    set('proj-govt-5', fmtK(d5.govtOwed));
+    const govt5El = document.getElementById('proj-govt-5');
+    if(govt5El){
+      if(govtPct <= 0){
+        govt5El.textContent = 'No scheme';
+        govt5El.closest('.tile').style.opacity = '0.4';
+      } else {
+        govt5El.textContent = fmtK(d5.govtOwed);
+        govt5El.closest('.tile').style.opacity = '';
+      }
+    }
     const val5lbl = document.getElementById('proj-tiles')?.querySelectorAll('.tile-lbl');
     if(val5lbl && settleYr){
       if(val5lbl[2]) val5lbl[2].textContent = `Property Value @ ${settleYr + 5}`;
