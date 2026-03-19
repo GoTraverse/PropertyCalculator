@@ -97,22 +97,24 @@
   showCards(BATCH);
   btn.onclick=function(){showCards(shown+BATCH);};
   var timer;
-  search.oninput=function(){
+  function doSearch(){
     clearTimeout(timer);
     timer=setTimeout(function(){
-      var q=search.value.trim().toLowerCase();if(!q){showCards(BATCH);noRes.style.display='none';return;}
+      var q=search.value.trim().toLowerCase();
+      if(!q){showCards(BATCH);noRes.style.display='none';return;}
       var count=0;
       for(var i=0;i<cards.length;i++){
-        var name=cards[i].querySelector('.hub-suburb-name');
-        var text=(name?name.textContent:'').toLowerCase();
+        var text=cards[i].getAttribute('data-search')||(cards[i].textContent||'').toLowerCase();
         var match=text.indexOf(q)>=0;
-        cards[i].style.display=match?'':'none';
+        cards[i].style.display=match?'block':'none';
         if(match)count++;
       }
       btn.style.display='none';
-      noRes.style.display=count?'none':'';
+      noRes.style.display=count?'none':'block';
     },180);
-  };
+  }
+  search.addEventListener('input',doSearch);
+  search.addEventListener('keyup',doSearch);
 })();
 </script>
 </body>
