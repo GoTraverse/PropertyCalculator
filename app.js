@@ -2625,9 +2625,9 @@
       : `<div style="width:100%;height:100%;background:#2C2C2E;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.2);font-size:32px;">🏠</div>`;
 
     const renoRowsHTML = snap.renoItems.map(it=>`
-      <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">${it.icon} ${it.name}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${it.amt}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;">${it.note}</td></tr>`).join('');
+      <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">${_escBanner(it.icon)} ${_escBanner(it.name)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">${_escBanner(it.amt)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;">${_escBanner(it.note)}</td></tr>`).join('');
 
     // Build amortisation data for PDF if requested
     let amortTableHTML = '';
@@ -2653,7 +2653,7 @@
     const html = `<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
-<title>${snap.addr} — Finance Scenario</title>
+<title>${_escBanner(snap.addr)} — Finance Scenario</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -2739,10 +2739,10 @@
   <header>
     <div class="htext">
       <div class="htag">Property Finance Calculator</div>
-      <h1>${snap.addr}</h1>
-      <div class="hsub">${snap.sub}</div>
+      <h1>${_escBanner(snap.addr)}</h1>
+      <div class="hsub">${_escBanner(snap.sub)}</div>
       <div class="hstamp">Exported ${(()=>{const n=new Date();return String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();})()}  ·  ${pageSize} ${pageOrient.charAt(0).toUpperCase()+pageOrient.slice(1)}</div>
-      ${(snap.notes && incNotes) ? `<div style="margin-top:10px;font-size:11px;color:rgba(245,240,232,0.5);font-style:italic;max-width:360px;">"${snap.notes}"</div>` : ''}
+      ${(snap.notes && incNotes) ? `<div style="margin-top:10px;font-size:11px;color:rgba(245,240,232,0.5);font-style:italic;max-width:360px;">"${_escBanner(snap.notes)}"</div>` : ''}
     </div>
     <div class="hphoto">${photoHTML}</div>
   </header>
@@ -3623,6 +3623,8 @@
   function saveProfile(){
     _profileData.name  = (document.getElementById('pp-name-input')  && document.getElementById('pp-name-input').value.trim())  || '';
     _profileData.email = (document.getElementById('pp-email-input') && document.getElementById('pp-email-input').value.trim()) || '';
+    // Keep _currentUser in sync so renderProfilePanel shows the updated name immediately
+    if(_currentUser && _profileData.name) _currentUser.name = _profileData.name;
     lsSet(getProfileKey(), JSON.stringify(_profileData));
     renderProfileBtn(); renderProfilePanel();
     closeProfile();
@@ -3918,10 +3920,13 @@
       cr.innerHTML = AP_COLORS.map(function(c2){
         return '<div class="ap-swatch'+(c2===color?' active':'')+'" style="background:'+c2+';" data-color="'+c2+'"></div>';
       }).join('');
-      cr.addEventListener('click', function(e){
-        var sw = e.target.closest('.ap-swatch[data-color]');
-        if(sw) apSetColor(sw, sw.dataset.color);
-      });
+      if(!cr._apClickBound){
+        cr._apClickBound = true;
+        cr.addEventListener('click', function(e){
+          var sw = e.target.closest('.ap-swatch[data-color]');
+          if(sw) apSetColor(sw, sw.dataset.color);
+        });
+      }
     }
   }
 
