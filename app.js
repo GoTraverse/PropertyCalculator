@@ -1032,7 +1032,7 @@
     const stateEl  = document.getElementById('pd-state');
     if(addrEl)   addrEl.value   = r.address || '';
     if(suburbEl) suburbEl.value = r.suburb  || '';
-    if(stateEl)  stateEl.value  = r.state   || 'QLD';
+    if(stateEl && r.state)  stateEl.value = r.state;
     hideAddrSuggestions();
     updatePropertyDetails();
   }
@@ -2389,7 +2389,7 @@
     clearTimeout(_suburbCheckTimer);
     _suburbCheckTimer = setTimeout(async function(){
       const suburb = document.getElementById('pd-suburb')?.value?.trim();
-      const state  = document.getElementById('pd-state')?.value?.trim() || 'QLD';
+      const state  = document.getElementById('pd-state')?.value?.trim() || '';
       if(!suburb) return;
       const hint = document.getElementById('suburb-growth-hint');
       // 1. Check localStorage cache
@@ -2429,8 +2429,9 @@
 
   async function fetchSuburbGrowth(){
     const suburb = document.getElementById('pd-suburb')?.value?.trim();
-    const state  = document.getElementById('pd-state')?.value?.trim() || 'QLD';
+    const state  = document.getElementById('pd-state')?.value?.trim() || '';
     if(!suburb){ showToast('⚠️ Enter a suburb in the Property tab first'); return; }
+    if(!state){ showToast('⚠️ Select a state in the Property tab for accurate growth data'); return; }
     const btn = document.getElementById('fetch-growth-btn');
     const hint = document.getElementById('suburb-growth-hint');
 
@@ -2579,6 +2580,7 @@
       price: document.getElementById('t-price')?.textContent || '—',
       deposit: document.getElementById('t-deposit')?.textContent || '—',
       govt: document.getElementById('t-govt')?.textContent || '—',
+      hasGovt: (parseFloat(document.getElementById('inp-govt')?.value) || 0) > 0,
       remaining: document.getElementById('t-remaining')?.textContent || '—',
       remainingColor: document.getElementById('t-remaining')?.style.color || '',
       savings: document.getElementById('cb-savings')?.textContent || '—',
@@ -2744,10 +2746,10 @@
 
   ${incFinancial ? `
   <div class="section-title">01 · Financial Snapshot</div>
-  <div class="grid4">
+  <div class="${snap.hasGovt?'grid4':'grid3'}">
     <div class="tile"><div class="tile-val">${snap.price}</div><div class="tile-lbl">Purchase Price</div></div>
     <div class="tile"><div class="tile-val">${snap.deposit}</div><div class="tile-lbl">Your Deposit</div></div>
-    <div class="tile"><div class="tile-val">${snap.govt}</div><div class="tile-lbl">Govt Contribution</div></div>
+    ${snap.hasGovt ? `<div class="tile"><div class="tile-val">${snap.govt}</div><div class="tile-lbl">Govt Contribution</div></div>` : ''}
     <div class="tile"><div class="tile-val" style="color:${snap.remainingColor||'#A8C4B0'}">${snap.remaining}</div><div class="tile-lbl">Remaining Cash</div></div>
   </div>
   <div class="grid2">
