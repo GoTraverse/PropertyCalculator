@@ -148,3 +148,7 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-footer-top a:hover { text-decoration: underline; }
 .tool-footer-bottom { opacity: 0.7; }
 
+
+/* ── Ad Slot ── */
+.ad-slot { max-width: 640px; margin: 0 auto 14px; text-align: center; overflow: hidden; }
+@media(max-width:600px) { .ad-slot { margin-bottom: 10px; } }

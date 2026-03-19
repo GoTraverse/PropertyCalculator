@@ -111,3 +111,7 @@ html.dark-mode .hub-suburb-name { color: #F5F0E8; }
 html.dark-mode .hub-search { background: rgba(255,255,255,0.04); color: #F5F0E8; border-color: rgba(255,255,255,0.12); }
 html.dark-mode .hub-show-more { background: rgba(255,255,255,0.1); color: #F5F0E8; }
 html.dark-mode .hub-show-more:hover { background: var(--gold); color: var(--charcoal); }
+
+/* ── Ad Slot ── */
+.ad-slot { max-width: 900px; margin: 0 auto 24px; text-align: center; overflow: hidden; }
+@media(max-width:600px) { .ad-slot { margin-bottom: 16px; } }
