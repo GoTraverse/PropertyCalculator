@@ -464,6 +464,20 @@
     const stEl2=document.getElementById('lbl-reno-total');
     if(stEl2) stEl2.textContent=fmtK(renoTotal);
 
+    // ─── deposit affordability hint ───
+    const depHint=document.getElementById('dep-hint');
+    if(depHint){
+      if(price>0 && savings>0){
+        const maxAffordDep=Math.min(20,Math.max(0,(savings-extraCosts)/price*100));
+        depHint.textContent='Max affordable: '+maxAffordDep.toFixed(1)+'%';
+        depHint.style.display='block';
+        depHint.style.color=depPct>maxAffordDep?'var(--risk-red)':'rgba(201,168,76,0.65)';
+      } else { depHint.style.display='none'; }
+    }
+
+    // ─── scheme eligibility warning ───
+    updateSchemeInfo();
+
     document.getElementById('page-title').textContent=address;
 
     // ─── TAB 1: COSTS ───
@@ -3101,6 +3115,11 @@
   // Auth guard handled in <head> script — redirects to login.html if not signed in
 
   if(_hadDraft){
+    // Re-fetch suburb growth rate for restored draft
+    setTimeout(function(){
+      var suburbEl = document.getElementById('pd-suburb');
+      if(suburbEl && suburbEl.value.trim()) onSuburbChange();
+    }, 500);
     setTimeout(function(){
       var addr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
       showToast(addr ? '↩️ Restored: ' + addr : '↩️ Draft restored');
@@ -3182,9 +3201,34 @@
   // ── SCHEME SELECTOR ──────────────────────────────────────────
   var _schemes = [];
 
+  function updateSchemeInfo(){
+    var infoEl = document.getElementById('scheme-info');
+    if(!infoEl) return;
+    var sel = document.getElementById('scheme-select');
+    if(!sel || !sel.value){ infoEl.style.display='none'; return; }
+    var opt = sel.querySelector('option[value="'+sel.value+'"]');
+    if(!opt){ infoEl.style.display='none'; return; }
+    var maxPrice = parseInt(opt.dataset.max) || 0;
+    if(!maxPrice){ infoEl.style.display='none'; return; }
+    var currentPrice = parseFloat(document.getElementById('inp-price').value) || 0;
+    infoEl.style.display = 'block';
+    if(currentPrice > 0 && currentPrice > maxPrice){
+      infoEl.innerHTML = '⚠️ Price exceeds scheme cap of <strong>'+fmt(maxPrice)+'</strong>. You may not qualify.';
+      infoEl.style.color = 'var(--risk-red)';
+      infoEl.style.borderColor = 'rgba(220,80,60,0.25)';
+      infoEl.style.background = 'rgba(220,80,60,0.06)';
+    } else {
+      infoEl.innerHTML = 'ℹ️ Max eligible price: <strong>'+fmt(maxPrice)+'</strong>';
+      infoEl.style.color = 'rgba(201,168,76,0.7)';
+      infoEl.style.borderColor = 'rgba(255,255,255,0.08)';
+      infoEl.style.background = 'rgba(255,255,255,0.04)';
+    }
+  }
+
   function applySelectedScheme(schemeId){
+    var infoEl = document.getElementById('scheme-info');
     if(!schemeId){
-      // Manual — don't change values, just clear any scheme info display
+      if(infoEl){ infoEl.style.display='none'; }
       return;
     }
     var sel = document.getElementById('scheme-select');
@@ -3195,13 +3239,11 @@
       var govtRange = document.getElementById('rng-govt');
       if(govtInput){ govtInput.value = pct; }
       if(govtRange){ govtRange.value = pct; }
-      // If scheme has a max price hint, update the range slider max too
-      var maxPrice = opt ? parseInt(opt.dataset.max) : null;
-      var priceRange = document.getElementById('rng-price');
-      if(maxPrice && priceRange){ priceRange.max = maxPrice; }
+      rl('govt', pct);
       recalc();
       showToast('✓ Applied: ' + (opt ? opt.textContent.split('(')[0].trim() : schemeId));
     }
+    updateSchemeInfo();
   }
 
   function loadSchemesFromBackend(){
@@ -3604,9 +3646,9 @@
       if(!ok) return;
     }
     var defaults = {
-      'inp-price':'0','inp-savings':'0','inp-depp':'0',
-      'inp-govt':'0','inp-rate':'0','inp-term':'0',
-      'inp-cont':'0','inp-rent':'0','inp-weeks':'0'
+      'inp-price':'0','inp-savings':'0','inp-depp':'10',
+      'inp-govt':'0','inp-rate':'6.5','inp-term':'30',
+      'inp-cont':'15','inp-rent':'0','inp-weeks':'4'
     };
     Object.keys(defaults).forEach(function(id){
       var val = defaults[id];
@@ -3616,6 +3658,18 @@
       if(rng) rng.value = val;
       rl(id.replace('inp-',''), parseFloat(val)||0);
     });
+    // Default settlement date to ~6 weeks from today
+    var inpSettle = document.getElementById('inp-settle-date');
+    if(inpSettle){
+      var sd = new Date(); sd.setDate(sd.getDate() + 42);
+      inpSettle.value = sd.toISOString().split('T')[0];
+      onSettleDateChange();
+    }
+    // Clear active scheme
+    var schemeSel = document.getElementById('scheme-select');
+    if(schemeSel) schemeSel.value = '';
+    var schemeInfo = document.getElementById('scheme-info');
+    if(schemeInfo){ schemeInfo.style.display='none'; }
     ['pd-address','pd-suburb','pd-state','pd-url','pd-notes','pd-photo-url',
      'ag-agency','ag-name','ag-phone','ag-email','inp-address'].forEach(function(id){
       var el = document.getElementById(id); if(el) el.value='';
@@ -3626,7 +3680,14 @@
     ['pd-land','pd-house','pd-year'].forEach(function(id){
       var el = document.getElementById(id); if(el) el.value='';
     });
-    dynCosts=[]; renderDynCosts();
+    dynCosts = [
+      {id:'dyn-'+dynId++, name:'Bank / Lender Fees', amount:800,  category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Conveyancing',        amount:1600, category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Building & Pest',     amount:700,  category:'purchase'},
+      {id:'dyn-'+dynId++, name:'Removalists',         amount:1200, category:'moveout'},
+      {id:'dyn-'+dynId++, name:'Lease Break Fee',     amount:0,    category:'moveout'},
+    ];
+    renderDynCosts();
     renoItems=[]; renderRenoItems();
     keyDates=[]; renderKeyDates();
     commsLog=[]; renderCommsLog();

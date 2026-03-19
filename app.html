@@ -169,15 +169,29 @@
     <select id="scheme-select"
       style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:10px 8px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;cursor:pointer;">
       <option value="">No scheme (manual entry below)</option>
-      <option value="help-to-buy" data-pct="30" data-max="700000">Help to Buy (30% federal)</option>
-      <option value="vic-homebuyer" data-pct="25" data-max="950000">VIC Homebuyer Fund (25%)</option>
+      <optgroup label="── Federal ──">
+        <option value="help-to-buy-existing" data-pct="30" data-max="700000">Help to Buy — Existing (30%)</option>
+        <option value="help-to-buy-new" data-pct="40" data-max="700000">Help to Buy — New Build (40%)</option>
+      </optgroup>
+      <optgroup label="── Victoria ──">
+        <option value="vic-homebuyer" data-pct="25" data-max="950000">VIC Homebuyer Fund (25%)</option>
+      </optgroup>
+      <optgroup label="── New South Wales ──">
+        <option value="nsw-shared-equity-new" data-pct="40" data-max="950000">NSW Shared Equity — New (40%)</option>
+        <option value="nsw-shared-equity-existing" data-pct="30" data-max="950000">NSW Shared Equity — Existing (30%)</option>
+      </optgroup>
+      <optgroup label="── Western Australia ──">
+        <option value="wa-shared" data-pct="30" data-max="750000">WA Shared Home Ownership (30%)</option>
+      </optgroup>
     </select>
+    <div id="scheme-info" style="display:none;font-size:11px;line-height:1.5;padding:6px 8px;margin-top:6px;border-radius:3px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);"></div>
   </div>
 
   <div class="ig">
     <div class="il">Deposit % <span id="lbl-depp">2.0%</span></div>
     <div class="iw"><input type="number" class="pct" id="inp-depp" value="0" min="2" max="20" step="0.5"><span class="isfx">%</span></div>
     <input type="range" id="rng-depp" min="2" max="20" step="0.5" value="2">
+    <div id="dep-hint" style="display:none;font-size:10px;color:rgba(201,168,76,0.65);margin-top:3px;font-style:italic;"></div>
   </div>
   <div class="ig">
     <div class="il">Govt Scheme % <span id="lbl-govt">28.7%</span></div>
