@@ -163,7 +163,7 @@ window.toggleTheme = function(){
             '</select>' +
           '</div>' +
           '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" placeholder="Tell us what\u0027s on your mind..."></textarea></div>' +
-          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to our <a href="privacy.html" style="color:#C9A84C;">Privacy Policy</a>. We\u0027ll only use your email to respond.</div>' +
+          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to our <a href="/privacy.html" style="color:#C9A84C;">Privacy Policy</a>. We\u0027ll only use your email to respond.</div>' +
           '<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">' +
             '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:\u0027DM Mono\u0027,monospace;"></div>' +
             '<button id="anav-cf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\u0027DM Mono\u0027,monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
@@ -353,9 +353,9 @@ window.toggleTheme = function(){
               '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
             '</div>' +
             '<div style="padding:2px 0;">' +
-              '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">Open Calculator</a>' +
-              '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">Account Settings</a>' +
-              (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">Admin Dashboard</a>' : '') +
+              '<a href="/app.html" class="anav-item' + (page==='app.html'?' active':'') + '">Open Calculator</a>' +
+              '<a href="/account.html" class="anav-item' + (page==='account.html'?' active':'') + '">Account Settings</a>' +
+              (session.role === 'admin' ? '<a href="/admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">Admin Dashboard</a>' : '') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
               '<button data-theme-toggle id="anav-theme-btn" class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
@@ -388,8 +388,8 @@ window.toggleTheme = function(){
 
     } else {
       actions.innerHTML =
-        '<a href="login.html" class="btn-ghost">Sign in</a>' +
-        '<a href="login.html?tab=signup" class="btn-gold">Get started free</a>';
+        '<a href="/login.html" class="btn-ghost">Sign in</a>' +
+        '<a href="/login.html?tab=signup" class="btn-gold">Get started free</a>';
     }
   }
 

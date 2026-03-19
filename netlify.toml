@@ -277,6 +277,54 @@
   to = "/tools/first-home-buyer-grants-calculator.html"
   status = 301
 
+# ── Canonicalise /tools/ URLs: no-extension → .html (avoids duplicate analytics) ──
+# Netlify pretty-URLs serves these without redirecting, splitting pageview counts.
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator"
+  to = "/tools/stamp-duty-calculator.html"
+  status = 301
+
+[[redirects]]
+  from = "/tools/rental-yield-calculator"
+  to = "/tools/rental-yield-calculator.html"
+  status = 301
+
+[[redirects]]
+  from = "/tools/mortgage-stress-calculator"
+  to = "/tools/mortgage-stress-calculator.html"
+  status = 301
+
+[[redirects]]
+  from = "/tools/cost-of-purchase-calculator"
+  to = "/tools/cost-of-purchase-calculator.html"
+  status = 301
+
+[[redirects]]
+  from = "/tools/loan-serviceability-calculator"
+  to = "/tools/loan-serviceability-calculator.html"
+  status = 301
+
+[[redirects]]
+  from = "/tools/equity-release-calculator"
+  to = "/tools/equity-release-calculator.html"
+  status = 301
+
+[[redirects]]
+  from = "/tools/first-home-buyer-grants-calculator"
+  to = "/tools/first-home-buyer-grants-calculator.html"
+  status = 301
+
+[[redirects]]
+  from = "/tools/house-flip-calculator"
+  to = "/tools/house-flip-calculator.html"
+  status = 301
+
+[[redirects]]
+  from = "/tools/renovation-cost-calculator"
+  to = "/tools/renovation-cost-calculator.html"
+  status = 301
+
 # ── Fix relative-path asset requests from cached suburb/invest pages ─────────
 # Older cached builds used relative paths (e.g. shared.css instead of /shared.css).
 # These rewrites serve the correct root-level files transparently until a
