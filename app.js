@@ -1836,12 +1836,13 @@
 
   // beforeunload dialog removed — saving is automatic
 
-  function showToast(msg){
+  function showToast(msg, duration){
     const t = document.createElement('div');
     t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--charcoal);color:var(--gold);font-family:"DM Mono",monospace;font-size:11px;padding:10px 16px;border-radius:3px;border:1px solid rgba(201,168,76,0.3);z-index:9999;letter-spacing:0.5px;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.8s;';
-    t.textContent = msg;
+    // Use innerHTML so callers can embed anchor links (all toast messages are hardcoded, not user data)
+    t.innerHTML = msg;
     document.body.appendChild(t);
-    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 800); }, 3500);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 800); }, duration || 3500);
   }
 
   // ── RENO TOGGLE ──
@@ -2390,8 +2391,8 @@
     _suburbCheckTimer = setTimeout(async function(){
       const suburb = document.getElementById('pd-suburb')?.value?.trim();
       const state  = document.getElementById('pd-state')?.value?.trim() || '';
-      if(!suburb) return;
       const hint = document.getElementById('suburb-growth-hint');
+      if(!suburb){ if(hint) hint.textContent = ''; return; }
       // 1. Check localStorage cache
       const cached = getCachedGrowth(suburb, state);
       if(cached){
@@ -2680,6 +2681,7 @@
   .section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#888;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
   .section-title::after{content:'';flex:1;height:1px;background:#eee;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
   .card{background:#FAF7F2;border-radius:4px;padding:${fontSize==='large'?'18px 20px':fontSize==='compact'?'10px 12px':'14px 16px'};border:1px solid #eee;}
   .card-accent{width:4px;height:100%;position:absolute;top:0;left:0;border-radius:4px 0 0 4px;}
@@ -2706,10 +2708,10 @@
   @media(min-width:601px){.print-btn{top:16px;bottom:auto;right:16px;left:auto;transform:none;border-radius:4px;padding:10px 20px;font-size:12px;box-shadow:none;}}
   @media print{.print-btn,.share-btn{display:none!important;}#account-panel-overlay,#account-panel{display:none!important;}}
   /* Page-break fixes — prevent content being sliced mid-element */
-  .card,.tile,.section-title,.grid2,.grid4,.kv{page-break-inside:avoid;break-inside:avoid;}
+  .card,.tile,.section-title,.grid2,.grid3,.grid4,.kv{page-break-inside:avoid;break-inside:avoid;}
   .section-title{page-break-after:avoid;break-after:avoid;}
   header{page-break-inside:avoid;break-inside:avoid;page-break-after:avoid;break-after:avoid;}
-  .grid2,.grid4{display:grid;}
+  .grid2,.grid3,.grid4{display:grid;}
   ${colourMode==='mono'?`
   /* Monochrome — screen filter + explicit print overrides */
   html{filter:grayscale(1);}
@@ -2957,16 +2959,18 @@
   function addKeyDate(date='', label=''){
     keyDates.push({id:'kd-'+Date.now(), date, label});
     renderKeyDates();
+    autosaveDraft();
   }
 
   function removeKeyDate(id){
     keyDates = keyDates.filter(d=>d.id!==id);
     renderKeyDates();
+    autosaveDraft();
   }
 
   function updateKeyDate(id, field, val){
     const d = keyDates.find(x=>x.id===id);
-    if(d){ d[field]=val; syncKeyDatesToTimeline(); }
+    if(d){ d[field]=val; syncKeyDatesToTimeline(); autosaveDraft(); }
   }
 
   function formatDate(iso){
@@ -3084,11 +3088,13 @@
     commsLog.unshift({id:'cm-'+Date.now(), date, type, text});
     closeCommsForm();
     renderCommsLog();
+    autosaveDraft();
   }
 
   function deleteCommsEntry(id){
     commsLog = commsLog.filter(c=>c.id!==id);
     renderCommsLog();
+    autosaveDraft();
   }
 
   function renderCommsLog(){
