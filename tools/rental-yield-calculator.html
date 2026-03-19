@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <script src="tool-page.js"></script>
-<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Australian Rental Yield Calculator 2026 — Investment Property Tool</title>
 <meta name="description" content="Free Australian rental yield calculator. Calculate gross & net yield for any investment property. No signup required, instant results.">
@@ -167,112 +166,7 @@
 
 <div id="tool-footer-root"></div>
 
-<script>
-function calculate() {
-  var propVal = parseVal('propval');
-  var weekly = parseVal('weekly');
-  if (!propVal || !weekly) { if (!_isInit) alert('Please enter property value and weekly rent.'); return; }
-
-  var vacancy = parseFloat(document.getElementById('vacancy').value) || 0;
-  var mgmtPct = parseFloat(document.getElementById('mgmt').value) || 0;
-  var rates = parseVal('rates');
-  var insurance = parseVal('insurance');
-  var maint = parseVal('maintenance');
-
-  var annualRent = weekly * (52 - vacancy);
-  var mgmtCost = annualRent * (mgmtPct / 100);
-  var totalExpenses = rates + insurance + maint + mgmtCost;
-  var netRent = annualRent - totalExpenses;
-
-  var grossYield = (weekly * 52 / propVal) * 100;
-  var netYield = (netRent / propVal) * 100;
-
-  var verdict = '';
-  if (netYield >= 6) verdict = 'Strong yield \u2014 this property is likely positively geared.';
-  else if (netYield >= 4) verdict = 'Healthy yield \u2014 approaching cash-flow neutral.';
-  else if (netYield >= 2) verdict = 'Moderate yield \u2014 likely negatively geared. Factor in tax benefits and capital growth.';
-  else verdict = 'Low yield \u2014 significant negative gearing. Ensure capital growth outlook justifies the shortfall.';
-
-  var netEl = document.getElementById('r-net');
-  netEl.textContent = netYield.toFixed(2) + '%';
-  netEl.className = 'tool-stat-value ' + (netYield >= 4 ? 'green' : netYield < 2 ? 'red' : '');
-
-  document.getElementById('r-gross').textContent = grossYield.toFixed(2) + '%';
-  document.getElementById('r-annualrent').textContent = fmt(annualRent);
-  document.getElementById('r-expenses').textContent = totalExpenses > 0 ? fmt(totalExpenses) : 'Not entered';
-  document.getElementById('r-verdict').textContent = verdict;
-
-  document.getElementById('result').style.display = '';
-  document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-/* ═══ TOOL CONFIG ═══ */
-ToolPage.init({
-  cta: {
-    eyebrow: 'Go deeper',
-    title: 'Model the full investment scenario',
-    description: 'Add mortgage repayments, capital growth projections, equity buildup, and compare multiple properties \u2014 free in EquitySight.',
-    buttonText: 'Get started free \u2192',
-    buttonHref: '../login.html?tab=signup'
-  },
-  resources: {
-    groups: [
-      {
-        icon: '\uD83C\uDFE2', title: 'Investment Property Tax',
-        links: [
-          { text: 'ATO: Rental Property Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ATO: Deductible Expenses', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/how-to-claim-rental-expenses' },
-          { text: 'ATO: Capital Gains Tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
-          { text: 'ATO: Negative Gearing', href: 'https://www.ato.gov.au/forms-and-instructions/rental-properties-2025/other-tax-considerations' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCB0', title: 'Investment & Finance',
-        links: [
-          { text: 'ASIC: Investment Loans', href: 'https://moneysmart.gov.au/property-investment' },
-          { text: 'MoneySmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' },
-          { text: 'ASIC: Saving & Investing', href: 'https://moneysmart.gov.au/how-to-invest' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCCB', title: 'Landlord & Tenant Law',
-        links: [
-          { text: 'Fair Work Ombudsman', href: 'https://www.fairwork.gov.au/' },
-          { text: 'Consumer Affairs: Rental Law', href: 'https://www.consumer.vic.gov.au/housing' },
-          { text: 'Tenants Union of Australia', href: 'https://www.tenants.org.au/' }
-        ]
-      }
-    ],
-    disclaimer: 'This is general information only. Tax treatment of rental properties varies by circumstances. Always consult a tax accountant and financial adviser before investing.'
-  },
-  share: {
-    url: 'https://equitysight.app/tools/rental-yield-calculator.html',
-    text: 'Just calculated my rental yield!'
-  },
-  related: [
-    { href: 'stamp-duty-calculator.html', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
-    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
-    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
-  ],
-  footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: 'equity-release-calculator.html', text: 'Equity Release' },
-    { href: 'mortgage-stress-calculator.html', text: 'Mortgage Stress' },
-    { href: '../privacy.html', text: 'Privacy' }
-  ]
-});
-
-var _isInit = true;
-calculate();
-_isInit = false;
-['propval','weekly','rates','insurance','maintenance'].forEach(function(id) {
-  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
-});
-document.getElementById('rent-calc-btn').addEventListener('click', calculate);
-</script>
+<script src="rental-yield-calculator.js"></script>
 
 </body>
 </html>

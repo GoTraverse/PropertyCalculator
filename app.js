@@ -338,7 +338,7 @@
       return `<div data-reno="${r.id}" style="border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;">
         <div class="reno-row">
           <select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" data-field="emoji">${emojiOpts}</select>
-          <input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" data-field="name">
+          <input type="text" value="${escHtml(r.name||'')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" data-field="name">
           <div class="rbt" style="max-width:60px;"><div class="rbf" style="width:${pct}%"></div></div>
           <div style="display:flex;align-items:center;gap:2px;min-width:90px;">
             <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" max="2000000" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" data-field="amount">
@@ -389,10 +389,9 @@
       if(!draft || !draft.state) return false;
       _restoringDraft = true;
       // Restore photo — only if it fits (skip silently if corrupt)
-      if(draft.photo && draft.photo.startsWith('data:')){
-        try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.thumb||''; applyPropPhoto(draft.photo); }catch(pe){}
-      } else if(draft.photo && draft.photo.startsWith('http')){
-        try{ propPhotoDataUrl = draft.photo; propThumbDataUrl = draft.photo; applyPropPhoto(draft.photo); }catch(pe){}
+      const _safePhoto = safePhotoSrc(draft.photo);
+      if(_safePhoto){
+        try{ propPhotoDataUrl = _safePhoto; propThumbDataUrl = draft.thumb||_safePhoto; applyPropPhoto(_safePhoto); }catch(pe){}
       }
       applyScenarioState(draft.state, null);
       // Clamp any extreme values that may have been saved before limits were added
@@ -772,7 +771,7 @@
     if(hZone) hZone.style.display = 'none';
     // preview thumb in details tab
     const prevPhoto = document.getElementById('pd-preview-photo');
-    if(prevPhoto) prevPhoto.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;">`;
+    if(prevPhoto){ const s=safePhotoSrc(src); if(s) prevPhoto.innerHTML='<img src="'+s+'" style="width:100%;height:100%;object-fit:cover;">'; }
     updatePropertyDetails();
     triggerAutoSaveToLibrary();
   }
@@ -902,8 +901,10 @@
     const urlEl = document.getElementById('pd-photo-url');
     const url   = urlEl?.value?.trim();
     if(!url){ showToast('⚠️ Paste an image URL first'); return; }
-    propPhotoDataUrl = url;
-    applyPropPhoto(url);
+    const safe = safePhotoSrc(url);
+    if(!safe){ showToast('⚠️ Only https:// image URLs are allowed'); return; }
+    propPhotoDataUrl = safe;
+    applyPropPhoto(safe);
     showToast('🖼️ Photo loaded from URL');
   }
 
@@ -1046,13 +1047,13 @@
     const statsEl = document.getElementById('pd-preview-stats');
     if(statsEl){
       const chips = [];
-      if(type) chips.push(`🏠 ${type}`);
+      if(type) chips.push(`🏠 ${escHtml(type)}`);
       if(bed)  chips.push(`🛏 ${bed} bed`);
       if(bath) chips.push(`🚿 ${bath} bath`);
       if(car)  chips.push(`🚗 ${car} car`);
-      if(land) chips.push(`📐 ${land}m²`);
-      if(house)chips.push(`🏗 ${house}m² house`);
-      if(year) chips.push(`📅 Built ${year}`);
+      if(land) chips.push(`📐 ${escHtml(land)}m²`);
+      if(house)chips.push(`🏗 ${escHtml(house)}m² house`);
+      if(year) chips.push(`📅 Built ${escHtml(year)}`);
       statsEl.innerHTML = chips.map(c=>`<span class="pd-stat-chip">${c}</span>`).join('') || '<span style="font-size:11px;color:rgba(245,240,232,0.3);font-family:\'DM Mono\',monospace;">Fill in details above to see preview</span>';
     }
 
@@ -3239,8 +3240,8 @@
     // Keep the "no scheme" option, rebuild the rest
     sel.innerHTML = '<option value="">No scheme (manual entry below)</option>' +
       active.map(function(s){
-        return '<option value="'+s.id+'" data-pct="'+s.govtDefaultPct+'" data-max="'+(s.maxPropertyPrice||700000)+'">'
-          + s.name + ' (' + s.govtDefaultPct + '% — ' + (s.country||'') + ')'
+        return '<option value="'+escHtml(s.id)+'" data-pct="'+escHtml(String(s.govtDefaultPct))+'" data-max="'+(s.maxPropertyPrice||700000)+'">'
+          + escHtml(s.name) + ' (' + escHtml(String(s.govtDefaultPct)) + '% — ' + escHtml(s.country||'') + ')'
           + '</option>';
       }).join('');
   }

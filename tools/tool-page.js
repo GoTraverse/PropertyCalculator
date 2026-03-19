@@ -25,6 +25,9 @@
  *   });
  */
 
+/* Dark mode init — runs immediately on parse to prevent FOUC */
+(function(){ try{ if(localStorage.getItem('equitySight_theme')==='dark') document.documentElement.classList.add('dark-mode'); }catch(e){} })();
+
 /* ══════════════════════════════════════════════════════════════════════
    GLOBAL UTILITIES — available immediately for oninput handlers
    ══════════════════════════════════════════════════════════════════════ */
