@@ -1,8 +1,8 @@
 // adsense.js — central AdSense configuration
-// TODO: Replace the placeholder values below with your actual AdSense IDs before going live.
+// TODO: Replace slot IDs below with your actual ad unit slot IDs from Google AdSense.
 // Get these from: https://www.google.com/adsense → Ads → By ad unit → Create new ad unit
 
-var ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXXX';
+var ADSENSE_PUBLISHER_ID = 'ca-pub-8128501193606953';
 
 var ADSENSE_SLOTS = {
   suburb:     'XXXXXXXXXX',  // Ad slot ID for suburb insight pages
