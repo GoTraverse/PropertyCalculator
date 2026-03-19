@@ -85,4 +85,18 @@
     var severity = stack ? 'error' : 'warning';
     send({ message: msg, source: 'promise', line: null, col: null, stack: stack, at: Date.now(), severity: severity });
   });
+
+  // Capture CSP violations (these fire as securitypolicyviolation events, not error events)
+  document.addEventListener('securitypolicyviolation', function (e) {
+    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + (e.blockedURI || '') + '"';
+    send({
+      message:  msg,
+      source:   e.sourceFile || e.documentURI || '',
+      line:     e.lineNumber || null,
+      col:      e.columnNumber || null,
+      stack:    '',
+      at:       Date.now(),
+      severity: 'error',
+    });
+  });
 })();
