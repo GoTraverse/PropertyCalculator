@@ -330,8 +330,8 @@ exports.handler = async function(event){
     const failCount=Number(await rGet(failKey)||0);
     if(failCount>=10) return fail('Too many failed sign-in attempts. Please wait 15 minutes or reset your password.');
     const user=await rGet('user:'+normalizedEmail);
-    if(!user){ await rRateInc(failKey,900); return fail('No account found for this email'); }
-    if(user.hash!==hashPw(password)){ await rRateInc(failKey,900); return fail('Incorrect password'); }
+    if(!user){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
+    if(user.hash!==hashPw(password)){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
     await rDel(failKey); // clear on success
     if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
     if(user.emailVerified===false){
