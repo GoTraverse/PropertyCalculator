@@ -26,8 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
-<!-- Google AdSense — TODO: replace ca-pub-XXXXXXXXXXXXXXXXX with your publisher ID -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<script src="../adsense.js" defer></script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Equity Release Calculator","url":"https://equitysight.app/tools/equity-release-calculator.html","description":"Free home equity release calculator for Australian property owners. Calculate available equity and borrowing capacity based on LVR.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
@@ -104,16 +103,7 @@
     <p class="tool-disclaimer">This estimate assumes the LVR limit is the only constraint. Lenders also consider income, expenses, and credit history. Speak with a mortgage broker for a pre-approval.</p>
   </div>
 
-  <!-- Google AdSense — TODO: replace data-ad-slot with your calculator pages slot ID -->
-  <div class="ad-slot">
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
-         data-ad-slot="XXXXXXXXXX"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-  </div>
+  <div class="ad-slot" data-ad-type="calculator"></div>
 
   <div id="tool-cta-root"></div>
   <div id="tool-resources-root"></div>
