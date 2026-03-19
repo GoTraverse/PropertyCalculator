@@ -62,7 +62,7 @@ window.toggleTheme = function(){
       '#anav-help-overlay.open{display:flex!important;}',
       '#anav-help-modal{background:#F5F0E8;border-radius:8px;width:min(520px,96vw);',
         'max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.55);}',
-      '.anav-cf-label{font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:1px;',
+      '.anav-cf-label{font-family:\u0027DM Mono\u0027,monospace;font-size:10px;letter-spacing:1px;',
         'text-transform:uppercase;color:#4A4A52;display:block;margin-bottom:5px;}',
       '.anav-cf-input,.anav-cf-select,.anav-cf-textarea{width:100%;padding:9px 10px;',
         'border:1px solid rgba(28,28,30,0.15);border-radius:4px;',
@@ -100,7 +100,7 @@ window.toggleTheme = function(){
     el.innerHTML =
       '<div id="anav-signout-modal">' +
         '<h3>Sign out?</h3>' +
-        '<p>You\'ll need to sign back in to access your saved scenarios.</p>' +
+        '<p>You\u0027ll need to sign back in to access your saved scenarios.</p>' +
         '<div class="anav-signout-actions">' +
           '<button class="anav-signout-cancel" id="anav-signout-cancel-btn">Cancel</button>' +
           '<button class="anav-signout-confirm" id="anav-signout-confirm-btn">Sign out</button>' +
@@ -139,8 +139,8 @@ window.toggleTheme = function(){
       '<div id="anav-help-modal">' +
         '<div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">' +
           '<div>' +
-            '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">SUPPORT</div>' +
-            '<div style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:700;color:#F5F0E8;">Send us a message</div>' +
+            '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">SUPPORT</div>' +
+            '<div style="font-family:\u0027Playfair Display\u0027,serif;font-size:17px;font-weight:700;color:#F5F0E8;">Send us a message</div>' +
           '</div>' +
           '<button id="anav-cf-close-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>' +
         '</div>' +
@@ -150,7 +150,7 @@ window.toggleTheme = function(){
             '<div><label class="anav-cf-label">Last name</label><input class="anav-cf-input" id="anav-cf-lname" type="text" placeholder="Smith"></div>' +
           '</div>' +
           '<div id="anav-cf-email-row" style="margin-bottom:14px;"><label class="anav-cf-label">Email</label><input class="anav-cf-input" id="anav-cf-email" type="email" placeholder="you@email.com"></div>' +
-          '<div id="anav-cf-sending-as" style="display:none;margin-bottom:14px;font-size:12px;color:#6B7280;font-family:\'DM Mono\',monospace;padding:8px 10px;background:rgba(28,28,30,0.05);border-radius:4px;"></div>' +
+          '<div id="anav-cf-sending-as" style="display:none;margin-bottom:14px;font-size:12px;color:#6B7280;font-family:\u0027DM Mono\u0027,monospace;padding:8px 10px;background:rgba(28,28,30,0.05);border-radius:4px;"></div>' +
           '<div style="margin-bottom:14px;"><label class="anav-cf-label">Subject</label>' +
             '<select class="anav-cf-select" id="anav-cf-subject">' +
               '<option value="">Select a topic...</option>' +
@@ -162,19 +162,19 @@ window.toggleTheme = function(){
               '<option value="other">Other</option>' +
             '</select>' +
           '</div>' +
-          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" placeholder="Tell us what\'s on your mind..."></textarea></div>' +
-          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to our <a href="privacy.html" style="color:#C9A84C;">Privacy Policy</a>. We\'ll only use your email to respond.</div>' +
+          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" placeholder="Tell us what\u0027s on your mind..."></textarea></div>' +
+          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to our <a href="privacy.html" style="color:#C9A84C;">Privacy Policy</a>. We\u0027ll only use your email to respond.</div>' +
           '<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">' +
-            '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:\'DM Mono\',monospace;"></div>' +
-            '<button id="anav-cf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
-            '<button id="anav-cf-submit" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">Send Message →</button>' +
+            '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:\u0027DM Mono\u0027,monospace;"></div>' +
+            '<button id="anav-cf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\u0027DM Mono\u0027,monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
+            '<button id="anav-cf-submit" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:\u0027DM Mono\u0027,monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">Send Message →</button>' +
           '</div>' +
         '</div>' +
         '<div id="anav-cf-success" style="display:none;padding:40px 22px;text-align:center;">' +
           '<div style="font-size:36px;margin-bottom:12px;">✅</div>' +
           '<div style="font-size:20px;font-weight:700;color:#1C1C1E;margin-bottom:8px;">Message sent!</div>' +
-          '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">We\'ll get back to you within 24 hours.</div>' +
-          '<button id="anav-cf-success-close-btn" style="background:#1C1C1E;color:#C9A84C;border:none;padding:11px 24px;border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;font-weight:600;">Close</button>' +
+          '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">We\u0027ll get back to you within 24 hours.</div>' +
+          '<button id="anav-cf-success-close-btn" style="background:#1C1C1E;color:#C9A84C;border:none;padding:11px 24px;border-radius:4px;font-family:\u0027DM Mono\u0027,monospace;font-size:11px;cursor:pointer;font-weight:600;">Close</button>' +
         '</div>' +
       '</div>';
     el.addEventListener('click', function(e){ if(e.target===el) window.closeHelpModal(); });
@@ -340,7 +340,7 @@ window.toggleTheme = function(){
           '<button id="site-profile-btn"' +
           ' style="width:42px;height:42px;border-radius:50%;background:' + (photo ? 'transparent' : color) + ';' +
           'border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;' +
-          'justify-content:center;font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;' +
+          'justify-content:center;font-family:\u0027DM Mono\u0027,monospace;font-size:15px;font-weight:700;' +
           'color:#1C1C1E;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;' +
           'box-shadow:0 3px 16px rgba(0,0,0,0.35);" title="' + name + '">' +
           avatarHTML +
@@ -350,7 +350,7 @@ window.toggleTheme = function(){
           'min-width:240px;box-shadow:0 16px 48px rgba(0,0,0,0.65);z-index:9999;">' +
             '<div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:6px;">' +
               '<div style="font-size:15px;font-weight:600;color:#F5F0E8;">' + name + '</div>' +
-              '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
+              '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
             '</div>' +
             '<div style="padding:2px 0;">' +
               '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">Open Calculator</a>' +
