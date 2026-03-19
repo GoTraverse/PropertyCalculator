@@ -80,7 +80,8 @@
   }
 
   function calcMonthly(principal,annualRate,years){
-    if(principal<=0)return 0;if(annualRate===0)return principal/(years*12);
+    if(principal<=0||years<=0)return 0;
+    if(annualRate===0)return principal/(years*12);
     const r=annualRate/100/12,n=years*12;
     return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
   }
@@ -659,6 +660,16 @@
 
     // ─── TAB 5: TIMELINE ───
     set('tl-address',address);
+    // Settle date badge — show formatted date if entered, else generic timeframe
+    const _settleDateEl=document.getElementById('inp-settle-date');
+    const _settleBadge=document.getElementById('tl-settle-badge');
+    if(_settleBadge&&_settleDateEl&&_settleDateEl.value){
+      const _sd=new Date(_settleDateEl.value+'T00:00:00');
+      const _today=new Date(); _today.setHours(0,0,0,0);
+      const _daysUntil=Math.round((_sd-_today)/(86400000));
+      const _sdFmt=_sd.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+      _settleBadge.textContent=_daysUntil>0?`${_sdFmt} — ${_daysUntil}d away`:_daysUntil===0?`${_sdFmt} — Today!`:`${_sdFmt}`;
+    } else if(_settleBadge){ _settleBadge.textContent='Week 4–12'; }
     const ob=document.getElementById('tl-overlap-badge');
     if(ob)ob.textContent=weeks>0?weeks+' wks':'';
     const od=document.getElementById('tl-overlap-desc');
@@ -2390,6 +2401,9 @@
         document.getElementById('proj-growth-lbl').textContent = tableRate.toFixed(1)+'%';
         if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${tableRate}% p.a. avg (historical estimate)`;
         drawProjection();
+      } else {
+        // No data found — let the user know so they can use the manual "Look Up" button
+        if(hint) hint.textContent = `No data for ${suburb} — adjust growth rate manually or click "Look Up".`;
       }
     }, 800);
   }
