@@ -881,7 +881,7 @@
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--risk-red);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--risk-red)">⚠ Risks</div>
           <div class="rri risk"><div class="rric">💸</div><div><div class="rrt">Interest Rate Sensitivity</div><div class="rrb">A 2% rate rise would add <strong id="rr-rate-delta">$xxx</strong>/month to repayments.</div></div></div>
           <div class="rri risk"><div class="rric">🏚</div><div><div class="rrt">Hidden Structural Issues</div><div class="rrb">Unforeseen defects can blow the renovation budget. B&P inspection is essential.</div></div></div>
-          <div class="rri risk"><div class="rric">📉</div><div><div class="rrt">Low Equity Buffer</div><div class="rrb">With <span id="rr-dep-pct">2%</span> personal deposit, any market correction leaves little buffer.</div></div></div>
+          <div class="rri risk" id="rri-equity"><div class="rric">📉</div><div><div class="rrt">Low Equity Buffer</div><div class="rrb">With <span id="rr-dep-pct">2%</span> personal deposit, any market correction leaves little buffer.</div></div></div>
           <div class="rri risk"><div class="rric">🔨</div><div><div class="rrt">Reno Cost Blowouts</div><div class="rrb">Reno pool is <span id="rr-pool-val">$24k</span>. Scope creep and tradie delays can rapidly eat through this.</div></div></div>
           <div class="rri risk" id="rri-overlap"><div class="rric">🏠</div><div><div class="rrt">Dual Housing Costs</div><div class="rrb">Paying <span id="rr-overlap-cost">$4k</span> in combined rent + mortgage during your <span id="rr-overlap-weeks">4</span>-week overlap reduces your reno buffer.</div></div></div>
         </div>
@@ -933,9 +933,9 @@
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:11px;">
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C9A84C;display:inline-block;border-radius:2px;"></span>Property Value</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #5B8FAB;display:inline-block;"></span>Loan Balance</span>
-          <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C4704A;display:inline-block;border-radius:2px;"></span>Govt Equity Owed</span>
+          <span id="proj-legend-govt" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C4704A;display:inline-block;border-radius:2px;"></span>Govt Equity Owed</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#5A9E7B;display:inline-block;border-radius:2px;opacity:0.4;"></span>Your Equity</span>
-          <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;"></span>Early Payoff</span>
+          <span id="proj-legend-extra" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;"></span>Early Payoff</span>
         </div>
         <div class="proj-desktop-hint" style="font-size:11px;color:var(--slate);margin-bottom:8px;font-style:italic;">Click or hover to see quarterly values · Chart is quarterly (120 data points)</div>
         <div id="proj-svg-wrap" style="overflow:hidden;position:relative;width:100%;aspect-ratio:800/300;">

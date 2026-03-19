@@ -628,19 +628,22 @@
     // calendar grid
     const calEl=document.getElementById('cal-grid');
     if(calEl&&weeks>=0){
-      const totalW=Math.max(8,weeks+4);
-      let html=`<div style="display:grid;grid-template-columns:repeat(${Math.min(totalW,12)},1fr);gap:3px;margin-bottom:4px">`;
-      for(let i=0;i<Math.min(totalW,12);i++){
-        const label='Wk '+(i+1);
-        const cls=i<weeks?'cal-both':'cal-mortgage';
-        html+=`<div class="cal-cell ${cls}" title="${i<weeks?'Rent + Mortgage':'Mortgage only'}">${i+1}</div>`;
+      if(weeks===0){
+        calEl.innerHTML=`<div style="text-align:center;padding:18px 12px;color:var(--slate);font-size:12px;line-height:1.6;background:rgba(90,158,123,0.07);border-radius:4px;border:1px solid rgba(90,158,123,0.15);">✓ No overlap — single housing cost from Day 1. Your mortgage starts and rent ends at settlement.</div>`;
+      } else {
+        const totalW=Math.max(8,weeks+4);
+        let html=`<div style="display:grid;grid-template-columns:repeat(${Math.min(totalW,12)},1fr);gap:3px;margin-bottom:4px">`;
+        for(let i=0;i<Math.min(totalW,12);i++){
+          const cls=i<weeks?'cal-both':'cal-mortgage';
+          html+=`<div class="cal-cell ${cls}" title="${i<weeks?'Rent + Mortgage':'Mortgage only'}">${i+1}</div>`;
+        }
+        html+='</div>';
+        html+=`<div style="font-size:11px;color:var(--slate);margin-top:6px">`;
+        html+=`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px"><span style="width:10px;height:10px;border-radius:2px;background:var(--terracotta);display:inline-block"></span>Paying rent + mortgage</span>`;
+        html+=`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:var(--sky);display:inline-block"></span>Mortgage only</span>`;
+        html+='</div>';
+        calEl.innerHTML=html;
       }
-      html+='</div>';
-      html+=`<div style="font-size:11px;color:var(--slate);margin-top:6px">`;
-      html+=`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px"><span style="width:10px;height:10px;border-radius:2px;background:var(--terracotta);display:inline-block"></span>Paying rent + mortgage</span>`;
-      html+=`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:var(--sky);display:inline-block"></span>Mortgage only</span>`;
-      html+='</div>';
-      calEl.innerHTML=html;
     }
 
     // overlap scenarios
@@ -710,6 +713,8 @@
     // Conditionally show/hide risk rows that only apply in specific scenarios
     const rriOverlap = document.getElementById('rri-overlap');
     if(rriOverlap) rriOverlap.style.display = (weeks>0) ? '' : 'none';
+    const rriEquity = document.getElementById('rri-equity');
+    if(rriEquity) rriEquity.style.display = (depPct<20) ? '' : 'none';
     const rriGovt = document.getElementById('rri-govt-reward');
     if(rriGovt) rriGovt.style.display = (govtPct>0) ? '' : 'none';
     const rriLmi = document.getElementById('rri-lmi');
@@ -2009,6 +2014,12 @@
         epResult.style.display = 'none';
       }
     }
+
+    // ── Legend visibility ──
+    const _lgGovt = document.getElementById('proj-legend-govt');
+    if(_lgGovt) _lgGovt.style.display = govtPct > 0 ? 'flex' : 'none';
+    const _lgExtra = document.getElementById('proj-legend-extra');
+    if(_lgExtra) _lgExtra.style.display = extraPayment > 0 ? 'flex' : 'none';
 
     // ── Settlement year label helpers ──
     const settleYr = getSettleYear();
