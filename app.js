@@ -772,6 +772,7 @@
   let propPhotoDataUrl = '';
   let _lastSavedAddr = null;
   let _isDirty = false;
+  let _forceDirty = false;
   let _restoringDraft = false; // suppresses autosaveDraft during restore
   let propThumbDataUrl = ''; // small thumbnail for library
 
@@ -3574,7 +3575,7 @@
     }
     const ppSt = document.getElementById('pp-stat-storage');
     if(ppSt) ppSt.textContent = _currentUser ? '☁ Cloud account' : (typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY ? '☁ Cloud (guest)' : '💾 Local');
-    document.querySelectorAll('.pp-color-swatch').forEach(function(el){
+    document.querySelectorAll('.pp-color-btn').forEach(function(el){
       el.classList.toggle('active', el.dataset.color === color);
     });
   }
@@ -3594,7 +3595,7 @@
     lsSet(getProfileKey(), JSON.stringify(_profileData));
     const avd = document.getElementById('pp-avatar-display');
     if(avd && !_profileData.photo) avd.style.background = color;
-    document.querySelectorAll('.pp-color-swatch').forEach(function(el){
+    document.querySelectorAll('.pp-color-btn').forEach(function(el){
       el.classList.toggle('active', el.dataset.color === color);
     });
     renderProfileBtn();
@@ -3780,7 +3781,7 @@
     if(houseBtn) setPropType(houseBtn,'House');
     _lastSavedAddr = null; _isDirty = false;
     lsDel(DRAFT_KEY);
-    var propTabBtn = document.querySelector('.tab[onclick*="property"]');
+    var propTabBtn = document.querySelector('.tab[data-tab="property"]');
     if(propTabBtn) showTab('property', propTabBtn);
     updateUnsavedBadge(); recalc();
     showToast('✨ New scenario ready');
