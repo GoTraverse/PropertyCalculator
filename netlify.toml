@@ -277,6 +277,13 @@
   to = "/tools/first-home-buyer-grants-calculator.html"
   status = 301
 
+# ── Allow ads.txt through (must come before catch-all) ───────────────────────
+[[redirects]]
+  from = "/ads.txt"
+  to = "/ads.txt"
+  status = 200
+  force = false
+
 # ── Catch-all 404 ────────────────────────────────────────────────────────────
 [[redirects]]
   from = "/*"
