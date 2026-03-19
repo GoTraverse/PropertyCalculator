@@ -183,7 +183,7 @@
       row.dataset.costid = cost.id;
       row.dataset.category = cost.category || 'purchase';
       row.innerHTML = `
-        <input type="text" value="${(cost.name||'').replace(/"/g,'&quot;')}" placeholder="Item name" style="flex:1.4" data-field="name">
+        <input type="text" value="${escHtml(cost.name||'')}" placeholder="Item name" style="flex:1.4" data-field="name">
         <div class="iw" style="flex:1;position:relative;"><span class="ipfx">$</span><input type="number" value="${cost.amount||0}" min="0" max="500000" step="50" data-field="amount"></div>
         <button class="dyn-del" title="Remove" data-action="del-cost">−</button>
       `;
@@ -248,8 +248,7 @@
       const div = document.createElement('div');
       div.setAttribute('data-reno', id);
       div.style.cssText = 'border-bottom:1px solid rgba(28,28,30,0.07);padding-bottom:10px;margin-bottom:10px;';
-      // Use safe name (no double quotes)
-      const safeName = name.replace(/"/g,'&quot;');
+      const safeName = escHtml(name||'');
       div.innerHTML = [
         '<div class="reno-row">',
           '<select style="width:38px;flex-shrink:0;background:none;border:none;font-size:16px;cursor:pointer;padding:0;" data-field="emoji">'+emojiOpts+'</select>',
@@ -267,7 +266,7 @@
         '</div>',
         '<div class="reno-note-wrap" style="padding-left:44px;">',
           '<textarea class="reno-note" placeholder="Notes, quotes, scope of work…" rows="1" ',
-            'data-field="note">'+(note||'')+'</textarea>',
+            'data-field="note">'+escHtml(note||'')+'</textarea>',
         '</div>'
       ].join('');
       list.appendChild(div);
@@ -1075,7 +1074,7 @@
     const STATUS_BADGE_COLORS = {'browsing':'#5B8FAB','auction':'#C4704A','for-sale':'#C9A84C','offered':'#7B9E87','under-offer':'#E8A882','unconditional':'#5A9E7B','sold':'#C45A5A'};
     const STATUS_BADGE_LABELS = {'browsing':'👀 Browsing','auction':'🔨 Auction','for-sale':'🏷 For Sale','offered':'📝 Offer Sent','under-offer':'⏳ Under Offer','unconditional':'✅ Unconditional','sold':'🔴 Sold'};
     let statusBadge = document.getElementById('header-status-badge');
-    if(!statusBadge){ statusBadge = document.createElement('div'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:2px 10px;border-radius:10px;font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;white-space:nowrap;width:auto;max-width:none;align-self:flex-start;margin-top:4px;'; const h1=document.getElementById('page-title'); if(h1&&h1.parentNode) h1.parentNode.insertBefore(statusBadge, h1.nextSibling); }
+    if(!statusBadge){ statusBadge = document.createElement('div'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:2px 10px;border-radius:10px;font-family:\u0027DM Mono\u0027,monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;white-space:nowrap;width:auto;max-width:none;align-self:flex-start;margin-top:4px;'; const h1=document.getElementById('page-title'); if(h1&&h1.parentNode) h1.parentNode.insertBefore(statusBadge, h1.nextSibling); }
     statusBadge.textContent = STATUS_BADGE_LABELS[statusVal] || statusVal;
     statusBadge.style.background = (STATUS_BADGE_COLORS[statusVal]||'#888') + '33';
     statusBadge.style.color = STATUS_BADGE_COLORS[statusVal] || '#888';
@@ -1112,7 +1111,7 @@
       if(land) chips.push(`📐 ${escHtml(land)}m²`);
       if(house)chips.push(`🏗 ${escHtml(house)}m² house`);
       if(year) chips.push(`📅 Built ${escHtml(year)}`);
-      statsEl.innerHTML = chips.map(c=>`<span class="pd-stat-chip">${c}</span>`).join('') || '<span style="font-size:11px;color:rgba(245,240,232,0.3);font-family:\'DM Mono\',monospace;">Fill in details above to see preview</span>';
+      statsEl.innerHTML = chips.map(c=>`<span class="pd-stat-chip">${c}</span>`).join('') || '<span style="font-size:11px;color:rgba(245,240,232,0.3);font-family:\u0027DM Mono\u0027,monospace;">Fill in details above to see preview</span>';
     }
 
     recalc();
@@ -1417,7 +1416,7 @@
   async function renderScenariosList(){
     const grid = document.getElementById('scenarios-grid');
     if(!grid) return;
-    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\'DM Mono\',monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
+    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\u0027DM Mono\u0027,monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
     _scenariosCache = await getAllScenarios();
     _renderScenariosToDOM(_scenariosCache);
     loadSharedWithMe(); // load shared-with-me in parallel

@@ -22,7 +22,7 @@
     '          <div class="site-logo-mark">' + logoMarkHtml + '</div>',
     '          <div class="site-logo-text"><span class="site-logo-name">' + logoName + '</span><span class="site-logo-tld">' + logoTld + '</span></div>',
     '        </a>',
-    '        <p>Australia\'s smartest property finance calculator for first home buyers.</p>',
+    '        <p>Australia\u0027s smartest property finance calculator for first home buyers.</p>',
     '      </div>',
     '      <div class="footer-col"><h4>Product</h4><ul>',
     '        <li><a href="app.html">Calculator</a></li>',
