@@ -1,7 +1,49 @@
 {
-  "syncedAt": "2026-03-20T09:52:04.373Z",
-  "count": 58,
+  "syncedAt": "2026-03-20T11:29:01.840Z",
+  "count": 61,
   "errors": [
+    {
+      "at": 1774006140804,
+      "message": "CSP violation: script-src-attr — blocked \"inline\"",
+      "source": "https://equitysight.app/",
+      "line": 36,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
+    {
+      "at": 1774000390795,
+      "message": "CSP violation: connect-src — blocked \"https://ingesteer.services-prod.nsvcs.net/rum_collection\"",
+      "source": "https://equitysight.app/.netlify/scripts/rum",
+      "line": 1,
+      "col": 5196,
+      "stack": "",
+      "url": "https://equitysight.app/suburb/nsw/bumbalong/",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
+    {
+      "at": 1774000356633,
+      "message": "CSP violation: script-src-attr — blocked \"inline\"",
+      "source": "https://69bd18c51581470008edcadd--equitysight.netlify.app/",
+      "line": 36,
+      "col": null,
+      "stack": "",
+      "url": "https://69bd18c51581470008edcadd--equitysight.netlify.app/",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.6778.0 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1774000323347,
       "message": "CSP violation: connect-src — blocked \"https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20260318&st=env&sjk=7833571045404242\"",
