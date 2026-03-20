@@ -1,7 +1,35 @@
 {
-  "syncedAt": "2026-03-20T05:12:38.549Z",
-  "count": 46,
+  "syncedAt": "2026-03-20T06:47:03.120Z",
+  "count": 48,
   "errors": [
+    {
+      "at": 1773989222092,
+      "message": "CSP violation: script-src-attr — blocked \"inline\"",
+      "source": "https://equitysight.app/app.html",
+      "line": 22,
+      "col": 1,
+      "stack": "",
+      "url": "https://equitysight.app/app.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmj43i1f23e6611f",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "support@equitysight.app",
+      "severity": "error"
+    },
+    {
+      "at": 1773983584885,
+      "message": "CSP violation: script-src-attr — blocked \"inline\"",
+      "source": "https://69bcd748fa075f00081b15e6--equitysight.netlify.app/",
+      "line": 36,
+      "col": null,
+      "stack": "",
+      "url": "https://69bcd748fa075f00081b15e6--equitysight.netlify.app/",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.6778.0 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1773983557537,
       "message": "CSP violation: connect-src — blocked \"https://ingesteer.services-prod.nsvcs.net/rum_collection\"",
