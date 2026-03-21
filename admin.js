@@ -125,22 +125,25 @@ async function init(){
     return;
   }
 
-  // Verify token with backend to get current role
+  // Verify token with backend — never fall back to localStorage role
   let d = {};
   try { d = await callAuth('verify', {token: sess.token}); } catch(e){}
 
-  const role = (d.ok ? d.role : sess.role) || 'user';
+  if(!d.ok){
+    showAccessDenied('Could not verify your session — please sign in again.');
+    return;
+  }
 
-  if(role !== 'admin'){
+  if(d.role !== 'admin'){
     showAccessDenied('This page requires an admin account. Use the button below to claim admin (only works if no admin exists yet).');
     document.getElementById('bootstrap-btn').style.display = '';
     return;
   }
 
-  adminSession = d.ok ? d : sess;
+  adminSession = d;
   document.getElementById('access-denied').style.display = 'none';
   document.getElementById('admin-layout').style.display = 'block';
-  const email = (d.ok ? d.email : sess.email) || '';
+  const email = d.email || '';
   document.getElementById('self-admin-info').textContent = 'Logged in as: ' + email;
 
   loadUsers();
