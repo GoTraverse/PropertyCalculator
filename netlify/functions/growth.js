@@ -46,7 +46,10 @@ async function verifyAdmin(authHeader){
   let data;
   try{data=JSON.parse(raw);}catch(e){return false;}
   if(data.expires&&Date.now()>data.expires) return false;
-  return data.role==='admin';
+  if(data.role!=='admin') return false;
+  // Check user still exists — deleted users should not retain access
+  if(data.email){ const u=await redisCmd('GET','user:'+data.email); if(!u) return false; }
+  return true;
 }
 
 function gKey(suburb, state){
