@@ -426,7 +426,7 @@
     .header-photo-wrap{display:none!important;}
 
     /* Layout — full page scroll on mobile, header stays sticky */
-    html{overscroll-behavior:none;}
+    html{overscroll-behavior:none;overflow-x:hidden;}
     body{height:100%;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:none;-webkit-overflow-scrolling:touch;}
     .app-body{grid-template-columns:1fr!important;flex:1;overflow:visible!important;height:auto!important;padding-top:44px;/* space for fixed tab bar */}
     .content{height:auto!important;overflow:visible!important;display:flex;flex-direction:column;}
@@ -513,12 +513,20 @@
     main{padding-bottom:max(110px, calc(env(safe-area-inset-bottom) + 96px))!important;}
 
     /* Fix 2: Amortization table — contain horizontally, no page-wide overflow */
-    #amort-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;max-width:100%;width:100%;border-radius:4px;display:block;}
+    #amort-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;max-width:calc(100vw - 24px)!important;width:100%;border-radius:4px;display:block;box-sizing:border-box;}
     #amort-table{width:max-content;min-width:100%;}
     #amort-table th{font-size:9px!important;padding:5px 7px!important;white-space:nowrap;}
     #amort-table td{font-size:10px!important;padding:5px 7px!important;white-space:nowrap;}
     /* Prevent horizontal scroll on calculator — clamp all content inside viewport */
-    main,section,.card,.section{max-width:100%;overflow-x:hidden;}
+    main,section,.card,.section{max-width:100%;overflow-x:hidden;box-sizing:border-box;}
+
+    /* Sidebar: constrain all inner content so nothing overflows horizontally */
+    .sidebar *{max-width:100%;box-sizing:border-box;}
+    .sidebar input[type="date"],
+    .sidebar select{width:100%;max-width:100%;box-sizing:border-box;}
+
+    /* Lock horizontal scroll when sidebar overlay is open */
+    body.sidebar-open{overflow-x:hidden!important;}
 
     /* Fix 3: Ensure all header action buttons have exactly the same height */
     .export-btn{height:36px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;}
