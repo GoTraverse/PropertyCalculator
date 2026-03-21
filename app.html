@@ -694,6 +694,13 @@
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">Based on your state, buyer type, and LVR. Estimates only — always verify with your solicitor.</p>
         <div id="smart-estimates-rows"></div>
       </div>
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/stamp-duty-calculator.html" target="_blank" class="rtb-link">🏛️ Stamp Duty</a>
+        <a href="../tools/first-home-buyer-grants-calculator.html" target="_blank" class="rtb-link">🤝 FHB Grants</a>
+        <a href="../tools/cost-of-purchase-calculator.html" target="_blank" class="rtb-link">💵 Full Cost Breakdown</a>
+      </div>
     </div>
 
     <!-- TAB 2: RENO -->
@@ -736,6 +743,12 @@
       <!-- Add item button -->
       <div style="text-align:center;margin-top:4px;">
         <button id="add-reno-item-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:9px 22px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Reno Item</button>
+      </div>
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/renovation-cost-calculator.html" target="_blank" class="rtb-link">🔨 Reno Cost Estimator</a>
+        <a href="../tools/house-flip-calculator.html" target="_blank" class="rtb-link">💰 House Flip Profit</a>
       </div>
     </div>
 
@@ -782,6 +795,28 @@
         <div id="amort-table-wrap" style="display:none;margin-top:16px;overflow-x:auto;max-width:100%;box-sizing:border-box;">
           <table id="amort-table" style="width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:12px;min-width:380px;"></table>
         </div>
+      </div>
+      <!-- Serviceability quick-check -->
+      <div class="card">
+        <div class="ca" style="background:var(--sky)"></div>
+        <h3>Serviceability Check</h3>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">Enter your combined household income to see if this loan is within your borrowing capacity.</p>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+          <label style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);letter-spacing:0.5px;">Annual Household Income</label>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--slate);">$</span>
+            <input type="number" id="inp-income" min="0" max="2000000" step="5000" placeholder="e.g. 120000"
+              style="width:130px;font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">p.a.</span>
+          </div>
+        </div>
+        <div id="svc-card" style="display:none;"></div>
+      </div>
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/loan-serviceability-calculator.html" target="_blank" class="rtb-link">📊 Loan Serviceability</a>
+        <a href="../tools/mortgage-stress-calculator.html" target="_blank" class="rtb-link">📈 Mortgage Stress Test</a>
       </div>
     </div>
 
@@ -946,6 +981,13 @@
           <div class="rri reward"><div class="rric">💰</div><div><div class="rrt">Long-Term Capital Growth</div><div class="rrb">Your <span id="rr-dep-ltg">$13k</span> deposit on a <span id="rr-price-ltg">$650k</span> asset gives leveraged exposure to property appreciation.</div></div></div>
         </div>
       </div>
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/mortgage-stress-calculator.html" target="_blank" class="rtb-link">📈 Mortgage Stress Test</a>
+        <a href="../tools/loan-serviceability-calculator.html" target="_blank" class="rtb-link">📊 Loan Serviceability</a>
+        <a href="../tools/equity-release-calculator.html" target="_blank" class="rtb-link">🔓 Equity Release</a>
+      </div>
     </div>
 
     <!-- TAB 7: PROJECTION -->
@@ -1080,6 +1122,52 @@
         <h3>Year-by-Year Breakdown</h3>
         <p style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.6;">Govt equity owed = their % share of the property value at that year. Pay this amount to exit the scheme.</p>
         <div style="overflow-x:auto;"><div id="proj-table"></div></div>
+      </div>
+
+      <!-- Rental yield quick-calc -->
+      <div class="card" id="proj-yield-card">
+        <div class="ca" style="background:var(--sage)"></div>
+        <h3>Investment Scenario — Rental Yield</h3>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">If you rent this property out instead of living in it, what does the yield look like?</p>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <label style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">Expected Weekly Rent</label>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--slate);">$</span>
+            <input type="number" id="inp-invest-rent" min="0" max="10000" step="50" placeholder="e.g. 600"
+              style="width:100px;font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">/wk</span>
+          </div>
+        </div>
+        <div id="yield-results" style="display:none;">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">
+            <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Gross Yield</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--sage);" id="yield-gross">—</div>
+            </div>
+            <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Net Yield (est.)</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--sage);" id="yield-net">—</div>
+            </div>
+            <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Rent</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;" id="yield-annual-rent">—</div>
+            </div>
+            <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Cashflow</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;" id="yield-cashflow">—</div>
+            </div>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;" id="yield-verdict">—</div>
+          <div style="font-size:10px;color:var(--slate);margin-top:8px;line-height:1.5;">Net yield deducts ~8% PM fees, $2k rates, $1.5k insurance, 1% maintenance. Cashflow = net rent − mortgage. <a href="../tools/rental-yield-calculator.html" target="_blank" style="color:var(--sage);">Full yield analysis →</a></div>
+        </div>
+      </div>
+
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/rental-yield-calculator.html" target="_blank" class="rtb-link">🏘 Rental Yield</a>
+        <a href="../tools/equity-release-calculator.html" target="_blank" class="rtb-link">🔓 Equity Release</a>
+        <a href="../tools/house-flip-calculator.html" target="_blank" class="rtb-link">💰 House Flip</a>
       </div>
     </div>
 

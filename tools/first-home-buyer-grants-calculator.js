@@ -20,7 +20,7 @@ var stateGrants = {
     grants: [
       { label: 'Stamp Duty Concession (≤$500k)', estimate: 'Full concession', condition: 'Homes ≤ $500,000' },
       { label: 'Stamp Duty Partial Concession', estimate: 'Reduces with price', condition: 'Homes $500k–$550k' },
-      { label: 'First Home Buyer Grant', estimate: '$20,000', condition: 'New homes only, <$750k' }
+      { label: 'First Home Buyer Grant', estimate: '$30,000', condition: 'New homes only, ≤$750k (raised May 2024)' }
     ]
   },
   sa: {
@@ -41,7 +41,8 @@ var stateGrants = {
     name: 'Tasmania', stampExemptionPrice: 400000, stampPartialPrice: 500000, stampExemptionAmt: 15000,
     grants: [
       { label: 'Stamp Duty Concession (≤$400k)', estimate: 'Full concession', condition: 'Homes ≤ $400,000' },
-      { label: 'Stamp Duty Partial Concession', estimate: 'Reduces with price', condition: 'Homes $400k–$500k' }
+      { label: 'Stamp Duty Partial Concession', estimate: 'Reduces with price', condition: 'Homes $400k–$500k' },
+      { label: 'First Home Owner Grant', estimate: '$20,000', condition: 'New homes only (raised 2024)' }
     ]
   },
   act: {

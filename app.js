@@ -195,7 +195,7 @@
       qld: {amount: 30000, note: 'QLD FHOG — new homes only', urgent: true},
       sa:  {amount: 15000, note: 'SA FHOG for new homes', urgent: false},
       wa:  {amount: 10000, note: 'WA FHOG for new homes', urgent: false},
-      tas: {amount: 10000, note: 'TAS FHOG for new homes', urgent: false},
+      tas: {amount: 20000, note: 'TAS FHOG for new homes', urgent: false},
       act: {amount: 0,     note: 'ACT has no FHOG (land tax alternative scheme applies)', urgent: false},
       nt:  {amount: 10000, note: 'NT FHOG + HomeGrown up to $60,000 total', urgent: false},
     };
@@ -753,6 +753,10 @@
         } else if (fhog.note && isFHB && state) {
           html += `<div style="font-size:10px;color:var(--slate);padding:2px 0 4px;line-height:1.5;">${fhog.note}</div>`;
         }
+        // FHSS hint for FHBs
+        if (isFHB && state) {
+          html += `<div style="font-size:10px;padding:6px 0 2px;color:rgba(91,143,171,0.9);line-height:1.5;border-top:1px solid rgba(255,255,255,0.05);margin-top:6px;">🏦 <strong>First Home Super Saver (FHSS):</strong> You may be able to withdraw up to $50,000 from your super for a deposit — contributions are taxed at 15% instead of your marginal rate. <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme" target="_blank" rel="noopener" style="color:inherit;">Check ATO eligibility →</a></div>`;
+        }
         // Stamp duty warning update
         if (state && autoStampDuty > 0) {
           const hasManualStamp = dynCosts.some(c => c.category !== 'moveout' && /stamp/i.test(c.name) && parseFloat(c.amount) > 0);
@@ -827,6 +831,47 @@
         html+=`<div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;padding:6px 0;border-top:1px solid rgba(28,28,30,0.06)${cur?';background:rgba(201,168,76,0.06);border-radius:2px':''}"><span style="color:${cur?'var(--gold)':'var(--slate)'}">${r.toFixed(1)}%${cur?' ←':''}</span><span>${fmt(m)}</span><span>${fmt(m*12)}</span><span style="color:${i===0?'var(--slate)':d>600?'var(--risk-red)':'var(--terracotta)'}">${i===0?'current':'+'+fmt(d)+'/mo'}</span></div>`;
       });
       stEl.innerHTML=html+'</div>';
+    }
+
+    // ─── TAB 3: SERVICEABILITY QUICK-CHECK ───
+    const incomeEl = document.getElementById('inp-income');
+    const svcCard = document.getElementById('svc-card');
+    if (incomeEl && svcCard) {
+      const grossIncome = parseFloat(incomeEl.value) || 0;
+      if (grossIncome > 0) {
+        // Australian bank serviceability: assessment rate = rate + 3%, max DSR ~30%, HEM floor
+        const assessRate = rate + 3;
+        const maxRepaymentMonth = grossIncome / 12 * 0.30; // 30% of gross monthly income
+        // Reverse-engineer max loan from max payment at assessment rate
+        const maxLoan = Math.round(maxRepaymentMonth * (Math.pow(1 + assessRate/100/12, term*12) - 1) / ((assessRate/100/12) * Math.pow(1 + assessRate/100/12, term*12)));
+        const dti = loanAmt > 0 && grossIncome > 0 ? loanAmt / grossIncome : 0;
+        const repayToIncome = grossIncome > 0 ? (monthly * 12 / grossIncome * 100) : 0;
+        const gap = maxLoan - loanAmt;
+        const feasible = loanAmt <= maxLoan;
+        let svcHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">`;
+        svcHtml += `<div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:4px;">Max Borrowing</div>
+          <div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--sky);">${fmtK(maxLoan)}</div>
+          <div style="font-size:10px;color:var(--slate);margin-top:2px;">@ ${assessRate.toFixed(1)}% assessment rate</div>
+        </div>`;
+        svcHtml += `<div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:4px;">Your Loan</div>
+          <div style="font-family:'DM Mono',monospace;font-size:18px;color:${feasible?'var(--sage)':'var(--risk-red)'};">${fmtK(loanAmt)}</div>
+          <div style="font-size:10px;color:var(--slate);margin-top:2px;">${feasible ? '✓ within capacity' : '⚠ exceeds capacity'}</div>
+        </div>`;
+        svcHtml += `</div>`;
+        svcHtml += `<div style="display:flex;gap:18px;flex-wrap:wrap;font-family:'DM Mono',monospace;font-size:11px;margin-bottom:10px;">`;
+        svcHtml += `<span>Repayment/Income: <strong style="color:${repayToIncome>35?'var(--risk-red)':repayToIncome>28?'var(--terracotta)':'var(--sage)'}">${repayToIncome.toFixed(1)}%</strong></span>`;
+        svcHtml += `<span>Debt-to-Income: <strong style="color:${dti>6?'var(--risk-red)':dti>4.5?'var(--terracotta)':'var(--sage)'}">${dti.toFixed(1)}×</strong></span>`;
+        if (!feasible) svcHtml += `<span style="color:var(--risk-red);">Shortfall: ${fmtK(Math.abs(gap))}</span>`;
+        else svcHtml += `<span style="color:var(--sage);">Headroom: ${fmtK(gap)}</span>`;
+        svcHtml += `</div>`;
+        svcHtml += `<div style="font-size:10px;color:var(--slate);line-height:1.6;">APRA requires lenders to assess at rate + 3% buffer. Actual capacity varies by lender, expenses, and existing debts. <a href="../tools/loan-serviceability-calculator.html" target="_blank" style="color:var(--sky);">Run full serviceability check →</a></div>`;
+        svcCard.innerHTML = svcHtml;
+        svcCard.style.display = '';
+      } else {
+        svcCard.style.display = 'none';
+      }
     }
 
     // ─── TAB 4: RENT OVERLAP ───
@@ -2510,6 +2555,36 @@
     const sliderEl = document.getElementById('proj-slider-input');
     if(sliderEl){ sliderEl.max = projData.length - 1; sliderEl.value = 0; }
     projSliderMove(0);
+
+    // ── Rental yield quick-calc ──
+    const investRentEl = document.getElementById('inp-invest-rent');
+    const yieldResultsEl = document.getElementById('yield-results');
+    if (investRentEl && yieldResultsEl) {
+      const weeklyRent = parseFloat(investRentEl.value) || 0;
+      if (weeklyRent > 0 && price > 0) {
+        yieldResultsEl.style.display = '';
+        const annualRent = weeklyRent * 52;
+        const grossYield = annualRent / price * 100;
+        // Typical net deductions: rates ~$2k, landlord insurance ~$1.5k, PM 8%, maintenance ~1%, vacancy ~2wk
+        const mgmtFee = annualRent * 0.08;
+        const netAnnualRent = annualRent - mgmtFee - 2000 - 1500 - price * 0.01;
+        const netYield = Math.max(0, netAnnualRent / price * 100);
+        const annualMortgage = monthly * 12;
+        const cashflow = netAnnualRent - annualMortgage;
+        const cashflowLabel = cashflow >= 0 ? '✓ Positively geared' : '⚠ Negatively geared';
+        const cashflowColor = cashflow >= 0 ? 'var(--reward-green)' : 'var(--terracotta)';
+        const verdictDesc = grossYield >= 6 ? 'Strong yield' : grossYield >= 4.5 ? 'Average yield' : grossYield >= 3 ? 'Below average' : 'Low yield';
+        document.getElementById('yield-gross').textContent = grossYield.toFixed(2) + '%';
+        document.getElementById('yield-net').textContent = netYield.toFixed(2) + '%';
+        document.getElementById('yield-annual-rent').textContent = fmt(annualRent);
+        document.getElementById('yield-cashflow').textContent = (cashflow >= 0 ? '+' : '') + fmt(cashflow) + '/yr';
+        document.getElementById('yield-cashflow').style.color = cashflowColor;
+        document.getElementById('yield-verdict').textContent = cashflowLabel + ' — ' + verdictDesc;
+        document.getElementById('yield-verdict').style.color = cashflowColor;
+      } else {
+        yieldResultsEl.style.display = 'none';
+      }
+    }
   }
 
   // ── Mobile projection slider ──

@@ -422,6 +422,14 @@ if(sharedGrid){
   });
 }
 
+// ── Serviceability income input ──────────────────────────────────────────────
+var incomeInput = document.getElementById('inp-income');
+if(incomeInput) incomeInput.addEventListener('input', dRecalc);
+
+// ── Investment rent (yield calc in projection tab) ────────────────────────────
+var investRentInput = document.getElementById('inp-invest-rent');
+if(investRentInput) investRentInput.addEventListener('input', function(){ drawProjection && drawProjection(); });
+
 // ── Key dates delegation (#key-dates-list) ───────────────────────────────────
 var keyDatesList = document.getElementById('key-dates-list');
 if(keyDatesList){

@@ -282,6 +282,11 @@
   .reward .rric{background:rgba(90,158,123,0.1);}
   .rrt{font-weight:500;margin-bottom:1px;font-size:13px;}
   .rrb{color:var(--slate);}
+  /* Related tools bar — cross-links to free standalone calculators */
+  .related-tools-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding:10px 14px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.14);border-radius:4px;}
+  .rtb-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate);flex-shrink:0;}
+  .rtb-link{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);text-decoration:none;padding:4px 9px;border:1px solid rgba(201,168,76,0.25);border-radius:2px;transition:background 0.15s;}
+  .rtb-link:hover{background:rgba(201,168,76,0.12);}
   .mt{height:8px;background:rgba(28,28,30,0.08);border-radius:4px;overflow:hidden;margin-bottom:9px;}
   .mf{height:100%;border-radius:4px;transition:width 0.8s cubic-bezier(0.16,1,0.3,1);}
 
