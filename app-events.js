@@ -218,7 +218,7 @@ if(pdStatusDate) pdStatusDate.addEventListener('input', function(){
 
 // ── Key dates & comms ─────────────────────────────────────────────────────────
 var addKeyDateBtn = document.getElementById('add-key-date-btn');
-if(addKeyDateBtn) addKeyDateBtn.addEventListener('click', addKeyDate);
+if(addKeyDateBtn) addKeyDateBtn.addEventListener('click', function(){ addKeyDate(); });
 var addCommsEntryBtn = document.getElementById('add-comms-entry-btn');
 if(addCommsEntryBtn) addCommsEntryBtn.addEventListener('click', addCommsEntry);
 
