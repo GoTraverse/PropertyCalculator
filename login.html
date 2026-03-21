@@ -35,6 +35,16 @@
       <div class="login-heading" id="login-heading">Welcome back</div>
       <div class="login-sub" id="login-sub">Sign in to access your property scenarios</div>
     </div>
+    <!-- Google Sign-In -->
+    <div id="google-signin-wrap" style="margin-bottom:18px;">
+      <div id="google-signin-btn" style="display:flex;justify-content:center;"></div>
+      <div id="google-signin-error" class="form-error" style="text-align:center;margin-top:8px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+        <div style="flex:1;height:1px;background:rgba(245,240,232,0.1);"></div>
+        <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;color:rgba(245,240,232,0.28);">OR</span>
+        <div style="flex:1;height:1px;background:rgba(245,240,232,0.1);"></div>
+      </div>
+    </div>
     <div class="login-tabs">
       <button class="login-tab active" id="tab-signin">Sign In</button>
       <button class="login-tab" id="tab-signup">Create Account</button>
@@ -106,6 +116,7 @@
 </div>
 <script src="error-capture.js"></script>
 <script src="auth-nav.js" defer></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
 <script src="login.js"></script>
 </body>
 </html>

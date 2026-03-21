@@ -23,6 +23,110 @@ if(params.get('plan') === 'pro') document.getElementById('su-plan').value = 'pro
 const refParam = (params.get('ref') || '').trim().toUpperCase().slice(0, 16);
 if(refParam) localStorage.setItem('equitySight_pendingRef', refParam);
 
+// ── Google Sign-In ────────────────────────────────────────────────────────────
+
+// Initialise Google Identity Services once the GSI library is ready.
+// GOOGLE_CLIENT_ID is injected by site-init.js from the site config,
+// or falls back to the window global set by the script below.
+function initGoogleSignIn(){
+  var clientId = (window.GOOGLE_CLIENT_ID || '').trim();
+  if(!clientId) return; // not configured — hide the button wrapper
+  var wrap = document.getElementById('google-signin-wrap');
+  if(wrap) wrap.style.display = '';
+
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: handleGoogleCredential,
+    auto_select: false,
+    cancel_on_tap_outside: true,
+  });
+
+  google.accounts.id.renderButton(
+    document.getElementById('google-signin-btn'),
+    {
+      theme: 'filled_black',
+      size: 'large',
+      shape: 'rectangular',
+      width: 320,
+      text: 'continue_with',
+      logo_alignment: 'left',
+    }
+  );
+}
+
+async function handleGoogleCredential(response){
+  var errEl = document.getElementById('google-signin-error');
+  if(errEl) errEl.textContent = '';
+  var btn = document.getElementById('google-signin-btn');
+  if(btn) btn.style.opacity = '0.5';
+
+  var res = await callAuth('googleSignin', {credential: response.credential});
+  if(btn) btn.style.opacity = '';
+
+  if(res.ok){
+    persistSession(res, {email: res.email});
+    try{
+      var authH = 'Bearer ' + (res.token||'');
+      var profileRes = await fetch('/.netlify/functions/auth', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':authH},
+        body:JSON.stringify({action:'getProfile'})
+      }).then(function(r){ return r.json(); });
+      if(profileRes.ok && profileRes.profile){
+        localStorage.setItem('propCalc_profile_v1_'+(res.id||res.email), JSON.stringify(profileRes.profile));
+      }
+    }catch(e){}
+    goTo('app.html');
+  } else {
+    if(errEl) errEl.textContent = res.error || 'Google sign-in failed — please try again or use email/password below';
+  }
+}
+
+// Called by the GSI library once it loads
+window.onGoogleLibraryLoad = initGoogleSignIn;
+// Also try immediately in case the library already loaded
+if(typeof google !== 'undefined' && google.accounts) initGoogleSignIn();
+
+// Fetch public config to get the Google Client ID (no auth required).
+// Hides the Google sign-in button if googleClientId is not configured.
+(function(){
+  // Try cached siteConfig first for instant render
+  try{
+    var cached = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}');
+    if(cached.googleClientId){
+      window.GOOGLE_CLIENT_ID = cached.googleClientId;
+      // GSI library may already be loaded — try init immediately
+      if(typeof google !== 'undefined' && google.accounts) initGoogleSignIn();
+      return;
+    }
+  }catch(e){}
+
+  // Otherwise fetch from backend
+  fetch('/.netlify/functions/auth', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({action: 'getPublicConfig'})
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(d.ok && d.config && d.config.googleClientId){
+      window.GOOGLE_CLIENT_ID = d.config.googleClientId;
+      // Merge into cached siteConfig
+      try{
+        var c = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}');
+        c.googleClientId = d.config.googleClientId;
+        localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(c));
+      }catch(e){}
+      // Initialise now if GSI is ready, otherwise onGoogleLibraryLoad will call it
+      if(typeof google !== 'undefined' && google.accounts) initGoogleSignIn();
+    } else {
+      var w = document.getElementById('google-signin-wrap');
+      if(w) w.style.display = 'none';
+    }
+  }).catch(function(){
+    var w = document.getElementById('google-signin-wrap');
+    if(w) w.style.display = 'none';
+  });
+})();
+
 // ── Event listeners ──────────────────────────────────────────────────────────
 document.getElementById('tab-signin').addEventListener('click', function(){ setTab('signin'); });
 document.getElementById('tab-signup').addEventListener('click', function(){ setTab('signup'); });

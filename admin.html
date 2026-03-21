@@ -507,6 +507,20 @@
       </div>
     </div>
 
+    <!-- Google Sign-In -->
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Google Sign-In</h3></div>
+      <div style="padding:24px;">
+        <div class="config-field">
+          <label class="config-label">Google Client ID</label>
+          <input type="text" class="config-input" id="google-client-id" placeholder="123456789-abc….apps.googleusercontent.com">
+        </div>
+        <div style="margin-top:16px;font-size:12px;color:var(--slate);line-height:1.8;background:rgba(28,28,30,0.03);padding:12px 16px;border-radius:var(--radius-sm);">
+          <strong>Setup:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--gold);">Google Cloud Console → APIs &amp; Services → Credentials</a> → Create OAuth 2.0 Client ID (Web application). Add <code>https://equitysight.app</code> as an authorised JavaScript origin. Paste the Client ID above and save. Optionally set <code>GOOGLE_CLIENT_ID</code> in Netlify env vars for server-side verification.<br>Leave blank to hide the Google Sign-In button.
+        </div>
+      </div>
+    </div>
+
     <!-- Admin Account -->
     <div class="admin-card">
       <div class="admin-card-head"><h3>Admin Account</h3></div>
