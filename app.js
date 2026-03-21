@@ -3542,6 +3542,14 @@
     }
   }
   window.addEventListener('resize', setAppHeight);
+  // Watch header for size changes (e.g. banner appears, status badge inserted, fonts load)
+  // so tabs always reposition without relying on timing hacks
+  (function(){
+    var _hdr = document.querySelector('header');
+    if(_hdr && typeof ResizeObserver !== 'undefined'){
+      new ResizeObserver(function(){ setAppHeight(); }).observe(_hdr);
+    }
+  })();
 
   // ══════════════════════════════════════════════
   // PROPERTY STATUS (item 2)
@@ -3808,7 +3816,7 @@
   try{ var _earlySession = lsGet(SESSION_KEY); if(_earlySession) _currentUser = JSON.parse(_earlySession); }catch(e){}
   const _hadDraft = restoreDraft();
   try { recalc(); } catch(e) { console.error('recalc init error:', e); }
-  updatePropertyDetails();
+  try { updatePropertyDetails(); } catch(e) { console.error('updatePropertyDetails init error:', e); }
   updateSavedCount();
   setAppHeight();
   // Re-measure after fonts load — web fonts can change header height slightly
