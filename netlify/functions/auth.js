@@ -239,6 +239,8 @@ function hashPw(pw){ return crypto.createHmac('sha256',SALT).update(pw).digest('
 function makeToken(){ return crypto.randomBytes(32).toString('hex'); }
 function makeEmailCode(){ return String(crypto.randomInt(100000, 1000000)); }
 function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('email-code:'+String(code)).digest('hex'); }
+// Constant-time string compare — prevents timing attacks on hash comparisons
+function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual(Buffer.from(a,'hex'),Buffer.from(b,'hex')); }catch(e){ return false; } }
 function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
 
@@ -332,7 +334,7 @@ exports.handler = async function(event){
     if(failCount>=10) return fail('Too many failed sign-in attempts. Please wait 15 minutes or reset your password.');
     const user=await rGet('user:'+normalizedEmail);
     if(!user){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
-    if(user.hash!==hashPw(password)){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
+    if(!safeEqual(user.hash,hashPw(password))){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
     await rDel(failKey); // clear on success
     if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
     if(user.emailVerified===false){
@@ -579,7 +581,7 @@ exports.handler = async function(event){
     if(newPassword.length<8) return fail('New password must be at least 8 characters');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
-    if(userData.hash!==hashPw(currentPassword)) return fail('Current password is incorrect');
+    if(!safeEqual(userData.hash,hashPw(currentPassword))) return fail('Current password is incorrect');
     userData.hash=hashPw(newPassword);
     await rSet('user:'+user.email,userData);
     await logEvent(userData.id,'password_changed',{});
@@ -615,7 +617,7 @@ exports.handler = async function(event){
     const resetAttempts=await rRateInc(resetAttemptKey,900);
     if(resetAttempts>10) return fail('Too many attempts. Please request a new reset code.');
     const resetData=await rGet('pwreset:'+normalizedEmail);
-    if(!resetData||resetData.hash!==hashEmailCode(String(code).trim())) return fail('Invalid or expired reset code');
+    if(!resetData||!safeEqual(resetData.hash,hashEmailCode(String(code).trim()))) return fail('Invalid or expired reset code');
     const userData=await rGet('user:'+normalizedEmail);
     if(!userData) return fail('Account not found');
     userData.hash=hashPw(newPassword);
@@ -633,7 +635,7 @@ exports.handler = async function(event){
     if(!password) return fail('Password required to confirm deletion');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
-    if(userData.hash!==hashPw(password)) return fail('Incorrect password');
+    if(!safeEqual(userData.hash,hashPw(password))) return fail('Incorrect password');
     await deleteUserKeys(userData);
     if(body.token) await rDel('token:'+body.token);
     return ok({ok:true});
