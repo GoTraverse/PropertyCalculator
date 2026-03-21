@@ -40,18 +40,14 @@
   })();
 
 // ── PWA: Block pinch-zoom in iOS standalone mode ──────────────────────
-  // Block pinch-zoom in iOS PWA (standalone) mode
+  // Block pinch-zoom via gesture events; double-tap-to-zoom handled by
+  // touch-action:manipulation in CSS (no JS touchend hack — that was
+  // preventing synthesized click events from firing on buttons).
   (function(){
     if(window.navigator.standalone){
       document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
       document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, {passive:false});
       document.addEventListener('gestureend', function(e){ e.preventDefault(); }, {passive:false});
-      var lastTouchEnd = 0;
-      document.addEventListener('touchend', function(e){
-        var now = Date.now();
-        if(now - lastTouchEnd < 300){ e.preventDefault(); }
-        lastTouchEnd = now;
-      }, {passive:false});
     }
   })();
 
