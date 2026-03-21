@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-03-20T22:57:04.001Z",
-  "count": 73,
+  "syncedAt": "2026-03-21T00:30:43.791Z",
+  "count": 74,
   "errors": [
+    {
+      "at": 1774053042756,
+      "message": "CSP violation: script-src-attr — blocked \"inline\"",
+      "source": "https://equitysight.app/app.html",
+      "line": 22,
+      "col": 1,
+      "stack": "",
+      "url": "https://equitysight.app/app.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmj43i1f23e6611f",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "support@equitysight.app",
+      "severity": "error"
+    },
     {
       "at": 1774047422959,
       "message": "CSP violation: connect-src — blocked \"https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20260318&st=env&sjk=6048063326367074\"",
