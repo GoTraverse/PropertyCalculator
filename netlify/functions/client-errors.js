@@ -39,7 +39,10 @@ async function verifyToken(authHeader) {
   if (!token) return null;
   try {
     const data = await rGet('token:' + token);
-    if (!data || data.expires < Date.now()) return null;
+    if (!data) return null;
+    if (data.expires && Date.now() > data.expires) return null;
+    // Check user still exists — deleted users should not retain access
+    if (data.email) { const u = await rGet('user:' + data.email); if (!u) return null; }
     return data;
   } catch (e) { return null; }
 }

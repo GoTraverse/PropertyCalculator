@@ -57,15 +57,6 @@ async function verifyToken(authHeader){
   return data; // {userId, email, name, plan, role}
 }
 
-// ── userId validation — verify userId exists as a registered user ─────
-// Prevents arbitrary userId injection — must correspond to a real account
-async function verifyUserId(userId){
-  if(!userId||typeof userId!=='string'||userId.length<4) return false;
-  // Verify against the uid: reverse index written by auth.js on signup/signin.
-  // Prevents unauthenticated access to any userId — must be a real registered account.
-  const email = await redisCmd('GET','uid:'+userId);
-  return !!email;
-}
 
 function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
@@ -82,28 +73,14 @@ async function readIndex(uid){
 async function writeIndex(uid,arr){ return rSet(indexKey(uid),arr); }
 
 // ── Resolve user from request ─────────────────────────────────────────
-// Returns userId string or null. Tries Bearer token first, then body.userId fallback.
-async function resolveUser(event, body){
-  // 1. Try Bearer token (preferred)
+// Returns userId string or null. Requires a valid Bearer token — no fallback.
+async function resolveUser(event, _body){
   const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
-  if(authHeader){
-    try{
-      const user = await verifyToken(authHeader);
-      if(user) return user.userId;
-    }catch(e){ console.warn('[scenarios] token verify error:', e.message); }
-    // Token was present but invalid — hard fail (don't fall through to userId)
-    return null;
-  }
-
-  // 2. Fallback: userId in request body (for existing sessions without token field)
-  const userId = (body && body.userId) || null;
-  if(userId && await verifyUserId(userId)) return userId;
-
-  // 3. Fallback: userId in query string (for GET/DELETE with no body)
-  const qsUserId = event.queryStringParameters?.userId;
-  if(qsUserId && await verifyUserId(qsUserId)) return qsUserId;
-
-  return null;
+  if(!authHeader) return null;
+  try{
+    const user = await verifyToken(authHeader);
+    return user ? user.userId : null;
+  }catch(e){ console.warn('[scenarios] token verify error:', e.message); return null; }
 }
 
 // ── Admin: resolve admin token ────────────────────────────────────────
