@@ -290,7 +290,20 @@ exports.handler = async function(event){
       if(!admin) return fail('Admin access required', 401);
       const index = await readIndex(adminTargetId);
       await writeIndex(adminTargetId, index.filter(s=>s.id!==id));
-      try{ await redisPipe([['DEL',stateKey(adminTargetId,id)],['DEL',photoKey(adminTargetId,id)]]); }
+      const adminDelCmds = [['DEL',stateKey(adminTargetId,id)],['DEL',photoKey(adminTargetId,id)]];
+      try{
+        const sk = 'share:'+adminTargetId+':'+id;
+        const sl = await rGet(sk);
+        if(sl && Array.isArray(sl)){
+          for(const s of sl){
+            const swk = 'sharedwith:'+s.userId;
+            const swl = ((await rGet(swk))||[]).filter(x=>!(x.ownerId===adminTargetId&&x.scenarioId===id));
+            await rSet(swk, swl);
+          }
+          adminDelCmds.push(['DEL', sk]);
+        }
+      }catch(e){ console.warn('[scenarios] admin share cleanup warn:', e.message); }
+      try{ await redisPipe(adminDelCmds); }
       catch(e){ console.warn('[scenarios] admin DEL pipeline warn:', e.message); }
       return ok({ok:true});
     }
@@ -299,7 +312,22 @@ exports.handler = async function(event){
     if(!uid) return fail('Authentication required', 401);
     const index = await readIndex(uid);
     await writeIndex(uid, index.filter(s=>s.id!==id));
-    try{ await redisPipe([['DEL',stateKey(uid,id)],['DEL',photoKey(uid,id)]]); }
+    // Clean up state, photo, and share data
+    const delCmds = [['DEL',stateKey(uid,id)],['DEL',photoKey(uid,id)]];
+    try{
+      // Remove share list and notify recipients
+      const shareKey = 'share:'+uid+':'+id;
+      const shareList = await rGet(shareKey);
+      if(shareList && Array.isArray(shareList)){
+        for(const s of shareList){
+          const swKey = 'sharedwith:'+s.userId;
+          const swList = ((await rGet(swKey))||[]).filter(x=>!(x.ownerId===uid&&x.scenarioId===id));
+          await rSet(swKey, swList);
+        }
+        delCmds.push(['DEL', shareKey]);
+      }
+    }catch(e){ console.warn('[scenarios] share cleanup warn:', e.message); }
+    try{ await redisPipe(delCmds); }
     catch(e){ console.warn('[scenarios] DEL pipeline warn:', e.message); }
     return ok({ok:true});
   }

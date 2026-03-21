@@ -40,18 +40,14 @@
   })();
 
 // ── PWA: Block pinch-zoom in iOS standalone mode ──────────────────────
-  // Block pinch-zoom in iOS PWA (standalone) mode
+  // Block pinch-zoom via gesture events; double-tap-to-zoom handled by
+  // touch-action:manipulation in CSS (no JS touchend hack — that was
+  // preventing synthesized click events from firing on buttons).
   (function(){
     if(window.navigator.standalone){
       document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
       document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, {passive:false});
       document.addEventListener('gestureend', function(e){ e.preventDefault(); }, {passive:false});
-      var lastTouchEnd = 0;
-      document.addEventListener('touchend', function(e){
-        var now = Date.now();
-        if(now - lastTouchEnd < 300){ e.preventDefault(); }
-        lastTouchEnd = now;
-      }, {passive:false});
     }
   })();
 
@@ -533,9 +529,10 @@
       // Restore photo — only if it fits (skip silently if corrupt)
       const _safePhoto = safePhotoSrc(draft.photo);
       if(_safePhoto){
-        try{ propPhotoDataUrl = _safePhoto; propThumbDataUrl = draft.thumb||_safePhoto; applyPropPhoto(_safePhoto); }catch(pe){}
+        try{ propPhotoDataUrl = _safePhoto; propThumbDataUrl = draft.thumb||_safePhoto; }catch(pe){}
       }
-      applyScenarioState(draft.state, null);
+      // Pass photo to applyScenarioState so it applies (or clears) consistently
+      applyScenarioState(draft.state, _safePhoto || null);
       // Clamp any extreme values that may have been saved before limits were added
       const _draftClamps = [
         {id:'inp-price',  max:50000000},
@@ -1108,6 +1105,9 @@
   }
 
   function applyPropPhoto(src){
+    // Ensure photo data variables are set (used by draft save and scenario save)
+    if(src && !propPhotoDataUrl) propPhotoDataUrl = src;
+    if(src && !propThumbDataUrl) propThumbDataUrl = src;
     // big preview in details tab
     const big = document.getElementById('pd-photo-big');
     const prompt = document.getElementById('pd-upload-prompt');
@@ -1470,13 +1470,25 @@
         if(r.ok){
           // Mirror updated list to localStorage immediately (belt-and-suspenders)
           getAllScenarios().then(latest => { if(latest.length) lsSet(STORAGE_KEY, JSON.stringify(latest)); }).catch(()=>{});
-          // Upload full photo separately in background (don't await — user sees success immediately)
+          // Upload full photo in background — retry once on failure
           if(photoSrc && authH){
+            var _photoId = record.id;
+            var _photoPayload = { action:'photo', userId:getUserId(), id: _photoId, photo: photoSrc };
+            var _photoHeaders = {'Content-Type':'application/json','Authorization': authH};
             fetch('/.netlify/functions/scenarios', {
-              method: 'POST',
-              headers: {'Content-Type':'application/json','Authorization': authH},
-              body: JSON.stringify({ action:'photo', userId:getUserId(), id: record.id, photo: photoSrc })
-            }).catch(()=>{});
+              method: 'POST', headers: _photoHeaders,
+              body: JSON.stringify(_photoPayload)
+            }).then(function(pr){
+              if(!pr.ok){
+                console.warn('[storage] photo upload failed ('+pr.status+'), retrying…');
+                return fetch('/.netlify/functions/scenarios', {
+                  method: 'POST', headers: _photoHeaders,
+                  body: JSON.stringify(_photoPayload)
+                });
+              }
+            }).then(function(pr2){
+              if(pr2 && !pr2.ok) console.error('[storage] photo retry also failed:', pr2.status);
+            }).catch(function(e){ console.error('[storage] photo upload error:', e.message); });
           }
           return true;
         }
@@ -1650,8 +1662,17 @@
     if(!quiet) saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
     _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
-    if(!quiet) saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
+    if(!quiet){
+      // Show saved checkmark briefly before restoring button
+      saveBtns.forEach(b=>{b.innerHTML='<span style="color:var(--sage);">✓</span> Saved';});
+      setTimeout(()=>saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;}), 1200);
+    } else {
+      saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
+    }
     _lastSavedAddr = fullAddr; _isDirty = false; updateUnsavedBadge();
+    // Update page title with saved address
+    const titleEl = document.getElementById('page-title');
+    if(titleEl && addr) titleEl.textContent = addr;
     const action = existIdx>=0 ? 'Updated' : 'Saved';
     if(!quiet){
       if(usedCloud){
@@ -1726,7 +1747,9 @@
     const empty = document.getElementById('scenarios-empty');
     if(!grid) return;
 
-    const scenarios = _libFilter === 'all' ? all : all.filter(s => (s.status||'browsing') === _libFilter);
+    // Sort newest first by savedAt timestamp
+    const sorted = [...all].sort((a,b) => (b.savedAt||0) - (a.savedAt||0));
+    const scenarios = _libFilter === 'all' ? sorted : sorted.filter(s => (s.status||'browsing') === _libFilter);
 
     if(!all || all.length === 0){
       if(empty) empty.style.display = 'block';
@@ -1808,6 +1831,10 @@
     let sc = scenarios.find(s => s.id === pendingLoadId);
     if(!sc){ pendingLoadId=null; closeConfirmModal(); return; }
 
+    // Show loading state on confirm button
+    const loadBtn = document.getElementById('confirm-load-btn');
+    if(loadBtn){ loadBtn._ot = loadBtn.innerHTML; loadBtn.innerHTML = '<div class="spinner-sm"></div> Loading…'; loadBtn.disabled = true; }
+
     // State is stored separately on the backend — fetch it if not already in cache
     if(!sc.state && ON_NETLIFY){
       try{
@@ -1826,8 +1853,13 @@
       }catch(e){ console.warn('[scenarios] getState error:', e.message); }
     }
 
-    if(!sc.state){ showToast('⚠️ Could not load scenario data'); pendingLoadId=null; closeConfirmModal(); return; }
+    if(!sc.state){
+      showToast('⚠️ Could not load scenario data');
+      if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+      pendingLoadId=null; closeConfirmModal(); return;
+    }
     closeConfirmModal();
+    if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
     closeScenariosModal();
     const photo = sc.hasPhoto ? await getPhoto(sc.id) : null;
     _restoringDraft = true;
@@ -1837,6 +1869,9 @@
     _forceDirty = false;
     lsDel(DRAFT_KEY);
     updateUnsavedBadge();
+    // Update page title with loaded address
+    var titleEl = document.getElementById('page-title');
+    if(titleEl) titleEl.textContent = sc.fullAddr || 'New Property';
     showToast('✓ Loaded: ' + _escBanner(sc.fullAddr));
     pendingLoadId = null;
     // Keep _restoringDraft=true past the 800ms autosaveDraft timer (prevents dirty)
@@ -1984,6 +2019,12 @@
     document.getElementById('share-status').textContent = '';
     document.getElementById('share-status').style.color = '';
     document.getElementById('share-also-list').style.display = 'none';
+    // Show which property is being shared
+    var addrEl = document.getElementById('share-scenario-addr');
+    if(addrEl){
+      var sc = (_scenariosCache||[]).find(function(s){return s.id===scenarioId;});
+      addrEl.textContent = sc ? sc.fullAddr : '';
+    }
     document.getElementById('share-modal').style.display = 'block';
     // Load existing shares for this scenario
     try{
@@ -2093,24 +2134,43 @@
     if(!_pendingShared) return;
     const {ownerId, scenarioId} = _pendingShared;
     _pendingShared = null;
-    closeConfirmModal();
+    // Show loading state on confirm button
+    const loadBtn = document.getElementById('confirm-load-btn');
+    if(loadBtn){ loadBtn._ot = loadBtn.innerHTML; loadBtn.innerHTML = '<div class="spinner-sm"></div> Loading…'; loadBtn.disabled = true; }
     try{
       const authH = getAuthHeader();
-      if(!authH){ showToast('⚠️ Please sign in'); return; }
+      if(!authH){
+        if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+        closeConfirmModal(); showToast('⚠️ Please sign in'); return;
+      }
       const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'getSharedState',ownerId,scenarioId})});
       const d = await r.json();
-      if(!d.ok){ showToast('⚠️ '+(d.error||'Could not load shared scenario')); return; }
+      if(!d.ok){
+        if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+        closeConfirmModal(); showToast('⚠️ '+(d.error||'Could not load shared scenario')); return;
+      }
       const state = typeof d.state==='string' ? JSON.parse(d.state) : d.state;
-      if(!state){ showToast('⚠️ Shared scenario has no data'); return; }
+      if(!state){
+        if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+        closeConfirmModal(); showToast('⚠️ Shared scenario has no data'); return;
+      }
+      closeConfirmModal();
+      if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
       closeScenariosModal();
       _restoringDraft = true;
       applyScenarioState(state, d.photo||null);
       _lastSavedAddr = null; // not owned by this user — don't auto-save over it
       _isDirty = false; _forceDirty = false;
       updateUnsavedBadge();
+      // Update page title for shared scenario
+      var addr = state.values?.['pd-address'] || '';
+      var titleEl = document.getElementById('page-title');
+      if(titleEl) titleEl.textContent = addr || 'Shared Scenario';
       showToast('✓ Loaded shared scenario (read-only view)');
       setTimeout(()=>{ _restoringDraft=false; _isDirty=false; updateUnsavedBadge(); }, 1400);
     }catch(err){
+      if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+      closeConfirmModal();
       showToast('⚠️ Network error loading shared scenario');
     }
   }
@@ -2883,32 +2943,11 @@
     const modal = document.getElementById('pdf-options-modal');
     if(modal) modal.style.display = 'none';
   }
+  // Currently selected export format (default: pdf)
+  var _exportFormat = 'pdf';
+
   function showPDFPreview(){
-    // Collect options and close options modal
-    const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
-    const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
-    const colour  = document.getElementById('pdf-opt-colour')?.value   || 'full';
-    const fsz     = document.getElementById('pdf-opt-fontsize')?.value || 'normal';
-    const incFinancial = document.getElementById('pdf-opt-financial')?.checked !== false;
-    const incReno      = document.getElementById('pdf-opt-reno')?.checked !== false;
-    const incRepay     = document.getElementById('pdf-opt-repay')?.checked !== false;
-    const incAmort     = document.getElementById('pdf-opt-amort')?.checked === true;
-    const incOverlap   = document.getElementById('pdf-opt-overlap')?.checked !== false;
-    const incRisks     = document.getElementById('pdf-opt-risks')?.checked !== false;
-    const incNotes     = document.getElementById('pdf-opt-notes')?.checked !== false;
-    const incTimeline  = document.getElementById('pdf-opt-timeline')?.checked === true;
-    closePDFOptionsModal();
-
-    // Open PDF directly in new window with options
-    exportPDF({size, orient, colour: colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline});
-  }
-  // Assign all PDF functions to window for onclick handler access
-  window.showPDFOptionsPopup = showPDFOptionsPopup;
-  window.showPDFPreview = showPDFPreview;
-  window.closePDFOptionsModal = closePDFOptionsModal;
-
-  function exportPDFWithOptions(){
-    incrementExportCount(); // fire-and-forget — track export count against saved scenario
+    incrementExportCount();
     // Read values BEFORE closing modal so elements are still in DOM
     const size    = document.getElementById('pdf-opt-size')?.value     || 'A4';
     const orient  = document.getElementById('pdf-opt-orient')?.value   || 'portrait';
@@ -2923,7 +2962,191 @@
     const incNotes     = document.getElementById('pdf-opt-notes')?.checked !== false;
     const incTimeline  = document.getElementById('pdf-opt-timeline')?.checked === true;
     closePDFOptionsModal();
-    exportPDF({size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline});
+
+    var opts = {size, orient, colour, fsz, incFinancial, incReno, incRepay, incAmort, incOverlap, incRisks, incNotes, incTimeline};
+
+    if(_exportFormat === 'csv') return exportCSV();
+    if(_exportFormat === 'txt') return exportTXT();
+    if(_exportFormat === 'html') return exportHTMLFile(opts);
+    exportPDF(opts);
+  }
+  // Assign all export functions to window for onclick handler access
+  window.showPDFOptionsPopup = showPDFOptionsPopup;
+  window.showPDFPreview = showPDFPreview;
+  window.closePDFOptionsModal = closePDFOptionsModal;
+
+  function exportPDFWithOptions(){
+    showPDFPreview();
+  }
+
+  function _gatherExportSnap(){
+    var addr = document.getElementById('pd-address')?.value || 'Property';
+    var suburb = document.getElementById('pd-suburb')?.value || '';
+    var stateVal = document.getElementById('pd-state')?.value || '';
+    var fullAddr = [addr,suburb,stateVal].filter(Boolean).join(', ') || 'Property Scenario';
+    return {
+      addr: fullAddr,
+      price: document.getElementById('t-price')?.textContent || '—',
+      deposit: document.getElementById('t-deposit')?.textContent || '—',
+      govt: document.getElementById('t-govt')?.textContent || '—',
+      remaining: document.getElementById('t-remaining')?.textContent || '—',
+      savings: document.getElementById('cb-savings')?.textContent || '—',
+      outOfPocket: document.getElementById('cb-out')?.textContent || '—',
+      cashLeft: document.getElementById('cb-remaining')?.textContent || '—',
+      monthly: document.getElementById('rp-monthly')?.textContent || '—',
+      weekly: document.getElementById('rp-weekly')?.textContent || '—',
+      annual: document.getElementById('rp-annual')?.textContent || '—',
+      rateLabel: document.getElementById('rp-rate-lbl')?.textContent || '',
+      termLabel: document.getElementById('rp-term-lbl')?.textContent || '',
+      loanLabel: document.getElementById('rp-loan-lbl')?.textContent || '',
+      totalInterest: document.getElementById('rp-interest')?.textContent || '—',
+      totalPaid: document.getElementById('rp-total-paid')?.textContent || '—',
+      poolVal: document.getElementById('reno-pool-val')?.textContent || '—',
+      unspent: document.getElementById('reno-unspent-val')?.textContent || '—',
+      renoTotal: document.getElementById('reno-total')?.textContent || '—',
+      renoItems: renoItems.map(function(r){ return {name:r.name||'',amt:fmt(r.amount||0),note:r.note||''}; }),
+      contingency: fmt(getRenoTotal()*(v('inp-cont')/100)),
+      overlapWeekly: document.getElementById('ov-weekly-total')?.textContent || '—',
+      overlapTotal: document.getElementById('ov-total-cost')?.textContent || '—',
+      overlapAfter: document.getElementById('ov-remaining-after')?.textContent || '—',
+      riskScore: document.getElementById('risk-meter')?.style.width || '50%',
+      rewardScore: document.getElementById('reward-meter')?.style.width || '50%',
+      riskDesc: document.getElementById('risk-desc')?.textContent || '',
+      rewardDesc: document.getElementById('reward-desc')?.textContent || '',
+      notes: document.getElementById('pd-notes')?.value || '',
+      crDeposit: document.getElementById('cr-deposit')?.textContent || '—',
+      crTotal: document.getElementById('cr-total')?.textContent || '—',
+      renoOn: renoEnabled,
+    };
+  }
+
+  function _downloadFile(filename, content, mimeType){
+    var blob = new Blob([content], {type: mimeType});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+  }
+
+  function exportCSV(){
+    var s = _gatherExportSnap();
+    var safeName = s.addr.replace(/[^a-zA-Z0-9 ]/g,'').trim().replace(/\s+/g,'-') || 'export';
+    var rows = [
+      ['Property Analysis', s.addr],
+      ['Generated', new Date().toLocaleDateString('en-AU')],
+      [],
+      ['FINANCIAL SNAPSHOT'],
+      ['Purchase Price', s.price],
+      ['Deposit', s.deposit],
+      ['Government Contribution', s.govt],
+      ['Amount Remaining', s.remaining],
+      [],
+      ['CASH PICTURE'],
+      ['Total Savings', s.savings],
+      ['Out of Pocket', s.outOfPocket],
+      ['Cash Left Over', s.cashLeft],
+      [],
+      ['LOAN REPAYMENTS'],
+      ['Loan Details', s.loanLabel],
+      ['Interest Rate', s.rateLabel],
+      ['Loan Term', s.termLabel],
+      ['Monthly Repayment', s.monthly],
+      ['Weekly Repayment', s.weekly],
+      ['Annual Repayment', s.annual],
+      ['Total Interest', s.totalInterest],
+      ['Total Amount Paid', s.totalPaid],
+      [],
+      ['RENT OVERLAP'],
+      ['Weekly Overlap Cost', s.overlapWeekly],
+      ['Total Overlap Cost', s.overlapTotal],
+      ['Cash After Overlap', s.overlapAfter],
+    ];
+    if(s.renoOn){
+      rows.push([], ['RENOVATION BUDGET']);
+      rows.push(['Budget Pool', s.poolVal]);
+      s.renoItems.forEach(function(it){ rows.push([it.name, it.amt, it.note]); });
+      rows.push(['Contingency', s.contingency]);
+      rows.push(['Total Spent', s.renoTotal]);
+      rows.push(['Unspent', s.unspent]);
+    }
+    rows.push([], ['RISK & REWARD']);
+    rows.push(['Risk Score', s.riskScore]);
+    rows.push(['Risk Assessment', s.riskDesc]);
+    rows.push(['Reward Score', s.rewardScore]);
+    rows.push(['Reward Assessment', s.rewardDesc]);
+    if(s.notes){
+      rows.push([], ['NOTES']);
+      rows.push([s.notes]);
+    }
+    var csv = rows.map(function(r){ return r.map(function(c){ return '"' + String(c||'').replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+    _downloadFile(safeName + '.csv', csv, 'text/csv;charset=utf-8');
+    showToast('CSV exported');
+  }
+
+  function exportTXT(){
+    var s = _gatherExportSnap();
+    var safeName = s.addr.replace(/[^a-zA-Z0-9 ]/g,'').trim().replace(/\s+/g,'-') || 'export';
+    var lines = [
+      '═══════════════════════════════════════════',
+      '  PROPERTY ANALYSIS — ' + s.addr,
+      '  Generated: ' + new Date().toLocaleDateString('en-AU'),
+      '═══════════════════════════════════════════',
+      '',
+      '── FINANCIAL SNAPSHOT ──',
+      '  Purchase Price:          ' + s.price,
+      '  Deposit:                 ' + s.deposit,
+      '  Government Contribution: ' + s.govt,
+      '  Amount Remaining:        ' + s.remaining,
+      '',
+      '── CASH PICTURE ──',
+      '  Total Savings:           ' + s.savings,
+      '  Out of Pocket:           ' + s.outOfPocket,
+      '  Cash Left Over:          ' + s.cashLeft,
+      '',
+      '── LOAN REPAYMENTS ──',
+      '  Loan:     ' + s.loanLabel,
+      '  Rate:     ' + s.rateLabel,
+      '  Term:     ' + s.termLabel,
+      '  Monthly:  ' + s.monthly,
+      '  Weekly:   ' + s.weekly,
+      '  Annual:   ' + s.annual,
+      '  Total Interest:  ' + s.totalInterest,
+      '  Total Paid:      ' + s.totalPaid,
+      '',
+      '── RENT OVERLAP ──',
+      '  Weekly Overlap:  ' + s.overlapWeekly,
+      '  Total Overlap:   ' + s.overlapTotal,
+      '  Cash After:      ' + s.overlapAfter,
+    ];
+    if(s.renoOn){
+      lines.push('', '── RENOVATION BUDGET ──');
+      lines.push('  Budget Pool:  ' + s.poolVal);
+      s.renoItems.forEach(function(it){ lines.push('  ' + it.name + ': ' + it.amt + (it.note ? ' (' + it.note + ')' : '')); });
+      lines.push('  Contingency:  ' + s.contingency);
+      lines.push('  Total Spent:  ' + s.renoTotal);
+      lines.push('  Unspent:      ' + s.unspent);
+    }
+    lines.push('', '── RISK & REWARD ──');
+    lines.push('  Risk:   ' + s.riskScore + ' — ' + s.riskDesc);
+    lines.push('  Reward: ' + s.rewardScore + ' — ' + s.rewardDesc);
+    if(s.notes){
+      lines.push('', '── NOTES ──');
+      lines.push('  ' + s.notes.replace(/\n/g, '\n  '));
+    }
+    lines.push('', '═══════════════════════════════════════════');
+    lines.push('  EquitySight.app — Australia\'s smartest property calculator');
+    lines.push('═══════════════════════════════════════════');
+    _downloadFile(safeName + '.txt', lines.join('\n'), 'text/plain;charset=utf-8');
+    showToast('TXT exported');
+  }
+
+  function exportHTMLFile(opts){
+    // Re-use the existing PDF export but save as .html download instead of opening in new window
+    exportPDF(Object.assign({}, opts, {_downloadAsHTML: true}));
   }
   async function incrementExportCount(){
     // Increment export count for the currently loaded scenario (if saved)
@@ -3281,6 +3504,12 @@
 <\/script>
 </body></html>`;
 
+    if(o._downloadAsHTML){
+      var safeName = (snap.addr||'Property').replace(/[^a-zA-Z0-9 ]/g,'').trim().replace(/\s+/g,'-') || 'export';
+      _downloadFile(safeName + '.html', html, 'text/html;charset=utf-8');
+      showToast('HTML exported');
+      return;
+    }
     const blob = new Blob([html], {type:'text/html'});
     const url = URL.createObjectURL(blob);
     const win = window.open(url, '_blank');
@@ -3575,6 +3804,8 @@
     const cleanUrl = window.location.pathname;
     window.history.replaceState(null, '', cleanUrl);
   }
+  // Load session early so updateSavedCount has auth for the cloud fetch
+  try{ var _earlySession = lsGet(SESSION_KEY); if(_earlySession) _currentUser = JSON.parse(_earlySession); }catch(e){}
   const _hadDraft = restoreDraft();
   try { recalc(); } catch(e) { console.error('recalc init error:', e); }
   updatePropertyDetails();
@@ -3597,6 +3828,8 @@
     }, 500);
     setTimeout(function(){
       var addr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
+      // Update page title with restored address
+      if(addr){ var tEl = document.getElementById('page-title'); if(tEl) tEl.textContent = addr; }
       showToast(addr ? '↩️ Restored: ' + _escBanner(addr) : '↩️ Draft restored');
     }, 600);
   } else if(!localStorage.getItem('propCalc_splash_seen')) {
@@ -4125,7 +4358,8 @@
     var defaults = {
       'inp-price':'0','inp-savings':'0','inp-depp':'10',
       'inp-govt':'0','inp-rate':'6.5','inp-term':'30',
-      'inp-cont':'15','inp-rent':'0','inp-weeks':'4'
+      'inp-cont':'15','inp-rent':'0','inp-weeks':'4',
+      'inp-offset':'0','inp-income':'0'
     };
     Object.keys(defaults).forEach(function(id){
       var val = defaults[id];
@@ -4172,8 +4406,16 @@
     var browsingBtn = document.querySelector('[data-status="browsing"]');
     if(browsingBtn) setStatus('browsing', browsingBtn);
     clearPropPhoto();
+    // Reset checkboxes
+    var fhbEl = document.getElementById('inp-fhb'); if(fhbEl) fhbEl.checked = false;
+    var newPropEl = document.getElementById('inp-new-prop'); if(newPropEl) newPropEl.checked = false;
     var houseBtn = document.querySelector('.prop-type-btn');
     if(houseBtn) setPropType(houseBtn,'House');
+    // Reset page title
+    var titleEl = document.getElementById('page-title');
+    if(titleEl) titleEl.textContent = 'New Property';
+    var subEl = document.getElementById('header-sub-text');
+    if(subEl) subEl.textContent = 'Add property details in the Property tab to get started';
     _lastSavedAddr = null; _isDirty = false;
     lsDel(DRAFT_KEY);
     var propTabBtn = document.querySelector('.tab[data-tab="property"]');

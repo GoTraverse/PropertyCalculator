@@ -392,11 +392,11 @@ img { max-width: 100%; display: block; }
   }
   .btn-ghost {
     padding: 7px 11px;
-    font-size: 10px;
+    font-size: 12px;
   }
   .btn-gold {
     padding: 7px 12px;
-    font-size: 10px;
+    font-size: 12px;
     white-space: nowrap;
   }
   .nav-hamburger { display: none !important; }
@@ -407,11 +407,11 @@ img { max-width: 100%; display: block; }
 @media(max-width: 480px) {
   .site-footer-grid { grid-template-columns: 1fr; }
   .site-nav-inner { padding: 0 20px; gap: 12px; min-height: 90px; }
-  .site-nav-links a { font-size: 11px; padding: 9px 10px; }
+  .site-nav-links a { font-size: 12px; padding: 9px 10px; }
   .site-logo-name { font-size: 15px; }
   .site-logo-mark { width: 36px; height: 36px; font-size: 18px; }
-  .btn-ghost { padding: 7px 11px; font-size: 10px; }
-  .btn-gold  { padding: 7px 11px; font-size: 10px; max-width: none; overflow: visible; white-space: nowrap; }
+  .btn-ghost { padding: 7px 11px; font-size: 12px; }
+  .btn-gold  { padding: 7px 11px; font-size: 12px; max-width: none; overflow: visible; white-space: nowrap; }
 }
 
 /* ── Session-aware nav ── */
