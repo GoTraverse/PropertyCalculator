@@ -787,7 +787,7 @@ async function loadConfig(){
   setV('stripe-pro-monthly',  c.stripeProMonthly||'');
   setV('stripe-pro-annual',   c.stripeProAnnual||'');
   setV('stripe-portal',       c.stripePortal||'');
-  st.textContent = ''; st.className = 'admin-status';
+  setCfgStatus('', '');
   updateBannerPreview();
   // NOTE: stats are NOT auto-refreshed here — use the Refresh Stats button
 }

@@ -714,8 +714,8 @@
         const lvrBg = lvr > 90 ? 'rgba(196,90,90,0.12)' : lvr > 80 ? 'rgba(196,112,74,0.12)' : 'rgba(123,158,135,0.12)';
         const lvrBorder = lvr > 90 ? 'rgba(196,90,90,0.3)' : lvr > 80 ? 'rgba(196,112,74,0.3)' : 'rgba(123,158,135,0.3)';
         lvrBadge.textContent = lvrMsg;
-        lvrBadge.style.cssText = `font-size:10px;padding:3px 8px;border-radius:3px;display:inline-block;background:${lvrBg};border:1px solid ${lvrBorder};color:${lvrColor};`;
-        lvrBadge.style.color = lvr > 90 ? 'var(--risk-red)' : lvr > 80 ? 'var(--terracotta)' : 'var(--sage)';
+        const lvrClr = lvr > 90 ? 'var(--risk-red)' : lvr > 80 ? 'var(--terracotta)' : 'var(--sage)';
+        lvrBadge.style.cssText = `font-size:10px;padding:3px 8px;border-radius:3px;display:inline-block;background:${lvrBg};border:1px solid ${lvrBorder};color:${lvrClr};`;
         lvrBadge.style.display = '';
       } else { lvrBadge.style.display = 'none'; }
     }
@@ -3576,7 +3576,7 @@
     window.history.replaceState(null, '', cleanUrl);
   }
   const _hadDraft = restoreDraft();
-  recalc();
+  try { recalc(); } catch(e) { console.error('recalc init error:', e); }
   updatePropertyDetails();
   updateSavedCount();
   setAppHeight();
