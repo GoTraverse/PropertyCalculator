@@ -773,6 +773,7 @@ async function loadConfig(){
   setV('cfg-pro-monthly',     c.proMonthlyPrice||9);
   setV('cfg-pro-annual',      c.proAnnualPrice||86);
   setV('cfg-adviser-monthly', c.adviserMonthlyPrice||29);
+  setV('google-client-id',    c.googleClientId||'');
   setV('stripe-pub-key',      c.stripePubKey||'');
   setV('stripe-pro-monthly',  c.stripeProMonthly||'');
   setV('stripe-pro-annual',   c.stripeProAnnual||'');
@@ -942,6 +943,7 @@ async function saveConfig(){
     proMonthlyPrice:     parseFloat(getV('cfg-pro-monthly','9'))||9,
     proAnnualPrice:      parseFloat(getV('cfg-pro-annual','86'))||86,
     adviserMonthlyPrice: parseFloat(getV('cfg-adviser-monthly','29'))||29,
+    googleClientId:      getV('google-client-id',''),
     stripePubKey:        getV('stripe-pub-key',''),
     stripeProMonthly:    getV('stripe-pro-monthly',''),
     stripeProAnnual:     getV('stripe-pro-annual',''),

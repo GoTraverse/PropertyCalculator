@@ -412,6 +412,81 @@ exports.handler = async function(event){
     return ok(result);
   }
 
+  if(action==='googleSignin'){
+    const {credential}=body;
+    if(!credential) return fail('No credential provided');
+
+    // Verify Google ID token via tokeninfo endpoint (stateless — no client secret needed)
+    let tokenData;
+    try{
+      const res=await fetch('https://oauth2.googleapis.com/tokeninfo?id_token='+encodeURIComponent(credential));
+      tokenData=await res.json();
+    }catch(e){ return fail('Could not verify Google credential — please try again'); }
+
+    if(tokenData.error||!tokenData.email||tokenData.email_verified==='false'){
+      return fail('Google sign-in failed — unverified credential');
+    }
+
+    // Validate audience matches our client ID (if configured)
+    const GOOGLE_CLIENT_ID=(process.env.GOOGLE_CLIENT_ID||'').trim();
+    if(GOOGLE_CLIENT_ID&&tokenData.aud!==GOOGLE_CLIENT_ID){
+      return fail('Google sign-in failed — client ID mismatch');
+    }
+
+    const email=tokenData.email.toLowerCase().trim();
+    const name=tokenData.name||tokenData.given_name||email.split('@')[0];
+    const ekey='user:'+email;
+    let user=await rGet(ekey);
+    const clientIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+
+    if(!user){
+      // New user — create account (no password, no email verification needed)
+      const siteCfg=await rGet('config:site')||{};
+      if(siteCfg.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
+      const userId=Date.now().toString(36)+crypto.randomBytes(4).toString('hex');
+      const refCode=userId.slice(0,8).toUpperCase();
+      user={
+        name,
+        hash:null,
+        id:userId,
+        plan:'free',
+        email,
+        createdAt:Date.now(),
+        emailVerified:true,
+        oauthProviders:['google'],
+        referralCode:refCode,
+        referralCount:0,
+        lastLoginAt:Date.now(),
+        loginCount:1,
+        lastLoginIp:clientIp,
+      };
+      await rSet(ekey,user);
+      await rSet('referral:'+refCode,userId);
+      await rSet('uid:'+userId,email);
+      await logEvent(userId,'signup',{name,email,plan:'free',provider:'google'});
+      sendWelcomeEmail(email,name).catch(()=>{});
+      notifyAdminsNewUser(email,name,'free').catch(()=>{});
+    }else{
+      // Existing user — sign in, flag as google-linked if not already
+      if(!user.oauthProviders||!user.oauthProviders.includes('google')){
+        user.oauthProviders=(user.oauthProviders||[]).concat('google');
+      }
+      user.lastLoginAt=Date.now();
+      user.loginCount=(user.loginCount||0)+1;
+      user.lastLoginIp=clientIp;
+      await rSet(ekey,user);
+      await logEvent(user.id,'signin',{provider:'google'});
+    }
+
+    const token=makeToken();
+    await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
+    const result={ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'};
+    if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
+    if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
+    if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
+    return ok(result);
+  }
+
   if(action==='verify'){
     const {token}=body;
     if(!token) return fail('Token required');
@@ -648,6 +723,21 @@ exports.handler = async function(event){
     return ok({ok:true,token,role:'admin'});
   }
 
+  if(action==='getPublicConfig'){
+    // Returns a whitelist of public (non-secret) config values — no auth required.
+    // Used by login.js to get googleClientId before a session exists.
+    const cfg=await rGet('config:site')||{};
+    return ok({ok:true,config:{
+      googleClientId:cfg.googleClientId||'',
+      allowSignups:cfg.allowSignups!==false,
+      maintenanceMode:cfg.maintenanceMode||false,
+      maintenanceMessage:cfg.maintenanceMessage||'',
+      bannerText:cfg.bannerText||'',
+      bannerType:cfg.bannerType||'info',
+      bannerExpiry:cfg.bannerExpiry||null,
+    }});
+  }
+
   if(action==='adminGetConfig'){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
@@ -670,7 +760,8 @@ exports.handler = async function(event){
       'contactDiscord','contactTwitter','referralEnabled','referralBonus',
       'maxUploadMb','sessionTtlDays','requireEmailDomain',
       'stripePubKey','stripeProMonthly','stripeProAnnual','stripeAdviserMonthly','stripeAdviserAnnual','stripePortal',
-      'suburbDeployHook','suburbLastBuild'];
+      'suburbDeployHook','suburbLastBuild',
+      'googleClientId'];
     const sanitised={};
     for(const k of allowed) if(k in config) sanitised[k]=config[k];
     await rSet('config:site',sanitised);
