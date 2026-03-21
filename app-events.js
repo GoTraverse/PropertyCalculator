@@ -457,3 +457,12 @@ if(commsList){
     if(entry) deleteCommsEntry(entry.dataset.commid);
   });
 }
+
+// ── Keyboard shortcuts ───────────────────────────────────────────────────
+document.addEventListener('keydown', function(e){
+  // Ctrl+S / Cmd+S → save scenario
+  if((e.ctrlKey || e.metaKey) && e.key === 's'){
+    e.preventDefault();
+    if(typeof saveScenario === 'function') saveScenario();
+  }
+});

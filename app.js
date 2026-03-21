@@ -529,9 +529,10 @@
       // Restore photo — only if it fits (skip silently if corrupt)
       const _safePhoto = safePhotoSrc(draft.photo);
       if(_safePhoto){
-        try{ propPhotoDataUrl = _safePhoto; propThumbDataUrl = draft.thumb||_safePhoto; applyPropPhoto(_safePhoto); }catch(pe){}
+        try{ propPhotoDataUrl = _safePhoto; propThumbDataUrl = draft.thumb||_safePhoto; }catch(pe){}
       }
-      applyScenarioState(draft.state, null);
+      // Pass photo to applyScenarioState so it applies (or clears) consistently
+      applyScenarioState(draft.state, _safePhoto || null);
       // Clamp any extreme values that may have been saved before limits were added
       const _draftClamps = [
         {id:'inp-price',  max:50000000},
@@ -1104,6 +1105,9 @@
   }
 
   function applyPropPhoto(src){
+    // Ensure photo data variables are set (used by draft save and scenario save)
+    if(src && !propPhotoDataUrl) propPhotoDataUrl = src;
+    if(src && !propThumbDataUrl) propThumbDataUrl = src;
     // big preview in details tab
     const big = document.getElementById('pd-photo-big');
     const prompt = document.getElementById('pd-upload-prompt');
@@ -1466,13 +1470,25 @@
         if(r.ok){
           // Mirror updated list to localStorage immediately (belt-and-suspenders)
           getAllScenarios().then(latest => { if(latest.length) lsSet(STORAGE_KEY, JSON.stringify(latest)); }).catch(()=>{});
-          // Upload full photo separately in background (don't await — user sees success immediately)
+          // Upload full photo in background — retry once on failure
           if(photoSrc && authH){
+            var _photoId = record.id;
+            var _photoPayload = { action:'photo', userId:getUserId(), id: _photoId, photo: photoSrc };
+            var _photoHeaders = {'Content-Type':'application/json','Authorization': authH};
             fetch('/.netlify/functions/scenarios', {
-              method: 'POST',
-              headers: {'Content-Type':'application/json','Authorization': authH},
-              body: JSON.stringify({ action:'photo', userId:getUserId(), id: record.id, photo: photoSrc })
-            }).catch(()=>{});
+              method: 'POST', headers: _photoHeaders,
+              body: JSON.stringify(_photoPayload)
+            }).then(function(pr){
+              if(!pr.ok){
+                console.warn('[storage] photo upload failed ('+pr.status+'), retrying…');
+                return fetch('/.netlify/functions/scenarios', {
+                  method: 'POST', headers: _photoHeaders,
+                  body: JSON.stringify(_photoPayload)
+                });
+              }
+            }).then(function(pr2){
+              if(pr2 && !pr2.ok) console.error('[storage] photo retry also failed:', pr2.status);
+            }).catch(function(e){ console.error('[storage] photo upload error:', e.message); });
           }
           return true;
         }
@@ -1646,8 +1662,17 @@
     if(!quiet) saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
     _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
-    if(!quiet) saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
+    if(!quiet){
+      // Show saved checkmark briefly before restoring button
+      saveBtns.forEach(b=>{b.innerHTML='<span style="color:var(--sage);">✓</span> Saved';});
+      setTimeout(()=>saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;}), 1200);
+    } else {
+      saveBtns.forEach(b=>{if(b._ot)b.innerHTML=b._ot;b.disabled=false;});
+    }
     _lastSavedAddr = fullAddr; _isDirty = false; updateUnsavedBadge();
+    // Update page title with saved address
+    const titleEl = document.getElementById('page-title');
+    if(titleEl && addr) titleEl.textContent = addr;
     const action = existIdx>=0 ? 'Updated' : 'Saved';
     if(!quiet){
       if(usedCloud){
@@ -1722,7 +1747,9 @@
     const empty = document.getElementById('scenarios-empty');
     if(!grid) return;
 
-    const scenarios = _libFilter === 'all' ? all : all.filter(s => (s.status||'browsing') === _libFilter);
+    // Sort newest first by savedAt timestamp
+    const sorted = [...all].sort((a,b) => (b.savedAt||0) - (a.savedAt||0));
+    const scenarios = _libFilter === 'all' ? sorted : sorted.filter(s => (s.status||'browsing') === _libFilter);
 
     if(!all || all.length === 0){
       if(empty) empty.style.display = 'block';
@@ -1804,6 +1831,10 @@
     let sc = scenarios.find(s => s.id === pendingLoadId);
     if(!sc){ pendingLoadId=null; closeConfirmModal(); return; }
 
+    // Show loading state on confirm button
+    const loadBtn = document.getElementById('confirm-load-btn');
+    if(loadBtn){ loadBtn._ot = loadBtn.innerHTML; loadBtn.innerHTML = '<div class="spinner-sm"></div> Loading…'; loadBtn.disabled = true; }
+
     // State is stored separately on the backend — fetch it if not already in cache
     if(!sc.state && ON_NETLIFY){
       try{
@@ -1822,8 +1853,13 @@
       }catch(e){ console.warn('[scenarios] getState error:', e.message); }
     }
 
-    if(!sc.state){ showToast('⚠️ Could not load scenario data'); pendingLoadId=null; closeConfirmModal(); return; }
+    if(!sc.state){
+      showToast('⚠️ Could not load scenario data');
+      if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+      pendingLoadId=null; closeConfirmModal(); return;
+    }
     closeConfirmModal();
+    if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
     closeScenariosModal();
     const photo = sc.hasPhoto ? await getPhoto(sc.id) : null;
     _restoringDraft = true;
@@ -1833,6 +1869,9 @@
     _forceDirty = false;
     lsDel(DRAFT_KEY);
     updateUnsavedBadge();
+    // Update page title with loaded address
+    var titleEl = document.getElementById('page-title');
+    if(titleEl) titleEl.textContent = sc.fullAddr || 'New Property';
     showToast('✓ Loaded: ' + _escBanner(sc.fullAddr));
     pendingLoadId = null;
     // Keep _restoringDraft=true past the 800ms autosaveDraft timer (prevents dirty)
@@ -1980,6 +2019,12 @@
     document.getElementById('share-status').textContent = '';
     document.getElementById('share-status').style.color = '';
     document.getElementById('share-also-list').style.display = 'none';
+    // Show which property is being shared
+    var addrEl = document.getElementById('share-scenario-addr');
+    if(addrEl){
+      var sc = (_scenariosCache||[]).find(function(s){return s.id===scenarioId;});
+      addrEl.textContent = sc ? sc.fullAddr : '';
+    }
     document.getElementById('share-modal').style.display = 'block';
     // Load existing shares for this scenario
     try{
@@ -2089,24 +2134,43 @@
     if(!_pendingShared) return;
     const {ownerId, scenarioId} = _pendingShared;
     _pendingShared = null;
-    closeConfirmModal();
+    // Show loading state on confirm button
+    const loadBtn = document.getElementById('confirm-load-btn');
+    if(loadBtn){ loadBtn._ot = loadBtn.innerHTML; loadBtn.innerHTML = '<div class="spinner-sm"></div> Loading…'; loadBtn.disabled = true; }
     try{
       const authH = getAuthHeader();
-      if(!authH){ showToast('⚠️ Please sign in'); return; }
+      if(!authH){
+        if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+        closeConfirmModal(); showToast('⚠️ Please sign in'); return;
+      }
       const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'getSharedState',ownerId,scenarioId})});
       const d = await r.json();
-      if(!d.ok){ showToast('⚠️ '+(d.error||'Could not load shared scenario')); return; }
+      if(!d.ok){
+        if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+        closeConfirmModal(); showToast('⚠️ '+(d.error||'Could not load shared scenario')); return;
+      }
       const state = typeof d.state==='string' ? JSON.parse(d.state) : d.state;
-      if(!state){ showToast('⚠️ Shared scenario has no data'); return; }
+      if(!state){
+        if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+        closeConfirmModal(); showToast('⚠️ Shared scenario has no data'); return;
+      }
+      closeConfirmModal();
+      if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
       closeScenariosModal();
       _restoringDraft = true;
       applyScenarioState(state, d.photo||null);
       _lastSavedAddr = null; // not owned by this user — don't auto-save over it
       _isDirty = false; _forceDirty = false;
       updateUnsavedBadge();
+      // Update page title for shared scenario
+      var addr = state.values?.['pd-address'] || '';
+      var titleEl = document.getElementById('page-title');
+      if(titleEl) titleEl.textContent = addr || 'Shared Scenario';
       showToast('✓ Loaded shared scenario (read-only view)');
       setTimeout(()=>{ _restoringDraft=false; _isDirty=false; updateUnsavedBadge(); }, 1400);
     }catch(err){
+      if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
+      closeConfirmModal();
       showToast('⚠️ Network error loading shared scenario');
     }
   }
@@ -3593,6 +3657,8 @@
     }, 500);
     setTimeout(function(){
       var addr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
+      // Update page title with restored address
+      if(addr){ var tEl = document.getElementById('page-title'); if(tEl) tEl.textContent = addr; }
       showToast(addr ? '↩️ Restored: ' + _escBanner(addr) : '↩️ Draft restored');
     }, 600);
   } else if(!localStorage.getItem('propCalc_splash_seen')) {
@@ -4121,7 +4187,8 @@
     var defaults = {
       'inp-price':'0','inp-savings':'0','inp-depp':'10',
       'inp-govt':'0','inp-rate':'6.5','inp-term':'30',
-      'inp-cont':'15','inp-rent':'0','inp-weeks':'4'
+      'inp-cont':'15','inp-rent':'0','inp-weeks':'4',
+      'inp-offset':'0','inp-income':'0'
     };
     Object.keys(defaults).forEach(function(id){
       var val = defaults[id];
@@ -4168,8 +4235,16 @@
     var browsingBtn = document.querySelector('[data-status="browsing"]');
     if(browsingBtn) setStatus('browsing', browsingBtn);
     clearPropPhoto();
+    // Reset checkboxes
+    var fhbEl = document.getElementById('inp-fhb'); if(fhbEl) fhbEl.checked = false;
+    var newPropEl = document.getElementById('inp-new-prop'); if(newPropEl) newPropEl.checked = false;
     var houseBtn = document.querySelector('.prop-type-btn');
     if(houseBtn) setPropType(houseBtn,'House');
+    // Reset page title
+    var titleEl = document.getElementById('page-title');
+    if(titleEl) titleEl.textContent = 'New Property';
+    var subEl = document.getElementById('header-sub-text');
+    if(subEl) subEl.textContent = 'Add property details in the Property tab to get started';
     _lastSavedAddr = null; _isDirty = false;
     lsDel(DRAFT_KEY);
     var propTabBtn = document.querySelector('.tab[data-tab="property"]');
