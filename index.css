@@ -571,7 +571,20 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 40px 32px;
-  align-items: end;
+  align-items: start;
+}
+.sc-phone-grid .sc-figure {
+  display: flex;
+  flex-direction: column;
+}
+.sc-phone-grid .sc-figure-label {
+  min-height: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.sc-phone-grid .sc-figure figcaption {
+  min-height: 48px;
 }
 
 /* ── Responsive ── */
