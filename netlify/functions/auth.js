@@ -761,7 +761,8 @@ exports.handler = async function(event){
       'maxUploadMb','sessionTtlDays','requireEmailDomain',
       'stripePubKey','stripeProMonthly','stripeProAnnual','stripeAdviserMonthly','stripeAdviserAnnual','stripePortal',
       'suburbDeployHook','suburbLastBuild',
-      'googleClientId'];
+      'googleClientId',
+      'logoImage','logoMark','logoName','logoTld','brandColor','colorTheme'];
     const sanitised={};
     for(const k of allowed) if(k in config) sanitised[k]=config[k];
     await rSet('config:site',sanitised);

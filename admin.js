@@ -956,10 +956,7 @@ async function saveConfig(){
     setStatus('✓ Configuration saved', 'ok');
     setTimeout(()=>{ setStatus('', ''); }, 3000);
   } else {
-    // If API fails, still save locally so frontend settings are applied
-    try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(config)); } catch(e){}
-    setStatus('✓ Saved locally (API: ' + (d.error||'check backend') + ')', 'ok');
-    setTimeout(()=>{ setStatus('', ''); }, 4000);
+    setStatus('✗ Save failed: ' + (d.error||'check backend — changes not saved to database'), 'err');
   }
 }
 
