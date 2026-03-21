@@ -73,7 +73,7 @@
   function syncInput(key){const i=document.getElementById('inp-'+key),r=document.getElementById('rng-'+key);if(i)i.value=r.value;rl(key,parseFloat(r.value));}
   function rl(key,val){
     const el=document.getElementById('lbl-'+key);if(!el)return;
-    if(['price','savings','bank','conv','pest','r1','r2','r3','r4','r5','r6','rent'].includes(key))el.textContent=fmt(val);
+    if(['price','savings','bank','conv','pest','r1','r2','r3','r4','r5','r6','rent','offset'].includes(key))el.textContent=fmt(val);
     else if(key==='term')el.textContent=val+' yrs';
     else if(key==='weeks')el.textContent=val;
     else el.textContent=val.toFixed(key==='cont'?0:1)+'%';
@@ -84,6 +84,148 @@
     if(annualRate===0)return principal/(years*12);
     const r=annualRate/100/12,n=years*12;
     return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  }
+
+  // ── STAMP DUTY AUTO-CALC ──
+  // Returns estimated stamp duty for all 8 Australian states (2026 thresholds)
+  function calcStampDutyAmt(price, state, isFHB, isNew) {
+    if (!price || !state) return 0;
+    // brackets: [threshold, baseDuty, marginalRate] — iterate largest-first
+    function bracket(v, tiers) {
+      for (var i = tiers.length - 1; i >= 0; i--) {
+        if (v > tiers[i][0]) return tiers[i][1] + (v - tiers[i][0]) * tiers[i][2];
+      }
+      return 0;
+    }
+    var duty = 0;
+    if (state === 'nsw') {
+      duty = bracket(price, [
+        [0, 0, 0], [14000, 0, 0.0125], [30000, 200, 0.015],
+        [130000, 1700, 0.0175], [205000, 2631.25, 0.035],
+        [305000, 6131.25, 0.04], [405000, 10131.25, 0.045],
+        [550000, 16256.25, 0.055]
+      ]);
+      if (isFHB) {
+        if (price <= 800000) duty = 0;
+        else if (price <= 1000000) duty *= (price - 800000) / 200000;
+      }
+    } else if (state === 'vic') {
+      duty = bracket(price, [
+        [0, 0, 0], [25000, 0, 0.014], [130000, 1470, 0.024],
+        [440000, 8910, 0.055], [870000, 43605, 0.065]
+      ]);
+      if (isFHB) {
+        if (price <= 600000) duty = 0;
+        else if (price <= 750000) duty *= (price - 600000) / 150000;
+      }
+    } else if (state === 'qld') {
+      if (isFHB && isNew) {
+        duty = 0; // QLD FHB new build: no transfer duty from May 2025
+      } else {
+        duty = bracket(price, [
+          [0, 0, 0], [5000, 0, 0.015], [75000, 1050, 0.035],
+          [540000, 17325, 0.045], [1000000, 38025, 0.0575]
+        ]);
+        if (isFHB) {
+          if (price <= 500000) duty = 0;
+          else if (price <= 550000) duty *= (price - 500000) / 50000;
+          else if (price <= 700000) duty *= 0.5; // home concession rate approx
+        }
+      }
+    } else if (state === 'sa') {
+      duty = bracket(price, [
+        [0, 0, 0], [16000, 0, 0.015], [19000, 45, 0.03],
+        [250000, 6915, 0.035], [300000, 8665, 0.04]
+      ]);
+      if (isFHB && isNew && price <= 650000) duty = 0;
+    } else if (state === 'wa') {
+      duty = bracket(price, [
+        [0, 0, 0], [2000, 0, 0.01], [4000, 20, 0.02],
+        [500000, 9920, 0.035], [1000000, 27420, 0.0475]
+      ]);
+      if (isFHB) {
+        if (price <= 430000) duty = 0;
+        else if (price <= 530000) duty *= (price - 430000) / 100000;
+      }
+    } else if (state === 'tas') {
+      duty = bracket(price, [
+        [0, 0, 0], [3000, 0, 0.036], [100000, 3492, 0.041],
+        [150000, 5542, 0.0425], [250000, 9792, 0.0475]
+      ]);
+      if (isFHB && price <= 750000) duty *= 0.5; // 50% concession (to June 2026)
+    } else if (state === 'act') {
+      duty = bracket(price, [
+        [0, 0, 0], [7500, 0, 0.0068], [100000, 640, 0.023],
+        [200000, 2940, 0.031], [300000, 6040, 0.035],
+        [500000, 13040, 0.0505], [750000, 25665, 0.066],
+        [1000000, 42165, 0.0717]
+      ]);
+      if (isFHB && price <= 1020000) duty = 0;
+    } else if (state === 'nt') {
+      duty = bracket(price, [
+        [0, 0, 0], [3000, 0, 0.0075], [100000, 727.5, 0.01],
+        [150000, 1227.5, 0.015], [250000, 2727.5, 0.025]
+      ]);
+      if (isFHB && price <= 650000) duty = Math.max(0, duty * (price - 400000) / 250000);
+    }
+    return Math.max(0, Math.round(duty));
+  }
+
+  // ── LMI AUTO-CALC ──
+  // Approximate LMI premium (Genworth/QBE schedule, residential purchase)
+  function calcLMI(loanAmt, price) {
+    if (!price || price <= 0 || !loanAmt) return 0;
+    const lvr = loanAmt / price * 100;
+    if (lvr <= 80) return 0;
+    var rate = 0;
+    if (lvr <= 85) rate = 0.0065;
+    else if (lvr <= 90) rate = 0.0146;
+    else if (lvr <= 95) rate = 0.0244;
+    else rate = 0.030;
+    return Math.round(loanAmt * rate);
+  }
+
+  // ── FHOG GRANT BY STATE ──
+  // Returns {amount, note, urgent} for 2026 FHOG grants
+  function getFHOGAmt(state, isFHB, isNew) {
+    if (!isFHB || !state) return {amount: 0, note: '', urgent: false};
+    var grants = {
+      nsw: {amount: 10000, note: 'NSW FHOG for new homes', urgent: false},
+      vic: {amount: 10000, note: 'VIC FHOG for new homes', urgent: false},
+      qld: {amount: 30000, note: 'QLD FHOG — new homes only', urgent: true},
+      sa:  {amount: 15000, note: 'SA FHOG for new homes', urgent: false},
+      wa:  {amount: 10000, note: 'WA FHOG for new homes', urgent: false},
+      tas: {amount: 20000, note: 'TAS FHOG for new homes', urgent: false},
+      act: {amount: 0,     note: 'ACT has no FHOG (land tax alternative scheme applies)', urgent: false},
+      nt:  {amount: 10000, note: 'NT FHOG + HomeGrown up to $60,000 total', urgent: false},
+    };
+    var g = grants[state];
+    if (!g || g.amount === 0) return {amount: 0, note: g ? g.note : '', urgent: false};
+    if (!isNew) return {amount: 0, note: 'FHOG only applies to new homes in this state', urgent: false};
+    return g;
+  }
+
+  // ── GENUINE FORTNIGHTLY BENEFIT ──
+  // Returns {yearsLess, interestSaved} from paying monthly/2 fortnightly vs monthly
+  function calcFortnightlyBenefit(loanAmt, rate, term) {
+    if (loanAmt <= 0 || rate <= 0 || term <= 0) return {yearsLess: 0, interestSaved: 0};
+    const monthly = calcMonthly(loanAmt, rate, term);
+    const fortPayment = monthly / 2;
+    const fortRate = rate / 100 / 26;
+    let bal = loanAmt, periods = 0, totalPaid = 0;
+    const maxPeriods = term * 26 + 200;
+    while (bal > 0.01 && periods < maxPeriods) {
+      const interest = bal * fortRate;
+      const principal = fortPayment - interest;
+      if (principal <= 0) break;
+      bal = Math.max(0, bal - principal);
+      totalPaid += fortPayment;
+      periods++;
+    }
+    const totalPaidMonthly = monthly * term * 12;
+    const yearsLess = Math.max(0, term - periods / 26);
+    const interestSaved = Math.max(0, totalPaidMonthly - totalPaid);
+    return {yearsLess, interestSaved};
   }
 
   var _amortVisible = false;
@@ -437,8 +579,18 @@
     const upfront  = deposit+extraCosts;
     const remaining = savings-upfront;
 
+    // ─── state / buyer type inputs ───
+    const stateEl = document.getElementById('inp-state');
+    const state = stateEl ? stateEl.value : '';
+    const isFHB = !!(document.getElementById('inp-fhb') && document.getElementById('inp-fhb').checked);
+    const isNew = !!(document.getElementById('inp-new-prop') && document.getElementById('inp-new-prop').checked);
+
+    // ─── LVR ───
+    const lvr = price > 0 ? (loanAmt / price * 100) : 0;
+
     const monthly = calcMonthly(loanAmt,rate,term);
     const weekly  = monthly*12/52;
+    const fortnightly = monthly/2; // genuine fortnightly: 26 × monthly/2 = 13 months/yr
     const totalPaid = monthly*term*12;
     const totalInterest = totalPaid-loanAmt;
     _lastAmortParams = {loanAmt, rate, term};
@@ -457,7 +609,7 @@
     const cashAfterOverlap = remaining-overlapCost;
 
     // ─── sidebar labels ───
-    ['price','savings','depp','govt','rate','term','cont','rent','weeks'].forEach(k=>{
+    ['price','savings','depp','govt','rate','term','cont','rent','weeks','offset'].forEach(k=>{
       const el=document.getElementById('inp-'+k);if(el)rl(k,parseFloat(el.value)||0);
     });
     // sidebar reno total
@@ -545,6 +697,80 @@
     const _tGovtEl=document.getElementById('t-govt');
     if(_tGovtEl)_tGovtEl.closest('.tile').style.display=govtPct>0?'':'none';
 
+    // ─── LVR display ───
+    const lvrEl = document.getElementById('lvr-val');
+    const lvrBadge = document.getElementById('lvr-badge');
+    if (lvrEl) {
+      lvrEl.textContent = price > 0 ? lvr.toFixed(1) + '%' : '—';
+      const lvrColor = lvr > 90 ? 'var(--risk-red)' : lvr > 80 ? 'var(--terracotta)' : 'var(--sage)';
+      lvrEl.style.color = lvrColor;
+    }
+    if (lvrBadge) {
+      if (price > 0) {
+        const lvrMsg = lvr > 90 ? '⚠️ Very high LVR — LMI required, fewer lenders'
+          : lvr > 80 ? '⚠️ LMI required — consider increasing deposit to 20%'
+          : lvr > 70 ? '✓ Below 80% — no LMI required'
+          : '✓ Strong equity position';
+        const lvrBg = lvr > 90 ? 'rgba(196,90,90,0.12)' : lvr > 80 ? 'rgba(196,112,74,0.12)' : 'rgba(123,158,135,0.12)';
+        const lvrBorder = lvr > 90 ? 'rgba(196,90,90,0.3)' : lvr > 80 ? 'rgba(196,112,74,0.3)' : 'rgba(123,158,135,0.3)';
+        lvrBadge.textContent = lvrMsg;
+        lvrBadge.style.cssText = `font-size:10px;padding:3px 8px;border-radius:3px;display:inline-block;background:${lvrBg};border:1px solid ${lvrBorder};color:${lvrColor};`;
+        lvrBadge.style.color = lvr > 90 ? 'var(--risk-red)' : lvr > 80 ? 'var(--terracotta)' : 'var(--sage)';
+        lvrBadge.style.display = '';
+      } else { lvrBadge.style.display = 'none'; }
+    }
+
+    // ─── Smart estimates card (stamp duty, LMI, FHOG) ───
+    const seCard = document.getElementById('smart-estimates-card');
+    const seRows = document.getElementById('smart-estimates-rows');
+    if (seCard && seRows) {
+      const autoStampDuty = state ? calcStampDutyAmt(price, state, isFHB, isNew) : null;
+      const autoLMI = price > 0 ? calcLMI(loanAmt, price) : 0;
+      const fhog = getFHOGAmt(state, isFHB, isNew);
+      const hasData = state || (price > 0 && lvr > 80);
+      if (hasData && price > 0) {
+        let html = '';
+        // Stamp duty
+        if (state) {
+          const sdNote = isFHB ? ' (FHB rate applied)' : '';
+          html += `<div class="cr"><span class="nm">Stamp Duty estimate${sdNote}</span><span class="am" style="color:var(--terracotta-light)">${fmt(autoStampDuty)}</span></div>`;
+          if (!state) html += '';
+        } else {
+          html += `<div class="cr" style="opacity:0.5;"><span class="nm">Stamp Duty</span><span class="am" style="font-size:11px;font-style:italic;">Select state</span></div>`;
+        }
+        // LMI
+        if (lvr > 80) {
+          const lmiNote = lvr > 80 ? ` (LVR ${lvr.toFixed(1)}%)` : '';
+          html += `<div class="cr"><span class="nm">LMI estimate${lmiNote}</span><span class="am" style="color:var(--risk-red)">${fmt(autoLMI)}</span></div>`;
+          if (isFHB && depPct >= 5) {
+            html += `<div style="font-size:10px;padding:4px 0 6px;color:rgba(123,158,135,0.9);line-height:1.5;">💡 First Home Guarantee (FHBG) may let you avoid LMI with 5% deposit — check <a href="https://www.housingaustralia.gov.au/first-home-guarantee" target="_blank" style="color:inherit;">Housing Australia</a>.</div>`;
+          }
+        }
+        // FHOG
+        if (fhog.amount > 0) {
+          const urgentTag = fhog.urgent ? ' <span style="color:var(--terracotta);font-weight:700;">— expires June 2026!</span>' : '';
+          html += `<div class="cr"><span class="nm">${fhog.note}${urgentTag}</span><span class="am" style="color:var(--sage)">+${fmt(fhog.amount)}</span></div>`;
+        } else if (fhog.note && isFHB && state) {
+          html += `<div style="font-size:10px;color:var(--slate);padding:2px 0 4px;line-height:1.5;">${fhog.note}</div>`;
+        }
+        // FHSS hint for FHBs
+        if (isFHB && state) {
+          html += `<div style="font-size:10px;padding:6px 0 2px;color:rgba(91,143,171,0.9);line-height:1.5;border-top:1px solid rgba(255,255,255,0.05);margin-top:6px;">🏦 <strong>First Home Super Saver (FHSS):</strong> You may be able to withdraw up to $50,000 from your super for a deposit — contributions are taxed at 15% instead of your marginal rate. <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme" target="_blank" rel="noopener" style="color:inherit;">Check ATO eligibility →</a></div>`;
+        }
+        // Stamp duty warning update
+        if (state && autoStampDuty > 0) {
+          const hasManualStamp = dynCosts.some(c => c.category !== 'moveout' && /stamp/i.test(c.name) && parseFloat(c.amount) > 0);
+          if (!hasManualStamp) {
+            html += `<div style="font-size:10px;color:rgba(201,168,76,0.7);padding-top:6px;line-height:1.5;">⚠️ Your stamp duty cost item is still $0. Add ${fmt(autoStampDuty)} to your purchase costs above.</div>`;
+          }
+        }
+        seRows.innerHTML = html;
+        seCard.style.display = '';
+      } else {
+        seCard.style.display = 'none';
+      }
+    }
+
     // sidebar alert
     const sa=document.getElementById('sidebar-alert');
     if(sa){
@@ -574,8 +800,26 @@
     }
 
     // ─── TAB 3: REPAYMENTS ───
-    set('rp-monthly',fmt(monthly));set('rp-weekly',fmt(weekly));set('rp-annual',fmt(monthly*12));
-    set('rp-rate-lbl','@ '+rate+'%');set('rp-term-lbl',term+'yr term');set('rp-loan-lbl',fmtK(loanAmt)+' loan');
+    set('rp-monthly',fmt(monthly));
+    set('rp-weekly',fmt(fortnightly)); // shows genuine fortnightly (monthly/2, 26× per year)
+    set('rp-annual',fmt(monthly*12));
+    set('rp-rate-lbl','@ '+rate+'%');set('rp-term-lbl','26\u00D7 per year');set('rp-loan-lbl',fmtK(loanAmt)+' loan');
+    // Fortnightly benefit callout
+    const ftEl = document.getElementById('rp-fortnightly-benefit');
+    if (ftEl) {
+      if (loanAmt > 0 && rate > 0) {
+        const ftBenefit = calcFortnightlyBenefit(loanAmt, rate, term);
+        const yrs = Math.floor(ftBenefit.yearsLess);
+        const mos = Math.round((ftBenefit.yearsLess - yrs) * 12);
+        const timeSaved = yrs > 0 ? (yrs + ' yr' + (yrs>1?'s':'') + (mos>0?' '+mos+' mo':'')) : (mos > 0 ? mos+' months' : '');
+        if (ftBenefit.interestSaved > 500 && timeSaved) {
+          ftEl.innerHTML = `<div style="margin-top:12px;padding:10px 12px;background:rgba(123,158,135,0.1);border:1px solid rgba(123,158,135,0.25);border-radius:4px;font-size:12px;line-height:1.6;">
+            <strong style="color:var(--sage);">Fortnightly tip:</strong> Paying ${fmt(fortnightly)} every fortnight (26× per year) instead of monthly saves you <strong>${fmt(ftBenefit.interestSaved)}</strong> in interest and pays off your loan <strong>${timeSaved} sooner</strong>. Ask your lender to set up fortnightly direct debit.
+          </div>`;
+          ftEl.style.display='';
+        } else { ftEl.style.display='none'; }
+      } else { ftEl.style.display='none'; }
+    }
     set('rp-interest',fmt(totalInterest));set('rp-total-paid',fmt(totalPaid));set('rp-loan-show',fmt(loanAmt));
 
     const stEl=document.getElementById('stress-table');
@@ -587,6 +831,47 @@
         html+=`<div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;padding:6px 0;border-top:1px solid rgba(28,28,30,0.06)${cur?';background:rgba(201,168,76,0.06);border-radius:2px':''}"><span style="color:${cur?'var(--gold)':'var(--slate)'}">${r.toFixed(1)}%${cur?' ←':''}</span><span>${fmt(m)}</span><span>${fmt(m*12)}</span><span style="color:${i===0?'var(--slate)':d>600?'var(--risk-red)':'var(--terracotta)'}">${i===0?'current':'+'+fmt(d)+'/mo'}</span></div>`;
       });
       stEl.innerHTML=html+'</div>';
+    }
+
+    // ─── TAB 3: SERVICEABILITY QUICK-CHECK ───
+    const incomeEl = document.getElementById('inp-income');
+    const svcCard = document.getElementById('svc-card');
+    if (incomeEl && svcCard) {
+      const grossIncome = parseFloat(incomeEl.value) || 0;
+      if (grossIncome > 0) {
+        // Australian bank serviceability: assessment rate = rate + 3%, max DSR ~30%, HEM floor
+        const assessRate = rate + 3;
+        const maxRepaymentMonth = grossIncome / 12 * 0.30; // 30% of gross monthly income
+        // Reverse-engineer max loan from max payment at assessment rate
+        const maxLoan = Math.round(maxRepaymentMonth * (Math.pow(1 + assessRate/100/12, term*12) - 1) / ((assessRate/100/12) * Math.pow(1 + assessRate/100/12, term*12)));
+        const dti = loanAmt > 0 && grossIncome > 0 ? loanAmt / grossIncome : 0;
+        const repayToIncome = grossIncome > 0 ? (monthly * 12 / grossIncome * 100) : 0;
+        const gap = maxLoan - loanAmt;
+        const feasible = loanAmt <= maxLoan;
+        let svcHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">`;
+        svcHtml += `<div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:4px;">Max Borrowing</div>
+          <div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--sky);">${fmtK(maxLoan)}</div>
+          <div style="font-size:10px;color:var(--slate);margin-top:2px;">@ ${assessRate.toFixed(1)}% assessment rate</div>
+        </div>`;
+        svcHtml += `<div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:4px;">Your Loan</div>
+          <div style="font-family:'DM Mono',monospace;font-size:18px;color:${feasible?'var(--sage)':'var(--risk-red)'};">${fmtK(loanAmt)}</div>
+          <div style="font-size:10px;color:var(--slate);margin-top:2px;">${feasible ? '✓ within capacity' : '⚠ exceeds capacity'}</div>
+        </div>`;
+        svcHtml += `</div>`;
+        svcHtml += `<div style="display:flex;gap:18px;flex-wrap:wrap;font-family:'DM Mono',monospace;font-size:11px;margin-bottom:10px;">`;
+        svcHtml += `<span>Repayment/Income: <strong style="color:${repayToIncome>35?'var(--risk-red)':repayToIncome>28?'var(--terracotta)':'var(--sage)'}">${repayToIncome.toFixed(1)}%</strong></span>`;
+        svcHtml += `<span>Debt-to-Income: <strong style="color:${dti>6?'var(--risk-red)':dti>4.5?'var(--terracotta)':'var(--sage)'}">${dti.toFixed(1)}×</strong></span>`;
+        if (!feasible) svcHtml += `<span style="color:var(--risk-red);">Shortfall: ${fmtK(Math.abs(gap))}</span>`;
+        else svcHtml += `<span style="color:var(--sage);">Headroom: ${fmtK(gap)}</span>`;
+        svcHtml += `</div>`;
+        svcHtml += `<div style="font-size:10px;color:var(--slate);line-height:1.6;">APRA requires lenders to assess at rate + 3% buffer. Actual capacity varies by lender, expenses, and existing debts. <a href="../tools/loan-serviceability-calculator.html" target="_blank" style="color:var(--sky);">Run full serviceability check →</a></div>`;
+        svcCard.innerHTML = svcHtml;
+        svcCard.style.display = '';
+      } else {
+        svcCard.style.display = 'none';
+      }
     }
 
     // ─── TAB 4: RENT OVERLAP ───
@@ -688,36 +973,45 @@
     if(olDurCal)olDurCal.textContent=weeks>0?`Weeks 1–${weeks} post-settlement`:'Immediate move-in';
 
     // ─── TAB 6: RISKS ───
-    const riskScore=Math.min(90,Math.max(15,
-      20+(depPct<5?20:depPct<10?10:0)+(rate>7?15:rate>6?5:0)+(govtPct>20?-8:0)
-        +(remaining<5000?25:remaining<15000?10:0)+(weeks>8?10:weeks>4?5:0)
-    ));
+    // Risk score — LVR-based (primary), then rate, cash buffer, overlap
+    const lvrRisk   = lvr > 90 ? 25 : lvr > 85 ? 15 : lvr > 80 ? 8 : 0;
+    const rateRisk  = rate > 7.5 ? 15 : rate > 6.5 ? 10 : rate > 6 ? 5 : 0;
+    const bufferRisk= remaining < 5000 ? 25 : remaining < 15000 ? 10 : remaining < 30000 ? 5 : 0;
+    const overlapRisk = weeks > 8 ? 10 : weeks > 4 ? 5 : 0;
+    const govtBonus = govtPct > 20 ? -8 : govtPct > 10 ? -4 : 0;
+    const riskScore = Math.min(90, Math.max(15, 20 + lvrRisk + rateRisk + bufferRisk + overlapRisk + govtBonus));
     const rewardScore=Math.min(95,Math.max(25,
-      35+(govtPct>0?20:0)+(remaining>20000?15:remaining>10000?8:0)+(renoTotal>10000?10:5)+(price<650000?5:0)
+      35+(govtPct>0?20:0)+(remaining>20000?15:remaining>10000?8:0)+(renoTotal>10000?10:5)+(price<650000?5:0)+(lvr<=80&&price>0?8:0)
     ));
     css('risk-meter','width',riskScore+'%');css('reward-meter','width',rewardScore+'%');
-    const _riskMsg = riskScore<30 ? 'Low risk — strong equity and healthy cash buffer.'
-      : riskScore<50 ? (govtPct>0 ? 'Moderate risk — manageable with the government scheme reducing LVR.' : 'Moderate risk — consider increasing your deposit to strengthen your position.')
-      : riskScore<70 ? 'Medium-high risk — consider increasing deposit or savings buffer.'
-      : 'Higher risk — savings are tight. Build a larger buffer before proceeding.';
+    const _riskMsg = riskScore<30 ? 'Low risk — strong LVR and healthy cash buffer.'
+      : riskScore<50 ? (lvr<=80 ? 'Moderate risk — LVR is manageable, watch your cash buffer.' : 'Moderate risk — consider increasing deposit to get below 80% LVR.')
+      : riskScore<70 ? 'Medium-high risk — LVR or cash buffer needs attention before proceeding.'
+      : 'Higher risk — high LVR and/or thin buffer. Build more savings before buying.';
     set('risk-desc', _riskMsg);
-    set('reward-desc',rewardScore>70?'High reward potential — strong equity uplift through renovation and capital growth.':rewardScore>50?(govtPct>0?'Good reward potential — renovation and scheme create solid upside.':'Good reward potential — renovation can create solid equity uplift.'):'Modest reward potential — consider a higher reno budget or applying a govt scheme.');
-    const m2=calcMonthly(loanAmt,rate+2,term);
+    set('reward-desc',rewardScore>70?'High reward potential — strong equity position and capital growth exposure.':rewardScore>50?(govtPct>0?'Good reward potential — renovation and scheme create solid upside.':'Good reward potential — renovation can create solid equity uplift.'):'Modest reward potential — consider a higher reno budget or govt scheme.');
+    const m2=calcMonthly(loanAmt,rate+3,term); // APRA serviceability buffer: +3%
     set('rr-rate-delta',fmt(m2-monthly));
     set('rr-dep-pct',pctS(depPct));set('rr-pool-val',fmtK(remaining));
     set('rr-overlap-cost',fmt(totalOverlap));set('rr-overlap-weeks',weeks);
     set('rr-dep-show',fmtK(deposit));set('rr-reno-show',fmtK(renoTotal));
     set('rr-price-show',fmtK(price));set('rr-govt-show',pctS(govtPct));
     set('rr-dep-ltg',fmtK(deposit));set('rr-price-ltg',fmtK(price));
-    // Conditionally show/hide risk rows that only apply in specific scenarios
+    // Conditionally show/hide risk rows
     const rriOverlap = document.getElementById('rri-overlap');
     if(rriOverlap) rriOverlap.style.display = (weeks>0) ? '' : 'none';
     const rriEquity = document.getElementById('rri-equity');
-    if(rriEquity) rriEquity.style.display = (depPct<20) ? '' : 'none';
+    if(rriEquity) rriEquity.style.display = (lvr>80 && price>0) ? '' : 'none';
     const rriGovt = document.getElementById('rri-govt-reward');
     if(rriGovt) rriGovt.style.display = (govtPct>0) ? '' : 'none';
+    // LMI: reward row (no LMI) when LVR ≤ 80%; risk row (LMI required) when LVR > 80%
     const rriLmi = document.getElementById('rri-lmi');
-    if(rriLmi) rriLmi.style.display = (govtPct>0) ? '' : 'none';
+    if(rriLmi) rriLmi.style.display = (price>0 && lvr<=80) ? '' : 'none';
+    const rriLmiRisk = document.getElementById('rri-lmi-risk');
+    if(rriLmiRisk) {
+      rriLmiRisk.style.display = (price>0 && lvr>80) ? '' : 'none';
+      set('rr-lmi-est', fmt(calcLMI(loanAmt, price)));
+    }
   }
 
   function showTab(id,btn){
@@ -1251,14 +1545,19 @@
   function collectCurrentState(){
     const fields = [
       'inp-price','inp-savings','inp-depp','inp-govt','inp-rate','inp-term',
-      'inp-cont','inp-rent','inp-weeks','inp-settle-date',
+      'inp-cont','inp-rent','inp-weeks','inp-settle-date','inp-offset',
       'pd-address','pd-suburb','pd-state','pd-bed','pd-bath','pd-car',
       'pd-land','pd-house','pd-year','pd-type','pd-url','pd-notes',
       'pd-status','pd-status-date','ag-agency','ag-name','ag-phone','ag-email',
-      'scheme-select'
+      'scheme-select','inp-state'
     ];
     const values = {};
     fields.forEach(id => { const el=document.getElementById(id); if(el) values[id]=el.value||''; });
+    // Checkboxes saved separately
+    const fhbEl = document.getElementById('inp-fhb');
+    const newPropEl = document.getElementById('inp-new-prop');
+    if(fhbEl) values['inp-fhb-checked'] = fhbEl.checked ? '1' : '0';
+    if(newPropEl) values['inp-new-prop-checked'] = newPropEl.checked ? '1' : '0';
     const activePropType = document.querySelector('.prop-type-btn.active');
     values['pd-type-label'] = activePropType ? activePropType.textContent.trim() : '🏠 House';
     values['renoEnabled'] = renoEnabled;
@@ -1588,6 +1887,11 @@
     dynCosts = [];
     if(dynCostData) dynCostData.forEach(c => dynCosts.push({id:'dyn-'+dynId++, name:c.name||'', amount:c.amount||0, category:c.category||'purchase'}));
     renderDynCosts();
+    // Restore checkboxes
+    const _fhbEl = document.getElementById('inp-fhb');
+    if(_fhbEl && values?.['inp-fhb-checked'] !== undefined) _fhbEl.checked = values['inp-fhb-checked'] === '1';
+    const _newPropEl = document.getElementById('inp-new-prop');
+    if(_newPropEl && values?.['inp-new-prop-checked'] !== undefined) _newPropEl.checked = values['inp-new-prop-checked'] === '1';
     // Reno/rent toggles
     if(typeof renoEnabled !== 'undefined'){
       const newReno = values?.['renoEnabled'] !== false;
@@ -1597,7 +1901,7 @@
     applyRentToggle(newRent);
 
     if(photoSrc) applyPropPhoto(photoSrc); else clearPropPhoto();
-    ['price','savings','depp','govt','rate','term','cont','rent','weeks'].forEach(k => {
+    ['price','savings','depp','govt','rate','term','cont','rent','weeks','offset'].forEach(k => {
       const inp = document.getElementById('inp-'+k), rng = document.getElementById('rng-'+k);
       if(inp && rng) rng.value = inp.value;
     });
@@ -1933,6 +2237,7 @@
   // ── PROJECTION (items 6,7,8,9) ──
   let projData = []; // shared so tooltip can read it
   let projDataExtra = []; // early-payoff scenario
+  let projDataOffset = []; // offset account scenario
 
   function drawProjection(){
     const price   = v('inp-price'); if(!price) return;
@@ -1992,6 +2297,30 @@
     const stdPayoffQ    = projData.find(d => d.loanBal <= 0.01)?.q ?? totalQ;
     const timeSavedQ    = Math.max(0, stdPayoffQ - (extraPaidOffQ ?? totalQ));
 
+    // ── Build offset account data ──
+    const offsetBal = parseFloat(document.getElementById('inp-offset')?.value || '0') || 0;
+    projDataOffset = [];
+    var offsetPaidOffQ = null;
+    var offsetTotalInterest = 0;
+    if(offsetBal > 0){
+      let loanBalOff = loanAmt;
+      for(let q = 0; q <= totalQ; q++){
+        if(q > 0){
+          for(let m = 0; m < 3; m++){
+            const effBal = Math.max(0, loanBalOff - offsetBal);
+            const interest = effBal * mRate;
+            offsetTotalInterest += interest;
+            const principal = monthly - interest;
+            loanBalOff = Math.max(0, loanBalOff - principal);
+          }
+        }
+        if(loanBalOff <= 0.01 && offsetPaidOffQ === null) offsetPaidOffQ = q;
+        projDataOffset.push({ q, yr: q/4, loanBal: Math.max(0, loanBalOff) });
+      }
+    }
+    const offsetInterestSaved = offsetBal > 0 ? Math.max(0, stdTotalInterest - offsetTotalInterest) : 0;
+    const offsetTimeSavedQ = offsetBal > 0 ? Math.max(0, stdPayoffQ - (offsetPaidOffQ ?? totalQ)) : 0;
+
     // Update early payoff results panel
     const epResult = document.getElementById('early-payoff-result');
     if(epResult){
@@ -2019,11 +2348,38 @@
       }
     }
 
+    // ── Offset result panel ──
+    const offsetCard = document.getElementById('proj-offset-card');
+    if(offsetCard) offsetCard.style.display = offsetBal > 0 ? '' : 'none';
+    set('proj-offset-lbl', fmt(offsetBal));
+    const offsetResult = document.getElementById('proj-offset-result');
+    if(offsetResult){
+      if(offsetBal > 0 && offsetInterestSaved > 100){
+        const oSavedYrs = Math.floor(offsetTimeSavedQ / 4);
+        const oSavedMos = Math.round((offsetTimeSavedQ % 4) * 3);
+        const oTimeStr = oSavedYrs > 0 ? `${oSavedYrs} yr${oSavedYrs!==1?'s':''} ${oSavedMos>0?oSavedMos+' mo':''}`.trim() : `${oSavedMos} months`;
+        offsetResult.innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+            <div style="background:rgba(91,143,171,0.08);border:1px solid rgba(91,143,171,0.2);border-radius:6px;padding:12px 14px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Loan Paid Off Sooner</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--sky);">${oTimeStr}</div>
+            </div>
+            <div style="background:rgba(91,143,171,0.08);border:1px solid rgba(91,143,171,0.2);border-radius:6px;padding:12px 14px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Interest Saved</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--sky);">${fmtK(offsetInterestSaved)}</div>
+            </div>
+          </div>`;
+        offsetResult.style.display = 'block';
+      } else { offsetResult.style.display = 'none'; }
+    }
+
     // ── Legend visibility ──
     const _lgGovt = document.getElementById('proj-legend-govt');
     if(_lgGovt) _lgGovt.style.display = govtPct > 0 ? 'flex' : 'none';
     const _lgExtra = document.getElementById('proj-legend-extra');
     if(_lgExtra) _lgExtra.style.display = extraPayment > 0 ? 'flex' : 'none';
+    const _lgOffset = document.getElementById('proj-legend-offset');
+    if(_lgOffset) _lgOffset.style.display = offsetBal > 0 ? 'flex' : 'none';
 
     // ── Settlement year label helpers ──
     const settleYr = getSettleYear();
@@ -2138,13 +2494,16 @@
     html += mkPath(projData, 'loanBal',  '#5B8FAB', '6 3');
     html += mkPath(projData, 'govtOwed', '#C4704A');
 
-    // Early payoff line (item #9) — only draw if extra payment is set
+    // Early payoff line — only draw if extra payment is set
     if(extraPayment > 0) html += mkPath(projDataExtra, 'loanBal', '#9B7FE8', '5 2', 2.2);
+    // Offset account line — dashed sky blue, drawn on top of standard loan line
+    if(offsetBal > 0 && projDataOffset.length) html += mkPath(projDataOffset, 'loanBal', '#5B8FAB', '3 2', 2.0);
 
     // Milestone markers
     if(payoffQ != null && payoffQ <= totalQ){ const d=projData[payoffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5A9E7B" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5A9E7B">PAID OFF</text>`; }
     if(buyoutQ != null && buyoutQ <= totalQ){ const d=projData[buyoutQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.baseVal)}" r="5" fill="#7B9E87" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.baseVal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#7B9E87">BUY OUT</text>`; }
     if(extraPayment > 0 && extraPaidOffQ != null){ const d=projDataExtra[extraPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#9B7FE8" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#9B7FE8">EARLY 🚀</text>`; }
+    if(offsetBal > 0 && offsetPaidOffQ != null && projDataOffset[offsetPaidOffQ]){ const d=projDataOffset[offsetPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5B8FAB" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5B8FAB">OFFSET OFF</text>`; }
 
     // Hit overlay — passes totalQ so hover snaps to quarters
     html += `<rect id="proj-hit" x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="transparent" style="cursor:crosshair;"/>`;
@@ -2167,9 +2526,11 @@
         const qi = Math.min(q, projData.length - 1);
         const d  = projData[qi];
         const de = projDataExtra[qi];
+        const doff = projDataOffset[qi];
         const eq = d.yourEquity;
         const isMilestone = qi === payoffQ || qi === buyoutQ;
         const extraLoanStr = (extraPayment > 0 && de) ? `<span style="color:#9B7FE8;font-size:9px;display:block;">(+extra: ${fmtK(de.loanBal)})</span>` : '';
+        const offsetLoanStr = (offsetBal > 0 && doff) ? `<span style="color:#5B8FAB;font-size:9px;display:block;">(offset: ${fmtK(doff.loanBal)})</span>` : '';
         const wholeYr  = Math.floor(d.yr);
         const qNum     = (qi % 4) || 4; // 1-based quarter within year
         const calLabel = settleYr ? `${settleYr + wholeYr} Q${qNum}` : `Yr ${wholeYr} Q${qNum}`;
@@ -2177,7 +2538,7 @@
         return `<div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
           +`<span style="color:var(--gold);white-space:nowrap;">${label}${isMilestone?' ★':''}</span>`
           +`<span>${fmtK(d.baseVal)}</span>`
-          +`<span style="color:var(--sky)">${fmtK(d.loanBal)}${extraLoanStr}</span>`
+          +`<span style="color:var(--sky)">${fmtK(d.loanBal)}${extraLoanStr}${offsetLoanStr}</span>`
           +`<span style="color:var(--terracotta)">${fmtK(d.govtOwed)}</span>`
           +`<span style="color:${eq>0?'var(--reward-green)':'var(--risk-red)'};font-weight:600;">${fmtK(eq)}</span></div>`;
       };
@@ -2194,6 +2555,36 @@
     const sliderEl = document.getElementById('proj-slider-input');
     if(sliderEl){ sliderEl.max = projData.length - 1; sliderEl.value = 0; }
     projSliderMove(0);
+
+    // ── Rental yield quick-calc ──
+    const investRentEl = document.getElementById('inp-invest-rent');
+    const yieldResultsEl = document.getElementById('yield-results');
+    if (investRentEl && yieldResultsEl) {
+      const weeklyRent = parseFloat(investRentEl.value) || 0;
+      if (weeklyRent > 0 && price > 0) {
+        yieldResultsEl.style.display = '';
+        const annualRent = weeklyRent * 52;
+        const grossYield = annualRent / price * 100;
+        // Typical net deductions: rates ~$2k, landlord insurance ~$1.5k, PM 8%, maintenance ~1%, vacancy ~2wk
+        const mgmtFee = annualRent * 0.08;
+        const netAnnualRent = annualRent - mgmtFee - 2000 - 1500 - price * 0.01;
+        const netYield = Math.max(0, netAnnualRent / price * 100);
+        const annualMortgage = monthly * 12;
+        const cashflow = netAnnualRent - annualMortgage;
+        const cashflowLabel = cashflow >= 0 ? '✓ Positively geared' : '⚠ Negatively geared';
+        const cashflowColor = cashflow >= 0 ? 'var(--reward-green)' : 'var(--terracotta)';
+        const verdictDesc = grossYield >= 6 ? 'Strong yield' : grossYield >= 4.5 ? 'Average yield' : grossYield >= 3 ? 'Below average' : 'Low yield';
+        document.getElementById('yield-gross').textContent = grossYield.toFixed(2) + '%';
+        document.getElementById('yield-net').textContent = netYield.toFixed(2) + '%';
+        document.getElementById('yield-annual-rent').textContent = fmt(annualRent);
+        document.getElementById('yield-cashflow').textContent = (cashflow >= 0 ? '+' : '') + fmt(cashflow) + '/yr';
+        document.getElementById('yield-cashflow').style.color = cashflowColor;
+        document.getElementById('yield-verdict').textContent = cashflowLabel + ' — ' + verdictDesc;
+        document.getElementById('yield-verdict').style.color = cashflowColor;
+      } else {
+        yieldResultsEl.style.display = 'none';
+      }
+    }
   }
 
   // ── Mobile projection slider ──
@@ -2801,7 +3192,7 @@
     <div class="card">
       <div style="display:flex;gap:16px;">
         <div style="text-align:center;flex:1;"><div class="big-num">${snap.monthly}</div><div style="font-size:10px;color:#888;margin-top:2px;">Monthly</div><div style="font-size:9px;color:#aaa;">${snap.rateLabel}</div></div>
-        <div style="text-align:center;flex:1;"><div class="big-num">${snap.weekly}</div><div style="font-size:10px;color:#888;margin-top:2px;">Weekly</div><div style="font-size:9px;color:#aaa;">${snap.termLabel}</div></div>
+        <div style="text-align:center;flex:1;"><div class="big-num">${snap.weekly}</div><div style="font-size:10px;color:#888;margin-top:2px;">Fortnightly</div><div style="font-size:9px;color:#aaa;">26&times; per year</div></div>
         <div style="text-align:center;flex:1;"><div class="big-num">${snap.annual}</div><div style="font-size:10px;color:#888;margin-top:2px;">Annual</div><div style="font-size:9px;color:#aaa;">${snap.loanLabel}</div></div>
       </div>
     </div>

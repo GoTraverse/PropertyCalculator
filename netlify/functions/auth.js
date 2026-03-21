@@ -237,8 +237,10 @@ const EMAIL_CODE_TTL_MS = 1000 * 60 * 15; // 15 minutes
 
 function hashPw(pw){ return crypto.createHmac('sha256',SALT).update(pw).digest('hex'); }
 function makeToken(){ return crypto.randomBytes(32).toString('hex'); }
-function makeEmailCode(){ return String(Math.floor(100000 + Math.random()*900000)); }
+function makeEmailCode(){ return String(crypto.randomInt(100000, 1000000)); }
 function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('email-code:'+String(code)).digest('hex'); }
+// Constant-time string compare — prevents timing attacks on hash comparisons
+function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual(Buffer.from(a,'hex'),Buffer.from(b,'hex')); }catch(e){ return false; } }
 function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
 
@@ -284,7 +286,8 @@ exports.handler = async function(event){
     if(password.length<pwMin) return fail('Password must be at least '+pwMin+' characters');
     if(siteCfgSu.requireEmailDomain){
       const domain=siteCfgSu.requireEmailDomain.toLowerCase().replace(/^@/,'');
-      if(!email.toLowerCase().trim().endsWith('@'+domain)) return fail('Signups are restricted to @'+domain+' email addresses');
+      const emailDomain=normalizedEmail.split('@').pop();
+      if(emailDomain!==domain) return fail('Signups are restricted to @'+domain+' email addresses');
     }
     const normalizedEmail=email.toLowerCase().trim();
     const ekey='user:'+normalizedEmail;
@@ -331,7 +334,7 @@ exports.handler = async function(event){
     if(failCount>=10) return fail('Too many failed sign-in attempts. Please wait 15 minutes or reset your password.');
     const user=await rGet('user:'+normalizedEmail);
     if(!user){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
-    if(user.hash!==hashPw(password)){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
+    if(!safeEqual(user.hash,hashPw(password))){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
     await rDel(failKey); // clear on success
     if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
     if(user.emailVerified===false){
@@ -360,7 +363,7 @@ exports.handler = async function(event){
     if(rvCount>3) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // silent cap
     const user=await rGet('user:'+normalizedEmail);
     if(!user) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // don't reveal existence
-    if(user.emailVerified) return ok({ok:true,alreadyVerified:true});
+    if(user.emailVerified) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // same response — don't reveal account state
     const code=makeEmailCode();
     user.emailVerificationCodeHash=hashEmailCode(code);
     user.emailVerificationExpiresAt=Date.now()+EMAIL_CODE_TTL_MS;
@@ -427,11 +430,11 @@ exports.handler = async function(event){
       return fail('Google sign-in failed — unverified credential');
     }
 
-    // Validate audience matches our client ID (if configured)
-    const GOOGLE_CLIENT_ID=(process.env.GOOGLE_CLIENT_ID||'').trim();
-    if(GOOGLE_CLIENT_ID&&tokenData.aud!==GOOGLE_CLIENT_ID){
-      return fail('Google sign-in failed — client ID mismatch');
-    }
+    // Validate audience matches our client ID — mandatory.
+    // Falls back to Redis config so the env var is optional (but recommended).
+    const GOOGLE_CLIENT_ID=((process.env.GOOGLE_CLIENT_ID||'').trim())||((await rGet('config:site'))||{}).googleClientId||'';
+    if(!GOOGLE_CLIENT_ID) return fail('Google Sign-In is not configured — add your Client ID in Admin → Configuration');
+    if(tokenData.aud!==GOOGLE_CLIENT_ID) return fail('Google sign-in failed — client ID mismatch');
 
     const email=tokenData.email.toLowerCase().trim();
     const name=tokenData.name||tokenData.given_name||email.split('@')[0];
@@ -578,7 +581,7 @@ exports.handler = async function(event){
     if(newPassword.length<8) return fail('New password must be at least 8 characters');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
-    if(userData.hash!==hashPw(currentPassword)) return fail('Current password is incorrect');
+    if(!safeEqual(userData.hash,hashPw(currentPassword))) return fail('Current password is incorrect');
     userData.hash=hashPw(newPassword);
     await rSet('user:'+user.email,userData);
     await logEvent(userData.id,'password_changed',{});
@@ -609,13 +612,18 @@ exports.handler = async function(event){
     if(!email||!code||!newPassword) return fail('Email, code and new password required');
     if(newPassword.length<8) return fail('Password must be at least 8 characters');
     const normalizedEmail=email.toLowerCase().trim();
+    // Rate limit: max 10 attempts per email per 15 minutes — prevents brute-forcing 6-digit codes
+    const resetAttemptKey='resetAttempt:'+normalizedEmail;
+    const resetAttempts=await rRateInc(resetAttemptKey,900);
+    if(resetAttempts>10) return fail('Too many attempts. Please request a new reset code.');
     const resetData=await rGet('pwreset:'+normalizedEmail);
-    if(!resetData||resetData.hash!==hashEmailCode(String(code).trim())) return fail('Invalid or expired reset code');
+    if(!resetData||!safeEqual(resetData.hash,hashEmailCode(String(code).trim()))) return fail('Invalid or expired reset code');
     const userData=await rGet('user:'+normalizedEmail);
     if(!userData) return fail('Account not found');
     userData.hash=hashPw(newPassword);
     await rSet('user:'+normalizedEmail,userData);
     await rDel('pwreset:'+normalizedEmail);
+    await rDel(resetAttemptKey); // clear rate limit on success
     await logEvent(userData.id,'password_reset',{});
     return ok({ok:true});
   }
@@ -627,7 +635,7 @@ exports.handler = async function(event){
     if(!password) return fail('Password required to confirm deletion');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
-    if(userData.hash!==hashPw(password)) return fail('Incorrect password');
+    if(!safeEqual(userData.hash,hashPw(password))) return fail('Incorrect password');
     await deleteUserKeys(userData);
     if(body.token) await rDel('token:'+body.token);
     return ok({ok:true});

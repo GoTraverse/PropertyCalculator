@@ -293,6 +293,18 @@ function parseDomainResponse(json, suburb, state) {
 const ok   = (body) => ({ statusCode: 200, headers: H, body: JSON.stringify(body) });
 const fail = (msg, s = 400) => ({ statusCode: s, headers: H, body: JSON.stringify({ ok: false, error: msg }) });
 
+// ── IP-based rate limit helper ────────────────────────────────────────────────
+
+async function checkRateLimit(ip) {
+  if (!REDIS_URL || !REDIS_TOKEN) return false;
+  const key = 'rl:mkt:' + ip;
+  try {
+    const count = await redisCmd('INCR', key);
+    if (count === 1) await redisCmd('EXPIRE', key, '60');
+    return count > 30; // 30 req/min per IP (suburbInsights only — cached hits are cheap)
+  } catch { return false; }
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
@@ -338,6 +350,8 @@ exports.handler = async (event) => {
 
   // ── POST suburb insights ─────────────────────────────────────────────────────
   if (action === 'suburbInsights') {
+    const clientIp = (event.headers?.['x-nf-client-connection-ip'] || event.headers?.['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+    if (await checkRateLimit(clientIp)) return fail('Too many requests', 429);
     if (!suburb || !state) return fail('suburb and state required');
     const AU_STATES = ['NSW','VIC','QLD','SA','WA','TAS','NT','ACT'];
     if (!AU_STATES.includes(String(state).toUpperCase())) return fail('Invalid state');

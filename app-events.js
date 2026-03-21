@@ -67,7 +67,7 @@ document.querySelectorAll('input[id^="rng-"]').forEach(function(el){
 });
 
 // ── Generic calculator number inputs (inp-KEY → clamp + syncRange + dRecalc) ─
-var calcInputKeys = ['price','savings','depp','govt','rate','term','cont','rent','weeks'];
+var calcInputKeys = ['price','savings','depp','govt','rate','term','cont','rent','weeks','offset'];
 calcInputKeys.forEach(function(key){
   var el = document.getElementById('inp-' + key);
   if(!el) return;
@@ -78,6 +78,16 @@ calcInputKeys.forEach(function(key){
     dRecalc();
   });
 });
+
+// ── State dropdown ─────────────────────────────────────────────────────────────
+var stateSelect = document.getElementById('inp-state');
+if(stateSelect) stateSelect.addEventListener('input', dRecalc);
+
+// ── First home buyer / new property checkboxes ────────────────────────────────
+var fhbCheck = document.getElementById('inp-fhb');
+if(fhbCheck) fhbCheck.addEventListener('change', dRecalc);
+var newPropCheck = document.getElementById('inp-new-prop');
+if(newPropCheck) newPropCheck.addEventListener('change', dRecalc);
 
 // ── Settle date ───────────────────────────────────────────────────────────────
 var settleDate = document.getElementById('inp-settle-date');
@@ -208,7 +218,7 @@ if(pdStatusDate) pdStatusDate.addEventListener('input', function(){
 
 // ── Key dates & comms ─────────────────────────────────────────────────────────
 var addKeyDateBtn = document.getElementById('add-key-date-btn');
-if(addKeyDateBtn) addKeyDateBtn.addEventListener('click', addKeyDate);
+if(addKeyDateBtn) addKeyDateBtn.addEventListener('click', function(){ addKeyDate(); });
 var addCommsEntryBtn = document.getElementById('add-comms-entry-btn');
 if(addCommsEntryBtn) addCommsEntryBtn.addEventListener('click', addCommsEntry);
 
@@ -411,6 +421,14 @@ if(sharedGrid){
     if(row) promptLoadSharedScenario(row.dataset.oid, row.dataset.sid, row.dataset.addr);
   });
 }
+
+// ── Serviceability income input ──────────────────────────────────────────────
+var incomeInput = document.getElementById('inp-income');
+if(incomeInput) incomeInput.addEventListener('input', dRecalc);
+
+// ── Investment rent (yield calc in projection tab) ────────────────────────────
+var investRentInput = document.getElementById('inp-invest-rent');
+if(investRentInput) investRentInput.addEventListener('input', function(){ drawProjection && drawProjection(); });
 
 // ── Key dates delegation (#key-dates-list) ───────────────────────────────────
 var keyDatesList = document.getElementById('key-dates-list');

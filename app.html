@@ -19,8 +19,7 @@
 <title>Property Finance Calculator — EquitySight.app</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap">
 <link rel="stylesheet" href="app.css">
 <script src="error-capture.js"></script>
 <script src="auth-nav.js" defer></script>
@@ -212,11 +211,44 @@
     <input type="range" id="rng-term" min="5" max="50" step="1" value="5">
   </div>
   <div class="ig">
+    <div class="il">Offset Account <span id="lbl-offset">$0</span></div>
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-offset" value="0" min="0" max="5000000" step="1000" placeholder="0"></div>
+    <input type="range" id="rng-offset" min="0" max="200000" step="1000" value="0">
+    <div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:3px;font-style:italic;">Reduces effective interest — shown in Projection tab</div>
+  </div>
+  <div class="ig">
     <div class="il" style="font-size:12px;">Est. Settlement Date <span id="lbl-settle-date" style="font-size:11px;color:rgba(201,168,76,0.7);"></span></div>
     <div class="iw" style="position:relative;">
       <input type="date" id="inp-settle-date" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;color-scheme:dark;">
     </div>
     <div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:4px;font-style:italic;">Used to show calendar years in projection</div>
+  </div>
+
+  <hr class="div">
+  <div class="s-head">State &amp; Buyer Type</div>
+  <div class="ig">
+    <div class="il" style="margin-bottom:5px;">State or Territory <span style="font-size:9px;color:rgba(201,168,76,0.6);">— auto-calculates stamp duty</span></div>
+    <select id="inp-state" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);outline:none;cursor:pointer;">
+      <option value="">Select state…</option>
+      <option value="nsw">New South Wales (NSW)</option>
+      <option value="vic">Victoria (VIC)</option>
+      <option value="qld">Queensland (QLD)</option>
+      <option value="sa">South Australia (SA)</option>
+      <option value="wa">Western Australia (WA)</option>
+      <option value="tas">Tasmania (TAS)</option>
+      <option value="act">ACT</option>
+      <option value="nt">Northern Territory (NT)</option>
+    </select>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px;margin-bottom:2px;">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="checkbox" id="inp-fhb" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
+      <span style="font-size:12px;color:rgba(245,240,232,0.7);">First home buyer</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="checkbox" id="inp-new-prop" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
+      <span style="font-size:12px;color:rgba(245,240,232,0.7);">New property / off the plan</span>
+    </label>
   </div>
 
   <hr class="div">
@@ -645,7 +677,29 @@
             <div class="bi"><div class="bm"><span>Government</span><span id="bp-govt">28.7%</span></div><div class="bt"><div class="bf" id="bf-govt" style="background:var(--sage)"></div></div></div>
             <div class="bi"><div class="bm"><span>Your Deposit</span><span id="bp-dep">2.0%</span></div><div class="bt"><div class="bf" id="bf-dep" style="background:var(--gold)"></div></div></div>
           </div>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(28,28,30,0.08);">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+              <span style="font-size:12px;color:var(--slate);">Loan-to-Value Ratio (LVR)</span>
+              <span id="lvr-val" style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;">—</span>
+            </div>
+            <div id="lvr-badge"></div>
+          </div>
         </div>
+      </div>
+
+      <!-- Smart estimates: auto-calculated stamp duty, LMI, FHOG -->
+      <div class="card" id="smart-estimates-card" style="display:none;">
+        <div class="ca" style="background:var(--sky)"></div>
+        <h3>EquitySight Auto-Estimates</h3>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">Based on your state, buyer type, and LVR. Estimates only — always verify with your solicitor.</p>
+        <div id="smart-estimates-rows"></div>
+      </div>
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/stamp-duty-calculator.html" target="_blank" class="rtb-link">🏛️ Stamp Duty</a>
+        <a href="../tools/first-home-buyer-grants-calculator.html" target="_blank" class="rtb-link">🤝 FHB Grants</a>
+        <a href="../tools/cost-of-purchase-calculator.html" target="_blank" class="rtb-link">💵 Full Cost Breakdown</a>
       </div>
     </div>
 
@@ -690,6 +744,12 @@
       <div style="text-align:center;margin-top:4px;">
         <button id="add-reno-item-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:9px 22px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Reno Item</button>
       </div>
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/renovation-cost-calculator.html" target="_blank" class="rtb-link">🔨 Reno Cost Estimator</a>
+        <a href="../tools/house-flip-calculator.html" target="_blank" class="rtb-link">💰 House Flip Profit</a>
+      </div>
     </div>
 
     <!-- TAB 3: REPAYMENTS -->
@@ -701,9 +761,10 @@
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:2px">Principal & Interest on bank loan. Adjust rate and term in the sidebar.</p>
         <div class="rg">
           <div class="rc"><div class="rv" id="rp-monthly">$2,741</div><div class="rl">Monthly</div><div class="rs" id="rp-rate-lbl">@ 6.2%</div></div>
-          <div class="rc"><div class="rv" id="rp-weekly">$633</div><div class="rl">Weekly</div><div class="rs" id="rp-term-lbl">30yr term</div></div>
+          <div class="rc"><div class="rv" id="rp-weekly">$1,370</div><div class="rl">Fortnightly</div><div class="rs" id="rp-term-lbl">26× per year</div></div>
           <div class="rc"><div class="rv" id="rp-annual">$32,892</div><div class="rl">Annual</div><div class="rs" id="rp-loan-lbl">$450k loan</div></div>
         </div>
+        <div id="rp-fortnightly-benefit"></div>
       </div>
       <div class="card">
         <div class="ca" style="background:var(--terracotta)"></div>
@@ -734,6 +795,28 @@
         <div id="amort-table-wrap" style="display:none;margin-top:16px;overflow-x:auto;max-width:100%;box-sizing:border-box;">
           <table id="amort-table" style="width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:12px;min-width:380px;"></table>
         </div>
+      </div>
+      <!-- Serviceability quick-check -->
+      <div class="card">
+        <div class="ca" style="background:var(--sky)"></div>
+        <h3>Serviceability Check</h3>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">Enter your combined household income to see if this loan is within your borrowing capacity.</p>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+          <label style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);letter-spacing:0.5px;">Annual Household Income</label>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--slate);">$</span>
+            <input type="number" id="inp-income" min="0" max="2000000" step="5000" placeholder="e.g. 120000"
+              style="width:130px;font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">p.a.</span>
+          </div>
+        </div>
+        <div id="svc-card" style="display:none;"></div>
+      </div>
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/loan-serviceability-calculator.html" target="_blank" class="rtb-link">📊 Loan Serviceability</a>
+        <a href="../tools/mortgage-stress-calculator.html" target="_blank" class="rtb-link">📈 Mortgage Stress Test</a>
       </div>
     </div>
 
@@ -882,9 +965,10 @@
       <div class="rr-grid">
         <div>
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--risk-red);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--risk-red)">⚠ Risks</div>
-          <div class="rri risk"><div class="rric">💸</div><div><div class="rrt">Interest Rate Sensitivity</div><div class="rrb">A 2% rate rise would add <strong id="rr-rate-delta">$xxx</strong>/month to repayments.</div></div></div>
+          <div class="rri risk"><div class="rric">💸</div><div><div class="rrt">Interest Rate Sensitivity</div><div class="rrb">A 3% rate rise (APRA buffer) would add <strong id="rr-rate-delta">$xxx</strong>/month to repayments.</div></div></div>
           <div class="rri risk"><div class="rric">🏚</div><div><div class="rrt">Hidden Structural Issues</div><div class="rrb">Unforeseen defects can blow the renovation budget. B&P inspection is essential.</div></div></div>
           <div class="rri risk" id="rri-equity"><div class="rric">📉</div><div><div class="rrt">Low Equity Buffer</div><div class="rrb">With <span id="rr-dep-pct">2%</span> personal deposit, any market correction leaves little buffer.</div></div></div>
+          <div class="rri risk" id="rri-lmi-risk" style="display:none;"><div class="rric">💳</div><div><div class="rrt">LMI Required</div><div class="rrb">LVR above 80% triggers Lenders Mortgage Insurance — estimated <strong id="rr-lmi-est">$0</strong> added to your loan. Ask your lender about the First Home Guarantee to avoid this.</div></div></div>
           <div class="rri risk"><div class="rric">🔨</div><div><div class="rrt">Reno Cost Blowouts</div><div class="rrb">Reno pool is <span id="rr-pool-val">$24k</span>. Scope creep and tradie delays can rapidly eat through this.</div></div></div>
           <div class="rri risk" id="rri-overlap"><div class="rric">🏠</div><div><div class="rrt">Dual Housing Costs</div><div class="rrb">Paying <span id="rr-overlap-cost">$4k</span> in combined rent + mortgage during your <span id="rr-overlap-weeks">4</span>-week overlap reduces your reno buffer.</div></div></div>
         </div>
@@ -896,6 +980,13 @@
           <div class="rri reward" id="rri-lmi"><div class="rric">🛡</div><div><div class="rrt">No LMI Required</div><div class="rrb">Avoiding Lenders Mortgage Insurance saves thousands in sunk costs.</div></div></div>
           <div class="rri reward"><div class="rric">💰</div><div><div class="rrt">Long-Term Capital Growth</div><div class="rrb">Your <span id="rr-dep-ltg">$13k</span> deposit on a <span id="rr-price-ltg">$650k</span> asset gives leveraged exposure to property appreciation.</div></div></div>
         </div>
+      </div>
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/mortgage-stress-calculator.html" target="_blank" class="rtb-link">📈 Mortgage Stress Test</a>
+        <a href="../tools/loan-serviceability-calculator.html" target="_blank" class="rtb-link">📊 Loan Serviceability</a>
+        <a href="../tools/equity-release-calculator.html" target="_blank" class="rtb-link">🔓 Equity Release</a>
       </div>
     </div>
 
@@ -939,6 +1030,7 @@
           <span id="proj-legend-govt" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C4704A;display:inline-block;border-radius:2px;"></span>Govt Equity Owed</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#5A9E7B;display:inline-block;border-radius:2px;opacity:0.4;"></span>Your Equity</span>
           <span id="proj-legend-extra" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;"></span>Early Payoff</span>
+          <span id="proj-legend-offset" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #5B8FAB;display:inline-block;"></span>With Offset</span>
         </div>
         <div class="proj-desktop-hint" style="font-size:11px;color:var(--slate);margin-bottom:8px;font-style:italic;">Click or hover to see quarterly values · Chart is quarterly (120 data points)</div>
         <div id="proj-svg-wrap" style="overflow:hidden;position:relative;width:100%;aspect-ratio:800/300;">
@@ -1005,6 +1097,18 @@
         </div>
       </div>
 
+      <!-- Offset account impact card -->
+      <div class="card" id="proj-offset-card" style="display:none;">
+        <div class="ca" style="background:var(--sky)"></div>
+        <h3>Offset Account Impact</h3>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:4px;">With <strong id="proj-offset-lbl">$0</strong> sitting in an offset account, your effective interest is reduced each month. The same repayment pays off more principal — shortening your loan term and saving significant interest.</p>
+        <div id="proj-offset-result" style="display:none;"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px;color:var(--slate);">
+          <span style="width:20px;height:3px;border-top:3px dashed #5B8FAB;display:inline-block;flex-shrink:0;"></span>
+          Dashed blue line = loan balance with offset account
+        </div>
+      </div>
+
       <!-- Milestones card (item 9) -->
       <div class="card">
         <div class="ca" style="background:var(--reward-green)"></div>
@@ -1018,6 +1122,52 @@
         <h3>Year-by-Year Breakdown</h3>
         <p style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.6;">Govt equity owed = their % share of the property value at that year. Pay this amount to exit the scheme.</p>
         <div style="overflow-x:auto;"><div id="proj-table"></div></div>
+      </div>
+
+      <!-- Rental yield quick-calc -->
+      <div class="card" id="proj-yield-card">
+        <div class="ca" style="background:var(--sage)"></div>
+        <h3>Investment Scenario — Rental Yield</h3>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">If you rent this property out instead of living in it, what does the yield look like?</p>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <label style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">Expected Weekly Rent</label>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--slate);">$</span>
+            <input type="number" id="inp-invest-rent" min="0" max="10000" step="50" placeholder="e.g. 600"
+              style="width:100px;font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">/wk</span>
+          </div>
+        </div>
+        <div id="yield-results" style="display:none;">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">
+            <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Gross Yield</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--sage);" id="yield-gross">—</div>
+            </div>
+            <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Net Yield (est.)</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--sage);" id="yield-net">—</div>
+            </div>
+            <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Rent</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;" id="yield-annual-rent">—</div>
+            </div>
+            <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Cashflow</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;" id="yield-cashflow">—</div>
+            </div>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;" id="yield-verdict">—</div>
+          <div style="font-size:10px;color:var(--slate);margin-top:8px;line-height:1.5;">Net yield deducts ~8% PM fees, $2k rates, $1.5k insurance, 1% maintenance. Cashflow = net rent − mortgage. <a href="../tools/rental-yield-calculator.html" target="_blank" style="color:var(--sage);">Full yield analysis →</a></div>
+        </div>
+      </div>
+
+      <!-- Related tools bar -->
+      <div class="related-tools-bar">
+        <span class="rtb-label">Go deeper:</span>
+        <a href="../tools/rental-yield-calculator.html" target="_blank" class="rtb-link">🏘 Rental Yield</a>
+        <a href="../tools/equity-release-calculator.html" target="_blank" class="rtb-link">🔓 Equity Release</a>
+        <a href="../tools/house-flip-calculator.html" target="_blank" class="rtb-link">💰 House Flip</a>
       </div>
     </div>
 

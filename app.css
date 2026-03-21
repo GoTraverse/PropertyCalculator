@@ -282,6 +282,11 @@
   .reward .rric{background:rgba(90,158,123,0.1);}
   .rrt{font-weight:500;margin-bottom:1px;font-size:13px;}
   .rrb{color:var(--slate);}
+  /* Related tools bar — cross-links to free standalone calculators */
+  .related-tools-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding:10px 14px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.14);border-radius:4px;}
+  .rtb-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate);flex-shrink:0;}
+  .rtb-link{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);text-decoration:none;padding:4px 9px;border:1px solid rgba(201,168,76,0.25);border-radius:2px;transition:background 0.15s;}
+  .rtb-link:hover{background:rgba(201,168,76,0.12);}
   .mt{height:8px;background:rgba(28,28,30,0.08);border-radius:4px;overflow:hidden;margin-bottom:9px;}
   .mf{height:100%;border-radius:4px;transition:width 0.8s cubic-bezier(0.16,1,0.3,1);}
 
@@ -723,3 +728,138 @@ html.dark-mode .proj-slider-box{background:rgba(255,255,255,0.05)!important;bord
 html.dark-mode #share-modal>div>div:last-child{background:#1C1C1E!important;}
 html.dark-mode #share-email-input{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.12)!important;color:#F5F0E8!important;}
 html.dark-mode .lib-shared-badge{background:rgba(201,168,76,0.12)!important;}
+
+/* ── App dark mode — supplemental (fills gaps not covered above) ── */
+
+/* Main layout */
+html.dark-mode .section{background:#111113!important;}
+html.dark-mode .sl{color:rgba(245,240,232,0.28)!important;border-bottom-color:rgba(255,255,255,0.06)!important;}
+
+/* Tile labels */
+html.dark-mode .tile{background:#1C1C1E!important;border-color:rgba(255,255,255,0.06)!important;}
+html.dark-mode .tile-lbl{color:rgba(245,240,232,0.38)!important;}
+html.dark-mode .tile-val{color:#F5F0E8!important;}
+
+/* Cost rows & separators */
+html.dark-mode .cr{border-bottom-color:rgba(255,255,255,0.06)!important;}
+html.dark-mode .cr .nm{color:rgba(245,240,232,0.55)!important;}
+html.dark-mode .cr.tot{border-top-color:rgba(255,255,255,0.12)!important;}
+html.dark-mode .cr.tot .nm{color:#F5F0E8!important;}
+
+/* Progress bars */
+html.dark-mode .bt{background:rgba(255,255,255,0.07)!important;}
+html.dark-mode .bm{color:rgba(245,240,232,0.55)!important;}
+html.dark-mode .bm span:last-child{color:#F5F0E8!important;}
+
+/* Amortisation table */
+html.dark-mode #amort-table th{border-bottom-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.45)!important;}
+html.dark-mode #amort-table td{border-bottom-color:rgba(255,255,255,0.05)!important;color:#F5F0E8!important;}
+html.dark-mode #amort-table td:first-child{color:rgba(245,240,232,0.5)!important;}
+html.dark-mode #amort-table tbody tr:nth-child(even){background:rgba(255,255,255,0.025)!important;}
+html.dark-mode #amort-table tbody tr:last-child td{color:#F5F0E8!important;}
+
+/* Reno rows */
+html.dark-mode .reno-row{border-bottom-color:rgba(255,255,255,0.06)!important;}
+html.dark-mode .rn{color:rgba(245,240,232,0.6)!important;}
+html.dark-mode .rbt{background:rgba(255,255,255,0.07)!important;}
+html.dark-mode .reno-note-wrap{border-bottom-color:rgba(255,255,255,0.07)!important;}
+html.dark-mode .reno-note:focus{background:rgba(255,255,255,0.06)!important;}
+html.dark-mode .reno-note::placeholder{color:rgba(245,240,232,0.2)!important;}
+
+/* Timeline */
+html.dark-mode .tli{border-bottom-color:rgba(255,255,255,0.06)!important;}
+html.dark-mode .tlt{color:#F5F0E8!important;}
+html.dark-mode .tldr-cal{background:rgba(255,255,255,0.07)!important;color:rgba(245,240,232,0.5)!important;}
+
+/* Risk/reward rows */
+html.dark-mode .rri{border-bottom-color:rgba(255,255,255,0.06)!important;}
+html.dark-mode .rrt{color:#F5F0E8!important;}
+html.dark-mode .rrb{color:rgba(245,240,232,0.55)!important;}
+
+/* Risk/reward meters */
+html.dark-mode .mt{background:rgba(255,255,255,0.07)!important;}
+
+/* Dual rows (overlap tab) */
+html.dark-mode .dual-row{border-bottom-color:rgba(255,255,255,0.06)!important;}
+
+/* Sidebar labels (sidebar is always dark, but refine for consistency) */
+html.dark-mode .s-head{color:rgba(245,240,232,0.28)!important;}
+html.dark-mode .il{color:rgba(245,240,232,0.55)!important;}
+html.dark-mode .ipfx,html.dark-mode .isfx{color:rgba(245,240,232,0.3)!important;}
+html.dark-mode .preset-btn{background:rgba(255,255,255,0.07)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.7)!important;}
+html.dark-mode .preset-btn:hover{background:rgba(255,255,255,0.12)!important;}
+
+/* Lib (scenarios library) */
+html.dark-mode .lib-filter{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.6)!important;}
+html.dark-mode .lib-filter.active{background:rgba(201,168,76,0.15)!important;border-color:rgba(201,168,76,0.35)!important;color:var(--gold)!important;}
+html.dark-mode .lib-ts{color:rgba(245,240,232,0.3)!important;}
+html.dark-mode .lib-row:hover{box-shadow:0 2px 12px rgba(0,0,0,0.3)!important;}
+
+/* Address suggestions separator */
+html.dark-mode .addr-sug-item{border-bottom-color:rgba(255,255,255,0.06)!important;color:#F5F0E8!important;}
+
+/* Key dates & comms */
+html.dark-mode .kd-row{border-bottom-color:rgba(255,255,255,0.06)!important;}
+html.dark-mode .kd-row input[type="date"],html.dark-mode .kd-row input[type="text"]{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;}
+html.dark-mode .comms-entry{border-bottom-color:rgba(255,255,255,0.06)!important;color:#F5F0E8!important;}
+html.dark-mode .comms-type{background:rgba(255,255,255,0.06)!important;color:rgba(245,240,232,0.6)!important;}
+html.dark-mode #comms-add-form{background:rgba(255,255,255,0.04)!important;border-color:rgba(255,255,255,0.08)!important;}
+
+/* Dialog inputs */
+html.dark-mode #app-dialog-input{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.12)!important;color:#F5F0E8!important;}
+
+/* Alert styles */
+html.dark-mode .alert{background:rgba(255,255,255,0.05)!important;}
+html.dark-mode .alert-warn{background:rgba(196,112,74,0.12)!important;border-color:rgba(196,112,74,0.25)!important;}
+html.dark-mode .alert-ok{background:rgba(90,158,123,0.1)!important;border-color:rgba(90,158,123,0.2)!important;}
+
+/* Cost items in dynamic list */
+html.dark-mode .dyn-cost-row{border-bottom-color:rgba(255,255,255,0.06)!important;}
+
+/* Related tools bar */
+html.dark-mode .related-tools-bar{background:rgba(201,168,76,0.06)!important;border-color:rgba(201,168,76,0.12)!important;}
+html.dark-mode .rtb-link{border-color:rgba(201,168,76,0.2)!important;}
+html.dark-mode .rtb-link:hover{background:rgba(201,168,76,0.1)!important;}
+
+/* Section backgrounds that become white in light mode */
+html.dark-mode .cb{background:#2C2C2E!important;}
+html.dark-mode .rg .rc{background:#2C2C2E!important;}
+
+/* Projection controls card */
+html.dark-mode .proj-controls{background:#1C1C1E!important;}
+
+/* Tab bar */
+html.dark-mode .tabs{background:#111113!important;border-bottom-color:rgba(255,255,255,0.07)!important;}
+html.dark-mode .tab{background:transparent!important;}
+
+/* Section label line */
+html.dark-mode .sl::after{background:rgba(255,255,255,0.07)!important;}
+
+/* Stepper buttons */
+html.dark-mode .pd-stepper button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;}
+html.dark-mode .pd-stepper button:hover{background:rgba(255,255,255,0.14)!important;}
+
+/* Prop type buttons */
+html.dark-mode .prop-type-btn{background:rgba(255,255,255,0.05)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.6)!important;}
+html.dark-mode .prop-type-btn.active{background:rgba(201,168,76,0.15)!important;border-color:rgba(201,168,76,0.4)!important;color:var(--gold)!important;}
+
+/* Header (content area header, not site nav) */
+html.dark-mode .header-sub{color:rgba(245,240,232,0.4)!important;}
+
+/* Stat chips */
+html.dark-mode .pd-stat-chip{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.7)!important;}
+
+/* Calendar cells */
+html.dark-mode .cal-mortgage{opacity:0.8!important;}
+html.dark-mode .cal-both{opacity:0.9!important;}
+
+/* Sidebar add cost btn, scheme select */
+html.dark-mode .add-cost-btn{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.7)!important;}
+html.dark-mode #inp-state{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;}
+html.dark-mode #inp-state option{background:#2C2C2E;color:#F5F0E8;}
+
+/* Unsaved badge */
+html.dark-mode #unsaved-badge{background:rgba(196,112,74,0.2)!important;color:#E8A882!important;}
+
+/* Mobile overlay */
+html.dark-mode #mobile-overlay{background:rgba(0,0,0,0.7)!important;}

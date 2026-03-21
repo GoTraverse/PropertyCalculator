@@ -4,13 +4,16 @@
  * then include this script.
  */
 (function () {
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function safeSrc(u){ return (typeof u==='string'&&(/^data:image\/[a-z+]+;base64,/.test(u)||/^https:\/\//.test(u)))?u:''; }
   var cfg = {};
   try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e) {}
   var logoMark    = cfg.logoMark || '🏠';
-  var logoName    = cfg.logoName || 'EquitySight';
-  var logoTld     = cfg.logoTld  !== undefined ? cfg.logoTld : '.app';
-  var logoMarkHtml = cfg.logoImage
-    ? '<img src="' + cfg.logoImage + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" alt="">'
+  var logoName    = esc(cfg.logoName || 'EquitySight');
+  var logoTld     = esc(cfg.logoTld  !== undefined ? cfg.logoTld : '.app');
+  var safeImg     = safeSrc(cfg.logoImage);
+  var logoMarkHtml = safeImg
+    ? '<img src="' + safeImg + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" alt="">'
     : logoMark;
 
   var FOOTER_HTML = [

@@ -179,10 +179,27 @@ async function nominatimSuggest(query, limit) {
   } catch { return null; }
 }
 
+// ── IP-based rate limit helper ────────────────────────────────────────────────
+
+async function checkRateLimit(ip) {
+  if (!REDIS_URL || !REDIS_TOKEN) return false; // skip if Redis unavailable
+  const key = 'rl:addr:' + ip;
+  try {
+    const count = await redisCmd('INCR', key);
+    if (count === 1) await redisCmd('EXPIRE', key, '60');
+    return count > 120; // 120 req/min per IP
+  } catch { return false; }
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
+
+  const clientIp = (event.headers?.['x-nf-client-connection-ip'] || event.headers?.['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+  if (await checkRateLimit(clientIp)) {
+    return { statusCode: 429, headers: H, body: JSON.stringify({ ok: false, error: 'Too many requests' }) };
+  }
 
   const qs    = event.queryStringParameters || {};
   const query = (qs.q || '').trim();
