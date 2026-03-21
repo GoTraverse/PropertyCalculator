@@ -219,6 +219,33 @@
   </div>
 
   <hr class="div">
+  <div class="s-head">State &amp; Buyer Type</div>
+  <div class="ig">
+    <div class="il" style="margin-bottom:5px;">State or Territory <span style="font-size:9px;color:rgba(201,168,76,0.6);">— auto-calculates stamp duty</span></div>
+    <select id="inp-state" oninput="dRecalc()" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);outline:none;cursor:pointer;">
+      <option value="">Select state…</option>
+      <option value="nsw">New South Wales (NSW)</option>
+      <option value="vic">Victoria (VIC)</option>
+      <option value="qld">Queensland (QLD)</option>
+      <option value="sa">South Australia (SA)</option>
+      <option value="wa">Western Australia (WA)</option>
+      <option value="tas">Tasmania (TAS)</option>
+      <option value="act">ACT</option>
+      <option value="nt">Northern Territory (NT)</option>
+    </select>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px;margin-bottom:2px;">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="checkbox" id="inp-fhb" onchange="dRecalc()" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
+      <span style="font-size:12px;color:rgba(245,240,232,0.7);">First home buyer</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="checkbox" id="inp-new-prop" onchange="dRecalc()" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
+      <span style="font-size:12px;color:rgba(245,240,232,0.7);">New property / off the plan</span>
+    </label>
+  </div>
+
+  <hr class="div">
   <!-- PURCHASE COSTS — dynamic -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
     <div class="s-head" style="margin-bottom:0;font-size:10px;letter-spacing:1.5px;">Purchase Costs</div>
@@ -644,7 +671,22 @@
             <div class="bi"><div class="bm"><span>Government</span><span id="bp-govt">28.7%</span></div><div class="bt"><div class="bf" id="bf-govt" style="background:var(--sage)"></div></div></div>
             <div class="bi"><div class="bm"><span>Your Deposit</span><span id="bp-dep">2.0%</span></div><div class="bt"><div class="bf" id="bf-dep" style="background:var(--gold)"></div></div></div>
           </div>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(28,28,30,0.08);">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+              <span style="font-size:12px;color:var(--slate);">Loan-to-Value Ratio (LVR)</span>
+              <span id="lvr-val" style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;">—</span>
+            </div>
+            <div id="lvr-badge"></div>
+          </div>
         </div>
+      </div>
+
+      <!-- Smart estimates: auto-calculated stamp duty, LMI, FHOG -->
+      <div class="card" id="smart-estimates-card" style="display:none;">
+        <div class="ca" style="background:var(--sky)"></div>
+        <h3>EquitySight Auto-Estimates</h3>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">Based on your state, buyer type, and LVR. Estimates only — always verify with your solicitor.</p>
+        <div id="smart-estimates-rows"></div>
       </div>
     </div>
 
@@ -700,9 +742,10 @@
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:2px">Principal & Interest on bank loan. Adjust rate and term in the sidebar.</p>
         <div class="rg">
           <div class="rc"><div class="rv" id="rp-monthly">$2,741</div><div class="rl">Monthly</div><div class="rs" id="rp-rate-lbl">@ 6.2%</div></div>
-          <div class="rc"><div class="rv" id="rp-weekly">$633</div><div class="rl">Weekly</div><div class="rs" id="rp-term-lbl">30yr term</div></div>
+          <div class="rc"><div class="rv" id="rp-weekly">$1,370</div><div class="rl">Fortnightly</div><div class="rs" id="rp-term-lbl">26× per year</div></div>
           <div class="rc"><div class="rv" id="rp-annual">$32,892</div><div class="rl">Annual</div><div class="rs" id="rp-loan-lbl">$450k loan</div></div>
         </div>
+        <div id="rp-fortnightly-benefit"></div>
       </div>
       <div class="card">
         <div class="ca" style="background:var(--terracotta)"></div>

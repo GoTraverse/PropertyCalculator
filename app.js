@@ -86,6 +86,148 @@
     return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
   }
 
+  // ── STAMP DUTY AUTO-CALC ──
+  // Returns estimated stamp duty for all 8 Australian states (2026 thresholds)
+  function calcStampDutyAmt(price, state, isFHB, isNew) {
+    if (!price || !state) return 0;
+    // brackets: [threshold, baseDuty, marginalRate] — iterate largest-first
+    function bracket(v, tiers) {
+      for (var i = tiers.length - 1; i >= 0; i--) {
+        if (v > tiers[i][0]) return tiers[i][1] + (v - tiers[i][0]) * tiers[i][2];
+      }
+      return 0;
+    }
+    var duty = 0;
+    if (state === 'nsw') {
+      duty = bracket(price, [
+        [0, 0, 0], [14000, 0, 0.0125], [30000, 200, 0.015],
+        [130000, 1700, 0.0175], [205000, 2631.25, 0.035],
+        [305000, 6131.25, 0.04], [405000, 10131.25, 0.045],
+        [550000, 16256.25, 0.055]
+      ]);
+      if (isFHB) {
+        if (price <= 800000) duty = 0;
+        else if (price <= 1000000) duty *= (price - 800000) / 200000;
+      }
+    } else if (state === 'vic') {
+      duty = bracket(price, [
+        [0, 0, 0], [25000, 0, 0.014], [130000, 1470, 0.024],
+        [440000, 8910, 0.055], [870000, 43605, 0.065]
+      ]);
+      if (isFHB) {
+        if (price <= 600000) duty = 0;
+        else if (price <= 750000) duty *= (price - 600000) / 150000;
+      }
+    } else if (state === 'qld') {
+      if (isFHB && isNew) {
+        duty = 0; // QLD FHB new build: no transfer duty from May 2025
+      } else {
+        duty = bracket(price, [
+          [0, 0, 0], [5000, 0, 0.015], [75000, 1050, 0.035],
+          [540000, 17325, 0.045], [1000000, 38025, 0.0575]
+        ]);
+        if (isFHB) {
+          if (price <= 500000) duty = 0;
+          else if (price <= 550000) duty *= (price - 500000) / 50000;
+          else if (price <= 700000) duty *= 0.5; // home concession rate approx
+        }
+      }
+    } else if (state === 'sa') {
+      duty = bracket(price, [
+        [0, 0, 0], [16000, 0, 0.015], [19000, 45, 0.03],
+        [250000, 6915, 0.035], [300000, 8665, 0.04]
+      ]);
+      if (isFHB && isNew && price <= 650000) duty = 0;
+    } else if (state === 'wa') {
+      duty = bracket(price, [
+        [0, 0, 0], [2000, 0, 0.01], [4000, 20, 0.02],
+        [500000, 9920, 0.035], [1000000, 27420, 0.0475]
+      ]);
+      if (isFHB) {
+        if (price <= 430000) duty = 0;
+        else if (price <= 530000) duty *= (price - 430000) / 100000;
+      }
+    } else if (state === 'tas') {
+      duty = bracket(price, [
+        [0, 0, 0], [3000, 0, 0.036], [100000, 3492, 0.041],
+        [150000, 5542, 0.0425], [250000, 9792, 0.0475]
+      ]);
+      if (isFHB && price <= 750000) duty *= 0.5; // 50% concession (to June 2026)
+    } else if (state === 'act') {
+      duty = bracket(price, [
+        [0, 0, 0], [7500, 0, 0.0068], [100000, 640, 0.023],
+        [200000, 2940, 0.031], [300000, 6040, 0.035],
+        [500000, 13040, 0.0505], [750000, 25665, 0.066],
+        [1000000, 42165, 0.0717]
+      ]);
+      if (isFHB && price <= 1020000) duty = 0;
+    } else if (state === 'nt') {
+      duty = bracket(price, [
+        [0, 0, 0], [3000, 0, 0.0075], [100000, 727.5, 0.01],
+        [150000, 1227.5, 0.015], [250000, 2727.5, 0.025]
+      ]);
+      if (isFHB && price <= 650000) duty = Math.max(0, duty * (price - 400000) / 250000);
+    }
+    return Math.max(0, Math.round(duty));
+  }
+
+  // ── LMI AUTO-CALC ──
+  // Approximate LMI premium (Genworth/QBE schedule, residential purchase)
+  function calcLMI(loanAmt, price) {
+    if (!price || price <= 0 || !loanAmt) return 0;
+    const lvr = loanAmt / price * 100;
+    if (lvr <= 80) return 0;
+    var rate = 0;
+    if (lvr <= 85) rate = 0.0065;
+    else if (lvr <= 90) rate = 0.0146;
+    else if (lvr <= 95) rate = 0.0244;
+    else rate = 0.030;
+    return Math.round(loanAmt * rate);
+  }
+
+  // ── FHOG GRANT BY STATE ──
+  // Returns {amount, note, urgent} for 2026 FHOG grants
+  function getFHOGAmt(state, isFHB, isNew) {
+    if (!isFHB || !state) return {amount: 0, note: '', urgent: false};
+    var grants = {
+      nsw: {amount: 10000, note: 'NSW FHOG for new homes', urgent: false},
+      vic: {amount: 10000, note: 'VIC FHOG for new homes', urgent: false},
+      qld: {amount: 30000, note: 'QLD FHOG — new homes only', urgent: true},
+      sa:  {amount: 15000, note: 'SA FHOG for new homes', urgent: false},
+      wa:  {amount: 10000, note: 'WA FHOG for new homes', urgent: false},
+      tas: {amount: 10000, note: 'TAS FHOG for new homes', urgent: false},
+      act: {amount: 0,     note: 'ACT has no FHOG (land tax alternative scheme applies)', urgent: false},
+      nt:  {amount: 10000, note: 'NT FHOG + HomeGrown up to $60,000 total', urgent: false},
+    };
+    var g = grants[state];
+    if (!g || g.amount === 0) return {amount: 0, note: g ? g.note : '', urgent: false};
+    if (!isNew) return {amount: 0, note: 'FHOG only applies to new homes in this state', urgent: false};
+    return g;
+  }
+
+  // ── GENUINE FORTNIGHTLY BENEFIT ──
+  // Returns {yearsLess, interestSaved} from paying monthly/2 fortnightly vs monthly
+  function calcFortnightlyBenefit(loanAmt, rate, term) {
+    if (loanAmt <= 0 || rate <= 0 || term <= 0) return {yearsLess: 0, interestSaved: 0};
+    const monthly = calcMonthly(loanAmt, rate, term);
+    const fortPayment = monthly / 2;
+    const fortRate = rate / 100 / 26;
+    let bal = loanAmt, periods = 0, totalPaid = 0;
+    const maxPeriods = term * 26 + 200;
+    while (bal > 0.01 && periods < maxPeriods) {
+      const interest = bal * fortRate;
+      const principal = fortPayment - interest;
+      if (principal <= 0) break;
+      bal = Math.max(0, bal - principal);
+      totalPaid += fortPayment;
+      periods++;
+    }
+    const totalPaidMonthly = monthly * term * 12;
+    const yearsLess = Math.max(0, term - periods / 26);
+    const interestSaved = Math.max(0, totalPaidMonthly - totalPaid);
+    return {yearsLess, interestSaved};
+  }
+
   var _amortVisible = false;
   var _lastAmortParams = null;
 
@@ -437,8 +579,18 @@
     const upfront  = deposit+extraCosts;
     const remaining = savings-upfront;
 
+    // ─── state / buyer type inputs ───
+    const stateEl = document.getElementById('inp-state');
+    const state = stateEl ? stateEl.value : '';
+    const isFHB = !!(document.getElementById('inp-fhb') && document.getElementById('inp-fhb').checked);
+    const isNew = !!(document.getElementById('inp-new-prop') && document.getElementById('inp-new-prop').checked);
+
+    // ─── LVR ───
+    const lvr = price > 0 ? (loanAmt / price * 100) : 0;
+
     const monthly = calcMonthly(loanAmt,rate,term);
     const weekly  = monthly*12/52;
+    const fortnightly = monthly/2; // genuine fortnightly: 26 × monthly/2 = 13 months/yr
     const totalPaid = monthly*term*12;
     const totalInterest = totalPaid-loanAmt;
     _lastAmortParams = {loanAmt, rate, term};
@@ -545,6 +697,76 @@
     const _tGovtEl=document.getElementById('t-govt');
     if(_tGovtEl)_tGovtEl.closest('.tile').style.display=govtPct>0?'':'none';
 
+    // ─── LVR display ───
+    const lvrEl = document.getElementById('lvr-val');
+    const lvrBadge = document.getElementById('lvr-badge');
+    if (lvrEl) {
+      lvrEl.textContent = price > 0 ? lvr.toFixed(1) + '%' : '—';
+      const lvrColor = lvr > 90 ? 'var(--risk-red)' : lvr > 80 ? 'var(--terracotta)' : 'var(--sage)';
+      lvrEl.style.color = lvrColor;
+    }
+    if (lvrBadge) {
+      if (price > 0) {
+        const lvrMsg = lvr > 90 ? '⚠️ Very high LVR — LMI required, fewer lenders'
+          : lvr > 80 ? '⚠️ LMI required — consider increasing deposit to 20%'
+          : lvr > 70 ? '✓ Below 80% — no LMI required'
+          : '✓ Strong equity position';
+        const lvrBg = lvr > 90 ? 'rgba(196,90,90,0.12)' : lvr > 80 ? 'rgba(196,112,74,0.12)' : 'rgba(123,158,135,0.12)';
+        const lvrBorder = lvr > 90 ? 'rgba(196,90,90,0.3)' : lvr > 80 ? 'rgba(196,112,74,0.3)' : 'rgba(123,158,135,0.3)';
+        lvrBadge.textContent = lvrMsg;
+        lvrBadge.style.cssText = `font-size:10px;padding:3px 8px;border-radius:3px;display:inline-block;background:${lvrBg};border:1px solid ${lvrBorder};color:${lvrColor};`;
+        lvrBadge.style.color = lvr > 90 ? 'var(--risk-red)' : lvr > 80 ? 'var(--terracotta)' : 'var(--sage)';
+        lvrBadge.style.display = '';
+      } else { lvrBadge.style.display = 'none'; }
+    }
+
+    // ─── Smart estimates card (stamp duty, LMI, FHOG) ───
+    const seCard = document.getElementById('smart-estimates-card');
+    const seRows = document.getElementById('smart-estimates-rows');
+    if (seCard && seRows) {
+      const autoStampDuty = state ? calcStampDutyAmt(price, state, isFHB, isNew) : null;
+      const autoLMI = price > 0 ? calcLMI(loanAmt, price) : 0;
+      const fhog = getFHOGAmt(state, isFHB, isNew);
+      const hasData = state || (price > 0 && lvr > 80);
+      if (hasData && price > 0) {
+        let html = '';
+        // Stamp duty
+        if (state) {
+          const sdNote = isFHB ? ' (FHB rate applied)' : '';
+          html += `<div class="cr"><span class="nm">Stamp Duty estimate${sdNote}</span><span class="am" style="color:var(--terracotta-light)">${fmt(autoStampDuty)}</span></div>`;
+          if (!state) html += '';
+        } else {
+          html += `<div class="cr" style="opacity:0.5;"><span class="nm">Stamp Duty</span><span class="am" style="font-size:11px;font-style:italic;">Select state</span></div>`;
+        }
+        // LMI
+        if (lvr > 80) {
+          const lmiNote = lvr > 80 ? ` (LVR ${lvr.toFixed(1)}%)` : '';
+          html += `<div class="cr"><span class="nm">LMI estimate${lmiNote}</span><span class="am" style="color:var(--risk-red)">${fmt(autoLMI)}</span></div>`;
+          if (isFHB && depPct >= 5) {
+            html += `<div style="font-size:10px;padding:4px 0 6px;color:rgba(123,158,135,0.9);line-height:1.5;">💡 First Home Guarantee (FHBG) may let you avoid LMI with 5% deposit — check <a href="https://www.housingaustralia.gov.au/first-home-guarantee" target="_blank" style="color:inherit;">Housing Australia</a>.</div>`;
+          }
+        }
+        // FHOG
+        if (fhog.amount > 0) {
+          const urgentTag = fhog.urgent ? ' <span style="color:var(--terracotta);font-weight:700;">— expires June 2026!</span>' : '';
+          html += `<div class="cr"><span class="nm">${fhog.note}${urgentTag}</span><span class="am" style="color:var(--sage)">+${fmt(fhog.amount)}</span></div>`;
+        } else if (fhog.note && isFHB && state) {
+          html += `<div style="font-size:10px;color:var(--slate);padding:2px 0 4px;line-height:1.5;">${fhog.note}</div>`;
+        }
+        // Stamp duty warning update
+        if (state && autoStampDuty > 0) {
+          const hasManualStamp = dynCosts.some(c => c.category !== 'moveout' && /stamp/i.test(c.name) && parseFloat(c.amount) > 0);
+          if (!hasManualStamp) {
+            html += `<div style="font-size:10px;color:rgba(201,168,76,0.7);padding-top:6px;line-height:1.5;">⚠️ Your stamp duty cost item is still $0. Add ${fmt(autoStampDuty)} to your purchase costs above.</div>`;
+          }
+        }
+        seRows.innerHTML = html;
+        seCard.style.display = '';
+      } else {
+        seCard.style.display = 'none';
+      }
+    }
+
     // sidebar alert
     const sa=document.getElementById('sidebar-alert');
     if(sa){
@@ -574,8 +796,26 @@
     }
 
     // ─── TAB 3: REPAYMENTS ───
-    set('rp-monthly',fmt(monthly));set('rp-weekly',fmt(weekly));set('rp-annual',fmt(monthly*12));
-    set('rp-rate-lbl','@ '+rate+'%');set('rp-term-lbl',term+'yr term');set('rp-loan-lbl',fmtK(loanAmt)+' loan');
+    set('rp-monthly',fmt(monthly));
+    set('rp-weekly',fmt(fortnightly)); // shows genuine fortnightly (monthly/2, 26× per year)
+    set('rp-annual',fmt(monthly*12));
+    set('rp-rate-lbl','@ '+rate+'%');set('rp-term-lbl','26\u00D7 per year');set('rp-loan-lbl',fmtK(loanAmt)+' loan');
+    // Fortnightly benefit callout
+    const ftEl = document.getElementById('rp-fortnightly-benefit');
+    if (ftEl) {
+      if (loanAmt > 0 && rate > 0) {
+        const ftBenefit = calcFortnightlyBenefit(loanAmt, rate, term);
+        const yrs = Math.floor(ftBenefit.yearsLess);
+        const mos = Math.round((ftBenefit.yearsLess - yrs) * 12);
+        const timeSaved = yrs > 0 ? (yrs + ' yr' + (yrs>1?'s':'') + (mos>0?' '+mos+' mo':'')) : (mos > 0 ? mos+' months' : '');
+        if (ftBenefit.interestSaved > 500 && timeSaved) {
+          ftEl.innerHTML = `<div style="margin-top:12px;padding:10px 12px;background:rgba(123,158,135,0.1);border:1px solid rgba(123,158,135,0.25);border-radius:4px;font-size:12px;line-height:1.6;">
+            <strong style="color:var(--sage);">Fortnightly tip:</strong> Paying ${fmt(fortnightly)} every fortnight (26× per year) instead of monthly saves you <strong>${fmt(ftBenefit.interestSaved)}</strong> in interest and pays off your loan <strong>${timeSaved} sooner</strong>. Ask your lender to set up fortnightly direct debit.
+          </div>`;
+          ftEl.style.display='';
+        } else { ftEl.style.display='none'; }
+      } else { ftEl.style.display='none'; }
+    }
     set('rp-interest',fmt(totalInterest));set('rp-total-paid',fmt(totalPaid));set('rp-loan-show',fmt(loanAmt));
 
     const stEl=document.getElementById('stress-table');
@@ -702,7 +942,7 @@
       : 'Higher risk — savings are tight. Build a larger buffer before proceeding.';
     set('risk-desc', _riskMsg);
     set('reward-desc',rewardScore>70?'High reward potential — strong equity uplift through renovation and capital growth.':rewardScore>50?(govtPct>0?'Good reward potential — renovation and scheme create solid upside.':'Good reward potential — renovation can create solid equity uplift.'):'Modest reward potential — consider a higher reno budget or applying a govt scheme.');
-    const m2=calcMonthly(loanAmt,rate+2,term);
+    const m2=calcMonthly(loanAmt,rate+3,term); // APRA requires lenders to stress-test at +3%
     set('rr-rate-delta',fmt(m2-monthly));
     set('rr-dep-pct',pctS(depPct));set('rr-pool-val',fmtK(remaining));
     set('rr-overlap-cost',fmt(totalOverlap));set('rr-overlap-weeks',weeks);
