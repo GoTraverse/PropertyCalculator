@@ -11,15 +11,15 @@
 ### Main Calculator (`app.html`)
 | Feature | What it does |
 |---------|------------|
-| **Costs Tab** | Full purchase cost breakdown — purchase price, stamp duty, legal fees, building inspection, valuation, lender fees, etc. |
+| **Costs Tab** | Full purchase cost breakdown — purchase price, stamp duty, legal fees, building inspection, valuation, lender fees, etc. LVR badge + auto stamp duty estimate + LMI calc + FHOG display |
 | **Renovation Tab** | Itemised renovation budget — line items with costs, progress bar, totals by category |
-| **Repayments Tab** | Loan amortisation table, monthly repayment schedule, impact of extra repayments, comparison scenarios |
+| **Repayments Tab** | Loan amortisation table, monthly/fortnightly repayment schedule, fortnightly benefit, impact of extra repayments |
 | **Rent Overlap** | Calculate cost of carrying both current rental and new mortgage simultaneously |
-| **Projection (30-year)** | Equity/value growth chart, quarterly breakdown table, early payoff scenarios, compound growth visualisation |
+| **Projection (30-year)** | Equity/value growth chart, quarterly breakdown table, offset account modelling, early payoff scenarios |
 | **Risk** | LVR (Loan-to-Value Ratio), debt-to-income ratio, interest rate stress testing, buffer runway analysis |
 
 ### Account Features
-- **Scenarios** — save multiple property analyses per account, restore/delete saved scenarios
+- **Scenarios** — save multiple property analyses per account, restore/delete saved scenarios (photo preserved on save/restore)
 - **Government Schemes** — state-specific grant/scheme eligibility (NSW/VIC/QLD/WA/SA/TAS)
 - **Suburb Growth Lookup** — auto-fetch 20-year suburb growth rates, 30-day cache
 - **PDF Export** — print-optimised standalone snapshot of current scenario
@@ -28,15 +28,21 @@
 - **PWA** — install as mobile app on iOS/Android, offline capable
 
 ### Admin Dashboard (`admin.html`)
-**8 tabs for system & user management:**
+**14 tabs for system & user management:**
 - **Users** — table with sorting, plan badges, discount indicators; click to view full details + error history
-- **Config** — site branding, logo, pricing plans, Stripe integration, feature flags
-- **Schemes** — government scheme eligibility editor per state
-- **Stats** — signup/login metrics, revenue estimate, subscription breakdown
+- **Scenarios** — browse all saved property scenarios per user; delete individual scenarios
+- **Gov Schemes** — government scheme eligibility editor per state
 - **Growth Data** — suburb growth rate cache management
 - **Database** — maintenance tools (purge sessions/profiles/scenarios)
 - **Error Log** — JS error logs from user browsers, filterable by email/message/browser/date
-- **Emails** — transactional email template editor (6 types: verification, welcome, password reset, subscription, security, promotional)
+- **Settings** — core site config: name, support email, session TTL, password policy, signup control
+- **Features** — feature flags: PDF export, projections, referral program, upload limits
+- **Integrations** — Stripe keys, Google Sign-In client ID, API credentials
+- **Branding** — logo (emoji or image upload), brand colour, colour theme presets, banner message
+- **Email Templates** — 6 transactional email templates (verification, welcome, password reset, subscription, security alert, promotional)
+- **About Page** — edit the About page content from admin
+- **Legal Pages** — edit privacy, terms, cookies, disclaimer from admin
+- **Suburbs** — browse/search suburb data, state breakdown, trigger suburb page rebuilds via Netlify deploy hook
 
 ---
 
@@ -55,14 +61,15 @@
 
 ---
 
-## Project Structure (20 HTML pages + 14,512 suburb pages, 9 Netlify functions, 10 SEO tools)
+## Project Structure (24 HTML pages + 14,512 suburb pages, 11 Netlify functions, 9 SEO tools)
 
 ### Application Pages
 ```
 app.html                # Main calculator (authenticated)
-admin.html              # Admin dashboard (role=admin only)
-account.html            # User account settings
-login.html              # Sign-up & sign-in with email verification
+admin.html              # Admin dashboard (role=admin only) — 14 tabs
+account.html            # User account settings & subscription management
+login.html              # Sign-up & sign-in with email verification + Google Sign-In
+showcase.html           # App gallery — real mobile screenshots (light + dark)
 ```
 
 ### Marketing Pages
@@ -73,10 +80,10 @@ about.html              # About page
 contact.html            # Contact form
 ```
 
-### Free SEO Tool Calculators (lead generation — 10 tools)
+### Free SEO Tool Calculators (lead generation — 9 tools in /tools/)
 ```
 stamp-duty-calculator.html           # All 8 Australian states (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) with state dropdown
-cost-of-purchase-calculator.html     # **NEW** Total cost breakdown — stamp duty, legal, bank fees, inspections, insurance, moving, lease break
+cost-of-purchase-calculator.html     # Total cost breakdown — stamp duty, legal, bank fees, inspections, insurance, moving, lease break
 equity-release-calculator.html       # Home equity release & borrowing capacity based on LVR
 loan-serviceability-calculator.html  # Mortgage affordability based on income & expenses
 first-home-buyer-grants-calculator.html # State-specific FHB grants & stamp duty exemptions
@@ -84,7 +91,6 @@ rental-yield-calculator.html         # Rental yield analysis
 renovation-cost-calculator.html      # Renovation budget
 house-flip-calculator.html           # Buy/renovate/sell profit
 mortgage-stress-calculator.html      # Loan stress testing
-stamp-duty-qld.html                  # Legacy QLD-only stamp duty (backward compat)
 ```
 
 All SEO tools feature:
@@ -93,6 +99,7 @@ All SEO tools feature:
 - **Lead generation**: CTAs linking to main app signup
 - **Educational**: Built-in content sections with explanations
 - **Accurate rates**: 2025-26 Australian government rates, conditions, and thresholds
+- **Live market data**: RBA cash rate + ABS state median prices via `market-rate.js`
 
 ### Legal Pages (rendered from Markdown)
 ```
@@ -105,19 +112,39 @@ disclaimer.html         # Financial disclaimer (disclaimer.md)
 ### Core Styles
 ```
 shared.css              # Design tokens, nav, footer, buttons (included by all pages)
-app.css                 # Main calculator styles (54K)
-admin.css               # Admin dashboard styles (21K)
-index.css, pricing.css, about.css, login.css, contact.css, tools.css
+app.css                 # Main calculator styles
+admin.css               # Admin dashboard styles
+legal.css               # Legal page styles
+index.css, pricing.css, about.css, login.css, contact.css, tools.css, suburb-insights.css
 ```
 
-### Shared Scripts (injected on every page)
+### Shared Scripts
 ```
-auth-nav.js             # Nav header + profile menu + help modal
+auth-nav.js             # Nav header + profile menu + help modal (514 lines)
 footer.js               # Site footer
 error-capture.js        # JS error logging (on app/admin/account only)
-account-panel.js        # Account settings component
+account-panel.js        # Account settings component (483 lines)
+account.js              # Account page logic — subscription, Stripe portal (555 lines)
 legal.js                # Markdown → HTML parser for legal pages
 stripe-config.js        # Stripe API key + plan IDs (client-safe)
+shared-calcs.js         # Common calc utilities (fmt, parse, repayment, growth) — used by all calculators
+market-rate.js          # Live RBA cash rate + ABS state median prices (window.MarketRate)
+site-init.js            # Applies dark/light theme before first paint (synchronous)
+adsense.js              # Google AdSense integration
+gtag-init.js            # Google Analytics initialization
+```
+
+### Page-specific Scripts
+```
+app-init.js / app-events.js         # Main calculator init + event wiring
+admin-events.js                     # Admin dashboard event wiring
+index-init.js / index-events.js     # Landing page init + events
+login.js                            # Login/signup page
+pricing.js                          # Pricing page
+about-init.js                       # About page init
+contact.js                          # Contact form handling
+suburb-insights.js                  # Suburb insights page JS
+state-hub-search.js                 # State hub client-side search by name/postcode
 ```
 
 ### Backend Functions (`netlify/functions/`)
@@ -130,6 +157,8 @@ client-errors.js        # JS error log aggregation
 growth.js               # Suburb growth rate cache (30-day TTL)
 photo.js                # Property photo storage proxy
 mapproxy.js             # OpenStreetMap tile proxy
+address-suggest.js      # Address autocomplete (rate-limited: 30 req/min)
+market-data.js          # Suburb insights market data API
 ```
 
 ### Suburb Insights System (14,512 generated pages)
@@ -171,6 +200,7 @@ Set in **Netlify → Site Settings → Environment Variables**:
 | `STRIPE_WEBHOOK_SECRET` | stripe.js | Stripe webhook signing secret (for verifying webhooks) |
 | `RESEND_API_KEY` | contact.js, auth.js | Resend API key for transactional & contact form emails |
 | `VERIFY_EMAIL_FROM` | auth.js | Email sender address (default: noreply@equitysight.app) |
+| `GITHUB_TOKEN` | client-errors.js | GitHub API token for auto-syncing errors to ERRORS.json in repo |
 
 ---
 

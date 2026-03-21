@@ -5,7 +5,7 @@
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**20 HTML pages** (incl. 10 free calculators) + **14,512 generated suburb pages** + **8 state hub pages** | **9 Netlify functions** | **11 CSS files** | **4046+ lines** of calculator logic | **2651+ lines** of admin logic
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** + **8 state hub pages** | **11 Netlify functions** | **11 CSS files** | **4698+ lines** of calculator logic | **2894+ lines** of admin logic
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
@@ -30,10 +30,14 @@ See **`README.md`** for feature overview and quick start guide.
 ### Application Logic
 | File | Lines | Key Functions |
 |------|-------|----------------|
-| `app.js` | 4046 | `recalc()` = master calculation function; `dRecalc()` = debounced wrapper; `showTab(id, btn)` = tab switcher; `exportPDF()` = snapshot export |
-| `admin.js` | 2651 | `loadUsers()`, `openUserDetails(email)`, `showTab(id, btn)`, `callAuth(action, payload)`, admin dashboard logic |
-| `auth-nav.js` | 489 | Injects nav header + profile dropdown + help modal; `window.renderSiteNav()` re-renders after profile changes |
-| `account-panel.js` | 26K | Standalone account panel with profile pic upload, color theme selection, plan display |
+| `app.js` | 4698 | `recalc()` = master calculation function; `dRecalc()` = debounced wrapper; `showTab(id, btn)` = tab switcher; `exportPDF()` = snapshot export |
+| `app-init.js` | — | App page initialization (auth guard, session restore, draft loading) |
+| `app-events.js` | — | App page event listener wiring (inputs, buttons, tab switches) |
+| `admin.js` | 2894 | `loadUsers()`, `openUserDetails(email)`, `showTab(id, btn)`, `callAuth(action, payload)`, admin dashboard logic |
+| `admin-events.js` | — | Admin page event listener wiring |
+| `auth-nav.js` | 514 | Injects nav header + profile dropdown + help modal; `window.renderSiteNav()` re-renders after profile changes |
+| `account-panel.js` | 483 | Standalone account panel with profile pic upload, color theme selection, plan display |
+| `account.js` | 555 | Account page logic — subscription status, plan display, Stripe portal |
 
 ### Styling & Injection
 | File | Lines | Purpose |
@@ -41,12 +45,24 @@ See **`README.md`** for feature overview and quick start guide.
 | `shared.css` | 15K | CSS variables (colors, fonts, radii, shadows), nav, footer, buttons, dark mode, responsive breakpoints |
 | `footer.js` | 65 | Renders footer into `#site-footer-root` with branding from localStorage config |
 | `error-capture.js` | 67 | Global error handler — POSTs errors to `client-errors` function |
+| `site-init.js` | 3 | Applies saved dark/light theme before first paint (synchronous, no defer) |
+| `adsense.js` | 35 | Google AdSense integration |
+| `gtag-init.js` | 4 | Google Analytics (gtag) initialization |
 
 ### Supporting Scripts
 | File | Purpose |
 |------|---------|
 | `stripe-config.js` | Exports `STRIPE_PUBLISHABLE_KEY` and `STRIPE_PRICES` for client use |
 | `legal.js` | Markdown → HTML parser for legal pages (frontmatter, TOC, safe links) |
+| `shared-calcs.js` | Common calc utilities: `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()` |
+| `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` for calculators |
+| `index-init.js` / `index-events.js` | Landing page init and event wiring |
+| `login.js` | Login/signup page logic |
+| `pricing.js` | Pricing page logic |
+| `about-init.js` | About page init |
+| `contact.js` | Contact page form handling |
+| `suburb-insights.js` | Suburb insights page JS |
+| `state-hub-search.js` | State hub client-side search by name/postcode |
 
 ## Critical Patterns & Conventions
 
@@ -79,15 +95,16 @@ See **`README.md`** for feature overview and quick start guide.
 - **PDF Export**: `exportPDF()` generates standalone HTML snapshot of current state
 
 ### Calculator Architecture (Unified Pattern)
-- **All 10 free calculators** use identical HTML/CSS structure + `tools.css` (no duplication)
+- **9 free calculators** in `/tools/` use identical HTML/CSS structure + `tools.css` (no duplication)
 - **Template pattern**: `.tool-header` → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (outputs) → `.tool-cta` → `.tool-resources` → footer div
 - **Shared utilities**: `shared-calcs.js` contains `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()`, etc.
+- **Live market data**: `market-rate.js` provides `window.MarketRate` (RBA cash rate, ABS state medians) — included in calculators that need current rates
 - **Injected components**:
   - `auth-nav.js` — injects site nav + profile dropdown (optional for calculators)
   - `footer.js` — injects footer into `#site-footer-root` div
   - `error-capture.js` — global error handler POSTs to `client-errors` function
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
-- **To update all calculators**: Edit `tools.css` (no need to touch 10 HTML files)
+- **To update all calculators**: Edit `tools.css` (no need to touch individual HTML files)
 
 ### Suburb Insights System (14,512 pages)
 - **Data pipeline**: `fetch-abs-data.js` → `data/abs-suburbs.json` → `generate-suburbs-data.js` → `data/suburbs.json` → `build-suburbs.js` → HTML pages
@@ -169,15 +186,15 @@ Files intentionally NOT blocked (needed at runtime):
 
 ## Australian Geo-Targeting & SEO (March 2026)
 
-### All 10 Calculators Now Australian-Optimized
+### All 9 Calculators Now Australian-Optimized
 - ✅ All titles include "Australian" for geo-targeting (e.g., "Australian Rental Yield Calculator")
 - ✅ All meta descriptions emphasize Australian focus + no signup messaging
-- ✅ Social sharing tags (og:image, twitter:image) added to all 10 calculators
-- ✅ 10-deep free calculator suite linked on landing page tools grid (responsive 2-col desktop, 1-col mobile)
-- ✅ Government resources sections on all 10 calculators (ATO, ASIC, RBA, APRA, state revenue offices)
+- ✅ Social sharing tags (og:image, twitter:image) added to all calculators
+- ✅ Free calculator suite linked on landing page tools grid (responsive 2-col desktop, 1-col mobile)
+- ✅ Government resources sections on all calculators (ATO, ASIC, RBA, APRA, state revenue offices)
 - ✅ Social share buttons (Facebook, Twitter, LinkedIn) on key calculators
 - ✅ Related calculator cross-links encourage exploration & reduce bounce rate
-- ✅ Sitemap.xml updated with all 10 calculator URLs + proper priorities
+- ✅ Sitemap.xml updated with all calculator URLs + proper priorities
 
 ### For Google Search Console Setup
 - Submit sitemap.xml: https://search.google.com/search-console
@@ -186,6 +203,7 @@ Files intentionally NOT blocked (needed at runtime):
 
 ## Recent Changes (March 2026)
 - ✅ Deleted user logout — `verify` action now checks user existence
+- ✅ Admin auth hardened — verify action never falls back to localStorage role; access denied if token check fails
 - ✅ Admin user login status — popup shows "Active", "Email Verified", or "Awaiting Verification"
 - ✅ Header styling — increased bar height & button padding for mobile readability
 - ✅ Australian geo-targeting — all calculator titles, descriptions, and resources emphasize Australia focus
@@ -196,3 +214,22 @@ Files intentionally NOT blocked (needed at runtime):
 - ✅ **Build optimization** — defer scripts, pre-computed related suburbs (O(n) build), .gitignore cleanup
 - ✅ Sitemap split: `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,520 URLs) indexed by `sitemap.xml`
 - ✅ **Security: blocked dev files from public CDN** — `.netlifyignore` prevents CLAUDE.md, README.md, CODEBASE.md, TODO.md, ERRORS.json, build scripts, and raw data files from being uploaded; `netlify.toml` force-404 redirects act as secondary safety net
+- ✅ **Admin Config tab split** into Settings, Features, Integrations, Branding (14 admin tabs total now)
+- ✅ **Admin new tabs** — About Page, Legal Pages, Suburbs added to admin dashboard
+- ✅ **showcase.html** — app gallery/showcase page with real mobile screenshots (light + dark)
+- ✅ **Australian mortgage intelligence** — LVR badge, auto stamp duty estimate, LMI calc, FHOG display
+- ✅ **Fortnightly repayment benefit** shown in Repayments tab
+- ✅ **Offset account** factored into 30-year projection
+- ✅ **Scenario improvements** — photo preserved on save/restore, saved count badge fixed
+- ✅ **PWA button fixes** — removed touchend preventDefault that was blocking click events on iOS
+- ✅ **Mobile scroll fixes** — sidebar, settle date, amortisation table no longer cause horizontal scroll
+- ✅ **CSP inline handler fixes** — moved inline event handlers to JS to fix script-src-attr violations
+- ✅ **Dark/light mode** — system-wide fix across app, admin, and account panel
+- ✅ **Google Sign-In** added to login page
+- ✅ **Google AdSense** integrated via `adsense.js`
+- ✅ **market-rate.js** — live RBA cash rate + ABS state median prices for calculator pages
+- ✅ **shared-calcs.js** — common utility functions extracted for reuse across all calculators
+- ✅ **JS refactor** — page logic split into init + events files (app-init, app-events, admin-events, etc.)
+- ✅ **address-suggest** Netlify function added (rate-limited, 30 req/min)
+- ✅ **market-data** Netlify function added for suburb insights market data
+- ✅ **lvrColor / st bug fixes** — ReferenceErrors in app.js and admin.js causing recalc crashes on iOS
