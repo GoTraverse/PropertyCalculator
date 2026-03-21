@@ -3635,6 +3635,8 @@
     const cleanUrl = window.location.pathname;
     window.history.replaceState(null, '', cleanUrl);
   }
+  // Load session early so updateSavedCount has auth for the cloud fetch
+  try{ var _earlySession = lsGet(SESSION_KEY); if(_earlySession) _currentUser = JSON.parse(_earlySession); }catch(e){}
   const _hadDraft = restoreDraft();
   try { recalc(); } catch(e) { console.error('recalc init error:', e); }
   updatePropertyDetails();
