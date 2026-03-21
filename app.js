@@ -73,7 +73,7 @@
   function syncInput(key){const i=document.getElementById('inp-'+key),r=document.getElementById('rng-'+key);if(i)i.value=r.value;rl(key,parseFloat(r.value));}
   function rl(key,val){
     const el=document.getElementById('lbl-'+key);if(!el)return;
-    if(['price','savings','bank','conv','pest','r1','r2','r3','r4','r5','r6','rent'].includes(key))el.textContent=fmt(val);
+    if(['price','savings','bank','conv','pest','r1','r2','r3','r4','r5','r6','rent','offset'].includes(key))el.textContent=fmt(val);
     else if(key==='term')el.textContent=val+' yrs';
     else if(key==='weeks')el.textContent=val;
     else el.textContent=val.toFixed(key==='cont'?0:1)+'%';
@@ -609,7 +609,7 @@
     const cashAfterOverlap = remaining-overlapCost;
 
     // ─── sidebar labels ───
-    ['price','savings','depp','govt','rate','term','cont','rent','weeks'].forEach(k=>{
+    ['price','savings','depp','govt','rate','term','cont','rent','weeks','offset'].forEach(k=>{
       const el=document.getElementById('inp-'+k);if(el)rl(k,parseFloat(el.value)||0);
     });
     // sidebar reno total
@@ -928,36 +928,45 @@
     if(olDurCal)olDurCal.textContent=weeks>0?`Weeks 1–${weeks} post-settlement`:'Immediate move-in';
 
     // ─── TAB 6: RISKS ───
-    const riskScore=Math.min(90,Math.max(15,
-      20+(depPct<5?20:depPct<10?10:0)+(rate>7?15:rate>6?5:0)+(govtPct>20?-8:0)
-        +(remaining<5000?25:remaining<15000?10:0)+(weeks>8?10:weeks>4?5:0)
-    ));
+    // Risk score — LVR-based (primary), then rate, cash buffer, overlap
+    const lvrRisk   = lvr > 90 ? 25 : lvr > 85 ? 15 : lvr > 80 ? 8 : 0;
+    const rateRisk  = rate > 7.5 ? 15 : rate > 6.5 ? 10 : rate > 6 ? 5 : 0;
+    const bufferRisk= remaining < 5000 ? 25 : remaining < 15000 ? 10 : remaining < 30000 ? 5 : 0;
+    const overlapRisk = weeks > 8 ? 10 : weeks > 4 ? 5 : 0;
+    const govtBonus = govtPct > 20 ? -8 : govtPct > 10 ? -4 : 0;
+    const riskScore = Math.min(90, Math.max(15, 20 + lvrRisk + rateRisk + bufferRisk + overlapRisk + govtBonus));
     const rewardScore=Math.min(95,Math.max(25,
-      35+(govtPct>0?20:0)+(remaining>20000?15:remaining>10000?8:0)+(renoTotal>10000?10:5)+(price<650000?5:0)
+      35+(govtPct>0?20:0)+(remaining>20000?15:remaining>10000?8:0)+(renoTotal>10000?10:5)+(price<650000?5:0)+(lvr<=80&&price>0?8:0)
     ));
     css('risk-meter','width',riskScore+'%');css('reward-meter','width',rewardScore+'%');
-    const _riskMsg = riskScore<30 ? 'Low risk — strong equity and healthy cash buffer.'
-      : riskScore<50 ? (govtPct>0 ? 'Moderate risk — manageable with the government scheme reducing LVR.' : 'Moderate risk — consider increasing your deposit to strengthen your position.')
-      : riskScore<70 ? 'Medium-high risk — consider increasing deposit or savings buffer.'
-      : 'Higher risk — savings are tight. Build a larger buffer before proceeding.';
+    const _riskMsg = riskScore<30 ? 'Low risk — strong LVR and healthy cash buffer.'
+      : riskScore<50 ? (lvr<=80 ? 'Moderate risk — LVR is manageable, watch your cash buffer.' : 'Moderate risk — consider increasing deposit to get below 80% LVR.')
+      : riskScore<70 ? 'Medium-high risk — LVR or cash buffer needs attention before proceeding.'
+      : 'Higher risk — high LVR and/or thin buffer. Build more savings before buying.';
     set('risk-desc', _riskMsg);
-    set('reward-desc',rewardScore>70?'High reward potential — strong equity uplift through renovation and capital growth.':rewardScore>50?(govtPct>0?'Good reward potential — renovation and scheme create solid upside.':'Good reward potential — renovation can create solid equity uplift.'):'Modest reward potential — consider a higher reno budget or applying a govt scheme.');
-    const m2=calcMonthly(loanAmt,rate+3,term); // APRA requires lenders to stress-test at +3%
+    set('reward-desc',rewardScore>70?'High reward potential — strong equity position and capital growth exposure.':rewardScore>50?(govtPct>0?'Good reward potential — renovation and scheme create solid upside.':'Good reward potential — renovation can create solid equity uplift.'):'Modest reward potential — consider a higher reno budget or govt scheme.');
+    const m2=calcMonthly(loanAmt,rate+3,term); // APRA serviceability buffer: +3%
     set('rr-rate-delta',fmt(m2-monthly));
     set('rr-dep-pct',pctS(depPct));set('rr-pool-val',fmtK(remaining));
     set('rr-overlap-cost',fmt(totalOverlap));set('rr-overlap-weeks',weeks);
     set('rr-dep-show',fmtK(deposit));set('rr-reno-show',fmtK(renoTotal));
     set('rr-price-show',fmtK(price));set('rr-govt-show',pctS(govtPct));
     set('rr-dep-ltg',fmtK(deposit));set('rr-price-ltg',fmtK(price));
-    // Conditionally show/hide risk rows that only apply in specific scenarios
+    // Conditionally show/hide risk rows
     const rriOverlap = document.getElementById('rri-overlap');
     if(rriOverlap) rriOverlap.style.display = (weeks>0) ? '' : 'none';
     const rriEquity = document.getElementById('rri-equity');
-    if(rriEquity) rriEquity.style.display = (depPct<20) ? '' : 'none';
+    if(rriEquity) rriEquity.style.display = (lvr>80 && price>0) ? '' : 'none';
     const rriGovt = document.getElementById('rri-govt-reward');
     if(rriGovt) rriGovt.style.display = (govtPct>0) ? '' : 'none';
+    // LMI: reward row (no LMI) when LVR ≤ 80%; risk row (LMI required) when LVR > 80%
     const rriLmi = document.getElementById('rri-lmi');
-    if(rriLmi) rriLmi.style.display = (govtPct>0) ? '' : 'none';
+    if(rriLmi) rriLmi.style.display = (price>0 && lvr<=80) ? '' : 'none';
+    const rriLmiRisk = document.getElementById('rri-lmi-risk');
+    if(rriLmiRisk) {
+      rriLmiRisk.style.display = (price>0 && lvr>80) ? '' : 'none';
+      set('rr-lmi-est', fmt(calcLMI(loanAmt, price)));
+    }
   }
 
   function showTab(id,btn){
@@ -1491,7 +1500,7 @@
   function collectCurrentState(){
     const fields = [
       'inp-price','inp-savings','inp-depp','inp-govt','inp-rate','inp-term',
-      'inp-cont','inp-rent','inp-weeks','inp-settle-date',
+      'inp-cont','inp-rent','inp-weeks','inp-settle-date','inp-offset',
       'pd-address','pd-suburb','pd-state','pd-bed','pd-bath','pd-car',
       'pd-land','pd-house','pd-year','pd-type','pd-url','pd-notes',
       'pd-status','pd-status-date','ag-agency','ag-name','ag-phone','ag-email',
@@ -1847,7 +1856,7 @@
     applyRentToggle(newRent);
 
     if(photoSrc) applyPropPhoto(photoSrc); else clearPropPhoto();
-    ['price','savings','depp','govt','rate','term','cont','rent','weeks'].forEach(k => {
+    ['price','savings','depp','govt','rate','term','cont','rent','weeks','offset'].forEach(k => {
       const inp = document.getElementById('inp-'+k), rng = document.getElementById('rng-'+k);
       if(inp && rng) rng.value = inp.value;
     });
@@ -2183,6 +2192,7 @@
   // ── PROJECTION (items 6,7,8,9) ──
   let projData = []; // shared so tooltip can read it
   let projDataExtra = []; // early-payoff scenario
+  let projDataOffset = []; // offset account scenario
 
   function drawProjection(){
     const price   = v('inp-price'); if(!price) return;
@@ -2242,6 +2252,30 @@
     const stdPayoffQ    = projData.find(d => d.loanBal <= 0.01)?.q ?? totalQ;
     const timeSavedQ    = Math.max(0, stdPayoffQ - (extraPaidOffQ ?? totalQ));
 
+    // ── Build offset account data ──
+    const offsetBal = parseFloat(document.getElementById('inp-offset')?.value || '0') || 0;
+    projDataOffset = [];
+    var offsetPaidOffQ = null;
+    var offsetTotalInterest = 0;
+    if(offsetBal > 0){
+      let loanBalOff = loanAmt;
+      for(let q = 0; q <= totalQ; q++){
+        if(q > 0){
+          for(let m = 0; m < 3; m++){
+            const effBal = Math.max(0, loanBalOff - offsetBal);
+            const interest = effBal * mRate;
+            offsetTotalInterest += interest;
+            const principal = monthly - interest;
+            loanBalOff = Math.max(0, loanBalOff - principal);
+          }
+        }
+        if(loanBalOff <= 0.01 && offsetPaidOffQ === null) offsetPaidOffQ = q;
+        projDataOffset.push({ q, yr: q/4, loanBal: Math.max(0, loanBalOff) });
+      }
+    }
+    const offsetInterestSaved = offsetBal > 0 ? Math.max(0, stdTotalInterest - offsetTotalInterest) : 0;
+    const offsetTimeSavedQ = offsetBal > 0 ? Math.max(0, stdPayoffQ - (offsetPaidOffQ ?? totalQ)) : 0;
+
     // Update early payoff results panel
     const epResult = document.getElementById('early-payoff-result');
     if(epResult){
@@ -2269,11 +2303,38 @@
       }
     }
 
+    // ── Offset result panel ──
+    const offsetCard = document.getElementById('proj-offset-card');
+    if(offsetCard) offsetCard.style.display = offsetBal > 0 ? '' : 'none';
+    set('proj-offset-lbl', fmt(offsetBal));
+    const offsetResult = document.getElementById('proj-offset-result');
+    if(offsetResult){
+      if(offsetBal > 0 && offsetInterestSaved > 100){
+        const oSavedYrs = Math.floor(offsetTimeSavedQ / 4);
+        const oSavedMos = Math.round((offsetTimeSavedQ % 4) * 3);
+        const oTimeStr = oSavedYrs > 0 ? `${oSavedYrs} yr${oSavedYrs!==1?'s':''} ${oSavedMos>0?oSavedMos+' mo':''}`.trim() : `${oSavedMos} months`;
+        offsetResult.innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+            <div style="background:rgba(91,143,171,0.08);border:1px solid rgba(91,143,171,0.2);border-radius:6px;padding:12px 14px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Loan Paid Off Sooner</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--sky);">${oTimeStr}</div>
+            </div>
+            <div style="background:rgba(91,143,171,0.08);border:1px solid rgba(91,143,171,0.2);border-radius:6px;padding:12px 14px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Interest Saved</div>
+              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--sky);">${fmtK(offsetInterestSaved)}</div>
+            </div>
+          </div>`;
+        offsetResult.style.display = 'block';
+      } else { offsetResult.style.display = 'none'; }
+    }
+
     // ── Legend visibility ──
     const _lgGovt = document.getElementById('proj-legend-govt');
     if(_lgGovt) _lgGovt.style.display = govtPct > 0 ? 'flex' : 'none';
     const _lgExtra = document.getElementById('proj-legend-extra');
     if(_lgExtra) _lgExtra.style.display = extraPayment > 0 ? 'flex' : 'none';
+    const _lgOffset = document.getElementById('proj-legend-offset');
+    if(_lgOffset) _lgOffset.style.display = offsetBal > 0 ? 'flex' : 'none';
 
     // ── Settlement year label helpers ──
     const settleYr = getSettleYear();
@@ -2388,13 +2449,16 @@
     html += mkPath(projData, 'loanBal',  '#5B8FAB', '6 3');
     html += mkPath(projData, 'govtOwed', '#C4704A');
 
-    // Early payoff line (item #9) — only draw if extra payment is set
+    // Early payoff line — only draw if extra payment is set
     if(extraPayment > 0) html += mkPath(projDataExtra, 'loanBal', '#9B7FE8', '5 2', 2.2);
+    // Offset account line — dashed sky blue, drawn on top of standard loan line
+    if(offsetBal > 0 && projDataOffset.length) html += mkPath(projDataOffset, 'loanBal', '#5B8FAB', '3 2', 2.0);
 
     // Milestone markers
     if(payoffQ != null && payoffQ <= totalQ){ const d=projData[payoffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5A9E7B" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5A9E7B">PAID OFF</text>`; }
     if(buyoutQ != null && buyoutQ <= totalQ){ const d=projData[buyoutQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.baseVal)}" r="5" fill="#7B9E87" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.baseVal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#7B9E87">BUY OUT</text>`; }
     if(extraPayment > 0 && extraPaidOffQ != null){ const d=projDataExtra[extraPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#9B7FE8" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#9B7FE8">EARLY 🚀</text>`; }
+    if(offsetBal > 0 && offsetPaidOffQ != null && projDataOffset[offsetPaidOffQ]){ const d=projDataOffset[offsetPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5B8FAB" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5B8FAB">OFFSET OFF</text>`; }
 
     // Hit overlay — passes totalQ so hover snaps to quarters
     html += `<rect id="proj-hit" x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="transparent" style="cursor:crosshair;"/>`;
@@ -2417,9 +2481,11 @@
         const qi = Math.min(q, projData.length - 1);
         const d  = projData[qi];
         const de = projDataExtra[qi];
+        const doff = projDataOffset[qi];
         const eq = d.yourEquity;
         const isMilestone = qi === payoffQ || qi === buyoutQ;
         const extraLoanStr = (extraPayment > 0 && de) ? `<span style="color:#9B7FE8;font-size:9px;display:block;">(+extra: ${fmtK(de.loanBal)})</span>` : '';
+        const offsetLoanStr = (offsetBal > 0 && doff) ? `<span style="color:#5B8FAB;font-size:9px;display:block;">(offset: ${fmtK(doff.loanBal)})</span>` : '';
         const wholeYr  = Math.floor(d.yr);
         const qNum     = (qi % 4) || 4; // 1-based quarter within year
         const calLabel = settleYr ? `${settleYr + wholeYr} Q${qNum}` : `Yr ${wholeYr} Q${qNum}`;
@@ -2427,7 +2493,7 @@
         return `<div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
           +`<span style="color:var(--gold);white-space:nowrap;">${label}${isMilestone?' ★':''}</span>`
           +`<span>${fmtK(d.baseVal)}</span>`
-          +`<span style="color:var(--sky)">${fmtK(d.loanBal)}${extraLoanStr}</span>`
+          +`<span style="color:var(--sky)">${fmtK(d.loanBal)}${extraLoanStr}${offsetLoanStr}</span>`
           +`<span style="color:var(--terracotta)">${fmtK(d.govtOwed)}</span>`
           +`<span style="color:${eq>0?'var(--reward-green)':'var(--risk-red)'};font-weight:600;">${fmtK(eq)}</span></div>`;
       };

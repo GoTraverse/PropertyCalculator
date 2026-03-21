@@ -211,6 +211,12 @@
     <input type="range" id="rng-term" min="5" max="50" step="1" value="5">
   </div>
   <div class="ig">
+    <div class="il">Offset Account <span id="lbl-offset">$0</span></div>
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-offset" value="0" min="0" max="5000000" step="1000" placeholder="0" oninput="syncRange('offset');dRecalc()"></div>
+    <input type="range" id="rng-offset" min="0" max="200000" step="1000" value="0" oninput="syncInput('offset');dRecalc()">
+    <div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:3px;font-style:italic;">Reduces effective interest — shown in Projection tab</div>
+  </div>
+  <div class="ig">
     <div class="il" style="font-size:12px;">Est. Settlement Date <span id="lbl-settle-date" style="font-size:11px;color:rgba(201,168,76,0.7);"></span></div>
     <div class="iw" style="position:relative;">
       <input type="date" id="inp-settle-date" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;color-scheme:dark;">
@@ -924,9 +930,10 @@
       <div class="rr-grid">
         <div>
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--risk-red);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--risk-red)">⚠ Risks</div>
-          <div class="rri risk"><div class="rric">💸</div><div><div class="rrt">Interest Rate Sensitivity</div><div class="rrb">A 2% rate rise would add <strong id="rr-rate-delta">$xxx</strong>/month to repayments.</div></div></div>
+          <div class="rri risk"><div class="rric">💸</div><div><div class="rrt">Interest Rate Sensitivity</div><div class="rrb">A 3% rate rise (APRA buffer) would add <strong id="rr-rate-delta">$xxx</strong>/month to repayments.</div></div></div>
           <div class="rri risk"><div class="rric">🏚</div><div><div class="rrt">Hidden Structural Issues</div><div class="rrb">Unforeseen defects can blow the renovation budget. B&P inspection is essential.</div></div></div>
           <div class="rri risk" id="rri-equity"><div class="rric">📉</div><div><div class="rrt">Low Equity Buffer</div><div class="rrb">With <span id="rr-dep-pct">2%</span> personal deposit, any market correction leaves little buffer.</div></div></div>
+          <div class="rri risk" id="rri-lmi-risk" style="display:none;"><div class="rric">💳</div><div><div class="rrt">LMI Required</div><div class="rrb">LVR above 80% triggers Lenders Mortgage Insurance — estimated <strong id="rr-lmi-est">$0</strong> added to your loan. Ask your lender about the First Home Guarantee to avoid this.</div></div></div>
           <div class="rri risk"><div class="rric">🔨</div><div><div class="rrt">Reno Cost Blowouts</div><div class="rrb">Reno pool is <span id="rr-pool-val">$24k</span>. Scope creep and tradie delays can rapidly eat through this.</div></div></div>
           <div class="rri risk" id="rri-overlap"><div class="rric">🏠</div><div><div class="rrt">Dual Housing Costs</div><div class="rrb">Paying <span id="rr-overlap-cost">$4k</span> in combined rent + mortgage during your <span id="rr-overlap-weeks">4</span>-week overlap reduces your reno buffer.</div></div></div>
         </div>
@@ -981,6 +988,7 @@
           <span id="proj-legend-govt" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#C4704A;display:inline-block;border-radius:2px;"></span>Govt Equity Owed</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#5A9E7B;display:inline-block;border-radius:2px;opacity:0.4;"></span>Your Equity</span>
           <span id="proj-legend-extra" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;"></span>Early Payoff</span>
+          <span id="proj-legend-offset" style="display:none;align-items:center;gap:5px;"><span style="width:20px;height:3px;border-top:3px dashed #5B8FAB;display:inline-block;"></span>With Offset</span>
         </div>
         <div class="proj-desktop-hint" style="font-size:11px;color:var(--slate);margin-bottom:8px;font-style:italic;">Click or hover to see quarterly values · Chart is quarterly (120 data points)</div>
         <div id="proj-svg-wrap" style="overflow:hidden;position:relative;width:100%;aspect-ratio:800/300;">
@@ -1044,6 +1052,18 @@
         <div style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px;color:var(--slate);">
           <span style="width:20px;height:3px;border-top:3px dashed #9B7FE8;display:inline-block;flex-shrink:0;"></span>
           Purple dashed line = loan balance with extra payments
+        </div>
+      </div>
+
+      <!-- Offset account impact card -->
+      <div class="card" id="proj-offset-card" style="display:none;">
+        <div class="ca" style="background:var(--sky)"></div>
+        <h3>Offset Account Impact</h3>
+        <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:4px;">With <strong id="proj-offset-lbl">$0</strong> sitting in an offset account, your effective interest is reduced each month. The same repayment pays off more principal — shortening your loan term and saving significant interest.</p>
+        <div id="proj-offset-result" style="display:none;"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px;color:var(--slate);">
+          <span style="width:20px;height:3px;border-top:3px dashed #5B8FAB;display:inline-block;flex-shrink:0;"></span>
+          Dashed blue line = loan balance with offset account
         </div>
       </div>
 
