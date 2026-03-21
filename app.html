@@ -212,8 +212,8 @@
   </div>
   <div class="ig">
     <div class="il">Offset Account <span id="lbl-offset">$0</span></div>
-    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-offset" value="0" min="0" max="5000000" step="1000" placeholder="0" oninput="syncRange('offset');dRecalc()"></div>
-    <input type="range" id="rng-offset" min="0" max="200000" step="1000" value="0" oninput="syncInput('offset');dRecalc()">
+    <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-offset" value="0" min="0" max="5000000" step="1000" placeholder="0"></div>
+    <input type="range" id="rng-offset" min="0" max="200000" step="1000" value="0">
     <div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:3px;font-style:italic;">Reduces effective interest — shown in Projection tab</div>
   </div>
   <div class="ig">
@@ -228,7 +228,7 @@
   <div class="s-head">State &amp; Buyer Type</div>
   <div class="ig">
     <div class="il" style="margin-bottom:5px;">State or Territory <span style="font-size:9px;color:rgba(201,168,76,0.6);">— auto-calculates stamp duty</span></div>
-    <select id="inp-state" oninput="dRecalc()" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);outline:none;cursor:pointer;">
+    <select id="inp-state" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);outline:none;cursor:pointer;">
       <option value="">Select state…</option>
       <option value="nsw">New South Wales (NSW)</option>
       <option value="vic">Victoria (VIC)</option>
@@ -242,11 +242,11 @@
   </div>
   <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px;margin-bottom:2px;">
     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-      <input type="checkbox" id="inp-fhb" onchange="dRecalc()" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
+      <input type="checkbox" id="inp-fhb" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
       <span style="font-size:12px;color:rgba(245,240,232,0.7);">First home buyer</span>
     </label>
     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-      <input type="checkbox" id="inp-new-prop" onchange="dRecalc()" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
+      <input type="checkbox" id="inp-new-prop" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">
       <span style="font-size:12px;color:rgba(245,240,232,0.7);">New property / off the plan</span>
     </label>
   </div>

@@ -67,7 +67,7 @@ document.querySelectorAll('input[id^="rng-"]').forEach(function(el){
 });
 
 // ── Generic calculator number inputs (inp-KEY → clamp + syncRange + dRecalc) ─
-var calcInputKeys = ['price','savings','depp','govt','rate','term','cont','rent','weeks'];
+var calcInputKeys = ['price','savings','depp','govt','rate','term','cont','rent','weeks','offset'];
 calcInputKeys.forEach(function(key){
   var el = document.getElementById('inp-' + key);
   if(!el) return;
@@ -78,6 +78,16 @@ calcInputKeys.forEach(function(key){
     dRecalc();
   });
 });
+
+// ── State dropdown ─────────────────────────────────────────────────────────────
+var stateSelect = document.getElementById('inp-state');
+if(stateSelect) stateSelect.addEventListener('input', dRecalc);
+
+// ── First home buyer / new property checkboxes ────────────────────────────────
+var fhbCheck = document.getElementById('inp-fhb');
+if(fhbCheck) fhbCheck.addEventListener('change', dRecalc);
+var newPropCheck = document.getElementById('inp-new-prop');
+if(newPropCheck) newPropCheck.addEventListener('change', dRecalc);
 
 // ── Settle date ───────────────────────────────────────────────────────────────
 var settleDate = document.getElementById('inp-settle-date');
