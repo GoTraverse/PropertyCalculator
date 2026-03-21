@@ -36,7 +36,7 @@ var openSavedBtn = document.getElementById('open-saved-btn');
 if(openSavedBtn) openSavedBtn.addEventListener('click', openScenariosModal);
 var hdrPdfBtn = document.getElementById('hdr-pdf-btn');
 if(hdrPdfBtn) hdrPdfBtn.addEventListener('click', function(){
-  if(window.isPro()) window.showPDFOptionsPopup(); else window.requirePro('PDF Export');
+  if(window.isPro()) window.showPDFOptionsPopup(); else window.requirePro('Export');
 });
 
 // ── Header photo upload zone ──────────────────────────────────────────────────
@@ -280,7 +280,7 @@ if(splashNewBtn) splashNewBtn.addEventListener('click', splashNewScenario);
 var splashLibraryBtn = document.getElementById('splash-library-btn');
 if(splashLibraryBtn) splashLibraryBtn.addEventListener('click', splashOpenLibrary);
 
-// ── PDF options modal ─────────────────────────────────────────────────────────
+// ── Export options modal ─────────────────────────────────────────────────────
 var pdfOptionsModal = document.getElementById('pdf-options-modal');
 if(pdfOptionsModal) pdfOptionsModal.addEventListener('click', function(e){ if(e.target === this) closePDFOptionsModal(); });
 var pdfOptionsCloseBtn = document.getElementById('pdf-options-close-btn');
@@ -289,6 +289,43 @@ var pdfCancelBtn = document.getElementById('pdf-cancel-btn');
 if(pdfCancelBtn) pdfCancelBtn.addEventListener('click', function(){ window.closePDFOptionsModal(); });
 var pdfGenerateBtn = document.getElementById('pdf-generate-btn');
 if(pdfGenerateBtn) pdfGenerateBtn.addEventListener('click', function(){ window.showPDFPreview(); });
+
+// ── Export format toggle buttons ─────────────────────────────────────────────
+var exportFormatBtns = document.getElementById('export-format-btns');
+if(exportFormatBtns) exportFormatBtns.addEventListener('click', function(e){
+  var btn = e.target.closest('.export-format-btn');
+  if(!btn) return;
+  var fmt = btn.getAttribute('data-format');
+  window._exportFormat = fmt;
+  exportFormatBtns.querySelectorAll('.export-format-btn').forEach(function(b){
+    if(b === btn){
+      b.style.background = '#1C1C1E';
+      b.style.color = '#C9A84C';
+      b.style.fontWeight = '600';
+      b.classList.add('active');
+    } else {
+      b.style.background = 'white';
+      b.style.color = '#1C1C1E';
+      b.style.fontWeight = 'normal';
+      b.classList.remove('active');
+    }
+  });
+  var pdfOnly = (fmt === 'pdf' || fmt === 'html');
+  var layoutSec = document.getElementById('pdf-layout-section');
+  var sectionsSec = document.getElementById('pdf-sections-section');
+  var appearanceSec = document.getElementById('pdf-appearance-section');
+  if(layoutSec) layoutSec.style.display = fmt === 'pdf' ? '' : 'none';
+  if(sectionsSec) sectionsSec.style.display = pdfOnly ? '' : 'none';
+  if(appearanceSec) appearanceSec.style.display = pdfOnly ? '' : 'none';
+  var hint = document.getElementById('export-format-hint');
+  var hints = {
+    pdf: 'Opens a printable report \u2014 use your browser\'s Print to save as PDF.',
+    csv: 'Downloads a spreadsheet-friendly file. Opens in Excel, Google Sheets, etc.',
+    html: 'Downloads a standalone HTML report you can open in any browser.',
+    txt: 'Downloads a plain text summary \u2014 great for email or notes.'
+  };
+  if(hint) hint.textContent = hints[fmt] || '';
+});
 
 // ── Dynamic cost items delegation (cost-items-purchase / cost-items-moveout) ──
 ['cost-items-purchase','cost-items-moveout'].forEach(function(listId){

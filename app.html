@@ -48,7 +48,7 @@
       <h1 id="page-title">New Property</h1>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0;">
         <p class="header-sub" id="header-sub-text" style="margin:0;flex:1;">Add property details in the Property tab to get started</p>
-        <div id="unsaved-badge" style="display:none;align-items:center;gap:4px;background:rgba(196,112,74,0.25);border:1px solid rgba(196,112,74,0.5);border-radius:10px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:9px;color:#E8956A;white-space:nowrap;flex-shrink:0;" title="Unsaved changes">● Unsaved</div>
+        <div id="unsaved-badge" style="display:none;align-items:center;gap:4px;background:rgba(196,112,74,0.25);border:1px solid rgba(196,112,74,0.5);border-radius:10px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:11px;color:#E8956A;white-space:nowrap;flex-shrink:0;" title="Unsaved changes">● Unsaved</div>
       </div>
       <div class="header-actions">
         <button id="mobile-sidebar-btn" title="Open calculator">⚙</button>
@@ -61,11 +61,11 @@
           ＋ New
         </button>
         <button class="export-btn hdr-desktop-btn" id="open-saved-btn" title="Browse saved scenarios">
-          📁 Library <span id="saved-count" style="display:none;background:var(--gold);color:var(--charcoal);border-radius:10px;padding:1px 6px;font-size:9px;margin-left:3px;vertical-align:middle;">0</span>
+          📁 Library <span id="saved-count" style="display:none;background:var(--gold);color:var(--charcoal);border-radius:10px;padding:1px 6px;font-size:11px;margin-left:3px;vertical-align:middle;">0</span>
         </button>
-        <button class="export-btn hdr-desktop-btn" id="hdr-pdf-btn" title="Export to PDF (Pro)">
+        <button class="export-btn hdr-desktop-btn" id="hdr-pdf-btn" title="Export (Pro)">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          PDF
+          Export
         </button>
 
       </div>
@@ -76,8 +76,8 @@
         <input type="file" id="photo-file-input" accept="image/*" style="display:none">
         <div class="upload-inner">
           <div style="font-size:22px;margin-bottom:6px;">📷</div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:rgba(245,240,232,0.7);">ADD PHOTO</div>
-          <div style="font-size:10px;color:rgba(245,240,232,0.4);margin-top:3px;">Click or drag & drop</div>
+          <div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;color:rgba(245,240,232,0.7);">ADD PHOTO</div>
+          <div style="font-size:12px;color:rgba(245,240,232,0.55);margin-top:3px;">Click or drag & drop</div>
         </div>
       </div>
       <div class="photo-caption" id="photo-caption"></div>
@@ -107,7 +107,7 @@
     <button class="tab" data-tab="overlap">04 · Rent Overlap</button>
     <button class="tab" data-tab="time">05 · Timeline</button>
     <button class="tab" id="tab-risks-btn" data-tab="risks">06 · Risks</button>
-    <button class="tab" id="tab-projection-btn" data-tab="projection">07 · Projection <span id="proj-lock" style="font-size:10px;opacity:0.5;">🔒</span></button>
+    <button class="tab" id="tab-projection-btn" data-tab="projection">07 · Projection <span id="proj-lock" style="font-size:12px;opacity:0.6;">🔒</span></button>
   </nav>
 <div class="app-body">
 
@@ -126,7 +126,7 @@
 
   <!-- Scenario feature toggles — moved to top for quick access -->
   <div style="display:flex;flex-direction:column;gap:8px;padding:10px 0 4px;">
-    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:2px;">Sections</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:2px;">Sections</div>
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div class="s-head" style="margin-bottom:0;font-size:11px;">🔨 Reno Tab</div>
       <div id="reno-toggle" style="width:38px;height:20px;background:var(--sage);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
@@ -193,7 +193,7 @@
     <div class="il">Deposit % <span id="lbl-depp">2.0%</span></div>
     <div class="iw"><input type="number" class="pct" id="inp-depp" value="0" min="2" max="20" step="0.5"><span class="isfx">%</span></div>
     <input type="range" id="rng-depp" min="2" max="20" step="0.5" value="2">
-    <div id="dep-hint" style="display:none;font-size:10px;color:rgba(201,168,76,0.65);margin-top:3px;font-style:italic;"></div>
+    <div id="dep-hint" style="display:none;font-size:12px;color:rgba(201,168,76,0.75);margin-top:3px;font-style:italic;"></div>
   </div>
   <div class="ig">
     <div class="il">Govt Scheme % <span id="lbl-govt">28.7%</span></div>
@@ -214,20 +214,20 @@
     <div class="il">Offset Account <span id="lbl-offset">$0</span></div>
     <div class="iw"><span class="ipfx">$</span><input type="number" id="inp-offset" value="0" min="0" max="5000000" step="1000" placeholder="0"></div>
     <input type="range" id="rng-offset" min="0" max="200000" step="1000" value="0">
-    <div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:3px;font-style:italic;">Reduces effective interest — shown in Projection tab</div>
+    <div style="font-size:12px;color:rgba(245,240,232,0.5);margin-top:3px;font-style:italic;">Reduces effective interest — shown in Projection tab</div>
   </div>
   <div class="ig">
     <div class="il" style="font-size:12px;">Est. Settlement Date <span id="lbl-settle-date" style="font-size:11px;color:rgba(201,168,76,0.7);"></span></div>
     <div class="iw" style="position:relative;">
       <input type="date" id="inp-settle-date" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;color-scheme:dark;">
     </div>
-    <div style="font-size:10px;color:rgba(245,240,232,0.3);margin-top:4px;font-style:italic;">Used to show calendar years in projection</div>
+    <div style="font-size:12px;color:rgba(245,240,232,0.5);margin-top:4px;font-style:italic;">Used to show calendar years in projection</div>
   </div>
 
   <hr class="div">
   <div class="s-head">State &amp; Buyer Type</div>
   <div class="ig">
-    <div class="il" style="margin-bottom:5px;">State or Territory <span style="font-size:9px;color:rgba(201,168,76,0.6);">— auto-calculates stamp duty</span></div>
+    <div class="il" style="margin-bottom:5px;">State or Territory <span style="font-size:11px;color:rgba(201,168,76,0.7);">— auto-calculates stamp duty</span></div>
     <select id="inp-state" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);outline:none;cursor:pointer;">
       <option value="">Select state…</option>
       <option value="nsw">New South Wales (NSW)</option>
@@ -255,7 +255,7 @@
   <!-- PURCHASE COSTS — dynamic -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
     <div class="s-head" style="margin-bottom:0;font-size:10px;letter-spacing:1.5px;">Purchase Costs</div>
-    <button class="add-cost-btn" id="add-cost-purchase-btn" style="width:auto;padding:4px 9px;font-size:9px;">＋ Add</button>
+    <button class="add-cost-btn" id="add-cost-purchase-btn" style="width:auto;padding:5px 10px;font-size:11px;">＋ Add</button>
   </div>
   <div class="cost-items-list" id="cost-items-purchase">
     <!-- Purchase costs seeded in JS -->
@@ -263,7 +263,7 @@
 
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;margin-bottom:8px;">
     <div class="s-head" style="margin-bottom:0;font-size:10px;letter-spacing:1.5px;color:var(--terracotta-light);">Move-Out Costs</div>
-    <button class="add-cost-btn" id="add-cost-moveout-btn" style="width:auto;padding:4px 9px;font-size:9px;">＋ Add</button>
+    <button class="add-cost-btn" id="add-cost-moveout-btn" style="width:auto;padding:5px 10px;font-size:11px;">＋ Add</button>
   </div>
   <div class="cost-items-list" id="cost-items-moveout">
     <!-- Move-out costs seeded in JS -->
@@ -337,9 +337,9 @@
 
         <!-- Shared with me section -->
         <div id="shared-section" style="display:none;margin-top:20px;">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:8px 0 6px;border-bottom:1px solid rgba(201,168,76,0.2);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+          <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:8px 0 6px;border-bottom:1px solid rgba(201,168,76,0.2);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
             <span>👥 Shared with me</span>
-            <span id="shared-count" style="color:rgba(201,168,76,0.5);font-size:9px;"></span>
+            <span id="shared-count" style="color:rgba(201,168,76,0.5);font-size:11px;"></span>
           </div>
           <div id="shared-grid"></div>
         </div>
@@ -351,19 +351,19 @@
   <div id="share-modal" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.7);">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,92vw);background:var(--warm-white);border-radius:6px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.4);">
       <div style="background:var(--charcoal);padding:16px 20px;">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:3px;">SHARE SCENARIO</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:3px;">SHARE SCENARIO</div>
         <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:white;">Share with another user</div>
         <div id="share-scenario-addr" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.5);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
       </div>
       <div style="padding:20px;">
         <p style="font-size:13px;color:var(--slate);line-height:1.7;margin-bottom:14px;">The person you share with can view and load this scenario. Enter their EquitySight account email.</p>
         <div style="margin-bottom:8px;">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Their email address</div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Their email address</div>
           <input id="share-email-input" type="email" placeholder="user@example.com"
             style="width:100%;padding:10px 12px;border:1px solid rgba(28,28,30,0.15);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:rgba(28,28,30,0.04);color:var(--charcoal);">
         </div>
         <div id="share-also-list" style="display:none;margin-bottom:12px;">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);margin-bottom:5px;">Currently shared with:</div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);margin-bottom:5px;">Currently shared with:</div>
           <div id="share-also-names" style="font-size:12px;color:var(--slate);line-height:1.8;"></div>
         </div>
         <div id="share-status" style="font-size:12px;min-height:18px;margin-bottom:12px;"></div>
@@ -429,9 +429,9 @@
               <div style="font-size:36px;">📷</div>
               <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Upload Photo</div>
               <div style="font-size:11px;">Click or drag & drop your property image</div>
-              <div style="font-size:10px;opacity:0.5;">JPG, PNG, WEBP supported</div>
+              <div style="font-size:12px;opacity:0.6;">JPG, PNG, WEBP supported</div>
             </div>
-            <div id="pd-photo-overlay" style="display:none;position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.7);display:flex;justify-content:space-between;align-items:center;">
+            <div id="pd-photo-overlay" style="display:none;position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.7);display:flex;justify-content:space-between;align-items:center;">
               <span id="pd-photo-label"></span>
               <button id="clear-prop-photo-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;font-size:11px;padding:3px 8px;border-radius:2px;cursor:pointer;font-family:'DM Mono',monospace;">✕ Remove</button>
             </div>
@@ -695,13 +695,6 @@
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">Based on your state, buyer type, and LVR. Estimates only — always verify with your solicitor.</p>
         <div id="smart-estimates-rows"></div>
       </div>
-      <!-- Related tools bar -->
-      <div class="related-tools-bar">
-        <span class="rtb-label">Go deeper:</span>
-        <a href="../tools/stamp-duty-calculator.html" target="_blank" class="rtb-link">🏛️ Stamp Duty</a>
-        <a href="../tools/first-home-buyer-grants-calculator.html" target="_blank" class="rtb-link">🤝 FHB Grants</a>
-        <a href="../tools/cost-of-purchase-calculator.html" target="_blank" class="rtb-link">💵 Full Cost Breakdown</a>
-      </div>
     </div>
 
     <!-- TAB 2: RENO -->
@@ -744,12 +737,6 @@
       <!-- Add item button -->
       <div style="text-align:center;margin-top:4px;">
         <button id="add-reno-item-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:9px 22px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Reno Item</button>
-      </div>
-      <!-- Related tools bar -->
-      <div class="related-tools-bar">
-        <span class="rtb-label">Go deeper:</span>
-        <a href="../tools/renovation-cost-calculator.html" target="_blank" class="rtb-link">🔨 Reno Cost Estimator</a>
-        <a href="../tools/house-flip-calculator.html" target="_blank" class="rtb-link">💰 House Flip Profit</a>
       </div>
     </div>
 
@@ -812,12 +799,6 @@
           </div>
         </div>
         <div id="svc-card" style="display:none;"></div>
-      </div>
-      <!-- Related tools bar -->
-      <div class="related-tools-bar">
-        <span class="rtb-label">Go deeper:</span>
-        <a href="../tools/loan-serviceability-calculator.html" target="_blank" class="rtb-link">📊 Loan Serviceability</a>
-        <a href="../tools/mortgage-stress-calculator.html" target="_blank" class="rtb-link">📈 Mortgage Stress Test</a>
       </div>
     </div>
 
@@ -935,7 +916,7 @@
           </div>
           <div class="tli">
             <div class="tld" style="color:var(--terracotta-light)"></div>
-            <div class="tlp" style="color:var(--terracotta-light)">Phase 05 <span id="tl-overlap-badge" style="display:inline-flex;align-items:center;background:rgba(196,112,74,0.18);color:var(--terracotta);font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border-radius:10px;margin-left:4px;"></span> <span class="tldr-cal" id="tl-overlap-dur-cal">Weeks 1–4 post-settlement</span></div>
+            <div class="tlp" style="color:var(--terracotta-light)">Phase 05 <span id="tl-overlap-badge" style="display:inline-flex;align-items:center;background:rgba(196,112,74,0.18);color:var(--terracotta);font-family:'DM Mono',monospace;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:4px;"></span> <span class="tldr-cal" id="tl-overlap-dur-cal">Weeks 1–4 post-settlement</span></div>
             <div class="tlt">Overlap Period</div>
             <div class="tldesc" id="tl-overlap-desc">You continue renting while renovations begin. Both rent and mortgage repayments are active during this window.</div>
             <div class="tldr" id="tl-overlap-dur" style="display:none;"></div>
@@ -981,13 +962,6 @@
           <div class="rri reward" id="rri-lmi"><div class="rric">🛡</div><div><div class="rrt">No LMI Required</div><div class="rrb">Avoiding Lenders Mortgage Insurance saves thousands in sunk costs.</div></div></div>
           <div class="rri reward"><div class="rric">💰</div><div><div class="rrt">Long-Term Capital Growth</div><div class="rrb">Your <span id="rr-dep-ltg">$13k</span> deposit on a <span id="rr-price-ltg">$650k</span> asset gives leveraged exposure to property appreciation.</div></div></div>
         </div>
-      </div>
-      <!-- Related tools bar -->
-      <div class="related-tools-bar">
-        <span class="rtb-label">Go deeper:</span>
-        <a href="../tools/mortgage-stress-calculator.html" target="_blank" class="rtb-link">📈 Mortgage Stress Test</a>
-        <a href="../tools/loan-serviceability-calculator.html" target="_blank" class="rtb-link">📊 Loan Serviceability</a>
-        <a href="../tools/equity-release-calculator.html" target="_blank" class="rtb-link">🔓 Equity Release</a>
       </div>
     </div>
 
@@ -1142,34 +1116,27 @@
         <div id="yield-results" style="display:none;">
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">
             <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Gross Yield</div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Gross Yield</div>
               <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--sage);" id="yield-gross">—</div>
             </div>
             <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Net Yield (est.)</div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Net Yield (est.)</div>
               <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--sage);" id="yield-net">—</div>
             </div>
             <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Rent</div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Rent</div>
               <div style="font-family:'DM Mono',monospace;font-size:22px;" id="yield-annual-rent">—</div>
             </div>
             <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Cashflow</div>
+              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Cashflow</div>
               <div style="font-family:'DM Mono',monospace;font-size:22px;" id="yield-cashflow">—</div>
             </div>
           </div>
-          <div style="font-family:'DM Mono',monospace;font-size:11px;" id="yield-verdict">—</div>
-          <div style="font-size:10px;color:var(--slate);margin-top:8px;line-height:1.5;">Net yield deducts ~8% PM fees, $2k rates, $1.5k insurance, 1% maintenance. Cashflow = net rent − mortgage. <a href="../tools/rental-yield-calculator.html" target="_blank" style="color:var(--sage);">Full yield analysis →</a></div>
+          <div style="font-family:'DM Mono',monospace;font-size:13px;" id="yield-verdict">—</div>
+          <div style="font-size:12px;color:var(--slate);margin-top:8px;line-height:1.5;">Net yield deducts ~8% PM fees, $2k rates, $1.5k insurance, 1% maintenance. Cashflow = net rent − mortgage.</div>
         </div>
       </div>
 
-      <!-- Related tools bar -->
-      <div class="related-tools-bar">
-        <span class="rtb-label">Go deeper:</span>
-        <a href="../tools/rental-yield-calculator.html" target="_blank" class="rtb-link">🏘 Rental Yield</a>
-        <a href="../tools/equity-release-calculator.html" target="_blank" class="rtb-link">🔓 Equity Release</a>
-        <a href="../tools/house-flip-calculator.html" target="_blank" class="rtb-link">💰 House Flip</a>
-      </div>
     </div>
 
   </main>
@@ -1239,13 +1206,13 @@
 </div>
 
 
-<!-- ══ PDF EXPORT OPTIONS MODAL ══ -->
+<!-- ══ EXPORT OPTIONS MODAL ══ -->
 <div id="pdf-options-modal" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;">
   <div style="background:#F5F0E8;border-radius:8px;width:min(520px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.55);">
     <!-- Header -->
     <div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">PDF EXPORT</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">EXPORT</div>
         <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#F5F0E8;">Export Options</div>
       </div>
       <button id="pdf-options-close-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
@@ -1253,9 +1220,21 @@
     <!-- Body -->
     <div style="padding:22px;">
 
-      <!-- Page Size & Orientation -->
+      <!-- Export Format -->
       <div style="margin-bottom:20px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Page Layout</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Export Format</div>
+        <div id="export-format-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="export-format-btn active" data-format="pdf" style="padding:9px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:#1C1C1E;color:#C9A84C;font-weight:600;transition:all 0.15s;">PDF</button>
+          <button class="export-format-btn" data-format="csv" style="padding:9px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">CSV</button>
+          <button class="export-format-btn" data-format="html" style="padding:9px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">HTML</button>
+          <button class="export-format-btn" data-format="txt" style="padding:9px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">TXT</button>
+        </div>
+        <div id="export-format-hint" style="font-size:12px;color:var(--slate);margin-top:8px;line-height:1.5;">Opens a printable report — use your browser's Print to save as PDF.</div>
+      </div>
+
+      <!-- Page Size & Orientation (PDF only) -->
+      <div id="pdf-layout-section" style="margin-bottom:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Page Layout</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
             <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Page Size</label>
@@ -1276,9 +1255,9 @@
         </div>
       </div>
 
-      <!-- Sections to include -->
-      <div style="margin-bottom:20px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Sections to Include</div>
+      <!-- Sections to include (PDF/HTML only) -->
+      <div id="pdf-sections-section" style="margin-bottom:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Sections to Include</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-financial" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Financial Snapshot</strong> — price, deposit, govt contribution, cash picture</span></label>
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-reno" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Renovation Budget</strong> — pool, itemised costs, contingency</span></label>
@@ -1291,9 +1270,9 @@
         </div>
       </div>
 
-      <!-- Appearance -->
-      <div style="margin-bottom:22px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Appearance</div>
+      <!-- Appearance (PDF/HTML only) -->
+      <div id="pdf-appearance-section" style="margin-bottom:22px;">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Appearance</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
             <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Colour Scheme</label>
@@ -1315,8 +1294,8 @@
 
       <!-- Action buttons -->
       <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
-        <button id="pdf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>
-        <button id="pdf-generate-btn" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">🖨 Generate PDF</button>
+        <button id="pdf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;color:#1C1C1E;">Cancel</button>
+        <button id="pdf-generate-btn" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">⬇ Export</button>
       </div>
     </div>
   </div>
