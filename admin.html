@@ -188,7 +188,9 @@
     <button class="admin-tab" data-tab="growth">Growth Data</button>
     <button class="admin-tab" data-tab="database">Database</button>
     <button class="admin-tab" data-tab="client-errors">Error Log</button>
-    <button class="admin-tab" data-tab="config">Configuration</button>
+    <button class="admin-tab" data-tab="settings">Settings</button>
+    <button class="admin-tab" data-tab="features">Features</button>
+    <button class="admin-tab" data-tab="integrations">Integrations</button>
     <button class="admin-tab" data-tab="branding">Branding</button>
     <button class="admin-tab" data-tab="email-templates">Email Templates</button>
     <button class="admin-tab" data-tab="about-page">About Page</button>
@@ -269,8 +271,8 @@
     </div>
   </div>
 
-  <!-- CONFIG TAB -->
-  <div class="admin-section" id="tab-config">
+  <!-- SETTINGS TAB -->
+  <div class="admin-section" id="tab-settings">
 
     <!-- Site Identity -->
     <div class="admin-card">
@@ -389,6 +391,16 @@
       </div>
     </div>
 
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <button class="btn-admin" id="save-config-btn">Save Settings</button>
+      <button class="btn-admin-outline" id="export-config-btn">Export JSON</button>
+    </div>
+    <div id="config-status" class="admin-status"></div>
+  </div>
+
+  <!-- FEATURES TAB -->
+  <div class="admin-section" id="tab-features">
+
     <!-- Feature Flags -->
     <div class="admin-card">
       <div class="admin-card-head">
@@ -474,6 +486,15 @@
       </div>
     </div>
 
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <button class="btn-admin" id="save-features-btn">Save Features</button>
+    </div>
+    <div id="features-status" class="admin-status"></div>
+  </div>
+
+  <!-- INTEGRATIONS TAB -->
+  <div class="admin-section" id="tab-integrations">
+
     <!-- Stripe Integration -->
     <div class="admin-card">
       <div class="admin-card-head"><h3>Stripe Integration</h3></div>
@@ -529,10 +550,9 @@
     </div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-      <button class="btn-admin" id="save-config-btn">Save All Configuration</button>
-      <button class="btn-admin-outline" id="export-config-btn">Export JSON</button>
+      <button class="btn-admin" id="save-integrations-btn">Save Integrations</button>
     </div>
-    <div id="config-status" class="admin-status"></div>
+    <div id="integrations-status" class="admin-status"></div>
   </div>
 
 

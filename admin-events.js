@@ -31,7 +31,9 @@ var tabCallbacks = {
   'schemes': loadSchemes,
   'growth': loadGrowthData,
   'client-errors': loadClientErrors,
-  'config': loadConfig,
+  'settings': loadConfig,
+  'features': loadConfig,
+  'integrations': loadConfig,
   'branding': loadConfig,
   'email-templates': loadEmailTemplates,
   'about-page': loadAboutPage,
@@ -73,6 +75,10 @@ if(ceSyncBtn) ceSyncBtn.addEventListener('click', syncErrorsToGitHub);
 });
 var saveConfigBtn = document.getElementById('save-config-btn');
 if(saveConfigBtn) saveConfigBtn.addEventListener('click', saveConfig);
+var saveFeaturesBtn = document.getElementById('save-features-btn');
+if(saveFeaturesBtn) saveFeaturesBtn.addEventListener('click', saveConfig);
+var saveIntegrationsBtn = document.getElementById('save-integrations-btn');
+if(saveIntegrationsBtn) saveIntegrationsBtn.addEventListener('click', saveConfig);
 var exportConfigBtn = document.getElementById('export-config-btn');
 if(exportConfigBtn) exportConfigBtn.addEventListener('click', exportConfigJson);
 

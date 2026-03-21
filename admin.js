@@ -700,21 +700,27 @@ function getV(id, fallback){ const el=document.getElementById(id); return el?(el
 function setV(id, val){ const el=document.getElementById(id); if(!el) return; if(el.type==='checkbox') el.checked=!!val; else el.value=val??''; }
 
 async function loadConfig(){
-  const st = document.getElementById('config-status');
-  st.textContent = 'Loading configuration…'; st.className = 'admin-status info';
+  function setCfgStatus(msg, cls){
+    ['config-status','features-status','integrations-status'].forEach(function(id){
+      const el = document.getElementById(id);
+      if(el){ el.textContent = msg; el.className = 'admin-status ' + cls; }
+    });
+  }
+  setCfgStatus('Loading configuration…', 'info');
   const d = await callAuth('adminGetConfig');
   let c = {};
   if(d.ok){
     c = d.config || {};
     // Cache locally for app-side use
     try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(c)); } catch(e){}
+    setCfgStatus('', '');
   } else {
     // Fall back to locally cached config
     try { c = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e){ c = {}; }
     if(Object.keys(c).length){
-      st.textContent = 'Using locally cached config (API unavailable)'; st.className = 'admin-status info';
+      setCfgStatus('Using locally cached config (API unavailable)', 'info');
     } else {
-      st.textContent = '✗ ' + (d.error||'Failed to load config'); st.className = 'admin-status err'; return;
+      setCfgStatus('✗ ' + (d.error||'Failed to load config'), 'err'); return;
     }
   }
   setV('cfg-site-name',       c.siteName       || 'EquitySight.app');
@@ -908,9 +914,10 @@ document.addEventListener('input',  function(e){ if(e.target.id==='cfg-banner') 
 async function saveConfig(){
   const st  = document.getElementById('config-status');
   const stB = document.getElementById('branding-status');
+  const stF = document.getElementById('features-status');
+  const stI = document.getElementById('integrations-status');
   function setStatus(msg, cls) {
-    if(st)  { st.textContent  = msg; st.className  = 'admin-status ' + cls; }
-    if(stB) { stB.textContent = msg; stB.className = 'admin-status ' + cls; }
+    [st, stB, stF, stI].forEach(function(el){ if(el){ el.textContent = msg; el.className = 'admin-status ' + cls; } });
   }
   setStatus('Saving…', 'info');
   const config = {
