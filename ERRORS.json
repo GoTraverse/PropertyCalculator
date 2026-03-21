@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-03-21T12:51:43.388Z",
-  "count": 4,
+  "syncedAt": "2026-03-21T13:11:59.643Z",
+  "count": 5,
   "errors": [
+    {
+      "at": 1774098718609,
+      "message": "ReferenceError: Can't find variable: lvrColor",
+      "source": "https://equitysight.app/app.js",
+      "line": 717,
+      "col": 171,
+      "stack": "recalc@https://equitysight.app/app.js:717:171\nglobal code@https://equitysight.app/app.js:3579:9",
+      "url": "https://equitysight.app/app.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmj43i1f23e6611f",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "support@equitysight.app",
+      "severity": "error"
+    },
     {
       "at": 1774097502370,
       "message": "ReferenceError: Can't find variable: lvrColor",
