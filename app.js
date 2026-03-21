@@ -1495,10 +1495,15 @@
       'pd-address','pd-suburb','pd-state','pd-bed','pd-bath','pd-car',
       'pd-land','pd-house','pd-year','pd-type','pd-url','pd-notes',
       'pd-status','pd-status-date','ag-agency','ag-name','ag-phone','ag-email',
-      'scheme-select'
+      'scheme-select','inp-state'
     ];
     const values = {};
     fields.forEach(id => { const el=document.getElementById(id); if(el) values[id]=el.value||''; });
+    // Checkboxes saved separately
+    const fhbEl = document.getElementById('inp-fhb');
+    const newPropEl = document.getElementById('inp-new-prop');
+    if(fhbEl) values['inp-fhb-checked'] = fhbEl.checked ? '1' : '0';
+    if(newPropEl) values['inp-new-prop-checked'] = newPropEl.checked ? '1' : '0';
     const activePropType = document.querySelector('.prop-type-btn.active');
     values['pd-type-label'] = activePropType ? activePropType.textContent.trim() : '🏠 House';
     values['renoEnabled'] = renoEnabled;
@@ -1828,6 +1833,11 @@
     dynCosts = [];
     if(dynCostData) dynCostData.forEach(c => dynCosts.push({id:'dyn-'+dynId++, name:c.name||'', amount:c.amount||0, category:c.category||'purchase'}));
     renderDynCosts();
+    // Restore checkboxes
+    const _fhbEl = document.getElementById('inp-fhb');
+    if(_fhbEl && values?.['inp-fhb-checked'] !== undefined) _fhbEl.checked = values['inp-fhb-checked'] === '1';
+    const _newPropEl = document.getElementById('inp-new-prop');
+    if(_newPropEl && values?.['inp-new-prop-checked'] !== undefined) _newPropEl.checked = values['inp-new-prop-checked'] === '1';
     // Reno/rent toggles
     if(typeof renoEnabled !== 'undefined'){
       const newReno = values?.['renoEnabled'] !== false;
