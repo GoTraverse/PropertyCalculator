@@ -5,7 +5,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 
 **Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**20 HTML pages** (incl. 10 free calculators) + **14,512 generated suburb pages** + **8 state hub pages** | **9 Netlify functions** | **11 CSS files** | **4046+ lines** of calculator logic in app.js | **2651+ lines** of admin logic in admin.js
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** + **8 state hub pages** | **11 Netlify functions** | **11 CSS files** | **4698+ lines** of calculator logic in app.js | **2894+ lines** of admin logic in admin.js
 
 ---
 
@@ -14,13 +14,19 @@ No framework, no build step — what you see in the repo is what gets deployed.
 ```
 Browser (static files)
   │
-  ├── HTML pages (19 handwritten + 14,512 generated suburb pages + 8 state hubs)
+  ├── HTML pages (15 handwritten root + 9 tool calculators + 14,512 generated suburb pages + 8 state hubs)
   ├── shared.css          — design tokens & shared component styles
+  ├── site-init.js        — applies dark/light theme before first paint (sync, no defer)
   ├── auth-nav.js         — injects nav header + session refresh into every page
   ├── footer.js           — injects site footer into every page
   ├── error-capture.js    — captures JS errors and sends to client-errors function
   ├── account-panel.js    — standalone account settings panel
+  ├── account.js          — account page logic (subscription, Stripe portal)
+  ├── shared-calcs.js     — common calculator utility functions (fmt, parse, repayment, growth)
+  ├── market-rate.js      — live RBA cash rate + ABS state median prices (window.MarketRate)
   ├── legal.js            — markdown parser for legal pages
+  ├── adsense.js          — Google AdSense integration
+  ├── gtag-init.js        — Google Analytics initialization
   │
   └── /.netlify/functions/   (Node.js serverless, Netlify deploys automatically)
         ├── auth.js           — all user auth + admin actions (Upstash Redis)
@@ -30,7 +36,9 @@ Browser (static files)
         ├── client-errors.js  — stores/retrieves JS error logs from browsers
         ├── growth.js         — suburb growth rate lookup + 30-day cache
         ├── photo.js          — property photo storage/retrieval proxy
-        └── mapproxy.js       — OpenStreetMap tile proxy for map rendering
+        ├── mapproxy.js       — OpenStreetMap tile proxy for map rendering
+        ├── address-suggest.js — address autocomplete (rate-limited: 30 req/min)
+        └── market-data.js    — suburb insights market data API
 ```
 
 ---
@@ -40,10 +48,13 @@ Browser (static files)
 ### Core Application
 | File | Size | Purpose |
 |------|------|---------|
-| `app.html` + `app.css` + `app.js` | 89K + 54K + 212K | **Main calculator app** (authenticated) — 30-year projections, cost breakdown, reno items, loan amortization, suburb growth, scenario save/load, PDF export, PWA capable |
-| `admin.html` + `admin.css` + `admin.js` | 63K + 21K + 134K | **Admin dashboard** (role=admin only) — 8 tabs: Users, Config, Schemes, Stats, Growth Data, Database, Error Log, Emails |
-| `account.html` | 52K | User account & subscription management panel |
-| `login.html` + `login.css` | 21K + 3.9K | Sign-in & sign-up page — email verification flow |
+| `app.html` + `app.css` + `app.js` | — | **Main calculator app** (authenticated) — 30-year projections, cost breakdown, reno items, loan amortization, LVR/LMI/FHOG, suburb growth, scenario save/load, PDF export, PWA capable |
+| `app-init.js` + `app-events.js` | — | App page initialization and event wiring (split from app.js for clarity) |
+| `admin.html` + `admin.css` + `admin.js` | — | **Admin dashboard** (role=admin only) — 14 tabs: Users, Scenarios, Gov Schemes, Growth Data, Database, Error Log, Settings, Features, Integrations, Branding, Email Templates, About Page, Legal Pages, Suburbs |
+| `admin-events.js` | — | Admin dashboard event listener wiring |
+| `account.html` + `account.js` | — | User account & subscription management panel |
+| `login.html` + `login.css` + `login.js` | — | Sign-in & sign-up page — email verification flow + Google Sign-In |
+| `showcase.html` | — | App gallery — real mobile screenshots in light + dark mode |
 
 ### Marketing Pages
 | File | Size | Purpose |
@@ -61,35 +72,42 @@ Browser (static files)
 | `cookies.html` + `cookies.md` | Cookie policy |
 | `disclaimer.html` + `disclaimer.md` | Financial disclaimer |
 
-### Free SEO Tools (marketing lead generation)
-| File | Size | Purpose |
-|------|------|---------|
-| `rental-yield-calculator.html` | 12K | Rental yield, cash flow, ROI calculator |
-| `renovation-cost-calculator.html` | 13K | Renovation budget with itemized costs |
-| `house-flip-calculator.html` | 14K | Buy/renovate/sell profit analysis |
-| `mortgage-stress-calculator.html` | 14K | Loan repayment stress testing |
-| `stamp-duty-calculator.html` | 18K | **All Australian states** stamp duty calculator (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) with state dropdown |
-| `cost-of-purchase-calculator.html` | 16K | **Total cost of purchase** breakdown — all costs when buying (stamp duty, legal, bank, inspections, insurance, moving, lease break) — all Australian states |
-| `stamp-duty-qld.html` | 11K | Legacy QLD-specific stamp duty calculator |
-| `equity-release-calculator.html` | 12K | Home equity release & borrowing capacity based on LVR |
-| `loan-serviceability-calculator.html` | 13K | Mortgage affordability & borrowing capacity based on income/expenses |
-| `first-home-buyer-grants-calculator.html` | 14K | State-specific FHB grants, exemptions, and concessions |
-| `tools.css` | 7.6K | Shared styles for all calculators |
+### Free SEO Tools (marketing lead generation, in `/tools/`)
+| File | Purpose |
+|------|---------|
+| `rental-yield-calculator.html` | Rental yield, cash flow, ROI calculator |
+| `renovation-cost-calculator.html` | Renovation budget with itemized costs |
+| `house-flip-calculator.html` | Buy/renovate/sell profit analysis |
+| `mortgage-stress-calculator.html` | Loan repayment stress testing |
+| `stamp-duty-calculator.html` | All Australian states stamp duty calculator (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) |
+| `cost-of-purchase-calculator.html` | Total cost of purchase — stamp duty, legal, bank, inspections, insurance, moving, lease break |
+| `equity-release-calculator.html` | Home equity release & borrowing capacity based on LVR |
+| `loan-serviceability-calculator.html` | Mortgage affordability & borrowing capacity based on income/expenses |
+| `first-home-buyer-grants-calculator.html` | State-specific FHB grants, exemptions, and concessions |
+| `tools.css` | Shared styles for all calculators |
+
+All calculators use `shared-calcs.js` for common utilities and optionally `market-rate.js` for live RBA/ABS data.
 
 ### Utilities & Configuration
-| File | Size | Purpose |
-|------|------|---------|
-| `shared.css` | 15K | **Design system** — CSS variables (colors, fonts, radii, shadows), nav, footer, buttons, dark mode, responsive breakpoints |
-| `auth-nav.js` | 489 lines | Injects sticky nav header with profile button, help modal, background session refresh (every 5 min) |
-| `footer.js` | 65 lines | Injects site footer with dynamic branding from localStorage config |
-| `error-capture.js` | 67 lines | Captures unhandled JS errors & promise rejections, POSTs to client-errors function |
-| `account-panel.js` | 26K | Standalone account settings component — profile pic, color theme, plan info, sign out |
-| `legal.js` | 300+ lines | Markdown → HTML parser — frontmatter, headings, TOC, safe links |
-| `stripe-config.js` | 25 lines | Exports Stripe publishable key + plan IDs (client-safe config) |
-| `manifest.json` | 1.2K | PWA manifest — app name, icons, start URL, display mode, theme colors |
-| `netlify.toml` | 2.5K | Build config, CSP headers, CORS, cache headers for static assets; also contains `force=true` redirects blocking dev files |
-| `.netlifyignore` | — | Lists dev/internal files excluded from Netlify CDN uploads (CLAUDE.md, README.md, build scripts, ERRORS.json, raw data) — **add new dev files here** |
-| `404.html` + `import-test.html` | 3.1K + 697B | Error page & dev test page |
+| File | Purpose |
+|------|---------|
+| `shared.css` | **Design system** — CSS variables (colors, fonts, radii, shadows), nav, footer, buttons, dark mode, responsive breakpoints |
+| `site-init.js` | Applies saved dark/light theme before first paint — synchronous (no defer), 3 lines |
+| `auth-nav.js` | Injects sticky nav header with profile button, help modal, background session refresh (every 5 min) — 514 lines |
+| `footer.js` | Injects site footer with dynamic branding from localStorage config |
+| `error-capture.js` | Captures unhandled JS errors & promise rejections, POSTs to client-errors function |
+| `account-panel.js` | Standalone account settings component — profile pic, color theme, plan info, sign out — 483 lines |
+| `account.js` | Account page logic — subscription status, plan display, Stripe portal — 555 lines |
+| `shared-calcs.js` | Common calculator utilities: `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()` — 232 lines |
+| `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` — 69 lines |
+| `legal.js` | Markdown → HTML parser — frontmatter, headings, TOC, safe links — 300+ lines |
+| `stripe-config.js` | Exports Stripe publishable key + plan IDs (client-safe config) |
+| `adsense.js` | Google AdSense integration |
+| `gtag-init.js` | Google Analytics (gtag) initialization |
+| `manifest.json` | PWA manifest — app name, icons, start URL, display mode, theme colors |
+| `netlify.toml` | Build config, CSP headers, CORS, cache headers for static assets; `force=true` redirects blocking dev files |
+| `.netlifyignore` | Dev/internal files excluded from Netlify CDN — **add new dev files here** |
+| `404.html` + `import-test.html` | Error page & dev test page |
 | `robots.txt` | Site crawling directives — allows public pages, blocks admin/app/account |
 | `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,520 URLs) |
 
@@ -238,6 +256,12 @@ stripeDiscountInfo: {
 - Returns base64-encoded PNG grid to client for stitching
 - No auth required (public data)
 
+### address-suggest.js (Address Autocomplete)
+Rate-limited at **30 requests/min** per IP. Provides address autocomplete suggestions for the main app property address field.
+
+### market-data.js (Suburb Market Data)
+Returns market data (median prices, growth rates, demographics) for suburb insights pages. Backed by cached data from ABS + growth Redis store.
+
 ---
 
 ## Shared Component Pattern
@@ -308,20 +332,27 @@ Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setPr
 
 ## Admin Dashboard (`admin.html` / `admin.js`)
 
-**Role=admin only.** 8 tabs with full user/system management:
+**Role=admin only.** Auth hardened: `verify` action called on every load — never falls back to localStorage role; access denied if token check fails.
+
+**14 tabs with full user/system management:**
 
 | Tab | Key features |
 |-----|-------------|
 | **Users** | Table of all users (sortable by name/email/plan/joined). Plan badges (free/pro/adviser) + DISC badge for coupon discounts. Click row → detailed popup. Cog menu per row → quick actions. |
 | **User Popup** | Full user record (name, email, plan, role, dates, login count, tokens, scenarios, error count). **Login Status badge**: ✓ Active (green), ✓ Email Verified (gold), ⏳ Awaiting Verification (slate). Collapsible Recent Errors section. Inline action buttons (Reset PW, Change Plan, Grant/Revoke Admin, View History, Delete User). |
 | **Scenarios** | Browse all saved property scenarios per user with details. Delete individual scenarios. |
-| **Config** | Site branding (logo, name, colors), pricing plans, Stripe keys, feature flags, support email, mail provider. |
-| **Schemes** | Government grant/scheme eligibility per Australian state (NSW, VIC, QLD, WA, SA, TAS). Edit scheme details, active status. |
-| **Stats** | Signup/login metrics, revenue estimates, user growth chart, subscription breakdown. |
+| **Gov Schemes** | Government grant/scheme eligibility per Australian state (NSW, VIC, QLD, WA, SA, TAS). Edit scheme details, active status. |
 | **Growth Data** | Cached suburb growth rates (20-year average, LGA, etc.). Admin can update rates or clear entire cache. 30-day Redis TTL. |
 | **Database** | Maintenance tools — purge sessions, profiles, or scenarios for testing/recovery. |
-| **Error Log** | JS error logs captured from user browsers. Filter by message keyword, user email, browser type, date range. Errors include stack trace, user agent, page URL. Dark theme for readability. |
-| **Emails** | Edit 6 transactional email templates (verification, welcome, password reset, subscription update, security alert, promotional). Supports `{{variable}}` interpolation. |
+| **Error Log** | JS error logs captured from user browsers. Filter by message keyword, user email, browser type, date range. Errors include stack trace, user agent, page URL. "Sync to GitHub" button pushes to ERRORS.json. |
+| **Settings** | Core site config: site name, support email, session TTL, min password length, email domain restriction, signup toggle, guest access toggle. |
+| **Features** | Feature flags: PDF export, 30-year projections, referral program, max upload size. Scenario limits per plan. |
+| **Integrations** | Stripe publishable key + plan price IDs, Google Sign-In client ID. |
+| **Branding** | Logo (emoji or image upload up to 200KB), brand colour picker, colour theme presets, banner message + type + expiry, maintenance mode. |
+| **Email Templates** | Edit 6 transactional email templates (verification, welcome, password reset, subscription update, security alert, promotional). Supports `{{variable}}` interpolation. |
+| **About Page** | Edit About page content directly from admin. |
+| **Legal Pages** | Edit privacy, terms, cookies, disclaimer content from admin. |
+| **Suburbs** | Browse/search 14,512 suburb records, state breakdown, trigger suburb page rebuild via Netlify deploy hook. |
 
 ### Revenue / discount tracking
 
@@ -412,6 +443,7 @@ Set these in **Netlify → Site Settings → Environment Variables**:
 | `STRIPE_SECRET_KEY` | stripe.js | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | stripe.js | Stripe webhook signing secret |
 | `RESEND_API_KEY` | contact.js | Resend API key for sending contact form emails |
+| `GITHUB_TOKEN` | client-errors.js | GitHub API token — auto-pushes errors to ERRORS.json in repo (max once per 5 min) |
 
 ---
 
@@ -447,6 +479,7 @@ The CSP `connect-src` currently allows:
 
 - **No build step**: edit files directly, push to git, Netlify deploys automatically
 - **No framework**: plain JS, no React/Vue/etc. DOM manipulation is direct.
+- **Page JS split pattern**: large pages split into `*-init.js` (setup, auth guard, state restore) + `*-events.js` (event listener wiring) to keep app.js/admin.js focused on logic only.
 - **`recalc()` in app.js**: master recalculation function — called whenever any input changes. Reads all inputs, computes everything, updates all DOM output elements. Called directly for immediate updates (tab switch, load). Use `dRecalc()` from oninput handlers to debounce rapid user input (180ms).
 - **`dRecalc()` in app.js**: debounced wrapper around `recalc()` — use this in all `oninput` HTML attributes to avoid firing recalc on every keystroke.
 - **Tab system in app.js**: `showTab(id, btn)` shows/hides `<section id="tab-{id}">` panels
@@ -455,3 +488,4 @@ The CSP `connect-src` currently allows:
 - **PWA-only styles**: use `@media (display-mode: standalone)` to hide/show elements only in PWA mode (no JS needed)
 - **Print/PDF**: `exportPDF()` in app.js generates a full standalone HTML document in a new window, captures current scenario state as a snapshot
 - **Admin pages**: admin.css hides `.site-nav-links` and `.nav-hamburger` — profile icon stays pinned via `grid-column:3`
+- **Dark mode init**: `site-init.js` loaded synchronously (no `defer`) applies `dark-mode` class to `<html>` before CSS paints — prevents flash of wrong theme
