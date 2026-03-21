@@ -3051,7 +3051,7 @@
     <div class="card">
       <div style="display:flex;gap:16px;">
         <div style="text-align:center;flex:1;"><div class="big-num">${snap.monthly}</div><div style="font-size:10px;color:#888;margin-top:2px;">Monthly</div><div style="font-size:9px;color:#aaa;">${snap.rateLabel}</div></div>
-        <div style="text-align:center;flex:1;"><div class="big-num">${snap.weekly}</div><div style="font-size:10px;color:#888;margin-top:2px;">Weekly</div><div style="font-size:9px;color:#aaa;">${snap.termLabel}</div></div>
+        <div style="text-align:center;flex:1;"><div class="big-num">${snap.weekly}</div><div style="font-size:10px;color:#888;margin-top:2px;">Fortnightly</div><div style="font-size:9px;color:#aaa;">26&times; per year</div></div>
         <div style="text-align:center;flex:1;"><div class="big-num">${snap.annual}</div><div style="font-size:10px;color:#888;margin-top:2px;">Annual</div><div style="font-size:9px;color:#aaa;">${snap.loanLabel}</div></div>
       </div>
     </div>
