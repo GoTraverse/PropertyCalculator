@@ -11,6 +11,17 @@
   }catch(e){}
 })();
 
+// ── Page transition spinner — inject once, expose goTo() globally ──
+(function(){
+  if(!document.getElementById('page-spinner')){
+    var s=document.createElement('div');s.id='page-spinner';
+    s.innerHTML='<div class="spinner-ring"></div>';
+    document.body.appendChild(s);
+  }
+  window.showPageSpinner=function(){var el=document.getElementById('page-spinner');if(el)el.classList.add('show');};
+  window.goTo=function(url){window.showPageSpinner();setTimeout(function(){location.href=url;},80);};
+})();
+
 // ── PWA Install prompt — capture for deferred install button ──
 var _deferredInstallPrompt = null;
 var _isPWAStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -158,7 +169,7 @@ window.toggleTheme = function(){
       }).catch(function(){});
     }
     localStorage.removeItem(SESSION_KEY);
-    window.location.href = 'index.html';
+    window.goTo('index.html');
   };
 
   // Inject help modal HTML into body once
@@ -411,6 +422,16 @@ window.toggleTheme = function(){
       if (installBtn) installBtn.addEventListener('click', window.installPWA);
       var signOutBtn = document.getElementById('anav-signout-btn');
       if (signOutBtn) signOutBtn.addEventListener('click', window.siteSignOut);
+
+      // Intercept dropdown nav links to show spinner before page transition
+      var navLinks = document.querySelectorAll('#site-profile-menu a.anav-item');
+      navLinks.forEach(function(link){
+        link.addEventListener('click', function(e){
+          if(link.classList.contains('active')) return; // already on this page
+          e.preventDefault();
+          window.goTo(link.getAttribute('href'));
+        });
+      });
 
       document.addEventListener('click', function(e) {
         var wrap = document.getElementById('site-profile-wrap');

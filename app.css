@@ -573,13 +573,6 @@
   .splash-btn-secondary{background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.18)!important;}
   .splash-deco{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 28px;}
 
-  /* Page transition spinner */
-  #page-spinner{display:none;position:fixed;inset:0;z-index:99998;background:rgba(28,28,30,0.72);
-    backdrop-filter:blur(4px);align-items:center;justify-content:center;}
-  #page-spinner.show{display:flex;}
-  .spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);
-    border-top-color:#C9A84C;border-radius:50%;animation:spin2 0.7s linear infinite;}
-  @keyframes spin2{to{transform:rotate(360deg)}}
   /* Profile dropdown item hover */
   .app-dd-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:4px;
     color:rgba(245,240,232,0.7);font-size:13px;text-decoration:none;background:transparent;

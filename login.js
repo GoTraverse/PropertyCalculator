@@ -224,6 +224,7 @@ async function callAuth(action, payload){
 }
 
 function showSpinner(){ document.getElementById('page-spinner').classList.add('show'); }
+function hideSpinner(){ document.getElementById('page-spinner').classList.remove('show'); }
 function goTo(url){ showSpinner(); setTimeout(function(){ location.href=url; }, 80); }
 
 function updatePwStrength(pw){
@@ -280,6 +281,7 @@ async function doSignin(){
   const btn = document.getElementById('si-btn');
   if(!email||!password){ errEl.textContent='Please enter email and password'; return; }
   btn.disabled=true; btn.textContent='Signing in…'; errEl.textContent='';
+  showSpinner();
   const res = await callAuth('signin', {email,password});
   if(res.ok){
     persistSession(res, {email});
@@ -298,6 +300,7 @@ async function doSignin(){
     goTo('app.html');
     return;
   }
+  hideSpinner();
   if(res.requiresEmailVerification){
     setTab('signup');
     document.getElementById('su-email').value = email;

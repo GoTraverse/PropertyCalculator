@@ -33,9 +33,3 @@ body {
 .login-footer { padding: 20px; text-align: center; font-family: var(--font-mono); font-size: 10px; color: rgba(245,240,232,0.2); border-top: 1px solid rgba(255,255,255,0.05); }
 .login-footer a { color: rgba(201,168,76,0.5); text-decoration: none; }
 .login-footer a:hover { color: var(--gold); }
-
-/* Page transition spinner */
-#page-spinner { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(28,28,30,0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
-#page-spinner.show { display: flex; }
-.spinner-ring { width: 40px; height: 40px; border: 3px solid rgba(201,168,76,0.2); border-top-color: #C9A84C; border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }

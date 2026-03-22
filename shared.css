@@ -509,3 +509,9 @@ html.dark-mode .tools-grid .tg-name { color: #F5F0E8; }
   .tools-grid .tg-link { display: none; }
   .tools-grid .tg-name { margin-bottom: 0; }
 }
+
+/* ── Page Transition Spinner (shared) ─────────────────────────────────────── */
+#page-spinner{display:none;position:fixed;inset:0;z-index:99999;background:rgba(28,28,30,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+#page-spinner.show{display:flex;}
+.spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);border-top-color:#C9A84C;border-radius:50%;animation:pageSpinAnim 0.7s linear infinite;}
+@keyframes pageSpinAnim{to{transform:rotate(360deg)}}
