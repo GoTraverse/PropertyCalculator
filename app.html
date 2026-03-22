@@ -1143,10 +1143,19 @@
 </div>
 </div>
 
-
-<script src="app.js"></script>
-<script src="app-events.js"></script>
-
+<!-- ══ WELCOME SPLASH ══ -->
+<div id="welcome-splash">
+  <div class="splash-inner">
+    <div class="splash-logo">Property Finance Calculator</div>
+    <div class="splash-title">Where would you<br>like to start?</div>
+    <div class="splash-deco"></div>
+    <div class="splash-sub">Track, analyse and compare<br>Australian property investments</div>
+    <div class="splash-btns">
+      <button class="splash-btn splash-btn-primary" id="splash-new-btn">＋ New Scenario</button>
+      <button class="splash-btn splash-btn-secondary" id="splash-library-btn">📁 My Library</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ USER PROFILE PANEL ══ -->
 <div id="profile-overlay"></div>
@@ -1189,20 +1198,6 @@
   </div>
   <button class="pp-save-btn" id="pp-save-btn">Save Profile</button>
   <a href="account.html" style="display:block;text-align:center;margin:0 22px 10px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.4);letter-spacing:0.5px;text-decoration:none;border:1px solid rgba(255,255,255,0.06);border-radius:3px;">⚙ Full Account Settings →</a>
-</div>
-<!-- ══ WELCOME SPLASH ══ -->
-<div id="welcome-splash">
-  <div class="splash-inner">
-    <div class="splash-logo">Property Finance Calculator</div>
-    <div class="splash-title">Where would you<br>like to start?</div>
-    <div class="splash-deco"></div>
-    <div class="splash-sub">Track, analyse and compare<br>Australian property investments</div>
-    <div class="splash-btns">
-      <button class="splash-btn splash-btn-primary" id="splash-new-btn">＋ New Scenario</button>
-      <button class="splash-btn splash-btn-secondary" id="splash-library-btn">📁 My Library</button>
-    </div>
-    </div>
-  </div>
 </div>
 
 
@@ -1303,6 +1298,9 @@
 
 <!-- ══ TOP-RIGHT PROFILE WIDGET — rendered by auth-nav.js ══ -->
 <div class="site-nav-actions" style="position:fixed;top:max(28px, calc(env(safe-area-inset-top) + 20px));right:28px;z-index:1900;"></div>
+
+<script src="app.js"></script>
+<script src="app-events.js"></script>
 
 </body>
 </html>
