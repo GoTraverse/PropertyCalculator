@@ -1011,14 +1011,13 @@
     }
 
     // Track calculation completion
-    if(window.trackCalculatorResult) {
-      trackCalculatorResult('mortgage_calculator', {
-        'property_price': price,
-        'deposit': deposit,
-        'loan_amount': loanAmt,
-        'lvr': lvr,
-        'weekly_repay': weeklyRepay,
-        'monthly_repay': monthlyRepay
+    if(window.trackAppCalculationResult) {
+      trackAppCalculationResult({
+        propertyValue: price,
+        loanAmount: loanAmt,
+        yearsProjected: term,
+        rentalIncome: rent > 0 ? rent : null,
+        renovationCost: renoTotal > 0 ? renoTotal : null
       });
     }
   }
@@ -1308,11 +1307,15 @@
       try {
         const url = '/.netlify/functions/address-suggest?limit=6&q=' + encodeURIComponent(val);
         const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
-        if(!r.ok) throw new Error('no response');
+        if(!r.ok) {
+          if(window.trackAPIError) trackAPIError('address_suggest', 'http_error', r.status);
+          throw new Error('no response');
+        }
         const j = await r.json();
         if(!j.ok || !j.results || !j.results.length){ hideAddrSuggestions(); return; }
         showAddrSuggestions(j.results);
       } catch(e) {
+        if(e.name === 'TimeoutError' && window.trackAPIError) trackAPIError('address_suggest', 'timeout');
         hideAddrSuggestions();
       }
     }, 200);
@@ -1864,12 +1867,18 @@
   function libActionLoad(){
     var id = _libActionsId;
     closeLibActionsPopup();
-    if(id) promptLoadScenario(id);
+    if(id) {
+      // Track scenario restore
+      if(window.trackScenarioAction) trackScenarioAction('restore', {id: id});
+      promptLoadScenario(id);
+    }
   }
   function libActionExport(){
     var id = _libActionsId;
     closeLibActionsPopup();
     if(!id) return;
+    // Track scenario export
+    if(window.trackProFeatureUsage) trackProFeatureUsage('scenario_export', 'library');
     // Load the scenario first, then export
     closeScenariosModal();
     pendingLoadId = id;
@@ -1880,7 +1889,11 @@
   function libActionShare(){
     var id = _libActionsId;
     closeLibActionsPopup();
-    if(id) openShareModal(id);
+    if(id) {
+      // Track scenario share
+      if(window.trackScenarioAction) trackScenarioAction('share', {id: id});
+      openShareModal(id);
+    }
   }
   function libActionDelete(){
     var id = _libActionsId;
@@ -2082,6 +2095,8 @@
   async function deleteScenario(id){
     var ok = await appConfirm('Delete Scenario', 'Delete this scenario? This cannot be undone.', {danger:true, confirmLabel:'Delete'});
     if(!ok) return;
+    // Track scenario delete
+    if(window.trackScenarioAction) trackScenarioAction('delete', {id: id});
     _scenariosCache = null;
     await deleteScenarioFromBackend(id);
     updateSavedCount();

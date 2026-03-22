@@ -284,6 +284,8 @@ async function loadBillingStatus(){
       const expiresAt = session?.expiresAt || session?.subscription_expires_at;
       const renewsAt = session?.renewsAt || session?.subscription_renews_at;
       if(canceledStatus && expiresAt){
+        // Track churn - user has cancelled their subscription
+        if(window.trackChurn) trackChurn('user_action', d.plan || 'unknown');
         const expiryDate = new Date(expiresAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
         cancelNote.textContent = '⚠️ Plan canceled — your access ends on '+expiryDate;
         cancelNote.style.display = 'block';
