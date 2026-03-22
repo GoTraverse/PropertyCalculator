@@ -1702,16 +1702,23 @@
     document.body.classList.add('modal-open');
     var sm=document.getElementById('scenarios-modal');sm.style.display='flex';sm.style.alignItems='flex-start';sm.style.paddingTop='max(8px, env(safe-area-inset-top, 0px))';sm.style.paddingBottom='24px';
     document.body.style.overflow='hidden';
+    var fab=document.getElementById('mobile-calc-fab');if(fab)fab.style.display='none';
     renderScenariosList();
   }
   function closeScenariosModal(){
     document.body.classList.remove('modal-open');
     document.getElementById('scenarios-modal').style.display='none';
     document.body.style.overflow='';
+    var fab=document.getElementById('mobile-calc-fab');if(fab)fab.style.display='';
   }
   function closeConfirmModal(){
     document.getElementById('confirm-modal').style.display='none';
     pendingLoadId = null;
+    // Restore FAB only if scenarios modal is also closed
+    var sm=document.getElementById('scenarios-modal');
+    if(!sm||sm.style.display==='none'){
+      var fab=document.getElementById('mobile-calc-fab');if(fab)fab.style.display='';
+    }
   }
 
   const STATUS_COLORS = {
@@ -1869,6 +1876,7 @@
     pendingLoadId = id;
     document.getElementById('confirm-name').textContent = sc.fullAddr;
     document.getElementById('confirm-modal').style.display='block';
+    var fab=document.getElementById('mobile-calc-fab');if(fab)fab.style.display='none';
   }
 
   async function confirmLoad(){
@@ -2183,6 +2191,7 @@
     _pendingShared = {ownerId, scenarioId};
     document.getElementById('confirm-name').textContent = fullAddr || 'this shared property';
     document.getElementById('confirm-modal').style.display = 'block';
+    var fab=document.getElementById('mobile-calc-fab');if(fab)fab.style.display='none';
   }
 
   async function confirmLoadShared(){
