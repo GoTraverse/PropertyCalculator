@@ -1010,14 +1010,18 @@
       set('rr-lmi-est', fmt(calcLMI(loanAmt, price)));
     }
 
-    // Track calculation completion
+    // Track calculation completion - with free/pro usage context
     if(window.trackAppCalculationResult) {
+      var userPlan = 'free';
+      try { userPlan = JSON.parse(localStorage.getItem('propCalc_session_v1')||'{}').plan || 'free'; } catch(e) {}
       trackAppCalculationResult({
         propertyValue: price,
         loanAmount: loanAmt,
         yearsProjected: term,
         rentalIncome: rent > 0 ? rent : null,
-        renovationCost: renoTotal > 0 ? renoTotal : null
+        renovationCost: renoTotal > 0 ? renoTotal : null,
+        userPlan: userPlan,
+        hasScenariosCount: (_scenariosCache || []).length
       });
     }
   }
@@ -1308,7 +1312,10 @@
         const url = '/.netlify/functions/address-suggest?limit=6&q=' + encodeURIComponent(val);
         const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
         if(!r.ok) {
-          if(window.trackAPIError) trackAPIError('address_suggest', 'http_error', r.status);
+          var errorType = 'http_error';
+          if(r.status === 429) errorType = 'rate_limit';
+          else if(r.status >= 500) errorType = 'server_error';
+          if(window.trackAPIError) trackAPIError('address_suggest', errorType, r.status);
           throw new Error('no response');
         }
         const j = await r.json();
