@@ -2158,12 +2158,17 @@ const EVENT_LABELS = {
   signup:               '🆕 Signed up',
   email_verified:       '✅ Email verified',
   signin:               '🔐 Signed in',
+  signout:              '👋 Signed out',
   password_changed:     '🔑 Password changed',
   password_reset:       '🔁 Password reset (self-service)',
   admin_password_reset: '🔧 Password reset by admin',
+  plan_changed:         '📋 Plan changed',
   plan_upgraded:        '⬆️ Plan upgraded',
   plan_downgraded:      '⬇️ Plan downgraded',
   role_changed:         '👤 Role changed',
+  scenario_created:     '🏠 Scenario created',
+  scenario_deleted:     '🗑️ Scenario deleted',
+  scenario_shared:      '🔗 Scenario shared',
 };
 
 function fmtEventTime(at){
@@ -2192,12 +2197,19 @@ async function openUserHistory(userId, email){
   }
 
   const rows = events.map(ev => {
-    const label = EVENT_LABELS[ev.type] || escHtml(ev.type);
+    let label = EVENT_LABELS[ev.type] || escHtml(ev.type);
+    // Distinguish Google sign-in/sign-up
+    if(ev.provider==='google'){
+      if(ev.type==='signin') label = '🔐 Signed in (Google)';
+      else if(ev.type==='signup') label = '🆕 Signed up (Google)';
+    }
     const meta = [];
-    if(ev.plan)  meta.push('Plan: '+escHtml(ev.plan));
+    if(ev.plan)     meta.push('Plan: '+escHtml(ev.plan));
     if(ev.from && ev.to) meta.push(escHtml(ev.from)+' → '+escHtml(ev.to));
-    if(ev.ip)    meta.push('IP: '+escHtml(ev.ip));
-    if(ev.by)    meta.push('By: '+escHtml(ev.by));
+    if(ev.address)  meta.push(escHtml(ev.address));
+    if(ev.to && !ev.from) meta.push('To: '+escHtml(ev.to));
+    if(ev.ip)       meta.push('IP: '+escHtml(ev.ip));
+    if(ev.by)       meta.push('By: '+escHtml(ev.by));
     return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);">
       <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate);white-space:nowrap;padding:8px 8px 8px 0;vertical-align:top;">${fmtEventTime(ev.at)}</td>
       <td style="font-size:12px;color:var(--charcoal);padding:8px;vertical-align:top;">${label}</td>
