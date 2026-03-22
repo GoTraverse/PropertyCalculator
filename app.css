@@ -673,16 +673,12 @@
       -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
-      touch-action: pan-y; /* Block horizontal swipe-to-navigate (back/forward) in PWA */
+      touch-action: manipulation; /* Disable double-tap-zoom; history trapping handles back/forward */
     }
     /* Re-enable selection for inputs, textareas and contenteditable */
     input, textarea, [contenteditable] {
       -webkit-user-select: text;
       user-select: text;
-    }
-    /* Re-enable horizontal scroll on elements that need it */
-    nav, #amort-table-wrap, .lib-filter-bar, #scenarios-list {
-      touch-action: pan-x pan-y;
     }
     /* Mobile: body is the scroller — keep overflow-y:auto but no bounce */
     @media (max-width: 600px) {
