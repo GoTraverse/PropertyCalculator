@@ -1781,8 +1781,6 @@
           <div class="lib-price">${price}</div>
           <div class="lib-badge" style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}55;">${sLabel}</div>
           <div class="lib-ts">${(s.timestamp||'').replace(/(\d+)\s([A-Za-z]+)\s(\d{4})/,(_,d,mo,y)=>{const mn={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};return String(d).padStart(2,'0')+'/'+(mn[mo]||'01')+'/'+y;})}</div>
-          <button class="lib-share" data-action="share-scenario" data-scenarioid="${escHtml(s.id)}" title="Share with another user">↗</button>
-          <button class="lib-del" data-action="del-scenario" data-scenarioid="${escHtml(s.id)}" title="Delete">✕</button>
         </div>`;
     });
     grid.innerHTML = rows.join('');
@@ -1814,6 +1812,54 @@
         setThumbSrc(photo);
       } catch(e) { /* leave default house emoji */ }
     });
+  }
+
+  // ── Library Actions Popup ──────────────────────────────────────────────────
+  var _libActionsId = null;
+  function openLibActionsPopup(id){
+    const scenarios = _scenariosCache || [];
+    const sc = scenarios.find(s => s.id === id);
+    if(!sc) return;
+    _libActionsId = id;
+    var addrEl = document.getElementById('lib-actions-addr');
+    var metaEl = document.getElementById('lib-actions-meta');
+    if(addrEl) addrEl.textContent = sc.fullAddr || '';
+    if(metaEl){
+      var parts = [sc.type||'House', sc.bed?sc.bed+' bed':null, sc.bath?sc.bath+' bath':null].filter(Boolean);
+      var price = sc.price ? '$'+parseInt(sc.price).toLocaleString() : '';
+      metaEl.textContent = [parts.join(' · '), price].filter(Boolean).join(' — ');
+    }
+    document.getElementById('lib-actions-overlay').style.display = 'block';
+  }
+  function closeLibActionsPopup(){
+    document.getElementById('lib-actions-overlay').style.display = 'none';
+    _libActionsId = null;
+  }
+  function libActionLoad(){
+    var id = _libActionsId;
+    closeLibActionsPopup();
+    if(id) promptLoadScenario(id);
+  }
+  function libActionExport(){
+    var id = _libActionsId;
+    closeLibActionsPopup();
+    if(!id) return;
+    // Load the scenario first, then export
+    closeScenariosModal();
+    pendingLoadId = id;
+    _libExportAfterLoad = true;
+    confirmLoad();
+  }
+  var _libExportAfterLoad = false;
+  function libActionShare(){
+    var id = _libActionsId;
+    closeLibActionsPopup();
+    if(id) openShareModal(id);
+  }
+  function libActionDelete(){
+    var id = _libActionsId;
+    closeLibActionsPopup();
+    if(id) deleteScenario(id);
   }
 
   async function promptLoadScenario(id){
@@ -1874,6 +1920,11 @@
     if(titleEl) titleEl.textContent = sc.fullAddr || 'New Property';
     showToast('✓ Loaded: ' + _escBanner(sc.fullAddr));
     pendingLoadId = null;
+    // If triggered from library Export action, open export dialog after load
+    if(_libExportAfterLoad){
+      _libExportAfterLoad = false;
+      setTimeout(function(){ if(window.isPro()) window.showPDFOptionsPopup(); else window.requirePro('Export'); }, 400);
+    }
     // Keep _restoringDraft=true past the 800ms autosaveDraft timer (prevents dirty)
     setTimeout(function(){
       _restoringDraft = false;
@@ -2062,7 +2113,11 @@
       const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'share',scenarioId:_shareTargetId,targetEmail:email})});
       const d = await r.json();
       if(d.ok){
-        if(d.already){
+        if(d.invited){
+          statusEl.textContent = `✉ Invite sent to ${escHtml(d.email||email)} — they'll see your scenario once they sign up`;
+          statusEl.style.color = 'var(--gold)';
+          document.getElementById('share-email-input').value = '';
+        } else if(d.already){
           statusEl.textContent = `Already shared with ${d.name||email}`;
           statusEl.style.color = 'var(--slate)';
         } else {

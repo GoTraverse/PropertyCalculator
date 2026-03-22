@@ -2169,6 +2169,7 @@ const EVENT_LABELS = {
   scenario_created:     '🏠 Scenario created',
   scenario_deleted:     '🗑️ Scenario deleted',
   scenario_shared:      '🔗 Scenario shared',
+  share_invite_sent:    '✉️ Share invite sent',
 };
 
 function fmtEventTime(at){

@@ -230,7 +230,7 @@ if(addCommsEntryBtn) addCommsEntryBtn.addEventListener('click', addCommsEntry);
 
 // ── Reno ──────────────────────────────────────────────────────────────────────
 var addRenoItemBtn = document.getElementById('add-reno-item-btn');
-if(addRenoItemBtn) addRenoItemBtn.addEventListener('click', addRenoItem);
+if(addRenoItemBtn) addRenoItemBtn.addEventListener('click', function(){ addRenoItem(); });
 
 // ── Amortisation toggle ───────────────────────────────────────────────────────
 var amortToggleBtn = document.getElementById('amort-toggle-btn');
@@ -439,14 +439,24 @@ if(addrSuggestions){
 var scenariosGrid = document.getElementById('scenarios-grid');
 if(scenariosGrid){
   scenariosGrid.addEventListener('click', function(e){
-    var shareBtn = e.target.closest('[data-action="share-scenario"]');
-    if(shareBtn){ e.stopPropagation(); openShareModal(shareBtn.dataset.scenarioid, e); return; }
-    var delBtn = e.target.closest('[data-action="del-scenario"]');
-    if(delBtn){ e.stopPropagation(); deleteScenario(delBtn.dataset.scenarioid); return; }
     var row = e.target.closest('.lib-row[data-scenarioid]');
-    if(row) promptLoadScenario(row.dataset.scenarioid);
+    if(row) openLibActionsPopup(row.dataset.scenarioid);
   });
 }
+
+// ── Library actions popup ────────────────────────────────────────────────────
+var libActionsOverlay = document.getElementById('lib-actions-overlay');
+if(libActionsOverlay) libActionsOverlay.addEventListener('click', function(e){ if(e.target === this) closeLibActionsPopup(); });
+var libActionCancelBtn = document.getElementById('lib-action-cancel');
+if(libActionCancelBtn) libActionCancelBtn.addEventListener('click', closeLibActionsPopup);
+var libActionLoadBtn = document.getElementById('lib-action-load');
+if(libActionLoadBtn) libActionLoadBtn.addEventListener('click', libActionLoad);
+var libActionExportBtn = document.getElementById('lib-action-export');
+if(libActionExportBtn) libActionExportBtn.addEventListener('click', libActionExport);
+var libActionShareBtn = document.getElementById('lib-action-share');
+if(libActionShareBtn) libActionShareBtn.addEventListener('click', libActionShare);
+var libActionDeleteBtn = document.getElementById('lib-action-delete');
+if(libActionDeleteBtn) libActionDeleteBtn.addEventListener('click', libActionDelete);
 
 // ── Shared scenarios delegation (#shared-grid) ───────────────────────────────
 var sharedGrid = document.getElementById('shared-grid');

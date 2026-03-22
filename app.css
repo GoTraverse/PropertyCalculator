@@ -337,6 +337,10 @@
   .lib-shared-badge{font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.25);flex-shrink:0;white-space:nowrap;}
   .lib-ts{font-family:'DM Mono',monospace;font-size:10px;color:rgba(28,28,30,0.3);flex-shrink:0;white-space:nowrap;}
 
+  /* ── LIBRARY ACTIONS POPUP ── */
+  .lib-action-btn:hover{background:rgba(28,28,30,0.05);}
+  .lib-action-btn:active{background:rgba(28,28,30,0.1);}
+
   /* ── STATUS BADGES (item 2) ── */
   .status-btn{padding:7px 12px;border-radius:20px;border:2px solid rgba(28,28,30,0.12);background:rgba(28,28,30,0.04);font-size:12px;cursor:pointer;transition:all 0.2s;color:var(--slate);font-family:'DM Sans',sans-serif;}
   .status-btn:hover{border-color:var(--gold);color:var(--charcoal);}
@@ -397,7 +401,7 @@
     header{position:fixed!important;top:0;left:0;right:0;z-index:200;}
     .header-inner{min-height:auto!important;flex-wrap:wrap;}
     .header-text{padding:10px 14px 12px!important;flex:1 1 100%;}
-    h1{font-size:19px!important;line-height:1.2!important;}
+    h1{font-size:19px!important;line-height:1.2!important;padding-right:80px!important;/* space for profile + help buttons */}
     #header-status-badge{font-size:12px!important;}
     .header-sub{font-size:13px!important;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 28px);}
 
@@ -419,6 +423,7 @@
       border-color:rgba(201,168,76,0.45)!important;
     }
     .hdr-desktop-btn{display:flex!important;}
+    #hdr-pdf-btn{display:none!important;} /* Export moved to library actions popup on mobile */
     .hdr-overflow-wrap{display:none!important;}
     .hdr-save-label{display:inline!important;}  /* Show "Save" label on mobile */
     #profile-btn{width:28px!important;height:28px!important;font-size:11px!important;}
@@ -474,6 +479,7 @@
     .bm{font-size:13px!important;}
 
     /* Library modal full screen */
+    #scenarios-modal{overflow-x:hidden!important;}
     #scenarios-modal > div{width:100%!important;max-height:100%!important;top:0!important;left:0!important;transform:none!important;border-radius:0!important;height:100%!important;}
     .lib-row{padding:14px 12px!important;}
     .lib-addr{font-size:15px!important;line-height:1.3!important;}
@@ -804,6 +810,13 @@ html.dark-mode .lib-filter{background:rgba(255,255,255,0.06)!important;border-co
 html.dark-mode .lib-filter.active{background:rgba(201,168,76,0.15)!important;border-color:rgba(201,168,76,0.35)!important;color:var(--gold)!important;}
 html.dark-mode .lib-ts{color:rgba(245,240,232,0.3)!important;}
 html.dark-mode .lib-row:hover{box-shadow:0 2px 12px rgba(0,0,0,0.3)!important;}
+html.dark-mode #lib-actions-popup{background:var(--charcoal-soft)!important;}
+html.dark-mode #lib-actions-popup *{color:var(--cream);}
+html.dark-mode #lib-actions-addr{color:var(--cream)!important;}
+html.dark-mode #lib-actions-meta{color:rgba(245,240,232,0.5)!important;}
+html.dark-mode .lib-action-btn:hover{background:rgba(255,255,255,0.08)!important;}
+html.dark-mode #lib-action-delete{color:var(--risk-red)!important;}
+html.dark-mode #lib-action-cancel{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.12)!important;color:rgba(245,240,232,0.6)!important;}
 
 /* Address suggestions separator */
 html.dark-mode .addr-sug-item{border-bottom-color:rgba(255,255,255,0.06)!important;color:#F5F0E8!important;}
