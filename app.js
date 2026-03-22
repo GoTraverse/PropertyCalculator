@@ -4301,6 +4301,13 @@
       }
     }
 
+    // ── Admin View All Scenarios feature flag ─────────────────────
+    var adminSection = document.getElementById('admin-all-section');
+    if(adminSection && !cfg.adminViewAllScenarios){
+      adminSection.style.display = 'none';
+      adminSection.innerHTML = '';
+    }
+
     // ── PDF Export feature flag ───────────────────────────────────
     var pdfEnabled = cfg.enablePdfExport !== false;
     // Also respect plan — only show if both admin-enabled AND user is pro
