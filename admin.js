@@ -993,8 +993,8 @@ async function loadStats(){
   // Show loading state immediately
   const spinner = '<div class="stat-spinner"></div>';
   const chartLoad = '<div class="stat-chart-loading"></div>';
-  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-sessions','stat-scenarios-top','stat-new-users','stat-revenue','stat-avg-scenarios'];
-  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-sessions','stat-chart-scenarios','stat-chart-new-users','stat-chart-revenue','stat-chart-avg'];
+  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-sessions','stat-scenarios-top','stat-new-users','stat-revenue','stat-avg-scenarios','stat-active-users','stat-total-scenarios','stat-shared','stat-errors','stat-db-keys'];
+  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-sessions','stat-chart-scenarios','stat-chart-new-users','stat-chart-revenue','stat-chart-avg','stat-chart-active-users','stat-chart-total-scenarios','stat-chart-shared','stat-chart-errors','stat-chart-db-keys'];
   statIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=spinner; });
   chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=chartLoad; });
 
@@ -1019,6 +1019,11 @@ async function loadStats(){
   if(el('stat-new-users'))     el('stat-new-users').textContent     = s.newUsersLast7      ?? '—';
   if(el('stat-revenue'))       el('stat-revenue').textContent       = s.revenueEstimate !== undefined ? '$' + s.revenueEstimate : '—';
   if(el('stat-avg-scenarios')) el('stat-avg-scenarios').textContent = s.avgScenariosPerUser ?? '—';
+  if(el('stat-active-users'))   el('stat-active-users').textContent   = s.activeUsers       ?? '—';
+  if(el('stat-total-scenarios'))el('stat-total-scenarios').textContent= s.totalScenarios    ?? '—';
+  if(el('stat-shared'))         el('stat-shared').textContent         = s.sharedScenarios   ?? '—';
+  if(el('stat-errors'))         el('stat-errors').textContent         = s.clientErrors      ?? '—';
+  if(el('stat-db-keys'))        el('stat-db-keys').textContent        = s.dbKeys            ?? '—';
 
   // Render 7-day sparklines for every stat card
   const mk = (key) => history.map(h => ({ date: h.date, value: h[key] }));
@@ -1031,6 +1036,11 @@ async function loadStats(){
   renderSparkline('stat-chart-new-users', mk('newUsersLast7'),      'rgba(90,158,123,0.9)',      'rgba(90,158,123,0.5)');
   renderSparkline('stat-chart-revenue',   mk('revenueEstimate'),    'rgba(201,168,76,0.9)',      'rgba(201,168,76,0.5)');
   renderSparkline('stat-chart-avg',       mk('avgScenariosPerUser'),'rgba(150,100,180,0.8)',     'rgba(150,100,180,0.4)');
+  renderSparkline('stat-chart-active-users',   mk('activeUsers'),      'rgba(90,158,123,0.85)',  'rgba(90,158,123,0.4)');
+  renderSparkline('stat-chart-total-scenarios', mk('totalScenarios'),  'rgba(120,100,160,0.85)', 'rgba(120,100,160,0.4)');
+  renderSparkline('stat-chart-shared',          mk('sharedScenarios'), 'rgba(91,143,171,0.85)',  'rgba(91,143,171,0.4)');
+  renderSparkline('stat-chart-errors',          mk('clientErrors'),    'rgba(196,90,90,0.85)',   'rgba(196,90,90,0.4)');
+  renderSparkline('stat-chart-db-keys',         mk('dbKeys'),         'rgba(74,74,82,0.85)',     'rgba(74,74,82,0.4)');
 }
 
 function escHtml(s){
@@ -1058,7 +1068,12 @@ const STAT_META = {
   scenarios:  { title: 'Scenario Sets',       desc: 'Saved property scenario lists',        valueId: 'stat-scenarios-top', histKey: 'totalScenarioLists',  stroke: 'rgba(70,140,110,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
   'new-users':{ title: 'New This Week',       desc: 'Signups in last 7 days',               valueId: 'stat-new-users',     histKey: 'newUsersLast7',       stroke: 'rgba(90,158,123,0.9)',    fill: 'rgba(90,158,123,0.5)',    prefix: '', suffix: '' },
   revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans at list price — may differ if discounts are active', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
-  avg:        { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',      valueId: 'stat-avg-scenarios', histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
+  avg:              { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',                valueId: 'stat-avg-scenarios',   histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
+  'active-users':   { title: 'Active Users',        desc: 'Unique users with at least one live session',   valueId: 'stat-active-users',    histKey: 'activeUsers',         stroke: 'rgba(90,158,123,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
+  'total-scenarios':{ title: 'Total Scenarios',      desc: 'Individual saved scenarios across all users',   valueId: 'stat-total-scenarios', histKey: 'totalScenarios',      stroke: 'rgba(120,100,160,0.85)',  fill: 'rgba(120,100,160,0.4)',   prefix: '', suffix: '' },
+  shared:           { title: 'Shared Scenarios',     desc: 'Scenarios shared between users',                valueId: 'stat-shared',          histKey: 'sharedScenarios',     stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
+  errors:           { title: 'Client Errors',        desc: 'JavaScript errors in the error log (max 500)',  valueId: 'stat-errors',          histKey: 'clientErrors',        stroke: 'rgba(196,90,90,0.85)',    fill: 'rgba(196,90,90,0.4)',     prefix: '', suffix: '' },
+  'db-keys':        { title: 'Database Keys',        desc: 'Total Redis keys stored in the database',      valueId: 'stat-db-keys',         histKey: 'dbKeys',              stroke: 'rgba(74,74,82,0.85)',     fill: 'rgba(74,74,82,0.4)',      prefix: '', suffix: '' },
 };
 
 function openStatPopup(key){

@@ -820,13 +820,39 @@ exports.handler = async function(event){
       const freeUsers=validUsers.filter(u=>!u.plan||u.plan==='free').length;
       const proUsers=validUsers.filter(u=>u.plan==='pro').length;
       const adviserUsers=validUsers.filter(u=>u.plan==='adviser').length;
-      // Count active (non-expired) sessions
+      // Count active (non-expired) sessions + unique active users
       let activeSessions=0;
+      const activeUserIds=new Set();
       if(tokenKeys&&tokenKeys.length){
         const tokenData=await Promise.all(tokenKeys.map(k=>rGet(k)));
-        activeSessions=tokenData.filter(d=>d&&(!d.expires||Date.now()<d.expires)).length;
+        tokenData.forEach(d=>{
+          if(d&&(!d.expires||Date.now()<d.expires)){
+            activeSessions++;
+            if(d.userId) activeUserIds.add(d.userId);
+          }
+        });
       }
+      const activeUsers=activeUserIds.size;
       const totalScenarioLists=scenarioKeys?scenarioKeys.length:0;
+      // Total individual scenarios (count state keys)
+      const scenarioStateKeys=await scanAll('scenarios:*:state:*');
+      const totalScenarios=scenarioStateKeys?scenarioStateKeys.length:0;
+      // Shared scenarios count
+      const shareKeys=await scanAll('share:*');
+      let sharedScenarios=0;
+      if(shareKeys&&shareKeys.length){
+        const shareLists=await Promise.all(shareKeys.map(k=>rGet(k)));
+        shareLists.forEach(sl=>{ if(Array.isArray(sl)) sharedScenarios+=sl.length; });
+      }
+      // Client errors (count from Redis list)
+      let clientErrors=0;
+      try{
+        const errLen=await redisCmd('LLEN','client-errors');
+        clientErrors=parseInt(errLen)||0;
+      }catch(e){}
+      // Database key counts by category
+      const allKeys=await redisCmd('DBSIZE');
+      const dbKeys=parseInt(allKeys)||0;
       // New users in the last 7 days
       const sevenDaysAgo=Date.now()-7*24*60*60*1000;
       const newUsersLast7=validUsers.filter(u=>u.createdAt&&u.createdAt>sevenDaysAgo).length;
@@ -839,16 +865,18 @@ exports.handler = async function(event){
       const avgScenariosPerUser=totalUsers>0?Math.round(totalScenarioLists/totalUsers*10)/10:0;
       // Store today's snapshot (31-day TTL so we keep ~1 month of history)
       const today=new Date().toISOString().slice(0,10);
-      await rSet('stats:snapshot:'+today,{date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser},60*60*24*31);
+      const snapshot={date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys};
+      await rSet('stats:snapshot:'+today,snapshot,60*60*24*31);
       // Fetch last 7 days of daily snapshots
       const history=[];
+      const nullSnap={totalUsers:null,freeUsers:null,proUsers:null,adviserUsers:null,activeSessions:null,totalScenarioLists:null,newUsersLast7:null,revenueEstimate:null,avgScenariosPerUser:null,activeUsers:null,totalScenarios:null,sharedScenarios:null,clientErrors:null,dbKeys:null};
       for(let i=6;i>=0;i--){
         const d=new Date();d.setDate(d.getDate()-i);
         const dateStr=d.toISOString().slice(0,10);
         const snap=await rGet('stats:snapshot:'+dateStr);
-        history.push(snap||{date:dateStr,totalUsers:null,freeUsers:null,proUsers:null,adviserUsers:null,activeSessions:null,totalScenarioLists:null,newUsersLast7:null,revenueEstimate:null,avgScenariosPerUser:null});
+        history.push(snap||{date:dateStr,...nullSnap});
       }
-      return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser},history});
+      return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys},history});
     }catch(e){ return fail('Stats error: '+e.message); }
   }
 
