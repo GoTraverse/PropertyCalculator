@@ -34,7 +34,18 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('rental-yield', {
+      grossYield: grossYield.toFixed(2),
+      netYield: netYield.toFixed(2),
+      propertyValue: propVal,
+      weeklyRent: weekly,
+      annualRent: annualRent,
+      totalExpenses: totalExpenses
+    });
+  }
 }
 
 /* ═══ TOOL CONFIG ═══ */
@@ -96,9 +107,15 @@ ToolPage.init({
 });
 
 var _isInit = true;
+if(window.trackCalculatorStart) trackCalculatorStart('rental-yield');
 calculate();
 _isInit = false;
 ['propval','weekly','rates','insurance','maintenance'].forEach(function(id) {
-  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('input', function(){ fmtInput(this); });
 });
-document.getElementById('rent-calc-btn').addEventListener('click', calculate);
+var calcBtn = document.getElementById('rent-calc-btn');
+if(calcBtn) calcBtn.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'rental-yield'});
+  calculate();
+});

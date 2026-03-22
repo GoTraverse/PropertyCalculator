@@ -88,6 +88,18 @@ function calc() {
   setTextContent('summaryCashNeeded', cashNeeded);
 
   document.getElementById('cta').style.display = '';
+
+  // Track calculator result
+  if(window.trackCalculatorResult) trackCalculatorResult('cost-of-purchase', {
+    purchasePrice: purchasePrice,
+    deposit: deposit,
+    stampDuty: stampDuty,
+    totalCosts: totalCosts,
+    cashNeeded: cashNeeded,
+    state: state,
+    isFHB: isFhb,
+    isForeignBuyer: isForeignBuyer
+  });
 }
 
 var calcTimeout;
@@ -156,12 +168,20 @@ ToolPage.init({
   ]
 });
 
+if(window.trackCalculatorStart) trackCalculatorStart('cost-of-purchase');
 calc();
 ['purchasePrice','depositPct','weeklyRent','leaseBreak'].forEach(function(id) {
-  document.getElementById(id).addEventListener('input', dCalc);
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('input', dCalc);
 });
-document.getElementById('state').addEventListener('change', dCalc);
+var stateEl = document.getElementById('state');
+if(stateEl) stateEl.addEventListener('change', dCalc);
 ['fhb','foreignBuyer','currentlyRenting'].forEach(function(id) {
-  document.getElementById(id).addEventListener('change', dCalc);
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('change', dCalc);
 });
-document.getElementById('cop-calc-btn').addEventListener('click', calc);
+var calcBtn = document.getElementById('cop-calc-btn');
+if(calcBtn) calcBtn.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'cost-of-purchase'});
+  calc();
+});

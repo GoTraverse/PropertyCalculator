@@ -42,7 +42,18 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('loan-serviceability', {
+      grossIncome: gross,
+      monthlyIncome: Math.round(monthlyIncome),
+      monthlyCommitments: monthlyCommitments,
+      monthlyDisposable: Math.round(monthlyDisposable),
+      maxBorrowingCapacity: Math.round(maxLoan),
+      assessmentRate: assessmentRate.toFixed(2)
+    });
+  }
 }
 
 /* ─ Hydrate assessment rate from live RBA data ─ */
@@ -122,9 +133,15 @@ ToolPage.init({
 });
 
 var _isInit = true;
+if(window.trackCalculatorStart) trackCalculatorStart('loan-serviceability');
 calculate();
 _isInit = false;
 ['salary','partner','other','expenses','debt'].forEach(function(id) {
-  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('input', function(){ fmtInput(this); });
 });
-document.getElementById('loan-calc-btn').addEventListener('click', calculate);
+var calcBtn = document.getElementById('loan-calc-btn');
+if(calcBtn) calcBtn.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'loan-serviceability'});
+  calculate();
+});

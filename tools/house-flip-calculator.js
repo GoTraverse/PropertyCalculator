@@ -46,7 +46,20 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('house-flip', {
+      purchasePrice: purchase,
+      salePrice: sale,
+      renovationCost: reno,
+      totalCost: totalCost,
+      netProfit: netProfit,
+      roi: roi.toFixed(1),
+      annualisedReturn: annualised.toFixed(1),
+      holdingMonths: months
+    });
+  }
 }
 
 /* ═══ TOOL CONFIG ═══ */
@@ -108,10 +121,17 @@ ToolPage.init({
 });
 
 var _isInit = true;
+if(window.trackCalculatorStart) trackCalculatorStart('house-flip');
 calculate();
 _isInit = false;
 ['purchase','stamp','buyconvey','buyinspect','monthly','saleprice','sellconvey','staging'].forEach(function(id) {
-  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('input', function(){ fmtInput(this); });
 });
-document.getElementById('reno').addEventListener('input', function(){ fmtInput(this); updateContingency(); });
-document.getElementById('flip-calc-btn').addEventListener('click', calculate);
+var renoEl = document.getElementById('reno');
+if(renoEl) renoEl.addEventListener('input', function(){ fmtInput(this); updateContingency(); });
+var calcBtn = document.getElementById('flip-calc-btn');
+if(calcBtn) calcBtn.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'house-flip'});
+  calculate();
+});

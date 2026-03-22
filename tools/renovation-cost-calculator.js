@@ -59,7 +59,22 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('renovation-cost', {
+      floorArea: area,
+      renovationScope: scope,
+      finishLevel: finish,
+      bathrooms: baths,
+      kitchenWork: kitchen,
+      landscaping: landscape,
+      estimatedCostLow: Math.round(totalLow),
+      estimatedCostHigh: Math.round(totalHigh),
+      estimatedCostMid: Math.round(totalMid),
+      hasContingency: addCont
+    });
+  }
 }
 
 /* ═══ TOOL CONFIG ═══ */
@@ -120,6 +135,11 @@ ToolPage.init({
 });
 
 var _isInit = true;
+if(window.trackCalculatorStart) trackCalculatorStart('renovation-cost');
 calculate();
 _isInit = false;
-document.getElementById('reno-calc-btn').addEventListener('click', calculate);
+var calcBtn = document.getElementById('reno-calc-btn');
+if(calcBtn) calcBtn.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'renovation-cost'});
+  calculate();
+});

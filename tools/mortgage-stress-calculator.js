@@ -48,7 +48,21 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('mortgage-stress', {
+      loanAmount: loan,
+      interestRate: rate,
+      termYears: term,
+      loanType: io ? 'interest-only' : 'principal-and-interest',
+      monthlyRepayment: Math.round(repay),
+      stressedMonthlyRepayment: Math.round(stressed),
+      dsr: dsrCurrent.toFixed(1),
+      dsr_stressed: dsrStress.toFixed(1),
+      stressBuffer: bufferPct
+    });
+  }
 }
 
 /* ─ Hydrate interest rate from live RBA data ─ */
@@ -128,9 +142,15 @@ ToolPage.init({
 });
 
 var _isInit = true;
+if(window.trackCalculatorStart) trackCalculatorStart('mortgage-stress');
 calculate();
 _isInit = false;
 ['loan','income','expenses'].forEach(function(id) {
-  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('input', function(){ fmtInput(this); });
 });
-document.getElementById('stress-calc-btn').addEventListener('click', calculate);
+var calcBtn = document.getElementById('stress-calc-btn');
+if(calcBtn) calcBtn.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'mortgage-stress'});
+  calculate();
+});
