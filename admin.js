@@ -146,6 +146,12 @@ async function init(){
   const email = d.email || '';
   document.getElementById('self-admin-info').textContent = 'Logged in as: ' + email;
 
+  // Track admin page access
+  if(window.trackPageEvent) trackPageEvent('admin_page_access', {
+    'admin_email': email,
+    'timestamp': new Date().toISOString()
+  });
+
   loadUsers();
   loadStats(); // populate top stats row immediately
 }

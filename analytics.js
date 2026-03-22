@@ -13,14 +13,25 @@ function initAnalytics() {
     });
 
     // Custom user properties
+    var isAdmin = (session.role === 'admin' || session.is_admin === true);
+    var isInternal = (session.email && (session.email.includes('equitysight') || session.email.includes('dev')));
+
     gtag('set', {
       'user_plan': session.plan || 'free',
-      'user_authenticated': true
+      'user_authenticated': true,
+      'user_role': session.role || 'user',
+      'is_admin': isAdmin,
+      'is_internal_user': isInternal || isAdmin,
+      'subscription_status': session.subscription_status || 'active'
     });
   } else {
     gtag('set', {
       'user_plan': 'free',
-      'user_authenticated': false
+      'user_authenticated': false,
+      'user_role': 'anonymous',
+      'is_admin': false,
+      'is_internal_user': false,
+      'subscription_status': 'none'
     });
   }
 }
@@ -294,8 +305,24 @@ window.trackChurn = function(reason, plan) {
 
 window.trackTrialEvent = function(action, daysRemaining) {
   gtag('event', 'trial_' + action, {
-    'action': action, // 'started', 'ending_soon', 'ended', 'converted'
+    'action': action, // 'started', 'ending_soon', 'ended', 'converted', 'expired'
     'days_remaining': daysRemaining || 0,
+    'event_category': 'conversion'
+  });
+};
+
+window.trackTrialFeatureAccess = function(featureName) {
+  // Track when trial user accesses a pro feature during trial period
+  gtag('event', 'trial_feature_access', {
+    'feature_name': featureName,
+    'event_category': 'engagement'
+  });
+};
+
+window.trackTrialConversion = function(planSelected) {
+  // Track trial user converting to paid plan
+  gtag('event', 'trial_converted', {
+    'plan': planSelected || 'pro',
     'event_category': 'conversion'
   });
 };

@@ -512,6 +512,14 @@ if(session && session.token){
   function applyProfileUpdate(d){
     const changed = d.plan !== session.plan || d.name !== session.name;
     if(changed){
+      // Track plan change
+      if(d.plan !== session.plan && window.trackPageEvent){
+        trackPageEvent('plan_changed', {
+          'old_plan': session.plan || 'unknown',
+          'new_plan': d.plan || 'unknown',
+          'timestamp': new Date().toISOString()
+        });
+      }
       session.plan = d.plan || session.plan;
       session.name = d.name || session.name;
       try{ localStorage.setItem(SK, JSON.stringify(session)); }catch(e){}
