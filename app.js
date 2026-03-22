@@ -2300,14 +2300,11 @@
 
   // ── Admin: All Users' Scenarios ────────────────────────────────────────────
   var _adminAllCache = []; // [{userId, userEmail, userName, scenarios:[...]}]
-  var _adminViewAllEnabled = false; // set by applyFeatureFlags
 
   async function loadAdminAllScenarios(){
     if(!_currentUser||_currentUser.role!=='admin') return;
-    // Check both the flag (set by applyFeatureFlags) and localStorage fallback
-    if(!_adminViewAllEnabled){
-      try{ var cfg=JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); if(!cfg.adminViewAllScenarios) return; }catch(e){ return; }
-    }
+    // Check if admin view all scenarios is enabled in config
+    try{ var cfg=JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); if(!cfg.adminViewAllScenarios) return; }catch(e){ return; }
     try{
       const authH=getAuthHeader(); if(!authH) return;
       const r=await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'adminListAllScenarios'})});
@@ -2322,8 +2319,6 @@
     const grid=document.getElementById('admin-all-grid');
     const countEl=document.getElementById('admin-all-count');
     if(!section||!grid) return;
-    // Re-check flag — applyFeatureFlags may have disabled it while fetch was in-flight
-    if(!_adminViewAllEnabled){ section.style.display='none'; return; }
     // Filter out admin's own scenarios (they're already in the main grid)
     const myId=_currentUser&&_currentUser.id;
     const others=groups.filter(g=>g.userId!==myId);
@@ -4307,9 +4302,8 @@
     }
 
     // ── Admin View All Scenarios feature flag ─────────────────────
-    _adminViewAllEnabled = !!cfg.adminViewAllScenarios;
     var adminSection = document.getElementById('admin-all-section');
-    if(adminSection && !_adminViewAllEnabled){
+    if(adminSection && !cfg.adminViewAllScenarios){
       adminSection.style.display = 'none';
       adminSection.innerHTML = '';
     }
