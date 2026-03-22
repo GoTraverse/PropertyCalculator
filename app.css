@@ -395,7 +395,6 @@
     .sidebar.mobile-open{display:block!important;padding-bottom:max(100px, calc(env(safe-area-inset-bottom) + 88px))!important;}
     .sidebar.mobile-open .sidebar-title{padding-top:max(14px, calc(env(safe-area-inset-top) + 8px))!important;}
     #mobile-sidebar-btn{display:none!important;}
-    #mobile-calc-fab{display:flex!important;}
 
     /* Header — compact but clear; fixed on mobile so it stays visible on scroll */
     header{position:fixed!important;top:0;left:0;right:0;z-index:200;}
@@ -654,6 +653,7 @@
 
   /* PWA / Add to Home Screen — prevent all rubber-band bounce */
   @media all and (display-mode: standalone) {
+    #mobile-calc-fab{display:flex!important;}
     html { overscroll-behavior: none; overscroll-behavior-y: none; }
     body {
       overscroll-behavior: none;
