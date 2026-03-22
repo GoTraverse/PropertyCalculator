@@ -45,6 +45,16 @@ async function rGet(key){
 async function rSet(key,val){ return redisCmd('SET',key,typeof val==='string'?val:JSON.stringify(val)); }
 
 // Append a structured event for a userId (shared with auth.js event log)
+async function scanAll(pattern){
+  const results=[];
+  let cursor='0';
+  do{
+    const res=await redisCmd('SCAN',cursor,'MATCH',pattern,'COUNT','200');
+    cursor=res[0]; if(res[1]) results.push(...res[1]);
+  }while(cursor!=='0');
+  return results;
+}
+
 async function logEvent(userId,type,extra){
   if(!userId) return;
   try{
@@ -189,10 +199,51 @@ exports.handler = async function(event){
   // ── POST ─────────────────────────────────────────────────────────────
   if(event.httpMethod==='POST'){
     if(!body) return fail('Request body required', 400);
-    const uid = await resolveUser(event, body);
-    if(!uid) return fail('Authentication required — please sign in', 401);
 
     const {action} = body;
+
+    // Admin: list all users' scenarios (no resolveUser needed — uses admin token)
+    if(action==='adminListAllScenarios'){
+      const admin=await verifyAdminToken(authHeader);
+      if(!admin) return fail('Admin access required',401);
+      try{
+        // Scan all scenario index keys and user keys
+        const indexKeys=await scanAll('scenarios:*:index');
+        const userKeys=await scanAll('user:*');
+        // Build userId→{email,name} map
+        const userMap={};
+        await Promise.all((userKeys||[]).map(async k=>{
+          const u=await rGet(k);
+          if(u&&u.id) userMap[u.id]={email:u.email||k.replace('user:',''),name:u.name||''};
+        }));
+        // Build groups
+        const groups=[];
+        await Promise.all((indexKeys||[]).map(async k=>{
+          const uid=k.replace('scenarios:','').replace(':index','');
+          const idx=await rGet(k);
+          if(!Array.isArray(idx)||!idx.length) return;
+          const u=userMap[uid]||{email:'unknown',name:''};
+          groups.push({userId:uid,userEmail:u.email,userName:u.name,scenarios:idx});
+        }));
+        return ok({ok:true,groups});
+      }catch(e){ return fail('Error: '+e.message); }
+    }
+
+    // Admin: get another user's scenario state
+    if(action==='adminGetScenarioState'){
+      const admin=await verifyAdminToken(authHeader);
+      if(!admin) return fail('Admin access required',401);
+      const {userId:targetUid,id}=body;
+      if(!targetUid||!id) return fail('userId and id required');
+      try{
+        const state=await rGet(stateKey(targetUid,id));
+        const photo=await rGet(photoKey(targetUid,id));
+        return ok({ok:true,state,photo:photo||null});
+      }catch(e){ return fail('Error: '+e.message); }
+    }
+
+    const uid = await resolveUser(event, body);
+    if(!uid) return fail('Authentication required — please sign in', 401);
 
     if(!action || action==='save'){
       const {id, fullAddr, state, hasPhoto, status, thumb} = body;
