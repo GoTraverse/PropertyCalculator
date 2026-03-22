@@ -683,6 +683,10 @@
       #scenarios-modal > div { overflow-x: hidden !important; }
     }
   }
+  /* Hide mobile FAB on desktop-width screens even in standalone/PWA mode */
+  @media (display-mode: standalone) and (min-width:601px) {
+    #mobile-calc-fab{display:none!important;}
+  }
 
 /* ── App Custom Dialog ────────────────────────────────────────────────────── */
 @keyframes appDialogFadeIn{from{opacity:0}to{opacity:1}}
