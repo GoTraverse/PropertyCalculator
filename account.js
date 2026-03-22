@@ -304,7 +304,7 @@ async function openBillingPortal(){
     const r = await fetch('/.netlify/functions/stripe',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({action:'createPortalSession',returnUrl:location.href})
+      body:JSON.stringify({action:'createPortalSession'})
     });
     const d = await r.json();
     if(d.ok && d.url){
