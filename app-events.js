@@ -29,7 +29,7 @@ if(collapsedHint) collapsedHint.addEventListener('click', toggleSidebarCollapse)
 
 // ── Header action buttons ─────────────────────────────────────────────────────
 var hdrSaveBtn = document.querySelector('.hdr-save-btn');
-if(hdrSaveBtn) hdrSaveBtn.addEventListener('click', saveScenario);
+if(hdrSaveBtn) hdrSaveBtn.addEventListener('click', function(){ saveScenario(false); });
 var hdrNewBtn = document.getElementById('hdr-new-btn');
 if(hdrNewBtn) hdrNewBtn.addEventListener('click', newScenario);
 var openSavedBtn = document.getElementById('open-saved-btn');
