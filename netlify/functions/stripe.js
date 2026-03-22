@@ -451,7 +451,6 @@ exports.handler = async function (event) {
 
   // ── createPortalSession: redirect to Stripe customer portal ─────────────
   if (body.action === 'createPortalSession') {
-    const { returnUrl } = body;
     const userData = await rGet('user:' + user.email);
     if (!userData || !userData.stripeCustomerId) {
       return fail('No billing account found. Please subscribe first.');
@@ -466,7 +465,7 @@ exports.handler = async function (event) {
     try {
       const session = await stripePost('/v1/billing_portal/sessions', {
         customer: userData.stripeCustomerId,
-        return_url: returnUrl || siteUrl + '/account.html',
+        return_url: siteUrl + '/account.html',
       });
       return ok({ ok: true, url: session.url });
     } catch (e) {

@@ -106,7 +106,7 @@
   panel.innerHTML = [
     '<div class="ap2-header">',
       '<h2>Account Settings</h2>',
-      '<button class="ap2-close" onclick="window.closeAccountPanel()">&#x2715;</button>',
+      '<button class="ap2-close" data-action="close-panel">&#x2715;</button>',
     '</div>',
     '<div class="ap2-body">',
 
@@ -132,13 +132,13 @@
           '</div>',
           '<div class="ap2-field">',
             '<label class="ap2-label">Profile Photo</label>',
-            '<input type="file" id="ap2-photo-input" accept="image/*" style="display:none" onchange="ap2LoadPhoto(this)">',
+            '<input type="file" id="ap2-photo-input" accept="image/*" style="display:none">',
             '<div style="display:flex;gap:8px;flex-wrap:wrap;">',
-              '<button class="ap2-btn ap2-btn-primary" onclick="document.getElementById(\u0027ap2-photo-input\u0027).click()">&#x1F4F7; Upload Photo</button>',
-              '<button class="ap2-btn" style="background:rgba(196,90,90,0.08);color:#C45A5A;border:1px solid rgba(196,90,90,0.2);" onclick="ap2RemovePhoto()">Remove</button>',
+              '<button class="ap2-btn ap2-btn-primary" data-action="upload-photo">&#x1F4F7; Upload Photo</button>',
+              '<button class="ap2-btn" style="background:rgba(196,90,90,0.08);color:#C45A5A;border:1px solid rgba(196,90,90,0.2);" data-action="remove-photo">Remove</button>',
             '</div>',
           '</div>',
-          '<button class="ap2-btn ap2-btn-gold" onclick="ap2SaveProfile()">Save Profile</button>',
+          '<button class="ap2-btn ap2-btn-gold" data-action="save-profile">Save Profile</button>',
           '<div class="ap2-status" id="ap2-profile-status"></div>',
         '</div>',
       '</div>',
@@ -154,7 +154,7 @@
               '<div style="font-size:11px;color:#C45A5A;margin-top:8px;display:none;padding:8px 10px;background:rgba(196,90,90,0.08);border-radius:3px;border-left:3px solid #C45A5A;" id="ap2-plan-canceled">Plan canceled — expires <span id="ap2-plan-expires"></span></div>',
               '<div style="font-size:11px;color:#4A4A52;margin-top:8px;padding:8px 10px;background:rgba(201,168,76,0.08);border-radius:3px;" id="ap2-plan-renews" style="display:none;">Renews <span id="ap2-renew-date"></span></div>',
             '</div>',
-            '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" onclick="location.href=\u0027pricing.html\u0027" style="display:none;">Upgrade to Pro &#x2192;</button>',
+            '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" data-action="upgrade" style="display:none;">Upgrade to Pro &#x2192;</button>',
           '</div>',
         '</div>',
       '</div>',
@@ -177,7 +177,7 @@
               '<input class="ap2-input" id="ap2-pw-confirm" type="password" placeholder="Repeat password" autocomplete="new-password">',
             '</div>',
           '</div>',
-          '<button class="ap2-btn ap2-btn-primary" onclick="ap2ChangePassword()">Update Password</button>',
+          '<button class="ap2-btn ap2-btn-primary" data-action="change-password">Update Password</button>',
           '<div class="ap2-status" id="ap2-pw-status"></div>',
         '</div>',
       '</div>',
@@ -192,7 +192,7 @@
             '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#4A4A52;margin-bottom:5px;">Your referral link</div>',
             '<div style="display:flex;gap:8px;align-items:center;">',
               '<input class="ap2-input" id="ap2-ref-link" type="text" readonly style="font-size:12px;color:#1C1C1E;cursor:default;">',
-              '<button class="ap2-btn ap2-btn-gold" onclick="ap2CopyRefLink()" style="white-space:nowrap;flex-shrink:0;">Copy</button>',
+              '<button class="ap2-btn ap2-btn-gold" data-action="copy-ref" style="white-space:nowrap;flex-shrink:0;">Copy</button>',
             '</div>',
             '<div id="ap2-ref-count" style="font-size:12px;color:#4A4A52;margin-top:8px;"></div>',
           '</div>',
@@ -205,13 +205,31 @@
         '<div class="ap2-section-title">Danger Zone</div>',
         '<div class="ap2-card">',
           '<div style="font-size:12px;color:#4A4A52;margin-bottom:12px;">Permanently delete your account and all saved scenarios. This cannot be undone.</div>',
-          '<button class="ap2-btn ap2-btn-danger" onclick="ap2DeleteAccount()">Delete My Account</button>',
+          '<button class="ap2-btn ap2-btn-danger" data-action="delete-account">Delete My Account</button>',
         '</div>',
       '</div>',
 
     '</div>'
   ].join('');
   document.body.appendChild(panel);
+
+  // ── Panel event delegation (replaces inline onclick handlers) ──────────────
+  panel.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    switch (btn.dataset.action) {
+      case 'close-panel':    window.closeAccountPanel(); break;
+      case 'upload-photo':   document.getElementById('ap2-photo-input').click(); break;
+      case 'remove-photo':   ap2RemovePhoto(); break;
+      case 'save-profile':   ap2SaveProfile(); break;
+      case 'upgrade':        location.href = 'pricing.html'; break;
+      case 'change-password': ap2ChangePassword(); break;
+      case 'copy-ref':       ap2CopyRefLink(); break;
+      case 'delete-account': ap2DeleteAccount(); break;
+    }
+  });
+  var photoInput = document.getElementById('ap2-photo-input');
+  if (photoInput) photoInput.addEventListener('change', function() { ap2LoadPhoto(this); });
 
   // ── Local state ─────────────────────────────────────────────────────────────
   var _apProfile = {};
@@ -290,8 +308,12 @@
     var cr = el('ap2-colors');
     if (cr) {
       cr.innerHTML = AP_COLORS.map(function (c) {
-        return '<div class="ap2-swatch' + (c === color ? ' active' : '') + '" style="background:' + c + ';" onclick="ap2SetColor(this,\u0027' + c + '\u0027)"></div>';
+        return '<div class="ap2-swatch' + (c === color ? ' active' : '') + '" style="background:' + c + ';" data-color="' + c + '"></div>';
       }).join('');
+      cr.addEventListener('click', function(e) {
+        var swatch = e.target.closest('.ap2-swatch');
+        if (swatch && swatch.dataset.color) ap2SetColor(swatch, swatch.dataset.color);
+      });
     }
   }
 
