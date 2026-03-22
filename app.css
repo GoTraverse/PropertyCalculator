@@ -393,7 +393,8 @@
     #mobile-sidebar-btn{display:none!important;}
     #mobile-calc-fab{display:flex!important;}
 
-    /* Header — compact but clear */
+    /* Header — compact but clear; fixed on mobile so it stays visible on scroll */
+    header{position:fixed!important;top:0;left:0;right:0;z-index:200;}
     .header-inner{min-height:auto!important;flex-wrap:wrap;}
     .header-text{padding:10px 14px 12px!important;flex:1 1 100%;}
     h1{font-size:19px!important;line-height:1.2!important;}

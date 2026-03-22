@@ -3529,8 +3529,13 @@
     // Always position fixed nav directly below the actual rendered header
     if(navEl) navEl.style.top = headerH + 'px';
 
-    if(window.innerWidth <= 820){
-      // Mobile / tablet: body scrolls, app-body grows with content
+    if(window.innerWidth <= 600){
+      // Mobile: header is fixed, nav is fixed — app-body needs padding for both
+      appBody.style.height     = '';
+      appBody.style.marginTop  = '';
+      appBody.style.paddingTop = (headerH + navH) + 'px';
+    } else if(window.innerWidth <= 820){
+      // Tablet: header is sticky, nav is fixed
       appBody.style.height     = '';
       appBody.style.marginTop  = '';
       appBody.style.paddingTop = navH + 'px';
