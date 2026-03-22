@@ -284,6 +284,8 @@ async function loadBillingStatus(){
       const expiresAt = session?.expiresAt || session?.subscription_expires_at;
       const renewsAt = session?.renewsAt || session?.subscription_renews_at;
       if(canceledStatus && expiresAt){
+        // Track churn - user has cancelled their subscription
+        if(window.trackChurn) trackChurn('user_action', d.plan || 'unknown');
         const expiryDate = new Date(expiresAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
         cancelNote.textContent = '⚠️ Plan canceled — your access ends on '+expiryDate;
         cancelNote.style.display = 'block';
@@ -335,10 +337,13 @@ async function confirmDeleteAccount(){
     });
     const d = await r.json();
     if(d.ok){
+      // Track account deletion
+      if(window.trackAuthAction) trackAuthAction('account_deleted', 'success');
       localStorage.clear();
       await acctAlert('Account Deleted', 'Your account has been deleted. You will now be redirected.', {icon:'👋'});
       location.href='index.html';
     } else {
+      if(window.trackAuthAction) trackAuthAction('account_deleted', 'failure');
       await acctAlert('Error', d.error||'Failed to delete account. Please try again.', {danger:true, icon:'✗'});
     }
   }catch(e){
@@ -349,6 +354,8 @@ async function confirmDeleteAccount(){
 }
 
 function doSignOut(){
+  // Track logout/sign out
+  if(window.trackPageEvent) trackPageEvent('user_signout', {});
   if(session?.token){
     fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'signout',token:session.token})}).catch(()=>{});
   }
@@ -505,6 +512,14 @@ if(session && session.token){
   function applyProfileUpdate(d){
     const changed = d.plan !== session.plan || d.name !== session.name;
     if(changed){
+      // Track plan change
+      if(d.plan !== session.plan && window.trackPageEvent){
+        trackPageEvent('plan_changed', {
+          'old_plan': session.plan || 'unknown',
+          'new_plan': d.plan || 'unknown',
+          'timestamp': new Date().toISOString()
+        });
+      }
       session.plan = d.plan || session.plan;
       session.name = d.name || session.name;
       try{ localStorage.setItem(SK, JSON.stringify(session)); }catch(e){}

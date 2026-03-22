@@ -191,6 +191,7 @@ async function requestReset(){
   const btn = document.getElementById('fp-btn');
   btn.textContent = 'Sending…'; btn.disabled = true;
   _fpEmail = email;
+  if(window.trackAuthAction) trackAuthAction('password_reset_requested', 'pending');
   await callAuth('requestPasswordReset', {email});
   btn.textContent = 'Send Reset Code →'; btn.disabled = false;
   document.getElementById('forgot-step-request').style.display = 'none';
@@ -210,10 +211,12 @@ async function confirmReset(){
   const res = await callAuth('resetPasswordWithToken', {email: _fpEmail, code, newPassword: newPw});
   btn.textContent = 'Set New Password →'; btn.disabled = false;
   if(res.ok){
+    if(window.trackAuthAction) trackAuthAction('password_reset_confirmed', 'success');
     setTab('signin');
     var s = document.getElementById('login-sub');
     if(s){ s.textContent = '✓ Password updated — sign in with your new password'; s.style.color = '#5A9E7A'; }
   } else {
+    if(window.trackAuthAction) trackAuthAction('password_reset_confirmed', 'failure');
     errEl.textContent = res.error || 'Invalid or expired code. Please try again.';
   }
 }
@@ -362,8 +365,9 @@ async function doVerifyEmail(){
   const res = await callAuth('verifyEmail', {email,code});
   if(res.ok){
     persistSession(res, {email,name,plan});
-    // Track email signup
+    // Track email signup and verification
     if(window.trackSignup) trackSignup('email');
+    if(window.trackAuthAction) trackAuthAction('email_verified', 'success');
     try{
       const authH = 'Bearer ' + (res.token||'');
       const profileRes = await fetch('/.netlify/functions/auth', {
@@ -378,6 +382,7 @@ async function doVerifyEmail(){
     }catch(e){}
     postVerificationRedirect(res.plan || plan);
   } else {
+    if(window.trackAuthAction) trackAuthAction('email_verified', 'failure');
     errEl.textContent = res.error || 'Could not verify email';
     btn.disabled = false; btn.textContent = 'Verify Email →';
   }

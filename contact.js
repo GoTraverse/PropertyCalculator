@@ -48,5 +48,8 @@ if(cfSubmit) cfSubmit.addEventListener('click', submitForm);
 document.querySelectorAll('.faq-q').forEach(function(btn){
   btn.addEventListener('click', function(){
     this.closest('.faq-item').classList.toggle('open');
+    // Track FAQ click
+    var faqText = this.textContent.substring(0, 50).trim();
+    if(window.trackHelpEngagement) trackHelpEngagement('faq_clicked', faqText);
   });
 });

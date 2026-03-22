@@ -13,14 +13,25 @@ function initAnalytics() {
     });
 
     // Custom user properties
+    var isAdmin = (session.role === 'admin' || session.is_admin === true);
+    var isInternal = (session.email && (session.email.includes('equitysight') || session.email.includes('dev')));
+
     gtag('set', {
       'user_plan': session.plan || 'free',
-      'user_authenticated': true
+      'user_authenticated': true,
+      'user_role': session.role || 'user',
+      'is_admin': isAdmin,
+      'is_internal_user': isInternal || isAdmin,
+      'subscription_status': session.subscription_status || 'active'
     });
   } else {
     gtag('set', {
       'user_plan': 'free',
-      'user_authenticated': false
+      'user_authenticated': false,
+      'user_role': 'anonymous',
+      'is_admin': false,
+      'is_internal_user': false,
+      'subscription_status': 'none'
     });
   }
 }
@@ -207,6 +218,52 @@ window.trackPageEvent = function(eventName, eventData) {
   }
 })();
 
+// ── Performance Monitoring ─────────────────────────────────────────────────
+(function() {
+  // Track page load time (Web Vitals)
+  if (window.performance && window.performance.timing) {
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var timing = window.performance.timing;
+        var loadTime = timing.loadEventEnd - timing.navigationStart;
+        var dnsTime = timing.dnsLookupEnd - timing.dnsLookupStart;
+        var connectTime = timing.connectEnd - timing.connectStart;
+        var renderTime = timing.domContentLoadedEventEnd - timing.navigationStart;
+
+        if (loadTime > 0 && loadTime < 60000) { // reasonable range
+          gtag('event', 'page_load_time', {
+            'total_ms': Math.round(loadTime),
+            'dns_ms': Math.round(dnsTime),
+            'connect_ms': Math.round(connectTime),
+            'render_ms': Math.round(renderTime),
+            'page_path': window.location.pathname
+          });
+        }
+      }, 0);
+    });
+  }
+
+  // Track Core Web Vitals if available (modern browsers)
+  if ('PerformanceObserver' in window) {
+    try {
+      // Cumulative Layout Shift
+      var clsValue = 0;
+      var clsObserver = new PerformanceObserver(function(list) {
+        for (var entry of list.getEntries()) {
+          if (!entry.hadRecentInput) {
+            clsValue += entry.value;
+            gtag('event', 'cumulative_layout_shift', {
+              'value': clsValue.toFixed(3),
+              'page_path': window.location.pathname
+            });
+          }
+        }
+      });
+      clsObserver.observe({entryTypes: ['layout-shift']});
+    } catch(e) {}
+  }
+})();
+
 // ── Error Tracking Integration ───────────────────────────────────────────
 window.trackJSError = function(errorMessage, source, lineno, colno) {
   gtag('event', 'exception', {
@@ -236,6 +293,157 @@ window.addEventListener('storage', function(e) {
     }
   }
 });
+
+// ── Churn & Subscription Analytics ───────────────────────────────────────
+window.trackChurn = function(reason, plan) {
+  gtag('event', 'subscription_cancel', {
+    'reason': reason || 'unknown',
+    'plan': plan || 'unknown',
+    'event_category': 'conversion'
+  });
+};
+
+window.trackTrialEvent = function(action, daysRemaining) {
+  gtag('event', 'trial_' + action, {
+    'action': action, // 'started', 'ending_soon', 'ended', 'converted', 'expired'
+    'days_remaining': daysRemaining || 0,
+    'event_category': 'conversion'
+  });
+};
+
+window.trackTrialFeatureAccess = function(featureName) {
+  // Track when trial user accesses a pro feature during trial period
+  gtag('event', 'trial_feature_access', {
+    'feature_name': featureName,
+    'event_category': 'engagement'
+  });
+};
+
+window.trackTrialConversion = function(planSelected) {
+  // Track trial user converting to paid plan
+  gtag('event', 'trial_converted', {
+    'plan': planSelected || 'pro',
+    'event_category': 'conversion'
+  });
+};
+
+// ── Feature Usage Tracking ──────────────────────────────────────────────
+window.trackProFeatureUsage = function(featureName, context) {
+  gtag('event', 'pro_feature_used', {
+    'feature_name': featureName,
+    'context': context || 'app',
+    'event_category': 'engagement'
+  });
+};
+
+window.trackFeatureGated = function(featureName, action) {
+  // Tracks when free users hit pro-only feature barriers
+  gtag('event', 'feature_gated', {
+    'feature_name': featureName,
+    'action': action, // 'viewed', 'attempted_access', 'clicked_upgrade'
+    'plan': 'free',
+    'event_category': 'conversion'
+  });
+};
+
+window.trackScenarioAction = function(action, scenarioData) {
+  // Enhanced: now tracks save, restore, delete, duplicate, share, load, compare
+  gtag('event', 'scenario_' + action, {
+    'scenario_id': scenarioData && scenarioData.id ? scenarioData.id.substring(0, 8) : 'unknown',
+    'scenario_count': (scenarioData && scenarioData.index) || 0,
+    'scenario_name': (scenarioData && scenarioData.name) ? scenarioData.name.substring(0, 50) : 'unnamed',
+    'event_category': 'engagement'
+  });
+};
+
+// ── App Calculation Tracking ────────────────────────────────────────────
+window.trackAppCalculationResult = function(resultData) {
+  // Main app.html calculation results (purchase scenario)
+  gtag('event', 'app_calculation_result', {
+    'property_value': Math.round((resultData.propertyValue || 0) / 10000) * 10000,
+    'loan_amount': Math.round((resultData.loanAmount || 0) / 10000) * 10000,
+    'years_projected': resultData.yearsProjected || 30,
+    'has_rental_income': !!resultData.rentalIncome,
+    'has_renovation': !!resultData.renovationCost,
+    'event_category': 'engagement'
+  });
+};
+
+// ── API & Backend Error Tracking ────────────────────────────────────────
+window.trackAPIError = function(apiName, errorType, statusCode) {
+  gtag('event', 'api_error', {
+    'api_name': apiName, // 'domain', 'rba', 'abs', 'address_suggest', 'auth', 'market_data'
+    'error_type': errorType, // 'timeout', 'rate_limit', 'not_found', 'server_error', 'network'
+    'status_code': statusCode || 0,
+    'event_category': 'error'
+  });
+};
+
+window.trackPerformanceIssue = function(metricName, value, threshold) {
+  // Track when performance is degraded
+  gtag('event', 'performance_issue', {
+    'metric': metricName, // 'page_load_time', 'calculation_time', 'api_response_time'
+    'value_ms': Math.round(value),
+    'threshold_ms': threshold,
+    'exceeded': value > threshold,
+    'event_category': 'technical'
+  });
+};
+
+// ── Account & Auth Tracking ────────────────────────────────────────────
+window.trackAuthAction = function(action, result) {
+  // Tracks password resets, email verification, account deletion, profile updates
+  gtag('event', 'auth_action', {
+    'action': action, // 'password_reset_requested', 'password_reset_confirmed', 'email_verified', 'account_deleted', 'profile_updated'
+    'result': result, // 'success', 'failure', 'pending'
+    'event_category': 'engagement'
+  });
+};
+
+window.trackAccountAction = function(action, accountType) {
+  // Tracks subscription/account changes
+  gtag('event', 'account_action', {
+    'action': action, // 'payment_method_updated', 'email_changed', 'settings_updated', 'two_factor_enabled'
+    'account_type': accountType || 'unknown',
+    'event_category': 'engagement'
+  });
+};
+
+// ── Feature Discovery & Adoption ───────────────────────────────────────
+window.trackFeatureDiscovery = function(featureName, section) {
+  // Tracks first-time views of pro features
+  gtag('event', 'feature_discovery', {
+    'feature_name': featureName, // 'scenarios', 'pdf_export', 'multi_property', 'projections', 'comparison'
+    'section': section || 'unknown', // 'app', 'sidebar', 'results', 'toolbar'
+    'event_category': 'engagement'
+  });
+};
+
+window.trackFeatureGateCTA = function(featureName, ctaType) {
+  // Track clicks on 'Upgrade' CTAs from feature gates
+  gtag('event', 'feature_gate_cta_click', {
+    'feature_name': featureName,
+    'cta_type': ctaType, // 'upgrade', 'learn_more', 'close'
+    'event_category': 'conversion'
+  });
+};
+
+// ── Help & Support Engagement ──────────────────────────────────────────
+window.trackHelpEngagement = function(action, context) {
+  gtag('event', 'help_engagement', {
+    'action': action, // 'help_modal_opened', 'faq_clicked', 'support_contacted', 'video_watched', 'doc_viewed'
+    'context': context || 'unknown', // 'app', 'scenario', 'calculation', 'feature'
+    'event_category': 'engagement'
+  });
+};
+
+// ── Free Trial Feature Usage ───────────────────────────────────────────
+window.trackTrialFeatureUsage = function(featureName) {
+  gtag('event', 'trial_feature_used', {
+    'feature_name': featureName,
+    'event_category': 'engagement'
+  });
+};
 
 // ── Initialize on page load ──────────────────────────────────────────────
 if (document.readyState === 'loading') {

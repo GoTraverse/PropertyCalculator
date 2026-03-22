@@ -51,6 +51,15 @@ async function startCheckout(){
     var adviserMonthly = cfg.adviserMonthlyPrice || 29;
     var freeScenarioLimit = cfg.freeScenarioLimit || 1;
 
+    // Track feature discovery - viewing pricing comparison table
+    if(window.trackPageEvent) {
+      trackPageEvent('pricing_page_view', {
+        'free_scenario_limit': freeScenarioLimit,
+        'pro_monthly': proMonthly,
+        'pro_annual': proAnnual
+      });
+    }
+
     var proAmtEl = document.getElementById('pro-amt');
     if(proAmtEl) proAmtEl.textContent = 'A$' + proMonthly.toFixed(2);
     var proOrigEl = document.getElementById('pro-orig');
@@ -78,11 +87,18 @@ if(new URLSearchParams(location.search).get('checkout') === '1'){
 
 // Pro CTA button
 var proCta = document.getElementById('pro-cta-btn');
-if(proCta) proCta.addEventListener('click', startCheckout);
+if(proCta) proCta.addEventListener('click', function(){
+  // Track pro upgrade CTA click
+  if(window.trackFeatureGateCTA) trackFeatureGateCTA('pro_pricing_page', 'upgrade_cta');
+  startCheckout();
+});
 
 // FAQ accordion — event delegation
 document.querySelectorAll('.faq-q').forEach(function(btn){
   btn.addEventListener('click', function(){
     this.closest('.faq-item').classList.toggle('open');
+    // Track FAQ click
+    var faqText = this.textContent.substring(0, 50).trim();
+    if(window.trackHelpEngagement) trackHelpEngagement('faq_clicked', faqText);
   });
 });
