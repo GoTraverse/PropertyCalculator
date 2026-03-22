@@ -158,7 +158,20 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('stamp-duty', {
+      purchasePrice: val,
+      stampDuty: duty,
+      foreignBuyerDuty: foreignAmt,
+      totalCost: total,
+      effectiveRate: rate.toFixed(2),
+      state: state,
+      isFHB: isFHB,
+      isForeign: isForeign
+    });
+  }
 }
 
 /* ═══ TOOL CONFIG ═══ */
@@ -228,10 +241,17 @@ ToolPage.init({
 
 var _isInit = true;
 window.addEventListener('DOMContentLoaded', function() {
+  if(window.trackCalculatorStart) trackCalculatorStart('stamp-duty');
   updateState();
   calculate();
   _isInit = false;
-  document.getElementById('state').addEventListener('change', updateState);
-  document.getElementById('price').addEventListener('input', function(){ fmtInput(this); });
-  document.getElementById('stamp-calc-btn').addEventListener('click', calculate);
+  var stateEl = document.getElementById('state');
+  var priceEl = document.getElementById('price');
+  var calcBtn = document.getElementById('stamp-calc-btn');
+  if(stateEl) stateEl.addEventListener('change', updateState);
+  if(priceEl) priceEl.addEventListener('input', function(){ fmtInput(this); });
+  if(calcBtn) calcBtn.addEventListener('click', function(){
+    if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'stamp-duty'});
+    calculate();
+  });
 });

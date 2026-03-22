@@ -19,7 +19,19 @@ function calculate() {
 
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('equity-release', {
+      propertyValue: propVal,
+      mortgage: mortgage,
+      equity: equity,
+      currentLVR: (currentLvr * 100).toFixed(1),
+      maxBorrow: maxBorrow,
+      available: available,
+      targetLVR: (lvr * 100).toFixed(1)
+    });
+  }
 }
 
 /* ═══ TOOL CONFIG ═══ */
@@ -81,9 +93,15 @@ ToolPage.init({
 });
 
 var _isInit = true;
+if(window.trackCalculatorStart) trackCalculatorStart('equity-release');
 calculate();
 _isInit = false;
 ['propval','mortgage'].forEach(function(id) {
-  document.getElementById(id).addEventListener('input', function(){ fmtInput(this); });
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('input', function(){ fmtInput(this); });
 });
-document.getElementById('equity-calc-btn').addEventListener('click', calculate);
+var calcBtn = document.getElementById('equity-calc-btn');
+if(calcBtn) calcBtn.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'equity-release'});
+  calculate();
+});

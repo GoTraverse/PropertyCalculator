@@ -93,7 +93,16 @@ function calculate() {
   document.getElementById('disclaimer').textContent = 'This is a general guide. Eligibility varies by scheme and personal circumstances. Verify with your state\'s revenue office or a mortgage broker.';
   document.getElementById('result').style.display = '';
   document.getElementById('cta').style.display = '';
-  if (!_isInit) document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_isInit) {
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('fhb-grants', {
+      propertyPrice: price,
+      state: state,
+      propertyType: ptype,
+      applicableGrants: data.grants.length
+    });
+  }
 }
 
 /* ═══ TOOL CONFIG ═══ */
@@ -155,10 +164,17 @@ ToolPage.init({
 
 var _isInit = true;
 window.addEventListener('DOMContentLoaded', function() {
+  if(window.trackCalculatorStart) trackCalculatorStart('fhb-grants');
   updateState();
   calculate();
   _isInit = false;
-  document.getElementById('state').addEventListener('change', updateState);
-  document.getElementById('price').addEventListener('input', function(){ fmtInput(this); });
-  document.getElementById('fhb-calc-btn').addEventListener('click', calculate);
+  var stateEl = document.getElementById('state');
+  var priceEl = document.getElementById('price');
+  var calcBtn = document.getElementById('fhb-calc-btn');
+  if(stateEl) stateEl.addEventListener('change', updateState);
+  if(priceEl) priceEl.addEventListener('input', function(){ fmtInput(this); });
+  if(calcBtn) calcBtn.addEventListener('click', function(){
+    if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'fhb-grants'});
+    calculate();
+  });
 });
