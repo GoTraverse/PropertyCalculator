@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-03-22T05:55:27.747Z",
-  "count": 1,
+  "syncedAt": "2026-03-22T06:44:03.496Z",
+  "count": 2,
   "errors": [
+    {
+      "at": 1774161842490,
+      "message": "CSP violation: style-src-elem — blocked \"https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap\"",
+      "source": "https://69bf8f8ba0ce0d0008564974--equitysight.netlify.app/",
+      "line": 36,
+      "col": null,
+      "stack": "",
+      "url": "https://69bf8f8ba0ce0d0008564974--equitysight.netlify.app/",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.6778.0 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1774158926741,
       "message": "CSP violation: script-src-elem — blocked \"https://ep2.adtrafficquality.google/sodar/sodar2.js\"",
