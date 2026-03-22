@@ -6,7 +6,11 @@
   if(!search||!btn||!cards.length) return;
   function showCards(n){for(var i=0;i<cards.length;i++)cards[i].style.display=i<n?'':'none';shown=n;btn.style.display=n<cards.length?'':'none';}
   showCards(BATCH);
-  btn.onclick=function(){showCards(shown+BATCH);};
+  btn.onclick=function(){
+    showCards(shown+BATCH);
+    // Track "Show more" clicks on state hubs
+    if(window.trackPageEvent) trackPageEvent('hub_show_more', {'suburbs_shown': shown+BATCH, 'total_suburbs': cards.length});
+  };
   var timer;
   function doSearch(){
     clearTimeout(timer);
@@ -22,6 +26,8 @@
       }
       btn.style.display='none';
       noRes.style.display=count?'none':'block';
+      // Track suburb searches
+      if(window.trackPageEvent) trackPageEvent('suburb_search', {'search_query': q.substring(0, 50), 'results_count': count});
     },180);
   }
   search.addEventListener('input',doSearch);
