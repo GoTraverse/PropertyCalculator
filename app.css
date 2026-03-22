@@ -519,11 +519,12 @@
     /* Fix 1: Extra bottom padding so the floating calc FAB doesn't obscure content */
     main{padding-bottom:max(110px, calc(env(safe-area-inset-bottom) + 96px))!important;}
 
-    /* Fix 2: Amortization table — contain horizontally, no page-wide overflow */
+    /* Fix 2: Amortization table — hide Opening Bal on mobile so table fits without horizontal scroll */
     #amort-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;max-width:calc(100vw - 24px)!important;width:100%;border-radius:4px;display:block;box-sizing:border-box;}
-    #amort-table{width:max-content;min-width:100%;}
-    #amort-table th{font-size:11px!important;padding:6px 7px!important;white-space:nowrap;}
-    #amort-table td{font-size:12px!important;padding:6px 7px!important;white-space:nowrap;}
+    #amort-table{width:100%!important;min-width:0!important;table-layout:auto;}
+    #amort-table .amort-wide{display:none!important;}
+    #amort-table th{font-size:10px!important;padding:6px 5px!important;white-space:nowrap;}
+    #amort-table td{font-size:11px!important;padding:5px 5px!important;white-space:nowrap;}
     /* Prevent horizontal scroll on calculator — clamp all content inside viewport */
     main,section,.card,.section{max-width:100%;overflow-x:hidden;box-sizing:border-box;}
 

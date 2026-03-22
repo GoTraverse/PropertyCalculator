@@ -260,7 +260,7 @@
       }
       rows += `<tr>
         <td>Yr ${yr}</td>
-        <td>${fmt$(openBal)}</td>
+        <td class="amort-wide">${fmt$(openBal)}</td>
         <td style="color:var(--sage)">${fmt$(yPrin)}</td>
         <td style="color:var(--terracotta)">${fmt$(yInt)}</td>
         <td>${fmt$(balance)}</td>
@@ -268,10 +268,10 @@
     }
     tbl.innerHTML = `<thead><tr>
       <th style="text-align:left">Year</th>
-      <th>Opening Bal</th>
+      <th class="amort-wide">Opening Bal</th>
       <th>Principal</th>
       <th>Interest</th>
-      <th>Closing Bal</th>
+      <th>Balance</th>
     </tr></thead><tbody>${rows}</tbody>`;
   }
 
