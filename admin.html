@@ -178,6 +178,36 @@
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Scenario lists per user</div>
       <div class="stat-chart" id="stat-chart-avg"><div class="stat-chart-loading"></div></div>
     </div>
+    <div class="stat-card" data-stat="active-users" title="Click to expand">
+      <div class="stat-value" id="stat-active-users"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Active Users</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Unique users with live sessions</div>
+      <div class="stat-chart" id="stat-chart-active-users"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card" data-stat="total-scenarios" title="Click to expand">
+      <div class="stat-value" id="stat-total-scenarios"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Total Scenarios</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Individual saved scenarios</div>
+      <div class="stat-chart" id="stat-chart-total-scenarios"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card" data-stat="shared" title="Click to expand">
+      <div class="stat-value" id="stat-shared"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Shared Scenarios</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Scenarios shared between users</div>
+      <div class="stat-chart" id="stat-chart-shared"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card" data-stat="errors" title="Click to expand">
+      <div class="stat-value" id="stat-errors"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Client Errors</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">JS errors in error log</div>
+      <div class="stat-chart" id="stat-chart-errors"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card" data-stat="db-keys" title="Click to expand">
+      <div class="stat-value" id="stat-db-keys"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Database Keys</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Total Redis keys stored</div>
+      <div class="stat-chart" id="stat-chart-db-keys"><div class="stat-chart-loading"></div></div>
+    </div>
   </div>
 
   <!-- Tabs -->
@@ -647,7 +677,10 @@
     <div class="admin-card">
       <div class="admin-card-head">
         <h3>All Saved Scenarios</h3>
-        <button class="btn-admin" id="load-scenarios-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-admin-outline" id="export-scenarios-csv-btn" style="font-size:10px;padding:7px 14px;">↓ Export CSV</button>
+          <button class="btn-admin" id="load-scenarios-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+        </div>
       </div>
       <div id="scenarios-list-wrap" style="padding:16px 20px;">
         <div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading scenarios…</div>
@@ -733,6 +766,36 @@
   </div>
 
   <div class="admin-section" id="tab-database">
+    <!-- Database Browser -->
+    <div class="admin-card" style="margin-bottom:20px;">
+      <div class="admin-card-head">
+        <h3>Database Browser</h3>
+        <span style="font-size:11px;color:var(--slate);">Browse and filter all Redis keys for debugging</span>
+      </div>
+      <div style="padding:20px;">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="text" id="db-filter-input" placeholder="Filter pattern (e.g. user:* or token:*)" style="flex:1;min-width:200px;padding:8px 12px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.12);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:12px;color:var(--charcoal);">
+          <button class="btn-admin-outline" id="db-browse-btn">Browse</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="btn-admin-sm" data-db-filter="*" style="font-size:10px;">All</button>
+          <button class="btn-admin-sm" data-db-filter="user:*" style="font-size:10px;">Users</button>
+          <button class="btn-admin-sm" data-db-filter="token:*" style="font-size:10px;">Tokens</button>
+          <button class="btn-admin-sm" data-db-filter="profile:*" style="font-size:10px;">Profiles</button>
+          <button class="btn-admin-sm" data-db-filter="scenarios:*" style="font-size:10px;">Scenarios</button>
+          <button class="btn-admin-sm" data-db-filter="config:*" style="font-size:10px;">Config</button>
+          <button class="btn-admin-sm" data-db-filter="stats:*" style="font-size:10px;">Stats</button>
+          <button class="btn-admin-sm" data-db-filter="email-template:*" style="font-size:10px;">Email Templates</button>
+          <button class="btn-admin-sm" data-db-filter="growth:*" style="font-size:10px;">Growth</button>
+          <button class="btn-admin-sm" data-db-filter="client-errors" style="font-size:10px;">Errors</button>
+        </div>
+        <div id="db-browse-info" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);margin-bottom:12px;"></div>
+        <div id="db-browse-results" style="max-height:600px;overflow-y:auto;"></div>
+        <div id="db-browse-pager" style="margin-top:12px;text-align:center;"></div>
+      </div>
+    </div>
+
+    <!-- Database Maintenance -->
     <div class="admin-card">
       <div class="admin-card-head">
         <h3>Database Maintenance</h3>
@@ -782,6 +845,8 @@
             <option value="security_alert">Security Alert</option>
             <option value="promotional">Promotional / Feature Update</option>
             <option value="password_reset">Password Reset</option>
+            <option value="scenario_shared">Scenario Shared (Existing User)</option>
+            <option value="scenario_invite">Scenario Invite (New User)</option>
           </select>
           <span id="et-custom-badge" style="display:none;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);border-radius:3px;padding:2px 8px;">CUSTOMISED</span>
           <button class="btn-admin" id="reset-et-btn" style="margin-left:auto;">Reset to Default</button>

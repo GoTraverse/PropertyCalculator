@@ -993,8 +993,8 @@ async function loadStats(){
   // Show loading state immediately
   const spinner = '<div class="stat-spinner"></div>';
   const chartLoad = '<div class="stat-chart-loading"></div>';
-  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-sessions','stat-scenarios-top','stat-new-users','stat-revenue','stat-avg-scenarios'];
-  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-sessions','stat-chart-scenarios','stat-chart-new-users','stat-chart-revenue','stat-chart-avg'];
+  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-sessions','stat-scenarios-top','stat-new-users','stat-revenue','stat-avg-scenarios','stat-active-users','stat-total-scenarios','stat-shared','stat-errors','stat-db-keys'];
+  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-sessions','stat-chart-scenarios','stat-chart-new-users','stat-chart-revenue','stat-chart-avg','stat-chart-active-users','stat-chart-total-scenarios','stat-chart-shared','stat-chart-errors','stat-chart-db-keys'];
   statIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=spinner; });
   chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=chartLoad; });
 
@@ -1019,6 +1019,11 @@ async function loadStats(){
   if(el('stat-new-users'))     el('stat-new-users').textContent     = s.newUsersLast7      ?? '—';
   if(el('stat-revenue'))       el('stat-revenue').textContent       = s.revenueEstimate !== undefined ? '$' + s.revenueEstimate : '—';
   if(el('stat-avg-scenarios')) el('stat-avg-scenarios').textContent = s.avgScenariosPerUser ?? '—';
+  if(el('stat-active-users'))   el('stat-active-users').textContent   = s.activeUsers       ?? '—';
+  if(el('stat-total-scenarios'))el('stat-total-scenarios').textContent= s.totalScenarios    ?? '—';
+  if(el('stat-shared'))         el('stat-shared').textContent         = s.sharedScenarios   ?? '—';
+  if(el('stat-errors'))         el('stat-errors').textContent         = s.clientErrors      ?? '—';
+  if(el('stat-db-keys'))        el('stat-db-keys').textContent        = s.dbKeys            ?? '—';
 
   // Render 7-day sparklines for every stat card
   const mk = (key) => history.map(h => ({ date: h.date, value: h[key] }));
@@ -1031,6 +1036,11 @@ async function loadStats(){
   renderSparkline('stat-chart-new-users', mk('newUsersLast7'),      'rgba(90,158,123,0.9)',      'rgba(90,158,123,0.5)');
   renderSparkline('stat-chart-revenue',   mk('revenueEstimate'),    'rgba(201,168,76,0.9)',      'rgba(201,168,76,0.5)');
   renderSparkline('stat-chart-avg',       mk('avgScenariosPerUser'),'rgba(150,100,180,0.8)',     'rgba(150,100,180,0.4)');
+  renderSparkline('stat-chart-active-users',   mk('activeUsers'),      'rgba(90,158,123,0.85)',  'rgba(90,158,123,0.4)');
+  renderSparkline('stat-chart-total-scenarios', mk('totalScenarios'),  'rgba(120,100,160,0.85)', 'rgba(120,100,160,0.4)');
+  renderSparkline('stat-chart-shared',          mk('sharedScenarios'), 'rgba(91,143,171,0.85)',  'rgba(91,143,171,0.4)');
+  renderSparkline('stat-chart-errors',          mk('clientErrors'),    'rgba(196,90,90,0.85)',   'rgba(196,90,90,0.4)');
+  renderSparkline('stat-chart-db-keys',         mk('dbKeys'),         'rgba(74,74,82,0.85)',     'rgba(74,74,82,0.4)');
 }
 
 function escHtml(s){
@@ -1058,7 +1068,12 @@ const STAT_META = {
   scenarios:  { title: 'Scenario Sets',       desc: 'Saved property scenario lists',        valueId: 'stat-scenarios-top', histKey: 'totalScenarioLists',  stroke: 'rgba(70,140,110,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
   'new-users':{ title: 'New This Week',       desc: 'Signups in last 7 days',               valueId: 'stat-new-users',     histKey: 'newUsersLast7',       stroke: 'rgba(90,158,123,0.9)',    fill: 'rgba(90,158,123,0.5)',    prefix: '', suffix: '' },
   revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans at list price — may differ if discounts are active', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
-  avg:        { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',      valueId: 'stat-avg-scenarios', histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
+  avg:              { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',                valueId: 'stat-avg-scenarios',   histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
+  'active-users':   { title: 'Active Users',        desc: 'Unique users with at least one live session',   valueId: 'stat-active-users',    histKey: 'activeUsers',         stroke: 'rgba(90,158,123,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
+  'total-scenarios':{ title: 'Total Scenarios',      desc: 'Individual saved scenarios across all users',   valueId: 'stat-total-scenarios', histKey: 'totalScenarios',      stroke: 'rgba(120,100,160,0.85)',  fill: 'rgba(120,100,160,0.4)',   prefix: '', suffix: '' },
+  shared:           { title: 'Shared Scenarios',     desc: 'Scenarios shared between users',                valueId: 'stat-shared',          histKey: 'sharedScenarios',     stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
+  errors:           { title: 'Client Errors',        desc: 'JavaScript errors in the error log (max 500)',  valueId: 'stat-errors',          histKey: 'clientErrors',        stroke: 'rgba(196,90,90,0.85)',    fill: 'rgba(196,90,90,0.4)',     prefix: '', suffix: '' },
+  'db-keys':        { title: 'Database Keys',        desc: 'Total Redis keys stored in the database',      valueId: 'stat-db-keys',         histKey: 'dbKeys',              stroke: 'rgba(74,74,82,0.85)',     fill: 'rgba(74,74,82,0.4)',      prefix: '', suffix: '' },
 };
 
 function openStatPopup(key){
@@ -1187,6 +1202,40 @@ function renderStatPopupChart(days){
 }
 
 // ── SCENARIOS TAB ─────────────────────────────────────────────
+// ── SCENARIO CSV EXPORT ───────────────────────────────────────
+async function exportScenariosCsv(){
+  var btn=document.getElementById('export-scenarios-csv-btn');
+  var st=document.getElementById('scenarios-tab-status');
+  if(btn){btn.disabled=true;btn.textContent='Exporting…';}
+  if(st){st.textContent='Fetching all scenario data…';st.className='admin-status info';}
+  var d=await callAuth('adminExportScenarios');
+  if(!d.ok||!d.rows){
+    if(st){st.textContent='✗ '+(d.error||'Export failed');st.className='admin-status err';}
+    if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+    return;
+  }
+  var rows=d.rows;
+  if(!rows.length){
+    if(st){st.textContent='No scenarios to export';st.className='admin-status info';}
+    if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+    return;
+  }
+  // Build CSV
+  var cols=['userEmail','userName','userPlan','scenarioId','address','status','savedAt','price','deposit','govtGrant','rate','term','rent','offset','state','suburb','propertyType','bed','bath','car','land','house','yearBuilt','fhb','newBuild','agentName','agentAgency','notes','costItems','renoItems'];
+  var headers=['User Email','User Name','Plan','Scenario ID','Address','Status','Saved At','Price','Deposit','Govt Grant','Rate %','Term (yrs)','Weekly Rent','Offset','State','Suburb','Property Type','Bed','Bath','Car','Land m²','House m²','Year Built','First Home Buyer','New Build','Agent Name','Agency','Notes','Cost Items','Reno Items'];
+  function csvEsc(v){var s=String(v==null?'':v);if(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)return '"'+s.replace(/"/g,'""')+'"';return s;}
+  var csv=headers.map(csvEsc).join(',')+'\n';
+  rows.forEach(function(r){csv+=cols.map(function(c){return csvEsc(r[c]);}).join(',')+'\n';});
+  // Download
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='equitysight-scenarios-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  if(st){st.textContent='✓ Exported '+rows.length+' scenario'+(rows.length!==1?'s':'')+' to CSV';st.className='admin-status ok';setTimeout(function(){st.className='admin-status';},5000);}
+  if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+}
+
 // Cache for quick scenario lookup by id
 var _scenarioDetailCache = {};
 
@@ -1413,6 +1462,48 @@ async function adminDeleteScenario(userId, scenarioId, label){
   } catch(e){
     st.textContent = '✗ Network error'; st.className = 'admin-status err';
   }
+}
+
+// ── DATABASE BROWSER ──────────────────────────────────────────
+var _dbOffset=0;
+var _dbPattern='*';
+async function loadDatabaseBrowser(pattern,offset){
+  if(pattern!==undefined) _dbPattern=pattern;
+  if(offset!==undefined) _dbOffset=offset; else _dbOffset=0;
+  var info=document.getElementById('db-browse-info');
+  var results=document.getElementById('db-browse-results');
+  var pager=document.getElementById('db-browse-pager');
+  info.textContent='Loading…';
+  results.innerHTML='';
+  pager.innerHTML='';
+  var res=await callAuth('adminBrowseDatabase',{pattern:_dbPattern,offset:_dbOffset,limit:50});
+  if(!res.ok){ info.textContent='Error: '+(res.error||'Unknown'); return; }
+  info.textContent=res.total+' key'+(res.total===1?'':'s')+' found'+(_dbPattern!=='*'?' matching "'+escHtml(_dbPattern)+'"':'')+' · showing '+(_dbOffset+1)+'–'+Math.min(_dbOffset+50,res.total);
+  if(!res.keys.length){ results.innerHTML='<div style="padding:20px;text-align:center;color:var(--slate);font-size:12px;">No keys found</div>'; return; }
+  var html='';
+  res.keys.forEach(function(entry){
+    var valStr;
+    if(entry.value&&typeof entry.value==='object') valStr=JSON.stringify(entry.value,null,2);
+    else if(entry.value===null||entry.value===undefined) valStr='null';
+    else valStr=String(entry.value);
+    // Truncate very long values for display
+    var truncated=valStr.length>500;
+    var display=truncated?valStr.substring(0,500)+'…':valStr;
+    html+='<details class="db-entry" style="border:1px solid rgba(28,28,30,0.08);border-radius:var(--radius-sm);margin-bottom:6px;">';
+    html+='<summary style="padding:8px 12px;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:var(--charcoal);background:rgba(28,28,30,0.03);user-select:text;-webkit-user-select:text;">'+escHtml(entry.key)+'</summary>';
+    html+='<pre style="padding:10px 14px;margin:0;font-size:11px;font-family:var(--font-mono);color:var(--slate);white-space:pre-wrap;word-break:break-all;overflow-x:auto;background:rgba(28,28,30,0.02);border-top:1px solid rgba(28,28,30,0.06);">'+escHtml(display)+'</pre>';
+    html+='</details>';
+  });
+  results.innerHTML=html;
+  // Pager
+  var btns='';
+  if(_dbOffset>0) btns+='<button class="btn-admin-sm" id="db-prev-btn" style="font-size:10px;">← Previous</button> ';
+  if(_dbOffset+50<res.total) btns+='<button class="btn-admin-sm" id="db-next-btn" style="font-size:10px;">Next →</button>';
+  pager.innerHTML=btns;
+  var prevBtn=document.getElementById('db-prev-btn');
+  if(prevBtn) prevBtn.addEventListener('click',function(){ loadDatabaseBrowser(undefined,Math.max(0,_dbOffset-50)); });
+  var nextBtn=document.getElementById('db-next-btn');
+  if(nextBtn) nextBtn.addEventListener('click',function(){ loadDatabaseBrowser(undefined,_dbOffset+50); });
 }
 
 // ── DATABASE PURGE ─────────────────────────────────────────────
@@ -2265,7 +2356,9 @@ const ET_VARS = {
   password_reset:'{{code}}',
   subscription:  '{{firstName}}, {{name}}, {{plan}}',
   security_alert:'{{firstName}}, {{name}}, {{event}}',
-  promotional:   '{{firstName}}, {{name}}',
+  promotional:      '{{firstName}}, {{name}}',
+  scenario_shared:  '{{firstName}}, {{senderName}}, {{address}}',
+  scenario_invite:  '{{senderName}}, {{address}}',
 };
 
 async function loadEmailTemplates(){

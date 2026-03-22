@@ -29,7 +29,7 @@ if(collapsedHint) collapsedHint.addEventListener('click', toggleSidebarCollapse)
 
 // ── Header action buttons ─────────────────────────────────────────────────────
 var hdrSaveBtn = document.querySelector('.hdr-save-btn');
-if(hdrSaveBtn) hdrSaveBtn.addEventListener('click', saveScenario);
+if(hdrSaveBtn) hdrSaveBtn.addEventListener('click', function(){ saveScenario(false); });
 var hdrNewBtn = document.getElementById('hdr-new-btn');
 if(hdrNewBtn) hdrNewBtn.addEventListener('click', newScenario);
 var openSavedBtn = document.getElementById('open-saved-btn');
@@ -126,7 +126,7 @@ if(cancelShareBtn) cancelShareBtn.addEventListener('click', closeShareModal);
 
 // ── Confirm load modal ────────────────────────────────────────────────────────
 var confirmLoadBtn = document.getElementById('confirm-load-btn');
-if(confirmLoadBtn) confirmLoadBtn.addEventListener('click', function(){ if(_pendingShared) confirmLoadShared(); else confirmLoad(); });
+if(confirmLoadBtn) confirmLoadBtn.addEventListener('click', function(){ if(_pendingAdminScenario) confirmLoadAdminScenario(); else if(_pendingShared) confirmLoadShared(); else confirmLoad(); });
 var cancelConfirmModalBtn = document.getElementById('cancel-confirm-modal-btn');
 if(cancelConfirmModalBtn) cancelConfirmModalBtn.addEventListener('click', closeConfirmModal);
 
@@ -466,6 +466,15 @@ if(sharedGrid){
     if(dismissBtn){ e.stopPropagation(); dismissSharedScenario(dismissBtn.dataset.oid, dismissBtn.dataset.sid); return; }
     var row = e.target.closest('[data-action="load-shared"]');
     if(row) promptLoadSharedScenario(row.dataset.oid, row.dataset.sid, row.dataset.addr);
+  });
+}
+
+// ── Admin: all users' scenarios delegation (#admin-all-grid) ─────────────────
+var adminAllGrid = document.getElementById('admin-all-grid');
+if(adminAllGrid){
+  adminAllGrid.addEventListener('click', function(e){
+    var row = e.target.closest('[data-action="load-admin-scenario"]');
+    if(row) promptLoadAdminScenario(row.dataset.uid, row.dataset.sid, row.dataset.addr);
   });
 }
 

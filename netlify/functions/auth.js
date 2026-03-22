@@ -67,6 +67,16 @@ const DEFAULT_TEMPLATES = {
     html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">What\'s new</h2><p>Hi {{firstName}},</p><p>We\'ve been working hard on new features for EquitySight. Here\'s what\'s new:</p><p style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:12px 16px;border-radius:0 4px 4px 0;">Your message here...</p><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:16px;">Open Calculator</a><p style="margin-top:24px;font-size:11px;color:#9CA3AF;">You\'re receiving this because you have an EquitySight account.</p></div>',
     variables: ['{{firstName}}', '{{name}}'],
   },
+  scenario_shared: {
+    subject: '{{senderName}} shared a property scenario with you',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open your calculator to view the shared scenario:</p><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View Scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">You can find shared scenarios in your Saved Library.</p></div>',
+    variables: ['{{firstName}}', '{{senderName}}', '{{address}}'],
+  },
+  scenario_invite: {
+    subject: '{{senderName}} shared a property with you on EquitySight',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">You\'ve been invited to EquitySight</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Sign up for a free EquitySight account to view it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login.html" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a></p><p style="font-size:12px;color:#999;line-height:1.6;">EquitySight is Australia\'s smartest property investment calculator. Free to use, no credit card required.</p></div>',
+    variables: ['{{senderName}}', '{{address}}'],
+  },
 };
 
 // Substitute {{variable}} placeholders in a template string
@@ -810,13 +820,39 @@ exports.handler = async function(event){
       const freeUsers=validUsers.filter(u=>!u.plan||u.plan==='free').length;
       const proUsers=validUsers.filter(u=>u.plan==='pro').length;
       const adviserUsers=validUsers.filter(u=>u.plan==='adviser').length;
-      // Count active (non-expired) sessions
+      // Count active (non-expired) sessions + unique active users
       let activeSessions=0;
+      const activeUserIds=new Set();
       if(tokenKeys&&tokenKeys.length){
         const tokenData=await Promise.all(tokenKeys.map(k=>rGet(k)));
-        activeSessions=tokenData.filter(d=>d&&(!d.expires||Date.now()<d.expires)).length;
+        tokenData.forEach(d=>{
+          if(d&&(!d.expires||Date.now()<d.expires)){
+            activeSessions++;
+            if(d.userId) activeUserIds.add(d.userId);
+          }
+        });
       }
+      const activeUsers=activeUserIds.size;
       const totalScenarioLists=scenarioKeys?scenarioKeys.length:0;
+      // Total individual scenarios (count state keys)
+      const scenarioStateKeys=await scanAll('scenarios:*:state:*');
+      const totalScenarios=scenarioStateKeys?scenarioStateKeys.length:0;
+      // Shared scenarios count
+      const shareKeys=await scanAll('share:*');
+      let sharedScenarios=0;
+      if(shareKeys&&shareKeys.length){
+        const shareLists=await Promise.all(shareKeys.map(k=>rGet(k)));
+        shareLists.forEach(sl=>{ if(Array.isArray(sl)) sharedScenarios+=sl.length; });
+      }
+      // Client errors (count from Redis list)
+      let clientErrors=0;
+      try{
+        const errLen=await redisCmd('LLEN','client-errors');
+        clientErrors=parseInt(errLen)||0;
+      }catch(e){}
+      // Database key counts by category
+      const allKeys=await redisCmd('DBSIZE');
+      const dbKeys=parseInt(allKeys)||0;
       // New users in the last 7 days
       const sevenDaysAgo=Date.now()-7*24*60*60*1000;
       const newUsersLast7=validUsers.filter(u=>u.createdAt&&u.createdAt>sevenDaysAgo).length;
@@ -829,16 +865,18 @@ exports.handler = async function(event){
       const avgScenariosPerUser=totalUsers>0?Math.round(totalScenarioLists/totalUsers*10)/10:0;
       // Store today's snapshot (31-day TTL so we keep ~1 month of history)
       const today=new Date().toISOString().slice(0,10);
-      await rSet('stats:snapshot:'+today,{date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser},60*60*24*31);
+      const snapshot={date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys};
+      await rSet('stats:snapshot:'+today,snapshot,60*60*24*31);
       // Fetch last 7 days of daily snapshots
       const history=[];
+      const nullSnap={totalUsers:null,freeUsers:null,proUsers:null,adviserUsers:null,activeSessions:null,totalScenarioLists:null,newUsersLast7:null,revenueEstimate:null,avgScenariosPerUser:null,activeUsers:null,totalScenarios:null,sharedScenarios:null,clientErrors:null,dbKeys:null};
       for(let i=6;i>=0;i--){
         const d=new Date();d.setDate(d.getDate()-i);
         const dateStr=d.toISOString().slice(0,10);
         const snap=await rGet('stats:snapshot:'+dateStr);
-        history.push(snap||{date:dateStr,totalUsers:null,freeUsers:null,proUsers:null,adviserUsers:null,activeSessions:null,totalScenarioLists:null,newUsersLast7:null,revenueEstimate:null,avgScenariosPerUser:null});
+        history.push(snap||{date:dateStr,...nullSnap});
       }
-      return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser},history});
+      return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys},history});
     }catch(e){ return fail('Stats error: '+e.message); }
   }
 
@@ -896,6 +934,74 @@ exports.handler = async function(event){
       }));
       return ok({ok:true,count});
     }catch(e){ return fail('Purge error: '+e.message); }
+  }
+
+  if(action==='adminExportScenarios'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const userKeys=await scanAll('user:*');
+      const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
+      const validUsers=users.filter(Boolean);
+      const rows=[];
+      for(const u of validUsers){
+        if(!u.id) continue;
+        const idx=await rGet('scenarios:'+u.id+':index');
+        if(!Array.isArray(idx)||!idx.length) continue;
+        for(const sc of idx){
+          const state=await rGet('scenarios:'+u.id+':state:'+sc.id);
+          const v=(state&&state.values)||{};
+          rows.push({
+            userEmail:u.email||'',userName:u.name||'',userPlan:u.plan||'free',
+            scenarioId:sc.id,address:sc.fullAddr||'',status:sc.status||'browsing',
+            savedAt:sc.savedAt?new Date(sc.savedAt).toISOString():'',
+            price:v['inp-price']||'',deposit:v['inp-savings']||'',
+            govtGrant:v['inp-govt']||'',rate:v['inp-rate']||'',term:v['inp-term']||'',
+            rent:v['inp-rent']||'',offset:v['inp-offset']||'',
+            state:v['pd-state']||v['inp-state']||'',suburb:v['pd-suburb']||'',
+            propertyType:v['pd-type-label']||'',bed:v['pd-bed']||'',bath:v['pd-bath']||'',car:v['pd-car']||'',
+            land:v['pd-land']||'',house:v['pd-house']||'',yearBuilt:v['pd-year']||'',
+            fhb:v['inp-fhb-checked']==='1'?'Yes':'No',newBuild:v['inp-new-prop-checked']==='1'?'Yes':'No',
+            agentName:v['ag-name']||'',agentAgency:v['ag-agency']||'',
+            notes:v['pd-notes']||'',
+            costItems:state&&state.dynCostData?state.dynCostData.map(c=>c.name+':$'+(c.amount||0)).join('; '):'',
+            renoItems:state&&state.renoItemData?state.renoItemData.map(r=>r.name+':$'+(r.amount||0)).join('; '):'',
+          });
+        }
+      }
+      return ok({ok:true,rows});
+    }catch(e){ return fail('Export error: '+e.message); }
+  }
+
+  if(action==='adminBrowseDatabase'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const pattern=(body.pattern||'*').replace(/[^a-zA-Z0-9:_*\-]/g,'');
+      const keys=await scanAll(pattern);
+      if(!keys||!keys.length) return ok({ok:true,keys:[],total:0});
+      // Sort keys alphabetically
+      keys.sort();
+      // Paginate: return max 50 keys at a time
+      const offset=parseInt(body.offset)||0;
+      const limit=Math.min(parseInt(body.limit)||50,100);
+      const page=keys.slice(offset,offset+limit);
+      // Fetch values for the page (skip large photo keys — just show metadata)
+      const entries=await Promise.all(page.map(async k=>{
+        if(k.includes(':photo:')) return {key:k,value:'[base64 photo data]',type:'photo'};
+        try{
+          const v=await rGet(k);
+          // Redact sensitive fields
+          if(v&&typeof v==='object'){
+            const c=Object.assign({},v);
+            if(c.hash) c.hash='[redacted]';
+            return {key:k,value:c};
+          }
+          return {key:k,value:v};
+        }catch(e){ return {key:k,value:'[error reading]'}; }
+      }));
+      return ok({ok:true,keys:entries,total:keys.length,offset,limit});
+    }catch(e){ return fail('Browse error: '+e.message); }
   }
 
   if(action==='adminGetSchemes'){
@@ -1004,7 +1110,7 @@ exports.handler = async function(event){
     if(!RESEND_API_KEY) return fail('RESEND_API_KEY not configured — cannot send email',503);
     const {subject,html}=body;
     if(!subject||!html) return fail('subject and html required');
-    const sampleVars={code:'123456',firstName:user.name?(user.name.split(' ')[0]):'Admin',name:user.name||'Admin',plan:'Pro',event:'Password changed'};
+    const sampleVars={code:'123456',firstName:user.name?(user.name.split(' ')[0]):'Admin',name:user.name||'Admin',plan:'Pro',event:'Password changed',senderName:'Jane Smith',address:' — 42 Wallaby Way, Sydney NSW 2000'};
     const fill=s=>s.replace(/\{\{(\w+)\}\}/g,(m,k)=>sampleVars[k]||m);
     try{
       const sent=await sendResend(user.email,'[TEST] '+fill(subject),fill(html));

@@ -1747,6 +1747,7 @@
     _scenariosCache = await getAllScenarios();
     _renderScenariosToDOM(_scenariosCache);
     loadSharedWithMe(); // load shared-with-me in parallel
+    loadAdminAllScenarios(); // admin: load all users' scenarios
   }
 
   async function _renderScenariosToDOM(all){
@@ -1927,6 +1928,7 @@
     var titleEl = document.getElementById('page-title');
     if(titleEl) titleEl.textContent = sc.fullAddr || 'New Property';
     showToast('✓ Loaded: ' + _escBanner(sc.fullAddr));
+    if(_readOnlyMode) disableReadOnlyMode(); // exit read-only if loading own scenario
     pendingLoadId = null;
     // If triggered from library Export action, open export dialog after load
     if(_libExportAfterLoad){
@@ -2246,6 +2248,147 @@
       await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'dismissShared',ownerId,scenarioId})});
       loadSharedWithMe(); // refresh
     }catch(e){}
+  }
+
+  // ── Read-only mode (admin viewing another user's scenario) ─────────────────
+  var _readOnlyMode = false;
+
+  function enableReadOnlyMode(){
+    _readOnlyMode = true;
+    // Disable all inputs, selects, textareas, range sliders
+    document.querySelectorAll('.sidebar input, .sidebar select, .sidebar textarea, .sidebar input[type="range"], main input, main select, main textarea').forEach(function(el){
+      el.setAttribute('data-ro-disabled', el.disabled ? '1' : '0');
+      el.disabled = true;
+      el.style.opacity = '0.6';
+      el.style.pointerEvents = 'none';
+    });
+    // Disable buttons that modify state (save, delete, share, add cost, add reno, etc.)
+    document.querySelectorAll('.sidebar button, #save-btn, #save-btn-top, .add-cost-btn, #add-reno-btn, #add-key-date-btn, #add-comms-btn, .prop-type-btn, .status-option').forEach(function(el){
+      el.setAttribute('data-ro-disabled', el.disabled ? '1' : '0');
+      el.disabled = true;
+      el.style.opacity = '0.6';
+      el.style.pointerEvents = 'none';
+    });
+    // Show read-only banner
+    var banner = document.getElementById('readonly-banner');
+    if(!banner){
+      banner = document.createElement('div');
+      banner.id = 'readonly-banner';
+      banner.style.cssText = 'position:fixed;top:var(--hdr-h-desktop,56px);left:0;right:0;z-index:200;background:var(--sky);color:white;font-family:"DM Mono",monospace;font-size:11px;text-align:center;padding:6px 12px;letter-spacing:0.5px;';
+      banner.innerHTML = '🔒 READ-ONLY — Viewing another user\'s scenario <button id="exit-readonly-btn" style="margin-left:12px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:3px 10px;border-radius:3px;cursor:pointer;font-family:inherit;font-size:10px;">Exit</button>';
+      document.body.appendChild(banner);
+      document.getElementById('exit-readonly-btn').addEventListener('click', disableReadOnlyMode);
+    } else {
+      banner.style.display = 'block';
+    }
+  }
+
+  function disableReadOnlyMode(){
+    _readOnlyMode = false;
+    // Re-enable all inputs
+    document.querySelectorAll('[data-ro-disabled]').forEach(function(el){
+      var wasDis = el.getAttribute('data-ro-disabled') === '1';
+      el.disabled = wasDis;
+      el.style.opacity = '';
+      el.style.pointerEvents = '';
+      el.removeAttribute('data-ro-disabled');
+    });
+    // Hide banner
+    var banner = document.getElementById('readonly-banner');
+    if(banner) banner.style.display = 'none';
+  }
+
+  // ── Admin: All Users' Scenarios ────────────────────────────────────────────
+  var _adminAllCache = []; // [{userId, userEmail, userName, scenarios:[...]}]
+
+  async function loadAdminAllScenarios(){
+    if(!_currentUser||_currentUser.role!=='admin') return;
+    try{
+      const authH=getAuthHeader(); if(!authH) return;
+      const r=await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'adminListAllScenarios'})});
+      if(!r.ok) return;
+      const d=await r.json();
+      if(d.ok&&d.groups) { _adminAllCache=d.groups; _renderAdminAllSection(d.groups); }
+    }catch(e){}
+  }
+
+  function _renderAdminAllSection(groups){
+    const section=document.getElementById('admin-all-section');
+    const grid=document.getElementById('admin-all-grid');
+    const countEl=document.getElementById('admin-all-count');
+    if(!section||!grid) return;
+    // Filter out admin's own scenarios (they're already in the main grid)
+    const myId=_currentUser&&_currentUser.id;
+    const others=groups.filter(g=>g.userId!==myId);
+    const total=others.reduce((n,g)=>n+g.scenarios.length,0);
+    if(!total){ section.style.display='none'; return; }
+    if(countEl) countEl.textContent='('+total+')';
+    section.style.display='block';
+    var html='';
+    others.forEach(function(g){
+      html+='<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.5px;color:rgba(91,143,171,0.7);padding:10px 0 4px;margin-top:8px;">'+escHtml(g.userEmail)+(g.userName?' — '+escHtml(g.userName):'')+' <span style="opacity:0.5;">('+g.scenarios.length+')</span></div>';
+      var sorted=[...g.scenarios].sort(function(a,b){return (b.savedAt||0)-(a.savedAt||0);});
+      sorted.forEach(function(s){
+        var price=s.price?'$'+parseInt(s.price).toLocaleString():'—';
+        var stats=[s.type||'House',s.bed?s.bed+' bed':null,s.bath?s.bath+' bath':null,s.car?s.car+' car':null].filter(Boolean).join(' · ');
+        var status=s.status||'browsing';
+        var sColor=STATUS_COLORS[status]||'#999';
+        var sLabel=STATUS_LABELS[status]||'👀';
+        var thumbSrc=s.thumb&&/^(https?:\/\/|data:image\/)/.test(s.thumb)?escHtml(s.thumb):'';
+        var thumbHtml=thumbSrc?'<img src="'+thumbSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:3px;">':'<span style="font-size:24px;">🏠</span>';
+        html+='<div class="lib-row" data-action="load-admin-scenario" data-uid="'+escHtml(g.userId)+'" data-sid="'+escHtml(s.id)+'" data-addr="'+escHtml(s.fullAddr||'')+'">';
+        html+='<div class="lib-thumb">'+thumbHtml+'</div>';
+        html+='<div class="lib-info"><div class="lib-addr">'+escHtml(s.fullAddr||'Unnamed')+'</div><div class="lib-meta">'+escHtml(stats)+'</div></div>';
+        html+='<div class="lib-price">'+price+'</div>';
+        html+='<div class="lib-badge" style="background:'+sColor+'22;color:'+sColor+';border:1px solid '+sColor+'55;">'+sLabel+'</div>';
+        html+='<div class="lib-shared-badge" style="background:rgba(91,143,171,0.1);color:var(--sky);border-color:rgba(91,143,171,0.25);">Read-only</div>';
+        html+='</div>';
+      });
+    });
+    grid.innerHTML=html;
+  }
+
+  var _pendingAdminScenario=null;
+
+  function promptLoadAdminScenario(userId,scenarioId,fullAddr){
+    _pendingAdminScenario={userId:userId,scenarioId:scenarioId};
+    document.getElementById('confirm-name').textContent=fullAddr||'this user\'s scenario';
+    document.getElementById('confirm-modal').style.display='block';
+    var fab=document.getElementById('mobile-calc-fab');if(fab)fab.style.display='none';
+  }
+
+  async function confirmLoadAdminScenario(){
+    if(!_pendingAdminScenario) return;
+    var uid=_pendingAdminScenario.userId;
+    var sid=_pendingAdminScenario.scenarioId;
+    _pendingAdminScenario=null;
+    var loadBtn=document.getElementById('confirm-load-btn');
+    if(loadBtn){loadBtn._ot=loadBtn.innerHTML;loadBtn.innerHTML='<div class="spinner-sm"></div> Loading…';loadBtn.disabled=true;}
+    try{
+      var authH=getAuthHeader();
+      if(!authH){if(loadBtn){loadBtn.innerHTML=loadBtn._ot||'✓ Yes, Load It';loadBtn.disabled=false;}closeConfirmModal();return;}
+      var r=await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'adminGetScenarioState',userId:uid,id:sid})});
+      var d=await r.json();
+      if(!d.ok){if(loadBtn){loadBtn.innerHTML=loadBtn._ot||'✓ Yes, Load It';loadBtn.disabled=false;}closeConfirmModal();showToast('⚠️ '+(d.error||'Could not load scenario'));return;}
+      var state=typeof d.state==='string'?JSON.parse(d.state):d.state;
+      if(!state){if(loadBtn){loadBtn.innerHTML=loadBtn._ot||'✓ Yes, Load It';loadBtn.disabled=false;}closeConfirmModal();showToast('⚠️ Scenario has no saved state');return;}
+      closeConfirmModal();
+      if(loadBtn){loadBtn.innerHTML=loadBtn._ot||'✓ Yes, Load It';loadBtn.disabled=false;}
+      closeScenariosModal();
+      _restoringDraft=true;
+      applyScenarioState(state,d.photo||null);
+      _lastSavedAddr=null; // read-only — don't auto-save over it
+      _isDirty=false;_forceDirty=false;
+      updateUnsavedBadge();
+      var addr=state.values&&state.values['pd-address']||'';
+      var titleEl=document.getElementById('page-title');
+      if(titleEl) titleEl.textContent=addr||'Scenario (read-only)';
+      showToast('✓ Loaded scenario (read-only view)');
+      setTimeout(function(){_restoringDraft=false;_isDirty=false;updateUnsavedBadge();enableReadOnlyMode();},1400);
+    }catch(e){
+      if(loadBtn){loadBtn.innerHTML=loadBtn._ot||'✓ Yes, Load It';loadBtn.disabled=false;}
+      closeConfirmModal();showToast('⚠️ Network error');
+    }
   }
 
   function updateUnsavedBadge(){
@@ -4494,6 +4637,7 @@
     var subEl = document.getElementById('header-sub-text');
     if(subEl) subEl.textContent = 'Add property details in the Property tab to get started';
     _lastSavedAddr = null; _isDirty = false;
+    if(_readOnlyMode) disableReadOnlyMode();
     lsDel(DRAFT_KEY);
     var propTabBtn = document.querySelector('.tab[data-tab="property"]');
     if(propTabBtn) showTab('property', propTabBtn);

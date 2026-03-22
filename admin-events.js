@@ -38,7 +38,8 @@ var tabCallbacks = {
   'email-templates': loadEmailTemplates,
   'about-page': loadAboutPage,
   'legal-pages': loadLegalPagesList,
-  'suburbs': loadSuburbsTab
+  'suburbs': loadSuburbsTab,
+  'database': function(){ loadDatabaseBrowser('*'); }
 };
 document.querySelectorAll('.admin-tab[data-tab]').forEach(function(btn){
   btn.addEventListener('click', function(){
@@ -123,6 +124,8 @@ if(saveBrandingBtn) saveBrandingBtn.addEventListener('click', saveConfig);
 // ── Scenarios ─────────────────────────────────────────────────────────────────
 var loadScenariosBtn = document.getElementById('load-scenarios-btn');
 if(loadScenariosBtn) loadScenariosBtn.addEventListener('click', loadAllScenarios);
+var exportScenariosCsvBtn = document.getElementById('export-scenarios-csv-btn');
+if(exportScenariosCsvBtn) exportScenariosCsvBtn.addEventListener('click', exportScenariosCsv);
 
 // ── Gov Schemes ───────────────────────────────────────────────────────────────
 var addSchemeBtn = document.getElementById('add-scheme-btn');
@@ -146,7 +149,25 @@ if(saveGrowthEntryBtn) saveGrowthEntryBtn.addEventListener('click', saveGrowthEn
 var hideGrowthEntryBtn = document.getElementById('hide-growth-entry-btn');
 if(hideGrowthEntryBtn) hideGrowthEntryBtn.addEventListener('click', hideAddGrowthEntry);
 
-// ── Database ──────────────────────────────────────────────────────────────────
+// ── Database browser ─────────────────────────────────────────────────────────
+var dbBrowseBtn = document.getElementById('db-browse-btn');
+if(dbBrowseBtn) dbBrowseBtn.addEventListener('click', function(){
+  var val=document.getElementById('db-filter-input').value.trim()||'*';
+  loadDatabaseBrowser(val);
+});
+var dbFilterInput = document.getElementById('db-filter-input');
+if(dbFilterInput) dbFilterInput.addEventListener('keydown', function(e){
+  if(e.key==='Enter'){ e.preventDefault(); loadDatabaseBrowser(this.value.trim()||'*'); }
+});
+document.querySelectorAll('[data-db-filter]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var p=this.dataset.dbFilter;
+    document.getElementById('db-filter-input').value=p;
+    loadDatabaseBrowser(p);
+  });
+});
+
+// ── Database maintenance ─────────────────────────────────────────────────────
 var purgeSessionsBtn = document.getElementById('purge-sessions-btn');
 if(purgeSessionsBtn) purgeSessionsBtn.addEventListener('click', purgeExpiredSessions);
 var purgeProfilesBtn = document.getElementById('purge-profiles-btn');
