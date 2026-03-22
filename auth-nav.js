@@ -11,6 +11,37 @@
   }catch(e){}
 })();
 
+// ── PWA Install prompt — capture for deferred install button ──
+var _deferredInstallPrompt = null;
+var _isPWAStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  // Show install button if dropdown is already rendered
+  var btn = document.getElementById('anav-install-btn');
+  if(btn) btn.style.display = '';
+});
+
+window.installPWA = async function(){
+  if(_deferredInstallPrompt){
+    _deferredInstallPrompt.prompt();
+    var result = await _deferredInstallPrompt.userChoice;
+    if(result.outcome === 'accepted'){
+      _deferredInstallPrompt = null;
+      var btn = document.getElementById('anav-install-btn');
+      if(btn) btn.style.display = 'none';
+    }
+  } else {
+    // iOS — show manual instructions
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if(isIOS){
+      alert('To install:\n\n1. Tap the Share button (square with arrow)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
+    } else {
+      alert('To install:\n\nOpen your browser menu (⋮) and tap "Install app" or "Add to Home Screen".');
+    }
+  }
+};
+
 window.toggleTheme = function(){
   var isDark = document.documentElement.classList.toggle('dark-mode');
   try{ localStorage.setItem('equitySight_theme', isDark ? 'dark' : 'light'); }catch(e){}
@@ -358,6 +389,7 @@ window.toggleTheme = function(){
               (session.role === 'admin' ? '<a href="/admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">Admin Dashboard</a>' : '') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
               '<button data-theme-toggle id="anav-theme-btn" class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
+              (_isPWAStandalone ? '' : '<button id="anav-install-btn" class="anav-item" style="' + (_deferredInstallPrompt ? '' : (/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1) ? '' : 'display:none;')) + '">📲 Install App</button>') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
               '<button id="anav-signout-btn" class="anav-item anav-item-danger">→ Sign Out</button>' +
             '</div>' +
@@ -375,6 +407,8 @@ window.toggleTheme = function(){
       });
       var themeBtn = document.getElementById('anav-theme-btn');
       if (themeBtn) themeBtn.addEventListener('click', window.toggleTheme);
+      var installBtn = document.getElementById('anav-install-btn');
+      if (installBtn) installBtn.addEventListener('click', window.installPWA);
       var signOutBtn = document.getElementById('anav-signout-btn');
       if (signOutBtn) signOutBtn.addEventListener('click', window.siteSignOut);
 
