@@ -135,11 +135,19 @@
       .then(function (res) {
         if (res.ok && res.found) {
           renderData(res, suburb, state);
+          // Track successful market data load
+          if(window.trackPageEvent) trackPageEvent('suburb_market_data_loaded', {'suburb': suburb, 'state': state, 'cached': !!res.cached});
         } else {
           renderError('No data');
+          // Track failed market data lookup
+          if(window.trackPageEvent) trackPageEvent('suburb_market_data_not_found', {'suburb': suburb, 'state': state});
         }
       })
-      .catch(function () { renderError('Fetch failed'); });
+      .catch(function () {
+        renderError('Fetch failed');
+        // Track market data fetch error
+        if(window.trackPageEvent) trackPageEvent('suburb_market_data_error', {'suburb': suburb, 'state': state});
+      });
   }
 
   if (document.readyState === 'loading') {

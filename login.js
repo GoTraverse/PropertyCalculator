@@ -65,6 +65,8 @@ async function handleGoogleCredential(response){
 
   if(res.ok){
     persistSession(res, {email: res.email});
+    // Track Google Sign-In
+    if(window.trackLogin) trackLogin('google');
     try{
       var authH = 'Bearer ' + (res.token||'');
       var profileRes = await fetch('/.netlify/functions/auth', {
@@ -285,6 +287,8 @@ async function doSignin(){
   const res = await callAuth('signin', {email,password});
   if(res.ok){
     persistSession(res, {email});
+    // Track email Sign-In
+    if(window.trackLogin) trackLogin('email');
     try{
       const authH = 'Bearer ' + (res.token||'');
       const profileRes = await fetch('/.netlify/functions/auth', {
@@ -358,6 +362,8 @@ async function doVerifyEmail(){
   const res = await callAuth('verifyEmail', {email,code});
   if(res.ok){
     persistSession(res, {email,name,plan});
+    // Track email signup
+    if(window.trackSignup) trackSignup('email');
     try{
       const authH = 'Bearer ' + (res.token||'');
       const profileRes = await fetch('/.netlify/functions/auth', {

@@ -1009,9 +1009,24 @@
       rriLmiRisk.style.display = (price>0 && lvr>80) ? '' : 'none';
       set('rr-lmi-est', fmt(calcLMI(loanAmt, price)));
     }
+
+    // Track calculation completion
+    if(window.trackCalculatorResult) {
+      trackCalculatorResult('mortgage_calculator', {
+        'property_price': price,
+        'deposit': deposit,
+        'loan_amount': loanAmt,
+        'lvr': lvr,
+        'weekly_repay': weeklyRepay,
+        'monthly_repay': monthlyRepay
+      });
+    }
   }
 
   function showTab(id,btn){
+    // Track tab navigation
+    if(window.trackTabNavigation) trackTabNavigation(id);
+
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -1596,6 +1611,9 @@
   }
 
   async function saveScenario(quiet){
+    // Track scenario save
+    if(window.trackScenarioAction) trackScenarioAction('save', currentScenario || {});
+
     const state    = collectCurrentState();
     const addr     = state.values['pd-address'] || '';
     if(!addr.trim()){
@@ -3383,6 +3401,9 @@
   }
 
   function exportPDF(opts){
+    // Track PDF export
+    if(window.trackPDFExport) trackPDFExport('app');
+
     const o = opts || {};
     const pageSize   = o.size    || 'A4';
     const pageOrient = o.orient  || 'portrait';
