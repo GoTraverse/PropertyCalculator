@@ -677,7 +677,10 @@
     <div class="admin-card">
       <div class="admin-card-head">
         <h3>All Saved Scenarios</h3>
-        <button class="btn-admin" id="load-scenarios-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-admin-outline" id="export-scenarios-csv-btn" style="font-size:10px;padding:7px 14px;">↓ Export CSV</button>
+          <button class="btn-admin" id="load-scenarios-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+        </div>
       </div>
       <div id="scenarios-list-wrap" style="padding:16px 20px;">
         <div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading scenarios…</div>

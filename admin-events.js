@@ -124,6 +124,8 @@ if(saveBrandingBtn) saveBrandingBtn.addEventListener('click', saveConfig);
 // ── Scenarios ─────────────────────────────────────────────────────────────────
 var loadScenariosBtn = document.getElementById('load-scenarios-btn');
 if(loadScenariosBtn) loadScenariosBtn.addEventListener('click', loadAllScenarios);
+var exportScenariosCsvBtn = document.getElementById('export-scenarios-csv-btn');
+if(exportScenariosCsvBtn) exportScenariosCsvBtn.addEventListener('click', exportScenariosCsv);
 
 // ── Gov Schemes ───────────────────────────────────────────────────────────────
 var addSchemeBtn = document.getElementById('add-scheme-btn');

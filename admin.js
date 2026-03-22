@@ -1202,6 +1202,40 @@ function renderStatPopupChart(days){
 }
 
 // ── SCENARIOS TAB ─────────────────────────────────────────────
+// ── SCENARIO CSV EXPORT ───────────────────────────────────────
+async function exportScenariosCsv(){
+  var btn=document.getElementById('export-scenarios-csv-btn');
+  var st=document.getElementById('scenarios-tab-status');
+  if(btn){btn.disabled=true;btn.textContent='Exporting…';}
+  if(st){st.textContent='Fetching all scenario data…';st.className='admin-status info';}
+  var d=await callAuth('adminExportScenarios');
+  if(!d.ok||!d.rows){
+    if(st){st.textContent='✗ '+(d.error||'Export failed');st.className='admin-status err';}
+    if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+    return;
+  }
+  var rows=d.rows;
+  if(!rows.length){
+    if(st){st.textContent='No scenarios to export';st.className='admin-status info';}
+    if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+    return;
+  }
+  // Build CSV
+  var cols=['userEmail','userName','userPlan','scenarioId','address','status','savedAt','price','deposit','govtGrant','rate','term','rent','offset','state','suburb','propertyType','bed','bath','car','land','house','yearBuilt','fhb','newBuild','agentName','agentAgency','notes','costItems','renoItems'];
+  var headers=['User Email','User Name','Plan','Scenario ID','Address','Status','Saved At','Price','Deposit','Govt Grant','Rate %','Term (yrs)','Weekly Rent','Offset','State','Suburb','Property Type','Bed','Bath','Car','Land m²','House m²','Year Built','First Home Buyer','New Build','Agent Name','Agency','Notes','Cost Items','Reno Items'];
+  function csvEsc(v){var s=String(v==null?'':v);if(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)return '"'+s.replace(/"/g,'""')+'"';return s;}
+  var csv=headers.map(csvEsc).join(',')+'\n';
+  rows.forEach(function(r){csv+=cols.map(function(c){return csvEsc(r[c]);}).join(',')+'\n';});
+  // Download
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='equitysight-scenarios-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  if(st){st.textContent='✓ Exported '+rows.length+' scenario'+(rows.length!==1?'s':'')+' to CSV';st.className='admin-status ok';setTimeout(function(){st.className='admin-status';},5000);}
+  if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+}
+
 // Cache for quick scenario lookup by id
 var _scenarioDetailCache = {};
 

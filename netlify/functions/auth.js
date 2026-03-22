@@ -936,6 +936,43 @@ exports.handler = async function(event){
     }catch(e){ return fail('Purge error: '+e.message); }
   }
 
+  if(action==='adminExportScenarios'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const userKeys=await scanAll('user:*');
+      const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
+      const validUsers=users.filter(Boolean);
+      const rows=[];
+      for(const u of validUsers){
+        if(!u.id) continue;
+        const idx=await rGet('scenarios:'+u.id+':index');
+        if(!Array.isArray(idx)||!idx.length) continue;
+        for(const sc of idx){
+          const state=await rGet('scenarios:'+u.id+':state:'+sc.id);
+          const v=(state&&state.values)||{};
+          rows.push({
+            userEmail:u.email||'',userName:u.name||'',userPlan:u.plan||'free',
+            scenarioId:sc.id,address:sc.fullAddr||'',status:sc.status||'browsing',
+            savedAt:sc.savedAt?new Date(sc.savedAt).toISOString():'',
+            price:v['inp-price']||'',deposit:v['inp-savings']||'',
+            govtGrant:v['inp-govt']||'',rate:v['inp-rate']||'',term:v['inp-term']||'',
+            rent:v['inp-rent']||'',offset:v['inp-offset']||'',
+            state:v['pd-state']||v['inp-state']||'',suburb:v['pd-suburb']||'',
+            propertyType:v['pd-type-label']||'',bed:v['pd-bed']||'',bath:v['pd-bath']||'',car:v['pd-car']||'',
+            land:v['pd-land']||'',house:v['pd-house']||'',yearBuilt:v['pd-year']||'',
+            fhb:v['inp-fhb-checked']==='1'?'Yes':'No',newBuild:v['inp-new-prop-checked']==='1'?'Yes':'No',
+            agentName:v['ag-name']||'',agentAgency:v['ag-agency']||'',
+            notes:v['pd-notes']||'',
+            costItems:state&&state.dynCostData?state.dynCostData.map(c=>c.name+':$'+(c.amount||0)).join('; '):'',
+            renoItems:state&&state.renoItemData?state.renoItemData.map(r=>r.name+':$'+(r.amount||0)).join('; '):'',
+          });
+        }
+      }
+      return ok({ok:true,rows});
+    }catch(e){ return fail('Export error: '+e.message); }
+  }
+
   if(action==='adminBrowseDatabase'){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
