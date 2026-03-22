@@ -337,10 +337,13 @@ async function confirmDeleteAccount(){
     });
     const d = await r.json();
     if(d.ok){
+      // Track account deletion
+      if(window.trackAuthAction) trackAuthAction('account_deleted', 'success');
       localStorage.clear();
       await acctAlert('Account Deleted', 'Your account has been deleted. You will now be redirected.', {icon:'👋'});
       location.href='index.html';
     } else {
+      if(window.trackAuthAction) trackAuthAction('account_deleted', 'failure');
       await acctAlert('Error', d.error||'Failed to delete account. Please try again.', {danger:true, icon:'✗'});
     }
   }catch(e){
@@ -351,6 +354,8 @@ async function confirmDeleteAccount(){
 }
 
 function doSignOut(){
+  // Track logout/sign out
+  if(window.trackPageEvent) trackPageEvent('user_signout', {});
   if(session?.token){
     fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'signout',token:session.token})}).catch(()=>{});
   }

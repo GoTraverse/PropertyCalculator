@@ -207,6 +207,52 @@ window.trackPageEvent = function(eventName, eventData) {
   }
 })();
 
+// ── Performance Monitoring ─────────────────────────────────────────────────
+(function() {
+  // Track page load time (Web Vitals)
+  if (window.performance && window.performance.timing) {
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var timing = window.performance.timing;
+        var loadTime = timing.loadEventEnd - timing.navigationStart;
+        var dnsTime = timing.dnsLookupEnd - timing.dnsLookupStart;
+        var connectTime = timing.connectEnd - timing.connectStart;
+        var renderTime = timing.domContentLoadedEventEnd - timing.navigationStart;
+
+        if (loadTime > 0 && loadTime < 60000) { // reasonable range
+          gtag('event', 'page_load_time', {
+            'total_ms': Math.round(loadTime),
+            'dns_ms': Math.round(dnsTime),
+            'connect_ms': Math.round(connectTime),
+            'render_ms': Math.round(renderTime),
+            'page_path': window.location.pathname
+          });
+        }
+      }, 0);
+    });
+  }
+
+  // Track Core Web Vitals if available (modern browsers)
+  if ('PerformanceObserver' in window) {
+    try {
+      // Cumulative Layout Shift
+      var clsValue = 0;
+      var clsObserver = new PerformanceObserver(function(list) {
+        for (var entry of list.getEntries()) {
+          if (!entry.hadRecentInput) {
+            clsValue += entry.value;
+            gtag('event', 'cumulative_layout_shift', {
+              'value': clsValue.toFixed(3),
+              'page_path': window.location.pathname
+            });
+          }
+        }
+      });
+      clsObserver.observe({entryTypes: ['layout-shift']});
+    } catch(e) {}
+  }
+})();
+
 // ── Error Tracking Integration ───────────────────────────────────────────
 window.trackJSError = function(errorMessage, source, lineno, colno) {
   gtag('event', 'exception', {

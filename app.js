@@ -4400,6 +4400,8 @@
   window.isPro = isPro;
   function requirePro(featureName){
     if(isPro()) return true;
+    // Track feature gating - free user attempted to access pro feature
+    if(window.trackFeatureGated) trackFeatureGated(featureName, 'attempted_access');
     showToast('🔒 ' + featureName + ' is a Pro feature — <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);
     return false;
   }
