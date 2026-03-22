@@ -733,6 +733,36 @@
   </div>
 
   <div class="admin-section" id="tab-database">
+    <!-- Database Browser -->
+    <div class="admin-card" style="margin-bottom:20px;">
+      <div class="admin-card-head">
+        <h3>Database Browser</h3>
+        <span style="font-size:11px;color:var(--slate);">Browse and filter all Redis keys for debugging</span>
+      </div>
+      <div style="padding:20px;">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="text" id="db-filter-input" placeholder="Filter pattern (e.g. user:* or token:*)" style="flex:1;min-width:200px;padding:8px 12px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.12);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:12px;color:var(--charcoal);">
+          <button class="btn-admin-outline" id="db-browse-btn">Browse</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="btn-admin-sm" data-db-filter="*" style="font-size:10px;">All</button>
+          <button class="btn-admin-sm" data-db-filter="user:*" style="font-size:10px;">Users</button>
+          <button class="btn-admin-sm" data-db-filter="token:*" style="font-size:10px;">Tokens</button>
+          <button class="btn-admin-sm" data-db-filter="profile:*" style="font-size:10px;">Profiles</button>
+          <button class="btn-admin-sm" data-db-filter="scenarios:*" style="font-size:10px;">Scenarios</button>
+          <button class="btn-admin-sm" data-db-filter="config:*" style="font-size:10px;">Config</button>
+          <button class="btn-admin-sm" data-db-filter="stats:*" style="font-size:10px;">Stats</button>
+          <button class="btn-admin-sm" data-db-filter="email-template:*" style="font-size:10px;">Email Templates</button>
+          <button class="btn-admin-sm" data-db-filter="growth:*" style="font-size:10px;">Growth</button>
+          <button class="btn-admin-sm" data-db-filter="client-errors" style="font-size:10px;">Errors</button>
+        </div>
+        <div id="db-browse-info" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);margin-bottom:12px;"></div>
+        <div id="db-browse-results" style="max-height:600px;overflow-y:auto;"></div>
+        <div id="db-browse-pager" style="margin-top:12px;text-align:center;"></div>
+      </div>
+    </div>
+
+    <!-- Database Maintenance -->
     <div class="admin-card">
       <div class="admin-card-head">
         <h3>Database Maintenance</h3>

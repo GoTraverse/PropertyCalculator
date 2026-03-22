@@ -247,6 +247,18 @@
   }
   .btn-admin-outline:hover { background: var(--charcoal); color: var(--cream); }
 
+  .btn-admin-sm {
+    background: rgba(28,28,30,0.06);
+    border: 1px solid rgba(28,28,30,0.12);
+    color: var(--slate);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .btn-admin-sm:hover { background: var(--charcoal); color: var(--cream); }
+
   /* Access denied screen */
   .access-denied {
     display: flex;
@@ -524,6 +536,12 @@ html.dark-mode .act-btn { border-color: rgba(255,255,255,0.15) !important; color
 html.dark-mode .act-btn:hover { background: #F5F0E8 !important; color: #1C1C1E !important; border-color: #F5F0E8 !important; }
 html.dark-mode .btn-admin-outline { border-color: rgba(255,255,255,0.2) !important; color: #F5F0E8 !important; }
 html.dark-mode .btn-admin-outline:hover { background: #F5F0E8 !important; color: #1C1C1E !important; }
+html.dark-mode .btn-admin-sm { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.12) !important; color: rgba(245,240,232,0.6) !important; }
+html.dark-mode .btn-admin-sm:hover { background: #F5F0E8 !important; color: #1C1C1E !important; }
+html.dark-mode #db-filter-input { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.12) !important; color: #F5F0E8 !important; }
+html.dark-mode .db-entry { border-color: rgba(255,255,255,0.08) !important; }
+html.dark-mode .db-entry summary { background: rgba(255,255,255,0.04) !important; color: #F5F0E8 !important; }
+html.dark-mode .db-entry pre { background: rgba(255,255,255,0.02) !important; color: rgba(245,240,232,0.6) !important; border-top-color: rgba(255,255,255,0.06) !important; }
 
 /* Reset password modal */
 html.dark-mode .reset-modal { background: #1C1C1E !important; color: #F5F0E8 !important; }

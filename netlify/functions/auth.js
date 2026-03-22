@@ -898,6 +898,37 @@ exports.handler = async function(event){
     }catch(e){ return fail('Purge error: '+e.message); }
   }
 
+  if(action==='adminBrowseDatabase'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const pattern=(body.pattern||'*').replace(/[^a-zA-Z0-9:_*\-]/g,'');
+      const keys=await scanAll(pattern);
+      if(!keys||!keys.length) return ok({ok:true,keys:[],total:0});
+      // Sort keys alphabetically
+      keys.sort();
+      // Paginate: return max 50 keys at a time
+      const offset=parseInt(body.offset)||0;
+      const limit=Math.min(parseInt(body.limit)||50,100);
+      const page=keys.slice(offset,offset+limit);
+      // Fetch values for the page (skip large photo keys — just show metadata)
+      const entries=await Promise.all(page.map(async k=>{
+        if(k.includes(':photo:')) return {key:k,value:'[base64 photo data]',type:'photo'};
+        try{
+          const v=await rGet(k);
+          // Redact sensitive fields
+          if(v&&typeof v==='object'){
+            const c=Object.assign({},v);
+            if(c.hash) c.hash='[redacted]';
+            return {key:k,value:c};
+          }
+          return {key:k,value:v};
+        }catch(e){ return {key:k,value:'[error reading]'}; }
+      }));
+      return ok({ok:true,keys:entries,total:keys.length,offset,limit});
+    }catch(e){ return fail('Browse error: '+e.message); }
+  }
+
   if(action==='adminGetSchemes'){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);

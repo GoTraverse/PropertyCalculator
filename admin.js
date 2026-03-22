@@ -1415,6 +1415,48 @@ async function adminDeleteScenario(userId, scenarioId, label){
   }
 }
 
+// ── DATABASE BROWSER ──────────────────────────────────────────
+var _dbOffset=0;
+var _dbPattern='*';
+async function loadDatabaseBrowser(pattern,offset){
+  if(pattern!==undefined) _dbPattern=pattern;
+  if(offset!==undefined) _dbOffset=offset; else _dbOffset=0;
+  var info=document.getElementById('db-browse-info');
+  var results=document.getElementById('db-browse-results');
+  var pager=document.getElementById('db-browse-pager');
+  info.textContent='Loading…';
+  results.innerHTML='';
+  pager.innerHTML='';
+  var res=await callAuth('adminBrowseDatabase',{pattern:_dbPattern,offset:_dbOffset,limit:50});
+  if(!res.ok){ info.textContent='Error: '+(res.error||'Unknown'); return; }
+  info.textContent=res.total+' key'+(res.total===1?'':'s')+' found'+(_dbPattern!=='*'?' matching "'+escHtml(_dbPattern)+'"':'')+' · showing '+(_dbOffset+1)+'–'+Math.min(_dbOffset+50,res.total);
+  if(!res.keys.length){ results.innerHTML='<div style="padding:20px;text-align:center;color:var(--slate);font-size:12px;">No keys found</div>'; return; }
+  var html='';
+  res.keys.forEach(function(entry){
+    var valStr;
+    if(entry.value&&typeof entry.value==='object') valStr=JSON.stringify(entry.value,null,2);
+    else if(entry.value===null||entry.value===undefined) valStr='null';
+    else valStr=String(entry.value);
+    // Truncate very long values for display
+    var truncated=valStr.length>500;
+    var display=truncated?valStr.substring(0,500)+'…':valStr;
+    html+='<details class="db-entry" style="border:1px solid rgba(28,28,30,0.08);border-radius:var(--radius-sm);margin-bottom:6px;">';
+    html+='<summary style="padding:8px 12px;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:var(--charcoal);background:rgba(28,28,30,0.03);user-select:text;-webkit-user-select:text;">'+escHtml(entry.key)+'</summary>';
+    html+='<pre style="padding:10px 14px;margin:0;font-size:11px;font-family:var(--font-mono);color:var(--slate);white-space:pre-wrap;word-break:break-all;overflow-x:auto;background:rgba(28,28,30,0.02);border-top:1px solid rgba(28,28,30,0.06);">'+escHtml(display)+'</pre>';
+    html+='</details>';
+  });
+  results.innerHTML=html;
+  // Pager
+  var btns='';
+  if(_dbOffset>0) btns+='<button class="btn-admin-sm" id="db-prev-btn" style="font-size:10px;">← Previous</button> ';
+  if(_dbOffset+50<res.total) btns+='<button class="btn-admin-sm" id="db-next-btn" style="font-size:10px;">Next →</button>';
+  pager.innerHTML=btns;
+  var prevBtn=document.getElementById('db-prev-btn');
+  if(prevBtn) prevBtn.addEventListener('click',function(){ loadDatabaseBrowser(undefined,Math.max(0,_dbOffset-50)); });
+  var nextBtn=document.getElementById('db-next-btn');
+  if(nextBtn) nextBtn.addEventListener('click',function(){ loadDatabaseBrowser(undefined,_dbOffset+50); });
+}
+
 // ── DATABASE PURGE ─────────────────────────────────────────────
 async function purgeExpiredSessions(){
   const st = document.getElementById('database-status');
