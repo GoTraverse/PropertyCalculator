@@ -15,13 +15,25 @@ document.querySelectorAll('.tab[data-tab]').forEach(function(btn){
 
 // ── Sidebar toggles ──────────────────────────────────────────────────────────
 var mobileOverlay = document.getElementById('mobile-overlay');
-if(mobileOverlay) mobileOverlay.addEventListener('click', toggleMobileSidebar);
+if(mobileOverlay) mobileOverlay.addEventListener('click', function(){
+  if(window.trackSidebarToggle) trackSidebarToggle('toggle');
+  toggleMobileSidebar();
+});
 var mobileSidebarBtn = document.getElementById('mobile-sidebar-btn');
-if(mobileSidebarBtn) mobileSidebarBtn.addEventListener('click', toggleMobileSidebar);
+if(mobileSidebarBtn) mobileSidebarBtn.addEventListener('click', function(){
+  if(window.trackSidebarToggle) trackSidebarToggle('toggle');
+  toggleMobileSidebar();
+});
 var mobileCalcFab = document.getElementById('mobile-calc-fab');
-if(mobileCalcFab) mobileCalcFab.addEventListener('click', toggleMobileSidebar);
+if(mobileCalcFab) mobileCalcFab.addEventListener('click', function(){
+  if(window.trackSidebarToggle) trackSidebarToggle('toggle');
+  toggleMobileSidebar();
+});
 var sidebarCloseBtn = document.getElementById('sidebar-close-btn');
-if(sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleMobileSidebar);
+if(sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', function(){
+  if(window.trackSidebarToggle) trackSidebarToggle('close');
+  toggleMobileSidebar();
+});
 var sidebarToggle = document.getElementById('sidebar-toggle');
 if(sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebarCollapse);
 var collapsedHint = document.querySelector('.sidebar-collapsed-hint');
@@ -52,11 +64,20 @@ if(photoFileInput) photoFileInput.addEventListener('change', function(){ handleP
 
 // ── Sidebar feature toggles ───────────────────────────────────────────────────
 var renoToggle = document.getElementById('reno-toggle');
-if(renoToggle) renoToggle.addEventListener('click', toggleReno);
+if(renoToggle) renoToggle.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'renovation'});
+  toggleReno();
+});
 var rentToggle = document.getElementById('rent-toggle');
-if(rentToggle) rentToggle.addEventListener('click', toggleRent);
+if(rentToggle) rentToggle.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'rental'});
+  toggleRent();
+});
 var riskToggle = document.getElementById('risk-toggle');
-if(riskToggle) riskToggle.addEventListener('click', toggleRisk);
+if(riskToggle) riskToggle.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'risk_analysis'});
+  toggleRisk();
+});
 
 // ── Generic range inputs (rng-KEY → syncInput + dRecalc) ─────────────────────
 document.querySelectorAll('input[id^="rng-"]').forEach(function(el){

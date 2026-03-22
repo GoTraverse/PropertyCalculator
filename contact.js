@@ -24,6 +24,8 @@ async function submitForm(){
     var d=await r.json();
     if(!d.ok){ errEl.textContent=d.error||'Failed to send \u2014 please try again.'; btn.disabled=false; btn.textContent='Send Message \u2192'; return; }
   }catch(e){ errEl.textContent='Network error \u2014 please try again.'; btn.disabled=false; btn.textContent='Send Message \u2192'; return; }
+  // Track form submission
+  if(window.trackFormSubmission) trackFormSubmission('contact_form', true);
   document.getElementById('contact-form').style.display='none';
   document.getElementById('cf-success').style.display='block';
 }
