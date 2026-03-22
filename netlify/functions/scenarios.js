@@ -42,6 +42,15 @@ async function rGet(key){
 }
 async function rSet(key,val){ return redisCmd('SET',key,typeof val==='string'?val:JSON.stringify(val)); }
 
+// Append a structured event for a userId (shared with auth.js event log)
+async function logEvent(userId,type,extra){
+  if(!userId) return;
+  try{
+    await redisCmd('RPUSH','events:'+userId, JSON.stringify({type,at:Date.now(),...extra}));
+    await redisCmd('LTRIM','events:'+userId,'0','199');
+  }catch(e){ console.warn('[scenarios] logEvent failed:',e.message); }
+}
+
 // ── Token verification ────────────────────────────────────────────────
 async function verifyToken(authHeader){
   if(!authHeader||!authHeader.startsWith('Bearer ')) return null;
@@ -150,8 +159,10 @@ exports.handler = async function(event){
       const index = await readIndex(uid);
       const existing = index.findIndex(s=>s.id===id);
       const entry = {id, fullAddr, hasPhoto:!!hasPhoto, status:status||'browsing', savedAt:Date.now(), thumb:thumb||''};
-      if(existing>=0) index[existing]=entry; else index.push(entry);
+      const isNew = existing < 0;
+      if(isNew) index.push(entry); else index[existing]=entry;
       await writeIndex(uid, index);
+      if(isNew) logEvent(uid,'scenario_created',{address:fullAddr}).catch(()=>{});
       return ok({ok:true, id});
     }
 
@@ -225,6 +236,7 @@ exports.handler = async function(event){
       const swList = (await rGet(swKey)) || [];
       swList.push({ownerId:uid, ownerEmail:ownerData.email, ownerName:ownerData.name||ownerData.email, scenarioId, fullAddr:sc.fullAddr, thumb:sc.thumb||'', hasPhoto:sc.hasPhoto||false, sharedAt:Date.now()});
       await rSet(swKey, swList);
+      logEvent(uid,'scenario_shared',{address:sc.fullAddr,to:norm}).catch(()=>{});
       return ok({ok:true, name:targetUser.name||norm});
     }
 
@@ -311,7 +323,9 @@ exports.handler = async function(event){
     const uid = await resolveUser(event, body);
     if(!uid) return fail('Authentication required', 401);
     const index = await readIndex(uid);
+    const deleted = index.find(s=>s.id===id);
     await writeIndex(uid, index.filter(s=>s.id!==id));
+    if(deleted) logEvent(uid,'scenario_deleted',{address:deleted.fullAddr||''}).catch(()=>{});
     // Clean up state, photo, and share data
     const delCmds = [['DEL',stateKey(uid,id)],['DEL',photoKey(uid,id)]];
     try{

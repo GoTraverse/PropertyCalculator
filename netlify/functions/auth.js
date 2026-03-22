@@ -512,7 +512,11 @@ exports.handler = async function(event){
 
   if(action==='signout'){
     const {token}=body;
-    if(token) await rDel('token:'+token);
+    if(token){
+      const td=await rGet('token:'+token);
+      if(td&&td.userId) logEvent(td.userId,'signout',{}).catch(()=>{});
+      await rDel('token:'+token);
+    }
     return ok({ok:true});
   }
 
@@ -955,8 +959,10 @@ exports.handler = async function(event){
     if(!validPlans.includes(plan)) return fail('Invalid plan. Use: free, pro, adviser');
     const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
     if(!userData) return fail('User not found');
+    const oldPlan=userData.plan||'free';
     userData.plan=plan;
     await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    if(userData.id) await logEvent(userData.id,'plan_changed',{from:oldPlan,to:plan,by:user.email});
     // Also update any active tokens for this user
     return ok({ok:true,plan});
   }
