@@ -14,6 +14,8 @@
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
+const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
+const EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
 
 const H = {
   'Content-Type':'application/json',
@@ -49,6 +51,33 @@ async function logEvent(userId,type,extra){
     await redisCmd('RPUSH','events:'+userId, JSON.stringify({type,at:Date.now(),...extra}));
     await redisCmd('LTRIM','events:'+userId,'0','199');
   }catch(e){ console.warn('[scenarios] logEvent failed:',e.message); }
+}
+
+// Send invite email via Resend
+async function sendInviteEmail(toEmail, fromName, propertyAddr){
+  if(!RESEND_API_KEY) return false;
+  try{
+    const html = `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;">
+      <h2 style="font-size:20px;margin-bottom:8px;">You've been invited to EquitySight</h2>
+      <p style="font-size:14px;color:#4A4A52;line-height:1.7;">
+        <strong>${fromName.replace(/[<>&"]/g,'')}</strong> wants to share a property scenario with you${propertyAddr?' — <em>'+propertyAddr.replace(/[<>&"]/g,'')+'</em>':''}.
+      </p>
+      <p style="font-size:14px;color:#4A4A52;line-height:1.7;">
+        Sign up for a free EquitySight account to view it:
+      </p>
+      <p style="text-align:center;margin:24px 0;">
+        <a href="https://equitysight.app/login.html" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a>
+      </p>
+      <p style="font-size:12px;color:#999;line-height:1.6;">EquitySight is Australia's smartest property investment calculator. Free to use, no credit card required.</p>
+    </div>`;
+    const r = await fetch('https://api.resend.com/emails',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({from:EMAIL_FROM, to:[toEmail], subject:fromName+' shared a property with you on EquitySight', html})
+    });
+    if(!r.ok){ console.warn('[scenarios] invite email error:',r.status); return false; }
+    return true;
+  }catch(e){ console.warn('[scenarios] invite email failed:',e.message); return false; }
 }
 
 // ── Token verification ────────────────────────────────────────────────
@@ -219,7 +248,14 @@ exports.handler = async function(event){
       // Look up target user
       const norm = targetEmail.toLowerCase().trim();
       const targetUser = await rGet('user:'+norm);
-      if(!targetUser) return fail('No EquitySight account found for that email address');
+      if(!targetUser){
+        // User doesn't exist — send invite email
+        const idx2 = await readIndex(uid);
+        const sc2 = idx2.find(s=>s.id===scenarioId);
+        const sent = await sendInviteEmail(norm, ownerData.name||ownerData.email, sc2?sc2.fullAddr:'');
+        logEvent(uid,'share_invite_sent',{to:norm,address:sc2?sc2.fullAddr:''}).catch(()=>{});
+        return ok({ok:true, invited:true, email:norm, sent});
+      }
       if(targetUser.id===uid) return fail('Cannot share with yourself');
       // Confirm scenario exists in owner's library
       const idx = await readIndex(uid);
