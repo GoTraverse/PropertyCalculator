@@ -53,31 +53,46 @@ async function logEvent(userId,type,extra){
   }catch(e){ console.warn('[scenarios] logEvent failed:',e.message); }
 }
 
-// Send invite email via Resend
-async function sendInviteEmail(toEmail, fromName, propertyAddr){
+// Default templates (must match auth.js DEFAULT_TEMPLATES for these types)
+const SHARE_DEFAULTS = {
+  scenario_shared: {
+    subject: '{{senderName}} shared a property scenario with you',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open your calculator to view the shared scenario:</p><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View Scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">You can find shared scenarios in your Saved Library.</p></div>',
+  },
+  scenario_invite: {
+    subject: '{{senderName}} shared a property with you on EquitySight',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">You\'ve been invited to EquitySight</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Sign up for a free EquitySight account to view it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login.html" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a></p><p style="font-size:12px;color:#999;line-height:1.6;">EquitySight is Australia\'s smartest property investment calculator. Free to use, no credit card required.</p></div>',
+  },
+};
+
+function applyVars(str, vars){
+  return Object.entries(vars).reduce((s,[k,v])=>s.replace(new RegExp('\\{\\{'+k+'\\}\\}','g'),v||''), str);
+}
+
+async function getEmailTemplate(type){
+  try{
+    const saved = await rGet('email-template:'+type);
+    if(saved && saved.subject && saved.html) return saved;
+  }catch(e){}
+  return SHARE_DEFAULTS[type] || null;
+}
+
+// Send share email via Resend (template-based)
+async function sendShareEmail(toEmail, templateType, vars){
   if(!RESEND_API_KEY) return false;
   try{
-    const html = `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;">
-      <h2 style="font-size:20px;margin-bottom:8px;">You've been invited to EquitySight</h2>
-      <p style="font-size:14px;color:#4A4A52;line-height:1.7;">
-        <strong>${fromName.replace(/[<>&"]/g,'')}</strong> wants to share a property scenario with you${propertyAddr?' — <em>'+propertyAddr.replace(/[<>&"]/g,'')+'</em>':''}.
-      </p>
-      <p style="font-size:14px;color:#4A4A52;line-height:1.7;">
-        Sign up for a free EquitySight account to view it:
-      </p>
-      <p style="text-align:center;margin:24px 0;">
-        <a href="https://equitysight.app/login.html" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a>
-      </p>
-      <p style="font-size:12px;color:#999;line-height:1.6;">EquitySight is Australia's smartest property investment calculator. Free to use, no credit card required.</p>
-    </div>`;
+    const tpl = await getEmailTemplate(templateType);
+    if(!tpl) return false;
+    const subject = applyVars(tpl.subject, vars);
+    const html = applyVars(tpl.html, vars);
     const r = await fetch('https://api.resend.com/emails',{
       method:'POST',
       headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({from:EMAIL_FROM, to:[toEmail], subject:fromName+' shared a property with you on EquitySight', html})
+      body:JSON.stringify({from:EMAIL_FROM, to:[toEmail], subject, html})
     });
-    if(!r.ok){ console.warn('[scenarios] invite email error:',r.status); return false; }
+    if(!r.ok){ console.warn('[scenarios] share email error:',r.status); return false; }
     return true;
-  }catch(e){ console.warn('[scenarios] invite email failed:',e.message); return false; }
+  }catch(e){ console.warn('[scenarios] share email failed:',e.message); return false; }
 }
 
 // ── Token verification ────────────────────────────────────────────────
@@ -249,10 +264,14 @@ exports.handler = async function(event){
       const norm = targetEmail.toLowerCase().trim();
       const targetUser = await rGet('user:'+norm);
       if(!targetUser){
-        // User doesn't exist — send invite email
+        // User doesn't exist — send invite email using scenario_invite template
         const idx2 = await readIndex(uid);
         const sc2 = idx2.find(s=>s.id===scenarioId);
-        const sent = await sendInviteEmail(norm, ownerData.name||ownerData.email, sc2?sc2.fullAddr:'');
+        const addrStr = sc2&&sc2.fullAddr ? ' \u2014 <em>'+sc2.fullAddr.replace(/[<>&"]/g,'')+'</em>' : '';
+        const sent = await sendShareEmail(norm, 'scenario_invite', {
+          senderName: (ownerData.name||ownerData.email).replace(/[<>&"]/g,''),
+          address: addrStr,
+        });
         logEvent(uid,'share_invite_sent',{to:norm,address:sc2?sc2.fullAddr:''}).catch(()=>{});
         return ok({ok:true, invited:true, email:norm, sent});
       }
@@ -272,6 +291,14 @@ exports.handler = async function(event){
       const swList = (await rGet(swKey)) || [];
       swList.push({ownerId:uid, ownerEmail:ownerData.email, ownerName:ownerData.name||ownerData.email, scenarioId, fullAddr:sc.fullAddr, thumb:sc.thumb||'', hasPhoto:sc.hasPhoto||false, sharedAt:Date.now()});
       await rSet(swKey, swList);
+      // Send notification email to existing user using scenario_shared template
+      const addrStr = sc.fullAddr ? ' \u2014 <em>'+sc.fullAddr.replace(/[<>&"]/g,'')+'</em>' : '';
+      const recipientFirst = targetUser.name ? targetUser.name.split(' ')[0] : norm;
+      sendShareEmail(norm, 'scenario_shared', {
+        firstName: recipientFirst.replace(/[<>&"]/g,''),
+        senderName: (ownerData.name||ownerData.email).replace(/[<>&"]/g,''),
+        address: addrStr,
+      }).catch(()=>{});
       logEvent(uid,'scenario_shared',{address:sc.fullAddr,to:norm}).catch(()=>{});
       return ok({ok:true, name:targetUser.name||norm});
     }

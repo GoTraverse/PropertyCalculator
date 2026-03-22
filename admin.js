@@ -2307,7 +2307,9 @@ const ET_VARS = {
   password_reset:'{{code}}',
   subscription:  '{{firstName}}, {{name}}, {{plan}}',
   security_alert:'{{firstName}}, {{name}}, {{event}}',
-  promotional:   '{{firstName}}, {{name}}',
+  promotional:      '{{firstName}}, {{name}}',
+  scenario_shared:  '{{firstName}}, {{senderName}}, {{address}}',
+  scenario_invite:  '{{senderName}}, {{address}}',
 };
 
 async function loadEmailTemplates(){
