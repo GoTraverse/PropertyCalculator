@@ -774,6 +774,7 @@ async function loadConfig(){
   setV('cfg-enable-pdf',      c.enablePdfExport!==false);
   setV('cfg-enable-proj',     c.enableProjections!==false);
   setV('cfg-enable-referral', c.referralEnabled||false);
+  setV('cfg-admin-view-all',  c.adminViewAllScenarios||false);
   setV('cfg-referral-bonus',  c.referralBonus||30);
   setV('cfg-max-upload',      c.maxUploadMb||5);
   setV('cfg-session-ttl',     c.sessionTtlDays||30);
@@ -945,6 +946,7 @@ async function saveConfig(){
     enablePdfExport:     getV('cfg-enable-pdf',true),
     enableProjections:   getV('cfg-enable-proj',true),
     referralEnabled:     getV('cfg-enable-referral',false),
+    adminViewAllScenarios: getV('cfg-admin-view-all',false),
     referralBonus:       parseInt(getV('cfg-referral-bonus','30'))||30,
     maxUploadMb:         parseInt(getV('cfg-max-upload','5'))||5,
     sessionTtlDays:      parseInt(getV('cfg-session-ttl','30'))||30,

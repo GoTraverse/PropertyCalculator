@@ -2303,6 +2303,8 @@
 
   async function loadAdminAllScenarios(){
     if(!_currentUser||_currentUser.role!=='admin') return;
+    // Check if admin view all scenarios is enabled in config
+    try{ var cfg=JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); if(!cfg.adminViewAllScenarios) return; }catch(e){ return; }
     try{
       const authH=getAuthHeader(); if(!authH) return;
       const r=await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'adminListAllScenarios'})});
