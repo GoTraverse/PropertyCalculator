@@ -16,52 +16,52 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(self)"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
 
-    Content-Security-Policy = "
-      default-src 'self';
-      script-src 'self'
-        https://js.stripe.com
-        https://pagead2.googlesyndication.com
-        https://adservice.google.com
-        https://www.googletagservices.com
-        https://www.googletagmanager.com
-        https://accounts.google.com
-        'sha256-1yHDvs7+Z29Z4G1LhYbHujCAQgQe6Dl/3X8zy2dAQfs='
-        'sha256-pXTTJfAUfWH4QBYak7cRfbfeMucEscH05RFbEVdE6Gw=';
-      style-src 'self' 'unsafe-inline'
-        https://fonts.googleapis.com
-        https://accounts.google.com;
-      font-src 'self' https://fonts.gstatic.com;
-      img-src 'self' data: blob: https:;
-      connect-src 'self'
-        https://api.stripe.com
-        https://nominatim.openstreetmap.org
-        https://ipwho.is
-        https://ipapi.co
-        https://api.rba.gov.au
-        https://data.api.abs.gov.au
-        https://api.domain.com.au
-        https://auth.domain.com.au
-        https://pagead2.googlesyndication.com
-        https://googleads.g.doubleclick.net
-        https://adservice.google.com
-        https://www.google-analytics.com
-        https://region1.google-analytics.com
-        https://www.googletagmanager.com
-        https://ingesteer.services-prod.nsvcs.net
-        https://ep1.adtrafficquality.google
-        https://accounts.google.com
-        https://oauth2.googleapis.com;
-      frame-src
-        https://js.stripe.com
-        https://hooks.stripe.com
-        https://googleads.g.doubleclick.net
-        https://tpc.googlesyndication.com
-        https://accounts.google.com;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self';
-      frame-ancestors 'none';
-    "
+    Content-Security-Policy = """
+default-src 'self';
+script-src 'self'
+  https://js.stripe.com
+  https://pagead2.googlesyndication.com
+  https://adservice.google.com
+  https://www.googletagservices.com
+  https://www.googletagmanager.com
+  https://accounts.google.com
+  'sha256-1yHDvs7+Z29Z4G1LhYbHujCAQgQe6Dl/3X8zy2dAQfs='
+  'sha256-pXTTJfAUfWH4QBYak7cRfbfeMucEscH05RFbEVdE6Gw=';
+style-src 'self' 'unsafe-inline'
+  https://fonts.googleapis.com
+  https://accounts.google.com;
+font-src 'self' https://fonts.gstatic.com;
+img-src 'self' data: blob: https:;
+connect-src 'self'
+  https://api.stripe.com
+  https://nominatim.openstreetmap.org
+  https://ipwho.is
+  https://ipapi.co
+  https://api.rba.gov.au
+  https://data.api.abs.gov.au
+  https://api.domain.com.au
+  https://auth.domain.com.au
+  https://pagead2.googlesyndication.com
+  https://googleads.g.doubleclick.net
+  https://adservice.google.com
+  https://www.google-analytics.com
+  https://region1.google-analytics.com
+  https://www.googletagmanager.com
+  https://ingesteer.services-prod.nsvcs.net
+  https://ep1.adtrafficquality.google
+  https://accounts.google.com
+  https://oauth2.googleapis.com;
+frame-src
+  https://js.stripe.com
+  https://hooks.stripe.com
+  https://googleads.g.doubleclick.net
+  https://tpc.googlesyndication.com
+  https://accounts.google.com;
+object-src 'none';
+base-uri 'self';
+form-action 'self';
+frame-ancestors 'none';
+"""
 
 # ── Functions CORS ─────────────────────────────────────────────────────────
 [[headers]]
@@ -72,7 +72,7 @@
     Access-Control-Allow-Methods = "GET, POST, DELETE, OPTIONS"
     X-Content-Type-Options = "nosniff"
 
-# ── Caching (improved) ─────────────────────────────────────────────────────
+# ── Caching ────────────────────────────────────────────────────────────────
 [[headers]]
   for = "/*.css"
   [headers.values]
@@ -93,7 +93,7 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# ── Basic Redirects ────────────────────────────────────────────────────────
+# ── Basic Redirect ─────────────────────────────────────────────────────────
 [[redirects]]
   from = "/favicon.ico"
   to = "/favicon.svg"
@@ -114,7 +114,7 @@
 [[redirects]] { from = "/templates/*", to = "/404.html", status = 404, force = true }
 [[redirects]] { from = "/data/abs-suburbs.json", to = "/404.html", status = 404, force = true }
 
-# ── Block common exploit probes ────────────────────────────────────────────
+# ── Block exploit probes ───────────────────────────────────────────────────
 [[redirects]] { from = "/wp-admin/*", to = "/404.html", status = 404, force = true }
 [[redirects]] { from = "/wp-login.php", to = "/404.html", status = 404, force = true }
 [[redirects]] { from = "/xmlrpc.php", to = "/404.html", status = 404, force = true }
@@ -122,8 +122,11 @@
 [[redirects]] { from = "/wp-includes/*", to = "/404.html", status = 404, force = true }
 [[redirects]] { from = "/index.php", to = "/404.html", status = 404, force = true }
 
-# ── Tool redirects (clean URLs) ────────────────────────────────────────────
-[[redirects]] { from = "/tools/*", to = "/tools/:splat.html", status = 301 }
+# ── Tool clean URLs ────────────────────────────────────────────────────────
+[[redirects]]
+  from = "/tools/*"
+  to = "/tools/:splat.html"
+  status = 301
 
 # ── Fix old relative asset paths ───────────────────────────────────────────
 [[redirects]] { from = "/invest/*/shared.css", to = "/shared.css", status = 200, force = true }
@@ -148,7 +151,7 @@
   to = "/ads.txt"
   status = 200
 
-# ── Catch-all 404 (safe) ───────────────────────────────────────────────────
+# ── Catch-all 404 ──────────────────────────────────────────────────────────
 [[redirects]]
   from = "/*"
   to = "/404.html"
