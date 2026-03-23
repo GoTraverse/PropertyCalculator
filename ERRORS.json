@@ -1,7 +1,49 @@
 {
-  "syncedAt": "2026-03-23T10:11:37.457Z",
-  "count": 10,
+  "syncedAt": "2026-03-23T10:57:05.809Z",
+  "count": 13,
   "errors": [
+    {
+      "at": 1774263424779,
+      "message": "CSP violation: connect-src — blocked \"https://stats.g.doubleclick.net/g/collect?v=2&tid=G-TYQXT24670&cid=1070738294.1774147665&gtm=45je63j1h2v9246793855za200zd9246793855&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117384406~117484252\"",
+      "source": "https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670",
+      "line": 290,
+      "col": 237,
+      "stack": "",
+      "url": "https://equitysight.app/",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/146.0.7680.151 Mobile/15E148 Safari/604.1",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
+    {
+      "at": 1774260712567,
+      "message": "Unhandled promise rejection",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/suburb/qld/gatton/",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/146.0.7680.151 Mobile/15E148 Safari/604.1",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "warning"
+    },
+    {
+      "at": 1774260711470,
+      "message": "CSP violation: script-src-elem — blocked \"https://ep2.adtrafficquality.google/sodar/sodar2.js\"",
+      "source": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202603170101/show_ads_impl_fy2021.js",
+      "line": 99,
+      "col": 571,
+      "stack": "",
+      "url": "https://equitysight.app/suburb/qld/gatton/",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/146.0.7680.151 Mobile/15E148 Safari/604.1",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1774260696429,
       "message": "CSP violation: connect-src — blocked \"https://stats.g.doubleclick.net/g/collect?v=2&tid=G-TYQXT24670&cid=1070738294.1774147665&gtm=45je63i0v9246793855za200zd9246793855&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=103116026~103200004~115938465~115938468~116024733~117484252~118104773\"",
