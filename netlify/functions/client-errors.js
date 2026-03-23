@@ -11,8 +11,6 @@ const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 const RESEND_API_KEY    = (process.env.RESEND_API_KEY    || '').trim();
 const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
-// ALERT_EMAIL: where to send critical alerts (defaults to VERIFY_EMAIL_FROM if not set)
-const ALERT_TO_EMAIL    = (process.env.ALERT_EMAIL || VERIFY_EMAIL_FROM).trim();
 
 const H = {
   'Content-Type': 'application/json',
@@ -91,6 +89,12 @@ async function maybeSendCriticalAlert(entry) {
     } catch (e) { continue; }
     // Send alert
     try {
+      // Use support email from admin config, falling back to env var
+      let alertTo = VERIFY_EMAIL_FROM;
+      try {
+        const cfg = await rGet('config:site');
+        if (cfg && cfg.supportEmail) alertTo = cfg.supportEmail;
+      } catch (e) { /* use fallback */ }
       const html = `
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
   <h2 style="color:#DC2626;margin-bottom:4px;">Critical integration broken</h2>
@@ -109,7 +113,7 @@ async function maybeSendCriticalAlert(entry) {
         headers: { Authorization: 'Bearer ' + RESEND_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: VERIFY_EMAIL_FROM,
-          to: [ALERT_TO_EMAIL],
+          to: [alertTo],
           subject: '[EquitySight] ' + pattern.label + ' broken (CSP violation)',
           html,
         }),
