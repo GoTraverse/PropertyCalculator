@@ -366,7 +366,7 @@ for (const s of suburbs) {
     : 'N/A';
 
   // Data source note for hero
-  const dataSourceNote = `Population & financial data: ABS 2021 Census · Distance: straight-line from suburb centroid · Last updated: ${BUILD_DATE}`;
+  const dataSourceNote = `ABS 2021 Census · Updated ${BUILD_DATE}`;
 
   // Google Maps embed URL — zoom derived from real bounding box data when available,
   // otherwise falls back to suburb-type heuristic.
