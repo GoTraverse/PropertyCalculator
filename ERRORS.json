@@ -1,7 +1,35 @@
 {
-  "syncedAt": "2026-03-23T18:52:16.780Z",
-  "count": 19,
+  "syncedAt": "2026-03-23T22:15:38.509Z",
+  "count": 21,
   "errors": [
+    {
+      "at": 1774304137477,
+      "message": "CSP violation: script-src-elem — blocked \"https://ep2.adtrafficquality.google/sodar/sodar2.js\"",
+      "source": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202603190101/show_ads_impl_fy2021.js",
+      "line": 99,
+      "col": 560,
+      "stack": "",
+      "url": "https://equitysight.app/suburb/nsw/abbotsford/",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
+    {
+      "at": 1774291937760,
+      "message": "CSP violation: script-src-elem — blocked \"https://ep2.adtrafficquality.google/sodar/sodar2.js\"",
+      "source": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202603190101/show_ads_impl_fy2021.js",
+      "line": 99,
+      "col": 560,
+      "stack": "",
+      "url": "https://equitysight.app/suburb/nsw/hammondville/",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1774291935755,
       "message": "CSP violation: connect-src — blocked \"https://stats.g.doubleclick.net/g/collect?v=2&tid=G-TYQXT24670&cid=765466733.1774291935&gtm=45je63j1v9246793855za200zd9246793855&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=103116026~103200004~115938465~115938469~116024733~117484252\"",
