@@ -36,8 +36,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const ENHANCED_FILE = path.join(__dirname, 'data', 'abs-enhanced.json');
-const SUBURBS_FILE = path.join(__dirname, 'data', 'suburbs.json');
+const ENHANCED_FILE  = path.join(__dirname, 'data', 'abs-enhanced.json');
+const OVERPASS_FILE  = path.join(__dirname, 'data', 'overpass-amenities.json');
+const SUBURBS_FILE   = path.join(__dirname, 'data', 'suburbs.json');
 
 const hasEnhanced = fs.existsSync(ENHANCED_FILE);
 if (!hasEnhanced) {
@@ -45,8 +46,15 @@ if (!hasEnhanced) {
   console.warn(`Run fetch-abs-enhanced.js first to get real income, distances, rent, and mortgage data.`);
 }
 
-const enhanced = hasEnhanced ? JSON.parse(fs.readFileSync(ENHANCED_FILE, 'utf8')) : [];
-const suburbs = JSON.parse(fs.readFileSync(SUBURBS_FILE, 'utf8'));
+const hasOverpass = fs.existsSync(OVERPASS_FILE);
+if (!hasOverpass) {
+  console.warn(`Warning: ${OVERPASS_FILE} not found — school/park names will be empty.`);
+  console.warn(`Run fetch-overpass-amenities.js to get real school and park names.`);
+}
+
+const enhanced  = hasEnhanced  ? JSON.parse(fs.readFileSync(ENHANCED_FILE,  'utf8')) : [];
+const overpass  = hasOverpass  ? JSON.parse(fs.readFileSync(OVERPASS_FILE,  'utf8')) : {};
+const suburbs   = JSON.parse(fs.readFileSync(SUBURBS_FILE, 'utf8'));
 
 // ── CBD coordinates for Haversine distance calculation ──
 
@@ -68,8 +76,8 @@ const CBD = {
 function bboxToZoom(latSpan, lngSpan) {
   if (!latSpan || !lngSpan) return null;
   const maxSpan = Math.max(latSpan, lngSpan);
-  // viewport_px=640, tile_px=256, world_degrees=360, padding factor=0.8
-  const zoom = Math.log2(640 * 360 / (256 * maxSpan)) - 0.8;
+  // viewport_px=640, tile_px=256, world_degrees=360, padding factor=2.8 (zoomed out)
+  const zoom = Math.log2(640 * 360 / (256 * maxSpan)) - 2.8;
   return Math.max(8, Math.min(15, Math.floor(zoom)));
 }
 
@@ -257,6 +265,11 @@ for (const s of suburbs) {
     s.median_mortgage_monthly = null;
     s.house_percentage       = null;
   }
+
+  // Overpass amenity names (school/park) — keyed by sal_code
+  const amenities = overpass[s.sal_code] || {};
+  s.school_names = amenities.schools || [];
+  s.park_names   = amenities.parks   || [];
 
   // Remove fake population_growth
   s.population_growth = null;
