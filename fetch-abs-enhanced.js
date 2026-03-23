@@ -7,6 +7,8 @@
  *
  *   - Population
  *   - Centroid coordinates (for real distance-to-CBD calculation)
+ *   - Polygon geometry (simplified, maxAllowableOffset=0.01°) → bounding box
+ *     spans used to derive accurate map zoom levels per suburb
  *   - Median weekly household income  → annual income
  *   - Median weekly rent
  *   - Median monthly mortgage repayment
@@ -67,8 +69,10 @@ async function fetchAll() {
     const params = new URLSearchParams({
       where: 'Tot_P_P > 0',
       outFields: fields,
-      returnGeometry: 'false',
-      returnCentroid: 'true',     // ← key addition: get centroid lat/lng
+      returnGeometry: 'true',
+      maxAllowableOffset: '0.01',   // ~1km simplification — enough for bbox, much smaller responses
+      geometryPrecision: '4',       // 4 dp ≈ 11m — sufficient for bounding box
+      returnCentroid: 'true',       // centroid for distance-to-CBD + nearby suburb matching
       orderByFields: 'SAL_CODE_2021 ASC',
       resultOffset: offset,
       resultRecordCount: BATCH_SIZE,
@@ -90,6 +94,25 @@ async function fetchAll() {
 
       const centroid = f.centroid || null;
 
+      // Compute bounding box from polygon rings (handles multi-part polygons)
+      let bboxLngSpan = null, bboxLatSpan = null;
+      const geom = f.geometry;
+      if (geom && geom.rings && geom.rings.length > 0) {
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const ring of geom.rings) {
+          for (const [x, y] of ring) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+        if (isFinite(minX)) {
+          bboxLngSpan = Math.round((maxX - minX) * 1e4) / 1e4;
+          bboxLatSpan = Math.round((maxY - minY) * 1e4) / 1e4;
+        }
+      }
+
       allRecords.push({
         sal_code: code,
         suburb: attrs.SAL_NAME_2021,
@@ -103,6 +126,8 @@ async function fetchAll() {
         flat_count: attrs.Total_DS_Flat_apart || null,
         centroid_lng: centroid ? centroid.x : null,
         centroid_lat: centroid ? centroid.y : null,
+        bbox_lng_span: bboxLngSpan,
+        bbox_lat_span: bboxLatSpan,
       });
     }
 
@@ -114,14 +139,16 @@ async function fetchAll() {
   fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
   fs.writeFileSync(OUT_FILE, JSON.stringify(allRecords, null, 2));
 
-  const withIncome = allRecords.filter(r => r.median_weekly_income).length;
+  const withIncome   = allRecords.filter(r => r.median_weekly_income).length;
   const withCentroid = allRecords.filter(r => r.centroid_lat).length;
-  const withRent = allRecords.filter(r => r.median_rent_weekly).length;
+  const withRent     = allRecords.filter(r => r.median_rent_weekly).length;
+  const withBbox     = allRecords.filter(r => r.bbox_lng_span).length;
 
   console.log(`\nSaved ${allRecords.length} records to ${OUT_FILE}`);
-  console.log(`  With income: ${withIncome} (${Math.round(100 * withIncome / allRecords.length)}%)`);
+  console.log(`  With income:   ${withIncome}   (${Math.round(100 * withIncome   / allRecords.length)}%)`);
   console.log(`  With centroid: ${withCentroid} (${Math.round(100 * withCentroid / allRecords.length)}%)`);
-  console.log(`  With rent: ${withRent} (${Math.round(100 * withRent / allRecords.length)}%)`);
+  console.log(`  With rent:     ${withRent}     (${Math.round(100 * withRent     / allRecords.length)}%)`);
+  console.log(`  With bbox:     ${withBbox}     (${Math.round(100 * withBbox     / allRecords.length)}%)`);
 }
 
 fetchAll().catch(err => { console.error(err); process.exit(1); });

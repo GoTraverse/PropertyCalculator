@@ -13,9 +13,25 @@
 .suburb-data-note { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3px; color: rgba(245,240,232,0.45); margin-top: 8px; }
 
 /* ── Map embed ── */
-.suburb-map { width: 100%; height: 300px; border: none; border-radius: 6px; display: block; }
-.suburb-map-note { font-size: 11px !important; color: var(--mid-grey) !important; margin-top: 8px !important; }
-@media (max-width: 480px) { .suburb-map { height: 220px; } }
+.suburb-map-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  background: var(--warm-white);
+}
+.suburb-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+.suburb-map-note { font-size: 11px !important; color: var(--mid-grey) !important; margin-top: 10px !important; }
+html.dark-mode .suburb-map-wrap { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 
 /* ── Main layout ── */
 .suburb-main { max-width: 720px; margin: -20px auto 56px; padding: 0 16px; }
@@ -29,10 +45,58 @@
 
 /* ── Stats grid ── */
 .suburb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.suburb-stat { background: var(--warm-white); border-radius: 6px; padding: 14px 16px; }
+.suburb-stat {
+  background: var(--warm-white);
+  border-radius: 6px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.suburb-stat[open] { border-color: rgba(201,168,76,0.25); }
+.suburb-stat > summary {
+  display: block;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+  user-select: none;
+}
+.suburb-stat > summary::-webkit-details-marker { display: none; }
+.suburb-stat > summary::after {
+  content: '›';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  font-size: 14px;
+  color: var(--gold);
+  transition: transform 0.2s;
+  opacity: 0.6;
+}
+.suburb-stat[open] > summary::after { transform: translateY(-50%) rotate(270deg); opacity: 1; }
 .suburb-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
 .suburb-stat-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--charcoal); }
 .suburb-stat-value.suburb-score span { font-size: 13px; color: var(--slate); font-weight: 400; }
+.suburb-stat-detail {
+  padding: 0 14px 13px;
+  border-top: 1px solid rgba(28,28,30,0.06);
+  margin-top: 0;
+}
+.suburb-stat-detail p {
+  font-size: 12px !important;
+  color: var(--slate) !important;
+  line-height: 1.6 !important;
+  margin: 10px 0 6px !important;
+}
+.suburb-stat-detail a {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--gold);
+  text-decoration: none;
+}
+.suburb-stat-detail a:hover { text-decoration: underline; }
 @media (max-width: 480px) { .suburb-grid { grid-template-columns: 1fr; } }
 
 /* ── Live market data section ── */
@@ -108,7 +172,10 @@ html.dark-mode .suburb-section h2,
 html.dark-mode .suburb-section h3 { color: #F5F0E8; }
 html.dark-mode .suburb-section p { color: rgba(245,240,232,0.7); }
 html.dark-mode .suburb-stat { background: rgba(255,255,255,0.04); }
+html.dark-mode .suburb-stat[open] { border-color: rgba(201,168,76,0.25); }
 html.dark-mode .suburb-stat-value { color: #F5F0E8; }
+html.dark-mode .suburb-stat-detail { border-top-color: rgba(255,255,255,0.07); }
+html.dark-mode .suburb-stat-detail p { color: rgba(245,240,232,0.55) !important; }
 html.dark-mode .suburb-related a { background: rgba(255,255,255,0.04); color: #F5F0E8; }
 html.dark-mode .suburb-related a:hover { border-color: rgba(201,168,76,0.3); }
 html.dark-mode .suburb-faq summary { color: #F5F0E8; }

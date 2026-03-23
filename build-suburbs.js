@@ -195,9 +195,20 @@ function generateFAQ(s) {
   ).join('\n');
 }
 
-// Pre-compute related suburbs per state (O(n) instead of O(n²))
-// All suburbs: find 5 nearest by distance_to_cbd (real Haversine distances from ABS).
-// Suburbs without distance data fall back to population-based matching.
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2
+          + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+          * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Pre-compute related suburbs per state.
+// Primary: Haversine distance when lat/lng available (real geographic proximity).
+// Fallback: postcode proximity (expand ±postcode until 5 found).
+// Last resort: population-size match within state.
 function buildRelatedMap(allSuburbs) {
   const byState = {};
   for (const s of allSuburbs) {
@@ -210,35 +221,74 @@ function buildRelatedMap(allSuburbs) {
   for (const state in byState) {
     const all = byState[state];
 
-    // Suburbs with real distances → match by CBD distance (groups same-radius suburbs)
-    const withDist = all.filter(s => s.distance_to_cbd != null);
-    // Suburbs without distances → match by population size
-    const noDist   = all.filter(s => s.distance_to_cbd == null);
-
-    withDist.sort((a, b) => a.distance_to_cbd - b.distance_to_cbd);
-    for (let i = 0; i < withDist.length; i++) {
-      const related = [];
-      let lo = i - 1, hi = i + 1;
-      while (related.length < 5 && (lo >= 0 || hi < withDist.length)) {
-        const dLo = lo >= 0 ? Math.abs(withDist[lo].distance_to_cbd - withDist[i].distance_to_cbd) : Infinity;
-        const dHi = hi < withDist.length ? Math.abs(withDist[hi].distance_to_cbd - withDist[i].distance_to_cbd) : Infinity;
-        if (dLo <= dHi) { related.push(withDist[lo]); lo--; }
-        else { related.push(withDist[hi]); hi++; }
-      }
-      relatedMap.set(`${withDist[i].state}/${withDist[i].slug}`, related);
+    // Postcode index for fallback: postcode (int) → suburbs sorted by population desc
+    const byPostcode = {};
+    for (const s of all) {
+      if (!s.postcode) continue;
+      const pc = parseInt(s.postcode, 10);
+      if (!byPostcode[pc]) byPostcode[pc] = [];
+      byPostcode[pc].push(s);
+    }
+    for (const pc in byPostcode) {
+      byPostcode[pc].sort((a, b) => b.population - a.population);
     }
 
-    noDist.sort((a, b) => a.population - b.population);
-    for (let i = 0; i < noDist.length; i++) {
+    // Suburbs with coords: sort into a spatial structure (just an array, sorted by lat then lng)
+    const withCoords = all.filter(s => s.lat != null && s.lng != null);
+
+    for (const s of all) {
+      const selfKey = `${s.state}/${s.slug}`;
       const related = [];
-      let lo = i - 1, hi = i + 1;
-      while (related.length < 5 && (lo >= 0 || hi < noDist.length)) {
-        const dLo = lo >= 0 ? Math.abs(noDist[lo].population - noDist[i].population) : Infinity;
-        const dHi = hi < noDist.length ? Math.abs(noDist[hi].population - noDist[i].population) : Infinity;
-        if (dLo <= dHi) { related.push(noDist[lo]); lo--; }
-        else { related.push(noDist[hi]); hi++; }
+      const seen = new Set([selfKey]);
+
+      if (s.lat != null && s.lng != null && withCoords.length > 1) {
+        // Haversine nearest neighbours — compute distances to all coords suburbs, sort, take 5
+        const distances = withCoords
+          .filter(o => {
+            const k = `${o.state}/${o.slug}`;
+            return !seen.has(k);
+          })
+          .map(o => ({ suburb: o, dist: haversineKm(s.lat, s.lng, o.lat, o.lng) }));
+        distances.sort((a, b) => a.dist - b.dist);
+        for (const { suburb: o } of distances) {
+          const k = `${o.state}/${o.slug}`;
+          if (seen.has(k)) continue;
+          seen.add(k);
+          related.push(o);
+          if (related.length >= 5) break;
+        }
       }
-      relatedMap.set(`${noDist[i].state}/${noDist[i].slug}`, related);
+
+      // Postcode fallback for suburbs without coords (or to top up to 5)
+      if (related.length < 5 && s.postcode) {
+        const selfPc = parseInt(s.postcode, 10);
+        for (let radius = 0; radius <= 30 && related.length < 5; radius++) {
+          const toCheck = radius === 0 ? [selfPc] : [selfPc - radius, selfPc + radius];
+          for (const pc of toCheck) {
+            for (const o of (byPostcode[pc] || [])) {
+              const k = `${o.state}/${o.slug}`;
+              if (seen.has(k)) continue;
+              seen.add(k);
+              related.push(o);
+              if (related.length >= 5) break;
+            }
+            if (related.length >= 5) break;
+          }
+        }
+      }
+
+      // Final fallback: population-size match within state
+      if (related.length < 5) {
+        const fallback = all
+          .filter(o => !seen.has(`${o.state}/${o.slug}`))
+          .sort((a, b) => Math.abs(a.population - s.population) - Math.abs(b.population - s.population));
+        for (const o of fallback) {
+          related.push(o);
+          if (related.length >= 5) break;
+        }
+      }
+
+      relatedMap.set(selfKey, related);
     }
   }
 
@@ -318,9 +368,23 @@ for (const s of suburbs) {
   // Data source note for hero
   const dataSourceNote = `Population & financial data: ABS 2021 Census · Distance: straight-line from suburb centroid · Last updated: ${BUILD_DATE}`;
 
-  // Google Maps embed URL (free, no API key, query by suburb + state + country)
+  // Google Maps embed URL — zoom derived from real bounding box data when available,
+  // otherwise falls back to suburb-type heuristic.
+  const MAPS_ZOOM_FALLBACK = {
+    'inner-city':  15,
+    'middle-ring': 14,
+    'outer-metro': 13,
+    'coastal':     13,
+    'regional':    12,
+  };
+  let mapsZoom = s.map_zoom;   // set by apply-abs-data.js from real polygon bbox
+  if (!mapsZoom) {
+    // Fallback: type-based heuristic; pull back one level for sparse regional localities
+    const base = MAPS_ZOOM_FALLBACK[s.suburb_type] || 13;
+    mapsZoom = (s.suburb_type === 'regional' && s.population < 500) ? base - 1 : base;
+  }
   const mapsQuery = encodeURIComponent(`${s.suburb} ${s.state} Australia`);
-  const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed`;
+  const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=${mapsZoom}`;
 
   let html = SUBURB_TPL
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
