@@ -207,6 +207,15 @@ for (const s of suburbs) {
       s.median_household_income = abs.median_weekly_income * 52;
     }
 
+    // Centroid coordinates — stored for geographic nearby-suburb matching
+    if (abs.centroid_lat && abs.centroid_lng) {
+      s.lat = Math.round(abs.centroid_lat * 1e6) / 1e6;   // 6 dp ≈ 0.1 m precision
+      s.lng = Math.round(abs.centroid_lng * 1e6) / 1e6;
+    } else {
+      s.lat = null;
+      s.lng = null;
+    }
+
     // Distance to CBD: Haversine from centroid, rounded to nearest km
     if (abs.centroid_lat && abs.centroid_lng && CBD[s.state]) {
       const cbd = CBD[s.state];
@@ -226,6 +235,8 @@ for (const s of suburbs) {
     }
   } else {
     unmatched++;
+    s.lat                    = null;
+    s.lng                    = null;
     s.median_rent_weekly     = null;
     s.median_mortgage_monthly = null;
     s.house_percentage       = null;

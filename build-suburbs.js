@@ -195,9 +195,20 @@ function generateFAQ(s) {
   ).join('\n');
 }
 
-// Pre-compute related suburbs per state using postcode proximity.
-// Suburbs sharing a postcode are genuinely nearby; expand outward by ±postcode until we have 5.
-// Suburbs without postcodes fall back to population-based matching within the state.
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2
+          + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+          * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Pre-compute related suburbs per state.
+// Primary: Haversine distance when lat/lng available (real geographic proximity).
+// Fallback: postcode proximity (expand ±postcode until 5 found).
+// Last resort: population-size match within state.
 function buildRelatedMap(allSuburbs) {
   const byState = {};
   for (const s of allSuburbs) {
@@ -210,7 +221,7 @@ function buildRelatedMap(allSuburbs) {
   for (const state in byState) {
     const all = byState[state];
 
-    // Index: postcode (int) → suburbs array, sorted by population desc
+    // Postcode index for fallback: postcode (int) → suburbs sorted by population desc
     const byPostcode = {};
     for (const s of all) {
       if (!s.postcode) continue;
@@ -222,22 +233,43 @@ function buildRelatedMap(allSuburbs) {
       byPostcode[pc].sort((a, b) => b.population - a.population);
     }
 
+    // Suburbs with coords: sort into a spatial structure (just an array, sorted by lat then lng)
+    const withCoords = all.filter(s => s.lat != null && s.lng != null);
+
     for (const s of all) {
       const selfKey = `${s.state}/${s.slug}`;
-      const selfPc = s.postcode ? parseInt(s.postcode, 10) : null;
       const related = [];
       const seen = new Set([selfKey]);
 
-      if (selfPc) {
-        // Expand outward from same postcode until we have 5 related suburbs
+      if (s.lat != null && s.lng != null && withCoords.length > 1) {
+        // Haversine nearest neighbours — compute distances to all coords suburbs, sort, take 5
+        const distances = withCoords
+          .filter(o => {
+            const k = `${o.state}/${o.slug}`;
+            return !seen.has(k);
+          })
+          .map(o => ({ suburb: o, dist: haversineKm(s.lat, s.lng, o.lat, o.lng) }));
+        distances.sort((a, b) => a.dist - b.dist);
+        for (const { suburb: o } of distances) {
+          const k = `${o.state}/${o.slug}`;
+          if (seen.has(k)) continue;
+          seen.add(k);
+          related.push(o);
+          if (related.length >= 5) break;
+        }
+      }
+
+      // Postcode fallback for suburbs without coords (or to top up to 5)
+      if (related.length < 5 && s.postcode) {
+        const selfPc = parseInt(s.postcode, 10);
         for (let radius = 0; radius <= 30 && related.length < 5; radius++) {
           const toCheck = radius === 0 ? [selfPc] : [selfPc - radius, selfPc + radius];
           for (const pc of toCheck) {
-            for (const other of (byPostcode[pc] || [])) {
-              const key = `${other.state}/${other.slug}`;
-              if (seen.has(key)) continue;
-              seen.add(key);
-              related.push(other);
+            for (const o of (byPostcode[pc] || [])) {
+              const k = `${o.state}/${o.slug}`;
+              if (seen.has(k)) continue;
+              seen.add(k);
+              related.push(o);
               if (related.length >= 5) break;
             }
             if (related.length >= 5) break;
@@ -245,13 +277,13 @@ function buildRelatedMap(allSuburbs) {
         }
       }
 
-      // Fallback: population-size match within state (for suburbs with no postcode)
+      // Final fallback: population-size match within state
       if (related.length < 5) {
         const fallback = all
           .filter(o => !seen.has(`${o.state}/${o.slug}`))
           .sort((a, b) => Math.abs(a.population - s.population) - Math.abs(b.population - s.population));
-        for (const other of fallback) {
-          related.push(other);
+        for (const o of fallback) {
+          related.push(o);
           if (related.length >= 5) break;
         }
       }
