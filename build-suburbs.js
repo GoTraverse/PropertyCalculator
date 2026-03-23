@@ -368,9 +368,20 @@ for (const s of suburbs) {
   // Data source note for hero
   const dataSourceNote = `Population & financial data: ABS 2021 Census · Distance: straight-line from suburb centroid · Last updated: ${BUILD_DATE}`;
 
-  // Google Maps embed URL (free, no API key, query by suburb + state + country)
+  // Google Maps embed URL — zoom level tuned to suburb type so large regional
+  // areas don't appear too zoomed-in (street level) at load.
+  const MAPS_ZOOM = {
+    'inner-city':  15,   // dense, small area — street level fine
+    'middle-ring': 14,
+    'outer-metro': 13,
+    'coastal':     13,
+    'regional':    12,   // large areas need wider view
+  };
+  // For very sparse/large regional areas (pop < 500), pull back one more level
+  const baseZoom = MAPS_ZOOM[s.suburb_type] || 13;
+  const mapsZoom = (s.suburb_type === 'regional' && s.population < 500) ? baseZoom - 1 : baseZoom;
   const mapsQuery = encodeURIComponent(`${s.suburb} ${s.state} Australia`);
-  const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed`;
+  const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=${mapsZoom}`;
 
   let html = SUBURB_TPL
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
