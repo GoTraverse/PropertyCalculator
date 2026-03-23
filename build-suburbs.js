@@ -368,18 +368,21 @@ for (const s of suburbs) {
   // Data source note for hero
   const dataSourceNote = `Population & financial data: ABS 2021 Census · Distance: straight-line from suburb centroid · Last updated: ${BUILD_DATE}`;
 
-  // Google Maps embed URL — zoom level tuned to suburb type so large regional
-  // areas don't appear too zoomed-in (street level) at load.
-  const MAPS_ZOOM = {
-    'inner-city':  15,   // dense, small area — street level fine
+  // Google Maps embed URL — zoom derived from real bounding box data when available,
+  // otherwise falls back to suburb-type heuristic.
+  const MAPS_ZOOM_FALLBACK = {
+    'inner-city':  15,
     'middle-ring': 14,
     'outer-metro': 13,
     'coastal':     13,
-    'regional':    12,   // large areas need wider view
+    'regional':    12,
   };
-  // For very sparse/large regional areas (pop < 500), pull back one more level
-  const baseZoom = MAPS_ZOOM[s.suburb_type] || 13;
-  const mapsZoom = (s.suburb_type === 'regional' && s.population < 500) ? baseZoom - 1 : baseZoom;
+  let mapsZoom = s.map_zoom;   // set by apply-abs-data.js from real polygon bbox
+  if (!mapsZoom) {
+    // Fallback: type-based heuristic; pull back one level for sparse regional localities
+    const base = MAPS_ZOOM_FALLBACK[s.suburb_type] || 13;
+    mapsZoom = (s.suburb_type === 'regional' && s.population < 500) ? base - 1 : base;
+  }
   const mapsQuery = encodeURIComponent(`${s.suburb} ${s.state} Australia`);
   const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=${mapsZoom}`;
 

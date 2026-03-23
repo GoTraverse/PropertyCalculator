@@ -61,6 +61,18 @@ const CBD = {
   NT:  { lat: -12.4634, lng: 130.8456 },  // Darwin
 };
 
+// Derive Google Maps zoom level from suburb bounding box spans (in degrees).
+// Formula: at zoom z, a 640px-wide viewport shows (640 * 360 / 256 / 2^z) degrees of longitude.
+// We want the suburb's largest span to fit in that viewport with 20% padding.
+// Uses max(latSpan, lngSpan) as the constraining dimension, clamped to 8–15.
+function bboxToZoom(latSpan, lngSpan) {
+  if (!latSpan || !lngSpan) return null;
+  const maxSpan = Math.max(latSpan, lngSpan);
+  // viewport_px=640, tile_px=256, world_degrees=360, padding factor=0.8
+  const zoom = Math.log2(640 * 360 / (256 * maxSpan)) - 0.8;
+  return Math.max(8, Math.min(15, Math.floor(zoom)));
+}
+
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -224,6 +236,9 @@ for (const s of suburbs) {
     // Note: distance_to_cbd is now always a real number for matched suburbs,
     // regardless of metro/regional status. Regional suburbs may show large values.
 
+    // Map zoom from bounding box — accurate zoom level for each suburb's geographic size
+    s.map_zoom = bboxToZoom(abs.bbox_lat_span, abs.bbox_lng_span);
+
     // New fields
     s.median_rent_weekly     = abs.median_rent_weekly     || null;
     s.median_mortgage_monthly = abs.median_mortgage_monthly || null;
@@ -237,6 +252,7 @@ for (const s of suburbs) {
     unmatched++;
     s.lat                    = null;
     s.lng                    = null;
+    s.map_zoom               = null;
     s.median_rent_weekly     = null;
     s.median_mortgage_monthly = null;
     s.house_percentage       = null;
