@@ -6,8 +6,9 @@ sitemap-suburbs.xml
 # Build cache (suburb pages persisted between Netlify deploys)
 .cache/
 
-# Fetched/downloaded data caches (regenerate with fetch-abs-data.js)
+# Fetched/downloaded data caches (regenerate with fetch-abs-data.js / fetch-abs-enhanced.js)
 data/abs-suburbs.json
+data/abs-enhanced.json
 data/abs-batch-*.json
 data/au_postcodes.csv
 data/abs-population-raw.json

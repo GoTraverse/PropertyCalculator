@@ -17,6 +17,9 @@ build.js
 build-suburbs.js
 generate-suburbs-data.js
 fetch-abs-data.js
+fetch-abs-enhanced.js
+apply-abs-data.js
+fix-suburb-classification.js
 
 # Raw ABS source data (large intermediate file, not needed at runtime)
 data/abs-suburbs.json

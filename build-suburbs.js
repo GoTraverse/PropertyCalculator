@@ -93,14 +93,10 @@ function generateOverview(s) {
   const typeLabel = {
     'inner-city': `an inner-city suburb of ${capital}`,
     'middle-ring': `a well-established middle-ring suburb of ${capital}`,
-    'outer-metro': `a growing outer-metropolitan suburb of ${capital}`,
+    'outer-metro': `an outer-metropolitan suburb of ${capital}`,
     'regional': `a regional centre in ${s.state_name}`,
     'coastal': `a coastal suburb in ${s.state_name}`,
   }[s.suburb_type] || `a suburb in ${s.state_name}`;
-
-  const distDesc = s.distance_to_cbd === 0
-    ? `At the heart of ${capital}`
-    : `Located ${s.distance_to_cbd} km from the ${capital} CBD`;
 
   const popDesc = s.population > 100000 ? 'a major population centre'
     : s.population > 50000 ? 'a significant urban area'
@@ -108,20 +104,24 @@ function generateOverview(s) {
     : s.population > 5000 ? 'a smaller community'
     : 'a boutique locality';
 
-  return `${s.suburb} is ${typeLabel}, Australia, with a population of approximately ${fmt(s.population)}, making it ${popDesc}. ${distDesc}, ${s.suburb} offers ${s.amenity_score >= 7 ? 'excellent' : s.amenity_score >= 5 ? 'good' : 'developing'} amenity access with a median household income of $${fmt(s.median_household_income)} AUD per year.`;
+  // Real distance from centroid (ABS 2021); omit sentence if unavailable
+  let distSentence = '';
+  if (s.distance_to_cbd != null) {
+    const distDesc = s.distance_to_cbd <= 5
+      ? `Located ${s.distance_to_cbd} km from the ${capital} CBD`
+      : `Located approximately ${s.distance_to_cbd} km from the ${capital} CBD`;
+    distSentence = ` ${distDesc},`;
+  }
+
+  const incomeDesc = s.median_household_income
+    ? ` The median household income is $${fmt(s.median_household_income)} AUD per year (ABS 2021 Census).`
+    : '';
+
+  return `${s.suburb} is ${typeLabel}, Australia, with a population of approximately ${fmt(s.population)}, making it ${popDesc}.${distSentence} ${s.suburb} is a ${s.suburb_type.replace('-', ' ')} area in ${s.state_name}.${incomeDesc}`;
 }
 
 function generateInsight(s) {
   const parts = [];
-
-  // Growth analysis
-  if (s.population_growth >= 15) {
-    parts.push(`${s.suburb} is experiencing strong population growth of ${s.population_growth}%, indicating a high-demand growth corridor. Rapid population increases typically signal infrastructure investment, new housing developments, and rising property values.`);
-  } else if (s.population_growth >= 8) {
-    parts.push(`With ${s.population_growth}% population growth, ${s.suburb} shows healthy demand and steady expansion. This kind of moderate growth often reflects a suburb transitioning or gentrifying, attracting new residents and investment.`);
-  } else {
-    parts.push(`${s.suburb} has measured population growth of ${s.population_growth}%, suggesting a stable, established market. While rapid capital gains may be less likely, stable suburbs often deliver reliable rental yields and lower vacancy risk.`);
-  }
 
   // Type-based insight
   if (s.suburb_type === 'inner-city') {
@@ -136,38 +136,57 @@ function generateInsight(s) {
     parts.push(`${s.suburb}'s middle-ring location balances affordability with accessibility. These suburbs often benefit from established infrastructure, good schools, and transport links — making them attractive to families and long-term tenants.`);
   }
 
-  // Income-based
-  if (s.median_household_income >= 100000) {
-    parts.push(`High median household income ($${fmt(s.median_household_income)}) supports premium property values and indicates a well-employed, financially secure resident base.`);
-  } else if (s.median_household_income >= 75000) {
-    parts.push(`The median household income of $${fmt(s.median_household_income)} reflects a solid middle-class demographic, supporting sustainable rental demand and property values.`);
+  // Rent-based insight (real ABS data)
+  if (s.median_rent_weekly) {
+    const rentDesc = s.median_rent_weekly >= 600 ? 'a premium rental market'
+      : s.median_rent_weekly >= 400 ? 'a mid-range rental market'
+      : 'an affordable rental market';
+    parts.push(`The median rent of $${fmt(s.median_rent_weekly)}/week (ABS 2021) indicates ${rentDesc}. ${s.median_mortgage_monthly ? `Owner-occupiers face a median mortgage repayment of $${fmt(s.median_mortgage_monthly)}/month.` : ''}`);
   }
 
-  // Schools
-  if (s.school_count >= 10) {
-    parts.push(`With ${s.school_count} schools in the area, ${s.suburb} is well-positioned to attract families — a key driver of property demand in any market.`);
+  // Income-based (real ABS data)
+  if (s.median_household_income >= 100000) {
+    parts.push(`A median household income of $${fmt(s.median_household_income)}/year supports premium property values and indicates a well-employed resident base.`);
+  } else if (s.median_household_income >= 75000) {
+    parts.push(`The median household income of $${fmt(s.median_household_income)}/year reflects a solid demographic, supporting sustainable rental demand.`);
+  }
+
+  // Dwelling type insight (real ABS data)
+  if (s.house_percentage != null) {
+    if (s.house_percentage >= 75) {
+      parts.push(`${s.house_percentage}% of dwellings are separate houses, indicating a predominantly family-oriented, land-rich market.`);
+    } else if (s.house_percentage <= 40) {
+      parts.push(`With only ${s.house_percentage}% separate houses, ${s.suburb} has a significant apartment and unit market — typical of inner-city investment corridors.`);
+    }
+  }
+
+  if (!parts.length) {
+    parts.push(`${s.suburb} is a ${s.suburb_type.replace('-', ' ')} area in ${s.state_name}. As with any property investment, conduct thorough due diligence on specific properties and current market conditions before committing.`);
   }
 
   return parts.join(' ');
 }
 
 function generateFAQ(s) {
+  const capital = stateCapitals[s.state];
   const faqs = [
     {
       q: `Is ${s.suburb} a good suburb for investment?`,
-      a: `${s.suburb} shows ${s.population_growth >= 10 ? 'strong' : 'steady'} population growth (${s.population_growth}%) and has ${s.amenity_score >= 7 ? 'excellent' : 'good'} amenity access. With a median household income of $${fmt(s.median_household_income)}, the local demographic supports ${s.median_household_income >= 80000 ? 'solid' : 'moderate'} rental demand. As with any investment, conduct thorough due diligence on specific properties and current market conditions.`
+      a: `${s.suburb} is a ${s.suburb_type.replace('-', ' ')} area in ${s.state_name} with a population of ${fmt(s.population)}. ${s.median_rent_weekly ? `The median rent is $${fmt(s.median_rent_weekly)}/week and ` : ''}the median household income is $${fmt(s.median_household_income)}/year (ABS 2021 Census). As with any property investment, conduct thorough due diligence on current listings, vacancy rates, and local infrastructure plans before committing.`
     },
     {
       q: `What drives property demand in ${s.suburb}?`,
-      a: `Key demand drivers in ${s.suburb} include ${s.suburb_type === 'coastal' ? 'lifestyle appeal and proximity to the coast' : s.suburb_type === 'inner-city' ? 'employment proximity and urban lifestyle' : s.suburb_type === 'outer-metro' ? 'affordability relative to inner suburbs and new infrastructure' : s.suburb_type === 'regional' ? 'regional employment, lifestyle, and affordability' : 'established amenities and transport access'}. The area has ${s.school_count} schools and ${s.park_count} parks, supporting family demand. Transport access scores ${s.transport_score}/10.`
+      a: `Key demand drivers in ${s.suburb} include ${s.suburb_type === 'coastal' ? 'lifestyle appeal and proximity to the coast' : s.suburb_type === 'inner-city' ? 'employment proximity and urban lifestyle' : s.suburb_type === 'outer-metro' ? 'affordability relative to inner suburbs and expanding infrastructure' : s.suburb_type === 'regional' ? 'regional employment hubs, lifestyle, and affordability' : 'established amenities and transport access'}. ${s.house_percentage != null ? `${s.house_percentage}% of dwellings are separate houses. ` : ''}The area has approximately ${s.school_count} schools and ${s.park_count} parks nearby.`
     },
     {
-      q: `Is ${s.suburb} growing?`,
-      a: `${s.suburb} has recorded population growth of ${s.population_growth}% to a current estimated population of ${fmt(s.population)}. ${s.population_growth >= 12 ? 'This is above-average growth, suggesting strong demand and potential for ongoing property value increases.' : 'This represents steady growth for the area.'}`
+      q: `What is the population of ${s.suburb}?`,
+      a: `According to the ABS 2021 Census, ${s.suburb} has a population of approximately ${fmt(s.population)}. For historical population trends and intercensal estimates, visit the ABS Census Data Explorer at abs.gov.au.`
     },
     {
-      q: `How far is ${s.suburb} from the CBD?`,
-      a: `${s.suburb} is approximately ${s.distance_to_cbd} km from the ${stateCapitals[s.state]} CBD. ${s.distance_to_cbd <= 10 ? 'This close proximity means excellent access to employment, dining, and entertainment.' : s.distance_to_cbd <= 30 ? 'This is a comfortable commuting distance with good transport links.' : 'While further from the CBD, this can mean more affordable entry points for investors.'}`
+      q: `How far is ${s.suburb} from the ${capital} CBD?`,
+      a: s.distance_to_cbd != null
+        ? `${s.suburb} is approximately ${s.distance_to_cbd} km straight-line distance from the ${capital} CBD (calculated from ABS 2021 suburb centroid coordinates). ${s.distance_to_cbd <= 10 ? 'This close proximity means excellent access to employment, dining, and entertainment.' : s.distance_to_cbd <= 30 ? 'This is within comfortable commuting range with good transport links.' : s.distance_to_cbd <= 100 ? 'Road travel times will vary; check current mapping services for up-to-date routes.' : 'As a regional or remote location, travel to the capital is significant — local amenities and employment are important investment considerations.'}`
+        : `Distance information is not available for ${s.suburb}. For current travel times to ${capital} and other centres, we recommend checking a current mapping service.`
     },
   ];
 
@@ -177,33 +196,52 @@ function generateFAQ(s) {
 }
 
 // Pre-compute related suburbs per state (O(n) instead of O(n²))
-// For each suburb, find 5 nearest by distance_to_cbd using a single pre-sorted pass
+// All suburbs: find 5 nearest by distance_to_cbd (real Haversine distances from ABS).
+// Suburbs without distance data fall back to population-based matching.
 function buildRelatedMap(allSuburbs) {
   const byState = {};
   for (const s of allSuburbs) {
     if (!byState[s.state]) byState[s.state] = [];
     byState[s.state].push(s);
   }
-  // Sort each state's suburbs by distance_to_cbd
-  for (const state in byState) {
-    byState[state].sort((a, b) => a.distance_to_cbd - b.distance_to_cbd);
-  }
-  // For each suburb, the 5 nearest are its neighbours in the sorted list
+
   const relatedMap = new Map();
+
   for (const state in byState) {
-    const sorted = byState[state];
-    for (let i = 0; i < sorted.length; i++) {
+    const all = byState[state];
+
+    // Suburbs with real distances → match by CBD distance (groups same-radius suburbs)
+    const withDist = all.filter(s => s.distance_to_cbd != null);
+    // Suburbs without distances → match by population size
+    const noDist   = all.filter(s => s.distance_to_cbd == null);
+
+    withDist.sort((a, b) => a.distance_to_cbd - b.distance_to_cbd);
+    for (let i = 0; i < withDist.length; i++) {
       const related = [];
       let lo = i - 1, hi = i + 1;
-      while (related.length < 5 && (lo >= 0 || hi < sorted.length)) {
-        const dLo = lo >= 0 ? Math.abs(sorted[lo].distance_to_cbd - sorted[i].distance_to_cbd) : Infinity;
-        const dHi = hi < sorted.length ? Math.abs(sorted[hi].distance_to_cbd - sorted[i].distance_to_cbd) : Infinity;
-        if (dLo <= dHi) { related.push(sorted[lo]); lo--; }
-        else { related.push(sorted[hi]); hi++; }
+      while (related.length < 5 && (lo >= 0 || hi < withDist.length)) {
+        const dLo = lo >= 0 ? Math.abs(withDist[lo].distance_to_cbd - withDist[i].distance_to_cbd) : Infinity;
+        const dHi = hi < withDist.length ? Math.abs(withDist[hi].distance_to_cbd - withDist[i].distance_to_cbd) : Infinity;
+        if (dLo <= dHi) { related.push(withDist[lo]); lo--; }
+        else { related.push(withDist[hi]); hi++; }
       }
-      relatedMap.set(`${sorted[i].state}/${sorted[i].slug}`, related);
+      relatedMap.set(`${withDist[i].state}/${withDist[i].slug}`, related);
+    }
+
+    noDist.sort((a, b) => a.population - b.population);
+    for (let i = 0; i < noDist.length; i++) {
+      const related = [];
+      let lo = i - 1, hi = i + 1;
+      while (related.length < 5 && (lo >= 0 || hi < noDist.length)) {
+        const dLo = lo >= 0 ? Math.abs(noDist[lo].population - noDist[i].population) : Infinity;
+        const dHi = hi < noDist.length ? Math.abs(noDist[hi].population - noDist[i].population) : Infinity;
+        if (dLo <= dHi) { related.push(noDist[lo]); lo--; }
+        else { related.push(noDist[hi]); hi++; }
+      }
+      relatedMap.set(`${noDist[i].state}/${noDist[i].slug}`, related);
     }
   }
+
   return relatedMap;
 }
 
@@ -226,6 +264,11 @@ function generateResourcesHTML(state) {
 
 // ── Build suburb pages ──
 
+// Build date injected into all pages so "last updated" is always accurate
+const BUILD_DATE = new Date().toLocaleDateString('en-AU', {
+  day: 'numeric', month: 'long', year: 'numeric'
+}); // e.g. "23 March 2026"
+
 let suburbCount = 0;
 const stateGroups = {};
 
@@ -239,11 +282,45 @@ const relatedMap = buildRelatedMap(suburbs);
 for (const s of suburbs) {
   const related = getRelatedSuburbs(s, relatedMap);
   const pc = s.postcode || '';
-  const pcTitle = pc ? `${pc} ` : '';           // "2148 " or ""
-  const pcComma = pc ? ` ${pc},` : ',';          // " 2148," or ","
-  const pcKw = pc ? `, ${pc} property` : '';     // ", 2148 property" or ""
+  const pcTitle = pc ? `${pc} ` : '';
+  const pcComma = pc ? ` ${pc},` : ',';
+  const pcKw = pc ? `, ${pc} property` : '';
   const pcDisplay = pc || '—';
-  const metaDesc = `Property investment insights for ${s.suburb}${pc ? ' ' + pc : ''}, ${s.state_name}, Australia. Population ${fmt(s.population)}, ${s.population_growth}% growth, ${s.suburb_type} suburb. Key indicators, amenities, and investment analysis.`;
+
+  // Meta description — no fake growth %, use type + real income instead
+  const metaDesc = `Property investment insights for ${s.suburb}${pc ? ' ' + pc : ''}, ${s.state_name}. Population ${fmt(s.population)}, ${s.suburb_type} area${s.median_household_income ? ', median income $' + fmt(s.median_household_income) : ''}. ABS 2021 Census data.`;
+
+  // Distance display: real km with note, or N/A
+  const distDisplay = s.distance_to_cbd != null
+    ? `${s.distance_to_cbd} km`
+    : 'N/A';
+
+  // Rent display
+  const rentDisplay = s.median_rent_weekly
+    ? `$${fmt(s.median_rent_weekly)}/wk`
+    : 'N/A';
+
+  // Income display
+  const incomeDisplay = s.median_household_income
+    ? `$${fmt(s.median_household_income)}/yr`
+    : 'N/A';
+
+  // Mortgage display
+  const mortgageDisplay = s.median_mortgage_monthly
+    ? `$${fmt(s.median_mortgage_monthly)}/mo`
+    : 'N/A';
+
+  // Dwelling type display
+  const housePctDisplay = s.house_percentage != null
+    ? `${s.house_percentage}% houses`
+    : 'N/A';
+
+  // Data source note for hero
+  const dataSourceNote = `Population & financial data: ABS 2021 Census · Distance: straight-line from suburb centroid · Last updated: ${BUILD_DATE}`;
+
+  // Google Maps embed URL (free, no API key, query by suburb + state + country)
+  const mapsQuery = encodeURIComponent(`${s.suburb} ${s.state} Australia`);
+  const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed`;
 
   let html = SUBURB_TPL
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
@@ -259,13 +336,15 @@ for (const s of suburbs) {
     .replace(/\{\{META_DESCRIPTION\}\}/g, escHtml(metaDesc))
     .replace(/\{\{OVERVIEW\}\}/g, generateOverview(s))
     .replace(/\{\{POPULATION\}\}/g, fmt(s.population))
-    .replace(/\{\{POPULATION_GROWTH\}\}/g, s.population_growth)
-    .replace(/\{\{DISTANCE_TO_CBD\}\}/g, s.distance_to_cbd)
-    .replace(/\{\{MEDIAN_INCOME\}\}/g, fmt(s.median_household_income))
+    .replace(/\{\{DISTANCE_TO_CBD\}\}/g, distDisplay)
+    .replace(/\{\{MEDIAN_RENT\}\}/g, rentDisplay)
+    .replace(/\{\{MEDIAN_INCOME\}\}/g, incomeDisplay)
+    .replace(/\{\{MEDIAN_MORTGAGE\}\}/g, mortgageDisplay)
+    .replace(/\{\{HOUSE_PCT\}\}/g, housePctDisplay)
     .replace(/\{\{SCHOOL_COUNT\}\}/g, s.school_count)
     .replace(/\{\{PARK_COUNT\}\}/g, s.park_count)
-    .replace(/\{\{TRANSPORT_SCORE\}\}/g, s.transport_score)
-    .replace(/\{\{AMENITY_SCORE\}\}/g, s.amenity_score)
+    .replace(/\{\{DATA_SOURCE_NOTE\}\}/g, escHtml(dataSourceNote))
+    .replace(/\{\{MAPS_EMBED_URL\}\}/g, mapsEmbedUrl)
     .replace(/\{\{INVESTMENT_INSIGHT\}\}/g, generateInsight(s))
     .replace(/\{\{FAQ_HTML\}\}/g, generateFAQ(s))
     .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, generateRelatedHTML(related, s.state))
@@ -294,7 +373,7 @@ for (const state of allStates) {
 
   // Suburb list cards
   const suburbListHTML = stateSuburbs.map(s =>
-    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd} km to CBD</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
+    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
   let html = HUB_TPL
