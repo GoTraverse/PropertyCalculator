@@ -68,8 +68,8 @@ const CBD = {
 function bboxToZoom(latSpan, lngSpan) {
   if (!latSpan || !lngSpan) return null;
   const maxSpan = Math.max(latSpan, lngSpan);
-  // viewport_px=640, tile_px=256, world_degrees=360, padding factor=0.8
-  const zoom = Math.log2(640 * 360 / (256 * maxSpan)) - 0.8;
+  // viewport_px=640, tile_px=256, world_degrees=360, padding factor=2.8 (zoomed out)
+  const zoom = Math.log2(640 * 360 / (256 * maxSpan)) - 2.8;
   return Math.max(8, Math.min(15, Math.floor(zoom)));
 }
 
