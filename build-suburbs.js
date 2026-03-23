@@ -365,6 +365,24 @@ for (const s of suburbs) {
     ? `${s.house_percentage}% houses`
     : 'N/A';
 
+  // School and park name lists for dropdown details
+  // Use real Overpass names when available; fall back to count + external link
+  const schoolNames = Array.isArray(s.school_names) ? s.school_names : [];
+  const parkNames   = Array.isArray(s.park_names)   ? s.park_names   : [];
+
+  const schoolCount = schoolNames.length || s.school_count;
+  const parkCount   = parkNames.length   || s.park_count;
+
+  const schoolsDetail = schoolNames.length
+    ? `<ul class="suburb-amenity-list">${schoolNames.map(n => `<li>${escHtml(n)}</li>`).join('')}</ul>`
+      + `<a href="https://www.myschool.edu.au/school-finder?locationSuggestion=${encodeURIComponent(s.suburb + ' ' + s.state)}&radius=10" target="_blank" rel="noopener">View on My School →</a>`
+    : `<p>Estimated ${s.school_count} school${s.school_count !== 1 ? 's' : ''} within or near this suburb based on ABS 2021 data.</p>`
+      + `<a href="https://www.myschool.edu.au/school-finder?locationSuggestion=${encodeURIComponent(s.suburb + ' ' + s.state)}&radius=10" target="_blank" rel="noopener">Find schools near ${escHtml(s.suburb)} on My School →</a>`;
+
+  const parksDetail = parkNames.length
+    ? `<ul class="suburb-amenity-list">${parkNames.map(n => `<li>${escHtml(n)}</li>`).join('')}</ul>`
+    : `<p>Estimated ${s.park_count} park${s.park_count !== 1 ? 's' : ''} and green spaces near this suburb. Source: ABS 2021 data.</p>`;
+
   // Data source note for hero
   const dataSourceNote = `ABS 2021 Census · Updated ${BUILD_DATE}`;
 
@@ -405,8 +423,10 @@ for (const s of suburbs) {
     .replace(/\{\{MEDIAN_INCOME\}\}/g, incomeDisplay)
     .replace(/\{\{MEDIAN_MORTGAGE\}\}/g, mortgageDisplay)
     .replace(/\{\{HOUSE_PCT\}\}/g, housePctDisplay)
-    .replace(/\{\{SCHOOL_COUNT\}\}/g, s.school_count)
-    .replace(/\{\{PARK_COUNT\}\}/g, s.park_count)
+    .replace(/\{\{SCHOOL_COUNT\}\}/g, schoolCount)
+    .replace(/\{\{PARK_COUNT\}\}/g, parkCount)
+    .replace(/\{\{SCHOOLS_DETAIL\}\}/g, schoolsDetail)
+    .replace(/\{\{PARKS_DETAIL\}\}/g, parksDetail)
     .replace(/\{\{DATA_SOURCE_NOTE\}\}/g, escHtml(dataSourceNote))
     .replace(/\{\{MAPS_EMBED_URL\}\}/g, mapsEmbedUrl)
     .replace(/\{\{INVESTMENT_INSIGHT\}\}/g, generateInsight(s))
