@@ -71,41 +71,72 @@
   <!-- Map -->
   <section class="suburb-section suburb-map-section">
     <h2>Location</h2>
-    <iframe
-      class="suburb-map"
-      src="{{MAPS_EMBED_URL}}"
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade"
-      allowfullscreen
-      title="Map of {{SUBURB}}, {{STATE_NAME}}">
-    </iframe>
-    <p class="suburb-map-note">Map shows {{SUBURB}}, {{STATE_NAME}}, Australia. Distances shown are straight-line from the suburb centroid (ABS 2021).</p>
+    <div class="suburb-map-wrap">
+      <iframe
+        class="suburb-map"
+        src="{{MAPS_EMBED_URL}}"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen
+        title="Map of {{SUBURB}}, {{STATE_NAME}}">
+      </iframe>
+    </div>
+    <p class="suburb-map-note">Map shows {{SUBURB}}, {{STATE_NAME}}, Australia.</p>
   </section>
 
   <!-- Key Indicators -->
   <section class="suburb-section">
     <h2>Key Indicators</h2>
     <div class="suburb-grid">
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Postcode</div>
-        <div class="suburb-stat-value">{{POSTCODE_DISPLAY}}</div>
-      </div>
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Population</div>
-        <div class="suburb-stat-value">{{POPULATION}}</div>
-      </div>
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Median Rent (weekly)</div>
-        <div class="suburb-stat-value">{{MEDIAN_RENT}}</div>
-      </div>
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Median Household Income</div>
-        <div class="suburb-stat-value">{{MEDIAN_INCOME}}</div>
-      </div>
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Distance to CBD</div>
-        <div class="suburb-stat-value">{{DISTANCE_TO_CBD}}</div>
-      </div>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Postcode</div>
+          <div class="suburb-stat-value">{{POSTCODE_DISPLAY}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Official Australia Post postcode for {{SUBURB}}. A postcode may cover multiple suburbs.</p>
+          <a href="https://auspost.com.au/postcode" target="_blank" rel="noopener">Australia Post Postcode Finder →</a>
+        </div>
+      </details>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Population</div>
+          <div class="suburb-stat-value">{{POPULATION}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Usual resident population at census night. Source: ABS 2021 Census of Population and Housing.</p>
+          <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS Census Data →</a>
+        </div>
+      </details>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Median Rent (weekly)</div>
+          <div class="suburb-stat-value">{{MEDIAN_RENT}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Weekly median rent for occupied private dwellings. Source: ABS 2021 Census. Live rental data integration coming soon.</p>
+          <a href="https://www.rta.qld.gov.au/renting/rental-market-statistics" target="_blank" rel="noopener">State Rental Authority →</a>
+        </div>
+      </details>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Median Household Income</div>
+          <div class="suburb-stat-value">{{MEDIAN_INCOME}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Annual median household income (before tax) for all households. Source: ABS 2021 Census.</p>
+          <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS Census Data →</a>
+        </div>
+      </details>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Distance to CBD</div>
+          <div class="suburb-stat-value">{{DISTANCE_TO_CBD}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Straight-line distance from the suburb centroid (ABS 2021 SAL geography) to the nearest capital city CBD. Actual driving distance will be longer.</p>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -121,22 +152,45 @@
   <section class="suburb-section">
     <h2>Lifestyle &amp; Amenities</h2>
     <div class="suburb-grid">
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Schools</div>
-        <div class="suburb-stat-value">{{SCHOOL_COUNT}}</div>
-      </div>
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Parks</div>
-        <div class="suburb-stat-value">{{PARK_COUNT}}</div>
-      </div>
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Median Mortgage (monthly)</div>
-        <div class="suburb-stat-value">{{MEDIAN_MORTGAGE}}</div>
-      </div>
-      <div class="suburb-stat">
-        <div class="suburb-stat-label">Dwelling Type</div>
-        <div class="suburb-stat-value">{{HOUSE_PCT}}</div>
-      </div>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Schools nearby</div>
+          <div class="suburb-stat-value">{{SCHOOL_COUNT}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Estimated number of schools within or near this suburb based on ABS 2021 data. Actual school locations and enrolment zones may vary — search the official school finder to confirm.</p>
+          <a href="https://www.myschool.edu.au/school-finder?locationSuggestion={{SUBURB}}%20{{STATE}}&radius=10" target="_blank" rel="noopener">Find schools near {{SUBURB}} on My School →</a>
+        </div>
+      </details>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Parks &amp; green spaces</div>
+          <div class="suburb-stat-value">{{PARK_COUNT}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Estimated count of parks, reserves and green spaces near this suburb. Source: ABS 2021 data. Check your state's parks authority for exact locations.</p>
+        </div>
+      </details>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Median Mortgage (monthly)</div>
+          <div class="suburb-stat-value">{{MEDIAN_MORTGAGE}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Monthly median mortgage repayment for households currently paying off a mortgage. Source: ABS 2021 Census.</p>
+          <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS Census Data →</a>
+        </div>
+      </details>
+      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">Dwelling Type</div>
+          <div class="suburb-stat-value">{{HOUSE_PCT}}</div>
+        </summary>
+        <div class="suburb-stat-detail">
+          <p>Proportion of separate houses vs units, townhouses, and other dwelling types. Source: ABS 2021 Census. Relevant for investors assessing rental demand mix.</p>
+          <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS Census Data →</a>
+        </div>
+      </details>
     </div>
   </section>
 

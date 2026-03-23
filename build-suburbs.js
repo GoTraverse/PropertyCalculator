@@ -195,9 +195,9 @@ function generateFAQ(s) {
   ).join('\n');
 }
 
-// Pre-compute related suburbs per state (O(n) instead of O(n²))
-// All suburbs: find 5 nearest by distance_to_cbd (real Haversine distances from ABS).
-// Suburbs without distance data fall back to population-based matching.
+// Pre-compute related suburbs per state using postcode proximity.
+// Suburbs sharing a postcode are genuinely nearby; expand outward by ±postcode until we have 5.
+// Suburbs without postcodes fall back to population-based matching within the state.
 function buildRelatedMap(allSuburbs) {
   const byState = {};
   for (const s of allSuburbs) {
@@ -210,35 +210,53 @@ function buildRelatedMap(allSuburbs) {
   for (const state in byState) {
     const all = byState[state];
 
-    // Suburbs with real distances → match by CBD distance (groups same-radius suburbs)
-    const withDist = all.filter(s => s.distance_to_cbd != null);
-    // Suburbs without distances → match by population size
-    const noDist   = all.filter(s => s.distance_to_cbd == null);
-
-    withDist.sort((a, b) => a.distance_to_cbd - b.distance_to_cbd);
-    for (let i = 0; i < withDist.length; i++) {
-      const related = [];
-      let lo = i - 1, hi = i + 1;
-      while (related.length < 5 && (lo >= 0 || hi < withDist.length)) {
-        const dLo = lo >= 0 ? Math.abs(withDist[lo].distance_to_cbd - withDist[i].distance_to_cbd) : Infinity;
-        const dHi = hi < withDist.length ? Math.abs(withDist[hi].distance_to_cbd - withDist[i].distance_to_cbd) : Infinity;
-        if (dLo <= dHi) { related.push(withDist[lo]); lo--; }
-        else { related.push(withDist[hi]); hi++; }
-      }
-      relatedMap.set(`${withDist[i].state}/${withDist[i].slug}`, related);
+    // Index: postcode (int) → suburbs array, sorted by population desc
+    const byPostcode = {};
+    for (const s of all) {
+      if (!s.postcode) continue;
+      const pc = parseInt(s.postcode, 10);
+      if (!byPostcode[pc]) byPostcode[pc] = [];
+      byPostcode[pc].push(s);
+    }
+    for (const pc in byPostcode) {
+      byPostcode[pc].sort((a, b) => b.population - a.population);
     }
 
-    noDist.sort((a, b) => a.population - b.population);
-    for (let i = 0; i < noDist.length; i++) {
+    for (const s of all) {
+      const selfKey = `${s.state}/${s.slug}`;
+      const selfPc = s.postcode ? parseInt(s.postcode, 10) : null;
       const related = [];
-      let lo = i - 1, hi = i + 1;
-      while (related.length < 5 && (lo >= 0 || hi < noDist.length)) {
-        const dLo = lo >= 0 ? Math.abs(noDist[lo].population - noDist[i].population) : Infinity;
-        const dHi = hi < noDist.length ? Math.abs(noDist[hi].population - noDist[i].population) : Infinity;
-        if (dLo <= dHi) { related.push(noDist[lo]); lo--; }
-        else { related.push(noDist[hi]); hi++; }
+      const seen = new Set([selfKey]);
+
+      if (selfPc) {
+        // Expand outward from same postcode until we have 5 related suburbs
+        for (let radius = 0; radius <= 30 && related.length < 5; radius++) {
+          const toCheck = radius === 0 ? [selfPc] : [selfPc - radius, selfPc + radius];
+          for (const pc of toCheck) {
+            for (const other of (byPostcode[pc] || [])) {
+              const key = `${other.state}/${other.slug}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              related.push(other);
+              if (related.length >= 5) break;
+            }
+            if (related.length >= 5) break;
+          }
+        }
       }
-      relatedMap.set(`${noDist[i].state}/${noDist[i].slug}`, related);
+
+      // Fallback: population-size match within state (for suburbs with no postcode)
+      if (related.length < 5) {
+        const fallback = all
+          .filter(o => !seen.has(`${o.state}/${o.slug}`))
+          .sort((a, b) => Math.abs(a.population - s.population) - Math.abs(b.population - s.population));
+        for (const other of fallback) {
+          related.push(other);
+          if (related.length >= 5) break;
+        }
+      }
+
+      relatedMap.set(selfKey, related);
     }
   }
 
