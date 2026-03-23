@@ -98,9 +98,11 @@ function generateOverview(s) {
     'coastal': `a coastal suburb in ${s.state_name}`,
   }[s.suburb_type] || `a suburb in ${s.state_name}`;
 
-  const distDesc = s.distance_to_cbd === 0
-    ? `At the heart of ${capital}`
-    : `Located ${s.distance_to_cbd} km from the ${capital} CBD`;
+  // Only include distance claim for metro suburbs with a known distance value.
+  // Regional suburbs do not display a CBD distance to avoid false claims.
+  const distDesc = (s.distance_to_cbd != null && s.suburb_type !== 'regional')
+    ? `Located approximately ${s.distance_to_cbd} km from the ${capital} CBD`
+    : null;
 
   const popDesc = s.population > 100000 ? 'a major population centre'
     : s.population > 50000 ? 'a significant urban area'
@@ -108,7 +110,8 @@ function generateOverview(s) {
     : s.population > 5000 ? 'a smaller community'
     : 'a boutique locality';
 
-  return `${s.suburb} is ${typeLabel}, Australia, with a population of approximately ${fmt(s.population)}, making it ${popDesc}. ${distDesc}, ${s.suburb} offers ${s.amenity_score >= 7 ? 'excellent' : s.amenity_score >= 5 ? 'good' : 'developing'} amenity access with a median household income of $${fmt(s.median_household_income)} AUD per year.`;
+  const distSentence = distDesc ? ` ${distDesc}, ${s.suburb} offers` : ` ${s.suburb} offers`;
+  return `${s.suburb} is ${typeLabel}, Australia, with a population of approximately ${fmt(s.population)}, making it ${popDesc}.${distSentence} ${s.amenity_score >= 7 ? 'excellent' : s.amenity_score >= 5 ? 'good' : 'developing'} amenity access with a median household income of $${fmt(s.median_household_income)} AUD per year.`;
 }
 
 function generateInsight(s) {
@@ -167,7 +170,9 @@ function generateFAQ(s) {
     },
     {
       q: `How far is ${s.suburb} from the CBD?`,
-      a: `${s.suburb} is approximately ${s.distance_to_cbd} km from the ${stateCapitals[s.state]} CBD. ${s.distance_to_cbd <= 10 ? 'This close proximity means excellent access to employment, dining, and entertainment.' : s.distance_to_cbd <= 30 ? 'This is a comfortable commuting distance with good transport links.' : 'While further from the CBD, this can mean more affordable entry points for investors.'}`
+      a: s.distance_to_cbd != null && s.suburb_type !== 'regional'
+        ? `${s.suburb} is approximately ${s.distance_to_cbd} km from the ${stateCapitals[s.state]} CBD. ${s.distance_to_cbd <= 10 ? 'This close proximity means excellent access to employment, dining, and entertainment.' : s.distance_to_cbd <= 30 ? 'This is a comfortable commuting distance with good transport links.' : 'While further from the CBD, this can mean more affordable entry points for investors.'}`
+        : `${s.suburb} is a regional area in ${s.state_name}, situated outside the major metropolitan zone. For exact travel distances and times to ${stateCapitals[s.state]} or other nearby centres, we recommend checking a current mapping service.`
     },
   ];
 
@@ -177,33 +182,53 @@ function generateFAQ(s) {
 }
 
 // Pre-compute related suburbs per state (O(n) instead of O(n²))
-// For each suburb, find 5 nearest by distance_to_cbd using a single pre-sorted pass
+// Metro suburbs: find 5 nearest by distance_to_cbd (geographic proximity)
+// Regional suburbs: find 5 nearest by population (avoids cross-contamination with metro)
 function buildRelatedMap(allSuburbs) {
   const byState = {};
   for (const s of allSuburbs) {
     if (!byState[s.state]) byState[s.state] = [];
     byState[s.state].push(s);
   }
-  // Sort each state's suburbs by distance_to_cbd
-  for (const state in byState) {
-    byState[state].sort((a, b) => a.distance_to_cbd - b.distance_to_cbd);
-  }
-  // For each suburb, the 5 nearest are its neighbours in the sorted list
+
   const relatedMap = new Map();
+
   for (const state in byState) {
-    const sorted = byState[state];
-    for (let i = 0; i < sorted.length; i++) {
+    const all = byState[state];
+
+    // Separate metro and regional within each state
+    const metro = all.filter(s => s.suburb_type !== 'regional' && s.distance_to_cbd != null);
+    const regional = all.filter(s => s.suburb_type === 'regional' || s.distance_to_cbd == null);
+
+    // Metro suburbs: sort by distance_to_cbd, find neighbours in that sorted list
+    metro.sort((a, b) => a.distance_to_cbd - b.distance_to_cbd);
+    for (let i = 0; i < metro.length; i++) {
       const related = [];
       let lo = i - 1, hi = i + 1;
-      while (related.length < 5 && (lo >= 0 || hi < sorted.length)) {
-        const dLo = lo >= 0 ? Math.abs(sorted[lo].distance_to_cbd - sorted[i].distance_to_cbd) : Infinity;
-        const dHi = hi < sorted.length ? Math.abs(sorted[hi].distance_to_cbd - sorted[i].distance_to_cbd) : Infinity;
-        if (dLo <= dHi) { related.push(sorted[lo]); lo--; }
-        else { related.push(sorted[hi]); hi++; }
+      while (related.length < 5 && (lo >= 0 || hi < metro.length)) {
+        const dLo = lo >= 0 ? Math.abs(metro[lo].distance_to_cbd - metro[i].distance_to_cbd) : Infinity;
+        const dHi = hi < metro.length ? Math.abs(metro[hi].distance_to_cbd - metro[i].distance_to_cbd) : Infinity;
+        if (dLo <= dHi) { related.push(metro[lo]); lo--; }
+        else { related.push(metro[hi]); hi++; }
       }
-      relatedMap.set(`${sorted[i].state}/${sorted[i].slug}`, related);
+      relatedMap.set(`${metro[i].state}/${metro[i].slug}`, related);
+    }
+
+    // Regional suburbs: sort by population, find neighbours in that sorted list
+    regional.sort((a, b) => a.population - b.population);
+    for (let i = 0; i < regional.length; i++) {
+      const related = [];
+      let lo = i - 1, hi = i + 1;
+      while (related.length < 5 && (lo >= 0 || hi < regional.length)) {
+        const dLo = lo >= 0 ? Math.abs(regional[lo].population - regional[i].population) : Infinity;
+        const dHi = hi < regional.length ? Math.abs(regional[hi].population - regional[i].population) : Infinity;
+        if (dLo <= dHi) { related.push(regional[lo]); lo--; }
+        else { related.push(regional[hi]); hi++; }
+      }
+      relatedMap.set(`${regional[i].state}/${regional[i].slug}`, related);
     }
   }
+
   return relatedMap;
 }
 
@@ -294,7 +319,7 @@ for (const state of allStates) {
 
   // Suburb list cards
   const suburbListHTML = stateSuburbs.map(s =>
-    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd} km to CBD</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
+    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
   let html = HUB_TPL

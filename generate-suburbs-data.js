@@ -74,30 +74,54 @@ function pseudoRand(seed, min, max) {
   return min + (seed % (max - min + 1));
 }
 
-// Classify suburb type based on population and position in state ranking
-function classifyType(pop, rank, total, salCode) {
-  // Very rough heuristic — placeholder until real geo data is available
+// Metropolitan postcode ranges for each state capital.
+// Only suburbs within these ranges are classified as inner/middle/outer metro.
+// All other suburbs default to 'regional' regardless of population size.
+const METRO_RANGES = {
+  QLD: [[4000, 4179], [4300, 4310]],   // Brisbane inner + Ipswich fringe
+  NSW: [[2000, 2249]],                   // Sydney
+  VIC: [[3000, 3211]],                   // Melbourne
+  WA:  [[6000, 6214]],                   // Perth
+  SA:  [[5000, 5130]],                   // Adelaide
+  TAS: [[7000, 7054]],                   // Hobart
+  ACT: [[2600, 2618], [2900, 2920]],    // ACT (whole territory is metro)
+  NT:  [[800, 840]],                     // Darwin
+};
+
+function isMetroPostcode(state, postcode) {
+  if (!postcode) return false;
+  const pc = parseInt(postcode, 10);
+  if (isNaN(pc)) return false;
+  const ranges = METRO_RANGES[state] || [];
+  return ranges.some(([lo, hi]) => pc >= lo && pc <= hi);
+}
+
+// Classify suburb type using postcode to distinguish metro from regional.
+// Metro suburbs are classified by population; everything else is 'regional'.
+function classifyType(pop, rank, total, state, postcode) {
+  if (!isMetroPostcode(state, postcode)) return 'regional';
   const pct = rank / total; // 0 = biggest, 1 = smallest
   if (pop > 30000) return pct < 0.05 ? 'inner-city' : 'outer-metro';
   if (pop > 10000) return pct < 0.15 ? 'middle-ring' : 'outer-metro';
-  if (pop > 3000) return pct < 0.4 ? 'middle-ring' : 'regional';
-  return 'regional';
+  if (pop > 3000) return 'outer-metro';
+  return 'middle-ring';
 }
 
 // Generate placeholder values for fields we don't have real data for yet
-function makePlaceholders(name, state, pop, rank, total, salCode) {
+function makePlaceholders(name, state, pop, rank, total, salCode, postcode) {
   const h = seedHash(name + state);
-  const type = classifyType(pop, rank, total, salCode);
+  const type = classifyType(pop, rank, total, state, postcode);
 
   const isInner = type === 'inner-city';
   const isMiddle = type === 'middle-ring';
   const isOuter = type === 'outer-metro';
   const isRegional = type === 'regional';
 
-  // Distance to CBD (placeholder)
-  const distBase = isInner ? 3 : isMiddle ? 12 : isOuter ? 28 : 80;
-  const distRange = isInner ? 8 : isMiddle ? 15 : isOuter ? 30 : 400;
-  const distance_to_cbd = distBase + pseudoRand(h, 0, distRange);
+  // Distance to CBD (placeholder — metro only; regional uses null)
+  // Regional suburbs do not show a distance claim since we lack real geo data.
+  const distBase = isInner ? 3 : isMiddle ? 12 : isOuter ? 28 : null;
+  const distRange = isInner ? 8 : isMiddle ? 15 : isOuter ? 30 : 0;
+  const distance_to_cbd = distBase === null ? null : distBase + pseudoRand(h, 0, distRange);
 
   // Population growth (placeholder)
   const growthBase = isInner ? 3 : isOuter ? 8 : isMiddle ? 4 : 1;
@@ -157,11 +181,11 @@ for (const [state, subs] of Object.entries(stateSuburbs)) {
     // Skip suburbs with very short/empty names or duplicate slugs
     if (!s || s.length < 2) continue;
 
-    const placeholders = makePlaceholders(name, state, r.population, i, total, r.sal_code);
-
-    // Lookup postcode (real data from Australia Post / community dataset)
+    // Lookup postcode first — needed for metro/regional classification
     const pcKey = `${name.toUpperCase()}|${state}`;
     const postcode = pcMap[pcKey] || '';
+
+    const placeholders = makePlaceholders(name, state, r.population, i, total, r.sal_code, postcode);
 
     allSuburbs.push({
       suburb: name,
