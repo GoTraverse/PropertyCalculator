@@ -5,7 +5,12 @@
 // ── Initialize custom user properties ─────────────────────────────────────
 function initAnalytics() {
   // Set user ID if authenticated (for cross-device tracking)
-  var session = getSession && getSession();
+  // Check if getSession is available (loaded from auth-nav.js or login.js)
+  var session = null;
+  if (typeof getSession === 'function') {
+    session = getSession();
+  }
+
   if (session && session.id) {
     gtag('config', 'G-TYQXT24670', {
       'user_id': session.id,
