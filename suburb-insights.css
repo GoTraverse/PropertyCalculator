@@ -9,6 +9,14 @@
 .suburb-breadcrumb span { color: rgba(245,240,232,0.3); margin: 0 4px; }
 .suburb-breadcrumb span:last-child { color: rgba(245,240,232,0.7); margin: 0; }
 
+/* ── Data source note in hero ── */
+.suburb-data-note { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3px; color: rgba(245,240,232,0.45); margin-top: 8px; }
+
+/* ── Map embed ── */
+.suburb-map { width: 100%; height: 300px; border: none; border-radius: 6px; display: block; }
+.suburb-map-note { font-size: 11px !important; color: var(--mid-grey) !important; margin-top: 8px !important; }
+@media (max-width: 480px) { .suburb-map { height: 220px; } }
+
 /* ── Main layout ── */
 .suburb-main { max-width: 720px; margin: -20px auto 56px; padding: 0 16px; }
 

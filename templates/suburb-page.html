@@ -57,6 +57,7 @@
   <div class="tool-eyebrow">Suburb Insights · {{STATE}} {{POSTCODE}}</div>
   <h1>{{SUBURB}} {{POSTCODE_TITLE}}{{STATE}} Investment Property Insights</h1>
   <p>Key indicators and investment context for {{SUBURB}}{{POSTCODE_COMMA}} {{STATE_NAME}}, Australia.</p>
+  <p class="suburb-data-note">{{DATA_SOURCE_NOTE}}</p>
 </section>
 
 <div class="suburb-main">
@@ -65,6 +66,20 @@
   <section class="suburb-section">
     <h2>Suburb Overview</h2>
     <p>{{OVERVIEW}}</p>
+  </section>
+
+  <!-- Map -->
+  <section class="suburb-section suburb-map-section">
+    <h2>Location</h2>
+    <iframe
+      class="suburb-map"
+      src="{{MAPS_EMBED_URL}}"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen
+      title="Map of {{SUBURB}}, {{STATE_NAME}}">
+    </iframe>
+    <p class="suburb-map-note">Map shows {{SUBURB}}, {{STATE_NAME}}, Australia. Distances shown are straight-line from the suburb centroid (ABS 2021).</p>
   </section>
 
   <!-- Key Indicators -->
@@ -80,16 +95,16 @@
         <div class="suburb-stat-value">{{POPULATION}}</div>
       </div>
       <div class="suburb-stat">
-        <div class="suburb-stat-label">Population Growth</div>
-        <div class="suburb-stat-value">{{POPULATION_GROWTH}}%</div>
+        <div class="suburb-stat-label">Median Rent (weekly)</div>
+        <div class="suburb-stat-value">{{MEDIAN_RENT}}</div>
       </div>
       <div class="suburb-stat">
-        <div class="suburb-stat-label">Median Household Income (AUD)</div>
-        <div class="suburb-stat-value">${{MEDIAN_INCOME}}</div>
+        <div class="suburb-stat-label">Median Household Income</div>
+        <div class="suburb-stat-value">{{MEDIAN_INCOME}}</div>
       </div>
       <div class="suburb-stat">
         <div class="suburb-stat-label">Distance to CBD</div>
-        <div class="suburb-stat-value">{{DISTANCE_TO_CBD}} km</div>
+        <div class="suburb-stat-value">{{DISTANCE_TO_CBD}}</div>
       </div>
     </div>
   </section>
@@ -115,12 +130,12 @@
         <div class="suburb-stat-value">{{PARK_COUNT}}</div>
       </div>
       <div class="suburb-stat">
-        <div class="suburb-stat-label">Transport Access</div>
-        <div class="suburb-stat-value suburb-score">{{TRANSPORT_SCORE}}<span>/10</span></div>
+        <div class="suburb-stat-label">Median Mortgage (monthly)</div>
+        <div class="suburb-stat-value">{{MEDIAN_MORTGAGE}}</div>
       </div>
       <div class="suburb-stat">
-        <div class="suburb-stat-label">Amenity Score</div>
-        <div class="suburb-stat-value suburb-score">{{AMENITY_SCORE}}<span>/10</span></div>
+        <div class="suburb-stat-label">Dwelling Type</div>
+        <div class="suburb-stat-value">{{HOUSE_PCT}}</div>
       </div>
     </div>
   </section>

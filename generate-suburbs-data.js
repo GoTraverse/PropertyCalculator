@@ -74,40 +74,49 @@ function pseudoRand(seed, min, max) {
   return min + (seed % (max - min + 1));
 }
 
-// Metropolitan postcode ranges for each state capital.
-// Only suburbs within these ranges are classified as inner/middle/outer metro.
-// All other suburbs default to 'regional' regardless of population size.
+// Tiered postcode-based classification — mirrors apply-abs-data.js logic.
+// Note: generate-suburbs-data.js is only used when regenerating from raw ABS data.
+// For production updates, run fetch-abs-enhanced.js + apply-abs-data.js instead.
+const INNER_RANGES = {
+  QLD: [[4000, 4012]], NSW: [[2000, 2019]], VIC: [[3000, 3013]],
+  WA:  [[6000, 6008]], SA:  [[5000, 5007]], TAS: [[7000, 7008]],
+  ACT: [[2600, 2607]], NT:  [[800, 812]],
+};
+const MIDDLE_RANGES = {
+  QLD: [[4013, 4122]], NSW: [[2020, 2150]], VIC: [[3014, 3152]],
+  WA:  [[6009, 6112]], SA:  [[5008, 5097]], TAS: [[7009, 7054]],
+  ACT: [[2608, 2618], [2900, 2914]], NT: [[813, 836]],
+};
 const METRO_RANGES = {
-  QLD: [[4000, 4179], [4300, 4310]],   // Brisbane inner + Ipswich fringe
-  NSW: [[2000, 2249]],                   // Sydney
-  VIC: [[3000, 3211]],                   // Melbourne
-  WA:  [[6000, 6214]],                   // Perth
-  SA:  [[5000, 5130]],                   // Adelaide
-  TAS: [[7000, 7054]],                   // Hobart
-  ACT: [[2600, 2618], [2900, 2920]],    // ACT (whole territory is metro)
-  NT:  [[800, 840]],                     // Darwin
+  QLD: [[4000, 4179], [4300, 4310]], NSW: [[2000, 2250]], VIC: [[3000, 3211]],
+  WA:  [[6000, 6214]], SA: [[5000, 5130]], TAS: [[7000, 7054]],
+  ACT: [[2600, 2618], [2900, 2920]], NT: [[800, 840]],
+};
+const COASTAL_RANGES = {
+  QLD: [[4210, 4230], [4551, 4581], [4700, 4720], [4740, 4755], [4810, 4825], [4870, 4880]],
+  NSW: [[2250, 2266], [2430, 2448], [2450, 2470], [2478, 2492], [2499, 2534], [2536, 2551]],
+  VIC: [[3212, 3232], [3930, 3946]], WA: [[6215, 6215], [6280, 6298], [6330, 6338]],
+  SA:  [[5160, 5176], [5600, 5641]], TAS: [[7150, 7155], [7180, 7190]],
+  ACT: [], NT: [],
 };
 
-function isMetroPostcode(state, postcode) {
-  if (!postcode) return false;
-  const pc = parseInt(postcode, 10);
-  if (isNaN(pc)) return false;
-  const ranges = METRO_RANGES[state] || [];
-  return ranges.some(([lo, hi]) => pc >= lo && pc <= hi);
+function inRangesG(pc, ranges) {
+  if (!pc) return false;
+  const n = parseInt(pc, 10);
+  return !isNaN(n) && ranges.some(([lo, hi]) => n >= lo && n <= hi);
 }
 
-// Classify suburb type using postcode to distinguish metro from regional.
-// Metro suburbs are classified by population; everything else is 'regional'.
 function classifyType(pop, rank, total, state, postcode) {
-  if (!isMetroPostcode(state, postcode)) return 'regional';
-  const pct = rank / total; // 0 = biggest, 1 = smallest
-  if (pop > 30000) return pct < 0.05 ? 'inner-city' : 'outer-metro';
-  if (pop > 10000) return pct < 0.15 ? 'middle-ring' : 'outer-metro';
-  if (pop > 3000) return 'outer-metro';
-  return 'middle-ring';
+  if (!postcode) return 'regional';
+  if (inRangesG(postcode, INNER_RANGES[state]  || [])) return 'inner-city';
+  if (inRangesG(postcode, MIDDLE_RANGES[state] || [])) return 'middle-ring';
+  if (inRangesG(postcode, METRO_RANGES[state]  || [])) return 'outer-metro';
+  if (inRangesG(postcode, COASTAL_RANGES[state]|| [])) return 'coastal';
+  return 'regional';
 }
 
-// Generate placeholder values for fields we don't have real data for yet
+// Generate placeholder values. Real data (income, distance, rent, mortgage)
+// is applied post-hoc by apply-abs-data.js after an enhanced ABS fetch.
 function makePlaceholders(name, state, pop, rank, total, salCode, postcode) {
   const h = seedHash(name + state);
   const type = classifyType(pop, rank, total, state, postcode);
@@ -117,15 +126,14 @@ function makePlaceholders(name, state, pop, rank, total, salCode, postcode) {
   const isOuter = type === 'outer-metro';
   const isRegional = type === 'regional';
 
-  // Distance to CBD (placeholder — metro only; regional uses null)
-  // Regional suburbs do not show a distance claim since we lack real geo data.
+  // Distance to CBD — will be overwritten with real Haversine distance by apply-abs-data.js
   const distBase = isInner ? 3 : isMiddle ? 12 : isOuter ? 28 : null;
   const distRange = isInner ? 8 : isMiddle ? 15 : isOuter ? 30 : 0;
   const distance_to_cbd = distBase === null ? null : distBase + pseudoRand(h, 0, distRange);
 
-  // Population growth (placeholder)
-  const growthBase = isInner ? 3 : isOuter ? 8 : isMiddle ? 4 : 1;
-  const population_growth = growthBase + pseudoRand(h >> 3, 0, 15);
+  // population_growth removed — no reliable suburb-level source available.
+  // See: https://abs.gov.au/census for population trend data.
+  const population_growth = null;
 
   // Median household income (placeholder)
   const incBase = isInner ? 80000 : isMiddle ? 72000 : isOuter ? 65000 : 55000;
