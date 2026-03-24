@@ -70,7 +70,7 @@ ToolPage.init({
     title: 'Model the full buy\u2013hold\u2013sell strategy',
     description: 'Track equity, rental yield during hold, tax implications, and compare against a buy-and-hold strategy \u2014 in EquitySight.',
     buttonText: 'Get started free \u2192',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -103,21 +103,21 @@ ToolPage.init({
     disclaimer: 'This is general information only. House flipping involves significant tax and financial complexity. Always consult a tax accountant, financial adviser, and lawyer before proceeding.'
   },
   share: {
-    url: 'https://equitysight.app/tools/house-flip-calculator.html',
+    url: 'https://equitysight.app/tools/house-flip-calculator',
     text: 'Just calculated my house flip profit!'
   },
   related: [
-    { href: 'renovation-cost-calculator.html', icon: '\uD83D\uDD28', label: 'Renovation Costs' },
-    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
-    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' }
+    { href: '/tools/renovation-cost-calculator', icon: '\uD83D\uDD28', label: 'Renovation Costs' },
+    { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
+    { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: 'renovation-cost-calculator.html', text: 'Reno Cost' },
-    { href: 'rental-yield-calculator.html', text: 'Rental Yield' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools/renovation-cost-calculator', text: 'Reno Cost' },
+    { href: '/tools/rental-yield-calculator', text: 'Rental Yield' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

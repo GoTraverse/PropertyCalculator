@@ -5,11 +5,11 @@
 (function(){
   try {
     var raw = localStorage.getItem('propCalc_session_v1');
-    if (!raw || raw === 'null' || raw === '{}') { location.replace('login.html'); return; }
+    if (!raw || raw === 'null' || raw === '{}') { location.replace('/login'); return; }
     var user = JSON.parse(raw);
-    if (!user || (!user.id && !user.email && !user.name)) { location.replace('login.html'); }
+    if (!user || (!user.id && !user.email && !user.name)) { location.replace('/login'); }
   } catch(e) {
     try { localStorage.removeItem('propCalc_session_v1'); } catch(_){}
-    location.replace('login.html');
+    location.replace('/login');
   }
 })();

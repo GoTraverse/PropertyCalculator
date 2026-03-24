@@ -154,7 +154,7 @@
               '<div style="font-size:11px;color:#C45A5A;margin-top:8px;display:none;padding:8px 10px;background:rgba(196,90,90,0.08);border-radius:3px;border-left:3px solid #C45A5A;" id="ap2-plan-canceled">Plan canceled — expires <span id="ap2-plan-expires"></span></div>',
               '<div style="font-size:11px;color:#4A4A52;margin-top:8px;padding:8px 10px;background:rgba(201,168,76,0.08);border-radius:3px;" id="ap2-plan-renews" style="display:none;">Renews <span id="ap2-renew-date"></span></div>',
             '</div>',
-            '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" onclick="location.href=\u0027pricing.html\u0027" style="display:none;">Upgrade to Pro &#x2192;</button>',
+            '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" onclick="location.href=\u0027/pricing\u0027" style="display:none;">Upgrade to Pro &#x2192;</button>',
           '</div>',
         '</div>',
       '</div>',
@@ -414,7 +414,7 @@
     try {
       var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'deleteAccount', password: pw }) });
       var d = await r.json();
-      if (d.ok) { localStorage.clear(); alert('Account deleted. Goodbye!'); location.href = 'index.html'; }
+      if (d.ok) { localStorage.clear(); alert('Account deleted. Goodbye!'); location.href = '/'; }
       else alert(d.error || 'Incorrect password \u2014 account not deleted');
     } catch (e) { alert('Network error \u2014 try again'); }
   };
@@ -422,7 +422,7 @@
   // ── Public API ────────────────────────────────────────────────────────────────
   window.openAccountPanel = function () {
     var sess = getSession();
-    if (!sess || !(sess.id || sess.email)) { location.href = 'login.html'; return; }
+    if (!sess || !(sess.id || sess.email)) { location.href = '/login'; return; }
     el('ap-panel').classList.add('open');
     el('ap-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';

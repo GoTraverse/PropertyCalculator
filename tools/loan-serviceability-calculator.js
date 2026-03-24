@@ -82,7 +82,7 @@ ToolPage.init({
     title: 'Model the full investment',
     description: 'See how a property fits into your investment plan. Model multiple properties, rental scenarios, and track equity growth \u2014 all in EquitySight.',
     buttonText: 'Get started free \u2192',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -115,21 +115,21 @@ ToolPage.init({
     disclaimer: 'This is general information only. Always consult with a financial adviser and your lender about your specific borrowing capacity, as calculations vary by circumstance.'
   },
   share: {
-    url: 'https://equitysight.app/tools/loan-serviceability-calculator.html',
+    url: 'https://equitysight.app/tools/loan-serviceability-calculator',
     text: 'Just checked my loan serviceability!'
   },
   related: [
-    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
-    { href: 'first-home-buyer-grants-calculator.html', icon: '\uD83C\uDF81', label: 'FHB Grants' },
-    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: 'rental-yield-calculator.html', icon: '\uD83D\uDCB0', label: 'Rental Yield' }
+    { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
+    { href: '/tools/first-home-buyer-grants-calculator', icon: '\uD83C\uDF81', label: 'FHB Grants' },
+    { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: '/tools/rental-yield-calculator', icon: '\uD83D\uDCB0', label: 'Rental Yield' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'rental-yield-calculator.html', text: 'Rental Yield' },
-    { href: 'equity-release-calculator.html', text: 'Equity Release' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/rental-yield-calculator', text: 'Rental Yield' },
+    { href: '/tools/equity-release-calculator', text: 'Equity Release' },
+    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

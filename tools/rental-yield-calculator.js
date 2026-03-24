@@ -56,7 +56,7 @@ ToolPage.init({
     title: 'Model the full investment scenario',
     description: 'Add mortgage repayments, capital growth projections, equity buildup, and compare multiple properties \u2014 free in EquitySight.',
     buttonText: 'Get started free \u2192',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -89,21 +89,21 @@ ToolPage.init({
     disclaimer: 'This is general information only. Tax treatment of rental properties varies by circumstances. Always consult a tax accountant and financial adviser before investing.'
   },
   share: {
-    url: 'https://equitysight.app/tools/rental-yield-calculator.html',
+    url: 'https://equitysight.app/tools/rental-yield-calculator',
     text: 'Just calculated my rental yield!'
   },
   related: [
-    { href: 'stamp-duty-calculator.html', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
-    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
-    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
+    { href: '/tools/stamp-duty-calculator', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
+    { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: 'equity-release-calculator.html', text: 'Equity Release' },
-    { href: 'mortgage-stress-calculator.html', text: 'Mortgage Stress' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools/equity-release-calculator', text: 'Equity Release' },
+    { href: '/tools/mortgage-stress-calculator', text: 'Mortgage Stress' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

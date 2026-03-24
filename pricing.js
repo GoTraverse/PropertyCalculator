@@ -9,7 +9,7 @@ async function startCheckout(){
 
   // Not logged in → send to signup, then back here
   if(!session || !session.token){
-    location.href = 'login.html?tab=signup&plan=pro&redirect=' + encodeURIComponent('pricing.html?checkout=1');
+    location.href = '/login?tab=signup&plan=pro&redirect=' + encodeURIComponent('/pricing?checkout=1');
     return;
   }
 

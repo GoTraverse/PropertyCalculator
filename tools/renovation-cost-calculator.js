@@ -85,7 +85,7 @@ ToolPage.init({
     title: 'Does the renovation make financial sense?',
     description: 'Model whether your renovation will add more value than it costs \u2014 and compare before vs after scenarios in EquitySight.',
     buttonText: 'Analyse the numbers free \u2192',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -117,21 +117,21 @@ ToolPage.init({
     disclaimer: 'This is general information only. Renovation costs vary significantly by location, complexity, and contractor. Always get multiple quotes and consult a quantity surveyor and accountant before proceeding.'
   },
   share: {
-    url: 'https://equitysight.app/tools/renovation-cost-calculator.html',
+    url: 'https://equitysight.app/tools/renovation-cost-calculator',
     text: 'Just calculated my renovation budget!'
   },
   related: [
-    { href: 'house-flip-calculator.html', icon: '\uD83C\uDFE0', label: 'House Flip' },
-    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
-    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
+    { href: '/tools/house-flip-calculator', icon: '\uD83C\uDFE0', label: 'House Flip' },
+    { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: 'house-flip-calculator.html', text: 'House Flip' },
-    { href: 'mortgage-stress-calculator.html', text: 'Mortgage Stress' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools/house-flip-calculator', text: 'House Flip' },
+    { href: '/tools/mortgage-stress-calculator', text: 'Mortgage Stress' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

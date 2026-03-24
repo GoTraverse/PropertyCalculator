@@ -16,7 +16,7 @@ By accessing or using the Service, you confirm that you are at least 18 years of
 
 equitysight.app provides an online property finance calculator designed to help users model and analyse property purchase scenarios, including considerations for shared equity schemes.
 
-> ⚠ **Important:** The Service provides financial calculations and estimates for informational purposes only. It does not constitute financial, legal, tax, or investment advice. Always consult a qualified professional before making property or financial decisions. See our [Disclaimer](disclaimer.html) for full details.
+> ⚠ **Important:** The Service provides financial calculations and estimates for informational purposes only. It does not constitute financial, legal, tax, or investment advice. Always consult a qualified professional before making property or financial decisions. See our [Disclaimer](/disclaimer) for full details.
 
 ## 3. Accounts and registration
 

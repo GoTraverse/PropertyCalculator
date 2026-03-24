@@ -1,7 +1,7 @@
 // login.js — Login/signup page logic
 // Extracted from login.html inline script block.
 
-const ALLOWED_NEXT = ['app.html', 'account.html', 'pricing.html'];
+const ALLOWED_NEXT = ['app', 'account', 'pricing'];
 
 // Redirect if already logged in
 (function(){
@@ -10,7 +10,8 @@ const ALLOWED_NEXT = ['app.html', 'account.html', 'pricing.html'];
     if(s && (s.id || s.email)){
       const params = new URLSearchParams(location.search);
       const raw = params.get('next') || '';
-      const next = ALLOWED_NEXT.includes(raw) ? raw : 'app.html';
+      const clean = raw.replace(/\.html$/, '');
+      const next = ALLOWED_NEXT.includes(clean) ? '/' + clean : '/app';
       goTo(next);
     }
   }catch(e){}
@@ -78,7 +79,7 @@ async function handleGoogleCredential(response){
         localStorage.setItem('propCalc_profile_v1_'+(res.id||res.email), JSON.stringify(profileRes.profile));
       }
     }catch(e){}
-    goTo('app.html');
+    goTo('/app');
   } else {
     if(errEl) errEl.textContent = res.error || 'Google sign-in failed — please try again or use email/password below';
   }
@@ -268,8 +269,8 @@ function persistSession(res, fallback){
 }
 
 function postVerificationRedirect(plan){
-  if(plan==='pro') goTo('account.html?checkout=1&panel=subscription');
-  else goTo('account.html?panel=subscription');
+  if(plan==='pro') goTo('/account?checkout=1&panel=subscription');
+  else goTo('/account?panel=subscription');
 }
 
 function showVerificationStep(data){
@@ -304,7 +305,7 @@ async function doSignin(){
         localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
       }
     }catch(e){}
-    goTo('app.html');
+    goTo('/app');
     return;
   }
   hideSpinner();

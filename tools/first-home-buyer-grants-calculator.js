@@ -113,7 +113,7 @@ ToolPage.init({
     title: 'Plan your purchase and investment',
     description: 'Model your property purchase, plan renovations, and track how your investment grows over time in EquitySight.',
     buttonText: 'Get started free →',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -145,21 +145,21 @@ ToolPage.init({
     disclaimer: 'Grant eligibility changes by state and varies by scheme. Always verify with your state\'s housing authority and consult a financial adviser before purchasing.'
   },
   share: {
-    url: 'https://equitysight.app/tools/first-home-buyer-grants-calculator.html',
+    url: 'https://equitysight.app/tools/first-home-buyer-grants-calculator',
     text: 'Just checked my FHB grant eligibility!'
   },
   related: [
-    { href: 'loan-serviceability-calculator.html', icon: '📊', label: 'Loan Serviceability' },
-    { href: 'stamp-duty-calculator.html', icon: '🏛️', label: 'Stamp Duty' },
-    { href: 'cost-of-purchase-calculator.html', icon: '💵', label: 'Cost of Purchase' },
-    { href: 'mortgage-stress-calculator.html', icon: '📈', label: 'Mortgage Stress' }
+    { href: '/tools/loan-serviceability-calculator', icon: '📊', label: 'Loan Serviceability' },
+    { href: '/tools/stamp-duty-calculator', icon: '🏛️', label: 'Stamp Duty' },
+    { href: '/tools/cost-of-purchase-calculator', icon: '💵', label: 'Cost of Purchase' },
+    { href: '/tools/mortgage-stress-calculator', icon: '📈', label: 'Mortgage Stress' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'mortgage-stress-calculator.html', text: 'Mortgage Stress' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: 'loan-serviceability-calculator.html', text: 'Loan Serviceability' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/mortgage-stress-calculator', text: 'Mortgage Stress' },
+    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools/loan-serviceability-calculator', text: 'Loan Serviceability' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

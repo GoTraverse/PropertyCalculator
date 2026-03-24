@@ -91,7 +91,7 @@ ToolPage.init({
     title: 'Plan the full property purchase',
     description: 'Model equity buildup, offset account impact, and compare properties side by side \u2014 all free in EquitySight.',
     buttonText: 'Get started free \u2192',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -124,21 +124,21 @@ ToolPage.init({
     disclaimer: 'This is general information only. Interest rates, serviceability criteria, and lending standards change over time. Always consult your lender and a financial adviser about your situation.'
   },
   share: {
-    url: 'https://equitysight.app/tools/mortgage-stress-calculator.html',
+    url: 'https://equitysight.app/tools/mortgage-stress-calculator',
     text: 'Just tested my mortgage stress capacity!'
   },
   related: [
-    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
-    { href: 'stamp-duty-calculator.html', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
-    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: 'first-home-buyer-grants-calculator.html', icon: '\uD83C\uDF81', label: 'FHB Grants' }
+    { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: '/tools/stamp-duty-calculator', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
+    { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: '/tools/first-home-buyer-grants-calculator', icon: '\uD83C\uDF81', label: 'FHB Grants' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: 'rental-yield-calculator.html', text: 'Rental Yield' },
-    { href: 'house-flip-calculator.html', text: 'House Flip' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools/rental-yield-calculator', text: 'Rental Yield' },
+    { href: '/tools/house-flip-calculator', text: 'House Flip' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

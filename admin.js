@@ -164,7 +164,7 @@ function showAccessDenied(msg){
 
 async function bootstrapAdmin(){
   const sess = getSession();
-  if(!sess){ location.href='login.html'; return; }
+  if(!sess){ location.href='/login'; return; }
   const st = document.getElementById('bootstrap-status');
   st.textContent = 'Claiming admin role…'; st.className = 'admin-status info';
   const d = await callAuth('setSelfAdmin');
