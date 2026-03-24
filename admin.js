@@ -790,6 +790,7 @@ async function loadConfig(){
   setV('cfg-pro-annual',      c.proAnnualPrice||86);
   setV('cfg-adviser-monthly', c.adviserMonthlyPrice||29);
   setV('google-client-id',    c.googleClientId||'');
+  setV('cfg-partner-links',   JSON.stringify(c.partnerLinks||{}, null, 2));
   setV('stripe-pub-key',      c.stripePubKey||'');
   setV('stripe-pro-monthly',  c.stripeProMonthly||'');
   setV('stripe-pro-annual',   c.stripeProAnnual||'');
@@ -966,6 +967,12 @@ async function saveConfig(){
     stripeProMonthly:    getV('stripe-pro-monthly',''),
     stripeProAnnual:     getV('stripe-pro-annual',''),
     stripePortal:        getV('stripe-portal',''),
+    partnerLinks:        (function(){
+      var raw = getV('cfg-partner-links','{}');
+      var errEl = document.getElementById('partner-links-error');
+      try { var v = JSON.parse(raw||'{}'); if(errEl) errEl.style.display='none'; return v; }
+      catch(e) { if(errEl){ errEl.textContent='Invalid JSON: '+e.message; errEl.style.display='block'; } return {}; }
+    })(),
   };
   const d = await callAuth('adminSetConfig', {config});
   if(d.ok){

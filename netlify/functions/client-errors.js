@@ -9,6 +9,8 @@
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
+const RESEND_API_KEY    = (process.env.RESEND_API_KEY    || '').trim();
+const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
 
 const H = {
   'Content-Type': 'application/json',
@@ -50,7 +52,77 @@ async function verifyToken(authHeader) {
 const ok  = (b) => ({ statusCode: 200, headers: H, body: JSON.stringify(b) });
 const fail = (msg, code) => ({ statusCode: code || 400, headers: H, body: JSON.stringify({ ok: false, error: msg }) });
 
-const SYNC_THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
+const SYNC_THROTTLE_MS  = 5 * 60 * 1000;        // 5 minutes
+const ALERT_THROTTLE_MS = 24 * 60 * 60 * 1000; // 24 hours per alert type
+
+// Critical integration patterns — fires an email alert the moment one is detected.
+// Each pattern has a Redis throttle key so alerts don't spam (once per 24h per key).
+const CRITICAL_ALERT_PATTERNS = [
+  {
+    key:   'ga-collect',
+    label: 'Google Analytics data collection',
+    test:  msg => /CSP violation.*(doubleclick\.net|google-analytics|analytics\.google)/i.test(msg),
+  },
+  {
+    key:   'ga-script',
+    label: 'Google Analytics script load',
+    test:  msg => /CSP violation.*googletagmanager/i.test(msg),
+  },
+  {
+    key:   'adsense',
+    label: 'Google AdSense / Ad Quality',
+    test:  msg => /CSP violation.*(adtrafficquality|googlesyndication)/i.test(msg),
+  },
+];
+
+async function maybeSendCriticalAlert(entry) {
+  if (!RESEND_API_KEY) return;
+  const msg = entry.message || '';
+  for (const pattern of CRITICAL_ALERT_PATTERNS) {
+    if (!pattern.test(msg)) continue;
+    // Throttle: only one alert per 24h per pattern key
+    const throttleKey = 'alert:csp:' + pattern.key;
+    try {
+      const last = await rGet(throttleKey);
+      if (last && (Date.now() - Number(last)) < ALERT_THROTTLE_MS) continue;
+      await redisCmd('SET', throttleKey, String(Date.now()));
+    } catch (e) { continue; }
+    // Send alert
+    try {
+      // Use support email from admin config, falling back to env var
+      let alertTo = VERIFY_EMAIL_FROM;
+      try {
+        const cfg = await rGet('config:site');
+        if (cfg && cfg.supportEmail) alertTo = cfg.supportEmail;
+      } catch (e) { /* use fallback */ }
+      const html = `
+<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+  <h2 style="color:#DC2626;margin-bottom:4px;">Critical integration broken</h2>
+  <p style="color:#6B7280;margin-top:0;font-size:13px;">EquitySight.app — automated alert</p>
+  <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">
+    <tr><td style="padding:6px 0;color:#6B7280;width:110px;">Integration</td><td style="padding:6px 0;font-weight:600;">${pattern.label}</td></tr>
+    <tr><td style="padding:6px 0;color:#6B7280;">Error</td><td style="padding:6px 0;word-break:break-all;">${String(msg).slice(0, 300)}</td></tr>
+    <tr><td style="padding:6px 0;color:#6B7280;">Page</td><td style="padding:6px 0;">${String(entry.url || 'unknown').slice(0, 200)}</td></tr>
+    <tr><td style="padding:6px 0;color:#6B7280;">Browser</td><td style="padding:6px 0;font-size:12px;color:#6B7280;">${String(entry.userAgent || '').slice(0, 120)}</td></tr>
+  </table>
+  <p style="font-size:13px;color:#374151;">This is typically a CSP misconfiguration in <code>netlify.toml</code>. Check the <code>connect-src</code> or <code>script-src</code> directives and ensure the blocked domain is whitelisted.</p>
+  <p style="font-size:12px;color:#9CA3AF;margin-top:24px;">Next alert for this integration suppressed for 24 hours. View the <a href="https://equitysight.app/admin.html">admin error log</a> for the full list.</p>
+</div>`;
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + RESEND_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: VERIFY_EMAIL_FROM,
+          to: [alertTo],
+          subject: '[EquitySight] ' + pattern.label + ' broken (CSP violation)',
+          html,
+        }),
+      });
+    } catch (e) {
+      console.warn('[client-errors] Alert email failed:', e.message);
+    }
+  }
+}
 
 async function syncToGitHubThrottled() {
   const ghToken = (process.env.GITHUB_TOKEN || '').trim();
@@ -137,6 +209,10 @@ exports.handler = async function (event) {
       await redisCmd('LTRIM', 'client-errors', '0', '499'); // keep last 500
     } catch (e) {
       console.warn('[client-errors] Failed to store error:', e.message);
+    }
+    // Alert on critical integration failures (throttled: once per 24h per pattern)
+    try { await maybeSendCriticalAlert(entry); } catch (e) {
+      console.warn('[client-errors] Alert check failed:', e.message);
     }
     // Auto-sync to GitHub (throttled: max once per 5 minutes)
     try { await syncToGitHubThrottled(); } catch (e) {

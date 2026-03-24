@@ -579,6 +579,25 @@
       </div>
     </div>
 
+    <!-- Partner / Referral Links -->
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>🤝 Partner / Referral Links</h3></div>
+      <div style="padding:24px;">
+        <div class="config-field">
+          <label class="config-label">Partner Links (JSON)</label>
+          <p style="font-size:12px;color:var(--slate);margin:0 0 10px;">
+            JSON object keyed by calculator slug (use <code>"global"</code> for all pages).<br>
+            Each value is an array of <code>{ "name", "tagline", "url", "badge"? }</code> objects.<br>
+            Valid slugs: <code>rental-yield</code>, <code>stamp-duty</code>, <code>cost-of-purchase</code>, <code>equity-release</code>, <code>first-home-buyer</code>, <code>house-flip</code>, <code>loan-serviceability</code>, <code>mortgage-stress</code>, <code>renovation-cost</code>
+          </p>
+          <textarea class="config-input" id="cfg-partner-links" rows="12" spellcheck="false"
+            style="font-family:var(--font-mono);font-size:12px;resize:vertical;"
+            placeholder='{ "global": [], "rental-yield": [ { "name": "Loan Market", "tagline": "Compare 60+ lenders — free.", "url": "https://example.com", "badge": "Recommended" } ] }'></textarea>
+          <div id="partner-links-error" style="color:#ff453a;font-size:12px;margin-top:4px;display:none;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Admin Account -->
     <div class="admin-card">
       <div class="admin-card-head"><h3>Admin Account</h3></div>
