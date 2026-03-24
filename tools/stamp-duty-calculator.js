@@ -156,9 +156,9 @@ function calculate() {
   document.getElementById('r-note').style.display = note ? '' : 'none';
   document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2025\u201326 thresholds. Verify with a solicitor before settlement.';
 
-  document.getElementById('result').style.display = '';
-  document.getElementById('cta').style.display = '';
   if (!_isInit) {
+    document.getElementById('result').style.display = '';
+    document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result
     if(window.trackCalculatorResult) trackCalculatorResult('stamp-duty', {

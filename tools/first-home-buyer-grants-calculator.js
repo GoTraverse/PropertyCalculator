@@ -91,9 +91,9 @@ function calculate() {
 
   document.getElementById('results-container').innerHTML = html;
   document.getElementById('disclaimer').textContent = 'This is a general guide. Eligibility varies by scheme and personal circumstances. Verify with your state\'s revenue office or a mortgage broker.';
-  document.getElementById('result').style.display = '';
-  document.getElementById('cta').style.display = '';
   if (!_isInit) {
+    document.getElementById('result').style.display = '';
+    document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result
     if(window.trackCalculatorResult) trackCalculatorResult('fhb-grants', {

@@ -57,9 +57,9 @@ function calculate() {
   document.getElementById('r-sqm').textContent = fmt(totalMid / area) + '/m\u00B2';
   document.getElementById('r-cont').textContent = addCont ? fmt((contLow + contHigh) / 2) : '$0';
 
-  document.getElementById('result').style.display = '';
-  document.getElementById('cta').style.display = '';
   if (!_isInit) {
+    document.getElementById('result').style.display = '';
+    document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result
     if(window.trackCalculatorResult) trackCalculatorResult('renovation-cost', {
