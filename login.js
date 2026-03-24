@@ -152,18 +152,49 @@ document.getElementById('su-password').addEventListener('keydown', function(e){ 
 document.getElementById('su-password').addEventListener('input', function(){ updatePwStrength(this.value); });
 document.getElementById('su-verify-code').addEventListener('keydown', function(e){ if(e.key==='Enter') doVerifyEmail(); });
 
-// ── Turnstile helper ─────────────────────────────────────────────────────────
-function getTurnstileToken(widgetId){
-  if(typeof turnstile==='undefined') return ''; // library not loaded yet
-  var el=document.getElementById(widgetId);
-  if(!el) return '';
-  return turnstile.getResponse(el) || '';
-}
-function resetTurnstile(widgetId){
+// ── Turnstile helper (explicit render — only one widget at a time) ───────────
+var TURNSTILE_SITEKEY = '0x4AAAAAACvWg4IZeEydKXQ3';
+var _tsWidgetIds = {}; // containerId → turnstile widgetId
+
+function renderTurnstile(containerId){
   if(typeof turnstile==='undefined') return;
-  var el=document.getElementById(widgetId);
-  if(el) turnstile.reset(el);
+  // Already rendered in this container
+  if(_tsWidgetIds[containerId] !== undefined) return;
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  _tsWidgetIds[containerId] = turnstile.render('#'+containerId, {
+    sitekey: TURNSTILE_SITEKEY,
+    theme: 'dark',
+    size: 'normal'
+  });
 }
+function removeTurnstile(containerId){
+  if(typeof turnstile==='undefined') return;
+  if(_tsWidgetIds[containerId] === undefined) return;
+  try{ turnstile.remove(_tsWidgetIds[containerId]); }catch(e){}
+  delete _tsWidgetIds[containerId];
+}
+function getTurnstileToken(containerId){
+  if(typeof turnstile==='undefined') return '';
+  if(_tsWidgetIds[containerId] === undefined) return '';
+  return turnstile.getResponse(_tsWidgetIds[containerId]) || '';
+}
+function resetTurnstile(containerId){
+  if(typeof turnstile==='undefined') return;
+  if(_tsWidgetIds[containerId] === undefined) return;
+  turnstile.reset(_tsWidgetIds[containerId]);
+}
+// Render Turnstile for the active tab only
+function renderTurnstileForTab(tab){
+  if(tab==='signin'){ renderTurnstile('ts-signin'); removeTurnstile('ts-signup'); removeTurnstile('ts-forgot'); }
+  else if(tab==='signup'){ renderTurnstile('ts-signup'); removeTurnstile('ts-signin'); removeTurnstile('ts-forgot'); }
+  else if(tab==='forgot'){ renderTurnstile('ts-forgot'); removeTurnstile('ts-signin'); removeTurnstile('ts-signup'); }
+}
+// Called by Turnstile script once loaded — render for initial active tab
+window.onTurnstileReady = function(){
+  var signupVisible = document.getElementById('form-signup').style.display !== 'none';
+  renderTurnstileForTab(signupVisible ? 'signup' : 'signin');
+};
 
 // ── Functions ────────────────────────────────────────────────────────────────
 
@@ -177,6 +208,7 @@ function setTab(t){
   var s = document.getElementById('login-sub');
   if(h) h.textContent = t==='signin' ? 'Welcome back' : 'Create your account';
   if(s) s.textContent = t==='signin' ? 'Sign in to access your property scenarios' : 'Start for free — no credit card required';
+  renderTurnstileForTab(t);
 }
 
 function showForgotPassword(){
@@ -193,6 +225,7 @@ function showForgotPassword(){
   if(s) s.textContent = "We'll send a code to your email";
   var siEmail = document.getElementById('si-email').value;
   if(siEmail) document.getElementById('fp-email').value = siEmail;
+  renderTurnstileForTab('forgot');
   setTimeout(function(){ document.getElementById('fp-email').focus(); }, 80);
 }
 
