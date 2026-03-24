@@ -7,6 +7,10 @@ Disallow: /account.html
 Disallow: /app.html
 Disallow: /.netlify/
 
+# ── Google AdSense crawler — explicit allow required for AdSense review ───────
+User-agent: Mediapartners-Google
+Allow: /
+
 # ── SEO crawlers / link analysers ────────────────────────────────────────────
 User-agent: SemrushBot
 Disallow: /
