@@ -1622,7 +1622,7 @@
 
   async function saveScenario(quiet){
     // Track scenario save
-    if(window.trackScenarioAction) trackScenarioAction('save', currentScenario || {});
+    if(window.trackScenarioAction) trackScenarioAction('save', {});
 
     const state    = collectCurrentState();
     const addr     = state.values['pd-address'] || '';

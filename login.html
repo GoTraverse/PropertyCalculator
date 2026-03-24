@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="login.css">
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileReady" async defer></script>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="alternate icon" href="favicon.svg">
   <meta name="theme-color" content="#1C1C1E">
@@ -54,7 +54,7 @@
     <div id="form-signin">
       <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="si-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
       <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="si-password" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-      <div class="cf-turnstile" id="ts-signin" data-sitekey="0x4AAAAAACvWg4IZeEydKXQ3" data-theme="dark" data-size="normal"></div>
+      <div id="ts-signin"></div>
       <div class="form-error" id="si-error"></div>
       <button class="form-submit" id="si-btn">Sign In →</button>
       <div style="text-align:center;margin-top:12px;">
@@ -66,7 +66,7 @@
       <div id="forgot-step-request">
         <div style="font-size:13px;color:rgba(245,240,232,0.55);margin-bottom:14px;">Enter your email and we'll send a reset code.</div>
         <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="fp-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
-        <div class="cf-turnstile" id="ts-forgot" data-sitekey="0x4AAAAAACvWg4IZeEydKXQ3" data-theme="dark" data-size="normal"></div>
+        <div id="ts-forgot"></div>
         <div class="form-error" id="fp-error"></div>
         <button class="form-submit" id="fp-btn">Send Reset Code →</button>
       </div>
@@ -100,7 +100,7 @@
           <span>I agree to the <a href="/terms" target="_blank" style="color:#C9A84C;">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank" style="color:#C9A84C;">Privacy Policy</a></span>
         </label>
       </div>
-      <div class="cf-turnstile" id="ts-signup" data-sitekey="0x4AAAAAACvWg4IZeEydKXQ3" data-theme="dark" data-size="normal"></div>
+      <div id="ts-signup"></div>
       <div class="form-error" id="su-error"></div>
       <button class="form-submit" id="su-btn">Create Account →</button>
       <p style="text-align:center;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:rgba(245,240,232,0.28);margin-top:10px;">FREE TO START · NO CREDIT CARD · TAKES 30 SECONDS</p>
