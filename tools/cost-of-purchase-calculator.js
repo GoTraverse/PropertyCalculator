@@ -87,7 +87,12 @@ function calc() {
   setTextContent('summaryPct', totalPct.toFixed(1));
   setTextContent('summaryCashNeeded', cashNeeded);
 
-  document.getElementById('cta').style.display = '';
+  if (!_isInit) {
+    document.getElementById('cost-breakdown').style.display = '';
+    document.getElementById('result').style.display = '';
+    document.getElementById('cta').style.display = '';
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 
   // Track calculator result
   if(window.trackCalculatorResult) trackCalculatorResult('cost-of-purchase', {
@@ -169,8 +174,10 @@ ToolPage.init({
   ]
 });
 
+var _isInit = true;
 if(window.trackCalculatorStart) trackCalculatorStart('cost-of-purchase');
 calc();
+_isInit = false;
 ['purchasePrice','depositPct','weeklyRent','leaseBreak'].forEach(function(id) {
   var el = document.getElementById(id);
   if(el) el.addEventListener('input', dCalc);
