@@ -507,18 +507,18 @@ const dirIndexHTML = `<!DOCTYPE html>
 <body>
 
 <header class="tool-header">
-  <a href="/index.html" class="tool-logo">
+  <a href="/" class="tool-logo">
     <span class="tool-logo-mark">🏠</span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="/login.html?tab=signup" class="tool-header-link">Free full calculator →</a>
+  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
 </header>
 <script src="/auth-nav.js"></script>
 <script src="/error-capture.js"></script>
 
 <section class="tool-hero">
   <nav class="suburb-breadcrumb">
-    <a href="/index.html">Home</a> <span>›</span>
+    <a href="/">Home</a> <span>›</span>
     <span>All Suburbs</span>
   </nav>
   <div class="tool-eyebrow">Suburb Insights · Australia</div>
@@ -557,7 +557,7 @@ ${links}
     <div class="tool-cta-eye">Full Property Analysis</div>
     <h3>Analyse any Australian property</h3>
     <p>30-year projections, scenario comparison, cash flow analysis, and PDF export.</p>
-    <a href="/login.html?tab=signup" class="tool-cta-btn">Get started free →</a>
+    <a href="/login?tab=signup" class="tool-cta-btn">Get started free →</a>
   </section>
 
 </div>

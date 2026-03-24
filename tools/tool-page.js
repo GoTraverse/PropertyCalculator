@@ -106,7 +106,7 @@ var ToolPage = (function() {
         '<div class="tool-cta-eye">' + escHtml(cfg.eyebrow || 'Go deeper') + '</div>' +
         '<h3>' + escHtml(cfg.title) + '</h3>' +
         '<p>' + escHtml(cfg.description) + '</p>' +
-        '<a href="' + escHtml(cfg.buttonHref || '../login.html?tab=signup') + '" class="tool-cta-btn">' +
+        '<a href="' + escHtml(cfg.buttonHref || '/login?tab=signup') + '" class="tool-cta-btn">' +
           escHtml(cfg.buttonText || 'Get started free \u2192') +
         '</a>' +
       '</div>';
@@ -213,7 +213,7 @@ var ToolPage = (function() {
         '<span>Free account \u2014 save scenarios, compare properties, export PDF.</span>' +
       '</div>' +
       '<div class="tool-save-prompt-actions">' +
-        '<a href="' + escHtml(signupHref || '../login.html?tab=signup') + '" class="tool-save-prompt-btn">Create free account \u2192</a>' +
+        '<a href="' + escHtml(signupHref || '/login?tab=signup') + '" class="tool-save-prompt-btn">Create free account \u2192</a>' +
         '<button class="tool-save-prompt-dismiss" id="tool-save-prompt-dismiss-btn" aria-label="Dismiss">Not now</button>' +
       '</div>';
     document.body.appendChild(el);

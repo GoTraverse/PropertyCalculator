@@ -116,7 +116,7 @@ ToolPage.init({
     title: 'Ready to buy?',
     description: 'Now that you know the upfront costs, use EquitySight to model your entire investment — including ongoing costs, rental income, and 30-year projections.',
     buttonText: 'Get started free \u2192',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -151,21 +151,21 @@ ToolPage.init({
     disclaimer: 'These are 2026 estimates based on typical costs. Actual costs vary by location, property, lender, and circumstance. Consult your lender, lawyer, and financial adviser before purchasing.'
   },
   share: {
-    url: 'https://equitysight.app/tools/cost-of-purchase-calculator.html',
+    url: 'https://equitysight.app/tools/cost-of-purchase-calculator',
     text: 'Just calculated my property buying costs!'
   },
   related: [
-    { href: 'stamp-duty-calculator.html', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
-    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
-    { href: 'first-home-buyer-grants-calculator.html', icon: '\uD83C\uDF81', label: 'FHB Grants' },
-    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
+    { href: '/tools/stamp-duty-calculator', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
+    { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: '/tools/first-home-buyer-grants-calculator', icon: '\uD83C\uDF81', label: 'FHB Grants' },
+    { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'house-flip-calculator.html', text: 'House Flip' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: 'loan-serviceability-calculator.html', text: 'Loan Serviceability' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/house-flip-calculator', text: 'House Flip' },
+    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools/loan-serviceability-calculator', text: 'Loan Serviceability' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

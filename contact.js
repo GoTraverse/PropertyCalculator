@@ -37,7 +37,7 @@ var emailCard = document.querySelector('.support-card[data-action="email"]');
   var cards = document.querySelectorAll('.support-card');
   if(cards[0]) cards[0].addEventListener('click', function(){ location.href='mailto:support@EquitySight.app'; });
   if(cards[1]) cards[1].addEventListener('click', showChatNotice);
-  if(cards[2]) cards[2].addEventListener('click', function(){ location.href='pricing.html#comparison'; });
+  if(cards[2]) cards[2].addEventListener('click', function(){ location.href='/pricing#comparison'; });
 })();
 
 // Form submit button

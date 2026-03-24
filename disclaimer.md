@@ -46,4 +46,4 @@ Our website may contain links to third-party websites. We do not endorse, contro
 
 To the fullest extent permitted by applicable law, [COMPANY LEGAL NAME] and its officers, employees, and agents shall not be liable for any loss or damage (including financial loss, property loss, or consequential loss) arising directly or indirectly from reliance on any information, calculation, or estimate produced by equitysight.app.
 
-See our [Terms of Service](terms.html) for the full limitation of liability provisions.
+See our [Terms of Service](/terms) for the full limitation of liability provisions.

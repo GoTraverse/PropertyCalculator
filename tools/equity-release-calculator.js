@@ -42,7 +42,7 @@ ToolPage.init({
     title: 'Plan your renovation or investment',
     description: 'Use EquitySight to model how equity release affects your loan, plan renovations, and project rental returns.',
     buttonText: 'Get started free \u2192',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -75,21 +75,21 @@ ToolPage.init({
     disclaimer: 'This information is general only. Always consult with a licensed financial adviser, accountant, and bank before using equity release for investment or renovation.'
   },
   share: {
-    url: 'https://equitysight.app/tools/equity-release-calculator.html',
+    url: 'https://equitysight.app/tools/equity-release-calculator',
     text: 'Just calculated my home equity release options!'
   },
   related: [
-    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
-    { href: 'mortgage-stress-calculator.html', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
-    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: 'renovation-cost-calculator.html', icon: '\uD83D\uDD28', label: 'Renovation Costs' }
+    { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
+    { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: '/tools/renovation-cost-calculator', icon: '\uD83D\uDD28', label: 'Renovation Costs' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'house-flip-calculator.html', text: 'House Flip' },
-    { href: 'stamp-duty-calculator.html', text: 'Stamp Duty' },
-    { href: 'rental-yield-calculator.html', text: 'Rental Yield' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/house-flip-calculator', text: 'House Flip' },
+    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools/rental-yield-calculator', text: 'Rental Yield' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

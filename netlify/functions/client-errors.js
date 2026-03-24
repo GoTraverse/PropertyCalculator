@@ -106,7 +106,7 @@ async function maybeSendCriticalAlert(entry) {
     <tr><td style="padding:6px 0;color:#6B7280;">Browser</td><td style="padding:6px 0;font-size:12px;color:#6B7280;">${String(entry.userAgent || '').slice(0, 120)}</td></tr>
   </table>
   <p style="font-size:13px;color:#374151;">This is typically a CSP misconfiguration in <code>netlify.toml</code>. Check the <code>connect-src</code> or <code>script-src</code> directives and ensure the blocked domain is whitelisted.</p>
-  <p style="font-size:12px;color:#9CA3AF;margin-top:24px;">Next alert for this integration suppressed for 24 hours. View the <a href="https://equitysight.app/admin.html">admin error log</a> for the full list.</p>
+  <p style="font-size:12px;color:#9CA3AF;margin-top:24px;">Next alert for this integration suppressed for 24 hours. View the <a href="https://equitysight.app/admin">admin error log</a> for the full list.</p>
 </div>`;
       await fetch('https://api.resend.com/emails', {
         method: 'POST',

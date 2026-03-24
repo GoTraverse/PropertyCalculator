@@ -44,4 +44,4 @@ You can clear all locally stored data at any time:
 
 ## Changes
 
-We may update this Cookie Policy as our practices change. Material changes will be communicated via the Service. See our [Privacy Policy](privacy.html) for broader information on how we handle your data.
+We may update this Cookie Policy as our practices change. Material changes will be communicated via the Service. See our [Privacy Policy](/privacy) for broader information on how we handle your data.

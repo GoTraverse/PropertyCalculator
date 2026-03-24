@@ -14,8 +14,8 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(self)"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://js.stripe.com https://pagead2.googlesyndication.com https://adservice.google.com https://www.googletagservices.com https://www.googletagmanager.com https://accounts.google.com https://ep2.adtrafficquality.google 'sha256-1yHDvs7+Z29Z4G1LhYbHujCAQgQe6Dl/3X8zy2dAQfs=' 'sha256-pXTTJfAUfWH4QBYak7cRfbfeMucEscH05RFbEVdE6Gw='; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://ep2.adtrafficquality.google; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.stripe.com https://nominatim.openstreetmap.org https://ipwho.is https://ipapi.co https://api.rba.gov.au https://data.api.abs.gov.au https://api.domain.com.au https://auth.domain.com.au https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://stats.g.doubleclick.net https://adservice.google.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://region1.analytics.google.com https://www.googletagmanager.com https://ingesteer.services-prod.nsvcs.net https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://accounts.google.com https://oauth2.googleapis.com https://www.google.com https://www.google.com.au; frame-src https://js.stripe.com https://hooks.stripe.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://accounts.google.com https://maps.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://pagead2.googlesyndication.com https://adservice.google.com https://www.googletagservices.com https://www.googletagmanager.com https://accounts.google.com https://ep2.adtrafficquality.google 'sha256-1yHDvs7+Z29Z4G1LhYbHujCAQgQe6Dl/3X8zy2dAQfs=' 'sha256-pXTTJfAUfWH4QBYak7cRfbfeMucEscH05RFbEVdE6Gw='; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://ep2.adtrafficquality.google; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.stripe.com https://challenges.cloudflare.com https://nominatim.openstreetmap.org https://ipwho.is https://ipapi.co https://api.rba.gov.au https://data.api.abs.gov.au https://api.domain.com.au https://auth.domain.com.au https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://stats.g.doubleclick.net https://adservice.google.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://region1.analytics.google.com https://www.googletagmanager.com https://ingesteer.services-prod.nsvcs.net https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://accounts.google.com https://oauth2.googleapis.com https://www.google.com https://www.google.com.au; frame-src https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://accounts.google.com https://maps.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
 
 [[headers]]
   for = "/.netlify/functions/*"
@@ -198,149 +198,218 @@
   force = true
 
 # ── Calculator clean-URL redirects (root-level → /tools/) ────────────────────
-# Handles both /slug and /slug.html variants that users or old links may use.
+# Handles /slug and /slug.html variants that users or old links may use.
 
 [[redirects]]
   from = "/rental-yield-calculator"
-  to = "/tools/rental-yield-calculator.html"
+  to = "/tools/rental-yield-calculator"
   status = 301
 
 [[redirects]]
   from = "/rental-yield-calculator.html"
-  to = "/tools/rental-yield-calculator.html"
+  to = "/tools/rental-yield-calculator"
   status = 301
 
 [[redirects]]
   from = "/stamp-duty-calculator"
-  to = "/tools/stamp-duty-calculator.html"
+  to = "/tools/stamp-duty-calculator"
   status = 301
 
 [[redirects]]
   from = "/stamp-duty-calculator.html"
-  to = "/tools/stamp-duty-calculator.html"
+  to = "/tools/stamp-duty-calculator"
   status = 301
 
 [[redirects]]
   from = "/stamp-duty-qld.html"
-  to = "/tools/stamp-duty-calculator.html"
+  to = "/tools/stamp-duty-calculator"
   status = 301
 
 [[redirects]]
   from = "/mortgage-stress-calculator"
-  to = "/tools/mortgage-stress-calculator.html"
+  to = "/tools/mortgage-stress-calculator"
   status = 301
 
 [[redirects]]
   from = "/mortgage-stress-calculator.html"
-  to = "/tools/mortgage-stress-calculator.html"
+  to = "/tools/mortgage-stress-calculator"
   status = 301
 
 [[redirects]]
   from = "/house-flip-calculator"
-  to = "/tools/house-flip-calculator.html"
+  to = "/tools/house-flip-calculator"
   status = 301
 
 [[redirects]]
   from = "/house-flip-calculator.html"
-  to = "/tools/house-flip-calculator.html"
+  to = "/tools/house-flip-calculator"
   status = 301
 
 [[redirects]]
   from = "/cost-of-purchase-calculator"
-  to = "/tools/cost-of-purchase-calculator.html"
+  to = "/tools/cost-of-purchase-calculator"
   status = 301
 
 [[redirects]]
   from = "/cost-of-purchase-calculator.html"
-  to = "/tools/cost-of-purchase-calculator.html"
+  to = "/tools/cost-of-purchase-calculator"
   status = 301
 
 [[redirects]]
   from = "/loan-serviceability-calculator"
-  to = "/tools/loan-serviceability-calculator.html"
+  to = "/tools/loan-serviceability-calculator"
   status = 301
 
 [[redirects]]
   from = "/loan-serviceability-calculator.html"
-  to = "/tools/loan-serviceability-calculator.html"
+  to = "/tools/loan-serviceability-calculator"
   status = 301
 
 [[redirects]]
   from = "/renovation-cost-calculator"
-  to = "/tools/renovation-cost-calculator.html"
+  to = "/tools/renovation-cost-calculator"
   status = 301
 
 [[redirects]]
   from = "/renovation-cost-calculator.html"
-  to = "/tools/renovation-cost-calculator.html"
+  to = "/tools/renovation-cost-calculator"
   status = 301
 
 [[redirects]]
   from = "/equity-release-calculator"
-  to = "/tools/equity-release-calculator.html"
+  to = "/tools/equity-release-calculator"
   status = 301
 
 [[redirects]]
   from = "/equity-release-calculator.html"
-  to = "/tools/equity-release-calculator.html"
+  to = "/tools/equity-release-calculator"
   status = 301
 
 [[redirects]]
   from = "/first-home-buyer-grants-calculator"
-  to = "/tools/first-home-buyer-grants-calculator.html"
+  to = "/tools/first-home-buyer-grants-calculator"
   status = 301
 
 [[redirects]]
   from = "/first-home-buyer-grants-calculator.html"
-  to = "/tools/first-home-buyer-grants-calculator.html"
+  to = "/tools/first-home-buyer-grants-calculator"
   status = 301
 
-# ── Canonicalise /tools/ URLs: no-extension → .html (avoids duplicate analytics) ──
-# Netlify pretty-URLs serves these without redirecting, splitting pageview counts.
+# ── Canonicalise .html → clean URLs (301 redirect for SEO) ──────────────────
+# Netlify pretty-URLs serves foo.html at /foo. These redirects ensure
+# old .html bookmarks/links get 301'd to the clean canonical URL.
 
 [[redirects]]
-  from = "/tools/stamp-duty-calculator"
-  to = "/tools/stamp-duty-calculator.html"
-  status = 301
-
-[[redirects]]
-  from = "/tools/rental-yield-calculator"
-  to = "/tools/rental-yield-calculator.html"
+  from = "/tools/stamp-duty-calculator.html"
+  to = "/tools/stamp-duty-calculator"
   status = 301
 
 [[redirects]]
-  from = "/tools/mortgage-stress-calculator"
-  to = "/tools/mortgage-stress-calculator.html"
+  from = "/tools/rental-yield-calculator.html"
+  to = "/tools/rental-yield-calculator"
   status = 301
 
 [[redirects]]
-  from = "/tools/cost-of-purchase-calculator"
-  to = "/tools/cost-of-purchase-calculator.html"
+  from = "/tools/mortgage-stress-calculator.html"
+  to = "/tools/mortgage-stress-calculator"
   status = 301
 
 [[redirects]]
-  from = "/tools/loan-serviceability-calculator"
-  to = "/tools/loan-serviceability-calculator.html"
+  from = "/tools/cost-of-purchase-calculator.html"
+  to = "/tools/cost-of-purchase-calculator"
   status = 301
 
 [[redirects]]
-  from = "/tools/equity-release-calculator"
-  to = "/tools/equity-release-calculator.html"
+  from = "/tools/loan-serviceability-calculator.html"
+  to = "/tools/loan-serviceability-calculator"
   status = 301
 
 [[redirects]]
-  from = "/tools/first-home-buyer-grants-calculator"
-  to = "/tools/first-home-buyer-grants-calculator.html"
+  from = "/tools/equity-release-calculator.html"
+  to = "/tools/equity-release-calculator"
   status = 301
 
 [[redirects]]
-  from = "/tools/house-flip-calculator"
-  to = "/tools/house-flip-calculator.html"
+  from = "/tools/first-home-buyer-grants-calculator.html"
+  to = "/tools/first-home-buyer-grants-calculator"
   status = 301
 
 [[redirects]]
-  from = "/tools/renovation-cost-calculator"
-  to = "/tools/renovation-cost-calculator.html"
+  from = "/tools/house-flip-calculator.html"
+  to = "/tools/house-flip-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/renovation-cost-calculator.html"
+  to = "/tools/renovation-cost-calculator"
+  status = 301
+
+# ── Canonicalise core page .html → clean URLs ────────────────────────────────
+# Redirects old .html links to clean URLs for consistency and SEO.
+
+[[redirects]]
+  from = "/pricing.html"
+  to = "/pricing"
+  status = 301
+
+[[redirects]]
+  from = "/about.html"
+  to = "/about"
+  status = 301
+
+[[redirects]]
+  from = "/contact.html"
+  to = "/contact"
+  status = 301
+
+[[redirects]]
+  from = "/login.html"
+  to = "/login"
+  status = 301
+
+[[redirects]]
+  from = "/app.html"
+  to = "/app"
+  status = 301
+
+[[redirects]]
+  from = "/account.html"
+  to = "/account"
+  status = 301
+
+[[redirects]]
+  from = "/admin.html"
+  to = "/admin"
+  status = 301
+
+[[redirects]]
+  from = "/showcase.html"
+  to = "/showcase"
+  status = 301
+
+[[redirects]]
+  from = "/privacy.html"
+  to = "/privacy"
+  status = 301
+
+[[redirects]]
+  from = "/terms.html"
+  to = "/terms"
+  status = 301
+
+[[redirects]]
+  from = "/cookies.html"
+  to = "/cookies"
+  status = 301
+
+[[redirects]]
+  from = "/disclaimer.html"
+  to = "/disclaimer"
+  status = 301
+
+[[redirects]]
+  from = "/index.html"
+  to = "/"
   status = 301
 
 # ── Fix relative-path asset requests from cached suburb/invest pages ─────────

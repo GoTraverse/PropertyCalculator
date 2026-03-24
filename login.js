@@ -1,7 +1,7 @@
 // login.js — Login/signup page logic
 // Extracted from login.html inline script block.
 
-const ALLOWED_NEXT = ['app.html', 'account.html', 'pricing.html'];
+const ALLOWED_NEXT = ['app', 'account', 'pricing'];
 
 // Redirect if already logged in
 (function(){
@@ -10,7 +10,8 @@ const ALLOWED_NEXT = ['app.html', 'account.html', 'pricing.html'];
     if(s && (s.id || s.email)){
       const params = new URLSearchParams(location.search);
       const raw = params.get('next') || '';
-      const next = ALLOWED_NEXT.includes(raw) ? raw : 'app.html';
+      const clean = raw.replace(/\.html$/, '');
+      const next = ALLOWED_NEXT.includes(clean) ? '/' + clean : '/app';
       goTo(next);
     }
   }catch(e){}
@@ -78,7 +79,7 @@ async function handleGoogleCredential(response){
         localStorage.setItem('propCalc_profile_v1_'+(res.id||res.email), JSON.stringify(profileRes.profile));
       }
     }catch(e){}
-    goTo('app.html');
+    goTo('/app');
   } else {
     if(errEl) errEl.textContent = res.error || 'Google sign-in failed — please try again or use email/password below';
   }
@@ -151,6 +152,19 @@ document.getElementById('su-password').addEventListener('keydown', function(e){ 
 document.getElementById('su-password').addEventListener('input', function(){ updatePwStrength(this.value); });
 document.getElementById('su-verify-code').addEventListener('keydown', function(e){ if(e.key==='Enter') doVerifyEmail(); });
 
+// ── Turnstile helper ─────────────────────────────────────────────────────────
+function getTurnstileToken(widgetId){
+  if(typeof turnstile==='undefined') return ''; // library not loaded yet
+  var el=document.getElementById(widgetId);
+  if(!el) return '';
+  return turnstile.getResponse(el) || '';
+}
+function resetTurnstile(widgetId){
+  if(typeof turnstile==='undefined') return;
+  var el=document.getElementById(widgetId);
+  if(el) turnstile.reset(el);
+}
+
 // ── Functions ────────────────────────────────────────────────────────────────
 
 function setTab(t){
@@ -187,12 +201,14 @@ async function requestReset(){
   const email = document.getElementById('fp-email').value.trim();
   const errEl = document.getElementById('fp-error');
   if(!email){ errEl.textContent = 'Please enter your email'; return; }
+  const turnstileToken = getTurnstileToken('ts-forgot');
+  if(!turnstileToken){ errEl.textContent = 'Please complete the security check'; return; }
   errEl.textContent = '';
   const btn = document.getElementById('fp-btn');
   btn.textContent = 'Sending…'; btn.disabled = true;
   _fpEmail = email;
   if(window.trackAuthAction) trackAuthAction('password_reset_requested', 'pending');
-  await callAuth('requestPasswordReset', {email});
+  await callAuth('requestPasswordReset', {email,turnstileToken});
   btn.textContent = 'Send Reset Code →'; btn.disabled = false;
   document.getElementById('forgot-step-request').style.display = 'none';
   document.getElementById('forgot-step-reset').style.display = '';
@@ -268,8 +284,8 @@ function persistSession(res, fallback){
 }
 
 function postVerificationRedirect(plan){
-  if(plan==='pro') goTo('account.html?checkout=1&panel=subscription');
-  else goTo('account.html?panel=subscription');
+  if(plan==='pro') goTo('/account?checkout=1&panel=subscription');
+  else goTo('/account?panel=subscription');
 }
 
 function showVerificationStep(data){
@@ -285,9 +301,11 @@ async function doSignin(){
   const errEl = document.getElementById('si-error');
   const btn = document.getElementById('si-btn');
   if(!email||!password){ errEl.textContent='Please enter email and password'; return; }
+  const turnstileToken = getTurnstileToken('ts-signin');
+  if(!turnstileToken){ errEl.textContent='Please complete the security check'; return; }
   btn.disabled=true; btn.textContent='Signing in…'; errEl.textContent='';
   showSpinner();
-  const res = await callAuth('signin', {email,password});
+  const res = await callAuth('signin', {email,password,turnstileToken});
   if(res.ok){
     persistSession(res, {email});
     // Track email Sign-In
@@ -304,7 +322,7 @@ async function doSignin(){
         localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
       }
     }catch(e){}
-    goTo('app.html');
+    goTo('/app');
     return;
   }
   hideSpinner();
@@ -318,6 +336,7 @@ async function doSignin(){
   } else {
     errEl.textContent = res.error || 'Sign in failed — please try again';
   }
+  resetTurnstile('ts-signin');
   btn.disabled=false; btn.textContent='Sign In →';
 }
 
@@ -340,15 +359,18 @@ async function doSignup(){
   if(!/[0-9]/.test(password)) pwErrors.push('one number');
   if(!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) pwErrors.push('one special character (!@#$…)');
   if(pwErrors.length){ errEl.textContent='Password needs: ' + pwErrors.join(', '); return; }
+  const turnstileToken = getTurnstileToken('ts-signup');
+  if(!turnstileToken){ errEl.textContent='Please complete the security check'; return; }
   btn.disabled=true; btn.textContent='Creating account…'; errEl.textContent='';
   const pendingRef = localStorage.getItem('equitySight_pendingRef') || '';
-  const res = await callAuth('signup', {email,password,name,plan,ref:pendingRef});
+  const res = await callAuth('signup', {email,password,name,plan,ref:pendingRef,turnstileToken});
   if(res.ok && res.requiresEmailVerification){
     localStorage.removeItem('equitySight_pendingRef');
     showVerificationStep(res);
     document.getElementById('verify-error').textContent='';
   } else {
     errEl.textContent = res.error || 'Could not create account — please try again';
+    resetTurnstile('ts-signup');
     btn.disabled=false; btn.textContent='Create Account →';
   }
 }

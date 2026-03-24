@@ -182,7 +182,7 @@ ToolPage.init({
     title: 'Model the full property investment',
     description: 'Add rental income, renovation costs, equity projections, and compare multiple properties side by side — all in EquitySight.',
     buttonText: 'Get started free \u2192',
-    buttonHref: '../login.html?tab=signup'
+    buttonHref: '/login?tab=signup'
   },
   resources: {
     groups: [
@@ -222,21 +222,21 @@ ToolPage.init({
     disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Rates change regularly \u2014 verify current rates with your state revenue office.'
   },
   share: {
-    url: 'https://equitysight.app/tools/stamp-duty-calculator.html',
+    url: 'https://equitysight.app/tools/stamp-duty-calculator',
     text: 'Just calculated my stamp duty instantly!'
   },
   related: [
-    { href: 'cost-of-purchase-calculator.html', icon: '\uD83D\uDCB5', label: 'Total Cost of Purchase' },
-    { href: 'loan-serviceability-calculator.html', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
-    { href: 'first-home-buyer-grants-calculator.html', icon: '\uD83C\uDF81', label: 'FHB Grants' },
-    { href: 'equity-release-calculator.html', icon: '\uD83D\uDCB0', label: 'Equity Release' }
+    { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Total Cost of Purchase' },
+    { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: '/tools/first-home-buyer-grants-calculator', icon: '\uD83C\uDF81', label: 'FHB Grants' },
+    { href: '/tools/equity-release-calculator', icon: '\uD83D\uDCB0', label: 'Equity Release' }
   ],
   footer: [
-    { href: '../index.html', text: 'EquitySight.app' },
-    { href: 'mortgage-stress-calculator.html', text: 'Mortgage Stress' },
-    { href: 'cost-of-purchase-calculator.html', text: 'Cost of Purchase' },
-    { href: 'loan-serviceability-calculator.html', text: 'Loan Serviceability' },
-    { href: '../privacy.html', text: 'Privacy' }
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools/mortgage-stress-calculator', text: 'Mortgage Stress' },
+    { href: '/tools/cost-of-purchase-calculator', text: 'Cost of Purchase' },
+    { href: '/tools/loan-serviceability-calculator', text: 'Loan Serviceability' },
+    { href: '/privacy', text: 'Privacy' }
   ]
 });
 

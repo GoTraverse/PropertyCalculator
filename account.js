@@ -150,7 +150,7 @@ function renderPlan(){
 
   if(upgradeEl){
     upgradeEl.innerHTML = plan==='free'
-      ? '<a href="pricing.html" class="acct-btn acct-btn-gold">Upgrade to Pro →</a>'
+      ? '<a href="/pricing" class="acct-btn acct-btn-gold">Upgrade to Pro →</a>'
       : '<button class="acct-btn acct-btn-outline" id="manage-billing-btn-dynamic">Manage billing</button>';
     const dynBtn = upgradeEl.querySelector('#manage-billing-btn-dynamic');
     if(dynBtn) dynBtn.addEventListener('click', openBillingPortal);
@@ -341,7 +341,7 @@ async function confirmDeleteAccount(){
       if(window.trackAuthAction) trackAuthAction('account_deleted', 'success');
       localStorage.clear();
       await acctAlert('Account Deleted', 'Your account has been deleted. You will now be redirected.', {icon:'👋'});
-      location.href='index.html';
+      location.href='/';
     } else {
       if(window.trackAuthAction) trackAuthAction('account_deleted', 'failure');
       await acctAlert('Error', d.error||'Failed to delete account. Please try again.', {danger:true, icon:'✗'});
@@ -349,7 +349,7 @@ async function confirmDeleteAccount(){
   }catch(e){
     localStorage.clear();
     await acctAlert('Error', 'Account data cleared locally. Contact support@EquitySight.app to remove server data.', {icon:'⚠️'});
-    location.href='index.html';
+    location.href='/';
   }
 }
 
@@ -360,7 +360,7 @@ function doSignOut(){
     fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'signout',token:session.token})}).catch(()=>{});
   }
   localStorage.removeItem(SK);
-  location.href='index.html';
+  location.href='/';
 }
 
 function applyTheme(theme){
@@ -440,9 +440,9 @@ document.getElementById('acct-dialog-confirm').addEventListener('click', functio
 
 // Gate view buttons
 var signInGateBtn = document.getElementById('gate-signin-btn');
-if(signInGateBtn) signInGateBtn.addEventListener('click', function(){ location.href='login.html'; });
+if(signInGateBtn) signInGateBtn.addEventListener('click', function(){ location.href='/login'; });
 var signUpGateBtn = document.getElementById('gate-signup-btn');
-if(signUpGateBtn) signUpGateBtn.addEventListener('click', function(){ location.href='login.html?tab=signup'; });
+if(signUpGateBtn) signUpGateBtn.addEventListener('click', function(){ location.href='/login?tab=signup'; });
 
 // Nav panel switching (event delegation)
 document.querySelectorAll('.acct-nav-item[data-panel]').forEach(function(btn){

@@ -863,7 +863,7 @@
         if (!feasible) svcHtml += `<span style="color:var(--risk-red);">Shortfall: ${fmtK(Math.abs(gap))}</span>`;
         else svcHtml += `<span style="color:var(--sage);">Headroom: ${fmtK(gap)}</span>`;
         svcHtml += `</div>`;
-        svcHtml += `<div style="font-size:10px;color:var(--slate);line-height:1.6;">APRA requires lenders to assess at rate + 3% buffer. Actual capacity varies by lender, expenses, and existing debts. <a href="../tools/loan-serviceability-calculator.html" target="_blank" style="color:var(--sky);">Run full serviceability check →</a></div>`;
+        svcHtml += `<div style="font-size:10px;color:var(--slate);line-height:1.6;">APRA requires lenders to assess at rate + 3% buffer. Actual capacity varies by lender, expenses, and existing debts. <a href="/tools/loan-serviceability-calculator" target="_blank" style="color:var(--sky);">Run full serviceability check →</a></div>`;
         svcCard.innerHTML = svcHtml;
         svcCard.style.display = '';
       } else {
@@ -1652,7 +1652,7 @@
         );
         if(!isUpdate){
           const plural = freeLimit > 1 ? 's' : '';
-          showToast(`🔒 Free plan allows ${freeLimit} saved scenario${plural}. <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>`, 6000);
+          showToast(`🔒 Free plan allows ${freeLimit} saved scenario${plural}. <a href="/pricing" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>`, 6000);
           return;
         }
       }
@@ -4409,7 +4409,7 @@
     if(isPro()) return true;
     // Track feature gating - free user attempted to access pro feature
     if(window.trackFeatureGated) trackFeatureGated(featureName, 'attempted_access');
-    showToast('🔒 ' + featureName + ' is a Pro feature — <a href="pricing.html" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);
+    showToast('🔒 ' + featureName + ' is a Pro feature — <a href="/pricing" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);
     return false;
   }
   window.requirePro = requirePro;
@@ -4468,7 +4468,7 @@
         signBtn.onclick = signOut;
       } else {
         signBtn.textContent = '🔑 Sign In / Create Account';
-        signBtn.onclick = function(){ location.href='login.html'; };
+        signBtn.onclick = function(){ location.href='/login'; };
       }
     }
     const ct   = document.getElementById('saved-count');
@@ -4626,7 +4626,7 @@
       callAuthFn('signout', {token: _currentUser.token}).catch(function(){});
     }
     lsDel(SESSION_KEY);
-    location.href = 'login.html';
+    location.href = '/login';
   }
 
   // ── NEW SCENARIO ──
@@ -4765,7 +4765,7 @@
   })();
 
     window.openAccountPanel = function(){
-    if(!_currentUser){ location.href='login.html'; return; }
+    if(!_currentUser){ location.href='/login'; return; }
     document.getElementById('account-panel').classList.add('open');
     document.getElementById('account-panel-overlay').classList.add('open');
     document.body.style.overflow='hidden';
@@ -4959,7 +4959,7 @@
       if(d.ok){
         localStorage.clear();
         await appAlert('Account Deleted', 'Your account has been deleted. You will now be redirected.', {icon:'👋'});
-        location.href='index.html';
+        location.href='/';
       } else {
         await appAlert('Error', d.error||'Incorrect password — account not deleted', {danger:true, icon:'✗'});
       }

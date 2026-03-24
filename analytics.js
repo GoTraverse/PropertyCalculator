@@ -211,7 +211,7 @@ window.trackPageEvent = function(eventName, eventData) {
 // ── Tool/Calculator Page Tracking ────────────────────────────────────────
 (function() {
   var path = window.location.pathname;
-  var isToolPage = path.includes('/tools/') || path.includes('.html');
+  var isToolPage = path.includes('/tools/');
 
   if (isToolPage) {
     gtag('event', 'view_item', {

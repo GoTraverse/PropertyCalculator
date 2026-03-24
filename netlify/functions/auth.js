@@ -44,7 +44,7 @@ const DEFAULT_TEMPLATES = {
   },
   welcome: {
     subject: 'Welcome to EquitySight!',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Welcome, {{firstName}}! 🎉</h2><p>Your EquitySight account is verified and ready to go.</p><p>You can now:</p><ul><li>Calculate property investment scenarios</li><li>Save and compare multiple properties</li><li>Track growth projections over time</li></ul><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a><p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Welcome, {{firstName}}! 🎉</h2><p>Your EquitySight account is verified and ready to go.</p><p>You can now:</p><ul><li>Calculate property investment scenarios</li><li>Save and compare multiple properties</li><li>Track growth projections over time</li></ul><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a><p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p></div>',
     variables: ['{{firstName}}', '{{name}}'],
   },
   password_reset: {
@@ -54,27 +54,27 @@ const DEFAULT_TEMPLATES = {
   },
   subscription: {
     subject: 'Your EquitySight plan has been updated',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Plan updated</h2><p>Hi {{firstName}},</p><p>Your plan has been updated to <strong>{{plan}}</strong>.</p><p>You now have access to all features included in your new plan.</p><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Plan updated</h2><p>Hi {{firstName}},</p><p>Your plan has been updated to <strong>{{plan}}</strong>.</p><p>You now have access to all features included in your new plan.</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a></div>',
     variables: ['{{firstName}}', '{{name}}', '{{plan}}'],
   },
   security_alert: {
     subject: 'Security alert — EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C45A5A;">⚠ Security alert</h2><p>Hi {{firstName}},</p><p>We detected the following activity on your account: <strong>{{event}}</strong>.</p><p>If this was you, no action is needed. If you did not do this, please reset your password immediately.</p><a href="https://equitysight.app/login.html" style="display:inline-block;padding:12px 24px;background:#1C1C1E;color:#F5F0E8;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Reset Password</a></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C45A5A;">⚠ Security alert</h2><p>Hi {{firstName}},</p><p>We detected the following activity on your account: <strong>{{event}}</strong>.</p><p>If this was you, no action is needed. If you did not do this, please reset your password immediately.</p><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 24px;background:#1C1C1E;color:#F5F0E8;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Reset Password</a></div>',
     variables: ['{{firstName}}', '{{name}}', '{{event}}'],
   },
   promotional: {
     subject: 'What\'s new at EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">What\'s new</h2><p>Hi {{firstName}},</p><p>We\'ve been working hard on new features for EquitySight. Here\'s what\'s new:</p><p style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:12px 16px;border-radius:0 4px 4px 0;">Your message here...</p><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:16px;">Open Calculator</a><p style="margin-top:24px;font-size:11px;color:#9CA3AF;">You\'re receiving this because you have an EquitySight account.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">What\'s new</h2><p>Hi {{firstName}},</p><p>We\'ve been working hard on new features for EquitySight. Here\'s what\'s new:</p><p style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:12px 16px;border-radius:0 4px 4px 0;">Your message here...</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:16px;">Open Calculator</a><p style="margin-top:24px;font-size:11px;color:#9CA3AF;">You\'re receiving this because you have an EquitySight account.</p></div>',
     variables: ['{{firstName}}', '{{name}}'],
   },
   scenario_shared: {
     subject: '{{senderName}} shared a property scenario with you',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open your calculator to view the shared scenario:</p><a href="https://equitysight.app/app.html" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View Scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">You can find shared scenarios in your Saved Library.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open your calculator to view the shared scenario:</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View Scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">You can find shared scenarios in your Saved Library.</p></div>',
     variables: ['{{firstName}}', '{{senderName}}', '{{address}}'],
   },
   scenario_invite: {
     subject: '{{senderName}} shared a property with you on EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">You\'ve been invited to EquitySight</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Sign up for a free EquitySight account to view it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login.html" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a></p><p style="font-size:12px;color:#999;line-height:1.6;">EquitySight is Australia\'s smartest property investment calculator. Free to use, no credit card required.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">You\'ve been invited to EquitySight</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Sign up for a free EquitySight account to view it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a></p><p style="font-size:12px;color:#999;line-height:1.6;">EquitySight is Australia\'s smartest property investment calculator. Free to use, no credit card required.</p></div>',
     variables: ['{{senderName}}', '{{address}}'],
   },
 };
@@ -95,7 +95,7 @@ async function notifyAdminsNewUser(email, name, plan){
     const admins=users.filter(u=>u&&u.role==='admin'&&u.email);
     if(!admins.length) return;
     const subject='New user signed up — EquitySight';
-    const html='<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">New user signed up</h2><p><strong>Name:</strong> '+escHtml(name)+'</p><p><strong>Email:</strong> '+escHtml(email)+'</p><p><strong>Plan:</strong> '+escHtml(plan)+'</p><p><strong>Time:</strong> '+new Date().toISOString()+'</p><a href="https://equitysight.app/admin.html" style="display:inline-block;padding:10px 20px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View in Admin</a></div>';
+    const html='<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">New user signed up</h2><p><strong>Name:</strong> '+escHtml(name)+'</p><p><strong>Email:</strong> '+escHtml(email)+'</p><p><strong>Plan:</strong> '+escHtml(plan)+'</p><p><strong>Time:</strong> '+new Date().toISOString()+'</p><a href="https://equitysight.app/admin" style="display:inline-block;padding:10px 20px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View in Admin</a></div>';
     await Promise.all(admins.map(a=>sendResend(a.email,subject,html)));
   }catch(e){ console.warn('[auth] Admin new-user notification failed:',e.message); }
 }
@@ -245,6 +245,26 @@ async function logEvent(userId,type,extra){
 
 const EMAIL_CODE_TTL_MS = 1000 * 60 * 15; // 15 minutes
 
+// ── Cloudflare Turnstile CAPTCHA verification ────────────────────────────────
+const TURNSTILE_SECRET = (process.env.TURNSTILE_SECRET_KEY || '').trim();
+
+async function verifyTurnstile(token, ip){
+  if(!TURNSTILE_SECRET) return true; // skip if not configured (dev)
+  if(!token) return false;
+  try{
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'secret='+encodeURIComponent(TURNSTILE_SECRET)+'&response='+encodeURIComponent(token)+'&remoteip='+encodeURIComponent(ip||'')
+    });
+    const data = await res.json();
+    return data.success === true;
+  }catch(e){
+    console.warn('[auth] Turnstile verification error:', e.message);
+    return false;
+  }
+}
+
 function hashPw(pw){ return crypto.createHmac('sha256',SALT).update(pw).digest('hex'); }
 function makeToken(){ return crypto.randomBytes(32).toString('hex'); }
 function makeEmailCode(){ return String(crypto.randomInt(100000, 1000000)); }
@@ -278,15 +298,24 @@ exports.handler = async function(event){
     return fail('Auth not configured — set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Netlify Site Settings → Environment variables');
   }
 
+  // ── General per-IP rate limit: max 30 auth requests per 60 seconds ──────────
+  const reqIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+  try{
+    const ipCount=await rRateInc('authReq:'+reqIp, 60);
+    if(ipCount>30) return fail('Too many requests — please slow down', 429);
+  }catch(e){ /* non-fatal — don't block if Redis hiccups */ }
+
   let body;
   try{body=JSON.parse(event.body||'{}');}catch(e){return fail('Bad request',400);}
   const {action}=body;
 
   if(action==='signup'){
-    const {email,password,name,plan,ref}=body;
+    const {email,password,name,plan,ref,turnstileToken}=body;
     if(!email||!password) return fail('Email and password required');
-    // Rate limit signups per IP to prevent email-bombing the transactional email service
+    // Turnstile CAPTCHA verification
     const clientIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, clientIp)) return fail('Security check failed — please try again', 403);
+    // Rate limit signups per IP to prevent email-bombing the transactional email service
     const signupRateKey='signup:'+clientIp;
     const signupCount=await rRateInc(signupRateKey,3600); // 1-hour window
     if(signupCount>10) return fail('Too many signups from this IP — please try again later');
@@ -335,8 +364,11 @@ exports.handler = async function(event){
   }
 
   if(action==='signin'){
-    const {email,password}=body;
+    const {email,password,turnstileToken}=body;
     if(!email||!password) return fail('Email and password required');
+    // Turnstile CAPTCHA verification
+    const signinIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, signinIp)) return fail('Security check failed — please try again', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Rate limit: max 10 failed attempts per email per 15 minutes
     const failKey='loginFail:'+normalizedEmail;
@@ -603,8 +635,11 @@ exports.handler = async function(event){
   }
 
   if(action==='requestPasswordReset'){
-    const {email}=body;
+    const {email,turnstileToken}=body;
     if(!email) return fail('Email required');
+    // Turnstile CAPTCHA verification
+    const resetIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, resetIp)) return fail('Security check failed — please try again', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Rate limit: max 3 reset emails per email per hour (prevent email bombing)
     const rrKey='pwResetReq:'+normalizedEmail;
@@ -1135,7 +1170,7 @@ exports.handler = async function(event){
       await rSet('referral:'+code,userData.id);
     }
     const siteUrl='https://equitysight.app';
-    return ok({ok:true,code,link:siteUrl+'/login.html?ref='+code+'&tab=signup',referralCount:userData.referralCount||0});
+    return ok({ok:true,code,link:siteUrl+'/login?ref='+code+'&tab=signup',referralCount:userData.referralCount||0});
   }
 
   if(action==='adminGetAboutPage'){
