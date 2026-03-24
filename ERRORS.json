@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-03-24T00:32:48.763Z",
-  "count": 1,
+  "syncedAt": "2026-03-24T08:50:30.664Z",
+  "count": 2,
   "errors": [
+    {
+      "at": 1774342228898,
+      "message": "CSP violation: frame-src — blocked \"https://ep2.adtrafficquality.google\"",
+      "source": "https://ep2.adtrafficquality.google",
+      "line": 31,
+      "col": 257,
+      "stack": "",
+      "url": "https://equitysight.app/tools/stamp-duty-calculator",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/146.0.7680.151 Mobile/15E148 Safari/604.1",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1774312367723,
       "message": "Can't find variable: currentScenario",
