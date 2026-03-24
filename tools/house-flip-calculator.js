@@ -64,6 +64,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
+  partnerSlug: 'house-flip',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full buy\u2013hold\u2013sell strategy',

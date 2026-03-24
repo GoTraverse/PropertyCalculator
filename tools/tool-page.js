@@ -28,6 +28,27 @@
 /* Dark mode init — runs immediately on parse to prevent FOUC */
 (function(){ try{ if(localStorage.getItem('equitySight_theme')==='dark') document.documentElement.classList.add('dark-mode'); }catch(e){} })();
 
+/* Partner / referral card styles */
+(function(){
+  var s = document.createElement('style');
+  s.textContent = [
+    '.tool-partners{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:28px 24px;margin-bottom:24px;}',
+    '.dark-mode .tool-partners{background:#1c1c1e;box-shadow:0 2px 12px rgba(0,0,0,.3);}',
+    '.tool-partners-eye{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#C9A84C;margin-bottom:14px;}',
+    '.tool-partners-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}',
+    '.tool-partner-tile{border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:6px;position:relative;}',
+    '.dark-mode .tool-partner-tile{border-color:rgba(255,255,255,.1);}',
+    '.tool-partner-badge{position:absolute;top:10px;right:10px;background:#C9A84C;color:#fff;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:20px;}',
+    '.tool-partner-name{font-weight:600;font-size:15px;color:var(--ink,#1C1C1E);margin-top:2px;}',
+    '.dark-mode .tool-partner-name{color:#f2f2f7;}',
+    '.tool-partner-tagline{font-size:13px;color:var(--slate,#636366);flex:1;}',
+    '.tool-partner-btn{display:inline-block;margin-top:10px;padding:8px 14px;background:#C9A84C;color:#fff;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;text-align:center;transition:opacity .15s;}',
+    '.tool-partner-btn:hover{opacity:.85;}',
+    '.tool-disclosure{font-size:11px;color:var(--slate,#636366);font-style:italic;text-align:center;max-width:640px;margin:0 auto 12px;padding:0 16px;}'
+  ].join('');
+  document.head.appendChild(s);
+})();
+
 /* ══════════════════════════════════════════════════════════════════════
    GLOBAL UTILITIES — available immediately for oninput handlers
    ══════════════════════════════════════════════════════════════════════ */
@@ -128,6 +149,27 @@ var ToolPage = (function() {
       '</div>';
   }
 
+  function renderPartners(root, links) {
+    if (!links || !links.length) return;
+    var html = '<div class="tool-partners">' +
+      '<div class="tool-partners-eye">\uD83E\uDD1D Recommended Partners</div>' +
+      '<div class="tool-partners-grid">';
+    links.forEach(function(p) {
+      html += '<div class="tool-partner-tile">';
+      if (p.badge) html += '<span class="tool-partner-badge">' + escHtml(p.badge) + '</span>';
+      html += '<div class="tool-partner-name">' + escHtml(p.name) + '</div>' +
+        '<div class="tool-partner-tagline">' + escHtml(p.tagline || '') + '</div>' +
+        '<a href="' + escHtml(p.url) + '" target="_blank" rel="noopener sponsored" class="tool-partner-btn">Learn more \u2192</a>' +
+        '</div>';
+    });
+    html += '</div></div>';
+    root.innerHTML = html;
+  }
+
+  function renderDisclosure(root) {
+    root.innerHTML = '<p class="tool-disclosure">Disclosure: Some links on this page are referral links. We may earn a small fee at no extra cost to you.</p>';
+  }
+
   function renderRelated(root, links) {
     if (!links || !links.length) return;
     var html = '<div class="tool-related"><h3>\uD83D\uDD17 Related Calculators</h3><div class="tool-related-grid">';
@@ -207,6 +249,34 @@ var ToolPage = (function() {
 
   /* ── Init ── */
 
+  function _fetchPartners(slug) {
+    var partnersRoot = document.getElementById('tool-partners-root');
+    var disclosureRoot = document.getElementById('tool-disclosure-root');
+    if (!partnersRoot && !disclosureRoot) return;
+    fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'getPublicConfig' })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      var all = (data && data.config && data.config.partnerLinks) || {};
+      var global = all['global'] || [];
+      var specific = slug ? (all[slug] || []) : [];
+      // Merge global + specific, dedupe by url
+      var seen = {};
+      var links = global.concat(specific).filter(function(p) {
+        if (!p || !p.url || seen[p.url]) return false;
+        seen[p.url] = true;
+        return true;
+      });
+      if (!links.length) return;
+      if (partnersRoot) renderPartners(partnersRoot, links);
+      if (disclosureRoot) renderDisclosure(disclosureRoot);
+    })
+    .catch(function(){});
+  }
+
   function init(config) {
     var el;
 
@@ -226,6 +296,8 @@ var ToolPage = (function() {
 
     el = document.getElementById('tool-footer-root');
     if (el) renderFooter(el, config.footer);
+
+    _fetchPartners(config.partnerSlug || '');
   }
 
   /* ── Public API ── */

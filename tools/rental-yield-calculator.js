@@ -50,6 +50,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
+  partnerSlug: 'rental-yield',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full investment scenario',
