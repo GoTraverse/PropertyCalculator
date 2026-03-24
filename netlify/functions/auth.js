@@ -245,6 +245,26 @@ async function logEvent(userId,type,extra){
 
 const EMAIL_CODE_TTL_MS = 1000 * 60 * 15; // 15 minutes
 
+// ── Cloudflare Turnstile CAPTCHA verification ────────────────────────────────
+const TURNSTILE_SECRET = (process.env.TURNSTILE_SECRET_KEY || '').trim();
+
+async function verifyTurnstile(token, ip){
+  if(!TURNSTILE_SECRET) return true; // skip if not configured (dev)
+  if(!token) return false;
+  try{
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'secret='+encodeURIComponent(TURNSTILE_SECRET)+'&response='+encodeURIComponent(token)+'&remoteip='+encodeURIComponent(ip||'')
+    });
+    const data = await res.json();
+    return data.success === true;
+  }catch(e){
+    console.warn('[auth] Turnstile verification error:', e.message);
+    return false;
+  }
+}
+
 function hashPw(pw){ return crypto.createHmac('sha256',SALT).update(pw).digest('hex'); }
 function makeToken(){ return crypto.randomBytes(32).toString('hex'); }
 function makeEmailCode(){ return String(crypto.randomInt(100000, 1000000)); }
@@ -278,15 +298,24 @@ exports.handler = async function(event){
     return fail('Auth not configured — set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Netlify Site Settings → Environment variables');
   }
 
+  // ── General per-IP rate limit: max 30 auth requests per 60 seconds ──────────
+  const reqIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+  try{
+    const ipCount=await rRateInc('authReq:'+reqIp, 60);
+    if(ipCount>30) return fail('Too many requests — please slow down', 429);
+  }catch(e){ /* non-fatal — don't block if Redis hiccups */ }
+
   let body;
   try{body=JSON.parse(event.body||'{}');}catch(e){return fail('Bad request',400);}
   const {action}=body;
 
   if(action==='signup'){
-    const {email,password,name,plan,ref}=body;
+    const {email,password,name,plan,ref,turnstileToken}=body;
     if(!email||!password) return fail('Email and password required');
-    // Rate limit signups per IP to prevent email-bombing the transactional email service
+    // Turnstile CAPTCHA verification
     const clientIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, clientIp)) return fail('Security check failed — please try again', 403);
+    // Rate limit signups per IP to prevent email-bombing the transactional email service
     const signupRateKey='signup:'+clientIp;
     const signupCount=await rRateInc(signupRateKey,3600); // 1-hour window
     if(signupCount>10) return fail('Too many signups from this IP — please try again later');
@@ -335,8 +364,11 @@ exports.handler = async function(event){
   }
 
   if(action==='signin'){
-    const {email,password}=body;
+    const {email,password,turnstileToken}=body;
     if(!email||!password) return fail('Email and password required');
+    // Turnstile CAPTCHA verification
+    const signinIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, signinIp)) return fail('Security check failed — please try again', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Rate limit: max 10 failed attempts per email per 15 minutes
     const failKey='loginFail:'+normalizedEmail;
@@ -603,8 +635,11 @@ exports.handler = async function(event){
   }
 
   if(action==='requestPasswordReset'){
-    const {email}=body;
+    const {email,turnstileToken}=body;
     if(!email) return fail('Email required');
+    // Turnstile CAPTCHA verification
+    const resetIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, resetIp)) return fail('Security check failed — please try again', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Rate limit: max 3 reset emails per email per hour (prevent email bombing)
     const rrKey='pwResetReq:'+normalizedEmail;

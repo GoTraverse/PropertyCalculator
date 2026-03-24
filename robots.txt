@@ -2,9 +2,14 @@
 User-agent: *
 Allow: /
 
+Disallow: /admin
 Disallow: /admin.html
+Disallow: /account
 Disallow: /account.html
+Disallow: /app
 Disallow: /app.html
+Disallow: /login
+Disallow: /login.html
 Disallow: /.netlify/
 
 # ── Google AdSense crawler — explicit allow required for AdSense review ───────
