@@ -40,8 +40,8 @@ function calculate() {
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
 
+  document.getElementById('result').style.display = '';
   if (!_isInit) {
-    document.getElementById('result').style.display = '';
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result

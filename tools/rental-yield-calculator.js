@@ -32,8 +32,8 @@ function calculate() {
   document.getElementById('r-expenses').textContent = totalExpenses > 0 ? fmt(totalExpenses) : 'Not entered';
   document.getElementById('r-verdict').textContent = verdict;
 
+  document.getElementById('result').style.display = '';
   if (!_isInit) {
-    document.getElementById('result').style.display = '';
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result

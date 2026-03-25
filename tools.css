@@ -104,8 +104,20 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-share { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 20px; margin-bottom: 14px; text-align: center; }
 .tool-share h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--charcoal); }
 .tool-share-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.tool-share-btn { padding: 9px 16px; background: var(--gold); color: var(--charcoal); border: none; border-radius: 5px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.tool-share-btn { padding: 9px 16px; border: none; border-radius: 5px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 6px; color: #fff; }
 .tool-share-btn:hover { opacity: 0.88; }
+.tool-share-btn svg { flex-shrink: 0; }
+.tool-share-facebook { background: #1877F2; }
+.tool-share-x { background: #000; }
+.tool-share-linkedin { background: #0A66C2; }
+
+/* ── Trust badges (government/regulatory sources) ── */
+.tool-trust { background: var(--warm-white); border: 1px solid rgba(28,28,30,0.08); border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; text-align: center; }
+.tool-trust-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
+.tool-trust-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px; }
+.tool-trust-logo { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); text-decoration: none; opacity: 0.6; transition: opacity 0.15s; }
+.tool-trust-logo:hover { opacity: 1; }
+.dark-mode .tool-trust { background: #1c1c1e; border-color: rgba(255,255,255,0.08); }
 .tool-related { background: white; border: 1px solid rgba(28,28,30,0.1); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
 .tool-related h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--charcoal); }
 .tool-related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }

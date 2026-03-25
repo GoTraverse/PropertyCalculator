@@ -17,8 +17,8 @@ function calculate() {
   document.getElementById('r-max-borrow').textContent = fmt(maxBorrow);
   document.getElementById('r-available').textContent = fmt(available);
 
+  document.getElementById('result').style.display = '';
   if (!_isInit) {
-    document.getElementById('result').style.display = '';
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result

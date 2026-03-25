@@ -2,7 +2,7 @@
 var stateData = {
   nsw: {
     name: 'New South Wales', dutyName: 'Conveyancing Duty', foreignRate: 0.08,
-    fhbFull: 400000, fhbPartial: 530000, fhbExemption: 8000,
+    fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
     rates: [
       { min: 0, max: 14000, formula: function() { return 0; } },
       { min: 14001, max: 30000, formula: function(v) { return v * 0.0125; } },
@@ -72,7 +72,7 @@ var stateData = {
   },
   act: {
     name: 'Australian Capital Territory', dutyName: 'Duty', foreignRate: 0.08,
-    fhbFull: 450000, fhbPartial: 570000, fhbExemption: Infinity,
+    fhbFull: 1000000, fhbPartial: 1000000, fhbExemption: Infinity,
     rates: [
       { min: 0, max: 7500, formula: function() { return 0; } },
       { min: 7501, max: 30000, formula: function(v) { return v * 0.0125; } },
@@ -82,7 +82,7 @@ var stateData = {
   },
   nt: {
     name: 'Northern Territory', dutyName: 'Duty', foreignRate: 0.08,
-    fhbFull: 400000, fhbPartial: 500000, fhbExemption: Infinity,
+    fhbFull: 650000, fhbPartial: 650000, fhbExemption: Infinity,
     rates: [
       { min: 0, max: 3000, formula: function() { return 0; } },
       { min: 3001, max: 100000, formula: function(v) { return v * 0.0075; } },
@@ -156,8 +156,8 @@ function calculate() {
   document.getElementById('r-note').style.display = note ? '' : 'none';
   document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2025\u201326 thresholds. Verify with a solicitor before settlement.';
 
+  document.getElementById('result').style.display = '';
   if (!_isInit) {
-    document.getElementById('result').style.display = '';
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result

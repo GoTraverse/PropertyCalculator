@@ -46,8 +46,8 @@ function calculate() {
   document.getElementById('r-tdsr').textContent = tdsr.toFixed(1) + '%  (DTI: ' + dti.toFixed(1) + '\u00D7)';
   document.getElementById('r-verdict').textContent = verdict;
 
+  document.getElementById('result').style.display = '';
   if (!_isInit) {
-    document.getElementById('result').style.display = '';
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result

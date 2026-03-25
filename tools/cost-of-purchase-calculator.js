@@ -1,13 +1,13 @@
 /* ═══ STATE COSTS ═══ */
 var stateCosts = {
-  NSW: { conveyancing: { min: 800, max: 1500 }, stampDutyRate: 0.045, fhbThreshold: 500000 },
+  NSW: { conveyancing: { min: 800, max: 1500 }, stampDutyRate: 0.04, fhbThreshold: 800000 },
   VIC: { conveyancing: { min: 1000, max: 1800 }, stampDutyRate: 0.04, fhbThreshold: 600000 },
-  QLD: { conveyancing: { min: 600, max: 1200 }, stampDutyRate: 0.03, fhbThreshold: 500000 },
-  SA:  { conveyancing: { min: 700, max: 1400 }, stampDutyRate: 0.032, fhbThreshold: 450000 },
-  WA:  { conveyancing: { min: 900, max: 1600 }, stampDutyRate: 0.04, fhbThreshold: 600000 },
-  TAS: { conveyancing: { min: 600, max: 1200 }, stampDutyRate: 0.03, fhbThreshold: 360000 },
-  ACT: { conveyancing: { min: 800, max: 1500 }, stampDutyRate: 0.035, fhbThreshold: 475000 },
-  NT:  { conveyancing: { min: 700, max: 1300 }, stampDutyRate: 0.03, fhbThreshold: 450000 }
+  QLD: { conveyancing: { min: 600, max: 1200 }, stampDutyRate: 0.035, fhbThreshold: 500000 },
+  SA:  { conveyancing: { min: 700, max: 1400 }, stampDutyRate: 0.032, fhbThreshold: 575000 },
+  WA:  { conveyancing: { min: 900, max: 1600 }, stampDutyRate: 0.035, fhbThreshold: 430000 },
+  TAS: { conveyancing: { min: 600, max: 1200 }, stampDutyRate: 0.035, fhbThreshold: 400000 },
+  ACT: { conveyancing: { min: 800, max: 1500 }, stampDutyRate: 0.03, fhbThreshold: 1000000 },
+  NT:  { conveyancing: { min: 700, max: 1300 }, stampDutyRate: 0.02, fhbThreshold: 650000 }
 };
 
 function getNumVal(id) {
@@ -87,9 +87,9 @@ function calc() {
   setTextContent('summaryPct', totalPct.toFixed(1));
   setTextContent('summaryCashNeeded', cashNeeded);
 
+  document.getElementById('cost-breakdown').style.display = '';
+  document.getElementById('result').style.display = '';
   if (!_isInit) {
-    document.getElementById('cost-breakdown').style.display = '';
-    document.getElementById('result').style.display = '';
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
