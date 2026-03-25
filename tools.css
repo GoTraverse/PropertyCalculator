@@ -112,12 +112,15 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-share-linkedin { background: #0A66C2; }
 
 /* ── Trust badges (government/regulatory sources) ── */
-.tool-trust { background: var(--warm-white); border: 1px solid rgba(28,28,30,0.08); border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; text-align: center; }
-.tool-trust-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
-.tool-trust-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px; }
-.tool-trust-logo { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); text-decoration: none; opacity: 0.6; transition: opacity 0.15s; }
-.tool-trust-logo:hover { opacity: 1; }
+.tool-trust { background: var(--warm-white); border: 1px solid rgba(28,28,30,0.08); border-radius: 10px; padding: 20px 20px 16px; margin-bottom: 14px; text-align: center; }
+.tool-trust-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
+.tool-trust-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; }
+.tool-trust-logo { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; color: var(--slate); text-decoration: none; opacity: 0.5; transition: opacity 0.2s; cursor: default; }
+.tool-trust-logo:hover { opacity: 0.85; }
+.tool-trust-shield { width: 28px; height: 34px; flex-shrink: 0; }
+.tool-trust-abbr { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
 .dark-mode .tool-trust { background: #1c1c1e; border-color: rgba(255,255,255,0.08); }
+.dark-mode .tool-trust-logo { color: rgba(245,240,232,0.6); }
 .tool-related { background: white; border: 1px solid rgba(28,28,30,0.1); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
 .tool-related h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--charcoal); }
 .tool-related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }

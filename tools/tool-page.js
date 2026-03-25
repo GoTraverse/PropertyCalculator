@@ -174,17 +174,37 @@ var ToolPage = (function() {
   }
 
   function renderTrust(root) {
-    root.innerHTML =
-      '<div class="tool-trust">' +
-        '<div class="tool-trust-title">Data sourced from official Australian bodies</div>' +
-        '<div class="tool-trust-logos">' +
-          '<span class="tool-trust-logo">ATO</span>' +
-          '<span class="tool-trust-logo">RBA</span>' +
-          '<span class="tool-trust-logo">APRA</span>' +
-          '<span class="tool-trust-logo">ASIC</span>' +
-          '<span class="tool-trust-logo">State Revenue Offices</span>' +
-        '</div>' +
-      '</div>';
+    // Australian Commonwealth Coat of Arms shield (simplified)
+    var shield = '<svg class="tool-trust-shield" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M16 0L2 6v14c0 10.5 14 18 14 18s14-7.5 14-18V6L16 0z" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>' +
+      '<path d="M16 4L5 8.5v11c0 8.4 11 14.5 11 14.5s11-6.1 11-14.5v-11L16 4z" fill="currentColor" opacity="0.04"/>' +
+      '</svg>';
+    // State building/pillar icon
+    var pillar = '<svg class="tool-trust-shield" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M16 0L2 6v14c0 10.5 14 18 14 18s14-7.5 14-18V6L16 0z" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>' +
+      '<path d="M10 17h2v8h-2zm4 0h2v8h-2zm4 0h2v8h-2z" fill="currentColor" opacity="0.3"/>' +
+      '<path d="M8 16h16v1.5H8zm0 25.5h16v1.5H8z" fill="currentColor" opacity="0.25" transform="translate(0,-1)"/>' +
+      '</svg>';
+
+    var badges = [
+      { abbr: 'ATO', name: 'Australian Taxation Office' },
+      { abbr: 'RBA', name: 'Reserve Bank of Australia' },
+      { abbr: 'APRA', name: 'Australian Prudential Regulation Authority' },
+      { abbr: 'ASIC', name: 'Australian Securities & Investments Commission' },
+      { abbr: 'SRO', name: 'State Revenue Offices' }
+    ];
+
+    var html = '<div class="tool-trust">' +
+      '<div class="tool-trust-title">Data sourced from official Australian bodies</div>' +
+      '<div class="tool-trust-logos">';
+    badges.forEach(function(b) {
+      html += '<span class="tool-trust-logo" title="' + escHtml(b.name) + '">' +
+        shield +
+        '<span class="tool-trust-abbr">' + escHtml(b.abbr) + '</span>' +
+        '</span>';
+    });
+    html += '</div></div>';
+    root.innerHTML = html;
   }
 
   function renderRelated(root, links) {
