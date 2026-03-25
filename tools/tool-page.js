@@ -178,7 +178,7 @@ var ToolPage = (function() {
       return '<svg class="tool-trust-shield" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg">' +
         '<path d="M18 1L3 7.5v15c0 11 15 18 15 18s15-7 15-18v-15L18 1z" fill="' + color + '" opacity="0.15"/>' +
         '<path d="M18 1L3 7.5v15c0 11 15 18 15 18s15-7 15-18v-15L18 1z" fill="none" stroke="' + color + '" stroke-width="1.8"/>' +
-        '<text x="18" y="26" text-anchor="middle" font-family="var(--font-mono),monospace" font-size="9" font-weight="700" letter-spacing="0.5" fill="' + color + '">' + abbr + '</text>' +
+        '<text x="18" y="23" text-anchor="middle" dominant-baseline="central" font-family="var(--font-mono),monospace" font-size="9" font-weight="700" letter-spacing="0.5" fill="' + color + '">' + abbr + '</text>' +
         '</svg>';
     }
 
@@ -318,9 +318,6 @@ var ToolPage = (function() {
 
     _watchForResult(config.cta && config.cta.buttonHref);
 
-    el = document.getElementById('tool-trust-root');
-    if (el) renderTrust(el);
-
     el = document.getElementById('tool-resources-root');
     if (el) renderResources(el, config.resources);
 
@@ -329,6 +326,9 @@ var ToolPage = (function() {
 
     el = document.getElementById('tool-related-root');
     if (el) renderRelated(el, config.related);
+
+    el = document.getElementById('tool-trust-root');
+    if (el) renderTrust(el);
 
     el = document.getElementById('tool-footer-root');
     if (el) renderFooter(el, config.footer);
