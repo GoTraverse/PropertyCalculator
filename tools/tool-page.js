@@ -318,14 +318,14 @@ var ToolPage = (function() {
 
     _watchForResult(config.cta && config.cta.buttonHref);
 
-    el = document.getElementById('tool-resources-root');
-    if (el) renderResources(el, config.resources);
-
     el = document.getElementById('tool-share-root');
     if (el) renderShare(el, config.share);
 
     el = document.getElementById('tool-related-root');
     if (el) renderRelated(el, config.related);
+
+    el = document.getElementById('tool-resources-root');
+    if (el) renderResources(el, config.resources);
 
     el = document.getElementById('tool-trust-root');
     if (el) renderTrust(el);
