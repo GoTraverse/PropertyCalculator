@@ -1,15 +1,17 @@
 /* ═══ STATE GRANTS DATA ═══ */
 var stateGrants = {
   nsw: {
-    name: 'New South Wales', stampExemptionPrice: 400000, stampPartialPrice: 530000, stampExemptionAmt: 8000,
+    name: 'New South Wales', stampExemptionPrice: 800000, stampPartialPrice: 1000000, stampExemptionAmt: Infinity,
     grants: [
-      { label: 'Stamp Duty Exemption (≤$400k)', estimate: 'Full exemption', condition: 'Homes ≤ $400,000' },
-      { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $400k–$530k' }
+      { label: 'First Home Owner Grant (New)', estimate: '$10,000', condition: 'New homes ≤ $600,000' },
+      { label: 'Stamp Duty Exemption (≤$800k)', estimate: 'Full exemption', condition: 'Homes ≤ $800,000' },
+      { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $800k–$1,000k' }
     ]
   },
   vic: {
     name: 'Victoria', stampExemptionPrice: 600000, stampPartialPrice: 750000, stampExemptionAmt: 25000,
     grants: [
+      { label: 'First Home Owner Grant (New)', estimate: '$10,000', condition: 'New homes ≤ $750,000' },
       { label: 'Stamp Duty Exemption (≤$600k)', estimate: 'Up to $25,000', condition: 'Homes ≤ $600,000' },
       { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $600k–$750k' },
       { label: 'VicFirst Home Loan', estimate: 'Up to $195,000', condition: 'Eligible properties' }
@@ -26,6 +28,7 @@ var stateGrants = {
   sa: {
     name: 'South Australia', stampExemptionPrice: 575000, stampPartialPrice: 650000, stampExemptionAmt: 18000,
     grants: [
+      { label: 'First Home Owner Grant (New)', estimate: '$15,000', condition: 'New homes (no price cap)' },
       { label: 'Stamp Duty Concession (≤$575k)', estimate: 'Full concession', condition: 'Homes ≤ $575,000' },
       { label: 'Stamp Duty Partial Concession', estimate: 'Reduces with price', condition: 'Homes $575k–$650k' }
     ]
@@ -33,6 +36,7 @@ var stateGrants = {
   wa: {
     name: 'Western Australia', stampExemptionPrice: 430000, stampPartialPrice: 500000, stampExemptionAmt: 12000,
     grants: [
+      { label: 'First Home Owner Grant (New)', estimate: '$10,000', condition: 'New homes ≤ $750,000' },
       { label: 'Stamp Duty Exemption (≤$430k)', estimate: 'Full exemption', condition: 'Homes ≤ $430,000' },
       { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $430k–$500k' }
     ]
@@ -46,17 +50,17 @@ var stateGrants = {
     ]
   },
   act: {
-    name: 'Australian Capital Territory', stampExemptionPrice: 450000, stampPartialPrice: 570000, stampExemptionAmt: 20000,
+    name: 'Australian Capital Territory', stampExemptionPrice: 1000000, stampPartialPrice: 1000000, stampExemptionAmt: Infinity,
     grants: [
-      { label: 'Stamp Duty Exemption (≤$450k)', estimate: 'Full exemption', condition: 'Homes ≤ $450,000' },
-      { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $450k–$570k' }
+      { label: 'Stamp Duty Exemption (≤$1M)', estimate: 'Full exemption', condition: 'All homes ≤ $1,000,000' },
+      { label: 'Home Buyer Concession Scheme', estimate: 'Duty concession', condition: 'Income ≤ $160,000 combined' }
     ]
   },
   nt: {
-    name: 'Northern Territory', stampExemptionPrice: 400000, stampPartialPrice: 500000, stampExemptionAmt: 12000,
+    name: 'Northern Territory', stampExemptionPrice: 650000, stampPartialPrice: 650000, stampExemptionAmt: Infinity,
     grants: [
-      { label: 'Stamp Duty Exemption (≤$400k)', estimate: 'Full exemption', condition: 'Homes ≤ $400,000' },
-      { label: 'Stamp Duty Partial Exemption', estimate: 'Reduces with price', condition: 'Homes $400k–$500k' }
+      { label: 'First Home Owner Grant (New)', estimate: '$10,000', condition: 'New homes' },
+      { label: 'Stamp Duty Concession (≤$650k)', estimate: 'Full concession', condition: 'Homes ≤ $650,000' }
     ]
   }
 };
@@ -91,8 +95,8 @@ function calculate() {
 
   document.getElementById('results-container').innerHTML = html;
   document.getElementById('disclaimer').textContent = 'This is a general guide. Eligibility varies by scheme and personal circumstances. Verify with your state\'s revenue office or a mortgage broker.';
+  document.getElementById('result').style.display = '';
   if (!_isInit) {
-    document.getElementById('result').style.display = '';
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result
