@@ -174,24 +174,20 @@ var ToolPage = (function() {
   }
 
   function renderTrust(root) {
-    // Australian Commonwealth Coat of Arms shield (simplified)
-    var shield = '<svg class="tool-trust-shield" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-      '<path d="M16 0L2 6v14c0 10.5 14 18 14 18s14-7.5 14-18V6L16 0z" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>' +
-      '<path d="M16 4L5 8.5v11c0 8.4 11 14.5 11 14.5s11-6.1 11-14.5v-11L16 4z" fill="currentColor" opacity="0.04"/>' +
-      '</svg>';
-    // State building/pillar icon
-    var pillar = '<svg class="tool-trust-shield" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-      '<path d="M16 0L2 6v14c0 10.5 14 18 14 18s14-7.5 14-18V6L16 0z" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>' +
-      '<path d="M10 17h2v8h-2zm4 0h2v8h-2zm4 0h2v8h-2z" fill="currentColor" opacity="0.3"/>' +
-      '<path d="M8 16h16v1.5H8zm0 25.5h16v1.5H8z" fill="currentColor" opacity="0.25" transform="translate(0,-1)"/>' +
-      '</svg>';
+    function badge(color, abbr) {
+      return '<svg class="tool-trust-shield" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg">' +
+        '<path d="M18 1L3 7.5v15c0 11 15 18 15 18s15-7 15-18v-15L18 1z" fill="' + color + '" opacity="0.12"/>' +
+        '<path d="M18 1L3 7.5v15c0 11 15 18 15 18s15-7 15-18v-15L18 1z" fill="none" stroke="' + color + '" stroke-width="1.5"/>' +
+        '<text x="18" y="26" text-anchor="middle" font-family="var(--font-mono),monospace" font-size="9" font-weight="700" letter-spacing="0.5" fill="' + color + '">' + abbr + '</text>' +
+        '</svg>';
+    }
 
     var badges = [
-      { abbr: 'ATO', name: 'Australian Taxation Office' },
-      { abbr: 'RBA', name: 'Reserve Bank of Australia' },
-      { abbr: 'APRA', name: 'Australian Prudential Regulation Authority' },
-      { abbr: 'ASIC', name: 'Australian Securities & Investments Commission' },
-      { abbr: 'SRO', name: 'State Revenue Offices' }
+      { abbr: 'ATO',  name: 'Australian Taxation Office',                      color: '#1B4F72' },
+      { abbr: 'RBA',  name: 'Reserve Bank of Australia',                       color: '#1A5632' },
+      { abbr: 'APRA', name: 'Australian Prudential Regulation Authority',      color: '#6C3483' },
+      { abbr: 'ASIC', name: 'Australian Securities & Investments Commission',  color: '#B7450D' },
+      { abbr: 'SRO',  name: 'State Revenue Offices',                           color: '#1C6EA4' }
     ];
 
     var html = '<div class="tool-trust">' +
@@ -199,8 +195,8 @@ var ToolPage = (function() {
       '<div class="tool-trust-logos">';
     badges.forEach(function(b) {
       html += '<span class="tool-trust-logo" title="' + escHtml(b.name) + '">' +
-        shield +
-        '<span class="tool-trust-abbr">' + escHtml(b.abbr) + '</span>' +
+        badge(b.color, b.abbr) +
+        '<span class="tool-trust-name">' + escHtml(b.name) + '</span>' +
         '</span>';
     });
     html += '</div></div>';
