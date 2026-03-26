@@ -609,8 +609,12 @@
   .features-grid { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
   .hero-h1 { font-size: 32px; letter-spacing: -0.5px; }
-  .hero-body { grid-template-columns: 1fr!important; padding: 40px 20px 48px!important; gap: 0!important; text-align: center; }
+  .hero-body { grid-template-columns: 1fr!important; padding: 40px 20px 48px!important; gap: 24px!important; text-align: center; }
   .hero-text { display: flex; flex-direction: column; align-items: center; }
+  /* Show hero preview below text on mobile */
+  .hero-preview { display: block; }
+  .hero-float-badge { display: none; }
+  .hero-preview-frame { max-height: 220px; overflow: hidden; }
   .hero-eyebrow { justify-content: center; }
   .hero-sub { font-size: 15px; max-width: 100%; margin-bottom: 28px; }
   .hero-ctas { flex-direction: column; align-items: stretch; gap: 10px; width: 100%; max-width: 320px; }
@@ -625,7 +629,8 @@
   .section-tag { font-size: 9px; }
   section > div > div[style*="display:flex"] { flex-direction: column!important; align-items: stretch!important; }
   section > div > div[style*="display:flex"] > button { width: 100%!important; justify-content: center!important; }
-  .site-footer-grid { grid-template-columns: 1fr!important; gap: 28px; }
+  .site-footer-grid { grid-template-columns: repeat(3, 1fr)!important; gap: 16px!important; }
+  .footer-brand { grid-column: 1 / -1; }
   .footer-bottom { flex-direction: column!important; gap: 10px; text-align: center; }
   .footer-bottom-links { justify-content: center!important; }
   .nav-hamburger { display: none !important; }
@@ -638,4 +643,6 @@
   .showcase-laptop-wrap { max-width: 100%; }
   .sc-phone-grid { grid-template-columns: 1fr 1fr!important; gap: 20px!important; }
   .sc-slot-phone { min-height: 200px!important; }
+  /* Tools section CTA button — full width so long text doesn't wrap */
+  .tools-cta-btn { display: block !important; width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
 }
