@@ -444,7 +444,7 @@ window.toggleTheme = function(){
     } else {
       actions.innerHTML =
         '<a href="/login" class="btn-ghost">Sign in</a>' +
-        '<a href="/login?tab=signup" class="btn-gold">Get started free</a>';
+        '<a href="/login?tab=signup" class="btn-gold"><span class="nav-btn-full">Get started free</span><span class="nav-btn-short">Start free</span></a>';
     }
   }
 
