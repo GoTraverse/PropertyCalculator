@@ -1,15 +1,15 @@
 {
-  "syncedAt": "2026-03-26T11:28:54.280Z",
+  "syncedAt": "2026-03-26T19:01:39.024Z",
   "count": 1,
   "errors": [
     {
-      "at": 1774524533279,
-      "message": "CSP violation: script-src-elem — blocked \"inline\"",
-      "source": "https://equitysight.app/showcase",
-      "line": 400,
-      "col": 1,
+      "at": 1774551698021,
+      "message": "Script error.",
+      "source": "",
+      "line": null,
+      "col": null,
       "stack": "",
-      "url": "https://equitysight.app/showcase",
+      "url": "https://equitysight.netlify.app/login",
       "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/146.0.7680.151 Mobile/15E148 Safari/604.1",
       "userId": "",
       "userName": "",
