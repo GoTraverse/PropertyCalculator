@@ -203,13 +203,22 @@ window.onTurnstileReady = function(){
   setTimeout(function(){
     var form = document.getElementById(inactiveFormId);
     if(!form || _tsWidgetIds[inactiveTsId] !== undefined) return;
+    // Position off-screen so it's display:block (Turnstile can render) but takes no layout space
+    form.style.position = 'fixed';
+    form.style.top = '-9999px';
+    form.style.left = '-9999px';
     form.style.visibility = 'hidden';
+    form.style.pointerEvents = 'none';
     form.style.display = '';
     renderTurnstile(inactiveTsId);
     setTimeout(function(){
-      if(form.style.visibility === 'hidden'){
+      if(form.style.top === '-9999px'){
         form.style.display = 'none';
+        form.style.position = '';
+        form.style.top = '';
+        form.style.left = '';
         form.style.visibility = '';
+        form.style.pointerEvents = '';
       }
     }, 2000);
   }, 400);
@@ -220,9 +229,14 @@ window.onTurnstileReady = function(){
 function setTab(t){
   var siForm = document.getElementById('form-signin');
   var suForm = document.getElementById('form-signup');
-  // Clear any visibility:hidden left by the Turnstile pre-render before showing/hiding
-  siForm.style.visibility = '';
-  suForm.style.visibility = '';
+  // Clear any off-screen positioning left by the Turnstile pre-render before showing/hiding
+  [siForm, suForm].forEach(function(f){
+    f.style.position = '';
+    f.style.top = '';
+    f.style.left = '';
+    f.style.visibility = '';
+    f.style.pointerEvents = '';
+  });
   siForm.style.display = t==='signin' ? '' : 'none';
   suForm.style.display = t==='signup' ? '' : 'none';
   document.getElementById('form-forgot').style.display = 'none';

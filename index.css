@@ -630,10 +630,7 @@
   .section-tag { font-size: 9px; }
   section > div > div[style*="display:flex"] { flex-direction: column!important; align-items: stretch!important; }
   section > div > div[style*="display:flex"] > button { width: 100%!important; justify-content: center!important; }
-  .site-footer-grid { grid-template-columns: repeat(3, 1fr)!important; gap: 16px!important; }
-  .footer-brand { grid-column: 1 / -1; }
-  .footer-bottom { flex-direction: column!important; gap: 10px; text-align: center; }
-  .footer-bottom-links { justify-content: center!important; }
+  .footer-copy { white-space: normal; }
   .nav-hamburger { display: none !important; }
   .site-nav-links { display: flex !important; }
   .site-nav-inner { padding: 0 16px; }
