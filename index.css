@@ -468,7 +468,7 @@
   cursor: zoom-in;
 }
 .sc-slot-desktop { aspect-ratio: 16/10; min-height: 0; }
-.sc-slot-phone { min-height: 280px; }
+.sc-slot-phone { aspect-ratio: 390/844; min-height: 0; }
 
 /* ── Showcase page (showcase.html) ── */
 .sc-page { background: var(--warm-white); }
@@ -640,7 +640,6 @@
   .showcase-phone-wrap { display: none; }
   .showcase-laptop-wrap { max-width: 100%; }
   .sc-phone-grid { grid-template-columns: 1fr 1fr!important; gap: 20px!important; }
-  .sc-slot-phone { min-height: 200px!important; }
   /* Tools section CTA button — full width so long text doesn't wrap */
   .tools-cta-btn { display: block !important; width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
 }
