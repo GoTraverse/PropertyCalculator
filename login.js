@@ -184,23 +184,47 @@ function resetTurnstile(containerId){
   if(_tsWidgetIds[containerId] === undefined) return;
   turnstile.reset(_tsWidgetIds[containerId]);
 }
-// Render Turnstile for the active tab only
+// Render Turnstile for the active tab — never destroy widgets, they persist inside hidden forms
 function renderTurnstileForTab(tab){
-  if(tab==='signin'){ renderTurnstile('ts-signin'); removeTurnstile('ts-signup'); removeTurnstile('ts-forgot'); }
-  else if(tab==='signup'){ renderTurnstile('ts-signup'); removeTurnstile('ts-signin'); removeTurnstile('ts-forgot'); }
-  else if(tab==='forgot'){ renderTurnstile('ts-forgot'); removeTurnstile('ts-signin'); removeTurnstile('ts-signup'); }
+  if(tab==='signin') renderTurnstile('ts-signin');
+  else if(tab==='signup') renderTurnstile('ts-signup');
+  else if(tab==='forgot') renderTurnstile('ts-forgot');
 }
-// Called by Turnstile script once loaded — render for initial active tab
+// Called by Turnstile script once loaded — render active tab, then pre-render the other
 window.onTurnstileReady = function(){
   var signupVisible = document.getElementById('form-signup').style.display !== 'none';
-  renderTurnstileForTab(signupVisible ? 'signup' : 'signin');
+  var activeTab = signupVisible ? 'signup' : 'signin';
+  renderTurnstileForTab(activeTab);
+  // Pre-render the inactive tab's widget so the first switch is instant.
+  // Briefly make the hidden form visibility:hidden (keeps dimensions, allows iframe load)
+  // then re-hide it — setTab() clears visibility before switching, so the timeout is safe.
+  var inactiveFormId = activeTab === 'signin' ? 'form-signup' : 'form-signin';
+  var inactiveTsId  = activeTab === 'signin' ? 'ts-signup'   : 'ts-signin';
+  setTimeout(function(){
+    var form = document.getElementById(inactiveFormId);
+    if(!form || _tsWidgetIds[inactiveTsId] !== undefined) return;
+    form.style.visibility = 'hidden';
+    form.style.display = '';
+    renderTurnstile(inactiveTsId);
+    setTimeout(function(){
+      if(form.style.visibility === 'hidden'){
+        form.style.display = 'none';
+        form.style.visibility = '';
+      }
+    }, 2000);
+  }, 400);
 };
 
 // ── Functions ────────────────────────────────────────────────────────────────
 
 function setTab(t){
-  document.getElementById('form-signin').style.display = t==='signin' ? '' : 'none';
-  document.getElementById('form-signup').style.display = t==='signup' ? '' : 'none';
+  var siForm = document.getElementById('form-signin');
+  var suForm = document.getElementById('form-signup');
+  // Clear any visibility:hidden left by the Turnstile pre-render before showing/hiding
+  siForm.style.visibility = '';
+  suForm.style.visibility = '';
+  siForm.style.display = t==='signin' ? '' : 'none';
+  suForm.style.display = t==='signup' ? '' : 'none';
   document.getElementById('form-forgot').style.display = 'none';
   document.getElementById('tab-signin').classList.toggle('active', t==='signin');
   document.getElementById('tab-signup').classList.toggle('active', t==='signup');
