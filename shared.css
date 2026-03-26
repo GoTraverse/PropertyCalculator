@@ -404,6 +404,9 @@ img { max-width: 100%; display: block; }
   .site-footer-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; padding-bottom: 24px; }
   .footer-brand { grid-column: 1 / -1; }
 }
+/* Nav button short label hidden by default (overridden at ≤480px) */
+.nav-btn-short { display: none; }
+
 @media(max-width: 480px) {
   /* Footer: keep 3-col link layout on small phones, tighten font */
   .site-footer-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; padding-bottom: 20px; }
@@ -419,9 +422,6 @@ img { max-width: 100%; display: block; }
   .nav-btn-full { display: none; }
   .nav-btn-short { display: inline; }
 }
-
-/* Nav button short label hidden by default (shown only at 480px) */
-.nav-btn-short { display: none; }
 
 /* ── Session-aware nav ── */
 .nav-user-btn {
