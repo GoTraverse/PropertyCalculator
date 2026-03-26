@@ -3809,7 +3809,7 @@
   (function(){
     var _hdr = document.querySelector('header');
     if(_hdr && typeof ResizeObserver !== 'undefined'){
-      new ResizeObserver(function(){ setAppHeight(); }).observe(_hdr);
+      new ResizeObserver(function(){ requestAnimationFrame(setAppHeight); }).observe(_hdr);
     }
   })();
 
