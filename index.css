@@ -614,7 +614,8 @@
   .features-grid { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
   .hero-h1 { font-size: 32px; letter-spacing: -0.5px; }
-  .hero-body { grid-template-columns: 1fr!important; padding: 40px 20px 48px!important; gap: 0!important; text-align: center; }
+  .hero { min-height: auto; }
+  .hero-body { grid-template-columns: 1fr!important; padding: 40px 20px 48px!important; gap: 0!important; text-align: center; align-items: start; }
   .hero-text { display: flex; flex-direction: column; align-items: center; }
   .hero-eyebrow { justify-content: center; }
   .hero-sub { font-size: 15px; max-width: 100%; margin-bottom: 28px; }
