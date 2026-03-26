@@ -468,7 +468,8 @@
   cursor: zoom-in;
 }
 .sc-slot-desktop { aspect-ratio: 16/10; min-height: 0; }
-.sc-slot-phone { min-height: 280px; }
+/* Phone aspect ratio — use padding-bottom trick for reliable cross-browser support in flex/grid contexts */
+.sc-slot-phone { height: 0; padding-bottom: 216.41%; min-height: 0; } /* 844/390 × 100% */
 
 /* ── Showcase page (showcase.html) ── */
 .sc-page { background: var(--warm-white); }
@@ -614,7 +615,8 @@
   .features-grid { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
   .hero-h1 { font-size: 32px; letter-spacing: -0.5px; }
-  .hero-body { grid-template-columns: 1fr!important; padding: 40px 20px 48px!important; gap: 0!important; text-align: center; }
+  .hero { min-height: auto; }
+  .hero-body { grid-template-columns: 1fr!important; padding: 40px 20px 48px!important; gap: 0!important; text-align: center; align-items: start; }
   .hero-text { display: flex; flex-direction: column; align-items: center; }
   .hero-eyebrow { justify-content: center; }
   .hero-sub { font-size: 15px; max-width: 100%; margin-bottom: 28px; }
@@ -639,8 +641,7 @@
   /* Showcase teaser — phone only */
   .showcase-phone-wrap { display: none; }
   .showcase-laptop-wrap { max-width: 100%; }
-  .sc-phone-grid { grid-template-columns: 1fr 1fr!important; gap: 20px!important; }
-  .sc-slot-phone { min-height: 200px!important; }
+  .sc-phone-grid { grid-template-columns: 1fr 1fr!important; gap: 20px!important; max-width: 480px; margin-left: auto; margin-right: auto; }
   /* Tools section CTA button — full width so long text doesn't wrap */
   .tools-cta-btn { display: block !important; width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
 }

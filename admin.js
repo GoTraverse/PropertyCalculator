@@ -790,7 +790,7 @@ async function loadConfig(){
   setV('cfg-pro-annual',      c.proAnnualPrice||86);
   setV('cfg-adviser-monthly', c.adviserMonthlyPrice||29);
   setV('google-client-id',    c.googleClientId||'');
-  setV('cfg-partner-links',   JSON.stringify(c.partnerLinks||{}, null, 2));
+  renderPartnerLinksUI(c.partnerLinks || {});
   setV('stripe-pub-key',      c.stripePubKey||'');
   setV('stripe-pro-monthly',  c.stripeProMonthly||'');
   setV('stripe-pro-annual',   c.stripeProAnnual||'');
@@ -967,12 +967,7 @@ async function saveConfig(){
     stripeProMonthly:    getV('stripe-pro-monthly',''),
     stripeProAnnual:     getV('stripe-pro-annual',''),
     stripePortal:        getV('stripe-portal',''),
-    partnerLinks:        (function(){
-      var raw = getV('cfg-partner-links','{}');
-      var errEl = document.getElementById('partner-links-error');
-      try { var v = JSON.parse(raw||'{}'); if(errEl) errEl.style.display='none'; return v; }
-      catch(e) { if(errEl){ errEl.textContent='Invalid JSON: '+e.message; errEl.style.display='block'; } return {}; }
-    })(),
+    partnerLinks:        serializePartnerLinksUI(),
   };
   const d = await callAuth('adminSetConfig', {config});
   if(d.ok){
@@ -1060,6 +1055,129 @@ async function loadStats(){
 
 function escHtml(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── Partner / Referral Links UI ──────────────────────────────────────────────
+
+var PARTNER_PAGES = [
+  { slug: 'global',              label: 'All calculator pages' },
+  { slug: 'stamp-duty',          label: 'Stamp Duty Calculator' },
+  { slug: 'rental-yield',        label: 'Rental Yield Calculator' },
+  { slug: 'mortgage-stress',     label: 'Mortgage Stress Calculator' },
+  { slug: 'loan-serviceability', label: 'Loan Serviceability Calculator' },
+  { slug: 'equity-release',      label: 'Equity Release Calculator' },
+  { slug: 'first-home-buyer',    label: 'First Home Buyer Grants' },
+  { slug: 'house-flip',          label: 'House Flip Calculator' },
+  { slug: 'renovation-cost',     label: 'Renovation Cost Calculator' },
+  { slug: 'cost-of-purchase',    label: 'Cost of Purchase Calculator' },
+];
+
+function renderPartnerLinksUI(data) {
+  var list  = document.getElementById('partner-links-list');
+  var empty = document.getElementById('partner-links-empty');
+  if (!list) return;
+  list.innerHTML = '';
+  // Invert { slug: [partner,...] } into flat rows, de-duping by name+url
+  var rows = [];
+  var byKey = {};
+  Object.keys(data || {}).forEach(function(slug) {
+    (data[slug] || []).forEach(function(p) {
+      var key = (p.name || '') + '||' + (p.url || '');
+      if (byKey[key] !== undefined) {
+        rows[byKey[key]].pages.push(slug);
+      } else {
+        byKey[key] = rows.length;
+        rows.push({ partner: p, pages: [slug] });
+      }
+    });
+  });
+  if (!rows.length) {
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  rows.forEach(function(r) { _addPartnerRow(r.partner, r.pages); });
+}
+
+function _addPartnerRow(partner, selectedPages) {
+  partner = partner || {};
+  selectedPages = selectedPages || ['global'];
+  var list  = document.getElementById('partner-links-list');
+  var empty = document.getElementById('partner-links-empty');
+  if (!list) return;
+  if (empty) empty.style.display = 'none';
+
+  var div = document.createElement('div');
+  div.className = 'partner-entry-row';
+
+  var pagesHtml = PARTNER_PAGES.map(function(pg) {
+    var checked = selectedPages.indexOf(pg.slug) !== -1 ? ' checked' : '';
+    return '<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;white-space:nowrap;">' +
+      '<input type="checkbox" data-page="' + pg.slug + '"' + checked +
+      ' style="accent-color:var(--gold);width:13px;height:13px;"> ' +
+      escHtml(pg.label) + '</label>';
+  }).join('');
+
+  div.innerHTML =
+    '<div class="partner-entry-head">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;">' +
+        '<div class="config-field" style="grid-column:1/-1;">' +
+          '<label class="config-label">Partner Name</label>' +
+          '<input type="text" class="config-input pr-name" value="' + escHtml(partner.name||'') + '" placeholder="e.g. Mortgage House">' +
+        '</div>' +
+        '<div class="config-field" style="grid-column:1/-1;">' +
+          '<label class="config-label">Tagline</label>' +
+          '<input type="text" class="config-input pr-tag" value="' + escHtml(partner.tagline||'') + '" placeholder="e.g. Compare 60+ lenders — free, no credit check.">' +
+        '</div>' +
+        '<div class="config-field">' +
+          '<label class="config-label">Referral URL</label>' +
+          '<input type="url" class="config-input pr-url" value="' + escHtml(partner.url||'') + '" placeholder="https://…">' +
+        '</div>' +
+        '<div class="config-field">' +
+          '<label class="config-label">Badge <span style="font-weight:400;text-transform:none;font-size:10px;">(optional)</span></label>' +
+          '<input type="text" class="config-input pr-badge" value="' + escHtml(partner.badge||'') + '" placeholder="e.g. Recommended">' +
+        '</div>' +
+        '<div class="config-field" style="grid-column:1/-1;">' +
+          '<label class="config-label" style="margin-bottom:8px;">Show On</label>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:8px 20px;">' + pagesHtml + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<button type="button" class="row-del-btn pr-delete" title="Remove this partner" style="margin-left:12px;align-self:flex-start;flex-shrink:0;">−</button>' +
+    '</div>';
+
+  div.querySelector('.pr-delete').addEventListener('click', function() {
+    div.remove();
+    if (!document.querySelectorAll('.partner-entry-row').length) {
+      var e = document.getElementById('partner-links-empty');
+      if (e) e.style.display = '';
+    }
+  });
+
+  list.appendChild(div);
+}
+
+function serializePartnerLinksUI() {
+  var result = {};
+  document.querySelectorAll('.partner-entry-row').forEach(function(row) {
+    var name = (row.querySelector('.pr-name') || {}).value || '';
+    var url  = (row.querySelector('.pr-url')  || {}).value || '';
+    name = name.trim(); url = url.trim();
+    if (!name || !url) return;
+    var tagline = ((row.querySelector('.pr-tag')   || {}).value || '').trim();
+    var badge   = ((row.querySelector('.pr-badge') || {}).value || '').trim();
+    var partner = { name: name, tagline: tagline, url: url };
+    if (badge) partner.badge = badge;
+    var checked = row.querySelectorAll('input[data-page]:checked');
+    var pages = Array.from(checked).map(function(c) { return c.dataset.page; });
+    if (!pages.length) pages = ['global'];
+    pages.forEach(function(slug) {
+      if (!result[slug]) result[slug] = [];
+      result[slug].push(partner);
+    });
+  });
+  var ta = document.getElementById('cfg-partner-links');
+  if (ta) ta.value = JSON.stringify(result);
+  return result;
 }
 
 function safePhotoSrc(url){
