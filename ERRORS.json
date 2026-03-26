@@ -1,19 +1,19 @@
 {
-  "syncedAt": "2026-03-26T19:01:39.024Z",
+  "syncedAt": "2026-03-26T22:27:08.538Z",
   "count": 1,
   "errors": [
     {
-      "at": 1774551698021,
-      "message": "Script error.",
-      "source": "",
+      "at": 1774564027531,
+      "message": "ResizeObserver loop completed with undelivered notifications.",
+      "source": "https://equitysight.app/app",
       "line": null,
       "col": null,
       "stack": "",
-      "url": "https://equitysight.netlify.app/login",
-      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/146.0.7680.151 Mobile/15E148 Safari/604.1",
-      "userId": "",
-      "userName": "",
-      "userEmail": "",
+      "url": "https://equitysight.app/app",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "userId": "mn81hpzv97c9bc68",
+      "userName": "Patrick Dallimore",
+      "userEmail": "paddy.dallimore@gmail.com",
       "severity": "error"
     }
   ]
