@@ -590,3 +590,20 @@ html.dark-mode .cog-menu-item.danger:hover { background: rgba(196,90,90,0.12) !i
 
 /* Scenario rows */
 html.dark-mode .admin-scenario-row:hover { background: rgba(255,255,255,0.03) !important; }
+
+/* ── Partner / Referral Links ── */
+.partner-entry-row {
+  border: 1px solid rgba(28,28,30,0.1);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  background: rgba(28,28,30,0.02);
+}
+.partner-entry-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+html.dark-mode .partner-entry-row {
+  border-color: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+}

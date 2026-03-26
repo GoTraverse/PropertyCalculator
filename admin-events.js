@@ -127,6 +127,10 @@ if(loadScenariosBtn) loadScenariosBtn.addEventListener('click', loadAllScenarios
 var exportScenariosCsvBtn = document.getElementById('export-scenarios-csv-btn');
 if(exportScenariosCsvBtn) exportScenariosCsvBtn.addEventListener('click', exportScenariosCsv);
 
+// ── Partner Links ─────────────────────────────────────────────────────────────
+var addPartnerBtn = document.getElementById('add-partner-btn');
+if(addPartnerBtn) addPartnerBtn.addEventListener('click', function(){ _addPartnerRow(); });
+
 // ── Gov Schemes ───────────────────────────────────────────────────────────────
 var addSchemeBtn = document.getElementById('add-scheme-btn');
 if(addSchemeBtn) addSchemeBtn.addEventListener('click', addScheme);
