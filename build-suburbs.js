@@ -389,11 +389,11 @@ for (const s of suburbs) {
   // Google Maps embed URL — zoom derived from real bounding box data when available,
   // otherwise falls back to suburb-type heuristic.
   const MAPS_ZOOM_FALLBACK = {
-    'inner-city':  15,
-    'middle-ring': 14,
-    'outer-metro': 13,
-    'coastal':     13,
-    'regional':    12,
+    'inner-city':  14,
+    'middle-ring': 13,
+    'outer-metro': 12,
+    'coastal':     12,
+    'regional':    11,
   };
   let mapsZoom = s.map_zoom;   // set by apply-abs-data.js from real polygon bbox
   if (!mapsZoom) {

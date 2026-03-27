@@ -504,8 +504,45 @@ async function deleteUser(email){
   const st = document.getElementById('users-status');
   st.textContent = 'Deleting…'; st.className = 'admin-status info';
   const d = await callAuth('adminDeleteUser', {targetEmail: email});
-  if(d.ok){ st.textContent = '✓ User deleted'; st.className = 'admin-status ok'; loadUsers(); }
+  if(d.ok){ st.textContent = '✓ User deleted'; st.className = 'admin-status ok'; loadUsers(); loadDeletedUsers(); }
   else { st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err'; }
+}
+
+// ── Deleted Users ─────────────────────────────────────────────────────────────
+async function loadDeletedUsers(){
+  const tbody = document.getElementById('deleted-users-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading…</td></tr>';
+  const d = await callAuth('adminListDeletedUsers');
+  if(!d.ok){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed')+'</td></tr>';
+    return;
+  }
+  const users = d.deletedUsers || [];
+  if(!users.length){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No deleted users</td></tr>';
+    return;
+  }
+  var fmtDate = function(ts){ return ts ? new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '\u2014'; };
+  var fmtDateTime = function(ts){ return ts ? new Date(ts).toLocaleString('en-AU',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '\u2014'; };
+  tbody.innerHTML = users.map(function(u){
+    var deletedBy = u.deletedBy === 'self' ? '<span style="color:var(--slate);font-size:11px;">self</span>' : '<span style="font-size:11px;">'+escHtml(u.deletedBy||'\u2014')+'</span>';
+    var reason = u.deleteReason ? escHtml(u.deleteReason) : '<span style="color:var(--slate);font-style:italic;">none</span>';
+    var lifespan = '';
+    if(u.createdAt && u.deletedAt){
+      var days = Math.round((u.deletedAt - u.createdAt) / (1000*60*60*24));
+      lifespan = days < 1 ? ' (<1 day)' : ' ('+days+'d)';
+    }
+    return '<tr>'+
+      '<td style="font-weight:500;">'+escHtml(u.name||'\u2014')+'</td>'+
+      '<td><span class="user-email">'+escHtml(u.email||'\u2014')+'</span></td>'+
+      '<td><span class="plan-badge plan-'+escHtml(u.plan||'free')+'">'+escHtml(u.plan||'free')+'</span></td>'+
+      '<td style="font-family:var(--font-mono);font-size:11px;">'+fmtDate(u.createdAt)+'</td>'+
+      '<td style="font-family:var(--font-mono);font-size:11px;">'+fmtDateTime(u.deletedAt)+escHtml(lifespan)+'</td>'+
+      '<td>'+deletedBy+'</td>'+
+      '<td style="font-size:12px;max-width:200px;">'+reason+'</td>'+
+    '</tr>';
+  }).join('');
 }
 
 async function openUserDetails(email){

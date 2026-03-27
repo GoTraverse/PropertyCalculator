@@ -71,14 +71,14 @@ const CBD = {
 
 // Derive Google Maps zoom level from suburb bounding box spans (in degrees).
 // Formula: at zoom z, a 640px-wide viewport shows (640 * 360 / 256 / 2^z) degrees of longitude.
-// We want the suburb's largest span to fit in that viewport with 20% padding.
-// Uses max(latSpan, lngSpan) as the constraining dimension, clamped to 8–15.
+// We want the suburb's largest span to fit comfortably in the viewport.
+// Uses max(latSpan, lngSpan) as the constraining dimension, clamped to 8–14.
 function bboxToZoom(latSpan, lngSpan) {
   if (!latSpan || !lngSpan) return null;
   const maxSpan = Math.max(latSpan, lngSpan);
-  // viewport_px=640, tile_px=256, world_degrees=360, padding factor=2.8 (zoomed out)
-  const zoom = Math.log2(640 * 360 / (256 * maxSpan)) - 2.8;
-  return Math.max(8, Math.min(15, Math.floor(zoom)));
+  // viewport_px=640, tile_px=256, world_degrees=360, padding factor=3.3 (generous zoom-out)
+  const zoom = Math.log2(640 * 360 / (256 * maxSpan)) - 3.3;
+  return Math.max(8, Math.min(14, Math.floor(zoom)));
 }
 
 function haversineKm(lat1, lng1, lat2, lng2) {

@@ -58,6 +58,8 @@ if(userSearch) userSearch.addEventListener('input', filterUsers);
 });
 var loadUsersBtn = document.getElementById('load-users-btn');
 if(loadUsersBtn) loadUsersBtn.addEventListener('click', loadUsers);
+var loadDeletedUsersBtn = document.getElementById('load-deleted-users-btn');
+if(loadDeletedUsersBtn) loadDeletedUsersBtn.addEventListener('click', loadDeletedUsers);
 
 // ── Error log ─────────────────────────────────────────────────────────────────
 var ceRefreshBtn = document.getElementById('ce-refresh-btn');
