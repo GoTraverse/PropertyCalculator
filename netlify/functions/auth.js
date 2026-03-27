@@ -187,9 +187,35 @@ async function rListPush(key,val){
 }
 async function rListRange(key,start,stop){ return redisCmd('LRANGE',key,String(start),String(stop)); }
 
+// Soft-delete: archive user metadata before purging all keys.
+// Stores a `deleted:<email>` record in Redis (90-day TTL) so admins can see who left and why.
+async function softDeleteUser(userData, opts){
+  opts = opts || {};
+  const email = userData.email.toLowerCase().trim();
+  const record = {
+    email: email,
+    name: userData.name || '',
+    plan: userData.plan || 'free',
+    role: userData.role || 'user',
+    id: userData.id,
+    createdAt: userData.createdAt || null,
+    lastLoginAt: userData.lastLoginAt || null,
+    loginCount: userData.loginCount || 0,
+    deletedAt: Date.now(),
+    deletedBy: opts.deletedBy || 'self',       // 'self' or admin email
+    deleteReason: opts.deleteReason || '',       // user-provided reason
+    stripeCustomerId: userData.stripeCustomerId || null,
+  };
+  // 90-day TTL (7,776,000 seconds) — enough time to review churn
+  await rSet('deleted:'+email, record, 90*24*60*60);
+}
+
 // Delete all Redis keys associated with a user account.
 // userData must contain: email, id (userId), and optionally stripeCustomerId.
-async function deleteUserKeys(userData){
+// opts: { deleteReason, deletedBy } — passed to softDeleteUser for archival.
+async function deleteUserKeys(userData, opts){
+  // Archive before purging
+  await softDeleteUser(userData, opts);
   const uid = userData.id;
   const email = userData.email.toLowerCase().trim();
   const delOps = [
@@ -680,12 +706,12 @@ exports.handler = async function(event){
   if(action==='deleteAccount'){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user) return fail('Unauthorized',401);
-    const {password}=body;
+    const {password,deleteReason}=body;
     if(!password) return fail('Password required to confirm deletion');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
     if(!safeEqual(userData.hash,hashPw(password))) return fail('Incorrect password');
-    await deleteUserKeys(userData);
+    await deleteUserKeys(userData, {deleteReason: (deleteReason||'').slice(0,500), deletedBy:'self'});
     if(body.token) await rDel('token:'+body.token);
     return ok({ok:true});
   }
@@ -726,8 +752,20 @@ exports.handler = async function(event){
     if(!targetEmail) return fail('targetEmail required');
     const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
     if(!userData) return fail('User not found');
-    await deleteUserKeys(userData);
+    await deleteUserKeys(userData, {deletedBy: user.email});
     return ok({ok:true});
+  }
+
+  if(action==='adminListDeletedUsers'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    try{
+      const keys=await scanAll('deleted:*');
+      if(!keys||!keys.length) return ok({ok:true,deletedUsers:[]});
+      const records=await Promise.all(keys.map(k=>rGet(k)));
+      const deletedUsers=records.filter(Boolean).sort((a,b)=>(b.deletedAt||0)-(a.deletedAt||0));
+      return ok({ok:true,deletedUsers});
+    }catch(e){ return fail('Error listing deleted users: '+e.message); }
   }
 
   if(action==='adminSetRole'){

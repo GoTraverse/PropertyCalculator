@@ -408,11 +408,18 @@
   };
 
   // ── Delete account ────────────────────────────────────────────────────────────
+  var AP2_DELETE_REASONS = ['No longer need it','Too expensive','Found a better alternative','Missing features I need','Too difficult to use','Privacy concerns','Just testing / temporary account','Other'];
+
   window.ap2DeleteAccount = async function () {
+    var reason = prompt('We\'re sorry to see you go! Why are you deleting?\n\n' + AP2_DELETE_REASONS.map(function(r,i){ return (i+1)+'. '+r; }).join('\n') + '\n\nEnter a number (1-'+AP2_DELETE_REASONS.length+') or type your own reason:');
+    if (!reason) return;
+    // Map number selection to reason text
+    var idx = parseInt(reason);
+    var deleteReason = (idx >= 1 && idx <= AP2_DELETE_REASONS.length) ? AP2_DELETE_REASONS[idx - 1] : reason;
     var pw = prompt('Enter your password to permanently delete your account. This cannot be undone.');
     if (!pw) return;
     try {
-      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'deleteAccount', password: pw }) });
+      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'deleteAccount', password: pw, deleteReason: deleteReason }) });
       var d = await r.json();
       if (d.ok) { localStorage.clear(); alert('Account deleted. Goodbye!'); location.href = '/'; }
       else alert(d.error || 'Incorrect password \u2014 account not deleted');

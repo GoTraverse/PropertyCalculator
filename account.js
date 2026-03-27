@@ -324,8 +324,57 @@ async function openBillingPortal(){
   }
 }
 
+// Deletion reason options shown to user before account deletion
+var DELETE_REASONS = [
+  'No longer need it',
+  'Too expensive',
+  'Found a better alternative',
+  'Missing features I need',
+  'Too difficult to use',
+  'Privacy concerns',
+  'Just testing / temporary account',
+  'Other'
+];
+
+async function pickDeleteReason(){
+  return new Promise(function(resolve){
+    _acctDialogResolveFn = null;
+    var o = document.getElementById('acct-dialog-overlay');
+    document.getElementById('acct-dialog-icon').textContent = '👋';
+    document.getElementById('acct-dialog-title').textContent = 'We\'re sorry to see you go';
+    var reasonBtns = DELETE_REASONS.map(function(r){
+      return '<button class="acct-reason-btn" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:6px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.12);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13px;color:var(--charcoal);cursor:pointer;transition:background 0.15s;">'+escHtml(r)+'</button>';
+    }).join('');
+    document.getElementById('acct-dialog-msg').innerHTML =
+      '<div style="margin-bottom:10px;font-size:13px;color:var(--slate);line-height:1.6;">Mind telling us why you\'re leaving? This helps us improve.</div>' +
+      '<div id="acct-reason-list">'+reasonBtns+'</div>' +
+      '<div style="margin-top:8px;font-size:11px;color:var(--slate);">Select a reason to continue, or cancel.</div>';
+    var inp = document.getElementById('acct-dialog-input');
+    inp.style.display = 'none';
+    document.getElementById('acct-dialog-cancel').style.display = '';
+    var confirmBtn = document.getElementById('acct-dialog-confirm');
+    confirmBtn.style.display = 'none';
+    _acctDialogResolveFn = resolve;
+    o.style.display = 'flex'; o.style.alignItems = 'center'; o.style.justifyContent = 'center';
+    // Attach click handlers to reason buttons
+    document.querySelectorAll('.acct-reason-btn').forEach(function(btn){
+      btn.onmouseenter = function(){ btn.style.background='rgba(28,28,30,0.09)'; };
+      btn.onmouseleave = function(){ btn.style.background='rgba(28,28,30,0.04)'; };
+      btn.onclick = function(){
+        confirmBtn.style.display = '';
+        o.style.display = 'none'; o.style.alignItems = ''; o.style.justifyContent = '';
+        if(_acctDialogResolveFn){ var fn=_acctDialogResolveFn; _acctDialogResolveFn=null; fn(btn.textContent); }
+      };
+    });
+  });
+}
+
 async function confirmDeleteAccount(){
-  const pw = await acctPrompt('Delete Account', 'Enter your password to confirm account deletion. This cannot be undone.', {danger:true, confirmLabel:'Delete Account', inputPlaceholder:'Your password'});
+  // Step 1: Ask for reason
+  var reason = await pickDeleteReason();
+  if(!reason) return;
+  // Step 2: Ask for password
+  const pw = await acctPrompt('Confirm Deletion', 'Enter your password to confirm account deletion. This cannot be undone.', {danger:true, confirmLabel:'Delete Account', inputPlaceholder:'Your password'});
   if(!pw) return;
   const st = document.getElementById('delete-status') || document.createElement('span');
   try{
@@ -333,7 +382,7 @@ async function confirmDeleteAccount(){
     const r = await fetch('/.netlify/functions/auth',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},
-      body:JSON.stringify({action:'deleteAccount',password:pw,token:token})
+      body:JSON.stringify({action:'deleteAccount',password:pw,token:token,deleteReason:reason})
     });
     const d = await r.json();
     if(d.ok){

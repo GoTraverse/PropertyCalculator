@@ -277,6 +277,36 @@
       </div>
     </div>
     <div id="users-status" class="admin-status"></div>
+
+    <!-- Deleted Users -->
+    <div class="admin-card" style="margin-top:20px;">
+      <div class="admin-card-head" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h3 style="margin:0;display:inline;">Deleted Users</h3>
+          <span style="font-size:11px;color:var(--slate);margin-left:8px;">Soft-deleted accounts (retained 90 days)</span>
+        </div>
+        <button class="btn-admin" id="load-deleted-users-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+      </div>
+      <div id="deleted-users-wrap" style="overflow-x:auto;">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Plan</th>
+              <th>Joined</th>
+              <th>Deleted</th>
+              <th>Deleted By</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="deleted-users-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Click refresh to load</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="deleted-users-status" class="admin-status"></div>
   </div>
 
   <!-- CLIENT ERROR LOG TAB -->
