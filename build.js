@@ -19,13 +19,10 @@ const { execSync } = require('child_process');
 const ROOT = __dirname;
 const SUBURB_DIR = path.join(ROOT, 'suburb');
 const INVEST_DIR = path.join(ROOT, 'invest');
-const SITEMAP_FILE = path.join(ROOT, 'sitemap-suburbs.xml');
-
 // Netlify provides a persistent cache directory between builds
 const CACHE_DIR = process.env.NETLIFY_CACHE_DIR || path.join(ROOT, '.cache');
 const CACHE_SUBURB = path.join(CACHE_DIR, 'suburb');
 const CACHE_INVEST = path.join(CACHE_DIR, 'invest');
-const CACHE_SITEMAP = path.join(CACHE_DIR, 'sitemap-suburbs.xml');
 const CACHE_STAMP = path.join(CACHE_DIR, 'suburb-build-stamp.json');
 
 // Netlify sets INCOMING_HOOK_TITLE when a build hook triggers the deploy
@@ -33,8 +30,13 @@ const CACHE_STAMP = path.join(CACHE_DIR, 'suburb-build-stamp.json');
 const hookTitle = process.env.INCOMING_HOOK_TITLE || '';
 const shouldRebuild = process.env.REBUILD_SUBURBS === 'true' || hookTitle.toLowerCase().includes('suburb');
 
+function getSitemapFiles(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter(f => f.match(/^sitemap-suburbs-.*\.xml$/));
+}
+
 function cacheExists() {
-  return fs.existsSync(CACHE_SUBURB) && fs.existsSync(CACHE_INVEST) && fs.existsSync(CACHE_SITEMAP);
+  return fs.existsSync(CACHE_SUBURB) && fs.existsSync(CACHE_INVEST) && getSitemapFiles(CACHE_DIR).length > 0;
 }
 
 function copyDir(src, dest) {
@@ -45,8 +47,8 @@ function restoreFromCache() {
   console.log('[build] Restoring suburb pages from cache...');
   if (fs.existsSync(CACHE_SUBURB)) copyDir(CACHE_SUBURB, SUBURB_DIR);
   if (fs.existsSync(CACHE_INVEST)) copyDir(CACHE_INVEST, INVEST_DIR);
-  if (fs.existsSync(CACHE_SITEMAP)) {
-    fs.copyFileSync(CACHE_SITEMAP, SITEMAP_FILE);
+  for (const f of getSitemapFiles(CACHE_DIR)) {
+    fs.copyFileSync(path.join(CACHE_DIR, f), path.join(ROOT, f));
   }
   if (fs.existsSync(CACHE_STAMP)) {
     const stamp = JSON.parse(fs.readFileSync(CACHE_STAMP, 'utf8'));
@@ -62,7 +64,10 @@ function saveToCache() {
   if (fs.existsSync(CACHE_INVEST)) execSync(`rm -rf "${CACHE_INVEST}"`, { stdio: 'inherit' });
   copyDir(SUBURB_DIR, CACHE_SUBURB);
   copyDir(INVEST_DIR, CACHE_INVEST);
-  if (fs.existsSync(SITEMAP_FILE)) fs.copyFileSync(SITEMAP_FILE, CACHE_SITEMAP);
+  // Cache all split sitemap files
+  for (const f of getSitemapFiles(ROOT)) {
+    fs.copyFileSync(path.join(ROOT, f), path.join(CACHE_DIR, f));
+  }
   // Save timestamp
   const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'suburbs.json'), 'utf8'));
   fs.writeFileSync(CACHE_STAMP, JSON.stringify({

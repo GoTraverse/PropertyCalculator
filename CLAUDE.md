@@ -214,7 +214,7 @@ Files intentionally NOT blocked (needed at runtime):
 - ✅ **Schema.org structured data** — BreadcrumbList + Place + CollectionPage on all suburb/state pages
 - ✅ **Postcodes** in page titles, meta descriptions, keywords, and schema.org for SEO
 - ✅ **Build optimization** — defer scripts, pre-computed related suburbs (O(n) build), .gitignore cleanup
-- ✅ Sitemap split: `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,539 URLs incl. 19 city pages) indexed by `sitemap.xml`
+- ✅ Sitemap split: `sitemap-core.xml` (70 URLs) + 19 state-grouped `sitemap-suburbs-{state}.xml` files (max 1000 URLs each, 14,539 URLs total) indexed by `sitemap.xml`
 - ✅ **Security: blocked dev files from public CDN** — `.netlifyignore` prevents CLAUDE.md, README.md, CODEBASE.md, TODO.md, ERRORS.json, build scripts, and raw data files from being uploaded; `netlify.toml` force-404 redirects act as secondary safety net
 - ✅ **Admin Config tab split** into Settings, Features, Integrations, Branding (14 admin tabs total now)
 - ✅ **Admin new tabs** — About Page, Legal Pages, Suburbs added to admin dashboard
