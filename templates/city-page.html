@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js"></script>
+<script src="/analytics.js"></script>
+<meta charset="UTF-8">
+<script src="/site-init.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>{{CITY}} {{STATE}} Australia — Property Investment Insights | EquitySight</title>
+<meta name="description" content="{{META_DESCRIPTION}}">
+<meta name="keywords" content="{{CITY}} property investment, {{CITY}} {{STATE}} real estate, {{CITY}} investment insights, {{CITY}} suburb guide, {{STATE_NAME}} property market, {{CITY}} Australia property">
+<link rel="canonical" href="https://equitysight.app/invest/{{STATE_LOWER}}/{{CITY_SLUG}}/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{CITY}} {{STATE}} — Property Investment Insights | EquitySight">
+<meta property="og:description" content="{{META_DESCRIPTION}}">
+<meta property="og:url" content="https://equitysight.app/invest/{{STATE_LOWER}}/{{CITY_SLUG}}/">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{CITY}} {{STATE}} — Property Investment Insights">
+<meta name="twitter:description" content="{{META_DESCRIPTION}}">
+<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared.css">
+<link rel="stylesheet" href="/tools.css">
+<link rel="stylesheet" href="/suburb-insights.css">
+<script src="/adsense.js" defer></script>
+<script type="application/ld+json">
+[{"@context":"https://schema.org","@type":"Place","name":"{{CITY}}, {{STATE_NAME}}","description":"{{META_DESCRIPTION}}","address":{"@type":"PostalAddress","addressLocality":"{{CITY}}","addressRegion":"{{STATE}}","addressCountry":"AU"},"containedInPlace":{"@type":"AdministrativeArea","name":"{{STATE_NAME}}"}},{"@context":"https://schema.org","@type":"CollectionPage","name":"{{CITY}} Property Investment Insights","description":"{{META_DESCRIPTION}}","url":"https://equitysight.app/invest/{{STATE_LOWER}}/{{CITY_SLUG}}/"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"{{STATE_NAME}}","item":"https://equitysight.app/invest/{{STATE_LOWER}}/"},{"@type":"ListItem","position":3,"name":"{{CITY}}","item":"https://equitysight.app/invest/{{STATE_LOWER}}/{{CITY_SLUG}}/"}]}]
+</script>
+</head>
+<body>
+
+<header class="tool-header">
+  <a href="/" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="/auth-nav.js" defer></script>
+<script src="/error-capture.js" defer></script>
+
+<section class="tool-hero suburb-hero">
+  <nav class="suburb-breadcrumb">
+    <a href="/">Home</a> <span>›</span>
+    <a href="/invest/{{STATE_LOWER}}/">{{STATE_NAME}}</a> <span>›</span>
+    <span>{{CITY}}</span>
+  </nav>
+  <div class="tool-eyebrow">City Investment Profile · {{STATE}}, Australia</div>
+  <h1>{{CITY}}, {{STATE_NAME}} — Property Investment Insights</h1>
+  <p class="suburb-data-note">{{DATA_SOURCE_NOTE}}</p>
+</section>
+
+<div class="suburb-main">
+
+  <!-- City Overview -->
+  <section class="suburb-section">
+    <h2>{{CITY}} Overview</h2>
+    <p>{{CITY_OVERVIEW}}</p>
+  </section>
+
+  <!-- City Investment Score -->
+  <section class="suburb-section">
+    {{CITY_SCORE_HTML}}
+  </section>
+
+  <!-- Key City Stats -->
+  <section class="suburb-section">
+    <h2>Key Statistics</h2>
+    <div class="city-stats-grid">
+      {{CITY_STATS_HTML}}
+    </div>
+  </section>
+
+  <!-- Investment Strategy -->
+  <section class="suburb-section">
+    {{CITY_STRATEGY_HTML}}
+  </section>
+
+  <!-- Top Suburbs -->
+  <section class="suburb-section">
+    <h2>Top Investment Suburbs in {{CITY}}</h2>
+    <p class="suburb-data-note" style="margin-bottom:14px;">Ranked by EquitySight Investment Score · Based on income, location, transport, amenity, and rental indicators</p>
+    <div class="city-top-suburbs">
+      {{TOP_SUBURBS_HTML}}
+    </div>
+  </section>
+
+  <div class="ad-slot" data-ad-type="city"></div>
+
+  <!-- Risk Factors -->
+  <section class="suburb-section">
+    {{CITY_RISKS_HTML}}
+  </section>
+
+  <!-- 2026 Outlook -->
+  <section class="suburb-section">
+    {{CITY_OUTLOOK_HTML}}
+  </section>
+
+  <!-- Calculator cross-links -->
+  <section class="suburb-calc-cta">
+    <p class="suburb-calc-cta-label">Run the numbers on a {{CITY}} property</p>
+    <div class="suburb-calc-links">
+      <a href="/tools/stamp-duty-calculator" class="suburb-calc-link">{{STATE}} Stamp Duty →</a>
+      <a href="/tools/rental-yield-calculator" class="suburb-calc-link">Rental Yield →</a>
+      <a href="/tools/cost-of-purchase-calculator" class="suburb-calc-link">Cost of Purchase →</a>
+      <a href="/tools/loan-serviceability-calculator" class="suburb-calc-link">Loan Serviceability →</a>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="suburb-cta">
+    <div class="tool-cta-eye">Full Property Analysis</div>
+    <h3>30-year projections for {{CITY}}</h3>
+    <p>Scenario comparison, cash flow analysis, tax modelling, and PDF export — all in one place.</p>
+    <a href="/login?tab=signup" class="tool-cta-btn">Create free account →</a>
+    <div class="suburb-cta-secondary">
+      <span>Or explore:</span>
+      <a href="/invest/{{STATE_LOWER}}/">All {{STATE_NAME}} suburbs</a>
+      <a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants</a>
+    </div>
+  </section>
+
+  <!-- Browse All Suburbs -->
+  <section class="suburb-section">
+    <h2>All {{SUBURB_COUNT}} Suburbs in {{CITY}}</h2>
+    <input type="text" id="suburb-search" class="hub-search" placeholder="Search suburbs by name or postcode..." autocomplete="off">
+    <div id="hub-suburb-list" class="hub-suburb-list">
+      {{SUBURB_LIST_HTML}}
+    </div>
+    <button id="hub-show-more" class="hub-show-more" style="display:none;">Show more suburbs</button>
+    <p id="hub-no-results" class="hub-no-results" style="display:none;">No suburbs match your search.</p>
+  </section>
+
+  <!-- State Resources -->
+  <section class="suburb-section">
+    <h2>{{STATE_NAME}} Property Resources</h2>
+    <div class="suburb-resources">
+      {{RESOURCES_HTML}}
+    </div>
+  </section>
+
+</div>
+
+<div id="site-footer-root"></div>
+<script src="/footer.js" defer></script>
+<script src="/state-hub-search.js" defer></script>
+</body>
+</html>

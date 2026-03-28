@@ -204,6 +204,82 @@ html.dark-mode .hub-search { background: rgba(255,255,255,0.04); color: #F5F0E8;
 html.dark-mode .hub-show-more { background: rgba(255,255,255,0.1); color: #F5F0E8; }
 html.dark-mode .hub-show-more:hover { background: var(--gold); color: var(--charcoal); }
 
+/* ── Investment Score ── */
+.suburb-score-badge { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 12px; }
+.suburb-score-value { font-family: var(--font-display); font-size: 42px; font-weight: 900; color: var(--charcoal); line-height: 1; }
+.suburb-score-max { font-family: var(--font-mono); font-size: 14px; color: var(--slate); }
+.suburb-score-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; margin-left: 4px; }
+.suburb-score--strong { background: rgba(46,125,50,0.12); color: #2e7d32; }
+.suburb-score--good { background: rgba(201,168,76,0.15); color: #b8960c; }
+.suburb-score--moderate { background: rgba(245,124,0,0.12); color: #e65100; }
+.suburb-score--weak { background: rgba(198,40,40,0.12); color: #c62828; }
+
+/* ── Investment Strategy ── */
+.suburb-strategy-list { display: flex; flex-direction: column; gap: 14px; }
+.suburb-strategy-item { display: flex; gap: 12px; align-items: flex-start; }
+.suburb-strategy-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.suburb-strategy-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--charcoal); margin-bottom: 2px; }
+.suburb-strategy-item p { font-size: 13px !important; color: var(--slate) !important; line-height: 1.6 !important; margin: 0 !important; }
+
+/* ── Risk Factors ── */
+.suburb-risk-list { list-style: none; padding: 0; margin: 0; }
+.suburb-risk-list li { font-size: 13px; color: var(--slate); line-height: 1.7; padding: 8px 0; border-bottom: 1px solid rgba(28,28,30,0.06); }
+.suburb-risk-list li:last-child { border-bottom: none; }
+.suburb-risk-list li::before { content: '\26A0\FE0F'; margin-right: 8px; }
+
+/* ── City page stats ── */
+.city-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.city-stat { background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-align: center; }
+.city-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
+.city-stat-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--charcoal); }
+@media (max-width: 480px) { .city-stats-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ── City top suburbs ── */
+.city-top-suburbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.city-top-card { display: block; background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-decoration: none; color: inherit; border: 1px solid transparent; transition: border-color 0.15s, box-shadow 0.15s; }
+.city-top-card:hover { border-color: rgba(201,168,76,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.city-top-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.city-top-score { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.5px; color: var(--slate); margin-bottom: 4px; }
+.city-top-score .suburb-score-label { font-size: 11px; padding: 1px 6px; margin-right: 4px; }
+
+/* ── City links on state hubs ── */
+.city-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.city-card { display: block; background: var(--warm-white); border-radius: 8px; padding: 16px 18px; text-decoration: none; color: inherit; border: 1px solid rgba(201,168,76,0.15); transition: border-color 0.15s, box-shadow 0.15s; }
+.city-card:hover { border-color: rgba(201,168,76,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.city-card-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.city-card-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); }
+
+/* ── Dark mode: city pages ── */
+html.dark-mode .city-stat { background: rgba(255,255,255,0.04); }
+html.dark-mode .city-stat-value { color: #F5F0E8; }
+html.dark-mode .city-top-card { background: rgba(255,255,255,0.04); color: #F5F0E8; }
+html.dark-mode .city-top-card:hover { border-color: rgba(201,168,76,0.3); }
+html.dark-mode .city-top-name { color: #F5F0E8; }
+html.dark-mode .city-card { background: rgba(255,255,255,0.04); border-color: rgba(201,168,76,0.1); }
+html.dark-mode .city-card:hover { border-color: rgba(201,168,76,0.35); }
+html.dark-mode .city-card-name { color: #F5F0E8; }
+
+/* ── 2026 Outlook ── */
+.suburb-outlook-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.suburb-outlook-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: var(--warm-white); color: var(--slate); border: 1px solid rgba(28,28,30,0.08); }
+.suburb-outlook-tag--strong { background: rgba(46,125,50,0.1); color: #2e7d32; border-color: rgba(46,125,50,0.2); }
+.suburb-outlook-tag--moderate { background: rgba(245,124,0,0.1); color: #e65100; border-color: rgba(245,124,0,0.2); }
+.suburb-outlook-tag--low { background: rgba(198,40,40,0.08); color: #c62828; border-color: rgba(198,40,40,0.15); }
+
+/* ── Dark mode: new sections ── */
+html.dark-mode .suburb-score-value { color: #F5F0E8; }
+html.dark-mode .suburb-score--strong { background: rgba(46,125,50,0.2); color: #66bb6a; }
+html.dark-mode .suburb-score--good { background: rgba(201,168,76,0.2); color: #d4af37; }
+html.dark-mode .suburb-score--moderate { background: rgba(245,124,0,0.18); color: #ffb74d; }
+html.dark-mode .suburb-score--weak { background: rgba(198,40,40,0.18); color: #ef9a9a; }
+html.dark-mode .suburb-strategy-name { color: #F5F0E8; }
+html.dark-mode .suburb-strategy-item p { color: rgba(245,240,232,0.65) !important; }
+html.dark-mode .suburb-risk-list li { color: rgba(245,240,232,0.65); border-bottom-color: rgba(255,255,255,0.06); }
+html.dark-mode .suburb-outlook-tag { background: rgba(255,255,255,0.04); color: rgba(245,240,232,0.6); border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-outlook-tag--strong { background: rgba(46,125,50,0.15); color: #66bb6a; border-color: rgba(46,125,50,0.25); }
+html.dark-mode .suburb-outlook-tag--moderate { background: rgba(245,124,0,0.15); color: #ffb74d; border-color: rgba(245,124,0,0.25); }
+html.dark-mode .suburb-outlook-tag--low { background: rgba(198,40,40,0.12); color: #ef9a9a; border-color: rgba(198,40,40,0.2); }
+
 /* ── Ad Slot ── */
 .ad-slot { max-width: 900px; margin: 0 auto 24px; text-align: center; overflow: hidden; }
 @media(max-width:600px) { .ad-slot { margin-bottom: 16px; } }

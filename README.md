@@ -61,7 +61,7 @@
 
 ---
 
-## Project Structure (24 HTML pages + 14,512 suburb pages, 11 Netlify functions, 9 SEO tools)
+## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages, 11 Netlify functions, 9 SEO tools)
 
 ### Application Pages
 ```
@@ -161,17 +161,19 @@ address-suggest.js      # Address autocomplete (rate-limited: 30 req/min)
 market-data.js          # Suburb insights market data API
 ```
 
-### Suburb Insights System (14,512 generated pages)
+### Suburb Insights System (14,512 suburb pages + 19 city pages)
 ```
 fetch-abs-data.js               # Downloads ABS 2021 Census suburb data → data/abs-suburbs.json
 generate-suburbs-data.js        # Merges ABS data + postcodes → data/suburbs.json
-build-suburbs.js                # Generates suburb pages + state hubs + sitemap from templates
+build-suburbs.js                # Generates suburb pages + city pages + state hubs + sitemap from templates
 data/suburbs.json               # 14,512 suburbs with real names, populations, postcodes
-templates/suburb-page.html      # Suburb page template (schema.org, BreadcrumbList)
-templates/state-hub.html        # State hub template (search, progressive loading)
-suburb-insights.css             # Shared styles for suburb/state pages
-suburb/{state}/{slug}/index.html  # Generated (gitignored, built on deploy)
-invest/{state}/index.html         # Generated state hub pages (gitignored)
+templates/suburb-page.html      # Suburb page template (investment score, strategy, risks, outlook)
+templates/city-page.html        # City page template (19 major cities, aggregate scores, top suburbs)
+templates/state-hub.html        # State hub template (search, progressive loading, city links)
+suburb-insights.css             # Shared styles for suburb/city/state pages
+suburb/{state}/{slug}/index.html         # Generated suburb pages (gitignored, built on deploy)
+invest/{state}/{city-slug}/index.html    # Generated city pages (gitignored, built on deploy)
+invest/{state}/index.html                # Generated state hub pages (gitignored, built on deploy)
 ```
 
 ### Configuration
@@ -180,7 +182,7 @@ netlify.toml            # Netlify build config, CSP headers, cache rules, force-
 .netlifyignore          # Files excluded from Netlify CDN (dev docs, build scripts, ERRORS.json, raw data)
 manifest.json           # PWA manifest (app name, icons, theme colors)
 robots.txt              # Search engine crawling directives
-sitemap.xml             # Sitemap index → sitemap-core.xml (70 URLs) + sitemap-suburbs.xml (14,520 URLs)
+sitemap.xml             # Sitemap index → sitemap-core.xml (70 URLs) + sitemap-suburbs.xml (14,539 URLs incl. 19 city pages)
 ```
 
 > **For detailed architecture, conventions, auth flows, and data models** — see **`CODEBASE.md`**
