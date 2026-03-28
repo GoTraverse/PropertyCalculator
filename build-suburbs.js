@@ -312,6 +312,429 @@ function generateResourcesHTML(state) {
   ).join('\n');
 }
 
+// ── Deterministic phrase variation ──
+
+function seedHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+function pick(seed, arr) {
+  return arr[seed % arr.length];
+}
+
+// ── Investment Score ──
+
+function computeScore(s) {
+  // Income: 0–25 pts (scale $55k → 0, $115k → 25)
+  const inc = s.median_household_income || 55000;
+  const incomePts = Math.round(Math.min(25, Math.max(0, (inc - 55000) / (115000 - 55000) * 25)));
+
+  // Distance to CBD: 0–20 pts
+  let distPts = 10; // default when null
+  if (s.distance_to_cbd != null) {
+    const d = s.distance_to_cbd;
+    distPts = d <= 5 ? 20 : d <= 15 ? 16 : d <= 30 ? 12 : d <= 50 ? 8 : 4;
+  }
+
+  // Suburb type: 0–20 pts
+  const typePts = { 'inner-city': 18, 'middle-ring': 16, 'coastal': 14, 'outer-metro': 12, 'regional': 8 }[s.suburb_type] || 10;
+
+  // Transport: 0–15 pts
+  const transportPts = Math.round((s.transport_score || 5) / 10 * 15);
+
+  // Amenity: 0–10 pts
+  const amenityPts = Math.round((s.amenity_score || 5) / 10 * 10);
+
+  // Rent: 0–10 pts
+  let rentPts;
+  if (s.median_rent_weekly) {
+    const r = s.median_rent_weekly;
+    rentPts = r >= 600 ? 10 : r >= 400 ? 7 : r >= 200 ? 5 : 3;
+  } else {
+    rentPts = { 'inner-city': 7, 'middle-ring': 6, 'outer-metro': 5, 'coastal': 5, 'regional': 4 }[s.suburb_type] || 5;
+  }
+
+  return Math.min(100, incomePts + distPts + typePts + transportPts + amenityPts + rentPts);
+}
+
+function generateInvestmentScore(s) {
+  const score = computeScore(s);
+  const h = seedHash(s.suburb + s.state);
+
+  let label, cssClass;
+  if (score >= 81) { label = 'Strong'; cssClass = 'suburb-score--strong'; }
+  else if (score >= 61) { label = 'Good'; cssClass = 'suburb-score--good'; }
+  else if (score >= 41) { label = 'Moderate'; cssClass = 'suburb-score--moderate'; }
+  else { label = 'Weak'; cssClass = 'suburb-score--weak'; }
+
+  // Build explanation from top factors
+  const parts = [];
+  const inc = s.median_household_income || 55000;
+
+  // Income commentary
+  if (inc >= 90000) {
+    parts.push(pick(h, [
+      `Strong household incomes in ${s.suburb} underpin solid property demand.`,
+      `Above-average earnings in ${s.suburb} support sustained property values.`,
+      `${s.suburb} benefits from a high-income resident base, supporting premium property pricing.`,
+    ]));
+  } else if (inc >= 72000) {
+    parts.push(pick(h >> 1, [
+      `Household incomes in ${s.suburb} sit in a comfortable mid-range for the ${s.state_name} market.`,
+      `Moderate income levels in ${s.suburb} indicate steady rental demand from working households.`,
+      `${s.suburb} has a solid income profile that supports reliable occupancy rates.`,
+    ]));
+  } else {
+    parts.push(pick(h >> 2, [
+      `Lower income levels in ${s.suburb} typically translate to more affordable entry points for investors.`,
+      `${s.suburb}'s income profile suggests a value-oriented market with competitive purchase prices.`,
+      `Household earnings in ${s.suburb} are below the state average, which may affect long-term capital growth.`,
+    ]));
+  }
+
+  // Location commentary
+  if (s.distance_to_cbd != null && s.distance_to_cbd <= 15) {
+    parts.push(pick(h >> 3, [
+      `Its proximity to the CBD adds a strong location premium.`,
+      `Close CBD access strengthens tenant appeal and resale value.`,
+      `The short commute to the city centre is a key demand driver.`,
+    ]));
+  } else if (s.suburb_type === 'coastal') {
+    parts.push(pick(h >> 4, [
+      `Coastal lifestyle appeal adds a premium that supports long-term demand.`,
+      `Seaside positioning attracts both owner-occupiers and holiday rental demand.`,
+      `The coastal setting provides a lifestyle factor that underpins property values.`,
+    ]));
+  } else if (s.suburb_type === 'regional') {
+    parts.push(pick(h >> 5, [
+      `As a regional location, growth prospects depend on local economic conditions and infrastructure investment.`,
+      `Regional positioning means lower entry costs but potentially longer hold periods for capital gains.`,
+      `Distance from major centres is a consideration, though regional markets can offer higher rental yields.`,
+    ]));
+  } else if (s.distance_to_cbd != null && s.distance_to_cbd > 30) {
+    parts.push(pick(h >> 6, [
+      `Greater distance from the CBD may temper short-term capital growth.`,
+      `The outer location offers affordability but may see slower price appreciation.`,
+      `While further from the city, improving transport links could boost future demand.`,
+    ]));
+  }
+
+  // Cap at 2-3 sentences
+  const explanation = parts.slice(0, 3).join(' ');
+
+  return `<h2>Investment Score</h2>\n    <div class="suburb-score-badge">\n      <span class="suburb-score-value">${score}</span>\n      <span class="suburb-score-max">/ 100</span>\n      <span class="suburb-score-label ${cssClass}">${label}</span>\n    </div>\n    <p>${explanation}</p>`;
+}
+
+// ── Investment Strategy ──
+
+function generateStrategy(s) {
+  const h = seedHash(s.suburb + s.state);
+  const inc = s.median_household_income || 55000;
+  const type = s.suburb_type;
+  const rent = s.median_rent_weekly;
+  const pop = s.population;
+
+  const strategies = [];
+
+  // Buy & Hold
+  let bhIcon, bhRating;
+  if ((type === 'inner-city' || type === 'middle-ring') && inc >= 80000) {
+    bhIcon = '\u2705'; bhRating = 'strong';
+  } else if (type === 'regional' && inc < 65000) {
+    bhIcon = '\u274C'; bhRating = 'limited';
+  } else {
+    bhIcon = '\u26A0\uFE0F'; bhRating = 'moderate';
+  }
+
+  const bhText = {
+    strong: [
+      `${s.suburb}'s established location and strong demographics make it well-suited to a long-term buy-and-hold strategy.`,
+      `Solid fundamentals in ${s.suburb} support capital growth over a medium to long hold period.`,
+      `With robust local demand and income levels, ${s.suburb} is a natural candidate for patient investors.`,
+    ],
+    moderate: [
+      `A buy-and-hold approach in ${s.suburb} could work well with careful property selection and a longer time horizon.`,
+      `${s.suburb} offers moderate buy-and-hold potential — look for properties with value-add opportunities.`,
+      `Holding property in ${s.suburb} over the medium term may deliver steady, if unspectacular, returns.`,
+    ],
+    limited: [
+      `Buy-and-hold in ${s.suburb} carries higher risk due to limited demand drivers and slower growth fundamentals.`,
+      `Long-term holding in ${s.suburb} requires careful assessment of local economic resilience.`,
+      `Capital growth in ${s.suburb} may be constrained — consider alternative strategies.`,
+    ],
+  };
+  strategies.push({ name: 'Buy &amp; Hold', icon: bhIcon, text: pick(h, bhText[bhRating]) });
+
+  // Rental Yield
+  let ryIcon, ryRating;
+  if (rent && rent >= 450) { ryIcon = '\u2705'; ryRating = 'strong'; }
+  else if (!rent && (type === 'inner-city' || type === 'middle-ring')) { ryIcon = '\u2705'; ryRating = 'strong'; }
+  else if (rent && rent >= 300) { ryIcon = '\u26A0\uFE0F'; ryRating = 'moderate'; }
+  else if (type === 'outer-metro') { ryIcon = '\u26A0\uFE0F'; ryRating = 'moderate'; }
+  else { ryIcon = '\u274C'; ryRating = 'limited'; }
+
+  const ryText = {
+    strong: [
+      `Rental returns in ${s.suburb} are attractive relative to purchase prices, supporting positive cash flow.`,
+      `Strong tenant demand in ${s.suburb} underpins consistent rental income and low vacancy risk.`,
+      `${s.suburb}'s rental market favours investors seeking yield — occupancy rates are typically strong in this area.`,
+    ],
+    moderate: [
+      `Rental yields in ${s.suburb} are moderate — screen for properties that offer above-average returns.`,
+      `${s.suburb} can deliver reasonable rental income, though yields are not the primary draw.`,
+      `Expect competitive but not exceptional rental returns in ${s.suburb}'s current market.`,
+    ],
+    limited: [
+      `Rental yields in ${s.suburb} tend to be lower — investors may need to rely on capital growth instead.`,
+      `Achieving strong cash flow in ${s.suburb} is challenging at current rent-to-price ratios.`,
+      `${s.suburb}'s rental market is softer — budget for potential vacancy periods.`,
+    ],
+  };
+  strategies.push({ name: 'Rental Yield', icon: ryIcon, text: pick(h >> 2, ryText[ryRating]) });
+
+  // Renovation / Flip
+  let rfIcon, rfRating;
+  if ((type === 'outer-metro' || type === 'middle-ring') && pop > 10000) { rfIcon = '\u2705'; rfRating = 'strong'; }
+  else if ((type === 'coastal' || type === 'inner-city') && pop > 5000) { rfIcon = '\u26A0\uFE0F'; rfRating = 'moderate'; }
+  else { rfIcon = '\u274C'; rfRating = 'limited'; }
+
+  const rfText = {
+    strong: [
+      `Older housing stock in ${s.suburb} combined with strong buyer demand creates solid renovation upside.`,
+      `${s.suburb}'s established market and growing population make it a viable location for value-add renovations.`,
+      `Renovation projects in ${s.suburb} can capture the gap between unrenovated and updated property prices.`,
+    ],
+    moderate: [
+      `Some renovation potential exists in ${s.suburb}, though margins may be tighter due to higher base prices or competition.`,
+      `Selective flip opportunities exist in ${s.suburb} for investors with local market knowledge.`,
+      `Renovation in ${s.suburb} requires careful cost analysis — the margin is there but not always wide.`,
+    ],
+    limited: [
+      `Renovation or flip strategies in ${s.suburb} face headwinds from a smaller buyer pool and slower turnover.`,
+      `The resale market in ${s.suburb} may not support quick-turnaround renovation projects.`,
+      `Limited buyer depth in ${s.suburb} makes flip strategies higher-risk — consider rental conversion instead.`,
+    ],
+  };
+  strategies.push({ name: 'Renovation / Flip', icon: rfIcon, text: pick(h >> 4, rfText[rfRating]) });
+
+  const items = strategies.map(st =>
+    `      <div class="suburb-strategy-item">\n        <span class="suburb-strategy-icon">${st.icon}</span>\n        <div>\n          <div class="suburb-strategy-name">${st.name}</div>\n          <p>${st.text}</p>\n        </div>\n      </div>`
+  ).join('\n');
+
+  return `<h2>Investment Strategy</h2>\n    <div class="suburb-strategy-list">\n${items}\n    </div>`;
+}
+
+// ── Risk Factors ──
+
+function generateRisks(s) {
+  const h = seedHash(s.suburb + s.state);
+  const inc = s.median_household_income || 55000;
+  const type = s.suburb_type;
+  const pop = s.population;
+  const dist = s.distance_to_cbd;
+
+  // Pool of risks: [condition, variants[]]
+  const pool = [];
+
+  if (inc >= 95000) {
+    pool.push([
+      `High median incomes often correlate with premium property prices in ${s.suburb}, which can compress rental yields and raise the barrier to entry.`,
+      `Elevated property values in ${s.suburb} may limit gross yields — investors should model cash flow carefully before committing.`,
+      `Premium pricing in ${s.suburb} means larger mortgage commitments and greater exposure to interest rate movements.`,
+    ]);
+  }
+
+  if (dist != null && dist > 30) {
+    pool.push([
+      `At ${dist} km from the CBD, ${s.suburb} may experience a narrower tenant pool compared to closer-in suburbs.`,
+      `The distance from major employment hubs could limit rental demand during economic slowdowns.`,
+      `Greater CBD distance in ${s.suburb} means growth is more dependent on local infrastructure and employment.`,
+    ]);
+  } else if (dist == null) {
+    pool.push([
+      `Limited proximity data for ${s.suburb} — investors should verify commute times and access to major centres.`,
+      `Distance from key employment centres may affect tenant demand — conduct local due diligence.`,
+      `Without confirmed CBD distance data, assess transport links and commute options independently.`,
+    ]);
+  }
+
+  if (type === 'regional') {
+    pool.push([
+      `As a regional market, ${s.suburb}'s property values can be sensitive to changes in local industry and employment.`,
+      `Regional markets like ${s.suburb} may experience longer selling times and thinner buyer pools.`,
+      `Economic concentration risk is higher in regional areas — diversification of the local economy matters.`,
+    ]);
+  }
+
+  if (inc < 70000) {
+    pool.push([
+      `Below-average household incomes in ${s.suburb} may cap rental price growth over time.`,
+      `Lower income levels suggest tenants in ${s.suburb} are more price-sensitive, potentially limiting rent increases.`,
+      `The income profile in ${s.suburb} means rental demand could soften during broader economic downturns.`,
+    ]);
+  }
+
+  if (pop < 5000) {
+    pool.push([
+      `${s.suburb}'s smaller population means fewer potential tenants and buyers, increasing vacancy risk.`,
+      `A compact market like ${s.suburb} can see longer vacancy periods — factor this into cash flow projections.`,
+      `With a population under 5,000, liquidity risk is elevated — selling may take longer than in larger markets.`,
+    ]);
+  }
+
+  if (type === 'inner-city') {
+    pool.push([
+      `Inner-city markets like ${s.suburb} face ongoing supply from new apartment developments, which can suppress price growth.`,
+      `High-density living in ${s.suburb} means competition from new unit stock — differentiation matters for resale.`,
+      `Strata levies and body corporate costs in ${s.suburb} can erode net rental returns on apartment investments.`,
+    ]);
+  }
+
+  if (type === 'coastal') {
+    pool.push([
+      `Coastal locations like ${s.suburb} can experience seasonal rental demand fluctuations, affecting cash flow consistency.`,
+      `Holiday rental potential in ${s.suburb} comes with higher management costs and regulatory uncertainty.`,
+      `Insurance premiums in coastal areas can be elevated due to weather and flood risk — factor this into holding costs.`,
+    ]);
+  }
+
+  if (type === 'outer-metro') {
+    pool.push([
+      `${s.suburb}'s outer-metro position means growth is partly contingent on future infrastructure and transport investment.`,
+      `Newer estates in outer suburbs like ${s.suburb} may see depreciation of fixtures before meaningful land value gains.`,
+      `Developing areas like ${s.suburb} can face delays in promised amenities and services, affecting liveability.`,
+    ]);
+  }
+
+  // Always have at least a general risk
+  pool.push([
+    `As with any Australian property market, ${s.suburb} is subject to interest rate changes that affect borrowing costs and buyer demand.`,
+    `Property markets are cyclical — ${s.suburb}'s current conditions may shift with broader economic trends.`,
+    `Regulatory changes to tax concessions (e.g. negative gearing, CGT discount) could impact investor returns in ${s.suburb}.`,
+  ]);
+
+  // Select 3-4 risks
+  const count = pool.length >= 4 ? 4 : Math.max(3, pool.length);
+  const selected = [];
+  for (let i = 0; i < Math.min(count, pool.length); i++) {
+    selected.push(pick(h + i, pool[i]));
+  }
+
+  const items = selected.map(r => `      <li>${escHtml(r)}</li>`).join('\n');
+  return `<h2>Risk Factors</h2>\n    <ul class="suburb-risk-list">\n${items}\n    </ul>`;
+}
+
+// ── 2026 Outlook ──
+
+function generateOutlook(s) {
+  const h = seedHash(s.suburb + s.state);
+  const score = computeScore(s);
+  const inc = s.median_household_income || 55000;
+  const type = s.suburb_type;
+  const pop = s.population;
+  const rent = s.median_rent_weekly;
+
+  // Growth outlook
+  let growthLevel;
+  if ((type === 'inner-city' || type === 'middle-ring') && inc >= 85000) growthLevel = 'strong';
+  else if (type === 'regional' || inc < 70000) growthLevel = 'low';
+  else growthLevel = 'moderate';
+
+  // Rental demand outlook
+  let rentalLevel;
+  if ((type === 'inner-city' && (rent ? rent >= 400 : true)) || (type === 'middle-ring' && pop > 20000)) rentalLevel = 'strong';
+  else if (type === 'regional' && pop < 5000) rentalLevel = 'low';
+  else rentalLevel = 'moderate';
+
+  // Investor sentiment
+  let sentimentLevel;
+  if (score >= 70) sentimentLevel = 'strong';
+  else if (score >= 50) sentimentLevel = 'moderate';
+  else sentimentLevel = 'low';
+
+  function tagHtml(label, level) {
+    return `<span class="suburb-outlook-tag suburb-outlook-tag--${level}">${escHtml(label)}: ${level.charAt(0).toUpperCase() + level.slice(1)}</span>`;
+  }
+
+  const tags = [
+    tagHtml('Growth', growthLevel),
+    tagHtml('Rental Demand', rentalLevel),
+    tagHtml('Investor Sentiment', sentimentLevel),
+  ].join('\n      ');
+
+  // Narrative paragraph
+  const parts = [];
+
+  // Growth sentence
+  if (growthLevel === 'strong') {
+    parts.push(pick(h, [
+      `${s.suburb} enters 2026 with positive growth momentum, supported by strong local demographics and sustained demand.`,
+      `The outlook for capital growth in ${s.suburb} is encouraging heading into 2026, driven by constrained supply and buyer competition.`,
+      `${s.suburb} is well-positioned for continued price appreciation through 2026, underpinned by high household incomes and location appeal.`,
+    ]));
+  } else if (growthLevel === 'moderate') {
+    parts.push(pick(h >> 1, [
+      `${s.suburb} is expected to see moderate price growth in 2026 as the broader ${s.state_name} market stabilises.`,
+      `Growth in ${s.suburb} through 2026 will likely be steady rather than spectacular, tracking the wider market.`,
+      `Property values in ${s.suburb} should hold firm in 2026, with gradual appreciation tied to infrastructure and population trends.`,
+    ]));
+  } else {
+    parts.push(pick(h >> 2, [
+      `Capital growth in ${s.suburb} may remain subdued in 2026, with limited demand drivers in the near term.`,
+      `${s.suburb} faces a cautious growth outlook for 2026 — investors should focus on yield rather than short-term gains.`,
+      `Price movement in ${s.suburb} is expected to be flat to modest in 2026, reflecting broader regional market conditions.`,
+    ]));
+  }
+
+  // Rental sentence
+  if (rentalLevel === 'strong') {
+    parts.push(pick(h >> 3, [
+      `Rental demand remains robust, with low vacancy rates and growing tenant pools keeping yields competitive.`,
+      `Tenant competition in ${s.suburb} continues to intensify, supporting landlords and rent stability.`,
+      `Strong rental fundamentals in ${s.suburb} provide a reliable income base for investment properties.`,
+    ]));
+  } else if (rentalLevel === 'moderate') {
+    parts.push(pick(h >> 4, [
+      `Rental demand is expected to be stable, though landlords may need to remain competitive on pricing.`,
+      `The rental market in ${s.suburb} should see steady occupancy, with moderate upward pressure on rents.`,
+      `Tenants in ${s.suburb} have options — presenting well-maintained properties is key to minimising vacancy.`,
+    ]));
+  } else {
+    parts.push(pick(h >> 5, [
+      `Rental demand may be softer — budgeting for vacancy periods is prudent in ${s.suburb}'s 2026 outlook.`,
+      `Landlords in ${s.suburb} may face longer tenant search times; competitive pricing will be important.`,
+      `The rental pipeline in ${s.suburb} is thinner — flexible lease terms could help secure tenants faster.`,
+    ]));
+  }
+
+  // Sentiment sentence
+  if (sentimentLevel === 'strong') {
+    parts.push(pick(h >> 6, [
+      `Overall, investor sentiment toward ${s.suburb} is positive, backed by solid fundamentals.`,
+      `${s.suburb} remains on the radar of active property investors in ${s.state_name}.`,
+      `Confidence in ${s.suburb}'s medium-term prospects is reflected in sustained buyer interest.`,
+    ]));
+  } else if (sentimentLevel === 'moderate') {
+    parts.push(pick(h >> 7, [
+      `Investor sentiment is cautiously optimistic — selective opportunities exist for well-researched buyers.`,
+      `${s.suburb} offers measured appeal for investors willing to look beyond headline metrics.`,
+      `The market mood around ${s.suburb} is balanced — neither bullish nor bearish heading into 2026.`,
+    ]));
+  } else {
+    parts.push(pick(h >> 8, [
+      `Investor sentiment toward ${s.suburb} is currently lukewarm — value hunters may find opportunity here.`,
+      `${s.suburb} is not a headline market, but contrarian investors may see long-term potential.`,
+      `Sentiment is subdued, though improving local conditions could shift perceptions over time.`,
+    ]));
+  }
+
+  return `<h2>2026 Outlook</h2>\n    <div class="suburb-outlook-tags">\n      ${tags}\n    </div>\n    <p>${parts.join(' ')}</p>`;
+}
+
 // ── Build suburb pages ──
 
 // Build date injected into all pages so "last updated" is always accurate
@@ -430,6 +853,10 @@ for (const s of suburbs) {
     .replace(/\{\{DATA_SOURCE_NOTE\}\}/g, escHtml(dataSourceNote))
     .replace(/\{\{MAPS_EMBED_URL\}\}/g, mapsEmbedUrl)
     .replace(/\{\{INVESTMENT_INSIGHT\}\}/g, generateInsight(s))
+    .replace(/\{\{INVESTMENT_SCORE_HTML\}\}/g, generateInvestmentScore(s))
+    .replace(/\{\{STRATEGY_HTML\}\}/g, generateStrategy(s))
+    .replace(/\{\{RISK_FACTORS_HTML\}\}/g, generateRisks(s))
+    .replace(/\{\{OUTLOOK_HTML\}\}/g, generateOutlook(s))
     .replace(/\{\{FAQ_HTML\}\}/g, generateFAQ(s))
     .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, generateRelatedHTML(related, s.state))
     .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state));
