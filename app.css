@@ -50,6 +50,18 @@
   .prop-type-btn.active{background:rgba(201,168,76,0.15);border-color:var(--gold);color:var(--charcoal);font-weight:500;}
   .pd-stat-chip{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:12px;color:rgba(245,240,232,0.6);background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:12px;}
   #prop-photo-big-wrap.pd-drag{outline:2px dashed var(--gold);}
+
+  /* ── Pro feature gate prompt ── */
+  .pro-gate-prompt{display:flex;justify-content:center;align-items:center;min-height:320px;padding:40px 20px;}
+  .pro-gate-inner{text-align:center;max-width:400px;}
+  .pro-gate-icon{font-size:48px;margin-bottom:16px;}
+  .pro-gate-inner h3{font-family:var(--font-display,'Playfair Display',serif);font-size:22px;font-weight:700;color:var(--charcoal);margin-bottom:10px;}
+  .pro-gate-inner p{font-size:14px;color:var(--slate);line-height:1.6;margin-bottom:24px;}
+  .pro-gate-btn{display:inline-block;background:var(--gold);color:var(--charcoal);padding:12px 28px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.5px;text-decoration:none;transition:background 0.15s,transform 0.15s;}
+  .pro-gate-btn:hover{background:#d4b355;transform:translateY(-1px);}
+  html.dark-mode .pro-gate-inner h3{color:var(--cream);}
+  html.dark-mode .pro-gate-inner p{color:rgba(245,240,232,0.6);}
+
   @media print{
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
     @page{margin:8mm 10mm;size:A4;}

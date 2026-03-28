@@ -1038,7 +1038,7 @@
     var mainEl = document.querySelector('main');
     if(mainEl) mainEl.scrollTop = 0; else window.scrollTo(0,0);
     // Redraw projection when that tab becomes visible (container was hidden at load)
-    if(id === 'projection'){ setTimeout(drawProjection, 30); }
+    if(id === 'projection' && isPro()){ setTimeout(drawProjection, 30); }
     // Smooth-scroll active tab to centre on mobile
     if(window.innerWidth <= 820){
       setTimeout(function(){
@@ -4367,9 +4367,10 @@
 
     // ── Projection tab feature flag ───────────────────────────────
     var projEnabled = cfg.enableProjections !== false;
-    var projVisible = projEnabled && isPro();
     var projBtn = document.getElementById('tab-projection-btn');
-    if(projBtn) projBtn.style.display = projVisible ? '' : 'none';
+    if(projBtn) projBtn.style.display = projEnabled ? '' : 'none';
+    // Toggle upgrade prompt vs projection content for free users
+    toggleProjectionGate();
   }
 
   // Returns Authorization header value for API calls, or null if guest
@@ -4382,15 +4383,30 @@
     document.querySelectorAll('.export-btn[onclick*="exportPDF"],.export-btn[title*="PDF"]').forEach(function(el){
       el.style.display = pro ? '' : 'none';
     });
-    // Hide projection tab entirely for free users
-    var projBtn = document.getElementById('tab-projection-btn');
-    if(projBtn) projBtn.style.display = pro ? '' : 'none';
     // Show/hide upgrade banner in header if free
     var plan = getUserPlan();
     var badge = document.getElementById('plan-badge');
     if(badge) badge.textContent = plan === 'free' ? 'Starter' : 'Pro';
+    // Toggle projection upgrade prompt vs content
+    toggleProjectionGate();
     // Apply site feature flags (admin-controlled global toggles)
     loadSiteConfig();
+  }
+
+  // Show upgrade prompt or projection content based on plan
+  function toggleProjectionGate(){
+    var pro = isPro();
+    var prompt = document.getElementById('proj-upgrade-prompt');
+    var section = document.getElementById('projection');
+    if(!prompt || !section) return;
+    prompt.style.display = pro ? 'none' : 'block';
+    // Hide/show all projection content siblings (everything after the prompt)
+    var children = section.children;
+    for(var i = 0; i < children.length; i++){
+      var el = children[i];
+      if(el.id === 'proj-upgrade-prompt' || el.classList.contains('sl')) continue;
+      el.style.display = pro ? '' : 'none';
+    }
   }
 
     function getAuthHeader(){
