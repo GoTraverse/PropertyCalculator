@@ -109,14 +109,14 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | `.netlifyignore` | Dev/internal files excluded from Netlify CDN — **add new dev files here** |
 | `404.html` + `import-test.html` | Error page & dev test page |
 | `robots.txt` | Site crawling directives — allows public pages, blocks admin/app/account |
-| `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,539 URLs incl. 19 city pages) |
+| `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + 19 state-grouped `sitemap-suburbs-*.xml` files (14,539 URLs total, max 1000 per file) |
 
 ### Suburb Insights System (generated at build time)
 | File | Purpose |
 |------|---------|
 | `fetch-abs-data.js` | Downloads real ABS 2021 Census suburb data from ArcGIS FeatureServer → `data/abs-suburbs.json` |
 | `generate-suburbs-data.js` | Merges ABS population data + postcodes (`data/au_postcodes.csv`) → `data/suburbs.json` |
-| `build-suburbs.js` | Generates 14,512 suburb pages + 19 city pages + 8 state hubs + directory index + `sitemap-suburbs.xml` from templates |
+| `build-suburbs.js` | Generates 14,512 suburb pages + 19 city pages + 8 state hubs + directory index + state-grouped `sitemap-suburbs-*.xml` files from templates |
 | `data/suburbs.json` | 14,512 suburbs with real names, populations, postcodes + placeholder income/distance/scores |
 | `templates/suburb-page.html` | Suburb page template — investment score, strategy, risks, outlook, `{{PLACEHOLDER}}` syntax, schema.org JSON-LD |
 | `templates/city-page.html` | City page template — aggregate city score, top suburbs, strategy, risks, outlook for 19 major Australian cities |

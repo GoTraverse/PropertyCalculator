@@ -182,7 +182,7 @@ netlify.toml            # Netlify build config, CSP headers, cache rules, force-
 .netlifyignore          # Files excluded from Netlify CDN (dev docs, build scripts, ERRORS.json, raw data)
 manifest.json           # PWA manifest (app name, icons, theme colors)
 robots.txt              # Search engine crawling directives
-sitemap.xml             # Sitemap index → sitemap-core.xml (70 URLs) + sitemap-suburbs.xml (14,539 URLs incl. 19 city pages)
+sitemap.xml             # Sitemap index → sitemap-core.xml (70 URLs) + 19 state-grouped sitemap-suburbs-*.xml files (14,539 URLs total, max 1000 per file)
 ```
 
 > **For detailed architecture, conventions, auth flows, and data models** — see **`CODEBASE.md`**

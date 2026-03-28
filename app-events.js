@@ -4,12 +4,7 @@
 // ── Tab navigation ────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab[data-tab]').forEach(function(btn){
   btn.addEventListener('click', function(){
-    var tab = this.dataset.tab;
-    if(tab === 'projection'){
-      if(isPro()) showTab('projection', this); else requirePro('30-Year Projection');
-    } else {
-      showTab(tab, this);
-    }
+    showTab(this.dataset.tab, this);
   });
 });
 

@@ -1482,47 +1482,78 @@ fs.mkdirSync(suburbIndexDir, { recursive: true });
 fs.writeFileSync(path.join(suburbIndexDir, 'index.html'), dirIndexHTML);
 console.log(`Generated suburb directory index (${suburbs.length} suburbs, ${allStates.length} states)`);
 
-// ── Generate suburb sitemap ──
+// ── Generate split sitemaps (max 1000 URLs per file, grouped by state) ──
 
-const sitemapHeader = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-const sitemapFooter = '</urlset>';
-const sitemapEntries = [];
+const sitemapXmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+const sitemapXmlFooter = '</urlset>';
 
-// State hubs
+function sitemapUrl(loc, changefreq, priority) {
+  return `  <url>\n    <loc>${loc}</loc>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+}
+
+// Collect URLs grouped by state
+const stateUrls = {};
 for (const state of allStates) {
-  sitemapEntries.push(`  <url>\n    <loc>https://equitysight.app/invest/${state.toLowerCase()}/</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`);
+  stateUrls[state] = [];
+  // State hub page
+  stateUrls[state].push(sitemapUrl(`https://equitysight.app/invest/${state.toLowerCase()}/`, 'weekly', '0.8'));
 }
 
-// City pages
+// City pages → into their state bucket
 for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
-  const slug = citySlug(cityName);
-  sitemapEntries.push(`  <url>\n    <loc>https://equitysight.app/invest/${cityDef.state.toLowerCase()}/${slug}/</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.75</priority>\n  </url>`);
+  const cSlug = citySlug(cityName);
+  const st = cityDef.state;
+  if (!stateUrls[st]) stateUrls[st] = [];
+  stateUrls[st].push(sitemapUrl(`https://equitysight.app/invest/${st.toLowerCase()}/${cSlug}/`, 'weekly', '0.75'));
 }
 
-// Suburb pages
+// Suburb pages → into their state bucket
 for (const s of suburbs) {
-  sitemapEntries.push(`  <url>\n    <loc>https://equitysight.app/suburb/${s.state.toLowerCase()}/${s.slug}/</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>`);
+  stateUrls[s.state].push(sitemapUrl(`https://equitysight.app/suburb/${s.state.toLowerCase()}/${s.slug}/`, 'monthly', '0.6'));
 }
 
-fs.writeFileSync(
-  path.join(ROOT, 'sitemap-suburbs.xml'),
-  sitemapHeader + '\n' + sitemapEntries.join('\n') + '\n' + sitemapFooter + '\n'
-);
+// Split each state into chunks of max 1000 and write files
+const MAX_PER_SITEMAP = 1000;
+const sitemapFiles = []; // { filename, urlCount }
+let totalSitemapUrls = 0;
+
+for (const state of allStates) {
+  const urls = stateUrls[state];
+  const chunks = [];
+  for (let i = 0; i < urls.length; i += MAX_PER_SITEMAP) {
+    chunks.push(urls.slice(i, i + MAX_PER_SITEMAP));
+  }
+  for (let i = 0; i < chunks.length; i++) {
+    const suffix = chunks.length > 1 ? `-${i + 1}` : '';
+    const filename = `sitemap-suburbs-${state.toLowerCase()}${suffix}.xml`;
+    const content = sitemapXmlHeader + '\n' + chunks[i].join('\n') + '\n' + sitemapXmlFooter + '\n';
+    fs.writeFileSync(path.join(ROOT, filename), content);
+    sitemapFiles.push({ filename, urlCount: chunks[i].length });
+    totalSitemapUrls += chunks[i].length;
+  }
+}
 
 // ── Generate sitemap index ──
 
+const sitemapIndexEntries = [
+  '  <sitemap>\n    <loc>https://equitysight.app/sitemap-core.xml</loc>\n  </sitemap>',
+  ...sitemapFiles.map(f =>
+    `  <sitemap>\n    <loc>https://equitysight.app/${f.filename}</loc>\n  </sitemap>`
+  ),
+];
+
 const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>https://equitysight.app/sitemap-core.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>https://equitysight.app/sitemap-suburbs.xml</loc>
-  </sitemap>
+${sitemapIndexEntries.join('\n')}
 </sitemapindex>
 `;
 
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), sitemapIndex);
 
+// Clean up old monolithic sitemap file if it exists
+const oldSitemap = path.join(ROOT, 'sitemap-suburbs.xml');
+if (fs.existsSync(oldSitemap)) fs.unlinkSync(oldSitemap);
+
 console.log(`Built ${suburbCount} suburb pages, ${cityCount} city pages, ${hubCount} state hub pages`);
-console.log(`Generated sitemap.xml (index) + sitemap-suburbs.xml (${sitemapEntries.length} URLs)`);
+console.log(`Generated sitemap.xml (index) + ${sitemapFiles.length} sitemap files (${totalSitemapUrls} URLs total)`);
+sitemapFiles.forEach(f => console.log(`  ${f.filename}: ${f.urlCount} URLs`));
