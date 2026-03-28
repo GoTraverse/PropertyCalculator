@@ -227,6 +227,38 @@ html.dark-mode .hub-show-more:hover { background: var(--gold); color: var(--char
 .suburb-risk-list li:last-child { border-bottom: none; }
 .suburb-risk-list li::before { content: '\26A0\FE0F'; margin-right: 8px; }
 
+/* ── City page stats ── */
+.city-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.city-stat { background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-align: center; }
+.city-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
+.city-stat-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--charcoal); }
+@media (max-width: 480px) { .city-stats-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ── City top suburbs ── */
+.city-top-suburbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.city-top-card { display: block; background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-decoration: none; color: inherit; border: 1px solid transparent; transition: border-color 0.15s, box-shadow 0.15s; }
+.city-top-card:hover { border-color: rgba(201,168,76,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.city-top-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.city-top-score { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.5px; color: var(--slate); margin-bottom: 4px; }
+.city-top-score .suburb-score-label { font-size: 11px; padding: 1px 6px; margin-right: 4px; }
+
+/* ── City links on state hubs ── */
+.city-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.city-card { display: block; background: var(--warm-white); border-radius: 8px; padding: 16px 18px; text-decoration: none; color: inherit; border: 1px solid rgba(201,168,76,0.15); transition: border-color 0.15s, box-shadow 0.15s; }
+.city-card:hover { border-color: rgba(201,168,76,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.city-card-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.city-card-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); }
+
+/* ── Dark mode: city pages ── */
+html.dark-mode .city-stat { background: rgba(255,255,255,0.04); }
+html.dark-mode .city-stat-value { color: #F5F0E8; }
+html.dark-mode .city-top-card { background: rgba(255,255,255,0.04); color: #F5F0E8; }
+html.dark-mode .city-top-card:hover { border-color: rgba(201,168,76,0.3); }
+html.dark-mode .city-top-name { color: #F5F0E8; }
+html.dark-mode .city-card { background: rgba(255,255,255,0.04); border-color: rgba(201,168,76,0.1); }
+html.dark-mode .city-card:hover { border-color: rgba(201,168,76,0.35); }
+html.dark-mode .city-card-name { color: #F5F0E8; }
+
 /* ── 2026 Outlook ── */
 .suburb-outlook-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .suburb-outlook-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: var(--warm-white); color: var(--slate); border: 1px solid rgba(28,28,30,0.08); }

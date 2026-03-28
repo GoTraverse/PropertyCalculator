@@ -5,7 +5,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 
 **Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** + **8 state hub pages** | **11 Netlify functions** | **11 CSS files** | **4698+ lines** of calculator logic in app.js | **2894+ lines** of admin logic in admin.js
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** + **19 city pages** + **8 state hub pages** | **11 Netlify functions** | **11 CSS files** | **4698+ lines** of calculator logic in app.js | **2894+ lines** of admin logic in admin.js
 
 ---
 
@@ -14,7 +14,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 ```
 Browser (static files)
   │
-  ├── HTML pages (15 handwritten root + 9 tool calculators + 14,512 generated suburb pages + 8 state hubs)
+  ├── HTML pages (15 handwritten root + 9 tool calculators + 14,512 generated suburb pages + 19 city pages + 8 state hubs)
   ├── shared.css          — design tokens & shared component styles
   ├── site-init.js        — applies dark/light theme before first paint (sync, no defer)
   ├── auth-nav.js         — injects nav header + session refresh into every page
@@ -109,19 +109,21 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | `.netlifyignore` | Dev/internal files excluded from Netlify CDN — **add new dev files here** |
 | `404.html` + `import-test.html` | Error page & dev test page |
 | `robots.txt` | Site crawling directives — allows public pages, blocks admin/app/account |
-| `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,520 URLs) |
+| `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,539 URLs incl. 19 city pages) |
 
 ### Suburb Insights System (generated at build time)
 | File | Purpose |
 |------|---------|
 | `fetch-abs-data.js` | Downloads real ABS 2021 Census suburb data from ArcGIS FeatureServer → `data/abs-suburbs.json` |
 | `generate-suburbs-data.js` | Merges ABS population data + postcodes (`data/au_postcodes.csv`) → `data/suburbs.json` |
-| `build-suburbs.js` | Generates 14,512 suburb pages + 8 state hubs + directory index + `sitemap-suburbs.xml` from templates |
+| `build-suburbs.js` | Generates 14,512 suburb pages + 19 city pages + 8 state hubs + directory index + `sitemap-suburbs.xml` from templates |
 | `data/suburbs.json` | 14,512 suburbs with real names, populations, postcodes + placeholder income/distance/scores |
-| `templates/suburb-page.html` | Suburb page template — `{{PLACEHOLDER}}` syntax, schema.org JSON-LD (Place + BreadcrumbList) |
-| `templates/state-hub.html` | State hub template — progressive loading (100 suburbs, "Show more"), search by name/postcode |
-| `suburb-insights.css` | Shared styles for suburb pages, state hubs, hub search, pagination |
+| `templates/suburb-page.html` | Suburb page template — investment score, strategy, risks, outlook, `{{PLACEHOLDER}}` syntax, schema.org JSON-LD |
+| `templates/city-page.html` | City page template — aggregate city score, top suburbs, strategy, risks, outlook for 19 major Australian cities |
+| `templates/state-hub.html` | State hub template — progressive loading (100 suburbs, "Show more"), search by name/postcode, city navigation |
+| `suburb-insights.css` | Shared styles for suburb pages, city pages, state hubs, hub search, pagination |
 | `suburb/{state}/{slug}/index.html` | Generated suburb pages (gitignored, built on Netlify deploy) |
+| `invest/{state}/{city-slug}/index.html` | Generated city pages (gitignored, built on Netlify deploy) |
 | `invest/{state}/index.html` | Generated state hub pages (gitignored, built on Netlify deploy) |
 | `favicon.svg` | SVG favicon (logo mark) |
 | `BingSiteAuth.xml` + `ms43432176.txt` | Search engine verification tokens |

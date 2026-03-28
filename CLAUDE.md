@@ -5,7 +5,7 @@
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** + **8 state hub pages** | **11 Netlify functions** | **11 CSS files** | **4698+ lines** of calculator logic | **2894+ lines** of admin logic
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** + **19 city pages** + **8 state hub pages** | **11 Netlify functions** | **11 CSS files** | **4698+ lines** of calculator logic | **2894+ lines** of admin logic
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
@@ -106,15 +106,17 @@ See **`README.md`** for feature overview and quick start guide.
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
 - **To update all calculators**: Edit `tools.css` (no need to touch individual HTML files)
 
-### Suburb Insights System (14,512 pages)
+### Suburb Insights System (14,512 suburb pages + 19 city pages)
 - **Data pipeline**: `fetch-abs-data.js` → `data/abs-suburbs.json` → `generate-suburbs-data.js` → `data/suburbs.json` → `build-suburbs.js` → HTML pages
 - **Real data**: Suburb names + populations from ABS 2021 Census (ArcGIS FeatureServer, SAL geography); postcodes from community dataset (`au_postcodes.csv`)
 - **Placeholder data**: Income, distance to CBD, suburb type, scores — to be replaced with live data later
-- **Build output**: `/suburb/{state}/{slug}/index.html` (14,512 pages) + `/invest/{state}/index.html` (8 state hubs) + directory index + sitemap
-- **Templates**: `templates/suburb-page.html` and `templates/state-hub.html` — use `{{PLACEHOLDER}}` syntax
-- **Styling**: `suburb-insights.css` — shared styles for suburb pages + state hubs
-- **SEO**: BreadcrumbList + Place schema.org JSON-LD, postcodes in titles/meta/keywords, structured data
-- **State hubs**: Progressive loading (100 suburbs initially, "Show more" button) + client-side search by name/postcode
+- **Build output**: `/suburb/{state}/{slug}/index.html` (14,512 pages) + `/invest/{state}/{city-slug}/index.html` (19 city pages) + `/invest/{state}/index.html` (8 state hubs) + directory index + sitemap
+- **Templates**: `templates/suburb-page.html`, `templates/city-page.html`, and `templates/state-hub.html` — use `{{PLACEHOLDER}}` syntax
+- **Styling**: `suburb-insights.css` — shared styles for suburb pages, city pages + state hubs
+- **SEO**: BreadcrumbList + Place + CollectionPage schema.org JSON-LD, postcodes in titles/meta/keywords, structured data
+- **Suburb investment sections**: Each suburb page includes Investment Score (0-100), Best Investment Strategy (Buy & Hold / Rental Yield / Renovation), Risk Factors (3-4 per suburb), and 2026 Outlook — all generated with deterministic phrase variation via `seedHash()`
+- **City pages**: 19 major Australian cities (Brisbane, Sydney, Melbourne, Perth, Adelaide, Gold Coast, Newcastle, Canberra, Sunshine Coast, Wollongong, Geelong, Cairns, Townsville, Hobart, Toowoomba, Darwin, Ballarat, Bendigo, Launceston) — grouped by postcode ranges, with aggregate city investment score, strategy, risks, outlook, and top-12 suburbs ranking
+- **State hubs**: Progressive loading (100 suburbs initially, "Show more" button) + client-side search by name/postcode + major city navigation cards
 - **Performance**: Scripts use `defer` attribute; related suburbs pre-computed (O(n) not O(n²))
 - **Build command**: `node build.js` — conditional build wrapper:
   - Normal deploys: restores cached suburb pages (instant, no rebuild)
@@ -212,7 +214,7 @@ Files intentionally NOT blocked (needed at runtime):
 - ✅ **Schema.org structured data** — BreadcrumbList + Place + CollectionPage on all suburb/state pages
 - ✅ **Postcodes** in page titles, meta descriptions, keywords, and schema.org for SEO
 - ✅ **Build optimization** — defer scripts, pre-computed related suburbs (O(n) build), .gitignore cleanup
-- ✅ Sitemap split: `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,520 URLs) indexed by `sitemap.xml`
+- ✅ Sitemap split: `sitemap-core.xml` (70 URLs) + `sitemap-suburbs.xml` (14,539 URLs incl. 19 city pages) indexed by `sitemap.xml`
 - ✅ **Security: blocked dev files from public CDN** — `.netlifyignore` prevents CLAUDE.md, README.md, CODEBASE.md, TODO.md, ERRORS.json, build scripts, and raw data files from being uploaded; `netlify.toml` force-404 redirects act as secondary safety net
 - ✅ **Admin Config tab split** into Settings, Features, Integrations, Branding (14 admin tabs total now)
 - ✅ **Admin new tabs** — About Page, Legal Pages, Suburbs added to admin dashboard
@@ -233,3 +235,6 @@ Files intentionally NOT blocked (needed at runtime):
 - ✅ **address-suggest** Netlify function added (rate-limited, 30 req/min)
 - ✅ **market-data** Netlify function added for suburb insights market data
 - ✅ **lvrColor / st bug fixes** — ReferenceErrors in app.js and admin.js causing recalc crashes on iOS
+- ✅ **Suburb investment sections** — Investment Score (0-100), Best Investment Strategy, Risk Factors, and 2026 Outlook added to all 14,512 suburb pages with deterministic phrase variation
+- ✅ **19 city investment pages** — Major Australian cities (Brisbane, Sydney, Melbourne, Perth, Adelaide, Gold Coast, etc.) with aggregate investment scores, strategy, risks, outlook, and top-12 suburb rankings at `/invest/{state}/{city-slug}/`
+- ✅ **State hub city navigation** — state hub pages now show major city cards linking to city investment pages
