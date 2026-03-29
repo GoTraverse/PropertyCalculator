@@ -240,7 +240,7 @@ exports.handler = async function (event) {
     const user = await verifyToken(event.headers?.authorization || event.headers?.Authorization);
     if (!user || user.role !== 'admin') return fail('Unauthorized', 401);
     const ghToken = (process.env.GITHUB_TOKEN || '').trim();
-    if (!ghToken) return fail('GITHUB_TOKEN env var not set. Add it in Netlify → Environment Variables.');
+    if (!ghToken) return fail('Automatic error sync not configured');
     try {
       await pushErrorsToGitHub(ghToken);
       await redisCmd('SET', 'client-errors:lastSync', String(Date.now()));

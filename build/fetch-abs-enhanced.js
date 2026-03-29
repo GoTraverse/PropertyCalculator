@@ -28,7 +28,8 @@ const path = require('path');
 
 const BASE_URL = 'https://services1.arcgis.com/vHnIGBHHqDR6y0CR/arcgis/rest/services/2021_ABS_General_Community_Profile/FeatureServer/5/query';
 const BATCH_SIZE = 2000;
-const OUT_FILE = path.join(__dirname, 'data', 'abs-enhanced.json');
+const ROOT = path.join(__dirname, '..');
+const OUT_FILE = path.join(ROOT, 'data', 'abs-enhanced.json');
 
 const STATE_MAP = {
   '1': 'NSW', '2': 'VIC', '3': 'QLD', '4': 'SA',

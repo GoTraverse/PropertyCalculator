@@ -12,9 +12,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const ABS_FILE = path.join(__dirname, 'data', 'abs-suburbs.json');
-const PC_FILE = path.join(__dirname, 'data', 'au_postcodes.csv');
-const OUT_FILE = path.join(__dirname, 'data', 'suburbs.json');
+const ROOT = path.join(__dirname, '..');
+const ABS_FILE = path.join(ROOT, 'data', 'abs-suburbs.json');
+const PC_FILE = path.join(ROOT, 'data', 'au_postcodes.csv');
+const OUT_FILE = path.join(ROOT, 'data', 'suburbs.json');
 
 const absData = JSON.parse(fs.readFileSync(ABS_FILE, 'utf8'));
 

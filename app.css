@@ -1,9 +1,5 @@
 /* app.css — EquitySight app calculator styles */
-  :root {
-    --cream:#F5F0E8;--warm-white:#FAF7F2;--charcoal:#1C1C1E;--charcoal-soft:#2C2C2E;
-    --slate:#4A4A52;--sage:#7B9E87;--sage-light:#A8C4B0;--terracotta:#C4704A;
-    --terracotta-light:#E8A882;--gold:#C9A84C;--sky:#5B8FAB;--risk-red:#C45A5A;--reward-green:#5A9E7B;
-  }
+  /* Color variables now in shared.css (single source of truth) */
   *{margin:0;padding:0;box-sizing:border-box;}
   :root{--hdr-h-mobile:60px;--hdr-h-desktop:150px;}
   @supports (padding-top: env(safe-area-inset-top)){

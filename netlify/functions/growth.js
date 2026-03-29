@@ -14,9 +14,10 @@ const GROWTH_TTL  = 30 * 24 * 60 * 60; // 30 days in seconds
 
 const H = {
   'Content-Type':'application/json',
-  'Access-Control-Allow-Origin':'*',
+  'Access-Control-Allow-Origin': process.env.SITE_URL || 'https://equitysight.app',
   'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
   'Access-Control-Allow-Headers':'Content-Type,Authorization',
+  'Access-Control-Allow-Credentials':'true',
 };
 
 async function redisCmd(...args){

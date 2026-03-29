@@ -19,9 +19,10 @@ const EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').
 
 const H = {
   'Content-Type':'application/json',
-  'Access-Control-Allow-Origin':'*',
+  'Access-Control-Allow-Origin': process.env.SITE_URL || 'https://equitysight.app',
   'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
   'Access-Control-Allow-Headers':'Content-Type,Authorization',
+  'Access-Control-Allow-Credentials':'true',
 };
 
 // ── Redis ─────────────────────────────────────────────────────────────
