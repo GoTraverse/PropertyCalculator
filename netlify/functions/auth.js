@@ -14,18 +14,25 @@ const crypto = require('crypto');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
-const SALT = process.env.AUTH_SALT || (() => {
-  throw new Error('[auth] FATAL: AUTH_SALT env var is required. Set it in Netlify → Environment Variables.');
-})();
+const SALT = (process.env.AUTH_SALT || '').trim();
+// AUTH_SALT is validated per-request — see handler below
 const TOKEN_TTL   = 60 * 60 * 24 * 30; // 30 days
 
-const H = {
-  'Content-Type':'application/json',
-  'Access-Control-Allow-Origin': process.env.SITE_URL || 'https://equitysight.app',
-  'Access-Control-Allow-Methods':'GET,POST,OPTIONS',
-  'Access-Control-Allow-Headers':'Content-Type,Authorization',
-  'Access-Control-Allow-Credentials':'true',
-};
+const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+
+function getCorsHeaders(event) {
+  const reqOrigin = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
+    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Content-Type':'application/json',
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods':'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers':'Content-Type,Authorization',
+    'Access-Control-Allow-Credentials':'true',
+  };
+}
 
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
@@ -292,6 +299,7 @@ function makeEmailCode(){ return String(crypto.randomInt(100000, 1000000)); }
 function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('email-code:'+String(code)).digest('hex'); }
 // Constant-time string compare — prevents timing attacks on hash comparisons
 function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual(Buffer.from(a,'hex'),Buffer.from(b,'hex')); }catch(e){ return false; } }
+let H = {};
 function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
 
@@ -306,7 +314,9 @@ async function verifyToken(authHeader){
 }
 
 exports.handler = async function(event){
+  H = getCorsHeaders(event);
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
+  if(!SALT) return fail('Server configuration error — AUTH_SALT not set', 500);
 
   // GET = verify token from Authorization header
   if(event.httpMethod==='GET'){

@@ -12,13 +12,21 @@ const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 const GROWTH_TTL  = 30 * 24 * 60 * 60; // 30 days in seconds
 
-const H = {
-  'Content-Type':'application/json',
-  'Access-Control-Allow-Origin': process.env.SITE_URL || 'https://equitysight.app',
-  'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers':'Content-Type,Authorization',
-  'Access-Control-Allow-Credentials':'true',
-};
+const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+function getCorsHeaders(event) {
+  const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
+    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Content-Type':'application/json',
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers':'Content-Type,Authorization',
+    'Access-Control-Allow-Credentials':'true',
+  };
+}
+let H = {};
 
 async function redisCmd(...args){
   if(!REDIS_URL||!REDIS_TOKEN) throw new Error('UPSTASH env vars missing');
@@ -61,6 +69,7 @@ const ok  = (body, s=200) => ({statusCode:s, headers:H, body:JSON.stringify(body
 const fail = (msg, s=400) => ({statusCode:s, headers:H, body:JSON.stringify({ok:false,error:msg})});
 
 exports.handler = async (event) => {
+  H = getCorsHeaders(event);
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
 
   let body={};
