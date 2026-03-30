@@ -17,13 +17,21 @@ const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
 
-const H = {
-  'Content-Type':'application/json',
-  'Access-Control-Allow-Origin': process.env.SITE_URL || 'https://equitysight.app',
-  'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers':'Content-Type,Authorization',
-  'Access-Control-Allow-Credentials':'true',
-};
+const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+function getCorsHeaders(event) {
+  const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
+    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Content-Type':'application/json',
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers':'Content-Type,Authorization',
+    'Access-Control-Allow-Credentials':'true',
+  };
+}
+let H = {};
 
 // ── Redis ─────────────────────────────────────────────────────────────
 async function redisCmd(...args){
@@ -156,6 +164,7 @@ async function verifyAdminToken(authHeader){
 
 // ── Handler ───────────────────────────────────────────────────────────
 exports.handler = async function(event){
+  H = getCorsHeaders(event);
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
 
   if(!REDIS_URL||!REDIS_TOKEN){
