@@ -1,19 +1,19 @@
 {
-  "syncedAt": "2026-03-26T22:27:08.538Z",
+  "syncedAt": "2026-03-30T01:23:17.391Z",
   "count": 1,
   "errors": [
     {
-      "at": 1774564027531,
-      "message": "ResizeObserver loop completed with undelivered notifications.",
+      "at": 1774833796376,
+      "message": "CSP violation: script-src-elem — blocked \"inline\"",
       "source": "https://equitysight.app/app",
-      "line": null,
-      "col": null,
+      "line": 1353,
+      "col": 1,
       "stack": "",
       "url": "https://equitysight.app/app",
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
-      "userId": "mn81hpzv97c9bc68",
-      "userName": "Patrick Dallimore",
-      "userEmail": "paddy.dallimore@gmail.com",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmj43i1f23e6611f",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "support@equitysight.app",
       "severity": "error"
     }
   ]
