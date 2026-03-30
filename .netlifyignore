@@ -14,13 +14,10 @@ ERRORS.json
 
 # Build scripts (server-side only, not needed on CDN)
 build.js
-build-suburbs.js
-generate-suburbs-data.js
-fetch-abs-data.js
-fetch-abs-enhanced.js
+build/
+
+# Build-adjacent scripts still at root
 fetch-overpass-amenities.js
-apply-abs-data.js
-fix-suburb-classification.js
 
 # Raw / fetched source data (large intermediate files, not needed at runtime)
 data/abs-suburbs.json
@@ -29,9 +26,6 @@ data/overpass-amenities.json
 
 # HTML templates (used at build time only)
 templates/
-
-# Dev test pages
-import-test.html
 
 # Node artefacts
 node_modules/

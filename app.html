@@ -3,11 +3,11 @@
 <head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
-<script src="/gtag-init.js"></script>
-<script src="/analytics.js"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
 <meta charset="UTF-8">
-<script src="site-init.js"></script>
-<script src="app-init.js"></script>
+<script src="/site-init.js"></script>
+<script src="/app-init.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -21,14 +21,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="app.css">
-<script src="error-capture.js"></script>
+<script src="/error-capture.js"></script>
 <script src="auth-nav.js" defer></script>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="alternate icon" href="favicon.svg">
   <meta name="theme-color" content="#1C1C1E">
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <div id="page-spinner"><div class="spinner-ring"></div></div>
 
@@ -41,7 +43,7 @@
   <p id="maintenance-msg" style="font-size:15px;color:rgba(245,240,232,0.6);max-width:440px;line-height:1.7;margin:0;">We'll be back shortly — upgrading our systems.</p>
 </div>
 
-<header>
+<header id="main-content">
   <!-- Announcement banner (hidden until config loads) -->
   <div id="announce-banner" style="display:none;padding:9px 48px 9px 16px;font-size:13px;text-align:center;position:relative;line-height:1.4;"></div>
   <div class="header-inner">
@@ -130,19 +132,19 @@
     <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:2px;">Sections</div>
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div class="s-head" style="margin-bottom:0;font-size:11px;">🔨 Reno Tab</div>
-      <div id="reno-toggle" style="width:38px;height:20px;background:var(--sage);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+      <div id="reno-toggle" role="switch" aria-checked="true" aria-label="Toggle renovation tab" tabindex="0" style="width:38px;height:20px;background:var(--sage);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
         <div id="reno-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div class="s-head" style="margin-bottom:0;font-size:11px;">🏠 Rent Overlap Tab</div>
-      <div id="rent-toggle" style="width:38px;height:20px;background:var(--sky);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+      <div id="rent-toggle" role="switch" aria-checked="true" aria-label="Toggle rent overlap tab" tabindex="0" style="width:38px;height:20px;background:var(--sky);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
         <div id="rent-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div class="s-head" style="margin-bottom:0;font-size:11px;">⚠️ Risk Tab</div>
-      <div id="risk-toggle" style="width:38px;height:20px;background:var(--terracotta);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+      <div id="risk-toggle" role="switch" aria-checked="true" aria-label="Toggle risk tab" tabindex="0" style="width:38px;height:20px;background:var(--terracotta);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
         <div id="risk-toggle-knob" style="position:absolute;top:2px;left:20px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
       </div>
     </div>
@@ -1348,6 +1350,7 @@
 
 <script src="app.js"></script>
 <script src="app-events.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(function(){});</script>
 
 </body>
 </html>

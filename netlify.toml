@@ -28,22 +28,22 @@
 [[headers]]
   for = "/*.css"
   [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
+    Cache-Control = "public, max-age=86400, must-revalidate"
 
 [[headers]]
   for = "/*.js"
   [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
+    Cache-Control = "public, max-age=86400, must-revalidate"
 
 [[headers]]
   for = "/tools/*.js"
   [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
+    Cache-Control = "public, max-age=86400, must-revalidate"
 
 [[headers]]
   for = "/*.svg"
   [headers.values]
-    Cache-Control = "public, max-age=86400, must-revalidate"
+    Cache-Control = "public, max-age=604800, immutable"
 
 [[redirects]]
   from = "/favicon.ico"
@@ -98,37 +98,7 @@
   force = true
 
 [[redirects]]
-  from = "/build-suburbs.js"
-  to = "/404.html"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/generate-suburbs-data.js"
-  to = "/404.html"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/fetch-abs-data.js"
-  to = "/404.html"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/fetch-abs-enhanced.js"
-  to = "/404.html"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/apply-abs-data.js"
-  to = "/404.html"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/fix-suburb-classification.js"
+  from = "/build/*"
   to = "/404.html"
   status = 404
   force = true
@@ -147,12 +117,6 @@
 
 [[redirects]]
   from = "/data/abs-suburbs.json"
-  to = "/404.html"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/import-test.html"
   to = "/404.html"
   status = 404
   force = true

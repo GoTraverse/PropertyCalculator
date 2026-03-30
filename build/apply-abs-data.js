@@ -36,9 +36,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const ENHANCED_FILE  = path.join(__dirname, 'data', 'abs-enhanced.json');
-const OVERPASS_FILE  = path.join(__dirname, 'data', 'overpass-amenities.json');
-const SUBURBS_FILE   = path.join(__dirname, 'data', 'suburbs.json');
+const ROOT = path.join(__dirname, '..');
+const ENHANCED_FILE  = path.join(ROOT, 'data', 'abs-enhanced.json');
+const OVERPASS_FILE  = path.join(ROOT, 'data', 'overpass-amenities.json');
+const SUBURBS_FILE   = path.join(ROOT, 'data', 'suburbs.json');
 
 const hasEnhanced = fs.existsSync(ENHANCED_FILE);
 if (!hasEnhanced) {

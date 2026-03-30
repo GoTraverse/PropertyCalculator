@@ -2095,6 +2095,17 @@
   function appAlert(title, message, opts){ return _appDialog(title, message, Object.assign({alertOnly:true, icon:'✓'}, opts)); }
   function appPrompt(title, message, opts){ return _appDialog(title, message, Object.assign({inputType:'password'}, opts)); }
 
+  // Focus trap — keep Tab cycling within dialog while open
+  document.getElementById('app-dialog-overlay').addEventListener('keydown', function(e){
+    if(e.key !== 'Tab') return;
+    var box = document.getElementById('app-dialog-box');
+    var focusable = box.querySelectorAll('button:not([style*="display:none"]):not([style*="display: none"]), input:not([style*="display:none"]):not([style*="display: none"])');
+    if(!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if(e.shiftKey){ if(document.activeElement === first){ e.preventDefault(); last.focus(); } }
+    else { if(document.activeElement === last){ e.preventDefault(); first.focus(); } }
+  });
+
   // Close on backdrop click / Escape
   document.getElementById('app-dialog-overlay').addEventListener('click', function(e){ if(e.target===this) _appDialogResolve(false); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && document.getElementById('app-dialog-overlay').style.display==='flex') _appDialogResolve(false); });
@@ -2477,12 +2488,12 @@
     const tab = document.getElementById('tab-reno-btn');
     if(renoEnabled){
       if(knob) knob.style.left = '20px';
-      if(track) track.style.background = 'var(--sage)';
+      if(track){ track.style.background = 'var(--sage)'; track.setAttribute('aria-checked', 'true'); }
       if(section) section.style.display = '';
       if(tab) tab.style.display = '';
     } else {
       if(knob) knob.style.left = '2px';
-      if(track) track.style.background = 'rgba(255,255,255,0.15)';
+      if(track){ track.style.background = 'rgba(255,255,255,0.15)'; track.setAttribute('aria-checked', 'false'); }
       if(section) section.style.display = 'none';
       if(tab){ tab.style.display = 'none'; showTab('costs', document.querySelector('.tab[data-tab="costs"]')); }
     }
@@ -2496,7 +2507,7 @@
     const tog = document.getElementById('risk-toggle');
     const knob = document.getElementById('risk-toggle-knob');
     const tabBtn = document.getElementById('tab-risks-btn');
-    if(tog) tog.style.background = riskEnabled ? 'var(--terracotta)' : 'rgba(255,255,255,0.15)';
+    if(tog){ tog.style.background = riskEnabled ? 'var(--terracotta)' : 'rgba(255,255,255,0.15)'; tog.setAttribute('aria-checked', String(riskEnabled)); }
     if(knob) knob.style.left = riskEnabled ? '20px' : '2px';
     if(tabBtn) tabBtn.style.display = riskEnabled ? '' : 'none';
     if(!riskEnabled){ const active = document.querySelector('.tab.active'); if(active && active.id==='tab-risks-btn') showTab('property', document.querySelector('.tab')); }
@@ -2514,12 +2525,12 @@
     const tab = document.querySelector('.tab[data-tab="overlap"]');
     if(enabled){
       if(knob) knob.style.left = '20px';
-      if(track) track.style.background = 'var(--sky)';
+      if(track){ track.style.background = 'var(--sky)'; track.setAttribute('aria-checked', 'true'); }
       if(section) section.style.display = '';
       if(tab) tab.style.display = '';
     } else {
       if(knob) knob.style.left = '2px';
-      if(track) track.style.background = 'rgba(255,255,255,0.15)';
+      if(track){ track.style.background = 'rgba(255,255,255,0.15)'; track.setAttribute('aria-checked', 'false'); }
       if(section) section.style.display = 'none';
       if(tab){ tab.style.display = 'none'; }
       // Redirect away from overlap tab if currently active

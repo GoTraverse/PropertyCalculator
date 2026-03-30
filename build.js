@@ -86,27 +86,27 @@ async function buildSuburbs() {
     console.log('[build] Fetching enhanced ABS data (income, centroids, rent, mortgage)...');
     try {
       // Run as a child process to keep each script's module scope clean
-      execSync('node fetch-abs-enhanced.js', { stdio: 'inherit', cwd: __dirname });
+      execSync('node build/fetch-abs-enhanced.js', { stdio: 'inherit', cwd: __dirname });
       console.log('[build] ABS fetch complete. Applying real data to suburbs.json...');
-      execSync('node apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
+      execSync('node build/apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
     } catch (e) {
       // Non-fatal: if ABS fetch fails (e.g. network issue), continue with existing data
       console.warn('[build] Warning: ABS enhanced fetch failed — building with existing data.');
       console.warn(e.message);
       // Still run apply-abs-data.js to at least get the logic fixes applied
       try {
-        execSync('node apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
+        execSync('node build/apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
       } catch (e2) {
         console.warn('[build] Warning: apply-abs-data.js also failed:', e2.message);
       }
     }
   } else {
     console.log('[build] SKIP_ABS_FETCH=true — skipping ABS fetch, using existing data.');
-    execSync('node apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
+    execSync('node build/apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
   }
 
   // Step 2: Build all suburb HTML pages from updated suburbs.json
-  require('./build-suburbs.js');
+  require('./build/build-suburbs.js');
   saveToCache();
 }
 

@@ -3,10 +3,10 @@
 <head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
-<script src="/gtag-init.js"></script>
-<script src="/analytics.js"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
 <meta charset="UTF-8">
-<script src="site-init.js"></script>
+<script src="/site-init.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Pricing — EquitySight.app</title>
 <meta name="description" content="Simple, transparent pricing for EquitySight. Start free, upgrade to Pro for unlimited saved scenarios, advanced modelling, and priority support.">
@@ -30,7 +30,9 @@
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="pricing.css">
 </head>
-<body><nav class="site-nav">
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+<nav class="site-nav">
   <div class="site-nav-inner">
     <a href="/" class="site-logo">
       <div class="site-logo-mark">🏠</div>
@@ -46,11 +48,11 @@
     <button class="nav-hamburger" id="nav-ham">☰</button>
   </div>
 </nav>
-<script src="error-capture.js"></script>
+<script src="/error-capture.js"></script>
 <script src="auth-nav.js" defer></script>
 <script src="stripe-config.js"></script>
 
-<section class="pricing-hero">
+<section class="pricing-hero" id="main-content">
   <div class="pricing-hero-inner">
     <div class="section-tag" style="color:var(--gold);">Pricing</div>
     <h1>Simple pricing,<br>no surprises.</h1>

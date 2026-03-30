@@ -2,6 +2,22 @@
    EquitySight.app — Shared Design System
    ═══════════════════════════════════════════════ */
 
+/* ── Skip to content (accessibility) ── */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--charcoal);
+  color: var(--cream);
+  padding: 8px 16px;
+  z-index: 10000;
+  font-size: 14px;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
 :root {
   --cream:            #F5F0E8;
   --warm-white:       #FAF7F2;

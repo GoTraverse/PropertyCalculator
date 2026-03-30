@@ -59,20 +59,20 @@ if(photoFileInput) photoFileInput.addEventListener('change', function(){ handleP
 
 // ── Sidebar feature toggles ───────────────────────────────────────────────────
 var renoToggle = document.getElementById('reno-toggle');
-if(renoToggle) renoToggle.addEventListener('click', function(){
-  if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'renovation'});
-  toggleReno();
-});
+if(renoToggle){
+  renoToggle.addEventListener('click', function(){ if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'renovation'}); toggleReno(); });
+  renoToggle.addEventListener('keydown', function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); this.click(); } });
+}
 var rentToggle = document.getElementById('rent-toggle');
-if(rentToggle) rentToggle.addEventListener('click', function(){
-  if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'rental'});
-  toggleRent();
-});
+if(rentToggle){
+  rentToggle.addEventListener('click', function(){ if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'rental'}); toggleRent(); });
+  rentToggle.addEventListener('keydown', function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); this.click(); } });
+}
 var riskToggle = document.getElementById('risk-toggle');
-if(riskToggle) riskToggle.addEventListener('click', function(){
-  if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'risk_analysis'});
-  toggleRisk();
-});
+if(riskToggle){
+  riskToggle.addEventListener('click', function(){ if(window.trackPageEvent) trackPageEvent('feature_toggle', {'feature': 'risk_analysis'}); toggleRisk(); });
+  riskToggle.addEventListener('keydown', function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); this.click(); } });
+}
 
 // ── Generic range inputs (rng-KEY → syncInput + dRecalc) ─────────────────────
 document.querySelectorAll('input[id^="rng-"]').forEach(function(el){

@@ -20,7 +20,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATA_FILE = path.join(__dirname, 'data', 'suburbs.json');
+const ROOT = path.join(__dirname, '..');
+const DATA_FILE = path.join(ROOT, 'data', 'suburbs.json');
 
 // Conservative metro postcode ranges — state capital suburbs only.
 // Gold Coast, Sunshine Coast, Newcastle, Wollongong etc. are not included

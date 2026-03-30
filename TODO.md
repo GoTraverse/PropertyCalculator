@@ -10,10 +10,13 @@ Never delete anything above this line.
 
 General - (DO NOT REMOVE THIS LINE)
 -
+6. Migrate session token to HttpOnly Secure cookie (Security - High)
+7. Convert screenshots to WebP format (Performance - High) — requires cwebp or similar tool
+11. Create 1200x630px OG social sharing image (SEO - High) — requires image editor
 
 Desktop - (DO NOT REMOVE THIS LINE)
-- 
+-
 
 PWA/MOBILE- (DO NOT REMOVE THIS LINE)
-- 
+-
 
