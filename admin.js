@@ -127,10 +127,13 @@ async function init(){
 
   // Verify token with backend — never fall back to localStorage role
   let d = {};
-  try { d = await callAuth('verify', {token: sess.token}); } catch(e){}
+  try { d = await callAuth('verify', {token: sess.token}); } catch(e){
+    showAccessDenied('Network error verifying session — check your connection and try again.');
+    return;
+  }
 
   if(!d.ok){
-    showAccessDenied('Could not verify your session — please sign in again.');
+    showAccessDenied(d.error || 'Could not verify your session — please sign in again.');
     return;
   }
 
