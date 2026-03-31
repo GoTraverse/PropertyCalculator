@@ -1,7 +1,35 @@
 {
-  "syncedAt": "2026-03-31T10:45:00.734Z",
-  "count": 6,
+  "syncedAt": "2026-03-31T11:30:20.274Z",
+  "count": 8,
   "errors": [
+    {
+      "at": 1774956619270,
+      "message": "CSP violation: script-src-elem — blocked \"inline\"",
+      "source": "https://equitysight.app/app",
+      "line": 1353,
+      "col": 1,
+      "stack": "",
+      "url": "https://equitysight.app/app",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/146.0.7680.151 Mobile/15E148 Safari/604.1",
+      "userId": "...",
+      "userName": "...",
+      "userEmail": "support@equitysight.app",
+      "severity": "error"
+    },
+    {
+      "at": 1774954008065,
+      "message": "CSP violation: script-src-elem — blocked \"inline\"",
+      "source": "https://equitysight.app/app",
+      "line": 1353,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/app",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "userId": "mnehpxdd113a5985",
+      "userName": "Denis Garces",
+      "userEmail": "garcesdenis@gmail.com",
+      "severity": "error"
+    },
     {
       "at": 1774953899714,
       "message": "CSP violation: script-src-elem — blocked \"inline\"",
