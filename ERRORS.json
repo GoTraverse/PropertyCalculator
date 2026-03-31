@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-03-31T20:17:26.117Z",
-  "count": 14,
+  "syncedAt": "2026-03-31T23:19:35.987Z",
+  "count": 15,
   "errors": [
+    {
+      "at": 1774999174972,
+      "message": "CSP violation: script-src-elem — blocked \"inline\"",
+      "source": "https://equitysight.app/app.html",
+      "line": 1353,
+      "col": 1,
+      "stack": "",
+      "url": "https://equitysight.app/app.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmnfvx6acd5ec504",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "jacoby@gotraverse.com.au",
+      "severity": "error"
+    },
     {
       "at": 1774988245104,
       "message": "CSP violation: script-src-elem — blocked \"inline\"",
