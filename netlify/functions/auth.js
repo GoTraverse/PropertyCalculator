@@ -1136,6 +1136,23 @@ exports.handler = async function(event){
     return ok({ok:true,schemes:active});
   }
 
+  if(action==='adminUpdateUser'){
+    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {targetEmail,fields}=body;
+    if(!targetEmail||!fields||typeof fields!=='object') return fail('targetEmail and fields required');
+    const allowedFields=['name','verified'];
+    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    if(!userData) return fail('User not found');
+    for(const [k,v] of Object.entries(fields)){
+      if(!allowedFields.includes(k)) return fail('Field not allowed: '+k);
+      userData[k]=v;
+    }
+    await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    if(userData.id) await logEvent(userData.id,'admin_user_updated',{fields:Object.keys(fields),by:user.email});
+    return ok({ok:true});
+  }
+
   if(action==='adminSetPlan'){
     const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);

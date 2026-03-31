@@ -430,6 +430,20 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 
+async function adminEditName(email){
+  const newName = prompt('Enter new name for ' + email + ':');
+  if(!newName || !newName.trim()) return;
+  const d = await callAuth('adminUpdateUser', {targetEmail: email, fields: {name: newName.trim()}});
+  if(d.ok){ alert('Name updated.'); loadUsers(); }
+  else { alert('Error: ' + (d.error||'Unknown error')); }
+}
+async function adminVerifyUser(email){
+  if(!confirm('Mark ' + email + ' as verified?')) return;
+  const d = await callAuth('adminUpdateUser', {targetEmail: email, fields: {verified: true}});
+  if(d.ok){ alert('User verified.'); loadUsers(); }
+  else { alert('Error: ' + (d.error||'Unknown error')); }
+}
+
 function openResetPw(email){
   resetTarget = email;
   document.getElementById('reset-modal-desc').textContent = 'Set a new password for: ' + email;
@@ -581,9 +595,16 @@ async function openUserDetails(email){
     ? `<button class="btn-admin" data-udaction="revoke-admin" data-email="${escHtml(_udEmail)}">Revoke Admin</button>`
     : `<button class="btn-admin" data-udaction="grant-admin" data-email="${escHtml(_udEmail)}">Grant Admin</button>`;
 
+  const _udVerified = u.verified === true;
+  const _udVerifyBtn = _udVerified
+    ? ''
+    : `<button class="btn-admin" data-udaction="verify-user" data-email="${escHtml(_udEmail)}">Verify Email</button>`;
+
   const _udActionsHtml = `<div style="padding:14px 0 4px;border-top:1px solid rgba(28,28,30,0.08);display:flex;flex-wrap:wrap;gap:8px;">
+    <button class="btn-admin" data-udaction="edit-name" data-email="${escHtml(_udEmail)}">Edit Name</button>
     <button class="btn-admin" data-udaction="reset-pw" data-email="${escHtml(_udEmail)}">Reset Password</button>
     <button class="btn-admin" data-udaction="change-plan" data-email="${escHtml(_udEmail)}" data-plan="${escHtml(_udPlan)}">Change Plan</button>
+    ${_udVerifyBtn}
     ${_udRoleBtn}
     <button class="btn-admin" data-udaction="view-history" data-userid="${escHtml(_udId)}" data-email="${escHtml(_udEmail)}">View History</button>
     <button class="btn-admin" style="color:var(--risk-red);border-color:rgba(196,90,90,0.4);" data-udaction="delete-user" data-email="${escHtml(_udEmail)}">Delete User</button>
@@ -705,6 +726,8 @@ async function openUserDetails(email){
     var userid = btn.dataset.userid || '';
     if(action === 'reset-pw')    { _openFromDetail(email, ()=>openResetPw(email)); }
     else if(action === 'change-plan')   { _openFromDetail(email, ()=>setPlan(email, plan)); }
+    else if(action === 'edit-name')     { adminEditName(email); }
+    else if(action === 'verify-user')   { adminVerifyUser(email); }
     else if(action === 'revoke-admin')  { document.getElementById('user-detail-overlay').classList.remove('open'); setRole(email,'user'); }
     else if(action === 'grant-admin')   { document.getElementById('user-detail-overlay').classList.remove('open'); setRole(email,'admin'); }
     else if(action === 'view-history')  { _openFromDetail(email, ()=>openUserHistory(userid, email)); }
