@@ -127,10 +127,10 @@ function makePlaceholders(name, state, pop, rank, total, salCode, postcode) {
   const isOuter = type === 'outer-metro';
   const isRegional = type === 'regional';
 
-  // Distance to CBD — will be overwritten with real Haversine distance by apply-abs-data.js
-  const distBase = isInner ? 3 : isMiddle ? 12 : isOuter ? 28 : null;
-  const distRange = isInner ? 8 : isMiddle ? 15 : isOuter ? 30 : 0;
-  const distance_to_cbd = distBase === null ? null : distBase + pseudoRand(h, 0, distRange);
+  // Distance to CBD — placeholder removed. Only real Haversine distances
+  // (from apply-abs-data.js using ABS centroid coordinates) are used.
+  // Pages show "N/A" when distance is null.
+  const distance_to_cbd = null;
 
   // population_growth removed — no reliable suburb-level source available.
   // See: https://abs.gov.au/census for population trend data.

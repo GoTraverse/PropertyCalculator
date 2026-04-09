@@ -157,16 +157,17 @@ var TURNSTILE_SITEKEY = '0x4AAAAAACvWg4IZeEydKXQ3';
 var _tsWidgetIds = {}; // containerId → turnstile widgetId
 
 function renderTurnstile(containerId){
-  if(typeof turnstile==='undefined') return;
+  if(typeof turnstile==='undefined' || typeof _tsWidgetIds==='undefined') return;
   // Already rendered in this container
   if(_tsWidgetIds[containerId] !== undefined) return;
   var el = document.getElementById(containerId);
   if(!el) return;
-  _tsWidgetIds[containerId] = turnstile.render('#'+containerId, {
+  var widgetId = turnstile.render('#'+containerId, {
     sitekey: TURNSTILE_SITEKEY,
     theme: 'dark',
     size: 'normal'
   });
+  if(widgetId !== undefined) _tsWidgetIds[containerId] = widgetId;
 }
 function removeTurnstile(containerId){
   if(typeof turnstile==='undefined') return;
