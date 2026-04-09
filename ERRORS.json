@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-04-09T08:37:37.153Z",
-  "count": 4,
+  "syncedAt": "2026-04-09T11:04:36.185Z",
+  "count": 5,
   "errors": [
+    {
+      "at": 1775732675047,
+      "message": "CSP violation: script-src-elem — blocked \"inline\"",
+      "source": "https://equitysight.app/app.html",
+      "line": 1353,
+      "col": 1,
+      "stack": "",
+      "url": "https://equitysight.app/app.html",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1",
+      "userId": "mmnfvx6acd5ec504",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "jacoby@gotraverse.com.au",
+      "severity": "error"
+    },
     {
       "at": 1775723856147,
       "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'ts-signup')",
