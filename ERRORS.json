@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-04-08T13:06:58.737Z",
-  "count": 3,
+  "syncedAt": "2026-04-09T08:37:37.153Z",
+  "count": 4,
   "errors": [
+    {
+      "at": 1775723856147,
+      "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'ts-signup')",
+      "source": "https://equitysight.app/login.js",
+      "line": 162,
+      "col": 18,
+      "stack": "TypeError: Cannot read properties of undefined (reading 'ts-signup')\n    at renderTurnstile (https://equitysight.app/login.js:162:18)\n    at renderTurnstileForTab (https://equitysight.app/login.js:190:27)\n    at setTab (https://equitysight.app/login.js:249:3)\n    at https://equitysight.app/login.js:22:36",
+      "url": "https://equitysight.app/login?tab=signup",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1775653617591,
       "message": "Uncaught TypeError: Cannot read properties of undefined (reading 'ts-signup')",
