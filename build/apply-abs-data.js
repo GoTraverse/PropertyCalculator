@@ -219,6 +219,9 @@ for (const s of suburbs) {
   const key = `${cleanName(s.suburb)}|${s.state}`;
   const abs = enhancedMap.get(key);
 
+  // Clear any placeholder distance — only real Haversine distances are kept
+  s.distance_to_cbd = null;
+
   // Real ABS data
   if (abs) {
     matched++;
@@ -242,8 +245,6 @@ for (const s of suburbs) {
       const cbd = CBD[s.state];
       s.distance_to_cbd = haversineKm(abs.centroid_lat, abs.centroid_lng, cbd.lat, cbd.lng);
     }
-    // Note: distance_to_cbd is now always a real number for matched suburbs,
-    // regardless of metro/regional status. Regional suburbs may show large values.
 
     // Map zoom from bounding box — accurate zoom level for each suburb's geographic size
     s.map_zoom = bboxToZoom(abs.bbox_lat_span, abs.bbox_lng_span);

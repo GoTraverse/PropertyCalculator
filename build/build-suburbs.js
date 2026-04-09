@@ -173,7 +173,7 @@ function generateFAQ(s) {
   const faqs = [
     {
       q: `Is ${s.suburb} a good suburb for investment?`,
-      a: `${s.suburb} is a ${s.suburb_type.replace('-', ' ')} area in ${s.state_name} with a population of ${fmt(s.population)}. ${s.median_rent_weekly ? `The median rent is $${fmt(s.median_rent_weekly)}/week and ` : ''}the median household income is $${fmt(s.median_household_income)}/year (ABS 2021 Census). As with any property investment, conduct thorough due diligence on current listings, vacancy rates, and local infrastructure plans before committing.`
+      a: `${s.suburb} is a ${s.suburb_type.replace('-', ' ')} area in ${s.state_name} with a population of ${fmt(s.population)}. ${s.median_rent_weekly ? `The median rent is $${fmt(s.median_rent_weekly)}/week and ` : ''}the median household income is $${fmt(s.median_household_income)}/year (ABS 2021 Census). As with any property investment, conduct thorough due diligence on current listings, market conditions, and local infrastructure plans before committing.`
     },
     {
       q: `What drives property demand in ${s.suburb}?`,
@@ -481,7 +481,7 @@ function generateStrategy(s) {
   const ryText = {
     strong: [
       `Rental returns in ${s.suburb} are attractive relative to purchase prices, supporting positive cash flow.`,
-      `Strong tenant demand in ${s.suburb} underpins consistent rental income and low vacancy risk.`,
+      `Strong tenant demand in ${s.suburb} underpins consistent rental income and strong occupancy.`,
       `${s.suburb}'s rental market favours investors seeking yield — occupancy rates are typically strong in this area.`,
     ],
     moderate: [
@@ -492,7 +492,7 @@ function generateStrategy(s) {
     limited: [
       `Rental yields in ${s.suburb} tend to be lower — investors may need to rely on capital growth instead.`,
       `Achieving strong cash flow in ${s.suburb} is challenging at current rent-to-price ratios.`,
-      `${s.suburb}'s rental market is softer — budget for potential vacancy periods.`,
+      `${s.suburb}'s rental market is softer — budget for potential gaps between tenancies.`,
     ],
   };
   strategies.push({ name: 'Rental Yield', icon: ryIcon, text: pick(h >> 2, ryText[ryRating]) });
@@ -581,8 +581,8 @@ function generateRisks(s) {
 
   if (pop < 5000) {
     pool.push([
-      `${s.suburb}'s smaller population means fewer potential tenants and buyers, increasing vacancy risk.`,
-      `A compact market like ${s.suburb} can see longer vacancy periods — factor this into cash flow projections.`,
+      `${s.suburb}'s smaller population means fewer potential tenants and buyers, increasing the time to find tenants.`,
+      `A compact market like ${s.suburb} can see longer periods between tenancies — factor this into cash flow projections.`,
       `With a population under 5,000, liquidity risk is elevated — selling may take longer than in larger markets.`,
     ]);
   }
@@ -694,7 +694,7 @@ function generateOutlook(s) {
   // Rental sentence
   if (rentalLevel === 'strong') {
     parts.push(pick(h >> 3, [
-      `Rental demand remains robust, with low vacancy rates and growing tenant pools keeping yields competitive.`,
+      `Rental demand remains robust, with strong occupancy and growing tenant pools keeping yields competitive.`,
       `Tenant competition in ${s.suburb} continues to intensify, supporting landlords and rent stability.`,
       `Strong rental fundamentals in ${s.suburb} provide a reliable income base for investment properties.`,
     ]));
@@ -702,11 +702,11 @@ function generateOutlook(s) {
     parts.push(pick(h >> 4, [
       `Rental demand is expected to be stable, though landlords may need to remain competitive on pricing.`,
       `The rental market in ${s.suburb} should see steady occupancy, with moderate upward pressure on rents.`,
-      `Tenants in ${s.suburb} have options — presenting well-maintained properties is key to minimising vacancy.`,
+      `Tenants in ${s.suburb} have options — presenting well-maintained properties is key to minimising gaps between tenancies.`,
     ]));
   } else {
     parts.push(pick(h >> 5, [
-      `Rental demand may be softer — budgeting for vacancy periods is prudent in ${s.suburb}'s 2026 outlook.`,
+      `Rental demand may be softer — budgeting for gaps between tenancies is prudent in ${s.suburb}'s 2026 outlook.`,
       `Landlords in ${s.suburb} may face longer tenant search times; competitive pricing will be important.`,
       `The rental pipeline in ${s.suburb} is thinner — flexible lease terms could help secure tenants faster.`,
     ]));
@@ -921,7 +921,7 @@ function generateCityStrategy(city, state, subs) {
   const ryText = {
     strong: [
       `${city}'s rental market benefits from strong tenant demand driven by population and employment.`,
-      `Consistent demand in ${city} supports reliable rental income and low vacancy rates.`,
+      `Consistent demand in ${city} supports reliable rental income and strong occupancy.`,
       `Investors in ${city} can expect competitive yields, particularly in well-connected suburbs.`,
     ],
     moderate: [
@@ -1093,19 +1093,19 @@ function generateCityOutlook(city, state, subs) {
 
   if (rentalLevel === 'strong') {
     parts.push(pick(h >> 3, [
-      `Rental demand across the city remains robust, with vacancy rates near historic lows.`,
+      `Rental demand across the city remains robust, with strong occupancy near historic highs.`,
       `Tenant competition in ${city} supports landlords with strong occupancy and rent stability.`,
       `Solid rental fundamentals across ${city}'s suburbs provide a dependable income base.`,
     ]));
   } else if (rentalLevel === 'moderate') {
     parts.push(pick(h >> 4, [
-      `Rental demand is expected to be stable, though competitive pricing will help minimise vacancy.`,
+      `Rental demand is expected to be stable, though competitive pricing will help minimise gaps between tenancies.`,
       `The rental market across ${city} should see steady occupancy through 2026.`,
       `Landlords in ${city} can expect consistent demand, particularly for well-presented properties.`,
     ]));
   } else {
     parts.push(pick(h >> 5, [
-      `Rental demand may be softer in parts of ${city} — investors should budget for potential vacancy periods.`,
+      `Rental demand may be softer in parts of ${city} — investors should budget for potential gaps between tenancies.`,
       `The rental outlook for ${city} is cautious — competitive pricing and property quality will matter.`,
       `Tenant demand in ${city} is modest — flexible lease strategies may help secure occupants.`,
     ]));
@@ -1159,7 +1159,13 @@ const BUILD_DATE = new Date().toLocaleDateString('en-AU', {
   day: 'numeric', month: 'long', year: 'numeric'
 }); // e.g. "23 March 2026"
 
+// Thin-page detection: suburbs that should get noindex, follow
+function shouldNoindex(s) {
+  return s.tiny || s.population < 50 || !s.postcode;
+}
+
 let suburbCount = 0;
+let noindexCount = 0;
 const stateGroups = {};
 
 for (const s of suburbs) {
@@ -1177,8 +1183,8 @@ for (const s of suburbs) {
   const pcKw = pc ? `, ${pc} property` : '';
   const pcDisplay = pc || '—';
 
-  // Meta description — no fake growth %, use type + real income instead
-  const metaDesc = `Property investment insights for ${s.suburb}${pc ? ' ' + pc : ''}, ${s.state_name}. Population ${fmt(s.population)}, ${s.suburb_type} area${s.median_household_income ? ', median income $' + fmt(s.median_household_income) : ''}. ABS 2021 Census data.`;
+  // Meta description — compelling, search-focused
+  const metaDesc = `Explore ${s.suburb}, ${s.state_name} property market data — median house prices, rental yield, capital growth trends and investment insights. Free 2026 suburb profile.`;
 
   // Distance display: real km with note, or N/A
   const distDisplay = s.distance_to_cbd != null
@@ -1244,7 +1250,11 @@ for (const s of suburbs) {
   const mapsQuery = encodeURIComponent(`${s.suburb} ${s.state} Australia`);
   const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=${mapsZoom}`;
 
+  const robotsMeta = shouldNoindex(s) ? '<meta name="robots" content="noindex, follow">\n' : '';
+  if (shouldNoindex(s)) noindexCount++;
+
   let html = SUBURB_TPL
+    .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
     .replace(/\{\{STATE\}\}/g, escHtml(s.state))
     .replace(/\{\{STATE_LOWER\}\}/g, s.state.toLowerCase())
@@ -1507,8 +1517,10 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
   stateUrls[st].push(sitemapUrl(`https://equitysight.app/invest/${st.toLowerCase()}/${cSlug}/`, 'weekly', '0.75'));
 }
 
-// Suburb pages → into their state bucket
+// Suburb pages → into their state bucket (exclude noindex pages from sitemap)
+let sitemapExcluded = 0;
 for (const s of suburbs) {
+  if (shouldNoindex(s)) { sitemapExcluded++; continue; }
   stateUrls[s.state].push(sitemapUrl(`https://equitysight.app/suburb/${s.state.toLowerCase()}/${s.slug}/`, 'monthly', '0.6'));
 }
 
@@ -1554,6 +1566,6 @@ fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), sitemapIndex);
 const oldSitemap = path.join(ROOT, 'sitemap-suburbs.xml');
 if (fs.existsSync(oldSitemap)) fs.unlinkSync(oldSitemap);
 
-console.log(`Built ${suburbCount} suburb pages, ${cityCount} city pages, ${hubCount} state hub pages`);
-console.log(`Generated sitemap.xml (index) + ${sitemapFiles.length} sitemap files (${totalSitemapUrls} URLs total)`);
+console.log(`Built ${suburbCount} suburb pages (${noindexCount} noindexed), ${cityCount} city pages, ${hubCount} state hub pages`);
+console.log(`Generated sitemap.xml (index) + ${sitemapFiles.length} sitemap files (${totalSitemapUrls} URLs, ${sitemapExcluded} excluded)`);
 sitemapFiles.forEach(f => console.log(`  ${f.filename}: ${f.urlCount} URLs`));
