@@ -2,6 +2,7 @@
 suburb/
 invest/
 sitemap-suburbs-*.xml
+data/suburb-index-report.json
 
 # Build cache (suburb pages persisted between Netlify deploys)
 .cache/

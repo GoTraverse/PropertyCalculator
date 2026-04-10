@@ -8,8 +8,8 @@
 <meta charset="UTF-8">
 <script src="/site-init.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>{{STATE_NAME}} Australia Property Investment Insights — Top Suburbs | EquitySight</title>
-<meta name="description" content="Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}}, Australia for property investment. Population data, income levels, amenity scores, and investment context for every suburb.">
+<title>{{STATE_NAME}} Australia Property Investment Insights — {{SUBURB_COUNT}} Featured Suburbs | EquitySight</title>
+<meta name="description" content="Explore {{SUBURB_COUNT}} featured suburbs in {{STATE_NAME}}, Australia for property investment. Population data, income levels, amenity scores, and investment context for every suburb.">
 <meta name="keywords" content="{{STATE_NAME}} property investment Australia, {{STATE}} suburbs Australia, {{STATE_NAME}} real estate, best suburbs {{STATE}} Australia, {{STATE_NAME}} suburb insights">
 <link rel="canonical" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
 <meta property="og:type" content="website">
@@ -69,15 +69,17 @@
   <!-- Major Cities -->
   {{CITY_NAV_HTML}}
 
-  <!-- Suburb List -->
+  <!-- Featured Suburb List -->
   <section class="suburb-section">
-    <h2>All {{SUBURB_COUNT}} Suburbs in {{STATE_NAME}}</h2>
+    <h2>Featured Suburbs in {{STATE_NAME}}</h2>
+    <p class="hub-list-intro">{{SUBURB_COUNT}} suburbs with enough population and data for a full property profile, ordered by population. Additional localities are listed below.</p>
     <input type="text" id="suburb-search" class="hub-search" placeholder="Search suburbs by name or postcode..." autocomplete="off">
     <div id="hub-suburb-list" class="hub-suburb-list">
       {{SUBURB_LIST_HTML}}
     </div>
     <button id="hub-show-more" class="hub-show-more" style="display:none;">Show more suburbs</button>
     <p id="hub-no-results" class="hub-no-results" style="display:none;">No suburbs match your search.</p>
+    {{REFERENCE_DRAWER_HTML}}
   </section>
 
   <!-- Calculator cross-links -->
