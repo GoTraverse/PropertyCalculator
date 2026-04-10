@@ -580,6 +580,17 @@ exports.handler = async function(event){
       if(userData.subscription_expires_at) data.expiresAt=userData.subscription_expires_at;
       if(userData.subscription_renews_at) data.renewsAt=userData.subscription_renews_at;
     }catch(e){}
+    // Throttled "last seen" refresh: bump lastLoginAt/lastLoginIp at most once an hour on verify.
+    // loginCount intentionally NOT bumped — it counts explicit auth events (signin/googleSignin),
+    // and no 'signin' history event is logged here. This keeps the admin panel's "Last Login"
+    // timestamp in sync with real activity on long-lived sessions (token TTL is 30 days).
+    try{
+      if(Date.now()-(userData.lastLoginAt||0) > 60*60*1000){
+        userData.lastLoginAt=Date.now();
+        userData.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||userData.lastLoginIp||'';
+        await rSet('user:'+data.email,userData);
+      }
+    }catch(e){}
     return ok({ok:true,...data});
   }
 
