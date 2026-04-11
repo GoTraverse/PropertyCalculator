@@ -3012,6 +3012,7 @@ function previewLegalPage(){
 // -- SUBURBS TAB --
 
 var _suburbsData = null; // cached suburb data from suburbs.json
+var _suburbsReport = null; // cached index report from suburb-index-report.json
 var _suburbsFilteredState = null;
 
 async function loadSuburbsTab() {
@@ -3026,12 +3027,57 @@ async function loadSuburbsTab() {
     }
   }
 
+  // Load the AdSense-gate index report if available (written by build-suburbs.js)
+  if (!_suburbsReport) {
+    try {
+      const r = await fetch('/data/suburb-index-report.json', { cache: 'no-store' });
+      if (r.ok) _suburbsReport = await r.json();
+    } catch (e) { /* optional — may not exist on first deploy */ }
+  }
+
   const data = _suburbsData;
   const total = data.length;
   const withPC = data.filter(s => s.postcode).length;
 
   document.getElementById('suburbs-total').textContent = total.toLocaleString();
   document.getElementById('suburbs-with-pc').textContent = withPC.toLocaleString() + ' (' + Math.round(100 * withPC / total) + '%)';
+
+  // Indexed / noindexed cards (from report, with live fallback)
+  var indexed, noindexed, reportAvailable = !!_suburbsReport;
+  if (reportAvailable) {
+    indexed = _suburbsReport.indexed;
+    noindexed = _suburbsReport.noindexed;
+  } else {
+    // Mirror the build-time shouldNoindex() gate so the admin view is
+    // accurate even before the first post-prune build has landed.
+    indexed = data.filter(function(s) {
+      return !s.tiny && s.postcode && (s.population || 0) >= 2000 && s.median_household_income;
+    }).length;
+    noindexed = total - indexed;
+  }
+  var idxEl = document.getElementById('suburbs-indexed');
+  var nEl = document.getElementById('suburbs-noindexed');
+  if (idxEl) idxEl.textContent = indexed.toLocaleString() + ' (' + Math.round(100 * indexed / total) + '%)';
+  if (nEl) nEl.textContent = noindexed.toLocaleString() + ' (' + Math.round(100 * noindexed / total) + '%)';
+
+  // Index report panel — explains the gate and shows the quality histogram
+  var reportPanel = document.getElementById('suburbs-index-report');
+  var reportBody = document.getElementById('suburbs-index-report-body');
+  if (reportPanel && reportBody) {
+    var lines = [];
+    lines.push('Gate: <code>population &ge; ' + (_suburbsReport && _suburbsReport.min_population_for_index || 2000) + ' &amp;&amp; has postcode &amp;&amp; has median household income</code>');
+    lines.push('Indexed suburbs are featured on state hub pages + sitemap. Noindexed pages remain reachable via the "All localities" drawer with <code>noindex, follow</code>.');
+    if (reportAvailable && _suburbsReport.quality_score_histogram) {
+      var hist = _suburbsReport.quality_score_histogram;
+      var bins = Object.keys(hist).map(function(k) { return k + ': ' + hist[k].toLocaleString(); }).join(' &middot; ');
+      lines.push('Quality histogram &mdash; ' + bins);
+      lines.push('Report generated: ' + new Date(_suburbsReport.generated_at).toLocaleString('en-AU'));
+    } else {
+      lines.push('<em>Report not yet generated. Counts above are computed live from suburbs.json; run a suburb rebuild to produce the canonical report.</em>');
+    }
+    reportBody.innerHTML = lines.join('<br>');
+    reportPanel.style.display = 'block';
+  }
 
   // Load last build time from config
   try {
@@ -3046,7 +3092,7 @@ async function loadSuburbsTab() {
     }
   } catch (e) { /* ignore */ }
 
-  // State breakdown
+  // State breakdown — shows indexed/total per state when the report is loaded
   var states = {};
   for (var i = 0; i < data.length; i++) {
     var st = data[i].state;
@@ -3054,11 +3100,16 @@ async function loadSuburbsTab() {
   }
   var breakdownHTML = '';
   var stateKeys = Object.keys(states).sort();
+  var byState = (_suburbsReport && _suburbsReport.by_state) || {};
   for (var j = 0; j < stateKeys.length; j++) {
     var sk = stateKeys[j];
+    var stRow = byState[sk];
+    var subText = stRow
+      ? (stRow.indexed.toLocaleString() + '/' + stRow.total.toLocaleString() + ' indexed')
+      : (states[sk].toLocaleString() + ' suburbs');
     breakdownHTML += '<button class="btn-admin-outline" data-action="filter-state" data-state="' + escHtml(sk) + '" style="font-size:11px;padding:8px 12px;text-align:left;">' +
       '<div style="font-weight:600;">' + escHtml(sk) + '</div>' +
-      '<div style="font-size:10px;color:var(--slate);">' + states[sk].toLocaleString() + ' suburbs</div>' +
+      '<div style="font-size:10px;color:var(--slate);">' + subText + '</div>' +
       '</button>';
   }
   document.getElementById('suburbs-state-breakdown').innerHTML = breakdownHTML;
@@ -3086,6 +3137,15 @@ function searchAdminSuburbs() {
   renderSuburbTable(results.slice(0, 200), null, results.length);
 }
 
+function _adminSuburbNoindexed(s) {
+  // Mirrors build-suburbs.js shouldNoindex() — keep in sync when the gate changes.
+  if (s.tiny) return true;
+  if (!s.postcode) return true;
+  if ((s.population || 0) < 2000) return true;
+  if (!s.median_household_income) return true;
+  return false;
+}
+
 function renderSuburbTable(rows, stateLabel, totalMatches) {
   if (!rows || rows.length === 0) {
     document.getElementById('suburbs-table-wrap').innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">No suburbs found</div>';
@@ -3093,15 +3153,20 @@ function renderSuburbTable(rows, stateLabel, totalMatches) {
   }
   var label = stateLabel ? escHtml(stateLabel) + ' — ' + rows.length + ' shown' : (totalMatches ? totalMatches + ' matches (showing ' + rows.length + ')' : rows.length + ' suburbs');
   var html = '<div style="font-size:10px;color:var(--slate);margin-bottom:8px;font-family:var(--font-mono);">' + label + '</div>';
-  html += '<table class="admin-table"><thead><tr><th>Suburb</th><th>State</th><th>Postcode</th><th>Population</th><th>Type</th></tr></thead><tbody>';
+  html += '<table class="admin-table"><thead><tr><th>Suburb</th><th>State</th><th>Postcode</th><th>Population</th><th>Type</th><th>Index</th></tr></thead><tbody>';
   for (var i = 0; i < rows.length; i++) {
     var s = rows[i];
+    var noidx = _adminSuburbNoindexed(s);
+    var badge = noidx
+      ? '<span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.5px;padding:2px 6px;border-radius:3px;background:rgba(192,57,43,0.1);color:#c0392b;">NOINDEX</span>'
+      : '<span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.5px;padding:2px 6px;border-radius:3px;background:rgba(39,174,96,0.1);color:#27ae60;">INDEXED</span>';
     html += '<tr>' +
       '<td><a href="/suburb/' + s.state.toLowerCase() + '/' + escHtml(s.slug) + '/" target="_blank" style="color:var(--gold);text-decoration:none;">' + escHtml(s.suburb) + ' ↗</a></td>' +
       '<td>' + escHtml(s.state) + '</td>' +
       '<td>' + escHtml(s.postcode || '—') + '</td>' +
       '<td>' + (s.population || 0).toLocaleString() + '</td>' +
       '<td>' + escHtml(s.suburb_type) + '</td>' +
+      '<td>' + badge + '</td>' +
       '</tr>';
   }
   html += '</tbody></table>';

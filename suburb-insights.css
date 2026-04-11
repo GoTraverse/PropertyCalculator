@@ -177,11 +177,25 @@ html.dark-mode .suburb-amenity-list li {
 .hub-suburb-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.1); padding: 2px 8px; border-radius: 3px; margin-top: 8px; }
 
 /* ── Hub search & pagination ── */
+.hub-list-intro { font-family: var(--font-body); font-size: 13px; color: var(--slate); margin: -4px 0 14px; line-height: 1.55; }
 .hub-search { width: 100%; max-width: 480px; padding: 10px 14px; margin-bottom: 20px; border: 1px solid rgba(28,28,30,0.12); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: var(--warm-white); color: var(--charcoal); outline: none; transition: border-color 0.15s; }
 .hub-search:focus { border-color: var(--gold); }
 .hub-show-more { display: block; width: 100%; max-width: 320px; margin: 24px auto 0; padding: 12px 24px; background: var(--charcoal); color: var(--warm-white); border: none; border-radius: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
 .hub-show-more:hover { background: var(--gold); color: var(--charcoal); }
 .hub-no-results { text-align: center; color: var(--slate); font-family: var(--font-body); font-size: 14px; padding: 24px 0; }
+
+/* ── Hub reference drawer (noindexed localities) ── */
+.hub-reference-drawer { margin-top: 32px; border-top: 1px solid rgba(28,28,30,0.08); padding-top: 20px; }
+.hub-reference-drawer summary { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); cursor: pointer; padding: 8px 0; list-style: none; }
+.hub-reference-drawer summary::-webkit-details-marker { display: none; }
+.hub-reference-drawer summary::before { content: '▸ '; display: inline-block; transition: transform 0.15s; }
+.hub-reference-drawer[open] summary::before { transform: rotate(90deg); }
+.hub-reference-drawer[open] summary { color: var(--gold); }
+.hub-reference-note { font-family: var(--font-body); font-size: 12px; color: var(--slate); margin: 8px 0 14px; line-height: 1.5; }
+.hub-reference-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 16px; font-family: var(--font-body); font-size: 12px; }
+.hub-reference-link { display: block; padding: 4px 0; text-decoration: none; color: var(--slate); transition: color 0.1s; }
+.hub-reference-link:hover { color: var(--gold); }
+.hub-reference-pc { font-family: var(--font-mono); font-size: 10px; color: rgba(28,28,30,0.4); margin-left: 4px; }
 
 /* ── Dark mode ── */
 html.dark-mode .suburb-section { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
@@ -203,6 +217,12 @@ html.dark-mode .hub-suburb-name { color: #F5F0E8; }
 html.dark-mode .hub-search { background: rgba(255,255,255,0.04); color: #F5F0E8; border-color: rgba(255,255,255,0.12); }
 html.dark-mode .hub-show-more { background: rgba(255,255,255,0.1); color: #F5F0E8; }
 html.dark-mode .hub-show-more:hover { background: var(--gold); color: var(--charcoal); }
+html.dark-mode .hub-reference-drawer { border-top-color: rgba(255,255,255,0.08); }
+html.dark-mode .hub-reference-note { color: rgba(245,240,232,0.55); }
+html.dark-mode .hub-reference-link { color: rgba(245,240,232,0.65); }
+html.dark-mode .hub-reference-link:hover { color: var(--gold); }
+html.dark-mode .hub-reference-pc { color: rgba(245,240,232,0.35); }
+html.dark-mode .hub-list-intro { color: rgba(245,240,232,0.55); }
 
 /* ── Investment Score ── */
 .suburb-score-badge { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 12px; }

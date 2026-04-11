@@ -1159,13 +1159,59 @@ const BUILD_DATE = new Date().toLocaleDateString('en-AU', {
   day: 'numeric', month: 'long', year: 'numeric'
 }); // e.g. "23 March 2026"
 
-// Thin-page detection: suburbs that should get noindex, follow
+// ── Thin-page detection (Workstream A — aggressive prune) ──
+//
+// AdSense rejected the site for "thin / low-value content". The single highest-
+// impact fix per 2026 programmatic-SEO audits is to raise the site's *average*
+// page quality by removing weak pages from the index. We keep weak suburbs
+// reachable (noindex, follow) so internal link equity survives, but exclude
+// them from the sitemap and the state-hub featured list.
+//
+// Gate: must have a postcode, at least 2,000 residents, and a known median
+// household income. Against the current data/suburbs.json this yields ~3,022
+// featured suburbs (ACT 95, NSW 962, NT 44, QLD 648, SA 293, TAS 84, VIC 555,
+// WA 341) — inside the target 2,000–3,000 window.
+const MIN_POPULATION_FOR_INDEX = 2000;
+
 function shouldNoindex(s) {
-  return s.tiny || s.population < 50 || !s.postcode;
+  if (s.tiny) return true;
+  if (!s.postcode) return true;
+  if ((s.population || 0) < MIN_POPULATION_FOR_INDEX) return true;
+  if (!s.median_household_income) return true;
+  return false;
+}
+
+// Quality score 0–100 for reporting / future sorting. Not used as the noindex
+// gate itself — the gate above is a hard filter so behaviour is deterministic.
+function qualityScore(s) {
+  let score = 0;
+  // Population band (max 30)
+  const pop = s.population || 0;
+  if (pop >= 20000) score += 30;
+  else if (pop >= 10000) score += 25;
+  else if (pop >= 5000) score += 18;
+  else if (pop >= 2000) score += 12;
+  else if (pop >= 500) score += 5;
+  // Data completeness (max 40)
+  if (s.postcode) score += 8;
+  if (s.median_household_income) score += 8;
+  if (s.distance_to_cbd != null) score += 6;
+  if (s.median_rent_weekly) score += 6;
+  if (s.median_mortgage_monthly) score += 4;
+  if (s.house_percentage != null) score += 4;
+  if (s.lat != null && s.lng != null) score += 4;
+  // Amenities (max 20)
+  score += Math.min(10, (s.school_count || 0) * 2);
+  score += Math.min(10, (s.park_count || 0) * 2);
+  // Transport/amenity score bonus (max 10)
+  score += Math.min(5, (s.transport_score || 0) / 2);
+  score += Math.min(5, (s.amenity_score || 0) / 2);
+  return Math.min(100, Math.round(score));
 }
 
 let suburbCount = 0;
 let noindexCount = 0;
+const stateIndexStats = {}; // state → { indexed, noindexed, total }
 const stateGroups = {};
 
 for (const s of suburbs) {
@@ -1250,8 +1296,13 @@ for (const s of suburbs) {
   const mapsQuery = encodeURIComponent(`${s.suburb} ${s.state} Australia`);
   const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=${mapsZoom}`;
 
-  const robotsMeta = shouldNoindex(s) ? '<meta name="robots" content="noindex, follow">\n' : '';
-  if (shouldNoindex(s)) noindexCount++;
+  const isNoindexed = shouldNoindex(s);
+  const robotsMeta = isNoindexed ? '<meta name="robots" content="noindex, follow">\n' : '';
+  if (isNoindexed) noindexCount++;
+  if (!stateIndexStats[s.state]) stateIndexStats[s.state] = { indexed: 0, noindexed: 0, total: 0 };
+  stateIndexStats[s.state].total++;
+  if (isNoindexed) stateIndexStats[s.state].noindexed++;
+  else stateIndexStats[s.state].indexed++;
 
   let html = SUBURB_TPL
     .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
@@ -1374,19 +1425,39 @@ for (const state of allStates) {
     cityNavHTML = `  <section class="suburb-section">\n    <h2>Major Cities in ${escHtml(stateName)}</h2>\n    <div class="city-cards">\n${cityCards}\n    </div>\n  </section>\n`;
   }
 
-  // Suburb list cards
-  const suburbListHTML = stateSuburbs.map(s =>
+  // Split the list: featured (indexed) vs reference (noindexed)
+  // — protects internal link equity while keeping thin pages out of the
+  // primary UI. Featured cards drive the `data-search` search index, the
+  // reference drawer shows plain anchors only.
+  const featured = stateSuburbs
+    .filter(s => !shouldNoindex(s))
+    .sort((a, b) => b.population - a.population);
+  const reference = stateSuburbs
+    .filter(s => shouldNoindex(s))
+    .sort((a, b) => a.suburb.localeCompare(b.suburb));
+
+  const featuredListHTML = featured.map(s =>
     `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
+
+  const referenceListHTML = reference.map(s =>
+    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-reference-link">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-reference-pc">${escHtml(s.postcode)}</span>` : ''}</a>`
+  ).join('\n');
+
+  const referenceDrawerHTML = reference.length
+    ? `<details class="hub-reference-drawer">\n    <summary>All localities in ${escHtml(stateName)} (${fmt(reference.length)} additional)</summary>\n    <p class="hub-reference-note">Smaller localities without enough data for a full property profile. Links stay available for research.</p>\n    <div class="hub-reference-list">\n${referenceListHTML}\n    </div>\n  </details>`
+    : '';
 
   let html = HUB_TPL
     .replace(/\{\{STATE\}\}/g, escHtml(state))
     .replace(/\{\{STATE_LOWER\}\}/g, stateLower)
     .replace(/\{\{STATE_NAME\}\}/g, escHtml(stateName))
-    .replace(/\{\{SUBURB_COUNT\}\}/g, stateSuburbs.length)
+    .replace(/\{\{SUBURB_COUNT\}\}/g, fmt(featured.length))
+    .replace(/\{\{TOTAL_SUBURB_COUNT\}\}/g, fmt(stateSuburbs.length))
     .replace(/\{\{STATE_NAV_HTML\}\}/g, stateNavHTML)
     .replace(/\{\{CITY_NAV_HTML\}\}/g, cityNavHTML)
-    .replace(/\{\{SUBURB_LIST_HTML\}\}/g, suburbListHTML);
+    .replace(/\{\{SUBURB_LIST_HTML\}\}/g, featuredListHTML)
+    .replace(/\{\{REFERENCE_DRAWER_HTML\}\}/g, referenceDrawerHTML);
 
   const outDir = path.join(ROOT, 'invest', stateLower);
   fs.mkdirSync(outDir, { recursive: true });
@@ -1566,6 +1637,44 @@ fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), sitemapIndex);
 const oldSitemap = path.join(ROOT, 'sitemap-suburbs.xml');
 if (fs.existsSync(oldSitemap)) fs.unlinkSync(oldSitemap);
 
-console.log(`Built ${suburbCount} suburb pages (${noindexCount} noindexed), ${cityCount} city pages, ${hubCount} state hub pages`);
+const indexedCount = suburbCount - noindexCount;
+console.log(`Built ${suburbCount} suburb pages — indexed=${indexedCount} noindexed=${noindexCount} (target 2,000–3,000 indexed)`);
+console.log(`Built ${cityCount} city pages, ${hubCount} state hub pages`);
+console.log('Per-state indexed / total:');
+Object.keys(stateIndexStats).sort().forEach(st => {
+  const r = stateIndexStats[st];
+  console.log(`  ${st}: ${r.indexed}/${r.total} (${r.noindexed} noindexed)`);
+});
 console.log(`Generated sitemap.xml (index) + ${sitemapFiles.length} sitemap files (${totalSitemapUrls} URLs, ${sitemapExcluded} excluded)`);
 sitemapFiles.forEach(f => console.log(`  ${f.filename}: ${f.urlCount} URLs`));
+
+// ── Write index report (consumed by the admin Suburbs tab) ──
+// Written to /data because /build is excluded from the public Netlify CDN
+// via .netlifyignore. /data is already partially public — suburbs.json is
+// fetched client-side from the admin dashboard.
+const indexReport = {
+  generated_at: new Date().toISOString(),
+  build_date: BUILD_DATE,
+  total: suburbCount,
+  indexed: indexedCount,
+  noindexed: noindexCount,
+  min_population_for_index: MIN_POPULATION_FOR_INDEX,
+  by_state: stateIndexStats,
+  quality_score_histogram: (() => {
+    const bins = { '0-20': 0, '21-40': 0, '41-60': 0, '61-80': 0, '81-100': 0 };
+    for (const s of suburbs) {
+      const q = qualityScore(s);
+      if (q <= 20) bins['0-20']++;
+      else if (q <= 40) bins['21-40']++;
+      else if (q <= 60) bins['41-60']++;
+      else if (q <= 80) bins['61-80']++;
+      else bins['81-100']++;
+    }
+    return bins;
+  })(),
+};
+fs.writeFileSync(
+  path.join(ROOT, 'data', 'suburb-index-report.json'),
+  JSON.stringify(indexReport, null, 2)
+);
+console.log(`Wrote data/suburb-index-report.json`);
