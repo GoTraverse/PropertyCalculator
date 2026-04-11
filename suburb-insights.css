@@ -303,3 +303,45 @@ html.dark-mode .suburb-outlook-tag--low { background: rgba(198,40,40,0.12); colo
 /* ── Ad Slot ── */
 .ad-slot { max-width: 900px; margin: 0 auto 24px; text-align: center; overflow: hidden; }
 @media(max-width:600px) { .ad-slot { margin-bottom: 16px; } }
+
+/* ── Suburb vs state comparison table (Phase 2 enrichment) ── */
+.suburb-compare-note { font-family: var(--font-mono); font-size: 12px; color: var(--slate); margin: 4px 0 14px; line-height: 1.55; }
+.suburb-compare-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid rgba(201,168,76,0.15); }
+.suburb-compare { width: 100%; border-collapse: collapse; font-size: 14px; }
+.suburb-compare thead th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--slate); font-weight: 500; text-align: left; padding: 10px 14px; background: var(--warm-white); border-bottom: 1px solid rgba(201,168,76,0.2); }
+.suburb-compare thead th:not(:first-child) { text-align: right; }
+.suburb-compare tbody th { font-family: var(--font-sans); font-weight: 500; color: var(--charcoal); text-align: left; padding: 12px 14px; border-bottom: 1px solid rgba(28,28,30,0.05); }
+.suburb-compare tbody td { font-family: var(--font-mono); font-size: 13px; color: var(--charcoal); text-align: right; padding: 12px 14px; border-bottom: 1px solid rgba(28,28,30,0.05); }
+.suburb-compare tbody tr:last-child th, .suburb-compare tbody tr:last-child td { border-bottom: none; }
+.compare-delta { font-weight: 600; color: var(--slate); }
+.compare-delta--pos { color: #2e7d32; }
+.compare-delta--neg { color: #c62828; }
+
+/* ── Investor checklist ── */
+.suburb-checklist-note { font-family: var(--font-mono); font-size: 12px; color: var(--slate); margin: 4px 0 14px; line-height: 1.55; }
+.suburb-checklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.suburb-checklist li { font-family: var(--font-sans); font-size: 14px; line-height: 1.6; color: var(--charcoal); padding: 12px 14px 12px 36px; background: var(--warm-white); border-radius: 8px; border: 1px solid rgba(201,168,76,0.12); position: relative; }
+.suburb-checklist li::before { content: "✓"; position: absolute; left: 14px; top: 12px; color: #2e7d32; font-weight: 700; font-size: 14px; }
+.suburb-checklist strong { color: var(--charcoal); font-weight: 600; }
+
+/* ── Methodology pointer block ── */
+.suburb-methodology { background: var(--warm-white); border-radius: 10px; padding: 18px 22px; border: 1px solid rgba(201,168,76,0.15); }
+.suburb-methodology h2 { font-size: 16px; margin-bottom: 8px; }
+.suburb-methodology p { font-size: 13px; color: var(--slate); line-height: 1.7; margin: 0; }
+.suburb-methodology a { color: var(--gold); text-decoration: none; }
+.suburb-methodology a:hover { text-decoration: underline; }
+
+/* ── Dark mode: Phase 2 enrichment blocks ── */
+html.dark-mode .suburb-compare-note,
+html.dark-mode .suburb-checklist-note { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-compare-wrap { border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-compare thead th { background: rgba(255,255,255,0.03); color: rgba(245,240,232,0.55); border-bottom-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-compare tbody th { color: #F5F0E8; border-bottom-color: rgba(255,255,255,0.05); }
+html.dark-mode .suburb-compare tbody td { color: rgba(245,240,232,0.85); border-bottom-color: rgba(255,255,255,0.05); }
+html.dark-mode .compare-delta--pos { color: #66bb6a; }
+html.dark-mode .compare-delta--neg { color: #ef9a9a; }
+html.dark-mode .suburb-checklist li { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); color: rgba(245,240,232,0.85); }
+html.dark-mode .suburb-checklist strong { color: #F5F0E8; }
+html.dark-mode .suburb-checklist li::before { color: #66bb6a; }
+html.dark-mode .suburb-methodology { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); }
+html.dark-mode .suburb-methodology p { color: rgba(245,240,232,0.55); }
