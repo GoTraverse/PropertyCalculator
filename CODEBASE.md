@@ -5,7 +5,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 
 **Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** + **19 city pages** + **8 state hub pages** | **11 Netlify functions** | **11 CSS files** | **4698+ lines** of calculator logic in app.js | **2894+ lines** of admin logic in admin.js
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **Redis-backed authored blog** (static-rendered at build time) | **12 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic in app.js | **3100+ lines** of admin logic in admin.js
 
 ---
 
@@ -38,7 +38,8 @@ Browser (static files)
         ├── photo.js          — property photo storage/retrieval proxy
         ├── mapproxy.js       — OpenStreetMap tile proxy for map rendering
         ├── address-suggest.js — address autocomplete (rate-limited: 30 req/min)
-        └── market-data.js    — suburb insights market data API
+        ├── market-data.js    — suburb insights market data API
+        └── blog.js           — blog CMS (admin CRUD, Redis-backed, build-fetch)
 ```
 
 ---
@@ -50,7 +51,7 @@ Browser (static files)
 |------|------|---------|
 | `app.html` + `app.css` + `app.js` | — | **Main calculator app** (authenticated) — 30-year projections, cost breakdown, reno items, loan amortization, LVR/LMI/FHOG, suburb growth, scenario save/load, PDF export, PWA capable |
 | `app-init.js` + `app-events.js` | — | App page initialization and event wiring (split from app.js for clarity) |
-| `admin.html` + `admin.css` + `admin.js` | — | **Admin dashboard** (role=admin only) — 14 tabs: Users, Scenarios, Gov Schemes, Growth Data, Database, Error Log, Settings, Features, Integrations, Branding, Email Templates, About Page, Legal Pages, Suburbs |
+| `admin.html` + `admin.css` + `admin.js` | — | **Admin dashboard** (role=admin only) — 15 tabs: Users, Scenarios, Gov Schemes, Growth Data, Database, Error Log, Settings, Features, Integrations, Branding, Email Templates, About Page, Legal Pages, Suburbs, Blog |
 | `admin-events.js` | — | Admin dashboard event listener wiring |
 | `account.html` + `account.js` | — | User account & subscription management panel |
 | `login.html` + `login.css` + `login.js` | — | Sign-in & sign-up page — email verification flow + Google Sign-In |
@@ -127,6 +128,19 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | `invest/{state}/index.html` | Generated state hub pages (gitignored, built on Netlify deploy) |
 | `favicon.svg` | SVG favicon (logo mark) |
 | `BingSiteAuth.xml` + `ms43432176.txt` | Search engine verification tokens |
+
+### Blog CMS (static-first, Redis-backed)
+| File | Purpose |
+|------|---------|
+| `netlify/functions/blog.js` | Admin CRUD over Upstash Redis — `adminListPosts`, `adminGetPost`, `adminSavePost` (slug collision + tag index diff), `adminPublish`, `adminUnpublish`, `adminDeletePost`; public `list`/`get` actions for client fallback |
+| `build/md.js` | **Shared Markdown parser** (CommonJS) — mirrors `legal.js` so browser + Node emit byte-identical HTML. Build-only extras: `excerpt()`, `wordCount()` |
+| `build/build-blog.js` | Fetches `blog:published` from Upstash → renders static HTML via `templates/blog-*.html` + `build/md.js`. Produces `/blog/index.html` (paged 12/page), `/blog/<slug>/index.html`, `/blog/tag/<tag>/index.html`, `/blog/rss.xml`, `sitemap-blog.xml`. Falls back to `BLOG_FIXTURE` JSON when Upstash env vars absent — build never fails |
+| `templates/blog-post.html` | Per-post template — `BlogPosting` + `BreadcrumbList` + `Person` JSON-LD, author bio card, 3 related posts by tag overlap, cover image, reading-minutes estimate |
+| `templates/blog-index.html` | Blog landing + paginated pages — `Blog` + `BreadcrumbList` JSON-LD, card grid, pagination |
+| `blog.css` | Layered on `legal.css` — `.blog-breadcrumb`, `.blog-article`, `.blog-cover`, `.blog-author-card`, `.blog-tag-pill`, `.blog-related-grid`, `.blog-card`, `.blog-pagination`, dark-mode variants |
+| `data/blog-fixture.json` | Local-only JSON fixture (2 sample authored posts) used when Upstash env vars are absent. Excluded from Netlify CDN via `.netlifyignore` |
+| `blog/` (generated) | Built at deploy time; gitignored; deployed to Netlify CDN |
+| `sitemap-blog.xml` (generated) | Referenced from the master `sitemap.xml` index alongside suburb sitemaps |
 
 ---
 
@@ -263,6 +277,32 @@ Rate-limited at **30 requests/min** per IP. Provides address autocomplete sugges
 
 ### market-data.js (Suburb Market Data)
 Returns market data (median prices, growth rates, demographics) for suburb insights pages. Backed by cached data from ABS + growth Redis store.
+
+### blog.js (Blog CMS)
+**~280 lines** — Admin-only CRUD over Upstash Redis; powers the admin Blog tab and is fetched by `build/build-blog.js` at deploy time.
+
+**Public GET actions** (used as a client fallback; the production surface is the static `/blog/` HTML):
+- `list` — paged published posts (lightweight cards)
+- `get?slug=...` — single post by slug
+
+**Admin POST actions** (all require `session.role === 'admin'`):
+- `adminListPosts` — all posts + metadata
+- `adminGetPost` — full post by id
+- `adminSavePost` — upsert; validates title ≥4 chars, body_md ≥200 chars, ≤6 tags; checks `blog:slug:<slug>` for collisions; diffs old vs new tags and updates only the affected `blog:tag:<t>` lists
+- `adminPublish` — sets `status=published`, prepends to `blog:published`
+- `adminUnpublish` — reverts to draft, removes from `blog:published`
+- `adminDeletePost` — purges post, slug index, all tag lists, both index lists
+
+**Redis key schema:**
+- `blog:post:<id>` → full post JSON
+- `blog:slug:<slug>` → id (unique index for collision check)
+- `blog:index` → LIST of all post IDs
+- `blog:published` → LIST of published IDs (newest first)
+- `blog:tag:<tag>` → LIST of post IDs per tag
+
+**Post schema:** `{id, slug, title, excerpt, body_md, author, author_bio, author_email, cover_image, tags[], status: 'draft'|'published', created_at, updated_at, published_at, comment_count}`
+
+**Build integration:** `build/build-blog.js` pulls from `blog:published` at deploy time and writes static HTML; missing Upstash env vars fall back to `BLOG_FIXTURE` JSON, then to an empty index. `build.js` calls `buildBlog()` after the suburb build branch (restore or full rebuild).
 
 ---
 

@@ -28,7 +28,7 @@
 - **PWA** — install as mobile app on iOS/Android, offline capable
 
 ### Admin Dashboard (`admin.html`)
-**14 tabs for system & user management:**
+**15 tabs for system & user management:**
 - **Users** — table with sorting, plan badges, discount indicators; click to view full details + error history
 - **Scenarios** — browse all saved property scenarios per user; delete individual scenarios
 - **Gov Schemes** — government scheme eligibility editor per state
@@ -43,6 +43,7 @@
 - **About Page** — edit the About page content from admin
 - **Legal Pages** — edit privacy, terms, cookies, disclaimer from admin
 - **Suburbs** — browse/search suburb data, state breakdown, trigger suburb page rebuilds via Netlify deploy hook
+- **Blog** — author posts in Markdown with live word count (vs AdSense 1,500-word floor), draft/publish workflow, slug collision check; posts stored in Upstash Redis and rendered to static HTML at deploy time
 
 ---
 
@@ -61,12 +62,12 @@
 
 ---
 
-## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages, 11 Netlify functions, 9 SEO tools)
+## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages + Redis-backed blog, 12 Netlify functions, 9 SEO tools)
 
 ### Application Pages
 ```
 app.html                # Main calculator (authenticated)
-admin.html              # Admin dashboard (role=admin only) — 14 tabs
+admin.html              # Admin dashboard (role=admin only) — 15 tabs (incl. Blog CMS)
 account.html            # User account settings & subscription management
 login.html              # Sign-up & sign-in with email verification + Google Sign-In
 showcase.html           # App gallery — real mobile screenshots (light + dark)
@@ -159,7 +160,22 @@ photo.js                # Property photo storage proxy
 mapproxy.js             # OpenStreetMap tile proxy
 address-suggest.js      # Address autocomplete (rate-limited: 30 req/min)
 market-data.js          # Suburb insights market data API
+blog.js                 # Blog CMS — admin CRUD over Upstash Redis (posts, slug index, tag lists)
 ```
+
+### Blog CMS (static-first, Redis-backed)
+```
+netlify/functions/blog.js         # Admin CRUD: save/publish/unpublish/delete + slug collision check
+build/md.js                       # Shared Markdown parser (CommonJS) — mirrors legal.js
+build/build-blog.js               # Deploy-time renderer: Redis → static HTML + sitemap-blog.xml + RSS
+templates/blog-post.html          # BlogPosting + BreadcrumbList + Person JSON-LD
+templates/blog-index.html         # Blog landing + paginated pages
+blog.css                          # Layered on legal.css
+data/blog-fixture.json            # Offline fixture for local builds (ignored on CDN)
+blog/ (generated)                 # /blog/index.html, /blog/<slug>/, /blog/tag/<tag>/, /blog/rss.xml
+```
+
+Posts are authored in the admin Blog tab (Markdown editor with live word count vs 1,500-word AdSense floor) → stored in Upstash Redis → rendered to static HTML at deploy time. Public `/blog/` pages are 100% pre-rendered so Googlebot/AdSense crawl complete JSON-LD without hydration.
 
 ### Suburb Insights System (14,512 suburb pages + 19 city pages)
 ```

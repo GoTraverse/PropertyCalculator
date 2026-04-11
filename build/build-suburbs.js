@@ -1892,6 +1892,7 @@ for (const state of allStates) {
 
 const sitemapIndexEntries = [
   '  <sitemap>\n    <loc>https://equitysight.app/sitemap-core.xml</loc>\n  </sitemap>',
+  '  <sitemap>\n    <loc>https://equitysight.app/sitemap-blog.xml</loc>\n  </sitemap>',
   ...sitemapFiles.map(f =>
     `  <sitemap>\n    <loc>https://equitysight.app/${f.filename}</loc>\n  </sitemap>`
   ),

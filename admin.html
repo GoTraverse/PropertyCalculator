@@ -229,6 +229,7 @@
     <button class="admin-tab" data-tab="about-page">About Page</button>
     <button class="admin-tab" data-tab="legal-pages">Legal Pages</button>
     <button class="admin-tab" data-tab="suburbs">Suburbs</button>
+    <button class="admin-tab" data-tab="blog">Blog</button>
   </div>
 
   <!-- USERS TAB -->
@@ -1076,6 +1077,81 @@
         <div id="legal-page-status" class="admin-status" style="margin-bottom:16px;"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <button class="btn-admin btn-admin-primary">Save & Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOG TAB -->
+  <div class="admin-section" id="tab-blog">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>Blog Posts</h3>
+        <span style="font-size:11px;color:var(--slate);">Author, publish and edit long-form articles. Posts are stored in Redis and rendered to static HTML at build time.</span>
+      </div>
+      <div style="padding:16px 20px;">
+        <!-- Post list -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+          <div id="blog-stats" style="font-size:11px;color:var(--slate);">—</div>
+          <button class="btn-admin btn-admin-primary" id="blog-new-post-btn" style="font-size:11px;padding:8px 14px;">+ New Post</button>
+        </div>
+        <div id="blog-posts-list" style="border:1px solid rgba(28,28,30,0.08);border-radius:6px;overflow:hidden;margin-bottom:24px;">
+          <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
+        </div>
+
+        <!-- Editor -->
+        <div id="blog-editor-wrap" style="display:none;border-top:1px solid rgba(28,28,30,0.08);padding-top:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h4 id="blog-editor-title" style="margin:0;font-size:15px;">New Post</h4>
+            <button class="btn-admin-outline" id="blog-editor-close-btn" style="font-size:11px;padding:6px 12px;">Close editor</button>
+          </div>
+          <input type="hidden" id="blog-edit-id" value="">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+            <div>
+              <label class="config-label">Title *</label>
+              <input type="text" class="config-input" id="blog-edit-title" placeholder="How the RBA cash rate actually hits your repayment">
+            </div>
+            <div>
+              <label class="config-label">Slug (URL path) *</label>
+              <input type="text" class="config-input" id="blog-edit-slug" placeholder="rba-cash-rate-repayments">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
+            <div>
+              <label class="config-label">Excerpt (meta description, 140–200 chars)</label>
+              <input type="text" class="config-input" id="blog-edit-excerpt" placeholder="A short summary shown on the blog index and in the page meta description.">
+            </div>
+            <div>
+              <label class="config-label">Tags (comma-separated, max 6)</label>
+              <input type="text" class="config-input" id="blog-edit-tags" placeholder="strategy, first-home-buyer">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+            <div>
+              <label class="config-label">Author name</label>
+              <input type="text" class="config-input" id="blog-edit-author" placeholder="Alex Chen">
+            </div>
+            <div>
+              <label class="config-label">Cover image URL (optional)</label>
+              <input type="text" class="config-input" id="blog-edit-cover" placeholder="https://...">
+            </div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="config-label">Author bio (shown under the article)</label>
+            <input type="text" class="config-input" id="blog-edit-author-bio" placeholder="Co-founder & CTO. Former fintech engineer with …">
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="config-label">Body (Markdown — use ## for section headings)</label>
+            <textarea id="blog-edit-body" class="config-input" style="width:100%;min-height:360px;font-family:var(--font-mono);font-size:12px;resize:vertical;line-height:1.5;" placeholder="## Introduction&#10;&#10;Write 1,500+ words here using Markdown…"></textarea>
+            <div id="blog-edit-wordcount" style="font-size:10px;color:var(--slate);margin-top:6px;font-family:var(--font-mono);">0 words · 0 min read · AdSense floor: 1,500 words</div>
+          </div>
+          <div id="blog-edit-status" class="admin-status" style="margin-bottom:14px;"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-admin btn-admin-primary" id="blog-save-draft-btn">Save draft</button>
+            <button class="btn-admin" id="blog-save-publish-btn" style="background:#2e7d32;color:#fff;">Save &amp; Publish</button>
+            <button class="btn-admin-outline" id="blog-unpublish-btn">Unpublish</button>
+            <button class="btn-admin-outline" id="blog-delete-btn" style="color:#c62828;border-color:#c62828;">Delete</button>
+          </div>
         </div>
       </div>
     </div>
