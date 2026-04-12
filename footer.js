@@ -26,6 +26,7 @@
     '      </a>',
     '      <nav class="footer-nav">',
     '        <a href="/pricing">Pricing</a>',
+    '        <a href="/blog">Blog</a>',
     '        <a href="/about">About</a>',
     '        <a href="/contact">Support</a>',
     '        <a href="/privacy">Privacy</a>',

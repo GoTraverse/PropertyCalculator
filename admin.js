@@ -3257,7 +3257,7 @@ async function callBlog(action, payload, opts) {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
       body: body,
     });
-    return r.json();
+    return await r.json();
   } catch (e) {
     return { ok: false, error: 'Network error — ' + e.message };
   }
@@ -3468,7 +3468,7 @@ async function callReviews(action, payload) {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
       body: JSON.stringify(Object.assign({ action: action }, payload || {})),
     });
-    return r.json();
+    return await r.json();
   } catch (e) {
     return { ok: false, error: 'Network error — ' + e.message };
   }
@@ -3483,7 +3483,7 @@ async function callComments(action, payload) {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
       body: JSON.stringify(Object.assign({ action: action }, payload || {})),
     });
-    return r.json();
+    return await r.json();
   } catch (e) {
     return { ok: false, error: 'Network error — ' + e.message };
   }
