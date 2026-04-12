@@ -13,10 +13,6 @@ General - (DO NOT REMOVE THIS LINE)
 1. Migrate session token to HttpOnly Secure cookie (Security - High)
 2. Convert screenshots to WebP format (Performance - High) — requires cwebp or similar tool
 3. Create 1200x630px OG social sharing image (SEO - High) — requires image editor
-4. There is no way to grt to blog post pages or blog main landing from main landing index.html.
-5. When on a suburb page, in the section that says sign up to leave reveiw, when clicking that sign up, after sign up it takes you to the app, not back where you were trying to write a review.
-6. Blog and moderation tab in admin portal say loading but never load anything, add blog post button doesnt work, also moderation tab contents arent laid out yhe same as the other tab.
-7. i dont want to have to rebuild netlify for blog posts to show up, i want them to save to the file stsyem and maybe even to github? to save redis tokens for lots of data.
 
 
 Desktop - (DO NOT REMOVE THIS LINE)

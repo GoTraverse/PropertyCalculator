@@ -47,10 +47,11 @@
   }
 
   function renderGuestCTA(ctx) {
+    var returnPath = '/suburb/' + encodeURIComponent(ctx.state) + '/' + encodeURIComponent(ctx.slug);
     ctx.mount.innerHTML =
       '<div class="suburb-review-guest">' +
         '<p>Please sign in to leave a review of ' + escHtml(ctx.suburbName) + '.</p>' +
-        '<a class="tool-cta-btn" href="/login?tab=signin">Sign in →</a>' +
+        '<a class="tool-cta-btn" href="/login?tab=signin&next=' + encodeURIComponent(returnPath) + '">Sign in →</a>' +
       '</div>';
   }
 

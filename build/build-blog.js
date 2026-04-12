@@ -50,16 +50,74 @@ async function rGet(key) {
   try { return JSON.parse(raw); } catch (e) { return raw; }
 }
 
+// ── Fetch approved comments for a single post ────────────────────────
+// Returns { items: [...], totalCount: N }.  Non-fatal — any failure just
+// produces an empty list so the build continues.
+async function fetchCommentsForPost(slug) {
+  if (FIXTURE) return { items: [], totalCount: 0 }; // fixture builds skip comments
+  if (!REDIS_URL || !REDIS_TOKEN) return { items: [], totalCount: 0 };
+  try {
+    const listKey = 'comments:' + slug;
+    const ids = await redisCmd('LRANGE', listKey, '0', '19'); // first 20 static; rest paged client-side
+    if (!Array.isArray(ids) || !ids.length) return { items: [], totalCount: 0 };
+    const items = [];
+    for (const id of ids) {
+      const c = await rGet('comment:' + id);
+      if (c && c.status === 'approved') {
+        items.push({
+          id: c.id,
+          body: c.body,
+          userName: c.userName,
+          created_at: c.created_at,
+        });
+      }
+    }
+    const totalRaw = await redisCmd('LLEN', listKey);
+    const totalCount = parseInt(totalRaw, 10) || items.length;
+    return { items, totalCount };
+  } catch (e) {
+    console.warn('[build-blog] fetchCommentsForPost failed for', slug, '—', e.message);
+    return { items: [], totalCount: 0 };
+  }
+}
+
 // ── Fetch published posts ─────────────────────────────────────────────
+// Priority: data/blog-posts/*.json (filesystem) → Redis → fixture → empty
+function fetchPostsFromFilesystem() {
+  const dir = path.join(ROOT, 'data', 'blog-posts');
+  if (!fs.existsSync(dir)) return null;
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+  if (!files.length) return null;
+  const posts = [];
+  for (const f of files) {
+    try {
+      const raw = fs.readFileSync(path.join(dir, f), 'utf8');
+      const p = JSON.parse(raw);
+      if (p && p.status === 'published') posts.push(p);
+    } catch (e) {
+      console.warn('[build-blog] Bad JSON in', f, '—', e.message);
+    }
+  }
+  console.log('[build-blog] Read', posts.length, 'published post(s) from data/blog-posts/');
+  return posts;
+}
+
 async function fetchPosts() {
+  // 1. Filesystem (committed JSON files — fastest, no network)
+  const fsPosts = fetchPostsFromFilesystem();
+  if (fsPosts !== null && fsPosts.length > 0) return fsPosts;
+
+  // 2. Fixture file (local dev / testing)
   if (FIXTURE) {
     const p = path.resolve(ROOT, FIXTURE);
     if (!fs.existsSync(p)) throw new Error('Fixture not found: ' + p);
     const raw = JSON.parse(fs.readFileSync(p, 'utf8'));
     return raw.filter(x => x && x.status === 'published');
   }
+
+  // 3. Redis (legacy — for repos not yet synced to filesystem)
   if (!REDIS_URL || !REDIS_TOKEN) {
-    console.warn('[build-blog] UPSTASH env vars missing — producing an empty /blog/ index.');
+    console.warn('[build-blog] No blog posts found (no files, no Redis) — producing an empty /blog/ index.');
     return [];
   }
   try {
@@ -70,6 +128,7 @@ async function fetchPosts() {
       const p = await rGet('blog:post:' + id);
       if (p && p.status === 'published') posts.push(p);
     }
+    console.log('[build-blog] Read', posts.length, 'published post(s) from Redis (legacy mode)');
     return posts;
   } catch (e) {
     console.warn('[build-blog] Redis fetch failed:', e.message, '— producing an empty /blog/ index.');
@@ -115,8 +174,32 @@ function replaceAll(tmpl, vars) {
   return out;
 }
 
+// ── Render the approved-comments block (empty when count === 0) ──────
+function renderCommentsBlock(postSlug, comments) {
+  const items = Array.isArray(comments.items) ? comments.items : [];
+  const count = parseInt(comments.totalCount, 10) || 0;
+  if (count === 0 || items.length === 0) return '';
+  const cardsHtml = items.map(c => {
+    // body is stored pre-escaped; preserve newlines as <br>
+    const bodyHtml = String(c.body || '').replace(/\n/g, '<br>');
+    const date = c.created_at ? humanDate(c.created_at) : '';
+    return '<article class="blog-comment-card">' +
+        '<header class="blog-comment-head">' +
+          '<span class="blog-comment-user">' + escHtml(c.userName || 'Anonymous') + '</span>' +
+          (date ? ' <span class="blog-comment-dot">·</span> <span class="blog-comment-date">' + escHtml(date) + '</span>' : '') +
+        '</header>' +
+        '<div class="blog-comment-body">' + bodyHtml + '</div>' +
+      '</article>';
+  }).join('');
+  const heading = count === 1 ? '1 comment' : count + ' comments';
+  return '<section class="blog-comments-section" id="blog-comments" data-total="' + count + '">' +
+           '<h2 class="blog-comments-heading">' + heading + '</h2>' +
+           '<div class="blog-comments-list" id="blog-comments-list">' + cardsHtml + '</div>' +
+         '</section>';
+}
+
 // ── Render a single blog post → HTML ──────────────────────────────────
-function renderPost(post, allPosts, template) {
+function renderPost(post, allPosts, template, commentsData) {
   const bodyHtml = md.render(post.body_md || '', { toc: false });
   const excerpt = post.excerpt && post.excerpt.length
     ? post.excerpt
@@ -153,6 +236,7 @@ function renderPost(post, allPosts, template) {
   }).join('') : '<p style="font-size:12px;color:rgba(28,28,30,0.5);">More posts coming soon.</p>';
 
   const keywords = (post.tags || []).concat(['Australian property', 'EquitySight']).join(', ');
+  const commentsHtml = renderCommentsBlock(post.slug, commentsData || { items: [], totalCount: 0 });
 
   return replaceAll(template, {
     TITLE: escHtml(post.title),
@@ -177,6 +261,7 @@ function renderPost(post, allPosts, template) {
     BODY_HTML: bodyHtml, // already escaped inside md.render()
     TAGS_HTML: tagsHtml,
     RELATED_HTML: relatedHtml,
+    COMMENTS_HTML: commentsHtml,
   });
 }
 
@@ -272,10 +357,13 @@ async function main() {
   const indexTpl = fs.readFileSync(TEMPLATE_INDEX, 'utf8');
 
   // ── Individual posts ───────────────────────────────────────────────
+  let totalComments = 0;
   for (const p of posts) {
     const outDir = path.join(BLOG_DIR, p.slug);
     fs.mkdirSync(outDir, { recursive: true });
-    const html = renderPost(p, posts, postTpl);
+    const comments = await fetchCommentsForPost(p.slug);
+    totalComments += (comments.totalCount || 0);
+    const html = renderPost(p, posts, postTpl, comments);
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
@@ -320,7 +408,7 @@ async function main() {
     '\n</urlset>\n';
   fs.writeFileSync(path.join(ROOT, 'sitemap-blog.xml'), sitemapBlog);
 
-  console.log('[build-blog] Built', posts.length, 'posts,', totalPages, 'index page(s),', Object.keys(byTag).length, 'tag pages');
+  console.log('[build-blog] Built', posts.length, 'posts,', totalPages, 'index page(s),', Object.keys(byTag).length, 'tag pages,', totalComments, 'approved comment(s) injected');
 }
 
 if (require.main === module) {

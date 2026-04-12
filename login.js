@@ -1,7 +1,19 @@
 // login.js — Login/signup page logic
 // Extracted from login.html inline script block.
 
+// Validate a ?next= redirect path — allow known pages + /suburb/* and /blog/* paths.
+// Returns an absolute path or '/app' as fallback. Prevents open-redirect attacks.
 const ALLOWED_NEXT = ['app', 'account', 'pricing'];
+const ALLOWED_NEXT_PREFIXES = ['suburb/', 'blog/'];
+function safeNextUrl(raw) {
+  if (!raw) return '/app';
+  var clean = raw.replace(/^\//, '').replace(/\.html$/, '');
+  if (ALLOWED_NEXT.includes(clean)) return '/' + clean;
+  for (var i = 0; i < ALLOWED_NEXT_PREFIXES.length; i++) {
+    if (clean.indexOf(ALLOWED_NEXT_PREFIXES[i]) === 0 && !/[?#]/.test(clean)) return '/' + clean;
+  }
+  return '/app';
+}
 
 // Redirect if already logged in
 (function(){
@@ -9,13 +21,14 @@ const ALLOWED_NEXT = ['app', 'account', 'pricing'];
     const s = JSON.parse(localStorage.getItem('propCalc_session_v1'));
     if(s && (s.id || s.email)){
       const params = new URLSearchParams(location.search);
-      const raw = params.get('next') || '';
-      const clean = raw.replace(/\.html$/, '');
-      const next = ALLOWED_NEXT.includes(clean) ? '/' + clean : '/app';
-      goTo(next);
+      goTo(safeNextUrl(params.get('next') || ''));
     }
   }catch(e){}
 })();
+
+// ── Turnstile state (must be initialised before setTab may be called) ────────
+var TURNSTILE_SITEKEY = '0x4AAAAAACvWg4IZeEydKXQ3';
+var _tsWidgetIds = {}; // containerId → turnstile widgetId
 
 // Read plan/ref from URL
 const params = new URLSearchParams(location.search);
@@ -79,7 +92,7 @@ async function handleGoogleCredential(response){
         localStorage.setItem('propCalc_profile_v1_'+(res.id||res.email), JSON.stringify(profileRes.profile));
       }
     }catch(e){}
-    goTo('/app');
+    goTo(safeNextUrl(params.get('next') || ''));
   } else {
     if(errEl) errEl.textContent = res.error || 'Google sign-in failed — please try again or use email/password below';
   }
@@ -153,8 +166,6 @@ document.getElementById('su-password').addEventListener('input', function(){ upd
 document.getElementById('su-verify-code').addEventListener('keydown', function(e){ if(e.key==='Enter') doVerifyEmail(); });
 
 // ── Turnstile helper (explicit render — only one widget at a time) ───────────
-var TURNSTILE_SITEKEY = '0x4AAAAAACvWg4IZeEydKXQ3';
-var _tsWidgetIds = {}; // containerId → turnstile widgetId
 
 function renderTurnstile(containerId){
   if(typeof turnstile==='undefined' || typeof _tsWidgetIds==='undefined') return;
@@ -356,7 +367,9 @@ function persistSession(res, fallback){
 }
 
 function postVerificationRedirect(plan){
+  var next = safeNextUrl(params.get('next') || '');
   if(plan==='pro') goTo('/account?checkout=1&panel=subscription');
+  else if(next !== '/app') goTo(next);
   else goTo('/account?panel=subscription');
 }
 
@@ -394,7 +407,7 @@ async function doSignin(){
         localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
       }
     }catch(e){}
-    goTo('/app');
+    goTo(safeNextUrl(params.get('next') || ''));
     return;
   }
   hideSpinner();

@@ -59,6 +59,8 @@ var blogUnpublishBtn = document.getElementById('blog-unpublish-btn');
 if(blogUnpublishBtn) blogUnpublishBtn.addEventListener('click', blogUnpublish);
 var blogDeleteBtn = document.getElementById('blog-delete-btn');
 if(blogDeleteBtn) blogDeleteBtn.addEventListener('click', blogDeletePost);
+var blogSyncGhBtn = document.getElementById('blog-sync-github-btn');
+if(blogSyncGhBtn) blogSyncGhBtn.addEventListener('click', blogSyncAllToGitHub);
 var blogBodyEl = document.getElementById('blog-edit-body');
 if(blogBodyEl) blogBodyEl.addEventListener('input', blogUpdateWordCount);
 var blogTitleEl = document.getElementById('blog-edit-title');
@@ -66,7 +68,11 @@ if(blogTitleEl) blogTitleEl.addEventListener('input', blogAutoSlug);
 var blogSlugEl = document.getElementById('blog-edit-slug');
 if(blogSlugEl) blogSlugEl.addEventListener('input', function(){ this.dataset.touched = '1'; });
 
-// ── Moderation tab (suburb reviews) ─────────────────────────────────────────
+// ── Moderation tab (suburb reviews + blog comments) ─────────────────────────
+var modKindReviewsBtn = document.getElementById('mod-kind-reviews');
+if(modKindReviewsBtn) modKindReviewsBtn.addEventListener('click', function(){ modSetKind('reviews'); });
+var modKindCommentsBtn = document.getElementById('mod-kind-comments');
+if(modKindCommentsBtn) modKindCommentsBtn.addEventListener('click', function(){ modSetKind('comments'); });
 var modPendingBtn = document.getElementById('mod-subtab-pending');
 if(modPendingBtn) modPendingBtn.addEventListener('click', function(){ modSetSubtab('pending'); });
 var modAllBtn = document.getElementById('mod-subtab-all');

@@ -1094,7 +1094,10 @@
         <!-- Post list -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
           <div id="blog-stats" style="font-size:11px;color:var(--slate);">—</div>
-          <button class="btn-admin btn-admin-primary" id="blog-new-post-btn" style="font-size:11px;padding:8px 14px;">+ New Post</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-admin-outline" id="blog-sync-github-btn" style="font-size:11px;padding:8px 14px;" title="Push all published posts to GitHub as JSON files (triggers auto-deploy)">Sync to GitHub</button>
+            <button class="btn-admin btn-admin-primary" id="blog-new-post-btn" style="font-size:11px;padding:8px 14px;">+ New Post</button>
+          </div>
         </div>
         <div id="blog-posts-list" style="border:1px solid rgba(28,28,30,0.08);border-radius:6px;overflow:hidden;margin-bottom:24px;">
           <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
@@ -1160,28 +1163,32 @@
 
 </div>
 
-<!-- MODERATION TAB -->
-<div class="admin-section" id="tab-moderation">
-  <div class="admin-card">
-    <div class="admin-card-head">
-      <div>
-        <h3>Moderation</h3>
-        <p>Approve, reject, or delete user-submitted suburb reviews. Approved reviews appear on the matching suburb page at the next build.</p>
+  <!-- MODERATION TAB -->
+  <div class="admin-section" id="tab-moderation">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <div>
+          <h3>Moderation</h3>
+          <p>Approve, reject, or delete user-submitted suburb reviews and blog comments. Approved content appears on the site at the next build.</p>
+        </div>
+        <div id="moderation-stats" style="font-size:11px;color:var(--slate);">—</div>
       </div>
-      <div id="moderation-stats" style="font-size:11px;color:var(--slate);">—</div>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-      <button type="button" id="mod-subtab-pending" class="admin-btn admin-btn-primary" data-subtab="pending">Pending review</button>
-      <button type="button" id="mod-subtab-all" class="admin-btn" data-subtab="all">All reviews</button>
-      <button type="button" id="mod-refresh-btn" class="admin-btn" style="margin-left:auto;">↻ Refresh</button>
-    </div>
-
-    <div id="mod-reviews-list">
-      <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
+      <div style="padding:16px 20px;">
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;border-bottom:1px solid var(--hairline);padding-bottom:10px;">
+          <button type="button" id="mod-kind-reviews" class="admin-btn admin-btn-primary" data-kind="reviews">Suburb reviews</button>
+          <button type="button" id="mod-kind-comments" class="admin-btn" data-kind="comments">Blog comments</button>
+          <button type="button" id="mod-refresh-btn" class="admin-btn" style="margin-left:auto;">↻ Refresh</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+          <button type="button" id="mod-subtab-pending" class="admin-btn admin-btn-primary" data-subtab="pending">Pending</button>
+          <button type="button" id="mod-subtab-all" class="admin-btn" data-subtab="all">All</button>
+        </div>
+        <div id="mod-reviews-list">
+          <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
 <!-- Legal Page Preview Modal -->
 <div id="legal-preview-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.72);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">

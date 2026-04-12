@@ -61,6 +61,7 @@
 </nav>
 <script src="/auth-nav.js" defer></script>
 <script src="/error-capture.js" defer></script>
+<script src="/blog-comments.js" defer></script>
 
 <section class="legal-hero">
   <nav class="blog-breadcrumb">
@@ -95,6 +96,16 @@
         {{RELATED_HTML}}
       </div>
     </div>
+
+    <!-- Community Comments (build-time static HTML; renders empty when count=0) -->
+    {{COMMENTS_HTML}}
+
+    <!-- Comment form (login-gated; hydrated by blog-comments.js) -->
+    <section class="blog-comment-form-wrap" id="comment-form" data-post-slug="{{SLUG}}" data-post-title="{{TITLE}}">
+      <h2>Join the discussion</h2>
+      <p class="blog-comment-intro">Sign-in required. Comments are moderated before they appear.</p>
+      <div id="comment-form-mount"></div>
+    </section>
   </article>
 </div>
 
