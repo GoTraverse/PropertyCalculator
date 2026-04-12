@@ -1166,15 +1166,20 @@
     <div class="admin-card-head">
       <div>
         <h3>Moderation</h3>
-        <p>Approve, reject, or delete user-submitted suburb reviews. Approved reviews appear on the matching suburb page at the next build.</p>
+        <p>Approve, reject, or delete user-submitted suburb reviews and blog comments. Approved content appears on the site at the next build.</p>
       </div>
       <div id="moderation-stats" style="font-size:11px;color:var(--slate);">—</div>
     </div>
 
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-      <button type="button" id="mod-subtab-pending" class="admin-btn admin-btn-primary" data-subtab="pending">Pending review</button>
-      <button type="button" id="mod-subtab-all" class="admin-btn" data-subtab="all">All reviews</button>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;border-bottom:1px solid var(--hairline);padding-bottom:10px;">
+      <button type="button" id="mod-kind-reviews" class="admin-btn admin-btn-primary" data-kind="reviews">Suburb reviews</button>
+      <button type="button" id="mod-kind-comments" class="admin-btn" data-kind="comments">Blog comments</button>
       <button type="button" id="mod-refresh-btn" class="admin-btn" style="margin-left:auto;">↻ Refresh</button>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button type="button" id="mod-subtab-pending" class="admin-btn admin-btn-primary" data-subtab="pending">Pending</button>
+      <button type="button" id="mod-subtab-all" class="admin-btn" data-subtab="all">All</button>
     </div>
 
     <div id="mod-reviews-list">

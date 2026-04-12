@@ -66,7 +66,11 @@ if(blogTitleEl) blogTitleEl.addEventListener('input', blogAutoSlug);
 var blogSlugEl = document.getElementById('blog-edit-slug');
 if(blogSlugEl) blogSlugEl.addEventListener('input', function(){ this.dataset.touched = '1'; });
 
-// ── Moderation tab (suburb reviews) ─────────────────────────────────────────
+// ── Moderation tab (suburb reviews + blog comments) ─────────────────────────
+var modKindReviewsBtn = document.getElementById('mod-kind-reviews');
+if(modKindReviewsBtn) modKindReviewsBtn.addEventListener('click', function(){ modSetKind('reviews'); });
+var modKindCommentsBtn = document.getElementById('mod-kind-comments');
+if(modKindCommentsBtn) modKindCommentsBtn.addEventListener('click', function(){ modSetKind('comments'); });
 var modPendingBtn = document.getElementById('mod-subtab-pending');
 if(modPendingBtn) modPendingBtn.addEventListener('click', function(){ modSetSubtab('pending'); });
 var modAllBtn = document.getElementById('mod-subtab-all');

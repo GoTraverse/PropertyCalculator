@@ -3453,9 +3453,10 @@ function blogAutoSlug() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// MODERATION TAB — suburb reviews (Phase 4)
+// MODERATION TAB — suburb reviews + blog comments (Phase 4 + 5)
 // ═══════════════════════════════════════════════════════════════════════
 
+var modCurrentKind = 'reviews'; // 'reviews' | 'comments'
 var modCurrentSubtab = 'pending';
 
 async function callReviews(action, payload) {
@@ -3463,6 +3464,21 @@ async function callReviews(action, payload) {
   var token = sess && sess.token;
   try {
     var r = await fetch('/.netlify/functions/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      body: JSON.stringify(Object.assign({ action: action }, payload || {})),
+    });
+    return r.json();
+  } catch (e) {
+    return { ok: false, error: 'Network error — ' + e.message };
+  }
+}
+
+async function callComments(action, payload) {
+  var sess = getSession();
+  var token = sess && sess.token;
+  try {
+    var r = await fetch('/.netlify/functions/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
       body: JSON.stringify(Object.assign({ action: action }, payload || {})),
@@ -3518,29 +3534,65 @@ function modRenderReviewCard(r) {
   );
 }
 
+function modRenderCommentCard(c) {
+  var postSlug = escHtml(c.postSlug || '?');
+  var postLink = '/blog/' + encodeURIComponent(c.postSlug || '') + '/';
+  var isApproved = c.status === 'approved';
+  var isRejected = c.status === 'rejected';
+
+  var actions = [];
+  if (!isApproved) actions.push('<button class="admin-btn admin-btn-primary" data-action="approve" data-id="' + escHtml(c.id) + '">Approve</button>');
+  if (!isRejected) actions.push('<button class="admin-btn" data-action="reject" data-id="' + escHtml(c.id) + '">Reject</button>');
+  actions.push('<button class="admin-btn admin-btn-danger" data-action="delete" data-id="' + escHtml(c.id) + '">Delete</button>');
+
+  return (
+    '<div class="mod-comment-row" style="border:1px solid rgba(28,28,30,0.1);border-radius:6px;padding:14px 16px;margin-bottom:12px;background:#fff;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:11px;color:var(--slate);margin-bottom:2px;font-family:var(--font-mono);">' +
+            modStatusBadge(c.status) + ' · ' +
+            '<a href="' + postLink + '" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;">/blog/' + postSlug + '/</a>' + ' · ' + modFormatDate(c.created_at) +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--slate);">' + escHtml(c.userName || 'Anonymous') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<p style="font-size:13px;color:var(--ink);line-height:1.6;margin:8px 0 12px;white-space:pre-wrap;">' + (c.body || '') + '</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + actions.join('') + '</div>' +
+    '</div>'
+  );
+}
+
 async function modLoadReviews() {
   var listEl = document.getElementById('mod-reviews-list');
   var statsEl = document.getElementById('moderation-stats');
   if (!listEl) return;
   listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>';
 
+  var kind = modCurrentKind;
   var action = modCurrentSubtab === 'pending' ? 'adminPending' : 'adminListAll';
-  var res = await callReviews(action, { page: 1, pageSize: 50 });
+  var fetcher = kind === 'comments' ? callComments : callReviews;
+  var renderer = kind === 'comments' ? modRenderCommentCard : modRenderReviewCard;
+  var labelSingular = kind === 'comments' ? 'comment' : 'review';
+  var labelPlural = kind === 'comments' ? 'comments' : 'reviews';
+
+  var res = await fetcher(action, { page: 1, pageSize: 50 });
   if (!res || !res.ok) {
-    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#c62828;font-size:11px;">Failed to load reviews: ' + escHtml(res && res.error || 'unknown error') + '</div>';
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#c62828;font-size:11px;">Failed to load ' + labelPlural + ': ' + escHtml(res && res.error || 'unknown error') + '</div>';
     return;
   }
   var items = res.items || [];
   if (statsEl) {
-    statsEl.textContent = (modCurrentSubtab === 'pending' ? 'Pending: ' : 'Total: ') + (res.total || 0);
+    statsEl.textContent = (modCurrentSubtab === 'pending' ? 'Pending ' : 'Total ') + labelPlural + ': ' + (res.total || 0);
   }
   if (!items.length) {
     listEl.innerHTML = '<div style="padding:32px;text-align:center;color:var(--slate);font-size:12px;">' +
-      (modCurrentSubtab === 'pending' ? 'No reviews pending moderation — you\'re all caught up.' : 'No reviews yet.') +
+      (modCurrentSubtab === 'pending'
+        ? 'No ' + labelPlural + ' pending moderation — you\'re all caught up.'
+        : 'No ' + labelPlural + ' yet.') +
       '</div>';
     return;
   }
-  listEl.innerHTML = items.map(modRenderReviewCard).join('');
+  listEl.innerHTML = items.map(renderer).join('');
 
   // Wire action buttons
   listEl.querySelectorAll('[data-action]').forEach(function (btn) {
@@ -3555,23 +3607,33 @@ async function modLoadReviews() {
 }
 
 async function modApprove(id) {
-  var res = await callReviews('adminApprove', { id: id });
+  var fetcher = modCurrentKind === 'comments' ? callComments : callReviews;
+  var res = await fetcher('adminApprove', { id: id });
   if (res && res.ok) modLoadReviews();
   else alert('Approve failed: ' + (res && res.error || 'unknown error'));
 }
 
 async function modReject(id) {
-  var confirmed = await customConfirm('Reject this review?', 'Rejected reviews are hidden from the public but kept in the database for audit. You can delete later from the "All reviews" list.', { danger: false, confirmLabel: 'Reject' });
+  var labelSingular = modCurrentKind === 'comments' ? 'comment' : 'review';
+  var confirmed = await customConfirm('Reject this ' + labelSingular + '?', 'Rejected ' + labelSingular + 's are hidden from the public but kept in the database for audit. You can delete later from the "All" list.', { danger: false, confirmLabel: 'Reject' });
   if (!confirmed) return;
-  var res = await callReviews('adminReject', { id: id });
+  var fetcher = modCurrentKind === 'comments' ? callComments : callReviews;
+  var res = await fetcher('adminReject', { id: id });
   if (res && res.ok) modLoadReviews();
   else alert('Reject failed: ' + (res && res.error || 'unknown error'));
 }
 
 async function modDelete(id) {
-  var confirmed = await customConfirm('Delete this review?', 'This permanently removes the review from Redis and updates the suburb aggregate count. This cannot be undone.', { danger: true, confirmLabel: 'Delete' });
+  var kind = modCurrentKind;
+  var labelSingular = kind === 'comments' ? 'comment' : 'review';
+  var deleteAction = kind === 'comments' ? 'adminDeleteComment' : 'adminDeleteReview';
+  var fetcher = kind === 'comments' ? callComments : callReviews;
+  var detail = kind === 'comments'
+    ? 'This permanently removes the comment from Redis. This cannot be undone.'
+    : 'This permanently removes the review from Redis and updates the suburb aggregate count. This cannot be undone.';
+  var confirmed = await customConfirm('Delete this ' + labelSingular + '?', detail, { danger: true, confirmLabel: 'Delete' });
   if (!confirmed) return;
-  var res = await callReviews('adminDeleteReview', { id: id });
+  var res = await fetcher(deleteAction, { id: id });
   if (res && res.ok) modLoadReviews();
   else alert('Delete failed: ' + (res && res.error || 'unknown error'));
 }
@@ -3583,6 +3645,17 @@ function modSetSubtab(name) {
   if (pendingBtn && allBtn) {
     pendingBtn.classList.toggle('admin-btn-primary', name === 'pending');
     allBtn.classList.toggle('admin-btn-primary', name === 'all');
+  }
+  modLoadReviews();
+}
+
+function modSetKind(kind) {
+  modCurrentKind = kind;
+  var revBtn = document.getElementById('mod-kind-reviews');
+  var comBtn = document.getElementById('mod-kind-comments');
+  if (revBtn && comBtn) {
+    revBtn.classList.toggle('admin-btn-primary', kind === 'reviews');
+    comBtn.classList.toggle('admin-btn-primary', kind === 'comments');
   }
   modLoadReviews();
 }

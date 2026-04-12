@@ -5,7 +5,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 
 **Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **Redis-backed authored blog** (static-rendered at build time) + **suburb reviews & star ratings** (UGC, moderated) | **13 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic in app.js | **3100+ lines** of admin logic in admin.js
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **Redis-backed authored blog** (static-rendered at build time) + **suburb reviews & star ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **14 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic in app.js | **3100+ lines** of admin logic in admin.js
 
 ---
 
@@ -40,7 +40,8 @@ Browser (static files)
         ├── address-suggest.js — address autocomplete (rate-limited: 30 req/min)
         ├── market-data.js    — suburb insights market data API
         ├── blog.js           — blog CMS (admin CRUD, Redis-backed, build-fetch)
-        └── reviews.js        — suburb reviews/ratings (UGC, auth, rate-limited, moderation queue)
+        ├── reviews.js        — suburb reviews/ratings (UGC, auth, rate-limited, moderation queue)
+        └── comments.js       — blog post comments (UGC, auth, rate-limited, moderation queue)
 ```
 
 ---
@@ -154,6 +155,17 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | `templates/suburb-page.html` | `{{REVIEWS_HTML}}` (empty string when none) + `{{AGGREGATE_RATING_JSON}}` (empty string when none) + `<section id="review-form">` login-gated form container. Renders zero-state as an absent `<section>`, not a "0 reviews" heading |
 | `suburb-insights.css` | Reviews styles — `.suburb-reviews-section`, `.suburb-reviews-avg`, `.suburb-review-card`, `.suburb-review-form-wrap`, `.suburb-review-stars-row` (gold on `.is-on`), `.suburb-review-counter.is-ok`, `.suburb-review-result.is-success/.is-error`, with `html.dark-mode` variants |
 | `admin.html` + `admin.js` + `admin-events.js` | New **Moderation** tab with Pending/All sub-tabs. `callReviews(action, payload)` hits `/reviews` directly; `modLoadReviews`, `modApprove`, `modReject`, `modDelete`, `modSetSubtab` handle the UI |
+
+### Blog Comments (UGC, moderated)
+| File | Purpose |
+|------|---------|
+| `netlify/functions/comments.js` | ~290 lines. Public GET `list` (approved only, paged) + user POST `submitComment` (auth, 20–2000 char body, `escHtml()` on write, IP rate-limit 10/hr via `ratelimit:comments:<ip>`, per-user 5/day via `comments:userCount:<userId>:<YYYYMMDD>`) + admin actions (`adminPending`, `adminListAll`, `adminApprove`, `adminReject`, `adminDeleteComment`, `adminGet`). 3-state moderation: `pending`/`approved`/`rejected`. Flat threading — no nested replies in v1 |
+| Redis schema | `comment:<id>` (full JSON), `comments:<postSlug>` (LIST of approved IDs, newest first), `comments:queue` (pending LIST), `comments:all` (all-IDs LIST for admin browse), `ratelimit:comments:<ip>` (INCR+EXPIRE 3600), `comments:userCount:<userId>:<YYYYMMDD>` (INCR+EXPIRE 86400) |
+| `build/build-blog.js` | New `fetchCommentsForPost(slug)` pulls up to 20 approved comments per post directly from Redis (build-blog is already async — no execSync needed). New `renderCommentsBlock(slug, data)` emits static HTML — **returns empty string when `count === 0`** so empty shells never appear (AdSense negative signal). Build log reports total approved comments injected |
+| `blog-comments.js` | ~230-line IIFE. Reads session from `propCalc_session_v1`, mounts textarea + live char counter into `#comment-form-mount` on every blog post page. Guest users see sign-in CTA. Submits to `/.netlify/functions/comments` with Bearer token. "Show more comments" button paginates via `?action=list&slug=&page=` |
+| `templates/blog-post.html` | `{{COMMENTS_HTML}}` placeholder (empty string when none) + `<section id="comment-form">` login-gated form container. Renders zero state as an absent `<section id="blog-comments">`, not a "0 comments" heading |
+| `blog.css` | Comments styles — `.blog-comments-section`, `.blog-comment-card`, `.blog-comment-head`, `.blog-comment-body`, `.blog-comment-more-btn`, `.blog-comment-form-wrap`, `.blog-comment-field textarea` (gold focus outline), `.blog-comment-counter.is-ok`, `.blog-comment-result.is-success/.is-error`, with `html.dark-mode` variants |
+| `admin.html` + `admin.js` + `admin-events.js` | Moderation tab now has a **kind switcher** (`mod-kind-reviews` / `mod-kind-comments`) layered above Pending/All. `callComments(action, payload)` hits `/comments` directly; `modLoadReviews` dispatches to the right fetcher + renderer based on `modCurrentKind`. `modRenderCommentCard()` renders comment-specific card markup (no star rating, post slug link instead of suburb link) |
 
 ---
 
@@ -351,6 +363,39 @@ Returns market data (median prices, growth rates, demographics) for suburb insig
 
 **XSS defence:** `title` and `body` are HTML-escaped at write time (stored pre-escaped). Build-time injection and client-side pagination treat them as safe and only convert `\n → <br>` for display (after escape).
 
+### comments.js (Blog Post Comments)
+**~290 lines** — UGC comment submission, listing, and admin moderation for blog posts. Same architectural pattern as `reviews.js`, simpler because there's no rating aggregate to maintain (count is just `LLEN` of the per-post list).
+
+**Public GET actions:**
+- `list?slug=&page=&pageSize=` — approved comments for one post (newest first, paged)
+
+**User POST actions (auth required):**
+- `submitComment` — validates `body 20–2000 chars`; `escHtml()` on body at write time; enforces **IP rate limit** (10/hour via `ratelimit:comments:<ip>`) and **per-user cap** (5/day via `comments:userCount:<userId>:<YYYYMMDD>`); persists as `status='pending'` in `comments:queue`
+
+**Admin POST actions** (all require `session.role === 'admin'`):
+- `adminPending` — list pending comments from `comments:queue`
+- `adminListAll` — browse every comment via `comments:all`
+- `adminGet` — single comment by id
+- `adminApprove` — flips status to `approved`, removes from queue, prepends to `comments:<postSlug>`
+- `adminReject` — flips status; if the comment was previously approved, removes it from the public list
+- `adminDeleteComment` — full cleanup across `comment:<id>`, per-post list, queue, and all-list
+
+**Redis key schema:**
+- `comment:<id>` → full comment JSON
+- `comments:<postSlug>` → LIST of approved IDs (newest first)
+- `comments:queue` → LIST of pending IDs
+- `comments:all` → LIST of every comment ID (for admin browse)
+- `ratelimit:comments:<ip>` → INCR+EXPIRE 3600 (10/hour cap)
+- `comments:userCount:<userId>:<YYYYMMDD>` → INCR+EXPIRE 86400 (5/day cap)
+
+**Comment schema:** `{id, postSlug, userId, userName, body, created_at, status: 'pending'|'approved'|'rejected', approved_at?, rejected_at?}`
+
+**Build integration:** `build/build-blog.js` calls `fetchCommentsForPost(slug)` inline for each published post (no `execSync` helper needed — build-blog is already async). Up to 20 approved comments are injected as **static HTML** into `{{COMMENTS_HTML}}` — **only when `count > 0`**. Empty comment sections never render (AdSense negative signal).
+
+**Frontend:** `blog-comments.js` hydrates a textarea + live char counter into `#comment-form-mount` on every blog post page for logged-in users (guests see a sign-in CTA). Posts with Bearer token from `propCalc_session_v1`. "Show more comments" button paginates via the `list` action client-side.
+
+**XSS defence:** Same as reviews — `body` is HTML-escaped at write time (stored pre-escaped). Build-time injection and client-side pagination treat it as safe and only convert `\n → <br>` for display (after escape).
+
 ---
 
 ## Shared Component Pattern
@@ -443,7 +488,7 @@ Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setPr
 | **Legal Pages** | Edit privacy, terms, cookies, disclaimer content from admin. |
 | **Suburbs** | Browse/search 14,512 suburb records, state breakdown, trigger suburb page rebuild via Netlify deploy hook. |
 | **Blog** | Create/edit/delete blog posts (Redis-backed CMS). Live Markdown word counter vs AdSense 1,500-word floor. Draft/publish toggle. Slug collision check. |
-| **Moderation** | Approve, reject, or delete user-submitted suburb reviews. Pending / All sub-tabs. Each card shows star rating, suburb link, user, body, status badge. Approving a review increments the aggregate atomically; rejecting/deleting reverses it. |
+| **Moderation** | Approve, reject, or delete user-submitted suburb reviews **and** blog comments. Top-level kind switcher (Suburb reviews ↔ Blog comments) with nested Pending / All sub-tabs. Review cards show star rating, suburb link, title, body, status badge; comment cards show post slug link, user, body, status badge. Approving a review increments the aggregate atomically; rejecting/deleting reverses it. |
 
 ### Revenue / discount tracking
 
@@ -528,8 +573,8 @@ Set these in **Netlify → Site Settings → Environment Variables**:
 
 | Variable | Used by | Purpose |
 |----------|---------|---------|
-| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js, client-errors.js, blog.js, reviews.js, build/fetch-reviews.js | Upstash Redis endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js, client-errors.js, blog.js, reviews.js, build/fetch-reviews.js | Upstash Redis auth token |
+| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js, client-errors.js, blog.js, reviews.js, comments.js, build/fetch-reviews.js, build/build-blog.js | Upstash Redis endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js, client-errors.js, blog.js, reviews.js, comments.js, build/fetch-reviews.js, build/build-blog.js | Upstash Redis auth token |
 | `AUTH_SALT` | auth.js | Password hashing salt — **required in production**, must be strong random secret. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `STRIPE_SECRET_KEY` | stripe.js | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | stripe.js | Stripe webhook signing secret |

@@ -44,7 +44,7 @@
 - **Legal Pages** — edit privacy, terms, cookies, disclaimer from admin
 - **Suburbs** — browse/search suburb data, state breakdown, trigger suburb page rebuilds via Netlify deploy hook
 - **Blog** — author posts in Markdown with live word count (vs AdSense 1,500-word floor), draft/publish workflow, slug collision check; posts stored in Upstash Redis and rendered to static HTML at deploy time
-- **Moderation** — approve, reject, or delete user-submitted suburb reviews; Pending/All sub-tabs; atomic aggregate updates on approve/reject
+- **Moderation** — approve, reject, or delete user-submitted suburb reviews **and** blog comments; top-level kind switcher with nested Pending/All sub-tabs; atomic aggregate updates on approve/reject
 
 ---
 
@@ -63,7 +63,7 @@
 
 ---
 
-## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages + Redis-backed blog + suburb reviews, 13 Netlify functions, 9 SEO tools)
+## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages + Redis-backed blog + suburb reviews + blog comments, 14 Netlify functions, 9 SEO tools)
 
 ### Application Pages
 ```
@@ -163,6 +163,7 @@ address-suggest.js      # Address autocomplete (rate-limited: 30 req/min)
 market-data.js          # Suburb insights market data API
 blog.js                 # Blog CMS — admin CRUD over Upstash Redis (posts, slug index, tag lists)
 reviews.js              # Suburb reviews & star ratings — auth, rate-limited, 3-state moderation queue
+comments.js             # Blog post comments — auth, rate-limited, 3-state moderation queue (flat threading)
 ```
 
 ### Blog CMS (static-first, Redis-backed)
@@ -189,6 +190,17 @@ templates/suburb-page.html        # {{REVIEWS_HTML}} + {{AGGREGATE_RATING_JSON}}
 ```
 
 Logged-in users post 100+ char reviews with 1–5 star ratings on non-noindexed suburb pages. Reviews enter a pending moderation queue, are approved from the admin **Moderation** tab, and are then injected at build time as static HTML so Google crawls real text (not JS-hydrated content). Empty review sections are never rendered (AdSense negative signal) — the zero state is an absent `<section>`, not a "0 reviews" heading. `AggregateRating` schema.org JSON-LD is emitted only when `count > 0`.
+
+### Blog Comments (UGC, moderated)
+```
+netlify/functions/comments.js     # Submit/list/admin actions, auth + rate limits (10/hr IP, 5/day user)
+build/build-blog.js               # Inline async fetch → injects up to 20 approved comments as static HTML
+blog-comments.js                  # Frontend textarea + live counter + "Show more" pagination
+templates/blog-post.html          # {{COMMENTS_HTML}} placeholder + login-gated form
+blog.css                          # Comments styles (light + dark)
+```
+
+Logged-in users post 20–2000 char comments on any blog post. Flat threading (no nested replies in v1). Same pattern as suburb reviews — pending moderation queue, admin approves via the **Moderation** tab (kind switcher), then comments are injected at build time as static HTML. Empty comment sections render as absent `<section>`, never a "0 comments" heading.
 
 ### Suburb Insights System (14,512 suburb pages + 19 city pages)
 ```
