@@ -22,3 +22,8 @@ Desktop - (DO NOT REMOVE THIS LINE)
 PWA/MOBILE- (DO NOT REMOVE THIS LINE)
 -
 
+Tracking features:
+- When a user signs up, need to know all the pagesthey came from so i can see that under the user section in admin portal.
+- Once they are signed up i need to know what features are being used in the app etc.
+- I need to not only know the last sign in from a user but when they are last active date and time, so they could still be logged in but refresh a page after not being on my app for a day.
+
