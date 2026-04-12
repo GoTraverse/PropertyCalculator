@@ -5,7 +5,7 @@
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** + **19 city pages** + **8 state hub pages** | **11 Netlify functions** | **11 CSS files** | **4698+ lines** of calculator logic | **2894+ lines** of admin logic
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) | **13 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic | **3100+ lines** of admin logic
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
@@ -125,6 +125,25 @@ See **`README.md`** for feature overview and quick start guide.
 - **Admin tab**: Admin → Suburbs — browse/search suburbs, state breakdown, trigger rebuilds via Netlify deploy hook
 - **To regenerate data**: `node fetch-abs-data.js` then `node generate-suburbs-data.js`
 
+### Blog CMS (Static-first, Redis-backed)
+- **Architecture**: Posts are authored in the admin UI → stored in Upstash Redis → rendered to static HTML at build time via `build/build-blog.js`. Public pages under `/blog/` are 100% static for Googlebot/AdSense.
+- **Why static**: AdSense/Google crawl pre-rendered HTML with full JSON-LD (`BlogPosting` + `BreadcrumbList` + `Person`) — no hydration required.
+- **Shared markdown parser**: `build/md.js` (CommonJS) mirrors `legal.js` rendering exactly, so browser and Node emit byte-identical HTML from the same Markdown source. Build-only helpers: `excerpt()`, `wordCount()`.
+- **Redis key schema**:
+  - `blog:post:<id>` — full post JSON
+  - `blog:slug:<slug>` — id (unique index for collision check)
+  - `blog:index` — LIST of all post IDs
+  - `blog:published` — LIST of published IDs (newest first)
+  - `blog:tag:<tag>` — LIST of post IDs per tag
+- **Post schema**: `{id, slug, title, excerpt, body_md, author, author_bio, author_email, cover_image, tags[], status: 'draft'|'published', created_at, updated_at, published_at, comment_count}`
+- **Admin actions** (`netlify/functions/blog.js`, all admin-only): `adminListPosts`, `adminGetPost`, `adminSavePost` (slug collision check, tag index diff), `adminPublish`, `adminUnpublish`, `adminDeletePost`.
+- **Build output**: `/blog/index.html`, `/blog/page/<N>/index.html` (paged 12/page), `/blog/<slug>/index.html`, `/blog/tag/<tag>/index.html`, `/blog/rss.xml`, `sitemap-blog.xml`.
+- **Templates**: `templates/blog-post.html` (BlogPosting JSON-LD, author bio, 3 related posts by tag overlap) and `templates/blog-index.html`. Styled via `blog.css` layered on `legal.css`.
+- **AdSense quality gate**: Admin editor shows live word count + remaining-to-1,500-floor so every authored post clears Google's E-E-A-T quality threshold. Target: 20+ posts at 1,500–3,000 words before AdSense resubmission.
+- **Offline builds**: Missing `UPSTASH_REDIS_REST_URL` falls back to `BLOG_FIXTURE` JSON file (see `data/blog-fixture.json`) and ultimately to an empty index — build never fails.
+- **Admin tab**: Admin → Blog — list/search posts, create/edit/delete, live Markdown word count, draft/publish toggle. `callBlog(action, payload)` helper in admin.js.
+- **Build integration**: `build.js` calls `buildBlog()` after suburb restore/build. Sitemap index (`sitemap.xml`) references `sitemap-blog.xml` alongside suburb sitemaps.
+
 ### Layout & Responsive
 - **Mobile Breakpoint**: `@media(max-width:600px)` for PWA/mobile
 - **PWA Styles**: `@media(display-mode:standalone)` to hide/show elements in standalone mode (no JS needed)
@@ -202,6 +221,12 @@ Files intentionally NOT blocked (needed at runtime):
 - Submit sitemap.xml: https://search.google.com/search-console
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
+
+## Recent Changes (April 2026 — AdSense Content Substance Push)
+- ✅ **Phase 1 — Aggressive prune** — multi-factor `shouldNoindex()` gate in `build/build-suburbs.js` reduces indexed suburb pages from 14,512 → ~3,022 (population ≥2,000 + postcode + median income present). Sitemap respects the gate; noindexed slugs still reachable via `<details>` drawer on state hubs for link equity.
+- ✅ **Phase 2 — Formula-driven suburb prose** — replaced `pick(seed, [variants])` templating in `generateInsight`/`generateStrategy`/`generateRisks`/`generateOutlook` with if/else branches over real numeric ratios (gross yield, affordability, rent-to-income, dwelling mix, CBD-distance band). Added `numericProse()`, `generateComparisonTable()` (vs state medians), `generateInvestorChecklist()` (8 bullets), expanded FAQ (4→8). New `{{COMPARE_HTML}}`, `{{CHECKLIST_HTML}}`, `{{METHODOLOGY_HTML}}` placeholders in `templates/suburb-page.html`. New `methodology.md` / `methodology.html` + `data-sources.md` / `data-sources.html` E-E-A-T pages authored at ~1,200 words each.
+- ✅ **Phase 3 — Human-authored blog CMS** — admin authors posts in Redis via the new Blog tab; `build/build-blog.js` renders to static HTML at deploy time. New `netlify/functions/blog.js` (admin CRUD + slug collision check + tag index maintenance), `build/md.js` (shared Markdown parser), `templates/blog-post.html` + `templates/blog-index.html` (BlogPosting + BreadcrumbList + Person JSON-LD), `blog.css`, `sitemap-blog.xml`, `/blog/rss.xml`. Editor shows live word count vs AdSense 1,500-word floor. Build-blog falls back to `BLOG_FIXTURE` JSON when Upstash env vars absent.
+- ✅ **Phase 4 — Suburb reviews & star ratings (UGC)** — logged-in users post 100+ char reviews with 1–5 star ratings on non-noindexed suburb pages. New `netlify/functions/reviews.js` (submit/list/admin actions with auth + per-IP 10/hr and per-user 3/day rate limits, `escHtml()` on write, 3-state moderation: pending/approved/rejected, atomic `HINCRBY` on `{count,sum}` aggregate). New `build/fetch-reviews.js` — spawned via `execSync` from `build-suburbs.js` to keep the build sync; SCANs `reviews:agg:*` and prints a JSON map of approved reviews to stdout. `build-suburbs.js` injects up to 10 approved reviews as **static HTML** and writes `AggregateRating` JSON-LD into the schema.org array — **only when `count > 0`** so empty review shells never appear (AdSense negative signal). New `suburb-reviews.js` frontend — star picker, live char counter, submit form, "Show more" pagination. New `{{REVIEWS_HTML}}` + `{{AGGREGATE_RATING_JSON}}` placeholders in `templates/suburb-page.html`. New Admin → **Moderation** tab (16 admin tabs total now) with Pending/All sub-tabs and approve/reject/delete actions. Styles in `suburb-insights.css` (light + dark).
 
 ## Recent Changes (March 2026)
 - ✅ Deleted user logout — `verify` action now checks user existence

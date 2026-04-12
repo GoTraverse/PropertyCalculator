@@ -122,6 +122,23 @@ async function buildSuburbs() {
   saveToCache();
 }
 
+async function buildBlog() {
+  // Always rebuild the blog on every deploy — the content set is small
+  // (20-30 posts) and it's stored in Redis, so we want the latest published
+  // posts to show up without requiring a cache-bust.
+  if (process.env.SKIP_BLOG_BUILD === 'true') {
+    console.log('[build] SKIP_BLOG_BUILD=true — skipping blog build');
+    return;
+  }
+  try {
+    const blog = require('./build/build-blog.js');
+    await blog.main();
+  } catch (e) {
+    // Non-fatal: blog failures shouldn't block the rest of the deploy.
+    console.warn('[build] Blog build failed (non-fatal):', e.message);
+  }
+}
+
 // ── Main ──
 
 (async () => {
@@ -134,5 +151,6 @@ async function buildSuburbs() {
     console.log('[build] No cache found — building suburb pages for the first time');
     await buildSuburbs();
   }
+  await buildBlog();
   console.log('[build] Done.');
 })();

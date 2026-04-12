@@ -32,7 +32,7 @@
 <link rel="stylesheet" href="/suburb-insights.css">
 <script src="/adsense.js" defer></script>
 <script type="application/ld+json">
-[{"@context":"https://schema.org","@type":"Place","name":"{{SUBURB}}, {{STATE_NAME}}","description":"{{META_DESCRIPTION}}","address":{"@type":"PostalAddress","addressLocality":"{{SUBURB}}","addressRegion":"{{STATE}}","postalCode":"{{POSTCODE}}","addressCountry":"AU"},"containedInPlace":{"@type":"AdministrativeArea","name":"{{STATE_NAME}}"}},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"{{STATE_NAME}}","item":"https://equitysight.app/invest/{{STATE_LOWER}}/"},{"@type":"ListItem","position":3,"name":"{{SUBURB}}","item":"https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}/"}]}]
+[{"@context":"https://schema.org","@type":"Place","name":"{{SUBURB}}, {{STATE_NAME}}","description":"{{META_DESCRIPTION}}","address":{"@type":"PostalAddress","addressLocality":"{{SUBURB}}","addressRegion":"{{STATE}}","postalCode":"{{POSTCODE}}","addressCountry":"AU"},"containedInPlace":{"@type":"AdministrativeArea","name":"{{STATE_NAME}}"}}{{AGGREGATE_RATING_JSON}},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"{{STATE_NAME}}","item":"https://equitysight.app/invest/{{STATE_LOWER}}/"},{"@type":"ListItem","position":3,"name":"{{SUBURB}}","item":"https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}/"}]}]
 </script>
 </head>
 <body>
@@ -47,6 +47,7 @@
 <script src="/auth-nav.js" defer></script>
 <script src="/error-capture.js" defer></script>
 <script src="/suburb-insights.js" defer></script>
+<script src="/suburb-reviews.js" defer></script>
 
 <section class="tool-hero suburb-hero">
   <nav class="suburb-breadcrumb">
@@ -247,6 +248,17 @@
   <!-- 2026 Outlook -->
   <section class="suburb-section">
     {{OUTLOOK_HTML}}
+  </section>
+
+  <!-- Community Reviews (build-time static HTML; renders empty when count=0) -->
+{{REVIEWS_HTML}}
+
+  <!-- Review form (login-gated; hydrated by suburb-reviews.js) -->
+  <section class="suburb-section suburb-review-form-wrap" id="review-form"
+           data-suburb-slug="{{SLUG}}" data-state="{{STATE}}" data-suburb-name="{{SUBURB}}">
+    <h2>Share your experience of {{SUBURB}}</h2>
+    <p class="suburb-review-intro">Lived in {{SUBURB}}? Help other investors with an honest 100-word review. Sign-in required; all reviews are manually moderated before they appear.</p>
+    <div id="review-form-mount"></div>
   </section>
 
   <!-- FAQ -->

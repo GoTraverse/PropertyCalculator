@@ -39,8 +39,41 @@ var tabCallbacks = {
   'about-page': loadAboutPage,
   'legal-pages': loadLegalPagesList,
   'suburbs': loadSuburbsTab,
+  'blog': loadBlogPosts,
+  'moderation': modLoadReviews,
   'database': function(){ loadDatabaseBrowser('*'); }
 };
+
+// ── Blog editor ──────────────────────────────────────────────────────────────
+var blogNewBtn = document.getElementById('blog-new-post-btn');
+if(blogNewBtn) blogNewBtn.addEventListener('click', function(){ blogOpenEditor(''); });
+var blogCloseBtn = document.getElementById('blog-editor-close-btn');
+if(blogCloseBtn) blogCloseBtn.addEventListener('click', function(){
+  document.getElementById('blog-editor-wrap').style.display = 'none';
+});
+var blogSaveDraftBtn = document.getElementById('blog-save-draft-btn');
+if(blogSaveDraftBtn) blogSaveDraftBtn.addEventListener('click', function(){ blogSavePost(false); });
+var blogPublishBtn = document.getElementById('blog-save-publish-btn');
+if(blogPublishBtn) blogPublishBtn.addEventListener('click', function(){ blogSavePost(true); });
+var blogUnpublishBtn = document.getElementById('blog-unpublish-btn');
+if(blogUnpublishBtn) blogUnpublishBtn.addEventListener('click', blogUnpublish);
+var blogDeleteBtn = document.getElementById('blog-delete-btn');
+if(blogDeleteBtn) blogDeleteBtn.addEventListener('click', blogDeletePost);
+var blogBodyEl = document.getElementById('blog-edit-body');
+if(blogBodyEl) blogBodyEl.addEventListener('input', blogUpdateWordCount);
+var blogTitleEl = document.getElementById('blog-edit-title');
+if(blogTitleEl) blogTitleEl.addEventListener('input', blogAutoSlug);
+var blogSlugEl = document.getElementById('blog-edit-slug');
+if(blogSlugEl) blogSlugEl.addEventListener('input', function(){ this.dataset.touched = '1'; });
+
+// ── Moderation tab (suburb reviews) ─────────────────────────────────────────
+var modPendingBtn = document.getElementById('mod-subtab-pending');
+if(modPendingBtn) modPendingBtn.addEventListener('click', function(){ modSetSubtab('pending'); });
+var modAllBtn = document.getElementById('mod-subtab-all');
+if(modAllBtn) modAllBtn.addEventListener('click', function(){ modSetSubtab('all'); });
+var modRefreshBtn = document.getElementById('mod-refresh-btn');
+if(modRefreshBtn) modRefreshBtn.addEventListener('click', modLoadReviews);
+
 document.querySelectorAll('.admin-tab[data-tab]').forEach(function(btn){
   btn.addEventListener('click', function(){
     var tab = this.dataset.tab;

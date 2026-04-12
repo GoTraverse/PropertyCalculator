@@ -28,7 +28,7 @@
 - **PWA** — install as mobile app on iOS/Android, offline capable
 
 ### Admin Dashboard (`admin.html`)
-**14 tabs for system & user management:**
+**16 tabs for system & user management:**
 - **Users** — table with sorting, plan badges, discount indicators; click to view full details + error history
 - **Scenarios** — browse all saved property scenarios per user; delete individual scenarios
 - **Gov Schemes** — government scheme eligibility editor per state
@@ -43,6 +43,8 @@
 - **About Page** — edit the About page content from admin
 - **Legal Pages** — edit privacy, terms, cookies, disclaimer from admin
 - **Suburbs** — browse/search suburb data, state breakdown, trigger suburb page rebuilds via Netlify deploy hook
+- **Blog** — author posts in Markdown with live word count (vs AdSense 1,500-word floor), draft/publish workflow, slug collision check; posts stored in Upstash Redis and rendered to static HTML at deploy time
+- **Moderation** — approve, reject, or delete user-submitted suburb reviews; Pending/All sub-tabs; atomic aggregate updates on approve/reject
 
 ---
 
@@ -61,12 +63,12 @@
 
 ---
 
-## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages, 11 Netlify functions, 9 SEO tools)
+## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages + Redis-backed blog + suburb reviews, 13 Netlify functions, 9 SEO tools)
 
 ### Application Pages
 ```
 app.html                # Main calculator (authenticated)
-admin.html              # Admin dashboard (role=admin only) — 14 tabs
+admin.html              # Admin dashboard (role=admin only) — 16 tabs (incl. Blog CMS + Moderation)
 account.html            # User account settings & subscription management
 login.html              # Sign-up & sign-in with email verification + Google Sign-In
 showcase.html           # App gallery — real mobile screenshots (light + dark)
@@ -159,7 +161,34 @@ photo.js                # Property photo storage proxy
 mapproxy.js             # OpenStreetMap tile proxy
 address-suggest.js      # Address autocomplete (rate-limited: 30 req/min)
 market-data.js          # Suburb insights market data API
+blog.js                 # Blog CMS — admin CRUD over Upstash Redis (posts, slug index, tag lists)
+reviews.js              # Suburb reviews & star ratings — auth, rate-limited, 3-state moderation queue
 ```
+
+### Blog CMS (static-first, Redis-backed)
+```
+netlify/functions/blog.js         # Admin CRUD: save/publish/unpublish/delete + slug collision check
+build/md.js                       # Shared Markdown parser (CommonJS) — mirrors legal.js
+build/build-blog.js               # Deploy-time renderer: Redis → static HTML + sitemap-blog.xml + RSS
+templates/blog-post.html          # BlogPosting + BreadcrumbList + Person JSON-LD
+templates/blog-index.html         # Blog landing + paginated pages
+blog.css                          # Layered on legal.css
+data/blog-fixture.json            # Offline fixture for local builds (ignored on CDN)
+blog/ (generated)                 # /blog/index.html, /blog/<slug>/, /blog/tag/<tag>/, /blog/rss.xml
+```
+
+Posts are authored in the admin Blog tab (Markdown editor with live word count vs 1,500-word AdSense floor) → stored in Upstash Redis → rendered to static HTML at deploy time. Public `/blog/` pages are 100% pre-rendered so Googlebot/AdSense crawl complete JSON-LD without hydration.
+
+### Suburb Reviews & Ratings (UGC, moderated)
+```
+netlify/functions/reviews.js      # Submit/list/admin actions, auth + rate limits (10/hr IP, 3/day user)
+build/fetch-reviews.js            # Scans reviews:agg:* → JSON map to stdout (spawned by build-suburbs)
+build/build-suburbs.js            # Injects up to 10 approved reviews as static HTML + AggregateRating JSON-LD
+suburb-reviews.js                 # Frontend star picker + form hydration + "Show more" pagination
+templates/suburb-page.html        # {{REVIEWS_HTML}} + {{AGGREGATE_RATING_JSON}} placeholders
+```
+
+Logged-in users post 100+ char reviews with 1–5 star ratings on non-noindexed suburb pages. Reviews enter a pending moderation queue, are approved from the admin **Moderation** tab, and are then injected at build time as static HTML so Google crawls real text (not JS-hydrated content). Empty review sections are never rendered (AdSense negative signal) — the zero state is an absent `<section>`, not a "0 reviews" heading. `AggregateRating` schema.org JSON-LD is emitted only when `count > 0`.
 
 ### Suburb Insights System (14,512 suburb pages + 19 city pages)
 ```

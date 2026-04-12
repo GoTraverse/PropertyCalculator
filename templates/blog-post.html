@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script src="/site-init.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>{{TITLE}} | EquitySight Blog</title>
+<meta name="description" content="{{META_DESCRIPTION}}">
+<meta name="keywords" content="{{KEYWORDS}}">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<meta name="robots" content="index, follow">
+<meta name="author" content="{{AUTHOR}}">
+<link rel="canonical" href="https://equitysight.app/blog/{{SLUG}}/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{TITLE}}">
+<meta property="og:description" content="{{META_DESCRIPTION}}">
+<meta property="og:url" content="https://equitysight.app/blog/{{SLUG}}/">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="{{COVER_IMAGE_ABS}}">
+<meta property="article:published_time" content="{{PUBLISHED_AT_ISO}}">
+<meta property="article:modified_time" content="{{UPDATED_AT_ISO}}">
+<meta property="article:author" content="{{AUTHOR}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{TITLE}}">
+<meta name="twitter:description" content="{{META_DESCRIPTION}}">
+<meta name="twitter:image" content="{{COVER_IMAGE_ABS}}">
+<script type="application/ld+json">
+[
+  {"@context":"https://schema.org","@type":"BlogPosting","headline":"{{TITLE_JSON}}","description":"{{META_DESCRIPTION_JSON}}","image":"{{COVER_IMAGE_ABS}}","datePublished":"{{PUBLISHED_AT_ISO}}","dateModified":"{{UPDATED_AT_ISO}}","wordCount":{{WORD_COUNT}},"author":{"@type":"Person","name":"{{AUTHOR_JSON}}","description":"{{AUTHOR_BIO_JSON}}"},"publisher":{"@type":"Organization","name":"EquitySight","logo":{"@type":"ImageObject","url":"https://equitysight.app/favicon.svg"}},"mainEntityOfPage":"https://equitysight.app/blog/{{SLUG}}/"},
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://equitysight.app/blog/"},{"@type":"ListItem","position":3,"name":"{{TITLE_JSON}}","item":"https://equitysight.app/blog/{{SLUG}}/"}]}
+]
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="/shared.css">
+<link rel="stylesheet" href="/legal.css">
+<link rel="stylesheet" href="/blog.css">
+<script src="/adsense.js" defer></script>
+</head>
+<body>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark">🏠</div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links">
+      <li><a href="/pricing">Pricing</a></li>
+      <li><a href="/blog/" class="active">Blog</a></li>
+      <li><a href="/contact">Support</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+    <div class="site-nav-actions"></div>
+  </div>
+</nav>
+<script src="/auth-nav.js" defer></script>
+<script src="/error-capture.js" defer></script>
+
+<section class="legal-hero">
+  <nav class="blog-breadcrumb">
+    <a href="/">Home</a> <span>›</span>
+    <a href="/blog/">Blog</a> <span>›</span>
+    <span>{{TITLE}}</span>
+  </nav>
+  <div class="legal-tag">Blog · {{PRIMARY_TAG}}</div>
+  <h1 class="legal-title">{{TITLE}}</h1>
+  <div class="legal-meta">By {{AUTHOR}} · Published {{PUBLISHED_AT_HUMAN}} · {{READING_MINUTES}} min read</div>
+</section>
+
+<div class="legal-body">
+  <article class="blog-article">
+    {{COVER_IMAGE_HTML}}
+    <div class="blog-excerpt">{{EXCERPT}}</div>
+    <div id="blog-content">
+      {{BODY_HTML}}
+    </div>
+    <div class="ad-slot" data-ad-type="blog"></div>
+    <div class="blog-author-card">
+      <div class="blog-author-head">About the author</div>
+      <div class="blog-author-name">{{AUTHOR}}</div>
+      <div class="blog-author-bio">{{AUTHOR_BIO}}</div>
+    </div>
+    <div class="blog-tags">
+      {{TAGS_HTML}}
+    </div>
+    <div class="blog-related">
+      <h3>Related reading</h3>
+      <div class="blog-related-grid">
+        {{RELATED_HTML}}
+      </div>
+    </div>
+  </article>
+</div>
+
+<div id="site-footer-root"></div>
+<script src="/footer.js"></script>
+</body>
+</html>

@@ -3235,4 +3235,356 @@ function showAdminToast(msg, isError) {
   setTimeout(function() { toast.remove(); }, 4000);
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+//  BLOG ADMIN — CRUD for long-form posts stored in Redis
+// ═══════════════════════════════════════════════════════════════════════
+
+async function callBlog(action, payload, opts) {
+  opts = opts || {};
+  var sess = getSession();
+  var token = sess && sess.token;
+  try {
+    var url = '/.netlify/functions/blog';
+    var method = 'POST';
+    var body = JSON.stringify(Object.assign({ action: action }, payload || {}));
+    if (opts.get) {
+      url += '?' + new URLSearchParams(Object.assign({ action: action }, payload || {})).toString();
+      method = 'GET';
+      body = undefined;
+    }
+    var r = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      body: body,
+    });
+    return r.json();
+  } catch (e) {
+    return { ok: false, error: 'Network error — ' + e.message };
+  }
+}
+
+function blogSlugify(s) {
+  return String(s || '').toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 80);
+}
+
+function blogFormatDate(ms) {
+  if (!ms) return '—';
+  try { return new Date(ms).toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch (e) { return '—'; }
+}
+
+async function loadBlogPosts() {
+  var listEl = document.getElementById('blog-posts-list');
+  var statsEl = document.getElementById('blog-stats');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>';
+  var res = await callBlog('adminListPosts');
+  if (!res || !res.ok) {
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#c62828;font-size:11px;">Failed to load posts: ' + escHtml(res && res.error || 'unknown error') + '</div>';
+    return;
+  }
+  var posts = res.posts || [];
+  var published = posts.filter(function (p) { return p.status === 'published'; }).length;
+  if (statsEl) {
+    statsEl.textContent = posts.length + ' post' + (posts.length === 1 ? '' : 's') + ' · ' + published + ' published · ' + (posts.length - published) + ' draft';
+  }
+  if (!posts.length) {
+    listEl.innerHTML = '<div style="padding:32px;text-align:center;color:var(--slate);font-size:12px;">No blog posts yet. Click <strong>+ New Post</strong> to author your first one.</div>';
+    return;
+  }
+  var rows = posts.map(function (p) {
+    var statusBadge = p.status === 'published'
+      ? '<span style="background:rgba(46,125,50,0.1);color:#2e7d32;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Published</span>'
+      : '<span style="background:rgba(28,28,30,0.08);color:var(--slate);padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Draft</span>';
+    var tagsStr = (p.tags || []).map(escHtml).join(', ') || '—';
+    return '<div class="blog-row" data-id="' + escHtml(p.id) + '" style="display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(28,28,30,0.06);font-size:12px;">' +
+      '<div style="min-width:0;overflow:hidden;">' +
+        '<div style="font-weight:600;color:var(--charcoal);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.title) + '</div>' +
+        '<div style="font-size:10px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">/' + escHtml(p.slug) + ' · ' + escHtml(p.author || '—') + ' · ' + escHtml(tagsStr) + '</div>' +
+      '</div>' +
+      '<div>' + statusBadge + '</div>' +
+      '<div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">' + escHtml(blogFormatDate(p.updated_at || p.created_at)) + '</div>' +
+      '<button class="btn-admin-outline blog-edit-btn" data-id="' + escHtml(p.id) + '" style="font-size:10px;padding:6px 12px;">Edit</button>' +
+    '</div>';
+  }).join('');
+  listEl.innerHTML = rows;
+  // Wire row edit buttons
+  listEl.querySelectorAll('.blog-edit-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { blogOpenEditor(this.dataset.id); });
+  });
+}
+
+function blogResetEditor() {
+  document.getElementById('blog-edit-id').value = '';
+  ['blog-edit-title','blog-edit-slug','blog-edit-excerpt','blog-edit-tags','blog-edit-author','blog-edit-cover','blog-edit-author-bio','blog-edit-body'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('blog-edit-status').innerHTML = '';
+  document.getElementById('blog-editor-title').textContent = 'New Post';
+  blogUpdateWordCount();
+}
+
+async function blogOpenEditor(id) {
+  var wrap = document.getElementById('blog-editor-wrap');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!id) {
+    blogResetEditor();
+    return;
+  }
+  var res = await callBlog('adminGetPost', { id: id });
+  if (!res || !res.ok || !res.post) {
+    showAdminToast('Failed to load post', true);
+    return;
+  }
+  var p = res.post;
+  document.getElementById('blog-edit-id').value = p.id || '';
+  document.getElementById('blog-edit-title').value = p.title || '';
+  document.getElementById('blog-edit-slug').value = p.slug || '';
+  document.getElementById('blog-edit-excerpt').value = p.excerpt || '';
+  document.getElementById('blog-edit-tags').value = (p.tags || []).join(', ');
+  document.getElementById('blog-edit-author').value = p.author || '';
+  document.getElementById('blog-edit-cover').value = p.cover_image || '';
+  document.getElementById('blog-edit-author-bio').value = p.author_bio || '';
+  document.getElementById('blog-edit-body').value = p.body_md || '';
+  document.getElementById('blog-editor-title').textContent = 'Edit: ' + (p.title || '(untitled)');
+  document.getElementById('blog-edit-status').innerHTML = '';
+  blogUpdateWordCount();
+}
+
+function blogCollectForm() {
+  return {
+    id: document.getElementById('blog-edit-id').value || undefined,
+    title: document.getElementById('blog-edit-title').value.trim(),
+    slug: document.getElementById('blog-edit-slug').value.trim() || blogSlugify(document.getElementById('blog-edit-title').value),
+    excerpt: document.getElementById('blog-edit-excerpt').value.trim(),
+    tags: document.getElementById('blog-edit-tags').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean),
+    author: document.getElementById('blog-edit-author').value.trim(),
+    author_bio: document.getElementById('blog-edit-author-bio').value.trim(),
+    cover_image: document.getElementById('blog-edit-cover').value.trim(),
+    body_md: document.getElementById('blog-edit-body').value,
+  };
+}
+
+function blogSetStatus(msg, isErr) {
+  var el = document.getElementById('blog-edit-status');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:10px 14px;border-radius:4px;font-size:11px;' +
+    (isErr ? 'background:rgba(198,40,40,0.08);color:#c62828;border:1px solid rgba(198,40,40,0.2);'
+           : 'background:rgba(46,125,50,0.08);color:#2e7d32;border:1px solid rgba(46,125,50,0.2);') +
+    '">' + escHtml(msg) + '</div>';
+}
+
+async function blogSavePost(publish) {
+  var post = blogCollectForm();
+  if (!post.title || post.title.length < 4) { blogSetStatus('Title must be at least 4 chars', true); return; }
+  if (!post.body_md || post.body_md.length < 200) { blogSetStatus('Body must be at least 200 chars', true); return; }
+  var res = await callBlog('adminSavePost', { post: post });
+  if (!res || !res.ok) {
+    blogSetStatus('Save failed: ' + (res && res.error || 'unknown'), true);
+    return;
+  }
+  document.getElementById('blog-edit-id').value = res.id;
+  if (publish) {
+    var pub = await callBlog('adminPublish', { id: res.id });
+    if (!pub || !pub.ok) { blogSetStatus('Saved but publish failed: ' + (pub && pub.error || 'unknown'), true); return; }
+    blogSetStatus('Saved and published ✓', false);
+  } else {
+    blogSetStatus('Draft saved ✓', false);
+  }
+  loadBlogPosts();
+}
+
+async function blogUnpublish() {
+  var id = document.getElementById('blog-edit-id').value;
+  if (!id) return;
+  var res = await callBlog('adminUnpublish', { id: id });
+  if (!res || !res.ok) { blogSetStatus('Unpublish failed: ' + (res && res.error || 'unknown'), true); return; }
+  blogSetStatus('Moved back to draft ✓', false);
+  loadBlogPosts();
+}
+
+async function blogDeletePost() {
+  var id = document.getElementById('blog-edit-id').value;
+  if (!id) { blogSetStatus('Nothing to delete', true); return; }
+  var confirmed = await customConfirm('Delete this post?', 'This permanently removes the post from Redis. It will disappear from the public blog on the next deploy.', { danger: true });
+  if (!confirmed) return;
+  var res = await callBlog('adminDeletePost', { id: id });
+  if (!res || !res.ok) { blogSetStatus('Delete failed: ' + (res && res.error || 'unknown'), true); return; }
+  blogResetEditor();
+  document.getElementById('blog-editor-wrap').style.display = 'none';
+  loadBlogPosts();
+}
+
+function blogUpdateWordCount() {
+  var el = document.getElementById('blog-edit-body');
+  var out = document.getElementById('blog-edit-wordcount');
+  if (!el || !out) return;
+  var words = (el.value || '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/[#>*_`|\[\]()-]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .length;
+  var mins = Math.max(1, Math.round(words / 220));
+  var gap = 1500 - words;
+  out.textContent = words + ' words · ' + mins + ' min read · ' + (gap > 0 ? gap + ' words to reach 1,500 (AdSense floor)' : '✓ above 1,500-word floor');
+  out.style.color = gap > 0 ? 'var(--slate)' : '#2e7d32';
+}
+
+// Auto-slug from title while editing a new post
+function blogAutoSlug() {
+  var titleEl = document.getElementById('blog-edit-title');
+  var slugEl = document.getElementById('blog-edit-slug');
+  var idEl = document.getElementById('blog-edit-id');
+  if (!titleEl || !slugEl) return;
+  // Only overwrite slug if editing a brand-new post (no id) and the slug
+  // field hasn't been manually edited.
+  if (idEl.value) return;
+  if (slugEl.dataset.touched === '1') return;
+  slugEl.value = blogSlugify(titleEl.value);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MODERATION TAB — suburb reviews (Phase 4)
+// ═══════════════════════════════════════════════════════════════════════
+
+var modCurrentSubtab = 'pending';
+
+async function callReviews(action, payload) {
+  var sess = getSession();
+  var token = sess && sess.token;
+  try {
+    var r = await fetch('/.netlify/functions/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      body: JSON.stringify(Object.assign({ action: action }, payload || {})),
+    });
+    return r.json();
+  } catch (e) {
+    return { ok: false, error: 'Network error — ' + e.message };
+  }
+}
+
+function modStarBar(rating) {
+  var n = Math.max(0, Math.min(5, Math.round(rating || 0)));
+  return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+}
+
+function modFormatDate(ms) {
+  if (!ms) return '—';
+  try { return new Date(ms).toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch (e) { return '—'; }
+}
+
+function modStatusBadge(status) {
+  var color = status === 'approved' ? '#2e7d32' : (status === 'rejected' ? '#c62828' : '#C9A84C');
+  return '<span style="display:inline-block;padding:2px 8px;font-size:10px;font-weight:600;color:#fff;background:' + color + ';border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;">' + escHtml(status || 'pending') + '</span>';
+}
+
+function modRenderReviewCard(r) {
+  var suburbLabel = escHtml((r.state || '?') + ' / ' + (r.suburbSlug || '?'));
+  var suburbLink = '/suburb/' + encodeURIComponent((r.state || '').toLowerCase()) + '/' + encodeURIComponent(r.suburbSlug || '') + '/';
+  var isApproved = r.status === 'approved';
+  var isRejected = r.status === 'rejected';
+
+  var actions = [];
+  if (!isApproved) actions.push('<button class="admin-btn admin-btn-primary" data-action="approve" data-id="' + escHtml(r.id) + '">Approve</button>');
+  if (!isRejected) actions.push('<button class="admin-btn" data-action="reject" data-id="' + escHtml(r.id) + '">Reject</button>');
+  actions.push('<button class="admin-btn admin-btn-danger" data-action="delete" data-id="' + escHtml(r.id) + '">Delete</button>');
+
+  return (
+    '<div class="mod-review-row" style="border:1px solid rgba(28,28,30,0.1);border-radius:6px;padding:14px 16px;margin-bottom:12px;background:#fff;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:11px;color:var(--slate);margin-bottom:2px;font-family:var(--font-mono);">' +
+            modStatusBadge(r.status) + ' · ' +
+            '<a href="' + suburbLink + '" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;">' + suburbLabel + '</a>' + ' · ' + modFormatDate(r.created_at) +
+          '</div>' +
+          '<div style="font-family:Playfair Display,serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:4px;">' + (r.title || '(no title)') + '</div>' +
+          '<div style="font-size:12px;color:var(--slate);">' + escHtml(r.userName || 'Anonymous') + ' · ' + modStarBar(r.rating) + ' (' + (r.rating || 0) + '/5)</div>' +
+        '</div>' +
+      '</div>' +
+      '<p style="font-size:13px;color:var(--ink);line-height:1.6;margin:8px 0 12px;white-space:pre-wrap;">' + (r.body || '') + '</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + actions.join('') + '</div>' +
+    '</div>'
+  );
+}
+
+async function modLoadReviews() {
+  var listEl = document.getElementById('mod-reviews-list');
+  var statsEl = document.getElementById('moderation-stats');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>';
+
+  var action = modCurrentSubtab === 'pending' ? 'adminPending' : 'adminListAll';
+  var res = await callReviews(action, { page: 1, pageSize: 50 });
+  if (!res || !res.ok) {
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#c62828;font-size:11px;">Failed to load reviews: ' + escHtml(res && res.error || 'unknown error') + '</div>';
+    return;
+  }
+  var items = res.items || [];
+  if (statsEl) {
+    statsEl.textContent = (modCurrentSubtab === 'pending' ? 'Pending: ' : 'Total: ') + (res.total || 0);
+  }
+  if (!items.length) {
+    listEl.innerHTML = '<div style="padding:32px;text-align:center;color:var(--slate);font-size:12px;">' +
+      (modCurrentSubtab === 'pending' ? 'No reviews pending moderation — you\'re all caught up.' : 'No reviews yet.') +
+      '</div>';
+    return;
+  }
+  listEl.innerHTML = items.map(modRenderReviewCard).join('');
+
+  // Wire action buttons
+  listEl.querySelectorAll('[data-action]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var action = btn.getAttribute('data-action');
+      var id = btn.getAttribute('data-id');
+      if (action === 'approve') modApprove(id);
+      else if (action === 'reject') modReject(id);
+      else if (action === 'delete') modDelete(id);
+    });
+  });
+}
+
+async function modApprove(id) {
+  var res = await callReviews('adminApprove', { id: id });
+  if (res && res.ok) modLoadReviews();
+  else alert('Approve failed: ' + (res && res.error || 'unknown error'));
+}
+
+async function modReject(id) {
+  var confirmed = await customConfirm('Reject this review?', 'Rejected reviews are hidden from the public but kept in the database for audit. You can delete later from the "All reviews" list.', { danger: false, confirmLabel: 'Reject' });
+  if (!confirmed) return;
+  var res = await callReviews('adminReject', { id: id });
+  if (res && res.ok) modLoadReviews();
+  else alert('Reject failed: ' + (res && res.error || 'unknown error'));
+}
+
+async function modDelete(id) {
+  var confirmed = await customConfirm('Delete this review?', 'This permanently removes the review from Redis and updates the suburb aggregate count. This cannot be undone.', { danger: true, confirmLabel: 'Delete' });
+  if (!confirmed) return;
+  var res = await callReviews('adminDeleteReview', { id: id });
+  if (res && res.ok) modLoadReviews();
+  else alert('Delete failed: ' + (res && res.error || 'unknown error'));
+}
+
+function modSetSubtab(name) {
+  modCurrentSubtab = name;
+  var pendingBtn = document.getElementById('mod-subtab-pending');
+  var allBtn = document.getElementById('mod-subtab-all');
+  if (pendingBtn && allBtn) {
+    pendingBtn.classList.toggle('admin-btn-primary', name === 'pending');
+    allBtn.classList.toggle('admin-btn-primary', name === 'all');
+  }
+  modLoadReviews();
+}
+
 document.addEventListener('DOMContentLoaded', init);
