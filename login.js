@@ -17,6 +17,10 @@ const ALLOWED_NEXT = ['app', 'account', 'pricing'];
   }catch(e){}
 })();
 
+// ── Turnstile state (must be initialised before setTab may be called) ────────
+var TURNSTILE_SITEKEY = '0x4AAAAAACvWg4IZeEydKXQ3';
+var _tsWidgetIds = {}; // containerId → turnstile widgetId
+
 // Read plan/ref from URL
 const params = new URLSearchParams(location.search);
 if(params.get('tab') === 'signup') setTab('signup');
@@ -153,8 +157,6 @@ document.getElementById('su-password').addEventListener('input', function(){ upd
 document.getElementById('su-verify-code').addEventListener('keydown', function(e){ if(e.key==='Enter') doVerifyEmail(); });
 
 // ── Turnstile helper (explicit render — only one widget at a time) ───────────
-var TURNSTILE_SITEKEY = '0x4AAAAAACvWg4IZeEydKXQ3';
-var _tsWidgetIds = {}; // containerId → turnstile widgetId
 
 function renderTurnstile(containerId){
   if(typeof turnstile==='undefined' || typeof _tsWidgetIds==='undefined') return;
