@@ -40,6 +40,7 @@ var tabCallbacks = {
   'legal-pages': loadLegalPagesList,
   'suburbs': loadSuburbsTab,
   'blog': loadBlogPosts,
+  'moderation': modLoadReviews,
   'database': function(){ loadDatabaseBrowser('*'); }
 };
 
@@ -64,6 +65,15 @@ var blogTitleEl = document.getElementById('blog-edit-title');
 if(blogTitleEl) blogTitleEl.addEventListener('input', blogAutoSlug);
 var blogSlugEl = document.getElementById('blog-edit-slug');
 if(blogSlugEl) blogSlugEl.addEventListener('input', function(){ this.dataset.touched = '1'; });
+
+// ── Moderation tab (suburb reviews) ─────────────────────────────────────────
+var modPendingBtn = document.getElementById('mod-subtab-pending');
+if(modPendingBtn) modPendingBtn.addEventListener('click', function(){ modSetSubtab('pending'); });
+var modAllBtn = document.getElementById('mod-subtab-all');
+if(modAllBtn) modAllBtn.addEventListener('click', function(){ modSetSubtab('all'); });
+var modRefreshBtn = document.getElementById('mod-refresh-btn');
+if(modRefreshBtn) modRefreshBtn.addEventListener('click', modLoadReviews);
+
 document.querySelectorAll('.admin-tab[data-tab]').forEach(function(btn){
   btn.addEventListener('click', function(){
     var tab = this.dataset.tab;

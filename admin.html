@@ -230,6 +230,7 @@
     <button class="admin-tab" data-tab="legal-pages">Legal Pages</button>
     <button class="admin-tab" data-tab="suburbs">Suburbs</button>
     <button class="admin-tab" data-tab="blog">Blog</button>
+    <button class="admin-tab" data-tab="moderation">Moderation</button>
   </div>
 
   <!-- USERS TAB -->
@@ -1157,6 +1158,29 @@
     </div>
   </div>
 
+</div>
+
+<!-- MODERATION TAB -->
+<div class="admin-section" id="tab-moderation">
+  <div class="admin-card">
+    <div class="admin-card-head">
+      <div>
+        <h3>Moderation</h3>
+        <p>Approve, reject, or delete user-submitted suburb reviews. Approved reviews appear on the matching suburb page at the next build.</p>
+      </div>
+      <div id="moderation-stats" style="font-size:11px;color:var(--slate);">—</div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button type="button" id="mod-subtab-pending" class="admin-btn admin-btn-primary" data-subtab="pending">Pending review</button>
+      <button type="button" id="mod-subtab-all" class="admin-btn" data-subtab="all">All reviews</button>
+      <button type="button" id="mod-refresh-btn" class="admin-btn" style="margin-left:auto;">↻ Refresh</button>
+    </div>
+
+    <div id="mod-reviews-list">
+      <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
+    </div>
+  </div>
 </div>
 
 <!-- Legal Page Preview Modal -->

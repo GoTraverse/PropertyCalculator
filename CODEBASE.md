@@ -5,7 +5,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 
 **Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **Redis-backed authored blog** (static-rendered at build time) | **12 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic in app.js | **3100+ lines** of admin logic in admin.js
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **Redis-backed authored blog** (static-rendered at build time) + **suburb reviews & star ratings** (UGC, moderated) | **13 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic in app.js | **3100+ lines** of admin logic in admin.js
 
 ---
 
@@ -39,7 +39,8 @@ Browser (static files)
         ├── mapproxy.js       — OpenStreetMap tile proxy for map rendering
         ├── address-suggest.js — address autocomplete (rate-limited: 30 req/min)
         ├── market-data.js    — suburb insights market data API
-        └── blog.js           — blog CMS (admin CRUD, Redis-backed, build-fetch)
+        ├── blog.js           — blog CMS (admin CRUD, Redis-backed, build-fetch)
+        └── reviews.js        — suburb reviews/ratings (UGC, auth, rate-limited, moderation queue)
 ```
 
 ---
@@ -51,7 +52,7 @@ Browser (static files)
 |------|------|---------|
 | `app.html` + `app.css` + `app.js` | — | **Main calculator app** (authenticated) — 30-year projections, cost breakdown, reno items, loan amortization, LVR/LMI/FHOG, suburb growth, scenario save/load, PDF export, PWA capable |
 | `app-init.js` + `app-events.js` | — | App page initialization and event wiring (split from app.js for clarity) |
-| `admin.html` + `admin.css` + `admin.js` | — | **Admin dashboard** (role=admin only) — 15 tabs: Users, Scenarios, Gov Schemes, Growth Data, Database, Error Log, Settings, Features, Integrations, Branding, Email Templates, About Page, Legal Pages, Suburbs, Blog |
+| `admin.html` + `admin.css` + `admin.js` | — | **Admin dashboard** (role=admin only) — 16 tabs: Users, Scenarios, Gov Schemes, Growth Data, Database, Error Log, Settings, Features, Integrations, Branding, Email Templates, About Page, Legal Pages, Suburbs, Blog, Moderation |
 | `admin-events.js` | — | Admin dashboard event listener wiring |
 | `account.html` + `account.js` | — | User account & subscription management panel |
 | `login.html` + `login.css` + `login.js` | — | Sign-in & sign-up page — email verification flow + Google Sign-In |
@@ -141,6 +142,18 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | `data/blog-fixture.json` | Local-only JSON fixture (2 sample authored posts) used when Upstash env vars are absent. Excluded from Netlify CDN via `.netlifyignore` |
 | `blog/` (generated) | Built at deploy time; gitignored; deployed to Netlify CDN |
 | `sitemap-blog.xml` (generated) | Referenced from the master `sitemap.xml` index alongside suburb sitemaps |
+
+### Suburb Reviews & Ratings (UGC, moderated)
+| File | Purpose |
+|------|---------|
+| `netlify/functions/reviews.js` | ~340 lines. User-facing `submitReview` (auth, 1–5 stars, 4–120 char title, 100–4000 char body, `escHtml()` on write, IP rate-limit 10/hr via `ratelimit:reviews:<ip>`, per-user 3/day via `reviews:userCount:<userId>:<YYYYMMDD>`) + public `list` (approved only, paged) + admin actions (`adminPending`, `adminListAll`, `adminApprove`, `adminReject`, `adminDeleteReview`, `adminGet`). 3-state moderation: `pending`/`approved`/`rejected`. Atomic `HINCRBY` on `{count,sum}` aggregate when approving/reverting |
+| Redis schema | `review:<id>` (full JSON), `reviews:<state>:<slug>` (LIST of approved IDs, newest first), `reviews:agg:<state>:<slug>` (HASH `{count,sum}` → avg computed on read), `reviews:queue` (pending LIST), `reviews:all` (all-IDs LIST for admin browse), `ratelimit:reviews:<ip>` (INCR+EXPIRE 3600), `reviews:userCount:<userId>:<YYYYMMDD>` (INCR+EXPIRE 86400) |
+| `build/fetch-reviews.js` | Spawned by `build-suburbs.js` via `execSync` to keep the main build synchronous. SCANs `reviews:agg:*`, fetches `HGETALL` + first 10 approved review IDs per suburb, prints `{"STATE:slug": {agg, reviews:[]}}` to stdout. Missing env vars → outputs `{}` and exits 0 (non-fatal) |
+| `build/build-suburbs.js` | `generateReviewsBlock(state,slug,suburb)` renders up to 10 reviews as static HTML — **returns `''` when `count===0`** so no empty shells appear (AdSense negative signal). `generateAggregateRatingJson()` returns a string with leading comma for slotting into the existing JSON-LD array after the `Place` node. Both gated on `!isNoindexed` |
+| `suburb-reviews.js` | ~260-line IIFE. Reads session from `propCalc_session_v1`, mounts star picker + title + body form (with live char counter) into `#review-form-mount` on non-noindexed pages. Guest users see sign-in CTA. Submits to `/.netlify/functions/reviews` with Bearer token. "Show more reviews" button paginates via `?action=list&state=&slug=&page=` |
+| `templates/suburb-page.html` | `{{REVIEWS_HTML}}` (empty string when none) + `{{AGGREGATE_RATING_JSON}}` (empty string when none) + `<section id="review-form">` login-gated form container. Renders zero-state as an absent `<section>`, not a "0 reviews" heading |
+| `suburb-insights.css` | Reviews styles — `.suburb-reviews-section`, `.suburb-reviews-avg`, `.suburb-review-card`, `.suburb-review-form-wrap`, `.suburb-review-stars-row` (gold on `.is-on`), `.suburb-review-counter.is-ok`, `.suburb-review-result.is-success/.is-error`, with `html.dark-mode` variants |
+| `admin.html` + `admin.js` + `admin-events.js` | New **Moderation** tab with Pending/All sub-tabs. `callReviews(action, payload)` hits `/reviews` directly; `modLoadReviews`, `modApprove`, `modReject`, `modDelete`, `modSetSubtab` handle the UI |
 
 ---
 
@@ -304,6 +317,40 @@ Returns market data (median prices, growth rates, demographics) for suburb insig
 
 **Build integration:** `build/build-blog.js` pulls from `blog:published` at deploy time and writes static HTML; missing Upstash env vars fall back to `BLOG_FIXTURE` JSON, then to an empty index. `build.js` calls `buildBlog()` after the suburb build branch (restore or full rebuild).
 
+### reviews.js (Suburb Reviews & Ratings)
+**~340 lines** — UGC review submission, listing, and admin moderation for suburb pages. Pattern source: `scenarios.js` for CORS/auth, `contact.js` for rate limits.
+
+**Public GET actions:**
+- `list?state=&slug=&page=&pageSize=` — approved reviews for one suburb (newest first, paged)
+
+**User POST actions (auth required):**
+- `submitReview` — validates `rating 1–5`, `title 4–120 chars`, `body 100–4000 chars`; `escHtml()` on title/body at write time; enforces **IP rate limit** (10/hour via `ratelimit:reviews:<ip>`) and **per-user cap** (3/day via `reviews:userCount:<userId>:<YYYYMMDD>`); persists as `status='pending'` in `reviews:queue`
+
+**Admin POST actions** (all require `session.role === 'admin'`):
+- `adminPending` — list pending reviews from `reviews:queue`
+- `adminListAll` — browse every review via `reviews:all`
+- `adminGet` — single review by id
+- `adminApprove` — flips status to `approved`, removes from queue, prepends to `reviews:<state>:<slug>`, `HINCRBY` count +1 & sum +rating on the aggregate
+- `adminReject` — flips status; if the review was previously approved, reverses the aggregate
+- `adminDeleteReview` — full cleanup across `review:<id>`, per-suburb list, queue, all-list, and aggregate (if previously approved)
+
+**Redis key schema:**
+- `review:<id>` → full review JSON
+- `reviews:<state>:<slug>` → LIST of approved IDs (newest first)
+- `reviews:agg:<state>:<slug>` → HASH `{count, sum}` → average computed on read
+- `reviews:queue` → LIST of pending IDs
+- `reviews:all` → LIST of every review ID (for admin browse)
+- `ratelimit:reviews:<ip>` → INCR+EXPIRE 3600 (10/hour cap)
+- `reviews:userCount:<userId>:<YYYYMMDD>` → INCR+EXPIRE 86400 (3/day cap)
+
+**Review schema:** `{id, suburbSlug, state, userId, userName, rating 1–5, title, body, created_at, status: 'pending'|'approved'|'rejected', approved_at?, rejected_at?}`
+
+**Build integration:** `build/fetch-reviews.js` SCANs `reviews:agg:*` at deploy time and writes a `{"STATE:slug": {agg, reviews:[]}}` map to stdout. `build-suburbs.js` calls it via `execSync` (keeps the main build sync) and injects up to 10 approved reviews as **static HTML** into `{{REVIEWS_HTML}}` plus an `AggregateRating` JSON-LD node into `{{AGGREGATE_RATING_JSON}}` — **only when `count > 0`** and **only on non-noindexed suburbs**. Empty review sections never render (AdSense negative signal).
+
+**Frontend:** `suburb-reviews.js` hydrates the star picker + title + body form into `#review-form-mount` for logged-in users (guests see a sign-in CTA). Posts with Bearer token from `propCalc_session_v1`. "Show more reviews" button paginates via the `list` action client-side.
+
+**XSS defence:** `title` and `body` are HTML-escaped at write time (stored pre-escaped). Build-time injection and client-side pagination treat them as safe and only convert `\n → <br>` for display (after escape).
+
 ---
 
 ## Shared Component Pattern
@@ -376,7 +423,7 @@ Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setPr
 
 **Role=admin only.** Auth hardened: `verify` action called on every load — never falls back to localStorage role; access denied if token check fails.
 
-**14 tabs with full user/system management:**
+**16 tabs with full user/system management:**
 
 | Tab | Key features |
 |-----|-------------|
@@ -395,6 +442,8 @@ Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setPr
 | **About Page** | Edit About page content directly from admin. |
 | **Legal Pages** | Edit privacy, terms, cookies, disclaimer content from admin. |
 | **Suburbs** | Browse/search 14,512 suburb records, state breakdown, trigger suburb page rebuild via Netlify deploy hook. |
+| **Blog** | Create/edit/delete blog posts (Redis-backed CMS). Live Markdown word counter vs AdSense 1,500-word floor. Draft/publish toggle. Slug collision check. |
+| **Moderation** | Approve, reject, or delete user-submitted suburb reviews. Pending / All sub-tabs. Each card shows star rating, suburb link, user, body, status badge. Approving a review increments the aggregate atomically; rejecting/deleting reverses it. |
 
 ### Revenue / discount tracking
 
@@ -479,8 +528,8 @@ Set these in **Netlify → Site Settings → Environment Variables**:
 
 | Variable | Used by | Purpose |
 |----------|---------|---------|
-| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js, client-errors.js | Upstash Redis endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js, client-errors.js | Upstash Redis auth token |
+| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js, client-errors.js, blog.js, reviews.js, build/fetch-reviews.js | Upstash Redis endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js, client-errors.js, blog.js, reviews.js, build/fetch-reviews.js | Upstash Redis auth token |
 | `AUTH_SALT` | auth.js | Password hashing salt — **required in production**, must be strong random secret. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `STRIPE_SECRET_KEY` | stripe.js | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | stripe.js | Stripe webhook signing secret |

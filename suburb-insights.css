@@ -345,3 +345,195 @@ html.dark-mode .suburb-checklist strong { color: #F5F0E8; }
 html.dark-mode .suburb-checklist li::before { color: #66bb6a; }
 html.dark-mode .suburb-methodology { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); }
 html.dark-mode .suburb-methodology p { color: rgba(245,240,232,0.55); }
+
+/* ═══════════════════════════════════════
+   Phase 4 — Suburb reviews + star ratings
+   ═══════════════════════════════════════ */
+.suburb-reviews-section { }
+.suburb-reviews-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  background: var(--warm-white);
+  border-radius: 10px;
+  border: 1px solid rgba(201,168,76,0.18);
+}
+.suburb-reviews-avg { display: flex; align-items: baseline; gap: 10px; }
+.suburb-reviews-stars {
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  line-height: 1;
+}
+.suburb-reviews-number {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: 'Playfair Display', serif;
+}
+.suburb-reviews-count { font-size: 13px; color: var(--slate); }
+
+.suburb-reviews-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 6px;
+}
+.suburb-review-card {
+  background: #fff;
+  border: 1px solid rgba(28,28,30,0.06);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(28,28,30,0.03);
+}
+.suburb-review-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.suburb-review-head .suburb-review-stars {
+  font-size: 16px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+}
+.suburb-review-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  margin: 0;
+  color: var(--ink);
+}
+.suburb-review-meta {
+  font-size: 12px;
+  color: var(--slate);
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.suburb-review-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink);
+  margin: 0;
+}
+.suburb-review-more-btn {
+  display: block;
+  margin: 14px auto 0;
+  padding: 10px 22px;
+  border: 1px solid rgba(201,168,76,0.35);
+  background: transparent;
+  color: var(--gold);
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.suburb-review-more-btn:hover { background: rgba(201,168,76,0.08); }
+.suburb-review-more-btn:disabled { opacity: .6; cursor: wait; }
+
+/* ── Review form ── */
+.suburb-review-form-wrap { background: var(--warm-white); border-radius: 10px; padding: 20px 22px; border: 1px solid rgba(201,168,76,0.18); }
+.suburb-review-form-wrap h2 { font-size: 18px; margin-bottom: 4px; }
+.suburb-review-intro { font-size: 13px; color: var(--slate); margin: 0 0 14px; line-height: 1.6; }
+
+.suburb-review-guest {
+  text-align: center;
+  padding: 14px 0;
+}
+.suburb-review-guest p { font-size: 14px; color: var(--slate); margin-bottom: 10px; }
+
+.suburb-review-form { display: grid; gap: 14px; }
+.suburb-review-form fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.suburb-review-form legend {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+.suburb-review-stars-row { display: flex; gap: 4px; }
+.suburb-review-star-btn {
+  font-size: 30px;
+  color: rgba(28,28,30,0.2);
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color .15s;
+}
+.suburb-review-star-btn:hover,
+.suburb-review-star-btn.is-on { color: var(--gold); }
+
+.suburb-review-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.suburb-review-field > span {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.suburb-review-field small { color: var(--slate); text-transform: none; font-weight: 400; margin-left: 4px; }
+.suburb-review-field input,
+.suburb-review-field textarea {
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(28,28,30,0.12);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  resize: vertical;
+}
+.suburb-review-field input:focus,
+.suburb-review-field textarea:focus {
+  outline: 2px solid rgba(201,168,76,0.4);
+  outline-offset: 0;
+  border-color: rgba(201,168,76,0.6);
+}
+.suburb-review-counter {
+  font-size: 11px;
+  color: var(--slate);
+}
+.suburb-review-counter.is-ok { color: #2e7d32; }
+
+.suburb-review-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.suburb-review-notice {
+  font-size: 11px;
+  color: var(--slate);
+}
+.suburb-review-result {
+  font-size: 13px;
+  padding: 8px 0;
+}
+.suburb-review-result.is-success { color: #2e7d32; }
+.suburb-review-result.is-error   { color: #c62828; }
+
+/* ── Dark mode: reviews ── */
+html.dark-mode .suburb-reviews-summary { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-reviews-number { color: #F5F0E8; }
+html.dark-mode .suburb-reviews-count { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-review-card { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); box-shadow: none; }
+html.dark-mode .suburb-review-title { color: #F5F0E8; }
+html.dark-mode .suburb-review-body { color: rgba(245,240,232,0.85); }
+html.dark-mode .suburb-review-meta { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-review-form-wrap { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); }
+html.dark-mode .suburb-review-intro { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-review-field > span { color: #F5F0E8; }
+html.dark-mode .suburb-review-field input,
+html.dark-mode .suburb-review-field textarea {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.10);
+  color: #F5F0E8;
+}
+html.dark-mode .suburb-review-star-btn { color: rgba(245,240,232,0.25); }
+html.dark-mode .suburb-review-counter { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-review-notice { color: rgba(245,240,232,0.45); }
+html.dark-mode .suburb-review-guest p { color: rgba(245,240,232,0.7); }
+html.dark-mode .suburb-review-more-btn { border-color: rgba(201,168,76,0.45); color: #E6C870; }

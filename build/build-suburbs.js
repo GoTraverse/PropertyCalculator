@@ -1474,6 +1474,92 @@ function generateMethodologyBlock(s) {
   </section>`;
 }
 
+// ── Review prefetch (Phase 4) ───────────────────────────────────────────
+// Fetches approved reviews from Upstash Redis via a tiny helper script so
+// the rest of this build stays synchronous. Safe no-op when env vars absent.
+let reviewsByKey = {};
+(function prefetchReviews() {
+  try {
+    const { execSync } = require('child_process');
+    const out = execSync('node ' + path.join(__dirname, 'fetch-reviews.js'), {
+      encoding: 'utf8',
+      timeout: 90_000,
+      env: process.env,
+      stdio: ['ignore', 'pipe', 'inherit'],
+    });
+    reviewsByKey = out && out.trim() ? JSON.parse(out) : {};
+    const n = Object.keys(reviewsByKey).length;
+    if (n) console.log('[build-suburbs] Prefetched reviews for ' + n + ' suburb(s)');
+  } catch (e) {
+    console.warn('[build-suburbs] Review prefetch skipped:', e.message);
+    reviewsByKey = {};
+  }
+})();
+
+function formatReviewDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('en-AU', { year: 'numeric', month: 'short' });
+}
+
+function starBar(rating) {
+  const n = Math.max(0, Math.min(5, Math.round(rating || 0)));
+  return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+}
+
+// Generate the build-time reviews HTML block. Returns empty string when there
+// are no approved reviews — the empty section must not render (AdSense
+// treats zero-state review shells as a negative signal).
+function generateReviewsBlock(state, slug, suburbName) {
+  const entry = reviewsByKey[state + ':' + slug];
+  if (!entry || !entry.agg || !entry.agg.count) return '';
+  const { agg, reviews } = entry;
+  const avg = agg.count > 0 ? Math.round((agg.sum / agg.count) * 10) / 10 : 0;
+  const cardsHtml = (reviews || []).map(r => {
+    const date = formatReviewDate(r.created_at);
+    // Fields are already escaped at submit-time by reviews.js — they were
+    // stored through escHtml(). Newlines become <br> for readability.
+    const bodyHtml = String(r.body || '').replace(/\n/g, '<br>');
+    return (
+      '      <article class="suburb-review-card">\n' +
+      '        <header class="suburb-review-head">\n' +
+      '          <div class="suburb-review-stars" aria-label="' + r.rating + ' out of 5 stars">' + starBar(r.rating) + '</div>\n' +
+      '          <h3 class="suburb-review-title">' + (r.title || '') + '</h3>\n' +
+      '          <div class="suburb-review-meta"><span>' + (r.userName || 'Anonymous') + '</span>' + (date ? ' <span>·</span> <span>' + date + '</span>' : '') + '</div>\n' +
+      '        </header>\n' +
+      '        <p class="suburb-review-body">' + bodyHtml + '</p>\n' +
+      '      </article>'
+    );
+  }).join('\n');
+  return (
+    '  <section class="suburb-section suburb-reviews-section" id="community-reviews">\n' +
+    '    <h2>Community Reviews of ' + escHtml(suburbName) + '</h2>\n' +
+    '    <div class="suburb-reviews-summary">\n' +
+    '      <div class="suburb-reviews-avg" aria-label="Average rating ' + avg + ' out of 5">\n' +
+    '        <span class="suburb-reviews-stars">' + starBar(avg) + '</span>\n' +
+    '        <span class="suburb-reviews-number">' + avg.toFixed(1) + '</span>\n' +
+    '        <span class="suburb-reviews-count">from ' + agg.count + ' review' + (agg.count === 1 ? '' : 's') + '</span>\n' +
+    '      </div>\n' +
+    '    </div>\n' +
+    '    <div class="suburb-reviews-list">\n' +
+    cardsHtml + '\n' +
+    '    </div>\n' +
+    '  </section>'
+  );
+}
+
+// Returns the AggregateRating JSON-LD node (prefixed with a leading comma) to
+// inject into the existing schema.org array. Empty when no reviews.
+function generateAggregateRatingJson(state, slug, suburbName) {
+  const entry = reviewsByKey[state + ':' + slug];
+  if (!entry || !entry.agg || !entry.agg.count) return '';
+  const { agg } = entry;
+  const avg = agg.count > 0 ? Math.round((agg.sum / agg.count) * 10) / 10 : 0;
+  const safeName = suburbName.replace(/"/g, '\\"');
+  return ',{"@context":"https://schema.org","@type":"AggregateRating","itemReviewed":{"@type":"Place","name":"' + safeName + '"},"ratingValue":"' + avg.toFixed(1) + '","reviewCount":"' + agg.count + '","bestRating":"5","worstRating":"1"}';
+}
+
 let suburbCount = 0;
 let noindexCount = 0;
 const stateIndexStats = {}; // state → { indexed, noindexed, total }
@@ -1608,6 +1694,8 @@ for (const s of suburbs) {
     .replace(/\{\{COMPARE_HTML\}\}/g, generateComparisonTable(s, sm))
     .replace(/\{\{CHECKLIST_HTML\}\}/g, generateInvestorChecklist(s, sm))
     .replace(/\{\{METHODOLOGY_HTML\}\}/g, generateMethodologyBlock(s))
+    .replace(/\{\{REVIEWS_HTML\}\}/g, isNoindexed ? '' : generateReviewsBlock(s.state, s.slug, s.suburb))
+    .replace(/\{\{AGGREGATE_RATING_JSON\}\}/g, isNoindexed ? '' : generateAggregateRatingJson(s.state, s.slug, s.suburb))
     .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, generateRelatedHTML(related, s.state))
     .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state));
 
