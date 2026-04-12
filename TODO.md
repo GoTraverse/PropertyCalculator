@@ -13,7 +13,6 @@ General - (DO NOT REMOVE THIS LINE)
 1. Migrate session token to HttpOnly Secure cookie (Security - High)
 2. Convert screenshots to WebP format (Performance - High) — requires cwebp or similar tool
 3. Create 1200x630px OG social sharing image (SEO - High) — requires image editor
-7. Blog posts require Netlify rebuild to appear — save to filesystem/GitHub instead of Redis to reduce tokens
 
 
 Desktop - (DO NOT REMOVE THIS LINE)

@@ -2,9 +2,10 @@
  * blog.js — Netlify Function
  * Human-authored blog posts, stored in Upstash Redis, edited via admin.html.
  *
- * Rendered statically at build time by build/build-blog.js — this function is
- * therefore only hit by (a) admin UI CRUD traffic, (b) the build step pulling
- * the latest published posts. Public readers hit the static /blog/<slug>/ HTML.
+ * Published posts are also committed as JSON files to the GitHub repo
+ * (data/blog-posts/{slug}.json). This triggers Netlify's auto-deploy so
+ * posts appear on the site without a manual rebuild. At build time,
+ * build-blog.js reads from the filesystem first, falling back to Redis.
  *
  * AUTH: Bearer token — all admin actions require session.role === 'admin'.
  *
@@ -92,6 +93,54 @@ async function verifyAdmin(authHeader) {
   const data = await verifyToken(authHeader);
   if (!data || data.role !== 'admin') return null;
   return data;
+}
+
+// ── GitHub file sync (publish commits post JSON to the repo) ──────────
+const GH_TOKEN  = (process.env.GITHUB_TOKEN || '').trim();
+const GH_REPO   = (process.env.GITHUB_REPO || 'GoTraverse/PropertyCalculator').trim();
+const GH_API    = 'https://api.github.com';
+const GH_BRANCH = 'main';
+const GH_HEADERS = GH_TOKEN ? {
+  Authorization: 'token ' + GH_TOKEN,
+  'User-Agent': 'EquitySight-Blog',
+  'Content-Type': 'application/json',
+  Accept: 'application/vnd.github.v3+json',
+} : null;
+
+async function commitPostToGitHub(post) {
+  if (!GH_HEADERS) return; // GITHUB_TOKEN not configured — skip silently
+  const filePath = 'data/blog-posts/' + post.slug + '.json';
+  const content = Buffer.from(JSON.stringify(post, null, 2)).toString('base64');
+  // Get existing file SHA (required for updates)
+  let sha;
+  try {
+    const r = await fetch(GH_API + '/repos/' + GH_REPO + '/contents/' + filePath + '?ref=' + GH_BRANCH, { headers: GH_HEADERS });
+    if (r.ok) sha = (await r.json()).sha;
+  } catch (e) { /* file doesn't exist yet */ }
+  const putBody = { message: 'Publish: ' + post.title, content, branch: GH_BRANCH };
+  if (sha) putBody.sha = sha;
+  try {
+    await fetch(GH_API + '/repos/' + GH_REPO + '/contents/' + filePath, {
+      method: 'PUT', headers: GH_HEADERS, body: JSON.stringify(putBody),
+    });
+  } catch (e) { console.error('[blog] GitHub commit failed:', e.message); }
+}
+
+async function deletePostFromGitHub(slug) {
+  if (!GH_HEADERS) return;
+  const filePath = 'data/blog-posts/' + slug + '.json';
+  let sha;
+  try {
+    const r = await fetch(GH_API + '/repos/' + GH_REPO + '/contents/' + filePath + '?ref=' + GH_BRANCH, { headers: GH_HEADERS });
+    if (!r.ok) return; // file doesn't exist — nothing to delete
+    sha = (await r.json()).sha;
+  } catch (e) { return; }
+  try {
+    await fetch(GH_API + '/repos/' + GH_REPO + '/contents/' + filePath, {
+      method: 'DELETE', headers: GH_HEADERS,
+      body: JSON.stringify({ message: 'Unpublish: ' + slug, sha, branch: GH_BRANCH }),
+    });
+  } catch (e) { console.error('[blog] GitHub delete failed:', e.message); }
 }
 
 function ok(b) { return { statusCode: 200, headers: H, body: JSON.stringify(b) }; }
@@ -300,6 +349,16 @@ exports.handler = async function (event) {
           await rListPrepend('blog:index', id);
         }
 
+        // If this post is already published, update the GitHub file so
+        // the next auto-deploy picks up the edits.
+        if (clean.status === 'published') {
+          // If slug changed, remove the old file first
+          if (oldPost && oldPost.slug && oldPost.slug !== slug) {
+            await deletePostFromGitHub(oldPost.slug);
+          }
+          await commitPostToGitHub(clean);
+        }
+
         return ok({ ok: true, id, slug });
       } catch (e) { return fail('save failed: ' + e.message, 500); }
     }
@@ -317,6 +376,8 @@ exports.handler = async function (event) {
         // Ensure it's in published list (remove first to dedupe, then prepend)
         await rListRemove('blog:published', id);
         await rListPrepend('blog:published', id);
+        // Commit to GitHub → triggers Netlify auto-deploy
+        await commitPostToGitHub(p);
         return ok({ ok: true });
       } catch (e) { return fail('publish failed: ' + e.message, 500); }
     }
@@ -327,10 +388,13 @@ exports.handler = async function (event) {
       try {
         const p = await rGet('blog:post:' + id);
         if (!p) return fail('Post not found', 404);
+        const slug = p.slug;
         p.status = 'draft';
         p.updated_at = nowMs();
         await rSet('blog:post:' + id, p);
         await rListRemove('blog:published', id);
+        // Remove from GitHub → triggers Netlify auto-deploy
+        await deletePostFromGitHub(slug);
         return ok({ ok: true });
       } catch (e) { return fail('unpublish failed: ' + e.message, 500); }
     }
@@ -341,7 +405,10 @@ exports.handler = async function (event) {
       try {
         const p = await rGet('blog:post:' + id);
         if (p) {
-          if (p.slug) await rDel('blog:slug:' + p.slug);
+          if (p.slug) {
+            await rDel('blog:slug:' + p.slug);
+            await deletePostFromGitHub(p.slug);
+          }
           for (const t of (p.tags || [])) { await rListRemove('blog:tag:' + t, id); }
         }
         await rDel('blog:post:' + id);
@@ -349,6 +416,23 @@ exports.handler = async function (event) {
         await rListRemove('blog:published', id);
         return ok({ ok: true });
       } catch (e) { return fail('delete failed: ' + e.message, 500); }
+    }
+
+    // Sync all published posts to GitHub (migration helper)
+    if (action === 'adminSyncAllToGitHub') {
+      if (!GH_HEADERS) return fail('GITHUB_TOKEN not configured');
+      try {
+        const ids = await rListGet('blog:published');
+        let synced = 0;
+        for (const id of ids) {
+          const p = await rGet('blog:post:' + id);
+          if (p && p.status === 'published' && p.slug) {
+            await commitPostToGitHub(p);
+            synced++;
+          }
+        }
+        return ok({ ok: true, synced });
+      } catch (e) { return fail('sync failed: ' + e.message, 500); }
     }
 
     return fail('Unknown action');

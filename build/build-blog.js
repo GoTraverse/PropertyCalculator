@@ -82,15 +82,42 @@ async function fetchCommentsForPost(slug) {
 }
 
 // ── Fetch published posts ─────────────────────────────────────────────
+// Priority: data/blog-posts/*.json (filesystem) → Redis → fixture → empty
+function fetchPostsFromFilesystem() {
+  const dir = path.join(ROOT, 'data', 'blog-posts');
+  if (!fs.existsSync(dir)) return null;
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+  if (!files.length) return null;
+  const posts = [];
+  for (const f of files) {
+    try {
+      const raw = fs.readFileSync(path.join(dir, f), 'utf8');
+      const p = JSON.parse(raw);
+      if (p && p.status === 'published') posts.push(p);
+    } catch (e) {
+      console.warn('[build-blog] Bad JSON in', f, '—', e.message);
+    }
+  }
+  console.log('[build-blog] Read', posts.length, 'published post(s) from data/blog-posts/');
+  return posts;
+}
+
 async function fetchPosts() {
+  // 1. Filesystem (committed JSON files — fastest, no network)
+  const fsPosts = fetchPostsFromFilesystem();
+  if (fsPosts !== null && fsPosts.length > 0) return fsPosts;
+
+  // 2. Fixture file (local dev / testing)
   if (FIXTURE) {
     const p = path.resolve(ROOT, FIXTURE);
     if (!fs.existsSync(p)) throw new Error('Fixture not found: ' + p);
     const raw = JSON.parse(fs.readFileSync(p, 'utf8'));
     return raw.filter(x => x && x.status === 'published');
   }
+
+  // 3. Redis (legacy — for repos not yet synced to filesystem)
   if (!REDIS_URL || !REDIS_TOKEN) {
-    console.warn('[build-blog] UPSTASH env vars missing — producing an empty /blog/ index.');
+    console.warn('[build-blog] No blog posts found (no files, no Redis) — producing an empty /blog/ index.');
     return [];
   }
   try {
@@ -101,6 +128,7 @@ async function fetchPosts() {
       const p = await rGet('blog:post:' + id);
       if (p && p.status === 'published') posts.push(p);
     }
+    console.log('[build-blog] Read', posts.length, 'published post(s) from Redis (legacy mode)');
     return posts;
   } catch (e) {
     console.warn('[build-blog] Redis fetch failed:', e.message, '— producing an empty /blog/ index.');

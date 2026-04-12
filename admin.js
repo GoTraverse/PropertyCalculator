@@ -3439,6 +3439,19 @@ function blogUpdateWordCount() {
   out.style.color = gap > 0 ? 'var(--slate)' : '#2e7d32';
 }
 
+// Sync all published posts to GitHub (migration / manual trigger)
+async function blogSyncAllToGitHub() {
+  var btn = document.getElementById('blog-sync-github-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+  var res = await callBlog('adminSyncAllToGitHub');
+  if (btn) { btn.disabled = false; btn.textContent = 'Sync to GitHub'; }
+  if (res && res.ok) {
+    showAdminToast('Synced ' + (res.synced || 0) + ' post(s) to GitHub — auto-deploy triggered');
+  } else {
+    showAdminToast('Sync failed: ' + (res && res.error || 'unknown'), true);
+  }
+}
+
 // Auto-slug from title while editing a new post
 function blogAutoSlug() {
   var titleEl = document.getElementById('blog-edit-title');

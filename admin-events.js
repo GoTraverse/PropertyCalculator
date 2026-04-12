@@ -59,6 +59,8 @@ var blogUnpublishBtn = document.getElementById('blog-unpublish-btn');
 if(blogUnpublishBtn) blogUnpublishBtn.addEventListener('click', blogUnpublish);
 var blogDeleteBtn = document.getElementById('blog-delete-btn');
 if(blogDeleteBtn) blogDeleteBtn.addEventListener('click', blogDeletePost);
+var blogSyncGhBtn = document.getElementById('blog-sync-github-btn');
+if(blogSyncGhBtn) blogSyncGhBtn.addEventListener('click', blogSyncAllToGitHub);
 var blogBodyEl = document.getElementById('blog-edit-body');
 if(blogBodyEl) blogBodyEl.addEventListener('input', blogUpdateWordCount);
 var blogTitleEl = document.getElementById('blog-edit-title');
