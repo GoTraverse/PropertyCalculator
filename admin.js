@@ -3525,24 +3525,22 @@ function modRenderReviewCard(r) {
   var isRejected = r.status === 'rejected';
 
   var actions = [];
-  if (!isApproved) actions.push('<button class="admin-btn admin-btn-primary" data-action="approve" data-id="' + escHtml(r.id) + '">Approve</button>');
-  if (!isRejected) actions.push('<button class="admin-btn" data-action="reject" data-id="' + escHtml(r.id) + '">Reject</button>');
-  actions.push('<button class="admin-btn admin-btn-danger" data-action="delete" data-id="' + escHtml(r.id) + '">Delete</button>');
+  if (!isApproved) actions.push('<button class="btn-admin mod-action-btn" data-action="approve" data-id="' + escHtml(r.id) + '">Approve</button>');
+  if (!isRejected) actions.push('<button class="btn-admin-outline mod-action-btn" data-action="reject" data-id="' + escHtml(r.id) + '">Reject</button>');
+  actions.push('<button class="btn-admin-outline mod-action-btn mod-action-danger" data-action="delete" data-id="' + escHtml(r.id) + '">Delete</button>');
 
   return (
-    '<div class="mod-review-row" style="border:1px solid rgba(28,28,30,0.1);border-radius:6px;padding:14px 16px;margin-bottom:12px;background:#fff;">' +
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;">' +
-        '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:11px;color:var(--slate);margin-bottom:2px;font-family:var(--font-mono);">' +
-            modStatusBadge(r.status) + ' · ' +
-            '<a href="' + suburbLink + '" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;">' + suburbLabel + '</a>' + ' · ' + modFormatDate(r.created_at) +
-          '</div>' +
-          '<div style="font-family:Playfair Display,serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:4px;">' + (r.title || '(no title)') + '</div>' +
-          '<div style="font-size:12px;color:var(--slate);">' + escHtml(r.userName || 'Anonymous') + ' · ' + modStarBar(r.rating) + ' (' + (r.rating || 0) + '/5)</div>' +
-        '</div>' +
+    '<div class="mod-card">' +
+      '<div class="mod-card-head">' +
+        modStatusBadge(r.status) +
+        '<a class="mod-card-link" href="' + suburbLink + '" target="_blank" rel="noopener">' + suburbLabel + '</a>' +
+        '<span class="mod-card-dot">·</span>' +
+        '<span class="mod-card-date">' + modFormatDate(r.created_at) + '</span>' +
       '</div>' +
-      '<p style="font-size:13px;color:var(--ink);line-height:1.6;margin:8px 0 12px;white-space:pre-wrap;">' + (r.body || '') + '</p>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + actions.join('') + '</div>' +
+      '<div class="mod-card-title">' + (r.title || '(no title)') + '</div>' +
+      '<div class="mod-card-meta">' + escHtml(r.userName || 'Anonymous') + ' <span class="mod-card-stars">' + modStarBar(r.rating) + '</span> <span class="mod-card-rating">(' + (r.rating || 0) + '/5)</span></div>' +
+      '<p class="mod-card-body">' + (r.body || '') + '</p>' +
+      '<div class="mod-card-actions">' + actions.join('') + '</div>' +
     '</div>'
   );
 }
@@ -3554,23 +3552,21 @@ function modRenderCommentCard(c) {
   var isRejected = c.status === 'rejected';
 
   var actions = [];
-  if (!isApproved) actions.push('<button class="admin-btn admin-btn-primary" data-action="approve" data-id="' + escHtml(c.id) + '">Approve</button>');
-  if (!isRejected) actions.push('<button class="admin-btn" data-action="reject" data-id="' + escHtml(c.id) + '">Reject</button>');
-  actions.push('<button class="admin-btn admin-btn-danger" data-action="delete" data-id="' + escHtml(c.id) + '">Delete</button>');
+  if (!isApproved) actions.push('<button class="btn-admin mod-action-btn" data-action="approve" data-id="' + escHtml(c.id) + '">Approve</button>');
+  if (!isRejected) actions.push('<button class="btn-admin-outline mod-action-btn" data-action="reject" data-id="' + escHtml(c.id) + '">Reject</button>');
+  actions.push('<button class="btn-admin-outline mod-action-btn mod-action-danger" data-action="delete" data-id="' + escHtml(c.id) + '">Delete</button>');
 
   return (
-    '<div class="mod-comment-row" style="border:1px solid rgba(28,28,30,0.1);border-radius:6px;padding:14px 16px;margin-bottom:12px;background:#fff;">' +
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;">' +
-        '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:11px;color:var(--slate);margin-bottom:2px;font-family:var(--font-mono);">' +
-            modStatusBadge(c.status) + ' · ' +
-            '<a href="' + postLink + '" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;">/blog/' + postSlug + '/</a>' + ' · ' + modFormatDate(c.created_at) +
-          '</div>' +
-          '<div style="font-size:12px;color:var(--slate);">' + escHtml(c.userName || 'Anonymous') + '</div>' +
-        '</div>' +
+    '<div class="mod-card">' +
+      '<div class="mod-card-head">' +
+        modStatusBadge(c.status) +
+        '<a class="mod-card-link" href="' + postLink + '" target="_blank" rel="noopener">/blog/' + postSlug + '/</a>' +
+        '<span class="mod-card-dot">·</span>' +
+        '<span class="mod-card-date">' + modFormatDate(c.created_at) + '</span>' +
       '</div>' +
-      '<p style="font-size:13px;color:var(--ink);line-height:1.6;margin:8px 0 12px;white-space:pre-wrap;">' + (c.body || '') + '</p>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + actions.join('') + '</div>' +
+      '<div class="mod-card-meta">' + escHtml(c.userName || 'Anonymous') + '</div>' +
+      '<p class="mod-card-body">' + (c.body || '') + '</p>' +
+      '<div class="mod-card-actions">' + actions.join('') + '</div>' +
     '</div>'
   );
 }
@@ -3656,8 +3652,8 @@ function modSetSubtab(name) {
   var pendingBtn = document.getElementById('mod-subtab-pending');
   var allBtn = document.getElementById('mod-subtab-all');
   if (pendingBtn && allBtn) {
-    pendingBtn.classList.toggle('admin-btn-primary', name === 'pending');
-    allBtn.classList.toggle('admin-btn-primary', name === 'all');
+    pendingBtn.classList.toggle('is-active', name === 'pending');
+    allBtn.classList.toggle('is-active', name === 'all');
   }
   modLoadReviews();
 }
@@ -3667,8 +3663,8 @@ function modSetKind(kind) {
   var revBtn = document.getElementById('mod-kind-reviews');
   var comBtn = document.getElementById('mod-kind-comments');
   if (revBtn && comBtn) {
-    revBtn.classList.toggle('admin-btn-primary', kind === 'reviews');
-    comBtn.classList.toggle('admin-btn-primary', kind === 'comments');
+    revBtn.classList.toggle('is-active', kind === 'reviews');
+    comBtn.classList.toggle('is-active', kind === 'comments');
   }
   modLoadReviews();
 }

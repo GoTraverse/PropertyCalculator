@@ -183,9 +183,11 @@ function renderCommentsBlock(postSlug, comments) {
     // body is stored pre-escaped; preserve newlines as <br>
     const bodyHtml = String(c.body || '').replace(/\n/g, '<br>');
     const date = c.created_at ? humanDate(c.created_at) : '';
-    return '<article class="blog-comment-card">' +
+    const name = c.userName || 'Anonymous';
+    const initial = (name.trim().charAt(0) || 'A').toUpperCase();
+    return '<article class="blog-comment-card" data-initial="' + escHtml(initial) + '">' +
         '<header class="blog-comment-head">' +
-          '<span class="blog-comment-user">' + escHtml(c.userName || 'Anonymous') + '</span>' +
+          '<span class="blog-comment-user">' + escHtml(name) + '</span>' +
           (date ? ' <span class="blog-comment-dot">·</span> <span class="blog-comment-date">' + escHtml(date) + '</span>' : '') +
         '</header>' +
         '<div class="blog-comment-body">' + bodyHtml + '</div>' +

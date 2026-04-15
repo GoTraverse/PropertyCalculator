@@ -607,3 +607,163 @@ html.dark-mode .partner-entry-row {
   border-color: rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.03);
 }
+
+/* ═══════════════════════════════════════════
+   Moderation tab — segmented controls + cards
+   ═══════════════════════════════════════════ */
+.mod-segmented {
+  display: inline-flex;
+  background: rgba(28,28,30,0.05);
+  border: 1px solid rgba(28,28,30,0.1);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 16px;
+  gap: 2px;
+}
+.mod-seg-btn {
+  background: transparent;
+  border: none;
+  color: var(--slate);
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.mod-seg-btn:hover:not(.is-active) { color: var(--charcoal); }
+.mod-seg-btn.is-active {
+  background: var(--charcoal);
+  color: var(--cream);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.mod-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(28,28,30,0.08);
+  flex-wrap: wrap;
+}
+.mod-filter-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.mod-filter-row .btn-admin-sm.is-active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--charcoal);
+  font-weight: 600;
+}
+
+.mod-card {
+  background: #fff;
+  border: 1px solid rgba(28,28,30,0.08);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.mod-card:hover {
+  border-color: rgba(28,28,30,0.16);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.mod-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--slate);
+  margin-bottom: 10px;
+}
+.mod-card-link {
+  color: var(--gold);
+  text-decoration: none;
+  font-weight: 600;
+}
+.mod-card-link:hover { text-decoration: underline; }
+.mod-card-dot { opacity: 0.5; }
+.mod-card-date { opacity: 0.75; }
+.mod-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--charcoal);
+  margin-bottom: 4px;
+}
+.mod-card-meta {
+  font-size: 12px;
+  color: var(--slate);
+  margin-bottom: 10px;
+}
+.mod-card-stars {
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.mod-card-rating { opacity: 0.75; }
+.mod-card-body {
+  font-size: 13px;
+  color: var(--charcoal);
+  line-height: 1.6;
+  margin: 0 0 14px;
+  white-space: pre-wrap;
+  padding: 10px 14px;
+  background: rgba(28,28,30,0.03);
+  border-left: 3px solid rgba(28,28,30,0.12);
+  border-radius: 4px;
+}
+.mod-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mod-action-btn {
+  font-size: 10px !important;
+  padding: 7px 14px !important;
+}
+.mod-action-btn.mod-action-danger {
+  color: #c45a5a !important;
+  border-color: rgba(196,90,90,0.35) !important;
+}
+.mod-action-btn.mod-action-danger:hover {
+  background: #c45a5a !important;
+  color: #fff !important;
+  border-color: #c45a5a !important;
+}
+
+/* Dark mode — moderation */
+html.dark-mode .mod-segmented {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.1);
+}
+html.dark-mode .mod-seg-btn { color: rgba(245,240,232,0.55); }
+html.dark-mode .mod-seg-btn:hover:not(.is-active) { color: var(--cream); }
+html.dark-mode .mod-seg-btn.is-active {
+  background: var(--gold);
+  color: var(--charcoal);
+}
+html.dark-mode .mod-filter-row { border-bottom-color: rgba(255,255,255,0.08); }
+html.dark-mode .mod-card {
+  background: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+html.dark-mode .mod-card:hover {
+  border-color: rgba(255,255,255,0.18) !important;
+}
+html.dark-mode .mod-card-head { color: rgba(245,240,232,0.55) !important; }
+html.dark-mode .mod-card-title { color: var(--cream) !important; }
+html.dark-mode .mod-card-meta { color: rgba(245,240,232,0.6) !important; }
+html.dark-mode .mod-card-body {
+  color: rgba(245,240,232,0.85) !important;
+  background: rgba(255,255,255,0.04) !important;
+  border-left-color: rgba(255,255,255,0.18) !important;
+}

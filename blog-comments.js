@@ -182,6 +182,9 @@
         data.items.forEach(function (c) {
           var article = document.createElement('article');
           article.className = 'blog-comment-card';
+          var name = c.userName || 'Anonymous';
+          var initial = (String(name).trim().charAt(0) || 'A').toUpperCase();
+          article.setAttribute('data-initial', initial);
           var date = '';
           if (c.created_at) {
             var d = new Date(c.created_at);
@@ -192,7 +195,7 @@
           var bodyHtml = String(c.body || '').replace(/\n/g, '<br>');
           article.innerHTML =
             '<header class="blog-comment-head">' +
-              '<span class="blog-comment-user">' + (c.userName || 'Anonymous') + '</span>' +
+              '<span class="blog-comment-user">' + escHtml(name) + '</span>' +
               (date ? ' <span class="blog-comment-dot">·</span> <span class="blog-comment-date">' + escHtml(date) + '</span>' : '') +
             '</header>' +
             '<div class="blog-comment-body">' + bodyHtml + '</div>';
