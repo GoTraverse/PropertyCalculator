@@ -18,6 +18,13 @@ const SALT = (process.env.AUTH_SALT || '').trim();
 // AUTH_SALT is validated per-request — see handler below
 const TOKEN_TTL   = 60 * 60 * 24 * 30; // 30 days
 
+// HttpOnly session cookie — Phase 1 migration from localStorage-based bearer tokens.
+// The cookie is set on signin/verifyEmail/googleSignin and cleared on signout.
+// For backward compatibility the response body still contains `token` until
+// all clients are migrated; verifyToken() reads the cookie first, then the
+// Authorization header.
+const SESSION_COOKIE_NAME = 'es_session';
+
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
 
 function getCorsHeaders(event) {
@@ -32,6 +39,36 @@ function getCorsHeaders(event) {
     'Access-Control-Allow-Headers':'Content-Type,Authorization',
     'Access-Control-Allow-Credentials':'true',
   };
+}
+
+// Build a Set-Cookie string for the session token. HttpOnly blocks JS access,
+// Secure requires HTTPS, SameSite=Lax blocks cross-site POST but allows
+// top-level navigation. Path=/ so every function receives it.
+function buildSessionCookie(token, maxAgeSec){
+  return SESSION_COOKIE_NAME+'='+encodeURIComponent(token)+
+    '; Path=/'+
+    '; Max-Age='+maxAgeSec+
+    '; HttpOnly'+
+    '; Secure'+
+    '; SameSite=Lax';
+}
+// Build a Set-Cookie string that clears the session cookie (Max-Age=0).
+function buildClearSessionCookie(){
+  return SESSION_COOKIE_NAME+'=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax';
+}
+// Read the session token from the request Cookie header, if present.
+function readCookieToken(event){
+  const raw = (event && event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if(!raw) return '';
+  const parts = raw.split(/;\s*/);
+  for(const p of parts){
+    const eq = p.indexOf('=');
+    if(eq<0) continue;
+    if(p.slice(0,eq)===SESSION_COOKIE_NAME){
+      try{ return decodeURIComponent(p.slice(eq+1)); }catch(e){ return p.slice(eq+1); }
+    }
+  }
+  return '';
 }
 
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
@@ -300,12 +337,30 @@ function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('em
 // Constant-time string compare — prevents timing attacks on hash comparisons
 function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual(Buffer.from(a,'hex'),Buffer.from(b,'hex')); }catch(e){ return false; } }
 let H = {};
-function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
+// ok() accepts an optional `setCookie` string which is attached as a Set-Cookie
+// response header without mutating the shared H headers object.
+function ok(b, setCookie){
+  const headers = setCookie ? Object.assign({}, H, {'Set-Cookie': setCookie}) : H;
+  return {statusCode:200,headers,body:JSON.stringify(b)};
+}
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
 
-async function verifyToken(authHeader){
-  if(!authHeader||!authHeader.startsWith('Bearer ')) return null;
-  const token=authHeader.slice(7).trim();
+// Verify a session token. Accepts either (event) — preferred, reads cookie
+// then falls back to Authorization header — or the legacy (authHeader) string
+// form used by older call sites. Returns the token payload or null.
+async function verifyToken(eventOrAuthHeader){
+  let token = '';
+  if(typeof eventOrAuthHeader === 'string'){
+    // Legacy signature: just the Authorization header value
+    if(eventOrAuthHeader && eventOrAuthHeader.startsWith('Bearer ')) token = eventOrAuthHeader.slice(7).trim();
+  } else if(eventOrAuthHeader && typeof eventOrAuthHeader === 'object'){
+    // Preferred: full event — cookie first, Authorization header fallback
+    token = readCookieToken(eventOrAuthHeader);
+    if(!token){
+      const authHeader = eventOrAuthHeader.headers?.authorization || eventOrAuthHeader.headers?.Authorization || '';
+      if(authHeader && authHeader.startsWith('Bearer ')) token = authHeader.slice(7).trim();
+    }
+  }
   if(!token) return null;
   const data=await rGet('token:'+token);
   if(!data) return null;
@@ -320,7 +375,7 @@ exports.handler = async function(event){
 
   // GET = verify token from Authorization header
   if(event.httpMethod==='GET'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     return ok({ok:true,...user});
   }
@@ -424,7 +479,7 @@ exports.handler = async function(event){
     if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
     if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
     if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
-    return ok(result);
+    return ok(result, buildSessionCookie(token, TOKEN_TTL));
   }
 
   if(action==='resendVerification'){
@@ -455,7 +510,7 @@ exports.handler = async function(event){
     if(user.emailVerified){
       const token=makeToken();
       await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-      return ok({ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user',alreadyVerified:true});
+      return ok({ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user',alreadyVerified:true}, buildSessionCookie(token, TOKEN_TTL));
     }
     if(!user.emailVerificationCodeHash||!user.emailVerificationExpiresAt||Date.now()>user.emailVerificationExpiresAt){
       return fail('Verification code expired. Please request a new code.');
@@ -485,7 +540,7 @@ exports.handler = async function(event){
     if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
     if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
     if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
-    return ok(result);
+    return ok(result, buildSessionCookie(token, TOKEN_TTL));
   }
 
   if(action==='googleSignin'){
@@ -560,11 +615,20 @@ exports.handler = async function(event){
     if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
     if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
     if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
-    return ok(result);
+    return ok(result, buildSessionCookie(token, TOKEN_TTL));
   }
 
   if(action==='verify'){
-    const {token}=body;
+    // Accept token from body (legacy client path) or from session cookie /
+    // Authorization header (new clients that never stored the token in JS).
+    let token=body.token;
+    if(!token){
+      token = readCookieToken(event);
+      if(!token){
+        const ah = event.headers?.authorization || event.headers?.Authorization || '';
+        if(ah && ah.startsWith('Bearer ')) token = ah.slice(7).trim();
+      }
+    }
     if(!token) return fail('Token required');
     const data=await rGet('token:'+token);
     if(!data||(data.expires&&Date.now()>data.expires)) return fail('Invalid or expired session');
@@ -595,17 +659,27 @@ exports.handler = async function(event){
   }
 
   if(action==='signout'){
-    const {token}=body;
+    // Resolve token from body (legacy) OR cookie OR Authorization header so
+    // the server can revoke it regardless of how the client identifies itself.
+    let token=body.token;
+    if(!token){
+      token = readCookieToken(event);
+      if(!token){
+        const ah = event.headers?.authorization || event.headers?.Authorization || '';
+        if(ah && ah.startsWith('Bearer ')) token = ah.slice(7).trim();
+      }
+    }
     if(token){
       const td=await rGet('token:'+token);
       if(td&&td.userId) logEvent(td.userId,'signout',{}).catch(()=>{});
       await rDel('token:'+token);
     }
-    return ok({ok:true});
+    // Always clear the cookie on the client even if no server-side token was found.
+    return ok({ok:true}, buildClearSessionCookie());
   }
 
   if(action==='getProfile'||action==='setProfile'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     if(action==='getProfile'){
       const p=await rGet('profile:'+user.userId)||{};
@@ -645,7 +719,7 @@ exports.handler = async function(event){
   }
 
   if(action==='setPhoto'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     const {photo}=body;
     if(photo){
@@ -662,7 +736,7 @@ exports.handler = async function(event){
   }
 
   if(action==='changePassword'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     const {currentPassword,newPassword}=body;
     if(!currentPassword||!newPassword) return fail('Both passwords required');
@@ -720,7 +794,7 @@ exports.handler = async function(event){
   }
 
   if(action==='deleteAccount'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     const {password,deleteReason}=body;
     if(!password) return fail('Password required to confirm deletion');
@@ -729,12 +803,15 @@ exports.handler = async function(event){
     if(!safeEqual(userData.hash,hashPw(password))) return fail('Incorrect password');
     await deleteUserKeys(userData, {deleteReason: (deleteReason||'').slice(0,500), deletedBy:'self'});
     if(body.token) await rDel('token:'+body.token);
-    return ok({ok:true});
+    // Also revoke the session cookie token (if set) and clear it from the browser.
+    const cookieToken = readCookieToken(event);
+    if(cookieToken && cookieToken !== body.token) await rDel('token:'+cookieToken);
+    return ok({ok:true}, buildClearSessionCookie());
   }
 
   if(action==='adminListUsers'){
     // Admin only — verify token has admin role
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     // Return limited user data — no passwords
     const keys=await scanAll('user:*');
@@ -749,7 +826,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminResetPassword'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail,newPassword}=body;
     if(!targetEmail||!newPassword) return fail('targetEmail and newPassword required');
@@ -762,7 +839,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminDeleteUser'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail}=body;
     if(!targetEmail) return fail('targetEmail required');
@@ -773,7 +850,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminListDeletedUsers'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
       const keys=await scanAll('deleted:*');
@@ -785,7 +862,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminSetRole'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail,role}=body;
     if(!targetEmail||!role) return fail('targetEmail and role required');
@@ -799,7 +876,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminGetUserEvents'){
-    const admin=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const admin=await verifyToken(event);
     if(!admin||admin.role!=='admin') return fail('Unauthorized',401);
     const {targetUserId}=body;
     if(!targetUserId) return fail('targetUserId required');
@@ -815,7 +892,7 @@ exports.handler = async function(event){
 
   if(action==='setSelfAdmin'){
     // Bootstrap: first user can claim admin — only works if NO admin exists yet
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     // Check if any admin exists
     const keys=await scanAll('user:*');
@@ -851,14 +928,14 @@ exports.handler = async function(event){
   }
 
   if(action==='adminGetConfig'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const cfg=await rGet('config:site')||{};
     return ok({ok:true,config:cfg});
   }
 
   if(action==='adminSetConfig'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {config}=body;
     if(!config||typeof config!=='object') return fail('config object required');
@@ -883,7 +960,7 @@ exports.handler = async function(event){
   }
 
   if(action==='triggerSuburbBuild'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const cfg=await rGet('config:site')||{};
     const hookUrl=cfg.suburbDeployHook;
@@ -898,7 +975,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminGetStats'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
       const userKeys=await scanAll('user:*');
@@ -975,7 +1052,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminPurgeExpiredSessions'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
       const tokenKeys=await scanAll('token:*');
@@ -992,7 +1069,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminPurgeOrphanedProfiles'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
       const profileKeys=await scanAll('profile:*');
@@ -1011,7 +1088,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminPurgeOrphanedScenarios'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
       const scenarioKeys=await scanAll('scenarios:*');
@@ -1031,7 +1108,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminExportScenarios'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
       const userKeys=await scanAll('user:*');
@@ -1068,7 +1145,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminBrowseDatabase'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
       const pattern=(body.pattern||'*').replace(/[^a-zA-Z0-9:_*\-]/g,'');
@@ -1099,14 +1176,14 @@ exports.handler = async function(event){
   }
 
   if(action==='adminGetSchemes'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const schemes=await rGet('config:schemes');
     return ok({ok:true,schemes:schemes||[]});
   }
 
   if(action==='adminSetSchemes'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {schemes}=body;
     if(!Array.isArray(schemes)) return fail('schemes must be an array');
@@ -1115,7 +1192,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminGetUserDetails'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail}=body;
     if(!targetEmail) return fail('targetEmail required');
@@ -1143,7 +1220,7 @@ exports.handler = async function(event){
 
   if(action==='getSchemes'){
     // Public endpoint — any authenticated user can read active schemes
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     const schemes=await rGet('config:schemes');
     const active=(schemes||[]).filter(s=>s.active!==false);
@@ -1151,7 +1228,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminSetPlan'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail,plan}=body;
     if(!targetEmail||!plan) return fail('targetEmail and plan required');
@@ -1168,7 +1245,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminGetEmailTemplates'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const types=Object.keys(DEFAULT_TEMPLATES);
     const templates={};
@@ -1180,7 +1257,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminSetEmailTemplate'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {type,subject,html}=body;
     if(!type||!DEFAULT_TEMPLATES[type]) return fail('Invalid template type');
@@ -1190,7 +1267,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminResetEmailTemplate'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {type}=body;
     if(!type||!DEFAULT_TEMPLATES[type]) return fail('Invalid template type');
@@ -1199,7 +1276,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminSendTestEmail'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     if(!RESEND_API_KEY) return fail('RESEND_API_KEY not configured — cannot send email',503);
     const {subject,html}=body;
@@ -1214,7 +1291,7 @@ exports.handler = async function(event){
   }
 
   if(action==='getReferralCode'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('User not found',404);
@@ -1231,14 +1308,14 @@ exports.handler = async function(event){
   }
 
   if(action==='adminGetAboutPage'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const about=await rGet('siteConfig:aboutPage').catch(()=>null);
     return ok({ok:true, about: about || null});
   }
 
   if(action==='adminSetAboutPage'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {about}=body;
     if(!about) return fail('about data required');
@@ -1255,7 +1332,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminGetLegalPage'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {page}=body;
     if(!page||!['privacy','terms','disclaimer','cookies'].includes(page)) return fail('Invalid page');
@@ -1264,7 +1341,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminSetLegalPage'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {page, content}=body;
     if(!page||!['privacy','terms','disclaimer','cookies'].includes(page)) return fail('Invalid page');
@@ -1274,7 +1351,7 @@ exports.handler = async function(event){
   }
 
   if(action==='adminResetLegalPage'){
-    const user=await verifyToken(event.headers?.authorization||event.headers?.Authorization);
+    const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {page}=body;
     if(!page||!['privacy','terms','disclaimer','cookies'].includes(page)) return fail('Invalid page');
