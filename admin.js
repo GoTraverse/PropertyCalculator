@@ -826,8 +826,8 @@ async function loadConfig(){
   setV('cfg-session-ttl',     c.sessionTtlDays||30);
   setV('cfg-free-limit',      c.freeScenarioLimit||1);
   setV('cfg-pro-limit',       c.proScenarioLimit!=null?c.proScenarioLimit:-1);
-  setV('cfg-pro-monthly',     c.proMonthlyPrice||9);
-  setV('cfg-pro-annual',      c.proAnnualPrice||86);
+  setV('cfg-pro-monthly',     c.proMonthlyPrice||2.99);
+  setV('cfg-pro-annual',      c.proAnnualPrice||29);
   setV('cfg-adviser-monthly', c.adviserMonthlyPrice||29);
   setV('google-client-id',    c.googleClientId||'');
   renderPartnerLinksUI(c.partnerLinks || {});
@@ -999,8 +999,8 @@ async function saveConfig(){
     sessionTtlDays:      parseInt(getV('cfg-session-ttl','30'))||30,
     freeScenarioLimit:   parseInt(getV('cfg-free-limit','1'))||1,
     proScenarioLimit:    parseInt(getV('cfg-pro-limit','-1')),
-    proMonthlyPrice:     parseFloat(getV('cfg-pro-monthly','9'))||9,
-    proAnnualPrice:      parseFloat(getV('cfg-pro-annual','86'))||86,
+    proMonthlyPrice:     parseFloat(getV('cfg-pro-monthly','2.99'))||2.99,
+    proAnnualPrice:      parseFloat(getV('cfg-pro-annual','29'))||29,
     adviserMonthlyPrice: parseFloat(getV('cfg-adviser-monthly','29'))||29,
     googleClientId:      getV('google-client-id',''),
     stripePubKey:        getV('stripe-pub-key',''),
@@ -1240,7 +1240,7 @@ const STAT_META = {
   sessions:   { title: 'Login Tokens',        desc: 'One token per device/browser per user (30-day TTL). High counts are normal — each device sign-in creates a new token. Use Database → Purge Expired Sessions to clean up stale tokens.',   valueId: 'stat-sessions',      histKey: 'activeSessions',      stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
   scenarios:  { title: 'Scenario Sets',       desc: 'Saved property scenario lists',        valueId: 'stat-scenarios-top', histKey: 'totalScenarioLists',  stroke: 'rgba(70,140,110,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
   'new-users':{ title: 'New This Week',       desc: 'Signups in last 7 days',               valueId: 'stat-new-users',     histKey: 'newUsersLast7',       stroke: 'rgba(90,158,123,0.9)',    fill: 'rgba(90,158,123,0.5)',    prefix: '', suffix: '' },
-  revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans at list price — may differ if discounts are active', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
+  revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans, net of Stripe fees (1.75% + $0.30 per charge)', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
   avg:              { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',                valueId: 'stat-avg-scenarios',   histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
   'active-users':   { title: 'Active Users',        desc: 'Unique users with at least one live session',   valueId: 'stat-active-users',    histKey: 'activeUsers',         stroke: 'rgba(90,158,123,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
   'total-scenarios':{ title: 'Total Scenarios',      desc: 'Individual saved scenarios across all users',   valueId: 'stat-total-scenarios', histKey: 'totalScenarios',      stroke: 'rgba(120,100,160,0.85)',  fill: 'rgba(120,100,160,0.4)',   prefix: '', suffix: '' },

@@ -4843,7 +4843,7 @@
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); } catch(e) {}
     var freeLimit = cfg.freeScenarioLimit || 1;
-    var proPrice = cfg.proMonthlyPrice || 9;
+    var proPrice = cfg.proMonthlyPrice || 2.99;
     var advPrice = cfg.adviserMonthlyPrice || 29;
     if(pd) pd.textContent = plan==='free'?'⭐ Starter':(plan==='pro'?'⚡ Pro':'👑 Adviser');
     if(pn) pn.textContent = plan==='free'?'Starter (Free)':(plan==='pro'?`Pro — A$${proPrice.toFixed(2)}/mo AUD`:`Adviser — A$${advPrice.toFixed(2)}/mo AUD`);
