@@ -1161,27 +1161,27 @@
     </div>
   </div>
 
-</div>
-
   <!-- MODERATION TAB -->
   <div class="admin-section" id="tab-moderation">
     <div class="admin-card">
       <div class="admin-card-head">
         <div>
           <h3>Moderation</h3>
-          <p>Approve, reject, or delete user-submitted suburb reviews and blog comments. Approved content appears on the site at the next build.</p>
+          <span style="font-size:11px;color:var(--slate);">Approve, reject, or delete user-submitted suburb reviews and blog comments. Approved content appears on the site at the next build.</span>
         </div>
         <div id="moderation-stats" style="font-size:11px;color:var(--slate);">—</div>
       </div>
-      <div style="padding:16px 20px;">
-        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;border-bottom:1px solid var(--hairline);padding-bottom:10px;">
-          <button type="button" id="mod-kind-reviews" class="admin-btn admin-btn-primary" data-kind="reviews">Suburb reviews</button>
-          <button type="button" id="mod-kind-comments" class="admin-btn" data-kind="comments">Blog comments</button>
-          <button type="button" id="mod-refresh-btn" class="admin-btn" style="margin-left:auto;">↻ Refresh</button>
+      <div style="padding:20px 24px 24px;">
+        <div class="mod-segmented" role="tablist" aria-label="Content type">
+          <button type="button" id="mod-kind-reviews" class="mod-seg-btn is-active" data-kind="reviews" role="tab">Suburb reviews</button>
+          <button type="button" id="mod-kind-comments" class="mod-seg-btn" data-kind="comments" role="tab">Blog comments</button>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-          <button type="button" id="mod-subtab-pending" class="admin-btn admin-btn-primary" data-subtab="pending">Pending</button>
-          <button type="button" id="mod-subtab-all" class="admin-btn" data-subtab="all">All</button>
+        <div class="mod-filter-row">
+          <div class="mod-filter-group" role="tablist" aria-label="Status filter">
+            <button type="button" id="mod-subtab-pending" class="btn-admin-sm is-active" data-subtab="pending">Pending</button>
+            <button type="button" id="mod-subtab-all" class="btn-admin-sm" data-subtab="all">All</button>
+          </div>
+          <button type="button" id="mod-refresh-btn" class="btn-admin-sm" style="margin-left:auto;">↻ Refresh</button>
         </div>
         <div id="mod-reviews-list">
           <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
@@ -1189,6 +1189,8 @@
       </div>
     </div>
   </div>
+
+</div>
 
 <!-- Legal Page Preview Modal -->
 <div id="legal-preview-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.72);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">
