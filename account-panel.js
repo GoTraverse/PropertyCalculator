@@ -251,7 +251,7 @@
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); } catch(e) {}
     var freeLimit = cfg.freeScenarioLimit || 1;
-    var proPrice = cfg.proMonthlyPrice || 9;
+    var proPrice = cfg.proMonthlyPrice || 2.99;
     var advPrice = cfg.adviserMonthlyPrice || 29;
     var planLabel = plan === 'free' ? '&#x2B50; Starter' : (plan === 'pro' ? '&#x26A1; Pro' : '&#x1F451; Adviser');
     var planName  = plan === 'free' ? 'Starter (Free)'  : (plan === 'pro' ? `Pro \u2014 A$${proPrice.toFixed(2)}/mo AUD` : `Adviser \u2014 A$${advPrice.toFixed(2)}/mo AUD`);

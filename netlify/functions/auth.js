@@ -947,11 +947,14 @@ exports.handler = async function(event){
       // New users in the last 7 days
       const sevenDaysAgo=Date.now()-7*24*60*60*1000;
       const newUsersLast7=validUsers.filter(u=>u.createdAt&&u.createdAt>sevenDaysAgo).length;
-      // Revenue estimate from config prices
+      // Revenue estimate from config prices, net of Stripe fees (AU domestic: 1.75% + $0.30)
       const siteCfgStats=await rGet('config:site')||{};
-      const proPrice=parseFloat(siteCfgStats.proMonthlyPrice)||9;
+      const proPrice=parseFloat(siteCfgStats.proMonthlyPrice)||2.99;
       const adviserPrice=parseFloat(siteCfgStats.adviserMonthlyPrice)||29;
-      const revenueEstimate=Math.round(proUsers*proPrice+adviserUsers*adviserPrice);
+      const stripeFee=(p)=>p*0.0175+0.30;
+      const proNet=Math.max(0,proPrice-stripeFee(proPrice));
+      const adviserNet=Math.max(0,adviserPrice-stripeFee(adviserPrice));
+      const revenueEstimate=Math.round((proUsers*proNet+adviserUsers*adviserNet)*100)/100;
       // Avg scenario lists per user
       const avgScenariosPerUser=totalUsers>0?Math.round(totalScenarioLists/totalUsers*10)/10:0;
       // Store today's snapshot (31-day TTL so we keep ~1 month of history)
