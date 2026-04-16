@@ -22,7 +22,4 @@ PWA/MOBILE- (DO NOT REMOVE THIS LINE)
 -
 
 Admin Portal- (DO NOT REMOVE THIS LINE)
-- Remove the following card graphs:  login tokens, scenario sets, new this week, Active users.
-- Blog page when clicking save and publish ad some feedback so we know its thinking and then when its published close the editing of that blog post so you know you are done.
-- If i change the name of a blog and republish, it creates a new blog with the new name amd the old blog still exists and all the comments are om that old blog, fix.
-- 
+-

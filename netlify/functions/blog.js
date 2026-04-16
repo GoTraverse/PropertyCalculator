@@ -349,11 +349,9 @@ exports.handler = async function (event) {
           await rListPrepend('blog:index', id);
         }
 
-        // If this post is already published, update the GitHub file so
-        // the next auto-deploy picks up the edits.
-        if (clean.status === 'published') {
-          // If slug changed, remove the old file first
-          if (oldPost && oldPost.slug && oldPost.slug !== slug) {
+        // If this post was previously published, handle GitHub file updates
+        if (oldPost && oldPost.status === 'published') {
+          if (oldPost.slug && oldPost.slug !== slug) {
             await deletePostFromGitHub(oldPost.slug);
           }
           await commitPostToGitHub(clean);
