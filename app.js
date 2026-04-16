@@ -57,6 +57,19 @@
   // ── HELPERS ──
   function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   function safePhotoSrc(url){if(!url)return null;if(/^data:image\/(jpeg|png|gif|webp);base64,/.test(url))return url;try{var u=new URL(url);return u.protocol==='https:'?url:null;}catch(e){return null;}}
+  // ── Feature usage tracking (fire-and-forget, no UI impact) ──
+  var _trackQueue={};
+  function trackUsage(evt){
+    // Debounce: only send each event type once per 30 seconds
+    if(_trackQueue[evt]&&Date.now()-_trackQueue[evt]<30000) return;
+    _trackQueue[evt]=Date.now();
+    try{
+      var s=JSON.parse(localStorage.getItem('propCalc_session_v1')||'{}');
+      if(!s.token) return;
+      fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.token},body:JSON.stringify({action:'track',event:evt})}).catch(function(){});
+    }catch(e){}
+  }
+
   function fmt(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(2)+'M';if(a>=1000)return s+'$'+Math.round(a).toLocaleString();return s+'$'+Math.round(a);}
   function fmtK(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';if(a>=1000)return s+'$'+Math.round(a/1000)+'k';return s+'$'+Math.round(a);}
   function pctS(n){return n.toFixed(1)+'%';}
@@ -558,6 +571,7 @@
   function dRecalc(){ clearTimeout(_dRecalcTimer); _dRecalcTimer = setTimeout(recalc, 180); }
 
   function recalc(){
+    trackUsage('recalc');
     if(!_restoringDraft) _forceDirty = true;
     autosaveDraft();
     const price   = Math.min(50000000, v('inp-price'));
@@ -1027,6 +1041,7 @@
   }
 
   function showTab(id,btn){
+    trackUsage('tab_switch');
     // Track tab navigation
     if(window.trackTabNavigation) trackTabNavigation(id);
 
@@ -1621,6 +1636,7 @@
   }
 
   async function saveScenario(quiet){
+    trackUsage('save_scenario');
     // Track scenario save
     if(window.trackScenarioAction) trackScenarioAction('save', {});
 
@@ -1989,6 +2005,7 @@
   }
 
   function applyScenarioState(state, photoSrc){
+    trackUsage('load_scenario');
     const {values, dynCostData, renoItemData, keyDates:kd, commsLog:cl} = state;
     const skipFields = new Set(['pd-type','pd-type-label','renoEnabled','rentEnabled']);
     Object.entries(values||{}).forEach(([id, val]) => {
@@ -3434,6 +3451,7 @@
   }
 
   function exportPDF(opts){
+    trackUsage('pdf_export');
     // Track PDF export
     if(window.trackPDFExport) trackPDFExport('app');
 
@@ -4434,6 +4452,7 @@
   window.isPro = isPro;
   function requirePro(featureName){
     if(isPro()) return true;
+    trackUsage('pro_upgrade_prompt');
     // Track feature gating - free user attempted to access pro feature
     if(window.trackFeatureGated) trackFeatureGated(featureName, 'attempted_access');
     showToast('🔒 ' + featureName + ' is a Pro feature — <a href="/pricing" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);

@@ -23,8 +23,8 @@ PWA/MOBILE- (DO NOT REMOVE THIS LINE)
 
 
 
-Tracking features:
-- When a user signs up, need to know all the pagesthey came from so i can see that under the user section in admin portal.
-- Once they are signed up i need to know what features are being used in the app etc.
-- I need to not only know the last sign in from a user but when they are last active date and time, so they could still be logged in but refresh a page after not being on my app for a day.
+Tracking features: ✅ ALL DONE
+- ✅ Pre-signup page trail — site-init.js records pages visited in localStorage (max 20), sent on signup/googleSignin, stored in user record as signupPageTrail, shown in admin user details under "Signup Page Trail" collapsible section.
+- ✅ Feature usage tracking — track action in auth.js with Redis HINCRBY, 10 whitelisted events (recalc, pdf_export, save/load_scenario, tab_switch, pro_upgrade_prompt, etc.), 30s client debounce + 60/min IP rate limit, shown in admin user details under "Feature Usage" collapsible section.
+- ✅ Last Active tracking — lastActiveAt field updated on verify calls (hourly throttle), separate from lastLoginAt (only set on real sign-ins), shown in admin user details.
 

@@ -548,6 +548,15 @@ async function loadDeletedUsers(){
   }).join('');
 }
 
+function _renderUsageRows(usage){
+  var labels={recalc:'Calculations',pdf_export:'PDF Exports',save_scenario:'Saves',load_scenario:'Loads',share_scenario:'Shares',tab_switch:'Tab Switches',pro_upgrade_prompt:'Pro Prompts',compare_view:'Comparisons',amortisation_view:'Amortisation',projection_view:'Projections'};
+  var keys=Object.keys(usage||{});
+  if(!keys.length) return '<div style="font-size:12px;color:var(--slate);padding:6px 0;">No usage data recorded yet.</div>';
+  return keys.sort(function(a,b){ return (usage[b]||0)-(usage[a]||0); }).map(function(k){
+    return '<div style="display:flex;justify-content:space-between;padding:4px 8px;background:rgba(28,28,30,0.04);border-radius:4px;margin-bottom:3px;"><span style="font-size:12px;color:var(--charcoal);">'+ escHtml(labels[k]||k) +'</span><span style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--charcoal);">'+(usage[k]||0)+'</span></div>';
+  }).join('');
+}
+
 async function openUserDetails(email){
   _detailReturnEmail = null;
   const overlay = document.getElementById('user-detail-overlay');
@@ -563,6 +572,9 @@ async function openUserDetails(email){
   }
   const u = d.user || {};
   const profile = d.profile || {};
+  // Fetch feature usage stats in background (non-blocking — panel renders before it arrives)
+  var _usageData = {};
+  if(u.id) callAuth('adminGetUsage',{targetUserId:u.id}).then(function(r){ if(r.ok) _usageData=r.usage||{}; var el=document.getElementById('ud-usage-body'); if(el) el.innerHTML=_renderUsageRows(_usageData); }).catch(function(){});
 
   const fmt = ts => ts ? new Date(ts).toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Never';
   const ip = u.lastLoginIp || '';
@@ -610,6 +622,25 @@ async function openUserDetails(email){
     <div style="margin-top:10px;">${_udErrRows}</div>
   </details>`;
 
+  // Pre-signup page trail (pages visited before signup)
+  const _trail = Array.isArray(u.signupPageTrail) ? u.signupPageTrail : [];
+  let _trailRows = '';
+  if (!_trail.length) {
+    _trailRows = '<div style="font-size:12px;color:var(--slate);padding:6px 0;">No page trail recorded (user signed up before tracking was added).</div>';
+  } else {
+    _trailRows = _trail.map(function(e) {
+      var t = e.t ? new Date(e.t).toLocaleString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+      var qs = e.q ? escHtml(e.q) : '';
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:rgba(28,28,30,0.04);border-radius:4px;margin-bottom:4px;">' +
+        '<span style="font-family:var(--font-mono);font-size:12px;color:var(--charcoal);word-break:break-all;">' + escHtml(e.p||'') + (qs ? '<span style="color:var(--slate);">' + qs + '</span>' : '') + '</span>' +
+        '<span style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;margin-left:12px;">' + t + '</span></div>';
+    }).join('');
+  }
+  const _udTrailHtml = `<details style="margin-top:14px;border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
+    <summary style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);cursor:pointer;user-select:none;">Signup Page Trail (${_trail.length})</summary>
+    <div style="margin-top:10px;">${_trailRows}</div>
+  </details>`;
+
   // Pre-compute discount display HTML (Task 6)
   let _udDiscountHtml = '';
   if (u.stripeDiscountInfo) {
@@ -655,6 +686,10 @@ async function openUserDetails(email){
         <div style="font-family:var(--font-mono);font-size:12px;margin-top:3px;">${fmt(u.lastLoginAt)}</div>
       </div>
       <div>
+        <div class="config-label">Last Active</div>
+        <div style="font-family:var(--font-mono);font-size:12px;margin-top:3px;">${fmt(u.lastActiveAt||u.lastLoginAt)}</div>
+      </div>
+      <div>
         <div class="config-label">Total Logins</div>
         <div style="font-family:var(--font-mono);font-size:26px;font-weight:500;margin-top:2px;">${u.loginCount||0}</div>
       </div>
@@ -692,6 +727,11 @@ async function openUserDetails(email){
       User ID: ${escHtml(u.id||'—')}
     </div>
     ${_udActionsHtml}
+    ${_udTrailHtml}
+    <details style="margin-top:14px;border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
+      <summary style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);cursor:pointer;user-select:none;">Feature Usage</summary>
+      <div id="ud-usage-body" style="margin-top:10px;"><div style="font-size:12px;color:var(--slate);padding:6px 0;font-style:italic;">Loading usage data…</div></div>
+    </details>
     ${_udErrorsHtml}
   `;
 

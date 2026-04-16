@@ -435,6 +435,14 @@ exports.handler = async function(event){
       referralCode:refCode,
       referralCount:0
     };
+    // Store pre-signup page trail (max 20 entries from client, sanitised)
+    if(Array.isArray(body.pageTrail)&&body.pageTrail.length){
+      user.signupPageTrail=body.pageTrail.slice(-20).map(e=>({
+        p:String(e.p||'').slice(0,200),
+        t:typeof e.t==='number'?e.t:0,
+        q:e.q?String(e.q).slice(0,120):undefined
+      }));
+    }
     // Handle incoming referral
     const incomingRef=(ref||'').trim().toUpperCase().slice(0,16);
     if(incomingRef){
@@ -591,6 +599,14 @@ exports.handler = async function(event){
         loginCount:1,
         lastLoginIp:clientIp,
       };
+      // Store pre-signup page trail for Google signups
+      if(Array.isArray(body.pageTrail)&&body.pageTrail.length){
+        user.signupPageTrail=body.pageTrail.slice(-20).map(e=>({
+          p:String(e.p||'').slice(0,200),
+          t:typeof e.t==='number'?e.t:0,
+          q:e.q?String(e.q).slice(0,120):undefined
+        }));
+      }
       await rSet(ekey,user);
       await rSet('referral:'+refCode,userId);
       await rSet('uid:'+userId,email);
@@ -644,14 +660,13 @@ exports.handler = async function(event){
       if(userData.subscription_expires_at) data.expiresAt=userData.subscription_expires_at;
       if(userData.subscription_renews_at) data.renewsAt=userData.subscription_renews_at;
     }catch(e){}
-    // Throttled "last seen" refresh: bump lastLoginAt/lastLoginIp at most once an hour on verify.
-    // loginCount intentionally NOT bumped — it counts explicit auth events (signin/googleSignin),
-    // and no 'signin' history event is logged here. This keeps the admin panel's "Last Login"
-    // timestamp in sync with real activity on long-lived sessions (token TTL is 30 days).
+    // Throttled "last active" refresh: bump lastActiveAt at most once per hour
+    // to record ongoing usage separate from explicit sign-ins. lastLoginAt is
+    // only updated on real auth events (signin/googleSignin/verifyEmail).
     try{
-      if(Date.now()-(userData.lastLoginAt||0) > 60*60*1000){
-        userData.lastLoginAt=Date.now();
-        userData.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||userData.lastLoginIp||'';
+      if(Date.now()-(userData.lastActiveAt||userData.lastLoginAt||0) > 60*60*1000){
+        userData.lastActiveAt=Date.now();
+        userData.lastActiveIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||userData.lastActiveIp||'';
         await rSet('user:'+data.email,userData);
       }
     }catch(e){}
@@ -819,7 +834,7 @@ exports.handler = async function(event){
     const users=await Promise.all(keys.map(async k=>{
       const u=await rGet(k);
       return u?{email:u.email,name:u.name,plan:u.plan,id:u.id,createdAt:u.createdAt,role:u.role,
-                lastLoginAt:u.lastLoginAt,loginCount:u.loginCount,lastLoginIp:u.lastLoginIp,
+                lastLoginAt:u.lastLoginAt,lastActiveAt:u.lastActiveAt,loginCount:u.loginCount,lastLoginIp:u.lastLoginIp,
                 stripeDiscountInfo:u.stripeDiscountInfo||null}:null;
     }));
     return ok({ok:true,users:users.filter(Boolean)});
@@ -1357,6 +1372,57 @@ exports.handler = async function(event){
     if(!page||!['privacy','terms','disclaimer','cookies'].includes(page)) return fail('Invalid page');
     await rDel('siteConfig:legal:'+page);
     return ok({ok:true});
+  }
+
+  // ── Feature usage tracking ─────────────────────────────────────────────────
+  // Lightweight event tracking for logged-in users. Stores per-user aggregate
+  // counts in Redis hash `usage:<userId>`. Accepted events are whitelisted to
+  // prevent abuse. Rate-limited to 60 calls/min per IP.
+  if(action==='track'){
+    const user=await verifyToken(event);
+    if(!user) return fail('Unauthorized',401);
+    const ALLOWED_EVENTS=['recalc','pdf_export','save_scenario','load_scenario','share_scenario','tab_switch','pro_upgrade_prompt','compare_view','amortisation_view','projection_view'];
+    const evt=String(body.event||'').slice(0,50);
+    if(!evt||!ALLOWED_EVENTS.includes(evt)) return ok({ok:true}); // silent drop for unknown events
+    const trackIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    try{
+      const rc=await rRateInc('trackRate:'+trackIp,60);
+      if(rc>60) return ok({ok:true}); // silent rate-limit
+    }catch(e){}
+    // Increment per-user usage count for this event
+    try{
+      await redisCmd('HINCRBY','usage:'+user.userId,evt,'1');
+    }catch(e){
+      // Fallback: read-merge-write if HINCRBY not available
+      try{
+        const usage=await rGet('usage:'+user.userId)||{};
+        usage[evt]=(usage[evt]||0)+1;
+        await rSet('usage:'+user.userId,usage);
+      }catch(e2){}
+    }
+    return ok({ok:true});
+  }
+
+  // Admin: get usage stats for a specific user
+  if(action==='adminGetUsage'){
+    const user=await verifyToken(event);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {targetUserId}=body;
+    if(!targetUserId) return fail('targetUserId required');
+    let usage={};
+    try{
+      const raw=await redisCmd('HGETALL','usage:'+targetUserId);
+      // Upstash HGETALL returns flat array: [key1, val1, key2, val2, ...]
+      if(Array.isArray(raw)){
+        for(let i=0;i<raw.length;i+=2) usage[raw[i]]=parseInt(raw[i+1])||0;
+      } else if(raw&&typeof raw==='object'){
+        usage=raw; // some Upstash SDK versions return an object directly
+      }
+    }catch(e){
+      // Fallback: read as JSON (for the rGet/rSet fallback path)
+      usage=await rGet('usage:'+targetUserId)||{};
+    }
+    return ok({ok:true,usage});
   }
 
   return fail('Unknown action');

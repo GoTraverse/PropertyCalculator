@@ -74,10 +74,12 @@ async function handleGoogleCredential(response){
   var btn = document.getElementById('google-signin-btn');
   if(btn) btn.style.opacity = '0.5';
 
-  var res = await callAuth('googleSignin', {credential: response.credential});
+  var pageTrailG; try{ pageTrailG=JSON.parse(localStorage.getItem('es_page_trail')||'[]'); }catch(e){ pageTrailG=[]; }
+  var res = await callAuth('googleSignin', {credential: response.credential, pageTrail: pageTrailG});
   if(btn) btn.style.opacity = '';
 
   if(res.ok){
+    try{ localStorage.removeItem('es_page_trail'); }catch(e){}
     persistSession(res, {email: res.email});
     // Track Google Sign-In
     if(window.trackLogin) trackLogin('google');
@@ -448,9 +450,11 @@ async function doSignup(){
   if(!turnstileToken){ errEl.textContent='Please complete the security check'; return; }
   btn.disabled=true; btn.textContent='Creating account…'; errEl.textContent='';
   const pendingRef = localStorage.getItem('equitySight_pendingRef') || '';
-  const res = await callAuth('signup', {email,password,name,plan,ref:pendingRef,turnstileToken});
+  var pageTrail; try{ pageTrail=JSON.parse(localStorage.getItem('es_page_trail')||'[]'); }catch(e){ pageTrail=[]; }
+  const res = await callAuth('signup', {email,password,name,plan,ref:pendingRef,turnstileToken,pageTrail});
   if(res.ok && res.requiresEmailVerification){
     localStorage.removeItem('equitySight_pendingRef');
+    try{ localStorage.removeItem('es_page_trail'); }catch(e){}
     showVerificationStep(res);
     document.getElementById('verify-error').textContent='';
   } else {
