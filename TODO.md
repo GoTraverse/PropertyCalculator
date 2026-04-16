@@ -21,10 +21,8 @@ Desktop - (DO NOT REMOVE THIS LINE)
 PWA/MOBILE- (DO NOT REMOVE THIS LINE)
 -
 
-
-
-Tracking features: ✅ ALL DONE
-- ✅ Pre-signup page trail — site-init.js records pages visited in localStorage (max 20), sent on signup/googleSignin, stored in user record as signupPageTrail, shown in admin user details under "Signup Page Trail" collapsible section.
-- ✅ Feature usage tracking — track action in auth.js with Redis HINCRBY, 10 whitelisted events (recalc, pdf_export, save/load_scenario, tab_switch, pro_upgrade_prompt, etc.), 30s client debounce + 60/min IP rate limit, shown in admin user details under "Feature Usage" collapsible section.
-- ✅ Last Active tracking — lastActiveAt field updated on verify calls (hourly throttle), separate from lastLoginAt (only set on real sign-ins), shown in admin user details.
-
+Admin Portal- (DO NOT REMOVE THIS LINE)
+- Remove the following card graphs:  login tokens, scenario sets, new this week, Active users.
+- Blog page when clicking save and publish ad some feedback so we know its thinking and then when its published close the editing of that blog post so you know you are done.
+- If i change the name of a blog and republish, it creates a new blog with the new name amd the old blog still exists and all the comments are om that old blog, fix.
+- 
