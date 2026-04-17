@@ -1083,8 +1083,8 @@ async function loadStats(){
   // Show loading state immediately
   const spinner = '<div class="stat-spinner"></div>';
   const chartLoad = '<div class="stat-chart-loading"></div>';
-  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-sessions','stat-scenarios-top','stat-new-users','stat-revenue','stat-avg-scenarios','stat-active-users','stat-total-scenarios','stat-shared','stat-errors','stat-db-keys'];
-  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-sessions','stat-chart-scenarios','stat-chart-new-users','stat-chart-revenue','stat-chart-avg','stat-chart-active-users','stat-chart-total-scenarios','stat-chart-shared','stat-chart-errors','stat-chart-db-keys'];
+  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-revenue','stat-avg-scenarios','stat-total-scenarios','stat-shared','stat-errors','stat-db-keys'];
+  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-revenue','stat-chart-avg','stat-chart-total-scenarios','stat-chart-shared','stat-chart-errors','stat-chart-db-keys'];
   statIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=spinner; });
   chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=chartLoad; });
 
@@ -1104,12 +1104,8 @@ async function loadStats(){
   if(el('stat-free'))          el('stat-free').textContent          = s.freeUsers          ?? '—';
   if(el('stat-pro'))           el('stat-pro').textContent           = s.proUsers           ?? '—';
   if(el('stat-adviser'))       el('stat-adviser').textContent       = s.adviserUsers       ?? '—';
-  if(el('stat-sessions'))      el('stat-sessions').textContent      = s.activeSessions     ?? '—';
-  if(el('stat-scenarios-top')) el('stat-scenarios-top').textContent = s.totalScenarioLists ?? '—';
-  if(el('stat-new-users'))     el('stat-new-users').textContent     = s.newUsersLast7      ?? '—';
   if(el('stat-revenue'))       el('stat-revenue').textContent       = s.revenueEstimate !== undefined ? '$' + s.revenueEstimate : '—';
   if(el('stat-avg-scenarios')) el('stat-avg-scenarios').textContent = s.avgScenariosPerUser ?? '—';
-  if(el('stat-active-users'))   el('stat-active-users').textContent   = s.activeUsers       ?? '—';
   if(el('stat-total-scenarios'))el('stat-total-scenarios').textContent= s.totalScenarios    ?? '—';
   if(el('stat-shared'))         el('stat-shared').textContent         = s.sharedScenarios   ?? '—';
   if(el('stat-errors'))         el('stat-errors').textContent         = s.clientErrors      ?? '—';
@@ -1121,12 +1117,8 @@ async function loadStats(){
   renderSparkline('stat-chart-free',      mk('freeUsers'),          'rgba(100,100,110,0.8)',     'rgba(100,100,110,0.4)');
   renderSparkline('stat-chart-pro',       mk('proUsers'),           'rgba(180,140,50,0.9)',      'rgba(201,168,76,0.5)');
   renderSparkline('stat-chart-adviser',   mk('adviserUsers'),       'rgba(60,120,165,0.9)',      'rgba(91,143,171,0.5)');
-  renderSparkline('stat-chart-sessions',  mk('activeSessions'),     'rgba(91,143,171,0.85)',     'rgba(91,143,171,0.4)');
-  renderSparkline('stat-chart-scenarios', mk('totalScenarioLists'), 'rgba(70,140,110,0.85)',     'rgba(90,158,123,0.4)');
-  renderSparkline('stat-chart-new-users', mk('newUsersLast7'),      'rgba(90,158,123,0.9)',      'rgba(90,158,123,0.5)');
   renderSparkline('stat-chart-revenue',   mk('revenueEstimate'),    'rgba(201,168,76,0.9)',      'rgba(201,168,76,0.5)');
   renderSparkline('stat-chart-avg',       mk('avgScenariosPerUser'),'rgba(150,100,180,0.8)',     'rgba(150,100,180,0.4)');
-  renderSparkline('stat-chart-active-users',   mk('activeUsers'),      'rgba(90,158,123,0.85)',  'rgba(90,158,123,0.4)');
   renderSparkline('stat-chart-total-scenarios', mk('totalScenarios'),  'rgba(120,100,160,0.85)', 'rgba(120,100,160,0.4)');
   renderSparkline('stat-chart-shared',          mk('sharedScenarios'), 'rgba(91,143,171,0.85)',  'rgba(91,143,171,0.4)');
   renderSparkline('stat-chart-errors',          mk('clientErrors'),    'rgba(196,90,90,0.85)',   'rgba(196,90,90,0.4)');
@@ -1277,12 +1269,8 @@ const STAT_META = {
   free:       { title: 'Free Plan Users',     desc: '1 saved scenario limit',               valueId: 'stat-free',          histKey: 'freeUsers',           stroke: 'rgba(100,100,110,0.8)',   fill: 'rgba(100,100,110,0.4)',   prefix: '', suffix: '' },
   pro:        { title: 'Pro Plan Users',      desc: 'Unlimited + PDF + Projection',         valueId: 'stat-pro',           histKey: 'proUsers',            stroke: 'rgba(180,140,50,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '', suffix: '' },
   adviser:    { title: 'Adviser Plan Users',  desc: 'Multi-client + white-label',           valueId: 'stat-adviser',       histKey: 'adviserUsers',        stroke: 'rgba(60,120,165,0.9)',    fill: 'rgba(91,143,171,0.5)',    prefix: '', suffix: '' },
-  sessions:   { title: 'Login Tokens',        desc: 'One token per device/browser per user (30-day TTL). High counts are normal — each device sign-in creates a new token. Use Database → Purge Expired Sessions to clean up stale tokens.',   valueId: 'stat-sessions',      histKey: 'activeSessions',      stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
-  scenarios:  { title: 'Scenario Sets',       desc: 'Saved property scenario lists',        valueId: 'stat-scenarios-top', histKey: 'totalScenarioLists',  stroke: 'rgba(70,140,110,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
-  'new-users':{ title: 'New This Week',       desc: 'Signups in last 7 days',               valueId: 'stat-new-users',     histKey: 'newUsersLast7',       stroke: 'rgba(90,158,123,0.9)',    fill: 'rgba(90,158,123,0.5)',    prefix: '', suffix: '' },
   revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans, net of Stripe fees (1.75% + $0.30 per charge)', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
   avg:              { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',                valueId: 'stat-avg-scenarios',   histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
-  'active-users':   { title: 'Active Users',        desc: 'Unique users with at least one live session',   valueId: 'stat-active-users',    histKey: 'activeUsers',         stroke: 'rgba(90,158,123,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
   'total-scenarios':{ title: 'Total Scenarios',      desc: 'Individual saved scenarios across all users',   valueId: 'stat-total-scenarios', histKey: 'totalScenarios',      stroke: 'rgba(120,100,160,0.85)',  fill: 'rgba(120,100,160,0.4)',   prefix: '', suffix: '' },
   shared:           { title: 'Shared Scenarios',     desc: 'Scenarios shared between users',                valueId: 'stat-shared',          histKey: 'sharedScenarios',     stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
   errors:           { title: 'Client Errors',        desc: 'JavaScript errors in the error log (max 500)',  valueId: 'stat-errors',          histKey: 'clientErrors',        stroke: 'rgba(196,90,90,0.85)',    fill: 'rgba(196,90,90,0.4)',     prefix: '', suffix: '' },
@@ -3426,20 +3414,32 @@ async function blogSavePost(publish) {
   var post = blogCollectForm();
   if (!post.title || post.title.length < 4) { blogSetStatus('Title must be at least 4 chars', true); return; }
   if (!post.body_md || post.body_md.length < 200) { blogSetStatus('Body must be at least 200 chars', true); return; }
-  var res = await callBlog('adminSavePost', { post: post });
-  if (!res || !res.ok) {
-    blogSetStatus('Save failed: ' + (res && res.error || 'unknown'), true);
-    return;
-  }
-  document.getElementById('blog-edit-id').value = res.id;
-  if (publish) {
-    var pub = await callBlog('adminPublish', { id: res.id });
-    if (!pub || !pub.ok) { blogSetStatus('Saved but publish failed: ' + (pub && pub.error || 'unknown'), true); return; }
-    blogSetStatus('Saved and published ✓', false);
-  } else {
+  var draftBtn = document.getElementById('blog-save-draft-btn');
+  var pubBtn = document.getElementById('blog-save-publish-btn');
+  if (draftBtn) { draftBtn.disabled = true; }
+  if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = publish ? 'Publishing…' : 'Saving…'; }
+  try {
+    var res = await callBlog('adminSavePost', { post: post });
+    if (!res || !res.ok) {
+      blogSetStatus('Save failed: ' + (res && res.error || 'unknown'), true);
+      return;
+    }
+    document.getElementById('blog-edit-id').value = res.id;
+    if (publish) {
+      var pub = await callBlog('adminPublish', { id: res.id });
+      if (!pub || !pub.ok) { blogSetStatus('Saved but publish failed: ' + (pub && pub.error || 'unknown'), true); return; }
+      loadBlogPosts();
+      blogResetEditor();
+      document.getElementById('blog-editor-wrap').style.display = 'none';
+      showAdminToast('Post published ✓');
+      return;
+    }
     blogSetStatus('Draft saved ✓', false);
+    loadBlogPosts();
+  } finally {
+    if (draftBtn) { draftBtn.disabled = false; }
+    if (pubBtn) { pubBtn.disabled = false; pubBtn.textContent = 'Save & Publish'; }
   }
-  loadBlogPosts();
 }
 
 async function blogUnpublish() {

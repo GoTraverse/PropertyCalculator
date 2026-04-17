@@ -216,7 +216,7 @@ window.onTurnstileReady = function(){
   var inactiveTsId  = activeTab === 'signin' ? 'ts-signup'   : 'ts-signin';
   setTimeout(function(){
     var form = document.getElementById(inactiveFormId);
-    if(!form || _tsWidgetIds[inactiveTsId] !== undefined) return;
+    if(!form || typeof _tsWidgetIds === 'undefined' || _tsWidgetIds[inactiveTsId] !== undefined) return;
     // Position off-screen so it's display:block (Turnstile can render) but takes no layout space
     form.style.position = 'fixed';
     form.style.top = '-9999px';
