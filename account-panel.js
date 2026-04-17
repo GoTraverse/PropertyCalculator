@@ -395,7 +395,7 @@
     if (nw !== cf) { st.textContent = "Passwords don\u2019t match"; st.className = 'ap2-status err'; return; }
     st.textContent = 'Updating\u2026'; st.className = 'ap2-status ok';
     try {
-      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw }) });
+      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', },body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw }) });
       var d = await r.json();
       if (d.ok) {
         st.textContent = '\u2713 Password updated';
@@ -419,7 +419,7 @@
     var pw = prompt('Enter your password to permanently delete your account. This cannot be undone.');
     if (!pw) return;
     try {
-      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'deleteAccount', password: pw, deleteReason: deleteReason }) });
+      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', },body: JSON.stringify({ action: 'deleteAccount', password: pw, deleteReason: deleteReason }) });
       var d = await r.json();
       if (d.ok) { localStorage.clear(); alert('Account deleted. Goodbye!'); location.href = '/'; }
       else alert(d.error || 'Incorrect password \u2014 account not deleted');

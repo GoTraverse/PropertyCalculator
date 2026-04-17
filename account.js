@@ -217,7 +217,7 @@ async function changePassword(){
   try{
     const r = await fetch('/.netlify/functions/auth', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw })
     });
     const d = await r.json();
@@ -244,7 +244,7 @@ async function loadBillingStatus(){
   try{
     const r = await fetch('/.netlify/functions/stripe',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'getSubscriptionStatus'})
     });
     const d = await r.json();
@@ -305,7 +305,7 @@ async function openBillingPortal(){
   try{
     const r = await fetch('/.netlify/functions/stripe',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'createPortalSession',returnUrl:location.href})
     });
     const d = await r.json();
@@ -381,8 +381,8 @@ async function confirmDeleteAccount(){
     const token = session && session.token;
     const r = await fetch('/.netlify/functions/auth',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},
-      body:JSON.stringify({action:'deleteAccount',password:pw,token:token,deleteReason:reason})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'deleteAccount',password:pw,deleteReason:reason})
     });
     const d = await r.json();
     if(d.ok){
@@ -458,7 +458,7 @@ async function savePreferences(){
     try{
       var r = await fetch('/.netlify/functions/auth', {
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        headers:{'Content-Type':'application/json'},
         body: JSON.stringify({action:'setProfile', profile: profileData})
       });
       var d = await r.json();

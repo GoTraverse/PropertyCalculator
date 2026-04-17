@@ -66,7 +66,7 @@
     try{
       var s=JSON.parse(localStorage.getItem('propCalc_session_v1')||'{}');
       if(!s.token) return;
-      fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.token},body:JSON.stringify({action:'track',event:evt})}).catch(function(){});
+      fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'track',event:evt})}).catch(function(){});
     }catch(e){}
   }
 
@@ -4310,7 +4310,7 @@
     if(sess && sess.token && typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY){
       fetch('/.netlify/functions/auth', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'adminGetConfig' })
       }).then(function(r){ return r.json(); }).then(function(d){
         if(d.ok && d.config){
@@ -4975,7 +4975,7 @@
     try{
       var r = await fetch('/.netlify/functions/auth',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization': getAuthHeader()||''},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'changePassword', currentPassword:cur, newPassword:nw})
       });
       var d = await r.json();
@@ -4998,7 +4998,7 @@
     try{
       var r = await fetch('/.netlify/functions/auth',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization': getAuthHeader()||''},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'deleteAccount', password:pw})
       });
       var d = await r.json();

@@ -159,7 +159,6 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sess.token,
           },
           body: JSON.stringify({
             action: 'submitReview',

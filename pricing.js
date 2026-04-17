@@ -24,7 +24,7 @@ async function startCheckout(){
   try {
     var r = await fetch('/.netlify/functions/stripe', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'createCheckout', priceId: priceId, plan: 'pro' }),
     });
     var d = await r.json();
