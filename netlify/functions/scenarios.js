@@ -115,9 +115,24 @@ async function sendShareEmail(toEmail, templateType, vars){
 }
 
 // ── Token verification ────────────────────────────────────────────────
-async function verifyToken(authHeader){
-  if(!authHeader||!authHeader.startsWith('Bearer ')) return null;
-  const token=authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyToken(event){
+  let token = readCookieToken(event);
+  if (!token) {
+    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
+    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
+  }
   if(!token) return null;
   const raw=await redisCmd('GET','token:'+token);
   if(!raw) return null;
@@ -145,19 +160,17 @@ async function readIndex(uid){
 async function writeIndex(uid,arr){ return rSet(indexKey(uid),arr); }
 
 // ── Resolve user from request ─────────────────────────────────────────
-// Returns userId string or null. Requires a valid Bearer token — no fallback.
+// Returns userId string or null. Requires a valid session (cookie or Bearer token).
 async function resolveUser(event, _body){
-  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
-  if(!authHeader) return null;
   try{
-    const user = await verifyToken(authHeader);
+    const user = await verifyToken(event);
     return user ? user.userId : null;
   }catch(e){ console.warn('[scenarios] token verify error:', e.message); return null; }
 }
 
 // ── Admin: resolve admin token ────────────────────────────────────────
-async function verifyAdminToken(authHeader){
-  const data = await verifyToken(authHeader);
+async function verifyAdminToken(event){
+  const data = await verifyToken(event);
   if(!data || data.role !== 'admin') return null;
   return data;
 }
@@ -178,14 +191,12 @@ exports.handler = async function(event){
     try{ body = JSON.parse(event.body); }catch(e){ return fail('Bad request body',400); }
   }
 
-  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
-
   // ── GET — list all scenarios ─────────────────────────────────────────
   if(event.httpMethod==='GET'){
     // Admin override: admin can view any user's scenarios
     const adminTargetId = event.queryStringParameters?.adminUserId;
     if(adminTargetId){
-      const admin = await verifyAdminToken(authHeader);
+      const admin = await verifyAdminToken(event);
       if(!admin) return fail('Admin access required', 401);
       try{
         const index = await readIndex(adminTargetId);
@@ -214,7 +225,7 @@ exports.handler = async function(event){
 
     // Admin: list all users' scenarios (no resolveUser needed — uses admin token)
     if(action==='adminListAllScenarios'){
-      const admin=await verifyAdminToken(authHeader);
+      const admin=await verifyAdminToken(event);
       if(!admin) return fail('Admin access required',401);
       try{
         // Scan all scenario index keys and user keys
@@ -241,7 +252,7 @@ exports.handler = async function(event){
 
     // Admin: get another user's scenario state
     if(action==='adminGetScenarioState'){
-      const admin=await verifyAdminToken(authHeader);
+      const admin=await verifyAdminToken(event);
       if(!admin) return fail('Admin access required',401);
       const {userId:targetUid,id}=body;
       if(!targetUid||!id) return fail('userId and id required');
@@ -319,7 +330,7 @@ exports.handler = async function(event){
       const {scenarioId, targetEmail} = body;
       if(!scenarioId||!targetEmail) return fail('scenarioId and targetEmail required');
       // Verify caller identity from token (need name/email for share record)
-      const ownerData = await verifyToken(authHeader);
+      const ownerData = await verifyToken(event);
       if(!ownerData||ownerData.userId!==uid) return fail('Auth error');
       // Look up target user
       const norm = targetEmail.toLowerCase().trim();
@@ -422,7 +433,7 @@ exports.handler = async function(event){
     // Admin override: admin can delete any user's scenario
     const adminTargetId = event.queryStringParameters?.adminUserId;
     if(adminTargetId){
-      const admin = await verifyAdminToken(authHeader);
+      const admin = await verifyAdminToken(event);
       if(!admin) return fail('Admin access required', 401);
       const index = await readIndex(adminTargetId);
       await writeIndex(adminTargetId, index.filter(s=>s.id!==id));

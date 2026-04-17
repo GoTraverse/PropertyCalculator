@@ -74,9 +74,24 @@ async function rListPrepend(key, val) { return redisCmd('LPUSH', key, String(val
 async function rListRemove(key, val) { return redisCmd('LREM', key, '0', String(val)); }
 
 // ── Token verification ────────────────────────────────────────────────
-async function verifyToken(authHeader) {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyToken(event) {
+  let token = readCookieToken(event);
+  if (!token) {
+    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
+    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
+  }
   if (!token) return null;
   const raw = await redisCmd('GET', 'token:' + token);
   if (!raw) return null;
@@ -89,8 +104,8 @@ async function verifyToken(authHeader) {
   }
   return data;
 }
-async function verifyAdmin(authHeader) {
-  const data = await verifyToken(authHeader);
+async function verifyAdmin(event) {
+  const data = await verifyToken(event);
   if (!data || data.role !== 'admin') return null;
   return data;
 }
@@ -206,7 +221,6 @@ exports.handler = async function (event) {
     return fail('Storage not configured. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.', 500);
   }
 
-  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
   let body = null;
   if (event.body) {
     try { body = JSON.parse(event.body); } catch (e) { return fail('Bad request body', 400); }
@@ -251,7 +265,7 @@ exports.handler = async function (event) {
 
     // Admin: build-time fetch of all posts (including drafts optionally)
     if (q.action === 'buildFetch') {
-      const admin = await verifyAdmin(authHeader);
+      const admin = await verifyAdmin(event);
       if (!admin) return fail('Admin access required', 401);
       try {
         const ids = await rListGet('blog:index');
@@ -273,7 +287,7 @@ exports.handler = async function (event) {
     const { action } = body;
 
     // All POST actions require admin
-    const admin = await verifyAdmin(authHeader);
+    const admin = await verifyAdmin(event);
     if (!admin) return fail('Admin access required', 401);
 
     if (action === 'adminListPosts') {

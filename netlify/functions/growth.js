@@ -46,9 +46,24 @@ async function rSet(key,val,ttl){
 async function rDel(key){ return redisCmd('DEL',key); }
 
 // Verify admin token
-async function verifyAdmin(authHeader){
-  if(!authHeader||!authHeader.startsWith('Bearer ')) return false;
-  const token=authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyAdmin(event){
+  let token = readCookieToken(event);
+  if (!token) {
+    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
+    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
+  }
   if(!token) return false;
   const raw=await redisCmd('GET','token:'+token);
   if(!raw) return false;
@@ -86,7 +101,7 @@ exports.handler = async (event) => {
   }
 
   if(action==='set'){
-    const isAdminSet = await verifyAdmin(event.headers.authorization||event.headers.Authorization||'');
+    const isAdminSet = await verifyAdmin(event);
     if(!isAdminSet) return fail('Forbidden', 403);
     if(!suburb||rate==null) return fail('suburb and rate required');
     if(String(suburb).length > 100) return fail('suburb too long');
@@ -107,7 +122,7 @@ exports.handler = async (event) => {
 
   if(action==='list'){
     // Admin only
-    const isAdmin = await verifyAdmin(event.headers.authorization||event.headers.Authorization||'');
+    const isAdmin = await verifyAdmin(event);
     if(!isAdmin) return fail('Forbidden', 403);
     const index = (await rGet('growth:index')) || [];
     // Filter out expired entries (older than 30 days)
@@ -119,7 +134,7 @@ exports.handler = async (event) => {
   }
 
   if(action==='delete'){
-    const isAdmin = await verifyAdmin(event.headers.authorization||event.headers.Authorization||'');
+    const isAdmin = await verifyAdmin(event);
     if(!isAdmin) return fail('Forbidden', 403);
     if(!suburb) return fail('suburb required');
     const s = (state||'QLD').toUpperCase();

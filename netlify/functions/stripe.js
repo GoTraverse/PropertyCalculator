@@ -71,9 +71,24 @@ async function logEvent(userId, type, extra) {
 }
 
 // ── Token verification ────────────────────────────────────────────────────────
-async function verifyToken(authHeader) {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyToken(event) {
+  let token = readCookieToken(event);
+  if (!token) {
+    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
+    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
+  }
   if (!token) return null;
   const data = await rGet('token:' + token);
   if (!data) return null;
@@ -386,8 +401,7 @@ exports.handler = async function (event) {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch (e) { return fail('Bad request', 400); }
 
-  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
-  const user = await verifyToken(authHeader);
+  const user = await verifyToken(event);
   if (!user) return fail('Authentication required', 401);
 
   // ── createCheckout: start Stripe Checkout for plan upgrade ───────────────

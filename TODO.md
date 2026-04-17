@@ -10,7 +10,7 @@ Never delete anything above this line.
 
 General - (DO NOT REMOVE THIS LINE)
 -
-1. Migrate session token to HttpOnly Secure cookie (Security - High) — Phase 1 DONE (auth.js now sets HttpOnly `es_session` cookie on signin/verifyEmail/googleSignin, clears on signout/deleteAccount, verifyToken reads cookie first then falls back to Authorization header; client still stores token in localStorage for backward compat). Phase 2 TODO: update client to stop storing token/stop sending Authorization header, extend cookie reading to the other 13 netlify/functions/*.js files, then remove the body `token` field from auth responses.
+1. Migrate session token to HttpOnly Secure cookie (Security - High) — Phase 1+2 DONE (all 7 non-auth functions now read es_session cookie first, falling back to Authorization header; client still sends Authorization header for backward compat). Phase 3 TODO: update client to stop sending Authorization header + stop storing token in localStorage, then remove token from auth response bodies.
 2. Convert screenshots to WebP format (Performance - High) — requires cwebp or similar tool
 3. Create 1200x630px OG social sharing image (SEO - High) — requires image editor
 
