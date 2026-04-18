@@ -447,7 +447,7 @@ Every page that needs the nav and footer follows this pattern:
 - **Plans**: `free` | `pro` | `adviser`
 - **Roles**: `user` | `admin` (admin gets access to `admin.html`)
 - **Login guard**: `isLoggedIn()` checks `session.id` on client side; every authenticated page also has an inline `<script>` at the top of `<head>` that checks localStorage and redirects to `login.html` if no session
-- **Server-side auth**: `verifyToken(event)` reads cookie first, falls back to Authorization header for legacy cached clients
+- **Server-side auth**: `verifyToken(event)` reads the HttpOnly `es_session` cookie only — no Authorization header fallback
 
 ### Calling the auth function (client-side pattern)
 
@@ -600,7 +600,7 @@ The CSP `connect-src` currently allows:
 
 - **XSS**: All user-supplied data rendered into HTML goes through `escHtml()` in admin.js / `_escBanner()` in app.js, which escape `&`, `<`, `>`. Do not embed user data in HTML without this.
 - **Photo URLs**: Profile photos inserted via `innerHTML` must pass `safePhotoSrc()` (defined in `account-panel.js` and `auth-nav.js`). Only `data:image/(jpeg|png|gif|webp);base64,` and `https://` URLs are allowed.
-- **Session auth**: HttpOnly Secure cookie (`es_session`) — token never exposed to client JS. All server functions read cookie first, Authorization header as fallback for cached legacy clients. XSS cannot steal session tokens.
+- **Session auth**: HttpOnly Secure cookie (`es_session`) — token never exposed to client JS. All server functions read the cookie; the Authorization header fallback has been removed so stolen tokens from an XSS-compromised build can't be replayed via JS. XSS cannot steal session tokens.
 - **Admin auth**: Every admin action in auth.js verifies `user.role === 'admin'` via session cookie. Never skip this check. `growth.js set` action also requires admin.
 - **Growth rate writes**: `growth.js` action `set` is admin-only and validates rate is a finite number between -30 and 100.
 - **Stripe webhooks**: Verified via HMAC-SHA256 signature (`STRIPE_WEBHOOK_SECRET`) with replay protection (5-minute timestamp window).

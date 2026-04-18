@@ -1476,24 +1476,21 @@ function generateMethodologyBlock(s) {
 
 // ── Review prefetch (Phase 4) ───────────────────────────────────────────
 // Fetches approved reviews from Upstash Redis via a tiny helper script so
-// the rest of this build stays synchronous. Safe no-op when env vars absent.
+// the rest of this build stays synchronous. Safe no-op when env vars absent;
+// hard failure when env vars are set but Redis errors, so a broken pipeline
+// never deploys silently.
 let reviewsByKey = {};
 (function prefetchReviews() {
-  try {
-    const { execSync } = require('child_process');
-    const out = execSync('node ' + path.join(__dirname, 'fetch-reviews.js'), {
-      encoding: 'utf8',
-      timeout: 90_000,
-      env: process.env,
-      stdio: ['ignore', 'pipe', 'inherit'],
-    });
-    reviewsByKey = out && out.trim() ? JSON.parse(out) : {};
-    const n = Object.keys(reviewsByKey).length;
-    if (n) console.log('[build-suburbs] Prefetched reviews for ' + n + ' suburb(s)');
-  } catch (e) {
-    console.warn('[build-suburbs] Review prefetch skipped:', e.message);
-    reviewsByKey = {};
-  }
+  const { execSync } = require('child_process');
+  const out = execSync('node ' + path.join(__dirname, 'fetch-reviews.js'), {
+    encoding: 'utf8',
+    timeout: 90_000,
+    env: process.env,
+    stdio: ['ignore', 'pipe', 'inherit'],
+  });
+  reviewsByKey = out && out.trim() ? JSON.parse(out) : {};
+  const n = Object.keys(reviewsByKey).length;
+  if (n) console.log('[build-suburbs] Prefetched reviews for ' + n + ' suburb(s)');
 })();
 
 function formatReviewDate(ts) {

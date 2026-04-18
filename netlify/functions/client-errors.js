@@ -48,11 +48,7 @@ function readCookieToken(event) {
   return '';
 }
 async function verifyToken(event) {
-  let token = readCookieToken(event);
-  if (!token) {
-    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
-    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
-  }
+  const token = readCookieToken(event);
   if (!token) return null;
   try {
     const data = await rGet('token:' + token);
@@ -197,7 +193,7 @@ exports.handler = async function (event) {
     if (!REDIS_URL || !REDIS_TOKEN) return ok({ ok: true }); // silently drop if not configured
     // Rate limit: 50 errors per IP per hour to prevent log flooding
     try {
-      const clientIp = (event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+      const clientIp = (event.headers['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
       const rlKey = 'errl:' + clientIp;
       const count = await redisCmd('INCR', rlKey);
       if (count === 1) await redisCmd('EXPIRE', rlKey, '3600');

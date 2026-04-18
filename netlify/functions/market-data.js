@@ -350,7 +350,7 @@ exports.handler = async (event) => {
 
   // ── POST suburb insights ─────────────────────────────────────────────────────
   if (action === 'suburbInsights') {
-    const clientIp = (event.headers?.['x-nf-client-connection-ip'] || event.headers?.['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+    const clientIp = (event.headers?.['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
     if (await checkRateLimit(clientIp)) return fail('Too many requests', 429);
     if (!suburb || !state) return fail('suburb and state required');
     const AU_STATES = ['NSW','VIC','QLD','SA','WA','TAS','NT','ACT'];

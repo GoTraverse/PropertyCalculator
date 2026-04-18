@@ -13,6 +13,12 @@ const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|
 const GROWTH_TTL  = 30 * 24 * 60 * 60; // 30 days in seconds
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// CSRF defense-in-depth. See auth.js for the rationale.
+function isAllowedOrigin(event){
+  const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  if(!o) return true;
+  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+}
 function getCorsHeaders(event) {
   const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
@@ -59,11 +65,7 @@ function readCookieToken(event) {
   return '';
 }
 async function verifyAdmin(event){
-  let token = readCookieToken(event);
-  if (!token) {
-    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
-    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
-  }
+  const token = readCookieToken(event);
   if(!token) return false;
   const raw=await redisCmd('GET','token:'+token);
   if(!raw) return false;
@@ -86,6 +88,7 @@ const fail = (msg, s=400) => ({statusCode:s, headers:H, body:JSON.stringify({ok:
 exports.handler = async (event) => {
   H = getCorsHeaders(event);
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
+  if(event.httpMethod!=='GET' && !isAllowedOrigin(event)) return fail('Forbidden',403);
 
   let body={};
   try{ body=JSON.parse(event.body||'{}'); }catch(e){}

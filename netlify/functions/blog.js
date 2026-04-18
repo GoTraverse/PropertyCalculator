@@ -27,6 +27,12 @@ const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// CSRF defense-in-depth. See auth.js for the rationale.
+function isAllowedOrigin(event){
+  const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  if(!o) return true;
+  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+}
 function getCorsHeaders(event) {
   const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
@@ -87,11 +93,7 @@ function readCookieToken(event) {
   return '';
 }
 async function verifyToken(event) {
-  let token = readCookieToken(event);
-  if (!token) {
-    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
-    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
-  }
+  const token = readCookieToken(event);
   if (!token) return null;
   const raw = await redisCmd('GET', 'token:' + token);
   if (!raw) return null;
@@ -216,6 +218,7 @@ function sanitizePost(p) {
 exports.handler = async function (event) {
   H = getCorsHeaders(event);
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
+  if (event.httpMethod !== 'GET' && !isAllowedOrigin(event)) return fail('Forbidden', 403);
 
   if (!REDIS_URL || !REDIS_TOKEN) {
     return fail('Storage not configured. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.', 500);
@@ -329,21 +332,21 @@ exports.handler = async function (event) {
       if (!slug) return fail('slug could not be derived from title');
 
       try {
-        const existingIdForSlug = await redisCmd('GET', 'blog:slug:' + slug);
-        let id = post.id;
-        if (!id) {
-          // Create flow — slug must be unique
-          if (existingIdForSlug) return fail('Slug already in use — choose another');
-          id = newId();
-          post.id = id;
-        } else if (existingIdForSlug && existingIdForSlug !== id) {
-          return fail('Slug already in use by another post');
-        }
+        const oldPost = post.id ? await rGet('blog:post:' + post.id) : null;
+        const id = oldPost ? post.id : newId();
+        post.id = id;
 
-        // If editing, release old slug if it changed
-        const oldPost = await rGet('blog:post:' + id);
-        if (oldPost && oldPost.slug && oldPost.slug !== slug) {
-          await rDel('blog:slug:' + oldPost.slug);
+        // Only re-claim the slug key when the slug is new or changed. Use
+        // SET NX so two concurrent saves can't both succeed on the same slug.
+        const slugChanged = !oldPost || oldPost.slug !== slug;
+        if (slugChanged) {
+          const claimed = await redisCmd('SET', 'blog:slug:' + slug, id, 'NX');
+          if (claimed !== 'OK') {
+            // Allow a retry where this same post already owns the slug.
+            const currentOwner = await redisCmd('GET', 'blog:slug:' + slug);
+            if (currentOwner !== id) return fail('Slug already in use — choose another');
+          }
+          if (oldPost && oldPost.slug) await rDel('blog:slug:' + oldPost.slug);
         }
 
         const clean = sanitizePost({ ...post, slug });
@@ -356,7 +359,6 @@ exports.handler = async function (event) {
         for (const t of addedTags)   { await rListPrepend('blog:tag:' + t, id); }
 
         await rSet('blog:post:' + id, clean);
-        await redisCmd('SET', 'blog:slug:' + slug, id);
 
         // Ensure id is in the main index
         if (!oldPost) {

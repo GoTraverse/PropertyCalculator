@@ -39,7 +39,7 @@ exports.handler = async (event) => {
   if(event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
 
   // Rate limit: 60 map requests per IP per hour (1/min average)
-  const clientIp = (event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+  const clientIp = (event.headers['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
   const rlKey = 'mapl:' + clientIp;
   const count = await redisCmd('INCR', rlKey);
   if (count === 1) await redisCmd('EXPIRE', rlKey, '3600');

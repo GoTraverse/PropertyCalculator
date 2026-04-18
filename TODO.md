@@ -12,12 +12,6 @@ General - (DO NOT REMOVE THIS LINE)
 -
 1. Convert screenshots to WebP format (Performance - High) — requires cwebp or similar tool
 2. Create 1200x630px OG social sharing image (SEO - High) — requires image editor
-!3. Move session cookie to SameSite=Strict (or add CSRF double-submit token) — netlify/functions/auth.js:51
-!4. Revoke token:<token> in Redis on logout AND delete-user — netlify/functions/auth.js:253, 1380
-!5. Drop legacy Authorization: Bearer fallback now that all clients are cookie-based — netlify/functions/auth.js:349
-!6. Stop trusting x-forwarded-for in rate limits; use x-nf-client-connection-ip exclusively — auth.js:386, comments.js:218, reviews.js:249, address-suggest.js:199
-!7. Make blog slug collision atomic with SET NX — netlify/functions/blog.js:332
-!8. Fail the build (don't silently fall back to {}) when build/fetch-reviews.js errors — build/build-suburbs.js:1482
 9. Pipeline approve/reject + queue-remove in comments.js and reviews.js to avoid mid-op desync — comments.js:299, reviews.js matching section
 10. Expand methodology.html to 1,200+ words (currently ~275) — SEO/AdSense E-E-A-T
 11. Expand data-sources.html to 1,200+ words (currently ~249) — SEO/AdSense E-E-A-T

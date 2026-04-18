@@ -19,7 +19,12 @@
  * Env vars (same as runtime functions):
  *   UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN
  *
- * If env vars are missing, outputs "{}" and exits 0 (non-fatal).
+ * If env vars are missing, outputs "{}" and exits 0 (non-fatal — development
+ * and staging builds run without Upstash configured).
+ *
+ * If env vars ARE set but Redis calls fail, exits 1 so the parent build
+ * surfaces the outage instead of deploying a site with review blocks silently
+ * stripped. Admin can re-trigger the deploy once Redis is reachable again.
  */
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
@@ -106,11 +111,10 @@ async function main() {
       out[state + ':' + slug] = { agg: { count, sum }, reviews };
     }
   } catch (e) {
-    // Non-fatal: emit empty map and note on stderr. build-suburbs.js treats
-    // missing cache as "no reviews yet" and renders pages without review blocks.
+    // Env vars are set so Redis was expected to work — surface the outage to
+    // the parent build instead of deploying with review blocks silently stripped.
     process.stderr.write('[fetch-reviews] ' + e.message + '\n');
-    process.stdout.write('{}');
-    return;
+    process.exit(1);
   }
 
   process.stdout.write(JSON.stringify(out));
@@ -118,5 +122,5 @@ async function main() {
 
 main().catch(err => {
   process.stderr.write('[fetch-reviews] ' + (err && err.message || err) + '\n');
-  process.stdout.write('{}');
+  process.exit(1);
 });

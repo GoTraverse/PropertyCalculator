@@ -4,7 +4,7 @@
  * - Reads session from propCalc_session_v1 (localStorage)
  * - Mounts comment form into #comment-form-mount
  * - Guest users see "Sign in to comment" CTA instead
- * - On submit POSTs to /.netlify/functions/comments with Bearer token
+ * - On submit POSTs to /.netlify/functions/comments — auth via es_session cookie
  * - "Show more comments" button loads additional approved comments via GET list
  *
  * Static (build-time) comments block lives at #blog-comments — this script

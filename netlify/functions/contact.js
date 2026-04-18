@@ -53,7 +53,7 @@ exports.handler = async function(event) {
   // Rate limit: max 5 contact submissions per IP per hour
   if (REDIS_URL && REDIS_TOKEN) {
     try {
-      const clientIp = (event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+      const clientIp = (event.headers['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
       const rateKey = 'contact:' + clientIp;
       const count = await (async () => {
         const r = await fetch(REDIS_URL, { method:'POST', headers:{ Authorization:'Bearer '+REDIS_TOKEN, 'Content-Type':'application/json' }, body: JSON.stringify(['INCR', rateKey]) });

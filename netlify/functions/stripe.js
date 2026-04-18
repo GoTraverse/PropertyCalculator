@@ -24,6 +24,13 @@ const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// CSRF defense-in-depth. Webhook callers (Stripe) are exempt — they're
+// identified and authenticated by the Stripe-Signature header separately.
+function isAllowedOrigin(event){
+  const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  if(!o) return true;
+  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+}
 function getCorsHeaders(event) {
   const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
@@ -84,11 +91,7 @@ function readCookieToken(event) {
   return '';
 }
 async function verifyToken(event) {
-  let token = readCookieToken(event);
-  if (!token) {
-    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
-    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
-  }
+  const token = readCookieToken(event);
   if (!token) return null;
   const data = await rGet('token:' + token);
   if (!data) return null;
@@ -309,6 +312,9 @@ exports.handler = async function (event) {
 
   // ── Stripe webhook (identified by stripe-signature header) ────────────────
   const stripeSignature = event.headers['stripe-signature'];
+  if (!stripeSignature && event.httpMethod !== 'GET' && !isAllowedOrigin(event)) {
+    return fail('Forbidden', 403);
+  }
   if (stripeSignature) {
     if (!STRIPE_WEBHOOK_SECRET) {
       console.error('[stripe] STRIPE_WEBHOOK_SECRET not set');
