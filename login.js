@@ -84,10 +84,9 @@ async function handleGoogleCredential(response){
     // Track Google Sign-In
     if(window.trackLogin) trackLogin('google');
     try{
-      var authH = 'Bearer ' + (res.token||'');
       var profileRes = await fetch('/.netlify/functions/auth', {
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':authH},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'getProfile'})
       }).then(function(r){ return r.json(); });
       if(profileRes.ok && profileRes.profile){
@@ -358,7 +357,6 @@ function persistSession(res, fallback){
     id:res.id||fallback.email,
     name:res.name||fallback.name||fallback.email.split('@')[0],
     email:res.email||fallback.email,
-    token:res.token||null,
     plan:res.plan||fallback.plan||'free',
     role:res.role||'user'
   };
@@ -398,10 +396,9 @@ async function doSignin(){
     // Track email Sign-In
     if(window.trackLogin) trackLogin('email');
     try{
-      const authH = 'Bearer ' + (res.token||'');
       const profileRes = await fetch('/.netlify/functions/auth', {
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':authH},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'getProfile'})
       }).then(r=>r.json());
       if(profileRes.ok && profileRes.profile){
@@ -480,10 +477,9 @@ async function doVerifyEmail(){
     if(window.trackSignup) trackSignup('email');
     if(window.trackAuthAction) trackAuthAction('email_verified', 'success');
     try{
-      const authH = 'Bearer ' + (res.token||'');
       const profileRes = await fetch('/.netlify/functions/auth', {
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':authH},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'getProfile'})
       }).then(r=>r.json());
       if(profileRes.ok && profileRes.profile){

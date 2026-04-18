@@ -65,7 +65,7 @@
     _trackQueue[evt]=Date.now();
     try{
       var s=JSON.parse(localStorage.getItem('propCalc_session_v1')||'{}');
-      if(!s.token) return;
+      if(!s.id) return;
       fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'track',event:evt})}).catch(function(){});
     }catch(e){}
   }
@@ -1478,12 +1478,10 @@
   async function getAllScenarios(){
     if(ON_NETLIFY){
       try{
-        const authH2 = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
+        const loggedIn = isLoggedIn();
         const uid2   = getUserId();
-        const qs     = (!authH2 && uid2) ? '?userId='+encodeURIComponent(uid2) : '';
-        const r = await fetch('/.netlify/functions/scenarios'+qs, {
-          headers: authH2 ? {'Authorization': authH2} : {}
-        });
+        const qs     = (!loggedIn && uid2) ? '?userId='+encodeURIComponent(uid2) : '';
+        const r = await fetch('/.netlify/functions/scenarios'+qs);
         if(r.ok){
           const data = await r.json();
           // Mirror to localStorage — survives Netlify rebuilds as a fallback
@@ -1501,20 +1499,19 @@
     if(ON_NETLIFY){
       try{
         // Send record first (fast — no photo payload). Photo uploads in background.
-        const authH = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
         const r = await fetch('/.netlify/functions/scenarios', {
           method: 'POST',
-          headers: Object.assign({'Content-Type':'application/json'}, authH ? {'Authorization': authH} : {}),
+          headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ action:'save', userId:getUserId(), id:record.id, fullAddr:record.fullAddr, state:record.state, hasPhoto:!!photoSrc, status:record.status||'browsing', thumb:record.thumb||'', exportCount:record.exportCount||0, savedAt:record.savedAt||new Date().toISOString() })
         });
         if(r.ok){
           // Mirror updated list to localStorage immediately (belt-and-suspenders)
           getAllScenarios().then(latest => { if(latest.length) lsSet(STORAGE_KEY, JSON.stringify(latest)); }).catch(()=>{});
           // Upload full photo in background — retry once on failure
-          if(photoSrc && authH){
+          if(photoSrc && isLoggedIn()){
             var _photoId = record.id;
             var _photoPayload = { action:'photo', userId:getUserId(), id: _photoId, photo: photoSrc };
-            var _photoHeaders = {'Content-Type':'application/json','Authorization': authH};
+            var _photoHeaders = {'Content-Type':'application/json'};
             fetch('/.netlify/functions/scenarios', {
               method: 'POST', headers: _photoHeaders,
               body: JSON.stringify(_photoPayload)
@@ -1547,12 +1544,11 @@
   async function deleteScenarioFromBackend(id){
     if(ON_NETLIFY){
       try{
-        const authH3 = (typeof getAuthHeader === 'function' && getAuthHeader()) || null;
+        const loggedIn3 = isLoggedIn();
         const uid3 = getUserId();
-        const deleteQs = '?id='+encodeURIComponent(id) + ((!authH3 && uid3) ? '&userId='+encodeURIComponent(uid3) : '');
+        const deleteQs = '?id='+encodeURIComponent(id) + ((!loggedIn3 && uid3) ? '&userId='+encodeURIComponent(uid3) : '');
         await fetch('/.netlify/functions/scenarios'+deleteQs, {
-          method:'DELETE',
-          headers: authH3 ? {'Authorization': authH3} : {}
+          method:'DELETE'
         });
       }catch(e){}
     }
@@ -1568,12 +1564,11 @@
     if(_photoCache[id]) return _photoCache[id];
     if(ON_NETLIFY){
       try{
-        const authH = getAuthHeader();
-        if(!authH) { /* guest: use localStorage */ }
+        if(!isLoggedIn()) { /* guest: use localStorage */ }
         else {
           const r = await fetch('/.netlify/functions/scenarios', {
             method: 'POST',
-            headers: {'Content-Type':'application/json', 'Authorization': authH},
+            headers: {'Content-Type':'application/json'},
             body: JSON.stringify({action:'getPhoto', userId:getUserId(), id})
           });
           if(r.ok){ const d=await r.json(); if(d.photo){ _photoCache[id]=d.photo; return d.photo; } return null; }
@@ -1947,11 +1942,10 @@
     // State is stored separately on the backend — fetch it if not already in cache
     if(!sc.state && ON_NETLIFY){
       try{
-        const authH = getAuthHeader();
-        if(authH){
+        if(isLoggedIn()){
           const r = await fetch('/.netlify/functions/scenarios', {
             method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':authH},
+            headers:{'Content-Type':'application/json'},
             body: JSON.stringify({action:'getState', userId:getUserId(), id:sc.id})
           });
           if(r.ok){
@@ -2157,9 +2151,8 @@
     document.getElementById('share-modal').style.display = 'block';
     // Load existing shares for this scenario
     try{
-      const authH = getAuthHeader();
-      if(authH){
-        const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'getMyShares',scenarioId})});
+      if(isLoggedIn()){
+        const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getMyShares',scenarioId})});
         if(r.ok){
           const d = await r.json();
           if(d.ok && d.shares && d.shares.length){
@@ -2186,9 +2179,8 @@
     btn.textContent = '⏳ Sharing…'; btn.disabled = true;
     statusEl.textContent = ''; statusEl.style.color = '';
     try{
-      const authH = getAuthHeader();
-      if(!authH){ statusEl.textContent = 'Please sign in to share scenarios'; statusEl.style.color='var(--risk-red)'; btn.textContent='↗ Share'; btn.disabled=false; return; }
-      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'share',scenarioId:_shareTargetId,targetEmail:email})});
+      if(!isLoggedIn()){ statusEl.textContent = 'Please sign in to share scenarios'; statusEl.style.color='var(--risk-red)'; btn.textContent='↗ Share'; btn.disabled=false; return; }
+      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'share',scenarioId:_shareTargetId,targetEmail:email})});
       const d = await r.json();
       if(d.ok){
         if(d.invited){
@@ -2221,9 +2213,8 @@
 
   async function loadSharedWithMe(){
     try{
-      const authH = getAuthHeader();
-      if(!authH) return;
-      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'getSharedWithMe'})});
+      if(!isLoggedIn()) return;
+      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getSharedWithMe'})});
       if(!r.ok) return;
       const d = await r.json();
       if(d.ok && d.items && d.items.length) _renderSharedSection(d.items);
@@ -2272,12 +2263,11 @@
     const loadBtn = document.getElementById('confirm-load-btn');
     if(loadBtn){ loadBtn._ot = loadBtn.innerHTML; loadBtn.innerHTML = '<div class="spinner-sm"></div> Loading…'; loadBtn.disabled = true; }
     try{
-      const authH = getAuthHeader();
-      if(!authH){
+      if(!isLoggedIn()){
         if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
         closeConfirmModal(); showToast('⚠️ Please sign in'); return;
       }
-      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'getSharedState',ownerId,scenarioId})});
+      const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getSharedState',ownerId,scenarioId})});
       const d = await r.json();
       if(!d.ok){
         if(loadBtn){ loadBtn.innerHTML = loadBtn._ot || '✓ Yes, Load It'; loadBtn.disabled = false; }
@@ -2311,9 +2301,8 @@
 
   async function dismissSharedScenario(ownerId, scenarioId){
     try{
-      const authH = getAuthHeader();
-      if(!authH) return;
-      await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'dismissShared',ownerId,scenarioId})});
+      if(!isLoggedIn()) return;
+      await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'dismissShared',ownerId,scenarioId})});
       loadSharedWithMe(); // refresh
     }catch(e){}
   }
@@ -2377,8 +2366,8 @@
       try{ var cfg=JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); if(!cfg.adminViewAllScenarios) return; }catch(e){ return; }
     }
     try{
-      const authH=getAuthHeader(); if(!authH) return;
-      const r=await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'adminListAllScenarios'})});
+      if(!isLoggedIn()) return;
+      const r=await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'adminListAllScenarios'})});
       if(!r.ok) return;
       const d=await r.json();
       if(d.ok&&d.groups) { _adminAllCache=d.groups; _renderAdminAllSection(d.groups); }
@@ -2440,9 +2429,8 @@
     var loadBtn=document.getElementById('confirm-load-btn');
     if(loadBtn){loadBtn._ot=loadBtn.innerHTML;loadBtn.innerHTML='<div class="spinner-sm"></div> Loading…';loadBtn.disabled=true;}
     try{
-      var authH=getAuthHeader();
-      if(!authH){if(loadBtn){loadBtn.innerHTML=loadBtn._ot||'✓ Yes, Load It';loadBtn.disabled=false;}closeConfirmModal();return;}
-      var r=await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json','Authorization':authH},body:JSON.stringify({action:'adminGetScenarioState',userId:uid,id:sid})});
+      if(!isLoggedIn()){if(loadBtn){loadBtn.innerHTML=loadBtn._ot||'✓ Yes, Load It';loadBtn.disabled=false;}closeConfirmModal();return;}
+      var r=await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'adminGetScenarioState',userId:uid,id:sid})});
       var d=await r.json();
       if(!d.ok){if(loadBtn){loadBtn.innerHTML=loadBtn._ot||'✓ Yes, Load It';loadBtn.disabled=false;}closeConfirmModal();showToast('⚠️ '+(d.error||'Could not load scenario'));return;}
       var state=typeof d.state==='string'?JSON.parse(d.state):d.state;
@@ -3438,11 +3426,10 @@
       const sc = scenarios.find(s => (s.fullAddr||'').toLowerCase().trim() === _lastSavedAddr.toLowerCase().trim());
       if(!sc) return;
       const updated = Object.assign({}, sc, { exportCount: (sc.exportCount || 0) + 1 });
-      const authH = getAuthHeader();
-      if(authH){
+      if(isLoggedIn()){
         await fetch('/.netlify/functions/scenarios', {
           method: 'POST',
-          headers: {'Content-Type':'application/json','Authorization': authH},
+          headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ action:'save', userId:getUserId(), id:updated.id, fullAddr:updated.fullAddr, state:updated.state, hasPhoto:updated.hasPhoto, status:updated.status||'browsing', thumb:updated.thumb||'', exportCount:updated.exportCount, savedAt:updated.savedAt||updated.timestamp })
         });
       }
@@ -4171,8 +4158,8 @@
     setTimeout(loadSchemesFromBackend, 200);
     // Background sync: refresh plan/role from server so admin changes take effect without re-login
     // Also fetch latest profile including photo from Redis
-    if(_currentUser && _currentUser.token && ON_NETLIFY){
-      callAuthFn('verify', {token: _currentUser.token}).then(function(d){
+    if(_currentUser && _currentUser.id && ON_NETLIFY){
+      callAuthFn('verify', {}).then(function(d){
         if(!d.ok) return;
         var changed = d.plan !== _currentUser.plan || d.role !== _currentUser.role;
         if(changed){
@@ -4267,11 +4254,10 @@
       }
     } catch(e){}
     // Try fetching from backend
-    var authH = getAuthHeader && getAuthHeader();
-    if(!authH || typeof ON_NETLIFY === 'undefined' || !ON_NETLIFY) return;
+    if(!isLoggedIn() || typeof ON_NETLIFY === 'undefined' || !ON_NETLIFY) return;
     fetch('/.netlify/functions/auth', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': authH },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'getSchemes' })
     }).then(function(r){ return r.json(); }).then(function(d){
       if(d.ok && d.schemes && d.schemes.length){
@@ -4307,7 +4293,7 @@
     // Always fetch fresh config from backend so maintenance/banner changes are immediate
     var sess = null;
     try { sess = JSON.parse(localStorage.getItem('propCalc_session_v1')); } catch(e){}
-    if(sess && sess.token && typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY){
+    if(sess && sess.id && typeof ON_NETLIFY !== 'undefined' && ON_NETLIFY){
       fetch('/.netlify/functions/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -4402,7 +4388,6 @@
     toggleProjectionGate();
   }
 
-  // Returns Authorization header value for API calls, or null if guest
   function applyPlanUI(){
     var pro = isPro();
     // Hide projection lock icon for pro users
@@ -4438,9 +4423,8 @@
     }
   }
 
-    function getAuthHeader(){
-    if(_currentUser && _currentUser.token) return 'Bearer ' + _currentUser.token;
-    return null;
+  function isLoggedIn(){
+    return !!(_currentUser && _currentUser.id);
   }
 
   function getUserPlan(){
@@ -4668,9 +4652,7 @@
     var ok = await appConfirm('Sign Out', 'Are you sure you want to sign out?', {icon:'→', confirmLabel:'Sign Out'});
     if(!ok) return;
     showPageSpinner();
-    if(_currentUser && _currentUser.token){
-      callAuthFn('signout', {token: _currentUser.token}).catch(function(){});
-    }
+    callAuthFn('signout', {}).catch(function(){});
     lsDel(SESSION_KEY);
     location.href = '/login';
   }
@@ -4939,19 +4921,18 @@
     lsSet(getProfileKey(), JSON.stringify(_profileData));
     // Save to backend
     try{
-      var authH = getAuthHeader();
-      if(authH){
+      if(isLoggedIn()){
         var profileToSave = Object.assign({}, _profileData);
         delete profileToSave.photo; // photos via separate endpoint
         await fetch('/.netlify/functions/auth',{
           method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':authH},
+          headers:{'Content-Type':'application/json'},
           body:JSON.stringify({action:'setProfile',profile:profileToSave})
         });
-        if(_profileData.photo && authH){
+        if(_profileData.photo){
           await fetch('/.netlify/functions/auth',{
             method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':authH},
+            headers:{'Content-Type':'application/json'},
             body:JSON.stringify({action:'setPhoto',photo:_profileData.photo})
           });
         }

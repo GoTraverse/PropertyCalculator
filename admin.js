@@ -16,8 +16,8 @@
  *   loadStats()         — fetches signup/login stats via adminGetStats
  *   callAuth(action)    — helper: POST to /.netlify/functions/auth with session token
  *
- * All backend calls go to /.netlify/functions/auth with { action, token, ...params }
- * Session token stored in localStorage 'propCalc_session_v1'.token
+ * All backend calls go to /.netlify/functions/auth with { action, ...params }
+ * Session stored in localStorage 'propCalc_session_v1'; auth via HttpOnly cookie
  */
 
 const SESSION_KEY = 'propCalc_session_v1';
@@ -122,7 +122,7 @@ async function init(){
 
   // Verify token with backend — never fall back to localStorage role
   let d = {};
-  try { d = await callAuth('verify', {token: sess.token}); } catch(e){
+  try { d = await callAuth('verify', {}); } catch(e){
     showAccessDenied('Network error verifying session — check your connection and try again.');
     return;
   }
@@ -167,8 +167,7 @@ async function bootstrapAdmin(){
   st.textContent = 'Claiming admin role…'; st.className = 'admin-status info';
   const d = await callAuth('setSelfAdmin');
   if(d.ok){
-    // Update local session with new token and admin role
-    const updated = Object.assign({}, sess, {token: d.token || sess.token, role: 'admin'});
+    const updated = Object.assign({}, sess, {role: 'admin'});
     localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
     st.textContent = '✓ Admin role granted! Reloading…'; st.className = 'admin-status ok';
     setTimeout(() => location.reload(), 1200);

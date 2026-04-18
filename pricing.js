@@ -8,7 +8,7 @@ async function startCheckout(){
   try { session = JSON.parse(localStorage.getItem(SK)); } catch(e){}
 
   // Not logged in → send to signup, then back here
-  if(!session || !session.token){
+  if(!session || !session.id){
     location.href = '/login?tab=signup&plan=pro&redirect=' + encodeURIComponent('/pricing?checkout=1');
     return;
   }
