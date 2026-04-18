@@ -4,7 +4,7 @@
  * - Reads session from propCalc_session_v1 (localStorage)
  * - Mounts star picker + form into #review-form-mount
  * - Guest users see "Sign in to leave a review" CTA instead
- * - On submit POSTs to /.netlify/functions/reviews with Bearer token
+ * - On submit POSTs to /.netlify/functions/reviews — auth via es_session cookie
  * - "Show more reviews" button loads additional approved reviews via GET list
  *
  * Static (build-time) reviews block lives at #community-reviews — this script

@@ -19,11 +19,21 @@ const SALT = (process.env.AUTH_SALT || '').trim();
 const TOKEN_TTL   = 60 * 60 * 24 * 30; // 30 days
 
 // HttpOnly session cookie — set on signin/verifyEmail/googleSignin, cleared on signout.
-// Token is never exposed to client JS; verifyToken() reads cookie first, then
-// Authorization header as fallback for any legacy clients still in browser cache.
+// Token is never exposed to client JS; verifyToken() reads this cookie only.
 const SESSION_COOKIE_NAME = 'es_session';
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+
+// Defense-in-depth CSRF check for mutating requests. SameSite=Lax already
+// blocks cross-site POST cookies, but verifying the Origin header catches any
+// browser or proxy that relaxes that rule. Returns false only when an Origin
+// is present AND it's not in the allowlist. Missing Origin (same-origin GET,
+// server-to-server, native app) is treated as safe.
+function isAllowedOrigin(event){
+  const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  if(!o) return true;
+  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+}
 
 function getCorsHeaders(event) {
   const reqOrigin = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
@@ -250,11 +260,31 @@ async function softDeleteUser(userData, opts){
 // Delete all Redis keys associated with a user account.
 // userData must contain: email, id (userId), and optionally stripeCustomerId.
 // opts: { deleteReason, deletedBy } — passed to softDeleteUser for archival.
+// Revoke every outstanding session token for a user. Scan-based — O(N) over
+// all live tokens — but user deletion is rare, and leaving tokens to expire at
+// their 30-day TTL leaves stale records in Redis referencing a ghost user.
+async function revokeAllTokensForUser(uid){
+  if(!uid) return;
+  try{
+    const keys = await scanAll('token:*');
+    if(!keys.length) return;
+    const toDelete = [];
+    for(const k of keys){
+      const data = await rGet(k);
+      if(data && data.userId === uid) toDelete.push(rDel(k));
+    }
+    if(toDelete.length) await Promise.all(toDelete);
+  }catch(e){ /* non-fatal — TTL will clean up any that slipped through */ }
+}
+
 async function deleteUserKeys(userData, opts){
   // Archive before purging
   await softDeleteUser(userData, opts);
   const uid = userData.id;
   const email = userData.email.toLowerCase().trim();
+  // Revoke all sessions first so no concurrent request can touch the user
+  // record mid-delete.
+  await revokeAllTokensForUser(uid);
   const delOps = [
     rDel('user:'+email),
     rDel('profile:'+uid),
@@ -343,22 +373,11 @@ function ok(b, setCookie){
 }
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
 
-// Verify a session token. Accepts either (event) — preferred, reads cookie
-// then falls back to Authorization header — or the legacy (authHeader) string
-// form used by older call sites. Returns the token payload or null.
-async function verifyToken(eventOrAuthHeader){
-  let token = '';
-  if(typeof eventOrAuthHeader === 'string'){
-    // Legacy signature: just the Authorization header value
-    if(eventOrAuthHeader && eventOrAuthHeader.startsWith('Bearer ')) token = eventOrAuthHeader.slice(7).trim();
-  } else if(eventOrAuthHeader && typeof eventOrAuthHeader === 'object'){
-    // Preferred: full event — cookie first, Authorization header fallback
-    token = readCookieToken(eventOrAuthHeader);
-    if(!token){
-      const authHeader = eventOrAuthHeader.headers?.authorization || eventOrAuthHeader.headers?.Authorization || '';
-      if(authHeader && authHeader.startsWith('Bearer ')) token = authHeader.slice(7).trim();
-    }
-  }
+// Verify a session token. Reads the HttpOnly es_session cookie only — no
+// Authorization header fallback since all clients are cookie-based (Phase 6).
+// Returns the token payload or null.
+async function verifyToken(event){
+  const token = readCookieToken(event);
   if(!token) return null;
   const data=await rGet('token:'+token);
   if(!data) return null;
@@ -371,7 +390,10 @@ exports.handler = async function(event){
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
   if(!SALT) return fail('Server configuration error — AUTH_SALT not set', 500);
 
-  // GET = verify token from Authorization header
+  // Reject mutating requests whose Origin isn't in our allowlist (CSRF).
+  if(event.httpMethod!=='GET' && !isAllowedOrigin(event)) return fail('Forbidden',403);
+
+  // GET = verify cookie-backed session
   if(event.httpMethod==='GET'){
     const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
@@ -383,7 +405,7 @@ exports.handler = async function(event){
   }
 
   // ── General per-IP rate limit: max 30 auth requests per 60 seconds ──────────
-  const reqIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+  const reqIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
   try{
     const ipCount=await rRateInc('authReq:'+reqIp, 60);
     if(ipCount>30) return fail('Too many requests — please slow down', 429);
@@ -397,7 +419,7 @@ exports.handler = async function(event){
     const {email,password,name,plan,ref,turnstileToken}=body;
     if(!email||!password) return fail('Email and password required');
     // Turnstile CAPTCHA verification
-    const clientIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    const clientIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
     if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, clientIp)) return fail('Security check failed — please try again', 403);
     // Rate limit signups per IP to prevent email-bombing the transactional email service
     const signupRateKey='signup:'+clientIp;
@@ -459,7 +481,7 @@ exports.handler = async function(event){
     const {email,password,turnstileToken}=body;
     if(!email||!password) return fail('Email and password required');
     // Turnstile CAPTCHA verification
-    const signinIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    const signinIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
     if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, signinIp)) return fail('Security check failed — please try again', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Rate limit: max 10 failed attempts per email per 15 minutes
@@ -476,7 +498,7 @@ exports.handler = async function(event){
     }
     user.lastLoginAt=Date.now();
     user.loginCount=(user.loginCount||0)+1;
-    user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
+    user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
     await rSet('user:'+normalizedEmail,user);
     await logEvent(user.id,'signin',{ip:user.lastLoginIp||''});
     const token=makeToken();
@@ -535,7 +557,7 @@ exports.handler = async function(event){
     // Record first login stats (same fields captured on signin)
     user.lastLoginAt=Date.now();
     user.loginCount=1;
-    user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
+    user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
     await rSet('user:'+normalizedEmail,user);
     await logEvent(user.id,'email_verified',{ip:user.lastLoginIp||''});
     sendWelcomeEmail(normalizedEmail, user.name).catch(()=>{});
@@ -574,7 +596,7 @@ exports.handler = async function(event){
     const name=tokenData.name||tokenData.given_name||email.split('@')[0];
     const ekey='user:'+email;
     let user=await rGet(ekey);
-    const clientIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    const clientIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
 
     if(!user){
       // New user — create account (no password, no email verification needed)
@@ -633,16 +655,8 @@ exports.handler = async function(event){
   }
 
   if(action==='verify'){
-    // Accept token from body (legacy client path) or from session cookie /
-    // Authorization header (new clients that never stored the token in JS).
-    let token=body.token;
-    if(!token){
-      token = readCookieToken(event);
-      if(!token){
-        const ah = event.headers?.authorization || event.headers?.Authorization || '';
-        if(ah && ah.startsWith('Bearer ')) token = ah.slice(7).trim();
-      }
-    }
+    // Token lives in the HttpOnly es_session cookie (Phase 6).
+    const token = readCookieToken(event);
     if(!token) return fail('Token required');
     const data=await rGet('token:'+token);
     if(!data||(data.expires&&Date.now()>data.expires)) return fail('Invalid or expired session');
@@ -664,7 +678,7 @@ exports.handler = async function(event){
     try{
       if(Date.now()-(userData.lastActiveAt||userData.lastLoginAt||0) > 60*60*1000){
         userData.lastActiveAt=Date.now();
-        userData.lastActiveIp=(event.headers?.['x-nf-client-connection-ip']||event.headers?.['x-forwarded-for']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||userData.lastActiveIp||'';
+        userData.lastActiveIp=(event.headers?.['x-nf-client-connection-ip']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||userData.lastActiveIp||'';
         await rSet('user:'+data.email,userData);
       }
     }catch(e){}
@@ -672,16 +686,9 @@ exports.handler = async function(event){
   }
 
   if(action==='signout'){
-    // Resolve token from body (legacy) OR cookie OR Authorization header so
-    // the server can revoke it regardless of how the client identifies itself.
-    let token=body.token;
-    if(!token){
-      token = readCookieToken(event);
-      if(!token){
-        const ah = event.headers?.authorization || event.headers?.Authorization || '';
-        if(ah && ah.startsWith('Bearer ')) token = ah.slice(7).trim();
-      }
-    }
+    // Token is resolved from the HttpOnly cookie (Phase 6). The body/header
+    // fallbacks are gone — a logged-out client has nothing to send anyway.
+    const token = readCookieToken(event);
     if(token){
       const td=await rGet('token:'+token);
       if(td&&td.userId) logEvent(td.userId,'signout',{}).catch(()=>{});
@@ -767,7 +774,7 @@ exports.handler = async function(event){
     const {email,turnstileToken}=body;
     if(!email) return fail('Email required');
     // Turnstile CAPTCHA verification
-    const resetIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    const resetIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
     if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, resetIp)) return fail('Security check failed — please try again', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Rate limit: max 3 reset emails per email per hour (prevent email bombing)
@@ -814,11 +821,9 @@ exports.handler = async function(event){
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
     if(!safeEqual(userData.hash,hashPw(password))) return fail('Incorrect password');
+    // deleteUserKeys() now revokes every token for this user, so we just need
+    // to clear the cookie on the browser.
     await deleteUserKeys(userData, {deleteReason: (deleteReason||'').slice(0,500), deletedBy:'self'});
-    if(body.token) await rDel('token:'+body.token);
-    // Also revoke the session cookie token (if set) and clear it from the browser.
-    const cookieToken = readCookieToken(event);
-    if(cookieToken && cookieToken !== body.token) await rDel('token:'+cookieToken);
     return ok({ok:true}, buildClearSessionCookie());
   }
 
@@ -1382,7 +1387,7 @@ exports.handler = async function(event){
     const ALLOWED_EVENTS=['recalc','pdf_export','save_scenario','load_scenario','share_scenario','tab_switch','pro_upgrade_prompt','compare_view','amortisation_view','projection_view'];
     const evt=String(body.event||'').slice(0,50);
     if(!evt||!ALLOWED_EVENTS.includes(evt)) return ok({ok:true}); // silent drop for unknown events
-    const trackIp=(event.headers['x-nf-client-connection-ip']||event.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+    const trackIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
     try{
       const rc=await rRateInc('trackRate:'+trackIp,60);
       if(rc>60) return ok({ok:true}); // silent rate-limit

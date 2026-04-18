@@ -18,6 +18,12 @@ const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// CSRF defense-in-depth. See auth.js for the rationale.
+function isAllowedOrigin(event){
+  const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  if(!o) return true;
+  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+}
 function getCorsHeaders(event) {
   const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
@@ -128,11 +134,7 @@ function readCookieToken(event) {
   return '';
 }
 async function verifyToken(event){
-  let token = readCookieToken(event);
-  if (!token) {
-    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
-    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
-  }
+  const token = readCookieToken(event);
   if(!token) return null;
   const raw=await redisCmd('GET','token:'+token);
   if(!raw) return null;
@@ -179,6 +181,7 @@ async function verifyAdminToken(event){
 exports.handler = async function(event){
   H = getCorsHeaders(event);
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
+  if(event.httpMethod!=='GET' && !isAllowedOrigin(event)) return fail('Forbidden',403);
 
   if(!REDIS_URL||!REDIS_TOKEN){
     console.error('[scenarios] Missing UPSTASH env vars');

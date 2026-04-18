@@ -196,7 +196,7 @@ async function checkRateLimit(ip) {
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
 
-  const clientIp = (event.headers?.['x-nf-client-connection-ip'] || event.headers?.['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+  const clientIp = (event.headers?.['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
   if (await checkRateLimit(clientIp)) {
     return { statusCode: 429, headers: H, body: JSON.stringify({ ok: false, error: 'Too many requests' }) };
   }
