@@ -33,6 +33,8 @@ General - (DO NOT REMOVE THIS LINE)
 27. Refresh sitemap-core.xml lastmod dates when core pages change
 28. Audit .netlifyignore for .env*, .git, package-lock.json, local build artefacts
 29. Tighten CORS on mutating Netlify functions to https://equitysight.app (currently *)
+30. Need to create a better blog post editor in the admin page, something more professional with more features and a way to add posts to different sections like tool, suburb or other blog content etc.
+31. The Blog page on main site needs to be laid out like other proffesional blog sites, we need to upgrade this to be better.
 
 
 Desktop - (DO NOT REMOVE THIS LINE)
