@@ -55,7 +55,7 @@
 | **Frontend** | Plain HTML + CSS + vanilla JS — no framework, no build step, no bundler |
 | **Backend** | Netlify Functions (Node.js serverless) |
 | **Database** | Upstash Redis (REST API) |
-| **Authentication** | Custom token-based auth with Upstash Redis |
+| **Authentication** | HttpOnly cookie session auth with Upstash Redis |
 | **Payments** | Stripe (subscriptions, webhooks, discount tracking) |
 | **Email** | Resend API (transactional & contact form emails) |
 | **Hosting** | Netlify (automatic deployment on git push) |
@@ -270,7 +270,7 @@ npx netlify dev
 ### Plans & Roles
 - **Plans**: `free` | `pro` | `adviser` — stored in localStorage session + Redis user record
 - **Roles**: `user` | `admin` — admin role unlocks `admin.html` dashboard
-- **Session**: localStorage key `propCalc_session_v1` = `{id, email, name, plan, token, role}`
+- **Session**: HttpOnly Secure cookie `es_session` (auth token); localStorage key `propCalc_session_v1` = `{id, email, name, plan, role}` (UI state only, no token)
 
 ### Important Notes
 - **AUTH_SALT** — throws hard error at startup in production if not set. Never deploy without.
