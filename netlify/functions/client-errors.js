@@ -35,9 +35,24 @@ async function rGet(key) {
   try { return JSON.parse(raw); } catch (e) { return raw; }
 }
 
-async function verifyToken(authHeader) {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyToken(event) {
+  let token = readCookieToken(event);
+  if (!token) {
+    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
+    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
+  }
   if (!token) return null;
   try {
     const data = await rGet('token:' + token);
@@ -223,7 +238,7 @@ exports.handler = async function (event) {
 
   // ── Admin: fetch errors ───────────────────────────────────────────────────
   if (action === 'adminGetClientErrors') {
-    const user = await verifyToken(event.headers?.authorization || event.headers?.Authorization);
+    const user = await verifyToken(event);
     if (!user || user.role !== 'admin') return fail('Unauthorized', 401);
     try {
       const raw = await redisCmd('LRANGE', 'client-errors', '0', '-1');
@@ -237,7 +252,7 @@ exports.handler = async function (event) {
 
   // ── Admin: sync errors to GitHub repo ─────────────────────────────────────
   if (action === 'syncErrorsToGitHub') {
-    const user = await verifyToken(event.headers?.authorization || event.headers?.Authorization);
+    const user = await verifyToken(event);
     if (!user || user.role !== 'admin') return fail('Unauthorized', 401);
     const ghToken = (process.env.GITHUB_TOKEN || '').trim();
     if (!ghToken) return fail('Automatic error sync not configured');
@@ -252,7 +267,7 @@ exports.handler = async function (event) {
 
   // ── Admin: clear errors ───────────────────────────────────────────────────
   if (action === 'adminClearClientErrors') {
-    const user = await verifyToken(event.headers?.authorization || event.headers?.Authorization);
+    const user = await verifyToken(event);
     if (!user || user.role !== 'admin') return fail('Unauthorized', 401);
     try { await redisCmd('DEL', 'client-errors'); } catch (e) {}
     return ok({ ok: true });

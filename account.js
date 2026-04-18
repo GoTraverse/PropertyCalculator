@@ -213,11 +213,10 @@ async function changePassword(){
   if(nw.length < 8){ st.textContent='New password must be at least 8 characters'; st.className='acct-status-msg err'; return; }
   if(nw !== cf){ st.textContent="New passwords don't match"; st.className='acct-status-msg err'; return; }
   st.textContent='Updating…'; st.className='acct-status-msg';
-  const token = session && session.token;
   try{
     const r = await fetch('/.netlify/functions/auth', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw })
     });
     const d = await r.json();
@@ -236,15 +235,14 @@ async function changePassword(){
 }
 
 async function loadBillingStatus(){
-  const token = session && session.token;
-  if(!token) return;
+  if(!session || !session.id) return;
   var pmEl   = document.getElementById('payment-method-text');
   var planEl = document.getElementById('billing-plan-text');
   if(pmEl) pmEl.textContent = 'Loading…';
   try{
     const r = await fetch('/.netlify/functions/stripe',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'getSubscriptionStatus'})
     });
     const d = await r.json();
@@ -298,14 +296,13 @@ async function loadBillingStatus(){
 }
 
 async function openBillingPortal(){
-  const token = session && session.token;
-  if(!token){ acctAlert('Not signed in', 'Please sign in to manage billing.', {icon:'🔒'}); return; }
+  if(!session || !session.id){ acctAlert('Not signed in', 'Please sign in to manage billing.', {icon:'🔒'}); return; }
   const st = document.getElementById('delete-status');
   if(st){ st.textContent='Opening billing portal…'; st.className='acct-status-msg info'; }
   try{
     const r = await fetch('/.netlify/functions/stripe',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'createPortalSession',returnUrl:location.href})
     });
     const d = await r.json();
@@ -378,11 +375,10 @@ async function confirmDeleteAccount(){
   if(!pw) return;
   const st = document.getElementById('delete-status') || document.createElement('span');
   try{
-    const token = session && session.token;
     const r = await fetch('/.netlify/functions/auth',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(token||'')},
-      body:JSON.stringify({action:'deleteAccount',password:pw,token:token,deleteReason:reason})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'deleteAccount',password:pw,deleteReason:reason})
     });
     const d = await r.json();
     if(d.ok){
@@ -405,9 +401,7 @@ async function confirmDeleteAccount(){
 function doSignOut(){
   // Track logout/sign out
   if(window.trackPageEvent) trackPageEvent('user_signout', {});
-  if(session?.token){
-    fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'signout',token:session.token})}).catch(()=>{});
-  }
+  fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'signout'})}).catch(()=>{});
   localStorage.removeItem(SK);
   location.href='/';
 }
@@ -453,12 +447,11 @@ async function savePreferences(){
   profileData.prefs = prefs;
   applyTheme(theme);
   try{ localStorage.setItem(getProfileKey(), JSON.stringify(profileData)); }catch(e){}
-  var token = session && session.token;
-  if(token){
+  if(session && session.id){
     try{
       var r = await fetch('/.netlify/functions/auth', {
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        headers:{'Content-Type':'application/json'},
         body: JSON.stringify({action:'setProfile', profile: profileData})
       });
       var d = await r.json();
@@ -554,7 +547,7 @@ loadSession();
 renderAccount();
 loadPreferences();
 
-if(session && session.token){
+if(session && session.id){
   const isUpgradeReturn = urlParams.has('upgraded');
   const oldPlan = session.plan;
 
@@ -590,7 +583,7 @@ if(session && session.token){
     return fetch('/.netlify/functions/auth', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({action: 'getProfile', token: session.token})
+      body: JSON.stringify({action: 'getProfile'})
     }).then(function(r){ return r.ok ? r.json() : null; });
   }
 

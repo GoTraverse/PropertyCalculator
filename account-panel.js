@@ -15,7 +15,7 @@
   function getProfileKey(){ var s = getSession(); return PROFILE_BASE + '_' + (s && (s.id || s.userId) || 'guest'); }
   function getProfile()  { try { return JSON.parse(localStorage.getItem(getProfileKey())) || {}; } catch(e) { return {}; } }
   function saveProfile(p){ localStorage.setItem(getProfileKey(), JSON.stringify(p)); }
-  function getAuthHeader(){ var s = getSession(); return s && s.token ? 'Bearer ' + s.token : null; }
+  function isLoggedIn(){ var s = getSession(); return !!(s && s.id); }
   // Only allow data:image/* (from canvas) or https:// URLs in photo src attributes
   function safePhotoSrc(url) {
     if (!url) return null;
@@ -354,13 +354,12 @@
     saveProfile(_apProfile);
 
     // Sync to backend
-    var authH = getAuthHeader();
-    if (authH) {
+    if (isLoggedIn()) {
       try {
         var p2 = Object.assign({}, _apProfile); delete p2.photo;
-        await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': authH }, body: JSON.stringify({ action: 'setProfile', profile: p2 }) });
+        await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setProfile', profile: p2 }) });
         if (_apProfile.photo) {
-          await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': authH }, body: JSON.stringify({ action: 'setPhoto', photo: _apProfile.photo }) });
+          await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setPhoto', photo: _apProfile.photo }) });
         }
       } catch (e) {}
     }
@@ -395,7 +394,7 @@
     if (nw !== cf) { st.textContent = "Passwords don\u2019t match"; st.className = 'ap2-status err'; return; }
     st.textContent = 'Updating\u2026'; st.className = 'ap2-status ok';
     try {
-      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw }) });
+      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', },body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw }) });
       var d = await r.json();
       if (d.ok) {
         st.textContent = '\u2713 Password updated';
@@ -419,7 +418,7 @@
     var pw = prompt('Enter your password to permanently delete your account. This cannot be undone.');
     if (!pw) return;
     try {
-      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'deleteAccount', password: pw, deleteReason: deleteReason }) });
+      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', },body: JSON.stringify({ action: 'deleteAccount', password: pw, deleteReason: deleteReason }) });
       var d = await r.json();
       if (d.ok) { localStorage.clear(); alert('Account deleted. Goodbye!'); location.href = '/'; }
       else alert(d.error || 'Incorrect password \u2014 account not deleted');
@@ -438,13 +437,12 @@
   };
 
   function ap2LoadReferralCode() {
-    var auth = getAuthHeader();
-    if (!auth) return;
+    if (!isLoggedIn()) return;
     el('ap2-ref-loading').style.display = '';
     el('ap2-ref-content').style.display = 'none';
     fetch('/.netlify/functions/auth', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': auth },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'getReferralCode' })
     })
     .then(function(r){ return r.json(); })

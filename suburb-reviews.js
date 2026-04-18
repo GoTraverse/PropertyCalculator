@@ -125,7 +125,7 @@
       result.className = 'suburb-review-result';
 
       var sess = getSession();
-      if (!sess || !sess.token) {
+      if (!sess || !sess.id) {
         result.textContent = 'Your session has expired — please sign in again.';
         result.classList.add('is-error');
         return;
@@ -159,7 +159,6 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sess.token,
           },
           body: JSON.stringify({
             action: 'submitReview',
@@ -265,7 +264,7 @@
     var ctx = getFormCtx();
     if (!ctx || !ctx.mount) return;
     var sess = getSession();
-    if (sess && sess.token) renderForm(ctx);
+    if (sess && sess.id) renderForm(ctx);
     else renderGuestCTA(ctx);
     wireLoadMore(ctx);
   }

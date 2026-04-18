@@ -8,7 +8,7 @@
   try{
     var KEY='es_page_trail';
     var s=localStorage.getItem('propCalc_session_v1');
-    if(s&&JSON.parse(s).token) return; // already logged in — stop recording
+    if(s&&JSON.parse(s).id) return; // already logged in — stop recording
     var trail=JSON.parse(localStorage.getItem(KEY)||'[]');
     var entry={p:location.pathname,t:Date.now()};
     if(location.search) entry.q=location.search.slice(0,120);

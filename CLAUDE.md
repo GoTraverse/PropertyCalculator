@@ -72,15 +72,17 @@ See **`README.md`** for feature overview and quick start guide.
   div.innerHTML = '<p>' + escHtml(userInput) + '</p>';
   ```
 - **Photo URLs**: Validate via `safePhotoSrc()` — only `data:image/*;base64,` or `https://` allowed
-- **Admin Actions**: Every admin function verifies `user.role === 'admin'` + bearer token
-- **Token Auth**: Bearer token in Authorization header — verified on every backend call
+- **Admin Actions**: Every admin function verifies `user.role === 'admin'` via session cookie
+- **Session Auth**: HttpOnly Secure cookie (`es_session`) — set on login, cleared on signout; token never exposed to client JS
 - **Password Hashing**: HMAC-SHA256 with `AUTH_SALT` (required in production)
 
 ### Session Management
-- **Session Key**: `propCalc_session_v1` in localStorage
-- **Session Shape**: `{ id, email, name, plan, token, role, ...subscription fields }`
-- **Token TTL**: 30 days (stored in Redis as `token:<token>`)
-- **Verification**: `auth.js` action `verify` checks token + user existence (logs out deleted users)
+- **Session Key**: `propCalc_session_v1` in localStorage (UI state only — no token)
+- **Session Shape**: `{ id, email, name, plan, role, ...subscription fields }`
+- **Auth Cookie**: `es_session` — HttpOnly, Secure, SameSite=Lax, 30-day TTL
+- **Token TTL**: 30 days (stored in Redis as `token:<token>`, transmitted only via cookie)
+- **Login Guard**: `isLoggedIn()` checks `session.id` (not token) on client side
+- **Verification**: `auth.js` action `verify` reads token from cookie, checks user existence (logs out deleted users)
 - **Re-render Nav**: Call `window.renderSiteNav()` after session changes
 
 ### Feature Gating
@@ -154,7 +156,7 @@ See **`README.md`** for feature overview and quick start guide.
 
 ### Data Flow
 - **Frontend**: HTML → auth-nav.js/footer.js inject nav/footer → app.js/admin.js handle interactions
-- **Backend**: POST to `/.netlify/functions/{name}` with JSON body + Authorization header
+- **Backend**: POST to `/.netlify/functions/{name}` with JSON body; auth via HttpOnly `es_session` cookie (automatic)
 - **Storage**: Redis for user data (auth.js), scenarios (scenarios.js), errors (client-errors.js), growth (growth.js)
 - **Cache**: localStorage for session, draft state, profile preferences, site config
 
@@ -228,6 +230,8 @@ Files intentionally NOT blocked (needed at runtime):
 - ✅ **Phase 3 — Human-authored blog CMS** — admin authors posts in Redis via the new Blog tab; `build/build-blog.js` renders to static HTML at deploy time. New `netlify/functions/blog.js` (admin CRUD + slug collision check + tag index maintenance), `build/md.js` (shared Markdown parser), `templates/blog-post.html` + `templates/blog-index.html` (BlogPosting + BreadcrumbList + Person JSON-LD), `blog.css`, `sitemap-blog.xml`, `/blog/rss.xml`. Editor shows live word count vs AdSense 1,500-word floor. Build-blog falls back to `BLOG_FIXTURE` JSON when Upstash env vars absent.
 - ✅ **Phase 4 — Suburb reviews & star ratings (UGC)** — logged-in users post 100+ char reviews with 1–5 star ratings on non-noindexed suburb pages. New `netlify/functions/reviews.js` (submit/list/admin actions with auth + per-IP 10/hr and per-user 3/day rate limits, `escHtml()` on write, 3-state moderation: pending/approved/rejected, atomic `HINCRBY` on `{count,sum}` aggregate). New `build/fetch-reviews.js` — spawned via `execSync` from `build-suburbs.js` to keep the build sync; SCANs `reviews:agg:*` and prints a JSON map of approved reviews to stdout. `build-suburbs.js` injects up to 10 approved reviews as **static HTML** and writes `AggregateRating` JSON-LD into the schema.org array — **only when `count > 0`** so empty review shells never appear (AdSense negative signal). New `suburb-reviews.js` frontend — star picker, live char counter, submit form, "Show more" pagination. New `{{REVIEWS_HTML}}` + `{{AGGREGATE_RATING_JSON}}` placeholders in `templates/suburb-page.html`. New Admin → **Moderation** tab (16 admin tabs total now) with Pending/All sub-tabs and approve/reject/delete actions. Styles in `suburb-insights.css` (light + dark).
 - ✅ **Phase 5 — Blog comments (UGC)** — logged-in users post 20–2000 char comments on blog posts. New `netlify/functions/comments.js` — same architectural pattern as reviews.js (auth + IP 10/hr + user 5/day rate limits, `escHtml()` on write, 3-state moderation, flat threading — no nested replies in v1). `build/build-blog.js` now fetches approved comments per post **inline** (already async, unlike build-suburbs) and injects up to 20 comments as **static HTML** into a new `{{COMMENTS_HTML}}` placeholder — **returns empty string when count === 0**, so empty comment shells never render. New `blog-comments.js` frontend — live char counter, submit form, "Show more" pagination. New `templates/blog-post.html` placeholder + login-gated `#comment-form` section. Admin Moderation tab now has a **kind switcher** (Suburb reviews ↔ Blog comments) layered above the Pending/All sub-tabs — same approve/reject/delete UI pattern. Comment styles in `blog.css` (light + dark).
+
+- ✅ **Phase 6 — HttpOnly cookie session migration** — session token moved from localStorage to HttpOnly Secure cookie (`es_session`). All 14 Netlify functions read cookie first with Authorization header fallback. All client-side Authorization headers removed (app.js, account.js, account-panel.js, admin.js, login.js, auth-nav.js, pricing.js, blog-comments.js, suburb-reviews.js). `getAuthHeader()` replaced by `isLoggedIn()` (checks `session.id`). Token removed from auth response bodies and localStorage session. Cookie policy and privacy policy updated to reflect HttpOnly cookie usage.
 
 ## Recent Changes (March 2026)
 - ✅ Deleted user logout — `verify` action now checks user existence

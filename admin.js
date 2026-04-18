@@ -16,8 +16,8 @@
  *   loadStats()         — fetches signup/login stats via adminGetStats
  *   callAuth(action)    — helper: POST to /.netlify/functions/auth with session token
  *
- * All backend calls go to /.netlify/functions/auth with { action, token, ...params }
- * Session token stored in localStorage 'propCalc_session_v1'.token
+ * All backend calls go to /.netlify/functions/auth with { action, ...params }
+ * Session stored in localStorage 'propCalc_session_v1'; auth via HttpOnly cookie
  */
 
 const SESSION_KEY = 'propCalc_session_v1';
@@ -33,15 +33,10 @@ function getSession(){
 }
 
 async function callAuth(action, payload){
-  const sess = getSession();
-  const token = sess && sess.token;
   try {
     const r = await fetch('/.netlify/functions/auth', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + (token || '')
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(Object.assign({action}, payload || {}))
     });
     return r.json();
@@ -127,7 +122,7 @@ async function init(){
 
   // Verify token with backend — never fall back to localStorage role
   let d = {};
-  try { d = await callAuth('verify', {token: sess.token}); } catch(e){
+  try { d = await callAuth('verify', {}); } catch(e){
     showAccessDenied('Network error verifying session — check your connection and try again.');
     return;
   }
@@ -172,8 +167,7 @@ async function bootstrapAdmin(){
   st.textContent = 'Claiming admin role…'; st.className = 'admin-status info';
   const d = await callAuth('setSelfAdmin');
   if(d.ok){
-    // Update local session with new token and admin role
-    const updated = Object.assign({}, sess, {token: d.token || sess.token, role: 'admin'});
+    const updated = Object.assign({}, sess, {role: 'admin'});
     localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
     st.textContent = '✓ Admin role granted! Reloading…'; st.className = 'admin-status ok';
     setTimeout(() => location.reload(), 1200);
@@ -1448,16 +1442,12 @@ async function loadAllScenarios(){
   if(!d.ok){ wrap.innerHTML='<div style="color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed')+'</div>'; return; }
   const users = d.users || [];
   if(!users.length){ wrap.innerHTML='<div style="color:var(--slate);padding:24px;text-align:center;font-style:italic;">No users found</div>'; return; }
-  const sess = getSession();
-  const token = sess && sess.token;
   let totalScenarios = 0;
   _scenarioDetailCache = {};
   const rows = await Promise.all(users.map(async u => {
     if(!u.id) return null;
     try {
-      const r = await fetch('/.netlify/functions/scenarios?' + new URLSearchParams({adminUserId: u.id}), {
-        headers: token ? {'Authorization': 'Bearer ' + token} : {}
-      });
+      const r = await fetch('/.netlify/functions/scenarios?' + new URLSearchParams({adminUserId: u.id}));
       const arr = await r.json();
       const count = Array.isArray(arr) ? arr.length : 0;
       totalScenarios += count;
@@ -1645,13 +1635,11 @@ async function adminDeleteScenario(userId, scenarioId, label){
   );
   if(!confirmed) return;
   const sess = getSession();
-  const token = sess && sess.token;
   const st = document.getElementById('scenarios-tab-status');
   st.textContent = 'Deleting…'; st.className = 'admin-status info';
   try {
     const r = await fetch('/.netlify/functions/scenarios?' + new URLSearchParams({id: scenarioId, adminUserId: userId}), {
-      method: 'DELETE',
-      headers: token ? {'Authorization': 'Bearer ' + token} : {}
+      method: 'DELETE'
     });
     const d = await r.json();
     if(d.ok){
@@ -2140,14 +2128,10 @@ async function saveSchemes(){
 // ── GROWTH DATA ───────────────────────────────────────────────────────────────
 async function callGrowth(payload){
   const sess = getSession();
-  const token = sess && sess.token;
   try {
     const r = await fetch('/.netlify/functions/growth', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + (token || '')
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     return r.json();
@@ -2251,11 +2235,10 @@ async function deleteGrowthEntry(suburb, state){
 // ── Client Error Log ─────────────────────────────────────────────────────────
 async function callClientErrors(payload){
   const sess = getSession();
-  const token = sess && sess.token;
   try {
     const r = await fetch('/.netlify/functions/client-errors', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     return r.json();
@@ -3269,8 +3252,6 @@ function showAdminToast(msg, isError) {
 
 async function callBlog(action, payload, opts) {
   opts = opts || {};
-  var sess = getSession();
-  var token = sess && sess.token;
   try {
     var url = '/.netlify/functions/blog';
     var method = 'POST';
@@ -3282,7 +3263,7 @@ async function callBlog(action, payload, opts) {
     }
     var r = await fetch(url, {
       method: method,
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      headers: { 'Content-Type': 'application/json' },
       body: body,
     });
     return await r.json();
@@ -3513,12 +3494,10 @@ var modCurrentKind = 'reviews'; // 'reviews' | 'comments'
 var modCurrentSubtab = 'pending';
 
 async function callReviews(action, payload) {
-  var sess = getSession();
-  var token = sess && sess.token;
   try {
     var r = await fetch('/.netlify/functions/reviews', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(Object.assign({ action: action }, payload || {})),
     });
     return await r.json();
@@ -3528,12 +3507,10 @@ async function callReviews(action, payload) {
 }
 
 async function callComments(action, payload) {
-  var sess = getSession();
-  var token = sess && sess.token;
   try {
     var r = await fetch('/.netlify/functions/comments', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(Object.assign({ action: action }, payload || {})),
     });
     return await r.json();

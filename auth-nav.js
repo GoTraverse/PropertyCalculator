@@ -162,12 +162,10 @@ window.toggleTheme = function(){
   window.confirmSignOut = function() {
     window.closeSignOutModal();
     var sess = getSession();
-    if (sess && sess.token) {
-      fetch('/.netlify/functions/auth', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({action:'signout', token:sess.token})
-      }).catch(function(){});
-    }
+    fetch('/.netlify/functions/auth', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({action:'signout'})
+    }).catch(function(){});
     localStorage.removeItem(SESSION_KEY);
     window.goTo('/');
   };
@@ -546,11 +544,11 @@ window.toggleTheme = function(){
       var raw = localStorage.getItem('propCalc_session_v1');
       if (!raw) return;
       var sess = JSON.parse(raw);
-      if (!sess || !sess.token) return;
+      if (!sess || !sess.id) return;
       fetch('/.netlify/functions/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'verify', token: sess.token })
+        body: JSON.stringify({ action: 'verify' })
       }).then(function(r){ return r.json(); }).then(function(d){
         if (!d.ok) return;
         var changed = d.plan !== sess.plan || d.role !== sess.role;

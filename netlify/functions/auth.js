@@ -18,11 +18,9 @@ const SALT = (process.env.AUTH_SALT || '').trim();
 // AUTH_SALT is validated per-request — see handler below
 const TOKEN_TTL   = 60 * 60 * 24 * 30; // 30 days
 
-// HttpOnly session cookie — Phase 1 migration from localStorage-based bearer tokens.
-// The cookie is set on signin/verifyEmail/googleSignin and cleared on signout.
-// For backward compatibility the response body still contains `token` until
-// all clients are migrated; verifyToken() reads the cookie first, then the
-// Authorization header.
+// HttpOnly session cookie — set on signin/verifyEmail/googleSignin, cleared on signout.
+// Token is never exposed to client JS; verifyToken() reads cookie first, then
+// Authorization header as fallback for any legacy clients still in browser cache.
 const SESSION_COOKIE_NAME = 'es_session';
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
@@ -483,7 +481,7 @@ exports.handler = async function(event){
     await logEvent(user.id,'signin',{ip:user.lastLoginIp||''});
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email||email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    const result={ok:true,token,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'};
+    const result={ok:true,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'};
     if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
     if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
     if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
@@ -544,7 +542,7 @@ exports.handler = async function(event){
     notifyAdminsNewUser(normalizedEmail, user.name, user.plan||'free').catch(()=>{});
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    const result={ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'};
+    const result={ok:true,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'};
     if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
     if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
     if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
@@ -627,7 +625,7 @@ exports.handler = async function(event){
 
     const token=makeToken();
     await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    const result={ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'};
+    const result={ok:true,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user'};
     if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
     if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
     if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
@@ -923,7 +921,7 @@ exports.handler = async function(event){
     // Refresh token with admin role
     const token=makeToken();
     await rSet('token:'+token,{userId:user.userId,email:user.email,name:user.name,plan:user.plan,role:'admin',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    return ok({ok:true,token,role:'admin'});
+    return ok({ok:true,role:'admin'}, buildSessionCookie(token, TOKEN_TTL));
   }
 
   if(action==='getPublicConfig'){

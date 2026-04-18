@@ -75,9 +75,24 @@ async function rLen(key) {
 }
 
 // ── Auth ───────────────────────────────────────────────────────────────
-async function verifyToken(authHeader) {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyToken(event) {
+  let token = readCookieToken(event);
+  if (!token) {
+    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
+    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
+  }
   if (!token) return null;
   const raw = await redisCmd('GET', 'token:' + token);
   if (!raw) return null;
@@ -87,8 +102,8 @@ async function verifyToken(authHeader) {
   if (data.email) { const u = await redisCmd('GET', 'user:' + data.email); if (!u) return null; }
   return data;
 }
-async function verifyAdmin(authHeader) {
-  const data = await verifyToken(authHeader);
+async function verifyAdmin(event) {
+  const data = await verifyToken(event);
   if (!data || data.role !== 'admin') return null;
   return data;
 }
@@ -121,8 +136,6 @@ exports.handler = async function(event) {
     console.error('[comments] Missing UPSTASH env vars');
     return fail('Storage not configured', 500);
   }
-
-  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
 
   // ── GET — public list + build-time admin fetch ──────────────────────
   if (event.httpMethod === 'GET') {
@@ -157,7 +170,7 @@ exports.handler = async function(event) {
 
     if (action === 'buildFetch') {
       // Admin-only: dump approved comments for a single post at build time.
-      const admin = await verifyAdmin(authHeader);
+      const admin = await verifyAdmin(event);
       if (!admin) return fail('Admin access required', 401);
       const slug = cleanSlug(q.slug);
       if (!slug) return fail('slug required');
@@ -190,7 +203,7 @@ exports.handler = async function(event) {
 
   // ── User-facing: submit a comment ──────────────────────────────────
   if (action === 'submitComment') {
-    const user = await verifyToken(authHeader);
+    const user = await verifyToken(event);
     if (!user) return fail('Please sign in to leave a comment', 401);
 
     const slug = cleanSlug(body.postSlug);
@@ -236,7 +249,7 @@ exports.handler = async function(event) {
   }
 
   // ── Admin actions ──────────────────────────────────────────────────
-  const admin = await verifyAdmin(authHeader);
+  const admin = await verifyAdmin(event);
   if (!admin) return fail('Admin access required', 401);
 
   if (action === 'adminPending') {

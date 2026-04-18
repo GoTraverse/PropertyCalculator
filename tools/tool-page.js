@@ -227,7 +227,7 @@ var ToolPage = (function() {
   /* ── Save-results prompt ── */
 
   function _isLoggedIn() {
-    try { var s = JSON.parse(localStorage.getItem('propCalc_session_v1')); return !!(s && s.token); } catch(e) { return false; }
+    try { var s = JSON.parse(localStorage.getItem('propCalc_session_v1')); return !!(s && s.id); } catch(e) { return false; }
   }
 
   function _savePromptDismissed() {

@@ -151,7 +151,7 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | Redis schema | `review:<id>` (full JSON), `reviews:<state>:<slug>` (LIST of approved IDs, newest first), `reviews:agg:<state>:<slug>` (HASH `{count,sum}` → avg computed on read), `reviews:queue` (pending LIST), `reviews:all` (all-IDs LIST for admin browse), `ratelimit:reviews:<ip>` (INCR+EXPIRE 3600), `reviews:userCount:<userId>:<YYYYMMDD>` (INCR+EXPIRE 86400) |
 | `build/fetch-reviews.js` | Spawned by `build-suburbs.js` via `execSync` to keep the main build synchronous. SCANs `reviews:agg:*`, fetches `HGETALL` + first 10 approved review IDs per suburb, prints `{"STATE:slug": {agg, reviews:[]}}` to stdout. Missing env vars → outputs `{}` and exits 0 (non-fatal) |
 | `build/build-suburbs.js` | `generateReviewsBlock(state,slug,suburb)` renders up to 10 reviews as static HTML — **returns `''` when `count===0`** so no empty shells appear (AdSense negative signal). `generateAggregateRatingJson()` returns a string with leading comma for slotting into the existing JSON-LD array after the `Place` node. Both gated on `!isNoindexed` |
-| `suburb-reviews.js` | ~260-line IIFE. Reads session from `propCalc_session_v1`, mounts star picker + title + body form (with live char counter) into `#review-form-mount` on non-noindexed pages. Guest users see sign-in CTA. Submits to `/.netlify/functions/reviews` with Bearer token. "Show more reviews" button paginates via `?action=list&state=&slug=&page=` |
+| `suburb-reviews.js` | ~260-line IIFE. Reads session from `propCalc_session_v1`, mounts star picker + title + body form (with live char counter) into `#review-form-mount` on non-noindexed pages. Guest users see sign-in CTA. Submits to `/.netlify/functions/reviews` (auth via HttpOnly cookie). "Show more reviews" button paginates via `?action=list&state=&slug=&page=` |
 | `templates/suburb-page.html` | `{{REVIEWS_HTML}}` (empty string when none) + `{{AGGREGATE_RATING_JSON}}` (empty string when none) + `<section id="review-form">` login-gated form container. Renders zero-state as an absent `<section>`, not a "0 reviews" heading |
 | `suburb-insights.css` | Reviews styles — `.suburb-reviews-section`, `.suburb-reviews-avg`, `.suburb-review-card`, `.suburb-review-form-wrap`, `.suburb-review-stars-row` (gold on `.is-on`), `.suburb-review-counter.is-ok`, `.suburb-review-result.is-success/.is-error`, with `html.dark-mode` variants |
 | `admin.html` + `admin.js` + `admin-events.js` | New **Moderation** tab with Pending/All sub-tabs. `callReviews(action, payload)` hits `/reviews` directly; `modLoadReviews`, `modApprove`, `modReject`, `modDelete`, `modSetSubtab` handle the UI |
@@ -162,7 +162,7 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | `netlify/functions/comments.js` | ~290 lines. Public GET `list` (approved only, paged) + user POST `submitComment` (auth, 20–2000 char body, `escHtml()` on write, IP rate-limit 10/hr via `ratelimit:comments:<ip>`, per-user 5/day via `comments:userCount:<userId>:<YYYYMMDD>`) + admin actions (`adminPending`, `adminListAll`, `adminApprove`, `adminReject`, `adminDeleteComment`, `adminGet`). 3-state moderation: `pending`/`approved`/`rejected`. Flat threading — no nested replies in v1 |
 | Redis schema | `comment:<id>` (full JSON), `comments:<postSlug>` (LIST of approved IDs, newest first), `comments:queue` (pending LIST), `comments:all` (all-IDs LIST for admin browse), `ratelimit:comments:<ip>` (INCR+EXPIRE 3600), `comments:userCount:<userId>:<YYYYMMDD>` (INCR+EXPIRE 86400) |
 | `build/build-blog.js` | New `fetchCommentsForPost(slug)` pulls up to 20 approved comments per post directly from Redis (build-blog is already async — no execSync needed). New `renderCommentsBlock(slug, data)` emits static HTML — **returns empty string when `count === 0`** so empty shells never appear (AdSense negative signal). Build log reports total approved comments injected |
-| `blog-comments.js` | ~230-line IIFE. Reads session from `propCalc_session_v1`, mounts textarea + live char counter into `#comment-form-mount` on every blog post page. Guest users see sign-in CTA. Submits to `/.netlify/functions/comments` with Bearer token. "Show more comments" button paginates via `?action=list&slug=&page=` |
+| `blog-comments.js` | ~230-line IIFE. Reads session from `propCalc_session_v1`, mounts textarea + live char counter into `#comment-form-mount` on every blog post page. Guest users see sign-in CTA. Submits to `/.netlify/functions/comments` (auth via HttpOnly cookie). "Show more comments" button paginates via `?action=list&slug=&page=` |
 | `templates/blog-post.html` | `{{COMMENTS_HTML}}` placeholder (empty string when none) + `<section id="comment-form">` login-gated form container. Renders zero state as an absent `<section id="blog-comments">`, not a "0 comments" heading |
 | `blog.css` | Comments styles — `.blog-comments-section`, `.blog-comment-card`, `.blog-comment-head`, `.blog-comment-body`, `.blog-comment-more-btn`, `.blog-comment-form-wrap`, `.blog-comment-field textarea` (gold focus outline), `.blog-comment-counter.is-ok`, `.blog-comment-result.is-success/.is-error`, with `html.dark-mode` variants |
 | `admin.html` + `admin.js` + `admin-events.js` | Moderation tab now has a **kind switcher** (`mod-kind-reviews` / `mod-kind-comments`) layered above Pending/All. `callComments(action, payload)` hits `/comments` directly; `modLoadReviews` dispatches to the right fetcher + renderer based on `modCurrentKind`. `modRenderCommentCard()` renders comment-specific card markup (no star rating, post slug link instead of suburb link) |
@@ -179,9 +179,9 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 **User Actions:**
 - `signup` — register with email, creates user record + sends verification email
 - `signin` — lookup by email (not password) + sends verification code
-- `verifyEmail` — verify code, set `emailVerified=true`, create token
-- `verify` — validate token TTL + check user still exists (logs out deleted users)
-- `signout` — delete token from Redis
+- `verifyEmail` — verify code, set `emailVerified=true`, create token, set HttpOnly cookie
+- `verify` — read token from cookie, validate TTL + check user still exists (logs out deleted users)
+- `signout` — delete token from Redis, clear session cookie
 - `getProfile` — retrieve profile settings + photo
 - `setProfile` — save profile color/theme
 - `setPhoto` — save base64 photo
@@ -190,7 +190,7 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 - `resetPasswordWithToken` — set new password with code
 - `deleteAccount` — purge all user data from Redis
 
-**Admin Actions** (require `role === 'admin'` + token):
+**Admin Actions** (require `role === 'admin'` + valid session cookie):
 - `adminListUsers` — returns all users (no passwords)
 - `adminGetUserDetails` — full user record + profile + scenario count + active tokens + error count
 - `adminSetPlan` — upgrade/downgrade plan
@@ -359,7 +359,7 @@ Returns market data (median prices, growth rates, demographics) for suburb insig
 
 **Build integration:** `build/fetch-reviews.js` SCANs `reviews:agg:*` at deploy time and writes a `{"STATE:slug": {agg, reviews:[]}}` map to stdout. `build-suburbs.js` calls it via `execSync` (keeps the main build sync) and injects up to 10 approved reviews as **static HTML** into `{{REVIEWS_HTML}}` plus an `AggregateRating` JSON-LD node into `{{AGGREGATE_RATING_JSON}}` — **only when `count > 0`** and **only on non-noindexed suburbs**. Empty review sections never render (AdSense negative signal).
 
-**Frontend:** `suburb-reviews.js` hydrates the star picker + title + body form into `#review-form-mount` for logged-in users (guests see a sign-in CTA). Posts with Bearer token from `propCalc_session_v1`. "Show more reviews" button paginates via the `list` action client-side.
+**Frontend:** `suburb-reviews.js` hydrates the star picker + title + body form into `#review-form-mount` for logged-in users (guests see a sign-in CTA). Auth handled via HttpOnly session cookie. "Show more reviews" button paginates via the `list` action client-side.
 
 **XSS defence:** `title` and `body` are HTML-escaped at write time (stored pre-escaped). Build-time injection and client-side pagination treat them as safe and only convert `\n → <br>` for display (after escape).
 
@@ -392,7 +392,7 @@ Returns market data (median prices, growth rates, demographics) for suburb insig
 
 **Build integration:** `build/build-blog.js` calls `fetchCommentsForPost(slug)` inline for each published post (no `execSync` helper needed — build-blog is already async). Up to 20 approved comments are injected as **static HTML** into `{{COMMENTS_HTML}}` — **only when `count > 0`**. Empty comment sections never render (AdSense negative signal).
 
-**Frontend:** `blog-comments.js` hydrates a textarea + live char counter into `#comment-form-mount` on every blog post page for logged-in users (guests see a sign-in CTA). Posts with Bearer token from `propCalc_session_v1`. "Show more comments" button paginates via the `list` action client-side.
+**Frontend:** `blog-comments.js` hydrates a textarea + live char counter into `#comment-form-mount` on every blog post page for logged-in users (guests see a sign-in CTA). Auth handled via HttpOnly session cookie. "Show more comments" button paginates via the `list` action client-side.
 
 **XSS defence:** Same as reviews — `body` is HTML-escaped at write time (stored pre-escaped). Build-time injection and client-side pagination treat it as safe and only convert `\n → <br>` for display (after escape).
 
@@ -433,28 +433,31 @@ Every page that needs the nav and footer follows this pattern:
 - Profile dropdown uses `position:fixed` to avoid being clipped by the nav's `backdrop-filter` stacking context
 - Injects a **help/contact modal** (the `?` button); calls `/.netlify/functions/contact` on submit
 - `window.renderSiteNav` is exposed so other scripts can re-render after profile changes
-- Runs a background `verify` token check 5s after load and every 5 minutes; re-renders nav via `window.renderSiteNav()` if plan/role has changed
+- Runs a background `verify` check (via cookie) 5s after load; re-renders nav via `window.renderSiteNav()` if plan/role has changed
 
 ---
 
 ## Authentication & Session
 
 - **Backend**: Netlify Function `auth.js`, backed by **Upstash Redis**
-- **Session storage**: `localStorage` key `propCalc_session_v1`
-  - Shape: `{ id, email, name, plan, token, role }`
-- **Token**: 30-day TTL token stored in Redis as `token:<token>`
+- **Session cookie**: HttpOnly Secure cookie `es_session` — set on login, cleared on signout. Token never exposed to client JS.
+- **Session storage**: `localStorage` key `propCalc_session_v1` (UI state only — no token)
+  - Shape: `{ id, email, name, plan, role }`
+- **Token**: 30-day TTL token stored in Redis as `token:<token>`, transmitted only via cookie
 - **Plans**: `free` | `pro` | `adviser`
 - **Roles**: `user` | `admin` (admin gets access to `admin.html`)
-- **Auth guard**: Every authenticated page has an inline `<script>` at the top of `<head>` that checks localStorage and redirects to `login.html` if no session — this runs synchronously before any rendering
+- **Login guard**: `isLoggedIn()` checks `session.id` on client side; every authenticated page also has an inline `<script>` at the top of `<head>` that checks localStorage and redirects to `login.html` if no session
+- **Server-side auth**: `verifyToken(event)` reads cookie first, falls back to Authorization header for legacy cached clients
 
 ### Calling the auth function (client-side pattern)
 
 ```javascript
 const resp = await fetch('/.netlify/functions/auth', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ action: 'getProfile' })
 });
+// Auth is handled automatically via the HttpOnly es_session cookie
 ```
 
 Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setProfile`,
@@ -466,7 +469,7 @@ Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setPr
 
 ## Admin Dashboard (`admin.html` / `admin.js`)
 
-**Role=admin only.** Auth hardened: `verify` action called on every load — never falls back to localStorage role; access denied if token check fails.
+**Role=admin only.** Auth hardened: `verify` action called on every load (reads token from cookie) — never falls back to localStorage role; access denied if verification fails.
 
 **16 tabs with full user/system management:**
 
@@ -597,12 +600,13 @@ The CSP `connect-src` currently allows:
 
 - **XSS**: All user-supplied data rendered into HTML goes through `escHtml()` in admin.js / `_escBanner()` in app.js, which escape `&`, `<`, `>`. Do not embed user data in HTML without this.
 - **Photo URLs**: Profile photos inserted via `innerHTML` must pass `safePhotoSrc()` (defined in `account-panel.js` and `auth-nav.js`). Only `data:image/(jpeg|png|gif|webp);base64,` and `https://` URLs are allowed.
-- **Admin auth**: Every admin action in auth.js verifies `user.role === 'admin'` via token. Never skip this check. `growth.js set` action also requires admin.
+- **Session auth**: HttpOnly Secure cookie (`es_session`) — token never exposed to client JS. All server functions read cookie first, Authorization header as fallback for cached legacy clients. XSS cannot steal session tokens.
+- **Admin auth**: Every admin action in auth.js verifies `user.role === 'admin'` via session cookie. Never skip this check. `growth.js set` action also requires admin.
 - **Growth rate writes**: `growth.js` action `set` is admin-only and validates rate is a finite number between -30 and 100.
 - **Stripe webhooks**: Verified via HMAC-SHA256 signature (`STRIPE_WEBHOOK_SECRET`) with replay protection (5-minute timestamp window).
 - **AUTH_SALT**: Throws a hard error at startup if not set in production (`NODE_ENV=production` or `CONTEXT=production`). Never deploy without this set.
 - **Password hashing**: HMAC-SHA256 with global salt. Adequate for this app's risk profile; consider bcrypt migration if requirements change.
-- **CORS**: Functions return `Access-Control-Allow-Origin: *`. Sensitive actions are all token-gated.
+- **CORS**: Functions return dynamic `Access-Control-Allow-Origin` (allowlisted origins). Sensitive actions are all cookie-gated.
 - **Dev file exposure**: `publish = "."` means Netlify serves the entire repo root. Two-layer defence keeps internal files off the CDN:
   - **`.netlifyignore`** (primary) — CLAUDE.md, README.md, CODEBASE.md, TODO.md, ERRORS.json, build scripts (`build.js`, `build-suburbs.js`, `generate-suburbs-data.js`, `fetch-abs-data.js`), and raw data (`data/`) are never uploaded to the CDN.
   - **`netlify.toml` force-404 redirects** (secondary) — `force = true` redirects return 404 for those paths even if a file somehow lands on CDN.

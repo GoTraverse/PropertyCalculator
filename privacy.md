@@ -70,9 +70,11 @@ No method of transmission over the Internet or electronic storage is 100% secure
 
 ## 6. Cookies and tracking
 
-We use browser localStorage (not traditional cookies) to store your session token and application preferences on your device. This data stays on your device and is not transmitted to third-party tracking services.
+We use one essential **HttpOnly Secure cookie** (`es_session`) to authenticate your login session. This cookie contains a random session identifier — not your email, name, or any personal information — and cannot be read by JavaScript in your browser.
 
-We may use minimal analytics tools to understand aggregate usage patterns. These tools are configured to minimise personal data collection. See our [Cookie Policy](cookies.html) for details.
+We also use browser **localStorage** to store non-sensitive application preferences (display name, plan type, cached scenarios) on your device. This data stays on your device and is not transmitted to third-party tracking services. Your authentication token is **not** stored in localStorage.
+
+We do not use advertising cookies or cross-site tracking. We may use minimal analytics tools to understand aggregate usage patterns, configured to minimise personal data collection. See our [Cookie Policy](cookies.html) for full details.
 
 ## 7. Your rights
 

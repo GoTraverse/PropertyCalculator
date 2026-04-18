@@ -82,9 +82,24 @@ async function rHGetAll(key) {
 }
 
 // ── Auth ───────────────────────────────────────────────────────────────
-async function verifyToken(authHeader) {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyToken(event) {
+  let token = readCookieToken(event);
+  if (!token) {
+    const h = (event.headers && (event.headers.authorization || event.headers.Authorization)) || '';
+    if (h.startsWith('Bearer ')) token = h.slice(7).trim();
+  }
   if (!token) return null;
   const raw = await redisCmd('GET', 'token:' + token);
   if (!raw) return null;
@@ -94,8 +109,8 @@ async function verifyToken(authHeader) {
   if (data.email) { const u = await redisCmd('GET', 'user:' + data.email); if (!u) return null; }
   return data;
 }
-async function verifyAdmin(authHeader) {
-  const data = await verifyToken(authHeader);
+async function verifyAdmin(event) {
+  const data = await verifyToken(event);
   if (!data || data.role !== 'admin') return null;
   return data;
 }
@@ -134,8 +149,6 @@ exports.handler = async function(event) {
     console.error('[reviews] Missing UPSTASH env vars');
     return fail('Storage not configured', 500);
   }
-
-  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
 
   // ── GET — public list + build-time admin fetch ──────────────────────
   if (event.httpMethod === 'GET') {
@@ -177,7 +190,7 @@ exports.handler = async function(event) {
       // Admin-only: dump approved reviews for a list of suburbs at build time.
       // Body would be large via GET, so we accept CSV or a single suburb here;
       // for multi-suburb bulk use POST variant below.
-      const admin = await verifyAdmin(authHeader);
+      const admin = await verifyAdmin(event);
       if (!admin) return fail('Admin access required', 401);
       const state = cleanState(q.state);
       const slug  = cleanSlug(q.slug);
@@ -214,7 +227,7 @@ exports.handler = async function(event) {
 
   // ── User-facing: submit a review ───────────────────────────────────
   if (action === 'submitReview') {
-    const user = await verifyToken(authHeader);
+    const user = await verifyToken(event);
     if (!user) return fail('Please sign in to leave a review', 401);
 
     const state = cleanState(body.state);
@@ -270,7 +283,7 @@ exports.handler = async function(event) {
   }
 
   // ── Admin actions ──────────────────────────────────────────────────
-  const admin = await verifyAdmin(authHeader);
+  const admin = await verifyAdmin(event);
   if (!admin) return fail('Admin access required', 401);
 
   if (action === 'adminPending') {
