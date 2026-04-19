@@ -295,13 +295,18 @@ exports.handler = async function(event) {
     try {
       const c = await rGet('comment:' + id);
       if (!c) return fail('Comment not found', 404);
-      if (c.status === 'approved') return ok({ ok: true, already: true });
+      const already = c.status === 'approved';
       c.status = 'approved';
-      c.approved_at = Date.now();
+      if (!already) c.approved_at = Date.now();
       await rSet('comment:' + id, c);
+      // Always reconcile both lists so a half-failed previous run self-heals:
+      // remove from pending queue + remove any stale entry from the published
+      // list, then prepend. LREM is no-op when the value isn't present, so
+      // each call is safe to repeat.
       await rListRemove('comments:queue', id);
+      await rListRemove(postListKey(c.postSlug), id);
       await rListPrepend(postListKey(c.postSlug), id);
-      return ok({ ok: true });
+      return ok({ ok: true, already });
     } catch (e) { return fail('Error: ' + e.message, 500); }
   }
 
@@ -311,14 +316,15 @@ exports.handler = async function(event) {
     try {
       const c = await rGet('comment:' + id);
       if (!c) return fail('Comment not found', 404);
-      if (c.status === 'approved') {
-        await rListRemove(postListKey(c.postSlug), id);
-      }
+      const already = c.status === 'rejected';
       c.status = 'rejected';
-      c.rejected_at = Date.now();
+      if (!already) c.rejected_at = Date.now();
       await rSet('comment:' + id, c);
+      // Unconditional removal from both lists — idempotent; handles the case
+      // where the comment was previously approved, pending, or already rejected.
       await rListRemove('comments:queue', id);
-      return ok({ ok: true });
+      await rListRemove(postListKey(c.postSlug), id);
+      return ok({ ok: true, already });
     } catch (e) { return fail('Error: ' + e.message, 500); }
   }
 
@@ -328,10 +334,9 @@ exports.handler = async function(event) {
     try {
       const c = await rGet('comment:' + id);
       if (!c) return ok({ ok: true, alreadyGone: true });
-      if (c.status === 'approved') {
-        await rListRemove(postListKey(c.postSlug), id);
-      }
+      // Unconditional removal — same idempotency rationale as adminReject.
       await rListRemove('comments:queue', id);
+      await rListRemove(postListKey(c.postSlug), id);
       await rListRemove('comments:all', id);
       await redisCmd('DEL', 'comment:' + id);
       return ok({ ok: true });

@@ -360,8 +360,16 @@ async function verifyTurnstile(token, ip){
 
 function hashPw(pw){ return crypto.createHmac('sha256',SALT).update(pw).digest('hex'); }
 function makeToken(){ return crypto.randomBytes(32).toString('hex'); }
-function makeEmailCode(){ return String(crypto.randomInt(100000, 1000000)); }
-function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('email-code:'+String(code)).digest('hex'); }
+// 8-char alphanumeric code from a readable alphabet (excludes 0/1/O/I to avoid
+// transcription errors). 32^8 ≈ 1.1 × 10^12 — far beyond brute-force range
+// even without the 5-attempt-per-code lockout applied in resetPasswordWithToken.
+const EMAIL_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+function makeEmailCode(){
+  let out = '';
+  for(let i=0;i<8;i++) out += EMAIL_CODE_ALPHABET[crypto.randomInt(0, EMAIL_CODE_ALPHABET.length)];
+  return out;
+}
+function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('email-code:'+String(code).toUpperCase()).digest('hex'); }
 // Constant-time string compare — prevents timing attacks on hash comparisons
 function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual(Buffer.from(a,'hex'),Buffer.from(b,'hex')); }catch(e){ return false; } }
 let H = {};
@@ -744,10 +752,24 @@ exports.handler = async function(event){
     const {photo}=body;
     if(photo){
       const s=String(photo);
-      // Validate: must be a base64 image data URI
-      if(!/^data:image\/(jpeg|png|webp|gif);base64,/.test(s)) return fail('Invalid photo format');
-      // Cap at ~800 KB (base64 of ~600 KB image) to prevent Redis abuse
+      const m=/^data:image\/(jpeg|png|webp|gif);base64,([A-Za-z0-9+/]+={0,2})$/.exec(s);
+      if(!m) return fail('Invalid photo format');
+      // Cap at ~800 KB (base64 of ~600 KB image) to prevent Redis abuse.
       if(s.length>1100000) return fail('Photo too large — maximum ~800 KB');
+      const declaredType=m[1];
+      let buf;
+      try{ buf=Buffer.from(m[2],'base64'); }catch(e){ return fail('Invalid photo encoding'); }
+      if(buf.length<8 || buf.length>800*1024) return fail('Invalid photo size');
+      // Magic-byte sniff — prevents clients from declaring image/png while
+      // shipping arbitrary bytes. Each format check mirrors the declared type.
+      const sniffed =
+        buf[0]===0xFF && buf[1]===0xD8 && buf[2]===0xFF ? 'jpeg' :
+        buf[0]===0x89 && buf[1]===0x50 && buf[2]===0x4E && buf[3]===0x47 &&
+        buf[4]===0x0D && buf[5]===0x0A && buf[6]===0x1A && buf[7]===0x0A ? 'png' :
+        buf.slice(0,4).toString('ascii')==='RIFF' && buf.slice(8,12).toString('ascii')==='WEBP' ? 'webp' :
+        (buf.slice(0,6).toString('ascii')==='GIF87a' || buf.slice(0,6).toString('ascii')==='GIF89a') ? 'gif' :
+        null;
+      if(sniffed!==declaredType) return fail('Photo content does not match declared image type');
       await rSet('photo:'+user.userId,s);
     } else {
       await rDel('photo:'+user.userId);
@@ -786,7 +808,9 @@ exports.handler = async function(event){
     if(userData){
       const code=makeEmailCode();
       const hashed=hashEmailCode(code);
-      await rSet('pwreset:'+normalizedEmail,{hash:hashed,email:normalizedEmail},1800); // 30 min
+      // Store attempts counter alongside the hash. Each wrong guess increments
+      // it; at 5 the code is invalidated. 30-minute TTL matches the email copy.
+      await rSet('pwreset:'+normalizedEmail,{hash:hashed,email:normalizedEmail,attempts:0},1800);
       await sendPasswordResetEmail(normalizedEmail,code);
     }
     return ok({ok:true,message:'If an account exists, a reset code has been sent.'});
@@ -797,18 +821,25 @@ exports.handler = async function(event){
     if(!email||!code||!newPassword) return fail('Email, code and new password required');
     if(newPassword.length<8) return fail('Password must be at least 8 characters');
     const normalizedEmail=email.toLowerCase().trim();
-    // Rate limit: max 10 attempts per email per 15 minutes — prevents brute-forcing 6-digit codes
-    const resetAttemptKey='resetAttempt:'+normalizedEmail;
-    const resetAttempts=await rRateInc(resetAttemptKey,900);
-    if(resetAttempts>10) return fail('Too many attempts. Please request a new reset code.');
     const resetData=await rGet('pwreset:'+normalizedEmail);
-    if(!resetData||!safeEqual(resetData.hash,hashEmailCode(String(code).trim()))) return fail('Invalid or expired reset code');
+    if(!resetData) return fail('Invalid or expired reset code');
+    const submitted=hashEmailCode(String(code).trim());
+    if(!safeEqual(resetData.hash, submitted)){
+      // Per-code lockout: burn the code after 5 wrong guesses so the attacker
+      // can't keep guessing a different 8-char code for the same email.
+      const attempts=(resetData.attempts||0)+1;
+      if(attempts>=5){
+        await rDel('pwreset:'+normalizedEmail);
+        return fail('Too many incorrect attempts — request a new reset code.');
+      }
+      await rSet('pwreset:'+normalizedEmail,{...resetData,attempts},1800);
+      return fail('Invalid or expired reset code');
+    }
     const userData=await rGet('user:'+normalizedEmail);
     if(!userData) return fail('Account not found');
     userData.hash=hashPw(newPassword);
     await rSet('user:'+normalizedEmail,userData);
     await rDel('pwreset:'+normalizedEmail);
-    await rDel(resetAttemptKey); // clear rate limit on success
     await logEvent(userData.id,'password_reset',{});
     return ok({ok:true});
   }
