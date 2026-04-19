@@ -1,6 +1,5 @@
-// Apply saved theme before render to prevent flash of wrong theme.
-// Loaded synchronously (no defer/async) so it runs before CSS paints.
-(function(){ try{ if(localStorage.getItem('equitySight_theme')==='dark') document.documentElement.classList.add('dark-mode'); }catch(e){} })();
+// Theme-flash is inlined in each HTML <head> to avoid a render-blocking request.
+// This file now only handles the pre-signup page trail (safe to defer).
 // Pre-signup page trail — record pages visited before the user creates an account.
 // Stored in localStorage and sent to the server on signup/googleSignin so the admin
 // panel can see the journey that led to conversion. Capped at 20 entries.
