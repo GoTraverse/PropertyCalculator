@@ -18,6 +18,21 @@ EquitySight publishes one source of truth for every number that appears on a sub
 
 Every field we display from the ABS retains its original name in our internal schema (e.g. `median_household_income`), and our build script does not "smooth" or "impute" missing values — if the ABS reports nothing for a suburb, we show `—` rather than a guess.
 
+### ABS fields used per suburb
+
+The following Census fields feed directly into our suburb profiles and investment scores:
+
+| ABS field | Profile usage |
+|-----------|---------------|
+| `usual_resident_population` | Population figure, noindex gate (minimum 2,000 for indexing) |
+| `median_household_income` | Income display, investment score weighting (up to 25 pts), affordability ratios |
+| `median_rent_weekly` | Rental yield estimate, cash-flow coverage ratio, rental stress calculation |
+| `median_mortgage_repayment_monthly` | Mortgage burden, coverage percentage, rate sensitivity stress test |
+| `dwelling_type_percentage` (houses vs units) | Renovation strategy verdict, comparison-to-state delta |
+| SAL centroid coordinates | Straight-line distance to nearest capital city CBD |
+
+All values are taken directly from the ABS 2021 Census release with no interpolation, seasonal adjustment, or third-party blending. Where the ABS suppresses a value for confidentiality (common in small suburbs), we leave the field blank rather than estimating it from neighbouring areas.
+
 ## 2. Australia Post postcode dataset
 
 - **Used for:** matching ABS suburb names to postal postcodes, populating the Postcode field on every suburb page, and building state-level filters.
@@ -43,6 +58,8 @@ Under ODbL we must credit OpenStreetMap wherever their data visibly appears. The
 - **Refreshed:** at every site build. The value is read at page load via our `market-rate` Netlify function, which fetches the RBA public feed.
 - **Attribution:** Reserve Bank of Australia. Figures are used descriptively and are not represented as RBA forecasts.
 
+The cash rate is critical to our mortgage calculators. When a user opens any calculator that models repayments (Purchase Calculator, Mortgage Repayment, Loan Serviceability, Mortgage Stress Test), the current RBA cash rate is fetched and used as the baseline for variable-rate scenarios. We add a typical bank margin on top of the cash rate to estimate the effective borrowing rate. The rate-sensitivity stress test on suburb profiles uses this same feed to model the impact of a one-percentage-point rise on monthly repayments — see our [methodology page](/methodology.html) for the exact formula.
+
 ## 5. Capital city coordinates
 
 - **Used for:** computing straight-line distance from a suburb centroid to the nearest capital city CBD.
@@ -51,12 +68,13 @@ Under ODbL we must credit OpenStreetMap wherever their data visibly appears. The
 
 ## 6. What we do NOT use
 
-We want to be explicit about what is *not* in our dataset:
+We want to be explicit about what is *not* in our dataset, because transparency about exclusions is as important as transparency about inclusions:
 
-- **No paid agent data.** We do not buy feeds from Domain, realestate.com.au, CoreLogic, or PriceFinder. When we talk about "median rent" or "median mortgage" on a suburb page, we mean the ABS 2021 Census field — not a live listing aggregate.
-- **No sponsored content.** No developer, agent, buyer's agent, or mortgage broker can pay us to feature a suburb, move its score, or adjust its strategy verdict.
-- **No AI-generated text.** The narrative on each suburb page is assembled by a deterministic JavaScript build step (`build/build-suburbs.js` in our public repository) from the numeric fields listed above. No large language model, chatbot, or generative system writes the prose.
+- **No paid agent data.** We do not buy feeds from Domain, realestate.com.au, CoreLogic, or PriceFinder. When we talk about "median rent" or "median mortgage" on a suburb page, we mean the ABS 2021 Census field — not a live listing aggregate. This means our rental and mortgage figures reflect the 2021 Census snapshot, not today's market prices. We consider this an acceptable trade-off: Census data is freely verifiable by anyone, whereas commercial feeds introduce opacity and potential conflicts of interest.
+- **No sponsored content.** No developer, agent, buyer's agent, or mortgage broker can pay us to feature a suburb, move its score, or adjust its strategy verdict. Our revenue comes from subscriptions and advertising — never from data manipulation.
+- **No AI-generated text.** The narrative on each suburb page is assembled by a deterministic JavaScript build step (`build/build-suburbs.js` in our public repository) from the numeric fields listed above. No large language model, chatbot, or generative system writes the prose. Given the same input data, the same output is produced every time — you can verify this by running the build yourself.
 - **No personal data.** We do not collect, store, or infer anything about individual homeowners or tenants. Everything on our pages is an aggregated statistic from a government or community dataset.
+- **No scraped listings.** We do not scrape property listing websites. Our suburb data is sourced entirely from the government and community datasets listed above.
 
 ## 7. Data freshness, versioning and snapshots
 
