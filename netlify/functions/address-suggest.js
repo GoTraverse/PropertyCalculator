@@ -153,23 +153,30 @@ async function nominatimSuggest(query, limit) {
       'northern territory':'NT','australian capital territory':'ACT',
     };
 
-    const results = json.map(item => {
-      const a        = item.address || {};
-      const road     = a.road || a.pedestrian || a.path || '';
-      const houseNo  = a.house_number || '';
+    // Schema-validate each item before mapping — Nominatim occasionally returns
+    // partial records or non-object entries. Drop anything that doesn't look
+    // like a place.
+    const isValidItem = (x) => x && typeof x === 'object'
+      && (typeof x.display_name === 'string' || typeof x.address === 'object');
+    const safeStr = (v) => typeof v === 'string' ? v : '';
+
+    const results = json.filter(isValidItem).map(item => {
+      const a        = (item.address && typeof item.address === 'object') ? item.address : {};
+      const road     = safeStr(a.road) || safeStr(a.pedestrian) || safeStr(a.path);
+      const houseNo  = safeStr(a.house_number);
       const address  = houseNo ? houseNo + ' ' + road : road;
-      const rawState = (a.state_code || a.state || '').trim();
+      const rawState = safeStr(a.state_code || a.state).trim();
       const state    = STATE_CODES.includes(rawState.toUpperCase())
         ? rawState.toUpperCase()
         : (STATE_NAMES[rawState.toLowerCase().replace(/^state of /, '')] || '');
-      const suburb   = a.suburb || a.neighbourhood || a.city_district
-                     || a.town  || a.village || a.hamlet || '';
-      const display  = address || item.display_name.split(',')[0];
+      const suburb   = safeStr(a.suburb) || safeStr(a.neighbourhood) || safeStr(a.city_district)
+                     || safeStr(a.town)  || safeStr(a.village) || safeStr(a.hamlet);
+      const display  = address || safeStr(item.display_name).split(',')[0];
       return {
         address:  display,
         suburb,
         state,
-        postcode: a.postcode || '',
+        postcode: safeStr(a.postcode),
         lat: parseFloat(item.lat) || null,
         lon: parseFloat(item.lon) || null,
       };

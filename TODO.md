@@ -17,13 +17,9 @@ General - (DO NOT REMOVE THIS LINE)
 11. Expand data-sources.html to 1,200+ words (currently ~249) — SEO/AdSense E-E-A-T
 12. Inline site-init.js theme-flash script into <head> so it stops being a render-blocking request
 13. Add "Related calculators" cross-link block to all 9 /tools/*.html pages
-14. Add meta description to account.html and admin.html (both noindex, low impact but clean up)
 15. Pick trailing-slash policy and enforce via redirect (state hubs use /, suburb pages don't) — netlify.toml
-16. Confirm city-page template emits real <a> links to its 12 featured suburbs — templates/city-page.html
 17. Harden password reset: 8-char alphanumeric codes + 5-attempt-per-code lockout — auth.js:333, 775
 18. Add content-type + size cap to profile photo upload; magic-byte sniff — auth.js:741
-19. Drop script-src-attr 'unsafe-inline' from CSP (inline handlers already migrated) — netlify.toml:17
-20. Schema-validate Nominatim response before mapping — address-suggest.js:140
 21. Cap deposit >= 0 and loanAmt <= price in calculator input handling — app.js:600
 22. Verify QLD FHB stamp-duty price ceiling matches current state schedule and add cap note — app.js:131
 23. Document fortnightly-benefit formula in methodology.html (rate/100/26 approximation vs 13-payments/yr model) — app.js:219
