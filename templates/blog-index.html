@@ -6,7 +6,8 @@
 <script src="/gtag-init.js" defer></script>
 <script src="/analytics.js" defer></script>
 <meta charset="UTF-8">
-<script src="/site-init.js"></script>
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
+<script src="/site-init.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>EquitySight Blog — Australian Property Investment Insights</title>
 <meta name="description" content="Long-form analysis for Australian property investors — market cycles, cash-flow strategy, first-home-buyer schemes, tax structuring, and suburb research from the EquitySight team.">
@@ -64,10 +65,18 @@
 </section>
 
 <div class="legal-body">
+  {{FEATURED_HTML}}
+  {{CATEGORY_NAV_HTML}}
   <div class="blog-index-wrap">
     {{POSTS_GRID}}
   </div>
   {{PAGINATION_HTML}}
+  <aside class="blog-newsletter">
+    <div class="blog-newsletter-eyebrow">Stay sharp</div>
+    <h2 class="blog-newsletter-title">Get our monthly Australian property letter.</h2>
+    <p class="blog-newsletter-sub">A single email on the first of each month. RBA commentary, suburb movers, calculator drops. No spam.</p>
+    <a class="blog-newsletter-cta" href="/pricing">Create a free account →</a>
+  </aside>
 </div>
 
 <div id="site-footer-root"></div>

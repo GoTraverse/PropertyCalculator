@@ -58,13 +58,25 @@ We want to be explicit about what is *not* in our dataset:
 - **No AI-generated text.** The narrative on each suburb page is assembled by a deterministic JavaScript build step (`build/build-suburbs.js` in our public repository) from the numeric fields listed above. No large language model, chatbot, or generative system writes the prose.
 - **No personal data.** We do not collect, store, or infer anything about individual homeowners or tenants. Everything on our pages is an aggregated statistic from a government or community dataset.
 
-## 7. Reproducing our numbers
+## 7. Data freshness, versioning and snapshots
+
+Every dataset we ingest is stamped with an `ingested_at` timestamp in our internal schema and a short provenance note on the suburb page. When a source releases a new version — for example the move from Census 2021 to Census 2026 — we do not overwrite the old figures silently. Instead we version the underlying JSON file (`data/abs-suburbs.2021.json`, `data/abs-suburbs.2026.json`) and keep both available for at least twelve months after the cut-over. This gives researchers, journalists and investors the ability to reproduce a score that was live on a specific date, even if the source dataset has since changed.
+
+The RBA cash-rate feed is the only dataset we refresh at page load rather than at build time, because it changes on an irregular schedule set by the RBA Board. All other figures are frozen at build time and redeployed when the underlying file changes, so a given suburb page is a deterministic function of the files in the repository at deploy time.
+
+## 8. Geographic accuracy and boundary limitations
+
+We use the ABS State Suburb (SAL) 2021 geography as our primary suburb boundary. SAL boundaries are curated by the ABS to align with the common community understanding of a suburb, but they are not the only boundary available: local-government-area (LGA) boundaries, postcode boundaries, and real-estate "neighbourhood" boundaries all differ from SAL. When you compare our figures to those from a real-estate portal or a council website, expect small differences driven by where the line is drawn. We publish the SAL code for every suburb in the page metadata so the comparison can be made cleanly.
+
+For amenity counts from OpenStreetMap we query by the SAL polygon, not by a fixed-radius buffer. This means a suburb with an awkward shape — a long ribbon along a coastline, for example — will report different POI counts from a nearby compact suburb of the same size, and that is intentional: the number we publish is the number inside the suburb, not the number within a walking radius.
+
+## 9. Reproducing our numbers
 
 Every derivation is documented in [our methodology page](/methodology.html). The relevant build scripts live in the `build/` directory of the repo and take the cached ABS JSON (`data/suburbs.json`) as their only input. Running `node build.js` with `REBUILD_SUBURBS=true` regenerates the full site; running it without the flag restores the cached build for faster deploys.
 
 If you reproduce our numbers and land on a different answer, email [support@equitysight.app](mailto:support@equitysight.app) with the suburb slug and your calculation — we'll investigate and publish a correction in the Methodology change log.
 
-## 8. Reporting a correction
+## 10. Reporting a correction
 
 We take data accuracy seriously. If any field on any of our pages is wrong:
 
@@ -72,6 +84,16 @@ We take data accuracy seriously. If any field on any of our pages is wrong:
 2. We aim to respond within five business days.
 3. Confirmed corrections are logged publicly in the [methodology change log](/methodology.html#11-change-log).
 
-## 9. Change log
+## 11. Independence and conflicts of interest
 
-- **April 2026** — First published data-sources page. ABS 2021 Census, Australia Post postcode CSV, OpenStreetMap amenities, and RBA cash-rate feed documented.
+EquitySight is not owned by, licensed to, or commercially affiliated with any real-estate agency, developer, mortgage broker, buyer's agent, or data reseller. Our only revenue streams are paid subscriptions from end users and contextual advertising served by Google. No advertiser has editorial access to the content of a suburb page, and no advertiser can pay to influence a score, a strategy verdict, or a risk factor.
+
+If this changes — for example if we accept investment from a party with a vested interest in specific suburbs — we will disclose it at the top of this page and in the site footer before the commercial relationship begins. Transparency about who pays us is a precondition for the trust that transparent analytics require.
+
+## 12. Licence of our derived work
+
+The narrative, scores, strategies, risk factors, and investor checklists we publish are original work by EquitySight, compiled from the public datasets listed above. You are welcome to quote short excerpts with a link back to the relevant suburb page. For bulk redistribution, embedding in commercial products, or research use that requires the underlying JSON rather than the rendered page, contact [support@equitysight.app](mailto:support@equitysight.app) for a data-licence conversation. Where our work embeds ABS, OpenStreetMap, or RBA data, the original licence of that source continues to apply in addition to our terms.
+
+## 13. Change log
+
+- **April 2026** — First published data-sources page. ABS 2021 Census, Australia Post postcode CSV, OpenStreetMap amenities, and RBA cash-rate feed documented. Added sections on freshness/versioning, geographic accuracy, independence, and the licence of derived work.

@@ -193,19 +193,24 @@ function validatePost(p) {
   if (p.body_md.length > 200000) return 'body_md too large (max 200 KB)';
   return null;
 }
+const BLOG_CATEGORIES = ['general','guide','market-insight','calculator-tip','suburb-spotlight','news'];
 function sanitizePost(p) {
   // Strip anything that shouldn't round-trip
+  const rawCat = String(p.category || 'general').trim().toLowerCase();
   return {
     id: p.id,
     slug: p.slug,
     title: String(p.title || '').trim(),
     excerpt: String(p.excerpt || '').trim().slice(0, 400),
+    meta_description: String(p.meta_description || '').trim().slice(0, 200),
     body_md: String(p.body_md || ''),
     author: String(p.author || '').trim().slice(0, 80),
     author_bio: String(p.author_bio || '').trim().slice(0, 400),
     author_email: String(p.author_email || '').trim().slice(0, 120),
     cover_image: String(p.cover_image || '').trim().slice(0, 400),
     tags: parseTags(p.tags),
+    category: BLOG_CATEGORIES.includes(rawCat) ? rawCat : 'general',
+    featured: !!p.featured,
     status: p.status === 'published' ? 'published' : 'draft',
     created_at: p.created_at || nowMs(),
     updated_at: nowMs(),
