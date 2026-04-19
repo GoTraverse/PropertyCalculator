@@ -164,6 +164,71 @@ ToolPage.init({
     { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
     { href: '/tools/loan-serviceability-calculator', text: 'Loan Serviceability' },
     { href: '/privacy', text: 'Privacy' }
+  ],
+  examples: [
+    {
+      label: 'QLD — $480,000 first home',
+      inputs: [
+        { k: 'Property price', v: '$480,000' },
+        { k: 'State', v: 'Queensland' },
+        { k: 'Property type', v: 'Established' },
+        { k: 'First home buyer', v: 'Yes' }
+      ],
+      outputs: [
+        { k: 'Stamp duty concession', v: 'Full exemption' },
+        { k: 'FHOG (new homes only)', v: '$30,000 if new build' },
+        { k: 'Estimated savings', v: '~$8,500' }
+      ]
+    },
+    {
+      label: 'VIC — $580,000 new apartment',
+      inputs: [
+        { k: 'Property price', v: '$580,000' },
+        { k: 'State', v: 'Victoria' },
+        { k: 'Property type', v: 'New build' },
+        { k: 'First home buyer', v: 'Yes' }
+      ],
+      outputs: [
+        { k: 'Stamp duty', v: 'Full exemption' },
+        { k: 'First Home Owner Grant', v: '$10,000' },
+        { k: 'Estimated savings', v: '~$40,000' }
+      ]
+    },
+    {
+      label: 'NSW — $780,000 unit',
+      inputs: [
+        { k: 'Property price', v: '$780,000' },
+        { k: 'State', v: 'New South Wales' },
+        { k: 'First home buyer', v: 'Yes' }
+      ],
+      outputs: [
+        { k: 'Stamp duty concession', v: 'Full exemption (under $800k)' },
+        { k: 'First Home Guarantee', v: 'Eligible (5% deposit)' },
+        { k: 'Estimated savings', v: '~$30,000' }
+      ]
+    }
+  ],
+  faq: [
+    { q: 'Am I eligible for the First Home Owner Grant?',
+      a: 'You must be buying or building a new home (not an established one), be an Australian citizen or permanent resident, be 18+, be buying with your spouse if applicable, and meet the state\u2019s price cap. Eligibility rules vary by state.' },
+    { q: 'What is the First Home Guarantee Scheme?',
+      a: 'The Federal First Home Guarantee lets eligible first home buyers purchase with as little as 5% deposit, with the government guaranteeing the shortfall to avoid LMI. Annual places are capped and subject to income and property price caps.' },
+    { q: 'Can I use my super to buy a first home?',
+      a: 'Yes, via the First Home Super Saver Scheme (FHSSS). You can voluntarily contribute up to $15,000/year (total $50,000) of pre-tax income into super, then withdraw it later for your deposit \u2014 taxed at a concessional rate.' },
+    { q: 'Does the grant apply to established homes?',
+      a: 'The First Home Owner Grant applies only to new builds and substantially renovated properties. Stamp duty concessions, however, usually apply to both established and new homes.' },
+    { q: 'Can I get multiple grants?',
+      a: 'Yes. You can typically combine stamp duty concessions, the FHOG (if building new), the First Home Guarantee, and the FHSSS \u2014 they\u2019re separate programs addressing different stages of the purchase.' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
+    { group: 'Other Tools', icon: '\uD83D\uDCB5', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/springfield-lakes/', label: 'Springfield Lakes QLD' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/werribee/', label: 'Werribee VIC' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Queensland Suburb Guide' }
   ]
 });
 

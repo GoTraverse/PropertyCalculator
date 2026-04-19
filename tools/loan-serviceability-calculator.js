@@ -130,6 +130,69 @@ ToolPage.init({
     { href: '/tools/equity-release-calculator', text: 'Equity Release' },
     { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
     { href: '/privacy', text: 'Privacy' }
+  ],
+  examples: [
+    {
+      label: 'Single applicant — $95k income',
+      inputs: [
+        { k: 'Gross income', v: '$95,000' },
+        { k: 'Monthly living costs', v: '$2,400' },
+        { k: 'Other debts (monthly)', v: '$400' },
+        { k: 'Interest rate', v: '6.50%' }
+      ],
+      outputs: [
+        { k: 'Estimated borrowing power', v: '~$520,000' },
+        { k: 'Max repayment (monthly)', v: '~$3,290' }
+      ]
+    },
+    {
+      label: 'Couple — $165k combined income',
+      inputs: [
+        { k: 'Gross income', v: '$165,000' },
+        { k: 'Monthly living costs', v: '$4,100' },
+        { k: 'Other debts (monthly)', v: '$600' },
+        { k: 'Interest rate', v: '6.50%' }
+      ],
+      outputs: [
+        { k: 'Estimated borrowing power', v: '~$905,000' },
+        { k: 'Max repayment (monthly)', v: '~$5,720' }
+      ]
+    },
+    {
+      label: 'Investor with rental income',
+      inputs: [
+        { k: 'Gross income', v: '$130,000' },
+        { k: 'Rental income (80%)', v: '$24,000' },
+        { k: 'Monthly living costs', v: '$3,000' },
+        { k: 'Interest rate', v: '6.75%' }
+      ],
+      outputs: [
+        { k: 'Estimated borrowing power', v: '~$760,000' },
+        { k: 'Max repayment (monthly)', v: '~$4,930' }
+      ]
+    }
+  ],
+  faq: [
+    { q: 'How is serviceability calculated?',
+      a: 'Lenders take your net income, subtract living expenses and existing debt repayments, and stress-test your ability to service the new loan at an interest rate 3 percentage points above the current actual rate (APRA\u2019s serviceability buffer).' },
+    { q: 'What expenses do lenders look at?',
+      a: 'Lenders apply the higher of your declared expenses or the Household Expenditure Measure (HEM) for your household size and income band. HEM covers groceries, transport, utilities, insurance, childcare, and discretionary spending.' },
+    { q: 'Why do banks use a stress-test rate?',
+      a: 'APRA requires lenders to assess loans at the current rate plus a 3% buffer. This ensures you can keep servicing the loan if rates rise \u2014 a real-world risk most Australian borrowers have faced in recent years.' },
+    { q: 'Does rental income count?',
+      a: 'Yes, but lenders usually discount it by 20\u201330% to account for vacancy and ongoing costs. A property expected to earn $500/week might be counted as ~$350/week for serviceability.' },
+    { q: 'How can I improve my borrowing power?',
+      a: 'Reduce credit-card limits (even unused limits reduce capacity), pay down personal loans, increase declared income (bonus/overtime history helps), and reduce declared expenses by closing subscriptions you don\u2019t use.' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '\uD83D\uDCC8', href: '/tools/mortgage-stress-calculator', label: 'Mortgage Stress Calculator' },
+    { group: 'Other Tools', icon: '\uD83D\uDCB5', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
+    { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/toowong/', label: 'Toowong QLD' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/methodology.html', label: 'Our Methodology' }
   ]
 });
 

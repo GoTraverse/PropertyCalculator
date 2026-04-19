@@ -537,3 +537,116 @@ html.dark-mode .suburb-review-counter { color: rgba(245,240,232,0.55); }
 html.dark-mode .suburb-review-notice { color: rgba(245,240,232,0.45); }
 html.dark-mode .suburb-review-guest p { color: rgba(245,240,232,0.7); }
 html.dark-mode .suburb-review-more-btn { border-color: rgba(201,168,76,0.45); color: #E6C870; }
+
+/* ── Lifestyle / Why people like living here ───────────────────────── */
+.suburb-lifestyle-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.suburb-lifestyle-list li {
+  position: relative;
+  padding: 10px 14px 10px 38px;
+  background: rgba(201,168,76,0.06);
+  border-left: 3px solid #C9A84C;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--charcoal);
+  line-height: 1.55;
+}
+.suburb-lifestyle-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  background: #C9A84C;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+html.dark-mode .suburb-lifestyle-list li { background: rgba(201,168,76,0.10); color: #F5F0E8; }
+
+/* ── Audience fit grid ──────────────────────────────────────────────── */
+.suburb-audience-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.suburb-audience-chip {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(28,28,30,0.08);
+  background: #fafafa;
+}
+.suburb-audience-chip.suburb-audience-fit { border-color: rgba(34,139,34,0.3); background: rgba(34,139,34,0.06); }
+.suburb-audience-chip.suburb-audience-miss { opacity: 0.8; }
+.suburb-audience-mark {
+  grid-row: 1 / span 2;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 50%;
+  font-weight: 700;
+  color: #fff;
+  background: #888;
+}
+.suburb-audience-fit .suburb-audience-mark { background: #2E8B57; }
+.suburb-audience-miss .suburb-audience-mark { background: #B0B0B0; }
+.suburb-audience-icon { font-size: 18px; }
+.suburb-audience-label { font-weight: 700; font-size: 14px; color: var(--charcoal); }
+.suburb-audience-reason { grid-column: 2 / span 2; font-size: 12px; color: var(--slate); margin-top: 2px; line-height: 1.45; }
+html.dark-mode .suburb-audience-chip { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-audience-chip.suburb-audience-fit { background: rgba(46,139,87,0.12); border-color: rgba(46,139,87,0.4); }
+html.dark-mode .suburb-audience-label { color: #F5F0E8; }
+html.dark-mode .suburb-audience-reason { color: rgba(245,240,232,0.6); }
+
+/* ── Pros and Cons ──────────────────────────────────────────────────── */
+.suburb-proscons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.suburb-proscons-col ul { list-style: none; padding: 0; margin: 0; }
+.suburb-proscons-col li { position: relative; padding: 8px 8px 8px 28px; font-size: 14px; color: var(--charcoal); line-height: 1.55; }
+.suburb-proscons-col li::before {
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+.suburb-proscons-pros li::before { content: '+'; background: #2E8B57; }
+.suburb-proscons-cons li::before { content: '–'; background: #C84A3E; }
+.suburb-proscons-col h3 { display: inline-block; padding-bottom: 4px; border-bottom: 2px solid currentColor; margin-bottom: 8px; }
+.suburb-proscons-pros h3 { color: #2E8B57; }
+.suburb-proscons-cons h3 { color: #C84A3E; }
+@media (max-width: 600px) { .suburb-proscons-grid { grid-template-columns: 1fr; } }
+html.dark-mode .suburb-proscons-col li { color: #F5F0E8; }
+
+/* ── Investment tip callout ─────────────────────────────────────────── */
+.suburb-tip { border-left: 4px solid #C9A84C; }
+.suburb-tip h2 { color: #C9A84C; }
+.suburb-tip p { font-size: 15px; line-height: 1.65; }
+html.dark-mode .suburb-tip h2 { color: #E6C870; }
+
+/* ── Blog cross-links inside the calc-CTA section ───────────────────── */
+.suburb-blog-links { margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,0.2); }
+.suburb-blog-links-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+.suburb-blog-link {
+  display: inline-block;
+  margin: 4px 6px 4px 0;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #F5F0E8;
+  text-decoration: none;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.suburb-blog-link:hover { background: rgba(255,255,255,0.15); }

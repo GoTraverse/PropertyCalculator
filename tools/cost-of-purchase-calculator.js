@@ -171,6 +171,75 @@ ToolPage.init({
     { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
     { href: '/tools/loan-serviceability-calculator', text: 'Loan Serviceability' },
     { href: '/privacy', text: 'Privacy' }
+  ],
+  examples: [
+    {
+      label: 'QLD first home — $580,000',
+      inputs: [
+        { k: 'Property price', v: '$580,000' },
+        { k: 'Deposit', v: '$58,000 (10%)' },
+        { k: 'State', v: 'Queensland' },
+        { k: 'First home buyer', v: 'Yes' }
+      ],
+      outputs: [
+        { k: 'Stamp duty', v: '~$2,900 (concession)' },
+        { k: 'Legal + conveyancing', v: '~$1,800' },
+        { k: 'Building + pest inspection', v: '~$650' },
+        { k: 'LMI (if applicable)', v: '~$11,400' },
+        { k: 'Total upfront costs', v: '~$16,750' }
+      ]
+    },
+    {
+      label: 'NSW investor — $850,000',
+      inputs: [
+        { k: 'Property price', v: '$850,000' },
+        { k: 'Deposit', v: '$170,000 (20%)' },
+        { k: 'State', v: 'New South Wales' },
+        { k: 'First home buyer', v: 'No' }
+      ],
+      outputs: [
+        { k: 'Stamp duty', v: '~$33,800' },
+        { k: 'Legal + conveyancing', v: '~$2,200' },
+        { k: 'Mortgage + title fees', v: '~$400' },
+        { k: 'Total upfront costs', v: '~$36,400' }
+      ]
+    },
+    {
+      label: 'VIC owner-occupier — $1,100,000',
+      inputs: [
+        { k: 'Property price', v: '$1,100,000' },
+        { k: 'Deposit', v: '$220,000 (20%)' },
+        { k: 'State', v: 'Victoria' }
+      ],
+      outputs: [
+        { k: 'Stamp duty', v: '~$58,000' },
+        { k: 'Legal + conveyancing', v: '~$2,300' },
+        { k: 'Inspections + searches', v: '~$900' },
+        { k: 'Total upfront costs', v: '~$61,200' }
+      ]
+    }
+  ],
+  faq: [
+    { q: 'What are the total upfront costs of buying a house in Australia?',
+      a: 'Expect 5\u20137% of the purchase price on top of your deposit. This covers stamp duty (the biggest), legal/conveyancing, inspections, mortgage fees, and possibly LMI if your deposit is under 20%.' },
+    { q: 'What hidden costs do buyers forget?',
+      a: 'Common surprises: council + water rate adjustments at settlement, first-year building insurance, landlord insurance for investors, moving costs, utility connection fees, and strata/body-corp levies for apartments.' },
+    { q: 'Do I need Lenders Mortgage Insurance (LMI)?',
+      a: 'LMI is required on most loans with a deposit under 20%. It can cost $8,000\u2013$25,000 depending on loan size. You can avoid it with a 20% deposit, a guarantor, or schemes like the First Home Guarantee.' },
+    { q: 'How much are conveyancing and legal fees?',
+      a: 'Conveyancing typically costs $1,500\u2013$3,000 depending on the state and property complexity. Solicitors charge more than licensed conveyancers but handle complex matters like deceased estates.' },
+    { q: 'What about building and pest inspections?',
+      a: 'Budget $400\u2013$800 for a combined building + pest inspection on an established home. These are optional but strongly recommended \u2014 they can reveal problems that save you tens of thousands.' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
+    { group: 'Other Tools', icon: '\uD83C\uDF81', href: '/tools/first-home-buyer-grants-calculator', label: 'First Home Buyer Grants' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/indooroopilly/', label: 'Indooroopilly QLD' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/carindale/', label: 'Carindale QLD' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Queensland Suburb Guide' }
   ]
 });
 

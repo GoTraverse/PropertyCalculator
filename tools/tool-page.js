@@ -213,6 +213,79 @@ var ToolPage = (function() {
     root.innerHTML = html;
   }
 
+  function renderExamples(root, cfg) {
+    if (!cfg || !cfg.length) return;
+    var html = '<div class="tool-examples">' +
+      '<h3>\uD83D\uDCD0 Example Calculations</h3>' +
+      '<div class="tool-examples-grid">';
+    cfg.forEach(function(ex) {
+      html += '<div class="tool-example-card">';
+      if (ex.label) html += '<div class="tool-example-label">' + escHtml(ex.label) + '</div>';
+      if (ex.inputs && ex.inputs.length) {
+        html += '<div class="tool-example-section"><div class="tool-example-section-title">Inputs</div>';
+        ex.inputs.forEach(function(row) {
+          html += '<div class="tool-example-row"><span>' + escHtml(row.k) + '</span><span>' + escHtml(row.v) + '</span></div>';
+        });
+        html += '</div>';
+      }
+      if (ex.outputs && ex.outputs.length) {
+        html += '<div class="tool-example-section tool-example-outputs"><div class="tool-example-section-title">Result</div>';
+        ex.outputs.forEach(function(row) {
+          html += '<div class="tool-example-row"><span>' + escHtml(row.k) + '</span><strong>' + escHtml(row.v) + '</strong></div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div></div>';
+    root.innerHTML = html;
+  }
+
+  function renderFAQ(root, cfg) {
+    if (!cfg || !cfg.length) return;
+    var html = '<div class="tool-faq"><h3>\u2754 Frequently Asked Questions</h3>';
+    cfg.forEach(function(qa) {
+      html += '<details class="tool-faq-item">' +
+        '<summary class="tool-faq-q">' + escHtml(qa.q) + '</summary>' +
+        '<div class="tool-faq-a">' + escHtml(qa.a) + '</div>' +
+        '</details>';
+    });
+    html += '</div>';
+    root.innerHTML = html;
+
+    // Inject FAQPage JSON-LD so the rendered Q&A matches schema for rich-snippet eligibility.
+    try {
+      var entities = cfg.map(function(qa) {
+        return { '@type': 'Question', name: qa.q, acceptedAnswer: { '@type': 'Answer', text: qa.a } };
+      });
+      var script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: entities });
+      document.head.appendChild(script);
+    } catch(e) { /* non-fatal */ }
+  }
+
+  function renderUsefulLinks(root, cfg) {
+    if (!cfg || !cfg.length) return;
+    var groups = {};
+    var order = [];
+    cfg.forEach(function(link) {
+      var g = link.group || 'Useful Links';
+      if (!groups[g]) { groups[g] = []; order.push(g); }
+      groups[g].push(link);
+    });
+    var html = '<div class="tool-useful-links"><h3>\uD83D\uDD17 Useful Links</h3><div class="tool-useful-grid">';
+    order.forEach(function(g) {
+      html += '<div class="tool-useful-group"><h4>' + escHtml(g) + '</h4><ul>';
+      groups[g].forEach(function(l) {
+        html += '<li><a href="' + escHtml(l.href) + '" class="tool-useful-link">' + (l.icon || '\u2192') + ' ' + escHtml(l.label) + '</a></li>';
+      });
+      html += '</ul></div>';
+    });
+    html += '</div></div>';
+    root.innerHTML = html;
+  }
+
   function renderFooter(root, links) {
     if (!links) return;
     var html = '<footer class="tool-footer">';
@@ -323,6 +396,15 @@ var ToolPage = (function() {
 
     el = document.getElementById('tool-related-root');
     if (el) renderRelated(el, config.related);
+
+    el = document.getElementById('tool-examples-root');
+    if (el) renderExamples(el, config.examples);
+
+    el = document.getElementById('tool-faq-root');
+    if (el) renderFAQ(el, config.faq);
+
+    el = document.getElementById('tool-useful-links-root');
+    if (el) renderUsefulLinks(el, config.usefulLinks);
 
     el = document.getElementById('tool-resources-root');
     if (el) renderResources(el, config.resources);
