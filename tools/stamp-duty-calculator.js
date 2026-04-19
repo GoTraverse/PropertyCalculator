@@ -237,6 +237,69 @@ ToolPage.init({
     { href: '/tools/cost-of-purchase-calculator', text: 'Cost of Purchase' },
     { href: '/tools/loan-serviceability-calculator', text: 'Loan Serviceability' },
     { href: '/privacy', text: 'Privacy' }
+  ],
+  examples: [
+    {
+      label: 'QLD — First home buyer, $650,000',
+      inputs: [
+        { k: 'Property price', v: '$650,000' },
+        { k: 'State', v: 'Queensland' },
+        { k: 'First home buyer', v: 'Yes' },
+        { k: 'Property type', v: 'Established dwelling' }
+      ],
+      outputs: [
+        { k: 'Estimated stamp duty', v: '~$12,850' },
+        { k: 'Includes FHB concession', v: 'Yes (partial)' }
+      ]
+    },
+    {
+      label: 'NSW — Investor, $950,000',
+      inputs: [
+        { k: 'Property price', v: '$950,000' },
+        { k: 'State', v: 'New South Wales' },
+        { k: 'First home buyer', v: 'No' },
+        { k: 'Foreign buyer', v: 'No' }
+      ],
+      outputs: [
+        { k: 'Estimated stamp duty', v: '~$38,000' },
+        { k: 'Mortgage registration', v: '~$165' }
+      ]
+    },
+    {
+      label: 'VIC — Owner-occupier, $1,200,000',
+      inputs: [
+        { k: 'Property price', v: '$1,200,000' },
+        { k: 'State', v: 'Victoria' },
+        { k: 'First home buyer', v: 'No' },
+        { k: 'Property type', v: 'Established dwelling' }
+      ],
+      outputs: [
+        { k: 'Estimated stamp duty', v: '~$66,000' },
+        { k: 'Transfer fee', v: '~$1,900' }
+      ]
+    }
+  ],
+  faq: [
+    { q: 'How is stamp duty calculated?',
+      a: 'Stamp duty is a state tax based on the property purchase price and the state you buy in. Each state uses tiered brackets — higher prices attract a higher percentage. First home buyers, pensioners, and certain property types can attract concessions.' },
+    { q: 'Do first home buyers pay less stamp duty?',
+      a: 'Yes. Every Australian state offers some form of first home buyer relief, ranging from full exemption (ACT: up to $1M; NSW: up to $800K) to a sliding concession. QLD offers a full concession up to $500,000. Check your state\u2019s threshold before you commit.' },
+    { q: 'When do I have to pay stamp duty?',
+      a: 'Most states require payment within 30 days of settlement. In NSW and VIC, duty can be deferred in limited circumstances. Unpaid duty accrues interest, so arrange funds as part of your settlement budget.' },
+    { q: 'Is stamp duty tax deductible?',
+      a: 'For investors, stamp duty is generally not immediately deductible — it forms part of the cost base of the property and reduces future capital gains tax when you sell. Owner-occupiers cannot claim it at all.' },
+    { q: 'Does stamp duty apply to new builds?',
+      a: 'New builds are taxed on the land value only in some states (e.g., ACT off-the-plan concession), while others tax the full contract price. Several states offer additional grants for new homes — check the First Home Owner Grant in your state.' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
+    { group: 'Other Tools', icon: '\uD83C\uDF81', href: '/tools/first-home-buyer-grants-calculator', label: 'First Home Buyer Grants' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/south-brisbane/', label: 'South Brisbane QLD' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Queensland Suburb Guide' }
   ]
 });
 

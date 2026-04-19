@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script src="tool-page.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Australian Mortgage Repayment Calculator 2026 — Free Tool | EquitySight</title>
+<meta name="description" content="Free Australian mortgage repayment calculator. See your weekly, fortnightly, and monthly home loan repayments instantly. Includes principal + interest and interest-only modes.">
+<meta name="keywords" content="mortgage repayment calculator, home loan repayment calculator Australia, monthly repayment, fortnightly repayment, weekly repayment, interest only calculator">
+<link rel="canonical" href="https://equitysight.app/tools/mortgage-repayment-calculator">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/mortgage-repayment-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Australian Mortgage Repayment Calculator 2026 — Free Tool | EquitySight">
+<meta property="og:description" content="Free Australian mortgage repayment calculator. See your weekly, fortnightly, and monthly home loan repayments instantly.">
+<meta property="og:url" content="https://equitysight.app/tools/mortgage-repayment-calculator">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Australian Mortgage Repayment Calculator 2026 — Free Tool">
+<meta name="twitter:description" content="Free Australian mortgage repayment calculator — weekly, fortnightly and monthly options.">
+<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script src="../adsense.js" defer></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Mortgage Repayment Calculator Australia","url":"https://equitysight.app/tools/mortgage-repayment-calculator","description":"Free Australian mortgage repayment calculator. Weekly, fortnightly and monthly repayments for principal + interest or interest-only loans.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Mortgage Repayment Calculator"}]}
+</script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<header class="tool-header">
+  <a href="/" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
+
+<section class="tool-hero" id="main-content">
+  <div class="tool-eyebrow">Free Tool · Australia</div>
+  <h1>Mortgage Repayment Calculator</h1>
+  <p>See what your Australian home loan really costs — weekly, fortnightly, and monthly, with principal + interest or interest-only modes.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Loan details</div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="amount">Loan amount</label>
+      <input class="tool-input" type="text" id="amount" value="600,000" oninput="fmtInput(this);calc()">
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="rate">Interest rate (%)</label>
+      <input class="tool-input" type="number" id="rate" value="6.25" step="0.01" min="0" oninput="calc()">
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="term">Loan term (years)</label>
+      <input class="tool-input" type="number" id="term" value="30" step="1" min="1" max="40" oninput="calc()">
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="type">Repayment type</label>
+      <select class="tool-input tool-select" id="type" onchange="calc()">
+        <option value="pi">Principal + Interest</option>
+        <option value="io">Interest Only</option>
+      </select>
+    </div>
+
+    <button class="tool-btn" onclick="calc()">Calculate Repayments</button>
+  </div>
+
+  <div class="tool-result" id="result">
+    <div class="tool-result-title">Your estimated repayments</div>
+    <div class="tool-grid">
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Monthly repayment</div>
+        <div class="tool-stat-value" id="r-monthly">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Fortnightly (half-monthly)</div>
+        <div class="tool-stat-value" id="r-fortnightly">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Weekly (quarter-monthly)</div>
+        <div class="tool-stat-value" id="r-weekly">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Total interest over term</div>
+        <div class="tool-stat-value" id="r-interest">—</div>
+      </div>
+      <div class="tool-stat full">
+        <div class="tool-stat-label">Total repaid (principal + interest)</div>
+        <div class="tool-stat-value" id="r-total">—</div>
+      </div>
+    </div>
+    <p class="tool-disclaimer">Estimates only. Actual repayments depend on your lender, fees, rate changes, and offset account use.</p>
+  </div>
+
+  <div class="ad-slot" data-ad-type="calculator"></div>
+
+  <div id="tool-partners-root"></div>
+  <div id="tool-disclosure-root"></div>
+  <div id="tool-cta-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+  <div id="tool-examples-root"></div>
+  <div id="tool-faq-root"></div>
+  <div id="tool-useful-links-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>How Mortgage Repayments Are Calculated in Australia</h2>
+  <p>Australian home loan repayments follow the standard amortisation formula: each repayment covers the interest accrued on the outstanding balance, plus a portion of principal. Early in the loan, most of your repayment is interest; late in the loan, most is principal.</p>
+  <p>Fortnightly repayments save thousands over the life of the loan because you end up making an extra month of repayments each year (26 fortnights &times; half a monthly repayment = 13 monthly repayments).</p>
+
+  <h2>Principal + Interest vs Interest Only</h2>
+  <p><strong>Principal + Interest</strong> reduces your loan balance with every payment and is standard for owner-occupiers. <strong>Interest Only</strong> keeps the balance unchanged for a fixed period (typically 1&ndash;5 years), lowering short-term cash-flow but costing more over the life of the loan. Investors sometimes prefer interest-only for tax purposes.</p>
+</section>
+
+<div id="tool-resources-root"></div>
+<div id="tool-trust-root"></div>
+<div id="tool-footer-root"></div>
+
+<script src="mortgage-repayment-calculator.js"></script>
+
+</body>
+</html>

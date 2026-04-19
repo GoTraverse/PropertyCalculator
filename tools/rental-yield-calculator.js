@@ -104,6 +104,66 @@ ToolPage.init({
     { href: '/tools/equity-release-calculator', text: 'Equity Release' },
     { href: '/tools/mortgage-stress-calculator', text: 'Mortgage Stress' },
     { href: '/privacy', text: 'Privacy' }
+  ],
+  examples: [
+    {
+      label: 'Brisbane unit — $520,000',
+      inputs: [
+        { k: 'Property price', v: '$520,000' },
+        { k: 'Weekly rent', v: '$510' },
+        { k: 'Annual expenses', v: '$4,800' }
+      ],
+      outputs: [
+        { k: 'Gross yield', v: '5.10%' },
+        { k: 'Net yield', v: '4.18%' }
+      ]
+    },
+    {
+      label: 'Sydney house — $1,250,000',
+      inputs: [
+        { k: 'Property price', v: '$1,250,000' },
+        { k: 'Weekly rent', v: '$780' },
+        { k: 'Annual expenses', v: '$9,200' }
+      ],
+      outputs: [
+        { k: 'Gross yield', v: '3.24%' },
+        { k: 'Net yield', v: '2.51%' }
+      ]
+    },
+    {
+      label: 'Ipswich townhouse — $395,000',
+      inputs: [
+        { k: 'Property price', v: '$395,000' },
+        { k: 'Weekly rent', v: '$445' },
+        { k: 'Annual expenses', v: '$3,400' }
+      ],
+      outputs: [
+        { k: 'Gross yield', v: '5.86%' },
+        { k: 'Net yield', v: '4.99%' }
+      ]
+    }
+  ],
+  faq: [
+    { q: 'What is a good rental yield in Australia?',
+      a: 'Gross yields typically sit between 3% and 6% across Australian capital cities. Inner-city apartments tend to deliver 3\u20134%, middle-ring houses 4\u20135%, and outer-metro or regional properties 5\u20136%+. Net yield (after costs) is usually about 1 percentage point lower.' },
+    { q: 'What\u2019s the difference between gross and net yield?',
+      a: 'Gross yield is annual rent \u00f7 property price. Net yield subtracts all ongoing costs (rates, insurance, management, repairs, strata) before dividing. Net yield is the more useful number for real investment decisions.' },
+    { q: 'Does yield include loan repayments?',
+      a: 'No. Yield is a property-level metric that measures rental return against the full purchase price. Loan repayments affect cash-flow, which you can model in the full EquitySight calculator.' },
+    { q: 'Why is my yield lower in capital cities?',
+      a: 'Higher property prices compress yield, even when rents are strong. Capital-city investors typically trade lower yield for better capital growth potential.' },
+    { q: 'How often should I recalculate yield?',
+      a: 'Annually, or whenever rents or major expenses change. Most landlords review rent at lease renewal \u2014 that\u2019s the right moment to recheck yield.' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
+    { group: 'Other Tools', icon: '\uD83D\uDCB5', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
+    { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD (high yield)' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/logan-central/', label: 'Logan Central QLD' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/werribee/', label: 'Werribee VIC' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Best QLD Investment Suburbs' }
   ]
 });
 

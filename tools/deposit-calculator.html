@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script src="tool-page.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Australian Deposit Calculator 2026 — How Much Do You Need? | EquitySight</title>
+<meta name="description" content="Free Australian house deposit calculator. See how much deposit you need to buy — 5%, 10%, or 20% — including LMI, stamp duty, and upfront costs.">
+<meta name="keywords" content="deposit calculator Australia, how much deposit for a house, 5% deposit, 10% deposit, 20% deposit, first home deposit, LMI">
+<link rel="canonical" href="https://equitysight.app/tools/deposit-calculator">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/deposit-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Australian Deposit Calculator 2026 — How Much Do You Need? | EquitySight">
+<meta property="og:description" content="Free Australian house deposit calculator. See how much deposit you need including LMI, stamp duty, and upfront costs.">
+<meta property="og:url" content="https://equitysight.app/tools/deposit-calculator">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Australian Deposit Calculator 2026 — How Much Do You Need?">
+<meta name="twitter:description" content="Free Australian house deposit calculator including LMI, stamp duty, and upfront costs.">
+<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script src="../adsense.js" defer></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Deposit Calculator Australia","url":"https://equitysight.app/tools/deposit-calculator","description":"Free Australian deposit calculator. Work out how much deposit you need to buy a home, including LMI and upfront costs.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Deposit Calculator"}]}
+</script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<header class="tool-header">
+  <a href="/" class="tool-logo">
+    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
+  </a>
+  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
+</header>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
+
+<section class="tool-hero" id="main-content">
+  <div class="tool-eyebrow">Free Tool · Australia</div>
+  <h1>Deposit Calculator</h1>
+  <p>How much deposit do you really need to buy a home in Australia — including LMI, stamp duty, and upfront costs?</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Your target property</div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="price">Target property price</label>
+      <input class="tool-input" type="text" id="price" value="650,000" oninput="fmtInput(this);calc()">
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="dep-pct">Deposit %</label>
+      <select class="tool-input tool-select" id="dep-pct" onchange="calc()">
+        <option value="5">5% (minimum with LMI / First Home Guarantee)</option>
+        <option value="10">10% (most common with LMI)</option>
+        <option value="15">15%</option>
+        <option value="20" selected>20% (standard — no LMI)</option>
+        <option value="25">25%</option>
+      </select>
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="state">State</label>
+      <select class="tool-input tool-select" id="state" onchange="calc()">
+        <option value="NSW">New South Wales</option>
+        <option value="VIC">Victoria</option>
+        <option value="QLD" selected>Queensland</option>
+        <option value="SA">South Australia</option>
+        <option value="WA">Western Australia</option>
+        <option value="TAS">Tasmania</option>
+        <option value="ACT">Australian Capital Territory</option>
+        <option value="NT">Northern Territory</option>
+      </select>
+    </div>
+
+    <div class="tool-check">
+      <input type="checkbox" id="fhb" onchange="calc()">
+      <label for="fhb">First home buyer (applies stamp duty concession)</label>
+    </div>
+
+    <button class="tool-btn" onclick="calc()">Calculate Deposit</button>
+  </div>
+
+  <div class="tool-result" id="result">
+    <div class="tool-result-title">Your estimated deposit requirement</div>
+    <div class="tool-grid">
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Cash needed up-front</div>
+        <div class="tool-stat-value" id="r-total">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Deposit portion</div>
+        <div class="tool-stat-value" id="r-deposit">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Stamp duty (est.)</div>
+        <div class="tool-stat-value" id="r-stamp">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Legal + inspections</div>
+        <div class="tool-stat-value" id="r-legal">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">LMI (if &lt;20% deposit)</div>
+        <div class="tool-stat-value" id="r-lmi">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Loan amount required</div>
+        <div class="tool-stat-value" id="r-loan">—</div>
+      </div>
+    </div>
+    <p class="tool-disclaimer">Estimates only. LMI and stamp duty vary by lender, state, and buyer status. Use the dedicated calculators for exact figures.</p>
+  </div>
+
+  <div class="ad-slot" data-ad-type="calculator"></div>
+
+  <div id="tool-partners-root"></div>
+  <div id="tool-disclosure-root"></div>
+  <div id="tool-cta-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+  <div id="tool-examples-root"></div>
+  <div id="tool-faq-root"></div>
+  <div id="tool-useful-links-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>How Much Deposit Do You Need in Australia?</h2>
+  <p>The standard minimum is 20% of the property price — any less and lenders will usually require Lenders Mortgage Insurance (LMI). However, programs like the First Home Guarantee let eligible buyers purchase with as little as 5% deposit, with the government covering the LMI gap.</p>
+
+  <h2>Typical Deposit + Upfront Costs</h2>
+  <ul>
+    <li><strong>20% deposit (no LMI):</strong> 20% + ~3–5% for stamp duty, legals, inspections.</li>
+    <li><strong>10% deposit (with LMI):</strong> 10% + ~3–5% upfront + $8,000–$25,000 LMI.</li>
+    <li><strong>5% deposit (via First Home Guarantee):</strong> 5% + ~3–5% upfront, LMI typically waived.</li>
+  </ul>
+</section>
+
+<div id="tool-resources-root"></div>
+<div id="tool-trust-root"></div>
+<div id="tool-footer-root"></div>
+
+<script src="deposit-calculator.js"></script>
+
+</body>
+</html>
