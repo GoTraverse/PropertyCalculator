@@ -200,13 +200,25 @@ function renderCommentsBlock(postSlug, comments) {
          '</section>';
 }
 
+// ── Category labels (kept in sync with admin.html + netlify/functions/blog.js)
+const CATEGORY_LABELS = {
+  'general': 'All',
+  'guide': 'Guides',
+  'market-insight': 'Market Insights',
+  'calculator-tip': 'Calculator Tips',
+  'suburb-spotlight': 'Suburb Spotlights',
+  'news': 'News',
+};
+
 // ── Render a single blog post → HTML ──────────────────────────────────
-function renderPost(post, allPosts, template, commentsData) {
+function renderPost(post, allPosts, template, commentsData, neighbours) {
   const bodyHtml = md.render(post.body_md || '', { toc: false });
   const excerpt = post.excerpt && post.excerpt.length
     ? post.excerpt
     : md.excerpt(post.body_md || '', 200);
-  const metaDescription = excerpt.replace(/\s+/g, ' ').slice(0, 200);
+  const metaDescription = (post.meta_description && post.meta_description.length >= 50
+    ? post.meta_description
+    : excerpt).replace(/\s+/g, ' ').slice(0, 200);
   const tagsHtml = (post.tags || []).map(t =>
     '<a class="blog-tag-pill" href="/blog/tag/' + encodeURIComponent(t) + '/">' + escHtml(t) + '</a>'
   ).join(' ');
@@ -240,6 +252,25 @@ function renderPost(post, allPosts, template, commentsData) {
   const keywords = (post.tags || []).concat(['Australian property', 'EquitySight']).join(', ');
   const commentsHtml = renderCommentsBlock(post.slug, commentsData || { items: [], totalCount: 0 });
 
+  // Prev / Next (chronological — newest-first array, so prev=next index, next=prev index)
+  const prev = neighbours && neighbours.prev;
+  const next = neighbours && neighbours.next;
+  let prevNextHtml = '';
+  if (prev || next) {
+    const cell = (p, label) => p
+      ? '<a class="blog-adj-card blog-adj-' + label.toLowerCase() + '" href="/blog/' + escHtml(p.slug) + '/">' +
+          '<div class="blog-adj-label">' + label + '</div>' +
+          '<div class="blog-adj-title">' + escHtml(p.title) + '</div>' +
+        '</a>'
+      : '<div class="blog-adj-card blog-adj-empty"></div>';
+    prevNextHtml = '<nav class="blog-adj-nav" aria-label="More articles">' +
+      cell(prev, 'Previous') + cell(next, 'Next') +
+    '</nav>';
+  }
+
+  // Category badge in hero
+  const categoryLabel = CATEGORY_LABELS[post.category || 'general'] || 'Insights';
+
   return replaceAll(template, {
     TITLE: escHtml(post.title),
     TITLE_JSON: escJsonString(post.title),
@@ -264,37 +295,67 @@ function renderPost(post, allPosts, template, commentsData) {
     TAGS_HTML: tagsHtml,
     RELATED_HTML: relatedHtml,
     COMMENTS_HTML: commentsHtml,
+    PREV_NEXT_HTML: prevNextHtml,
+    CATEGORY_LABEL: escHtml(categoryLabel),
   });
 }
 
+// ── Render a single card (shared by grid + featured) ─────────────────
+function renderCard(p, variant) {
+  const excerpt = p.excerpt && p.excerpt.length
+    ? p.excerpt
+    : md.excerpt(p.body_md || '', variant === 'featured' ? 220 : 140);
+  const tag = (p.tags && p.tags[0]) ? p.tags[0] : 'Insights';
+  const mins = readingMinutes(p.body_md);
+  const cover = p.cover_image
+    ? '<img class="blog-card-cover" src="' + escHtml(p.cover_image) + '" alt="' + escHtml(p.title) + '" loading="lazy">'
+    : '<div class="blog-card-cover blog-card-cover-placeholder" aria-hidden="true"></div>';
+  const classes = variant === 'featured' ? 'blog-card blog-card-featured' : 'blog-card';
+  return '<a class="' + classes + '" href="/blog/' + escHtml(p.slug) + '/">' +
+    cover +
+    '<div class="blog-card-body">' +
+      '<div class="blog-card-tag">' + escHtml(tag) + '</div>' +
+      '<div class="blog-card-title">' + escHtml(p.title) + '</div>' +
+      '<div class="blog-card-excerpt">' + escHtml(excerpt) + '</div>' +
+      '<div class="blog-card-meta">' +
+        escHtml(p.author || 'EquitySight') + ' · ' +
+        escHtml(humanDate(p.published_at || p.created_at)) + ' · ' +
+        mins + ' min read' +
+      '</div>' +
+    '</div>' +
+  '</a>';
+}
+
 // ── Render blog index (paged) ─────────────────────────────────────────
-function renderIndex(posts, page, totalPages, template) {
+function renderIndex(posts, page, totalPages, template, opts) {
+  opts = opts || {};
+  const baseHref = opts.baseHref || '/blog/';
+  const featured = opts.featured || null; // post to show in hero (page 1 only)
+
+  const featuredHtml = featured
+    ? '<section class="blog-featured"><div class="blog-featured-label">Featured</div>' + renderCard(featured, 'featured') + '</section>'
+    : '';
+
+  const catNavHtml = (opts.categoryNav && opts.categoryNav.length)
+    ? '<nav class="blog-cat-nav" aria-label="Categories">' +
+        opts.categoryNav.map(c => {
+          const cls = c.active ? 'blog-cat-chip active' : 'blog-cat-chip';
+          return '<a class="' + cls + '" href="' + c.href + '">' + escHtml(c.label) +
+            (c.count != null ? ' <span class="blog-cat-count">' + c.count + '</span>' : '') +
+          '</a>';
+        }).join('') +
+      '</nav>'
+    : '';
+
   const cardsHtml = posts.length
-    ? posts.map(p => {
-        const excerpt = p.excerpt && p.excerpt.length
-          ? p.excerpt
-          : md.excerpt(p.body_md || '', 140);
-        const tag = (p.tags && p.tags[0]) ? p.tags[0] : 'Insights';
-        const cover = p.cover_image
-          ? '<img class="blog-card-cover" src="' + escHtml(p.cover_image) + '" alt="' + escHtml(p.title) + '" loading="lazy">'
-          : '';
-        return '<a class="blog-card" href="/blog/' + escHtml(p.slug) + '/">' +
-          cover +
-          '<div class="blog-card-body">' +
-            '<div class="blog-card-tag">' + escHtml(tag) + '</div>' +
-            '<div class="blog-card-title">' + escHtml(p.title) + '</div>' +
-            '<div class="blog-card-excerpt">' + escHtml(excerpt) + '</div>' +
-            '<div class="blog-card-meta">' + escHtml(p.author || 'EquitySight') + ' · ' + escHtml(humanDate(p.published_at || p.created_at)) + '</div>' +
-          '</div>' +
-        '</a>';
-      }).join('')
+    ? posts.map(p => renderCard(p, 'standard')).join('')
     : '<div class="blog-empty">No articles published yet — check back soon.</div>';
 
   let paginationHtml = '';
   if (totalPages > 1) {
     const parts = [];
     for (let i = 1; i <= totalPages; i++) {
-      const href = i === 1 ? '/blog/' : '/blog/page/' + i + '/';
+      const href = i === 1 ? baseHref : baseHref + 'page/' + i + '/';
       parts.push(i === page
         ? '<span class="current">' + i + '</span>'
         : '<a href="' + href + '">' + i + '</a>');
@@ -305,6 +366,8 @@ function renderIndex(posts, page, totalPages, template) {
   return replaceAll(template, {
     POSTS_GRID: cardsHtml,
     PAGINATION_HTML: paginationHtml,
+    FEATURED_HTML: featuredHtml,
+    CATEGORY_NAV_HTML: catNavHtml,
   });
 }
 
@@ -359,39 +422,95 @@ async function main() {
   const indexTpl = fs.readFileSync(TEMPLATE_INDEX, 'utf8');
 
   // ── Individual posts ───────────────────────────────────────────────
+  // posts[] is newest-first. Chronological "previous" means older (higher index),
+  // "next" means newer (lower index).
   let totalComments = 0;
-  for (const p of posts) {
+  for (let i = 0; i < posts.length; i++) {
+    const p = posts[i];
     const outDir = path.join(BLOG_DIR, p.slug);
     fs.mkdirSync(outDir, { recursive: true });
     const comments = await fetchCommentsForPost(p.slug);
     totalComments += (comments.totalCount || 0);
-    const html = renderPost(p, posts, postTpl, comments);
+    const neighbours = { prev: posts[i + 1] || null, next: posts[i - 1] || null };
+    const html = renderPost(p, posts, postTpl, comments, neighbours);
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
-  // ── Index (paged) ──────────────────────────────────────────────────
+  // ── Group by category + tag ────────────────────────────────────────
+  const byCategory = {};
+  const byTag = {};
+  for (const p of posts) {
+    const cat = p.category || 'general';
+    (byCategory[cat] || (byCategory[cat] = [])).push(p);
+    for (const t of (p.tags || [])) {
+      (byTag[t] || (byTag[t] = [])).push(p);
+    }
+  }
+
+  // Build the shared category-nav used on every index variant
+  function buildCatNav(activeHref) {
+    const nav = [{ href: '/blog/', label: 'All', count: posts.length, active: activeHref === '/blog/' }];
+    for (const cat of Object.keys(CATEGORY_LABELS)) {
+      if (cat === 'general') continue; // "All" covers general
+      if (!byCategory[cat] || !byCategory[cat].length) continue;
+      const href = '/blog/category/' + cat + '/';
+      nav.push({ href, label: CATEGORY_LABELS[cat], count: byCategory[cat].length, active: activeHref === href });
+    }
+    return nav;
+  }
+
+  // Pick a featured post: the most recent post where featured===true,
+  // falling back to the newest post overall. Only shown on page 1 of the
+  // main index (not on category pages / not on tag pages / not on page 2+).
+  const featuredPost = posts.find(p => p.featured) || posts[0] || null;
+
+  // ── Main index (paged) ─────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
   for (let page = 1; page <= totalPages; page++) {
     const slice = posts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-    const html = renderIndex(slice, page, totalPages, indexTpl);
+    const opts = {
+      baseHref: '/blog/',
+      featured: page === 1 ? featuredPost : null,
+      categoryNav: buildCatNav('/blog/'),
+    };
+    // When there's a featured hero on page 1, remove that post from the grid
+    // to avoid showing it twice.
+    const gridSlice = (page === 1 && featuredPost)
+      ? slice.filter(x => x.id !== featuredPost.id)
+      : slice;
+    const html = renderIndex(gridSlice, page, totalPages, indexTpl, opts);
     const outDir = page === 1 ? BLOG_DIR : path.join(BLOG_DIR, 'page', String(page));
     fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
-  // ── Tag index pages ────────────────────────────────────────────────
-  const byTag = {};
-  for (const p of posts) {
-    for (const t of (p.tags || [])) {
-      (byTag[t] || (byTag[t] = [])).push(p);
-    }
+  // ── Category index pages ───────────────────────────────────────────
+  for (const [cat, catPosts] of Object.entries(byCategory)) {
+    if (cat === 'general') continue; // general posts already surface on /blog/
+    if (!CATEGORY_LABELS[cat]) continue;
+    const outDir = path.join(BLOG_DIR, 'category', cat);
+    fs.mkdirSync(outDir, { recursive: true });
+    const opts = {
+      baseHref: '/blog/category/' + cat + '/',
+      featured: null,
+      categoryNav: buildCatNav('/blog/category/' + cat + '/'),
+    };
+    const html = renderIndex(catPosts, 1, 1, indexTpl, opts);
+    fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
+
+  // ── Tag index pages ────────────────────────────────────────────────
   for (const [tag, tagPosts] of Object.entries(byTag)) {
     const slug = tag.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     if (!slug) continue;
     const outDir = path.join(BLOG_DIR, 'tag', slug);
     fs.mkdirSync(outDir, { recursive: true });
-    const html = renderIndex(tagPosts, 1, 1, indexTpl);
+    const opts = {
+      baseHref: '/blog/tag/' + slug + '/',
+      featured: null,
+      categoryNav: buildCatNav(''),
+    };
+    const html = renderIndex(tagPosts, 1, 1, indexTpl, opts);
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
@@ -403,7 +522,10 @@ async function main() {
   // (same pattern as sitemap-suburbs-*.xml).
   const urls = [SITE_URL + '/blog/']
     .concat(posts.map(p => SITE_URL + '/blog/' + p.slug + '/'))
-    .concat(Object.keys(byTag).map(t => SITE_URL + '/blog/tag/' + t + '/'));
+    .concat(Object.keys(byTag).map(t => SITE_URL + '/blog/tag/' + t + '/'))
+    .concat(Object.keys(byCategory)
+      .filter(c => c !== 'general' && CATEGORY_LABELS[c])
+      .map(c => SITE_URL + '/blog/category/' + c + '/'));
   const sitemapBlog = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urls.map(u => '  <url><loc>' + u + '</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>').join('\n') +

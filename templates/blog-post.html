@@ -6,7 +6,7 @@
 <script src="/gtag-init.js" defer></script>
 <script src="/analytics.js" defer></script>
 <meta charset="UTF-8">
-<script>try{if(localStorage.getItem('equitySight_theme')==='dark')document.documentElement.classList.add('dark-mode')}catch(e){}</script>
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
 <script src="/site-init.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>{{TITLE}} | EquitySight Blog</title>
@@ -70,7 +70,7 @@
     <a href="/blog/">Blog</a> <span>›</span>
     <span>{{TITLE}}</span>
   </nav>
-  <div class="legal-tag">Blog · {{PRIMARY_TAG}}</div>
+  <div class="legal-tag">{{CATEGORY_LABEL}} · {{PRIMARY_TAG}}</div>
   <h1 class="legal-title">{{TITLE}}</h1>
   <div class="legal-meta">By {{AUTHOR}} · Published {{PUBLISHED_AT_HUMAN}} · {{READING_MINUTES}} min read</div>
 </section>
@@ -97,6 +97,8 @@
         {{RELATED_HTML}}
       </div>
     </div>
+
+    {{PREV_NEXT_HTML}}
 
     <!-- Community Comments (build-time static HTML; renders empty when count=0) -->
     {{COMMENTS_HTML}}

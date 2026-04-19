@@ -3330,13 +3330,17 @@ async function loadBlogPosts() {
 
 function blogResetEditor() {
   document.getElementById('blog-edit-id').value = '';
-  ['blog-edit-title','blog-edit-slug','blog-edit-excerpt','blog-edit-tags','blog-edit-author','blog-edit-cover','blog-edit-author-bio','blog-edit-body'].forEach(function (id) {
+  ['blog-edit-title','blog-edit-slug','blog-edit-excerpt','blog-edit-tags','blog-edit-author','blog-edit-cover','blog-edit-author-bio','blog-edit-body','blog-edit-meta-desc'].forEach(function (id) {
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
+  var cat = document.getElementById('blog-edit-category'); if (cat) cat.value = 'general';
+  var feat = document.getElementById('blog-edit-featured'); if (feat) feat.checked = false;
   document.getElementById('blog-edit-status').innerHTML = '';
   document.getElementById('blog-editor-title').textContent = 'New Post';
+  blogSetEditorMode('write');
   blogUpdateWordCount();
+  blogUpdateMetaDescCount();
 }
 
 async function blogOpenEditor(id) {
@@ -3363,12 +3367,20 @@ async function blogOpenEditor(id) {
   document.getElementById('blog-edit-cover').value = p.cover_image || '';
   document.getElementById('blog-edit-author-bio').value = p.author_bio || '';
   document.getElementById('blog-edit-body').value = p.body_md || '';
+  var catEl = document.getElementById('blog-edit-category'); if (catEl) catEl.value = p.category || 'general';
+  var featEl = document.getElementById('blog-edit-featured'); if (featEl) featEl.checked = !!p.featured;
+  var metaEl = document.getElementById('blog-edit-meta-desc'); if (metaEl) metaEl.value = p.meta_description || '';
   document.getElementById('blog-editor-title').textContent = 'Edit: ' + (p.title || '(untitled)');
   document.getElementById('blog-edit-status').innerHTML = '';
+  blogSetEditorMode('write');
   blogUpdateWordCount();
+  blogUpdateMetaDescCount();
 }
 
 function blogCollectForm() {
+  var catEl = document.getElementById('blog-edit-category');
+  var featEl = document.getElementById('blog-edit-featured');
+  var metaEl = document.getElementById('blog-edit-meta-desc');
   return {
     id: document.getElementById('blog-edit-id').value || undefined,
     title: document.getElementById('blog-edit-title').value.trim(),
@@ -3379,6 +3391,9 @@ function blogCollectForm() {
     author_bio: document.getElementById('blog-edit-author-bio').value.trim(),
     cover_image: document.getElementById('blog-edit-cover').value.trim(),
     body_md: document.getElementById('blog-edit-body').value,
+    category: catEl ? (catEl.value || 'general') : 'general',
+    featured: !!(featEl && featEl.checked),
+    meta_description: metaEl ? metaEl.value.trim() : '',
   };
 }
 
@@ -3484,6 +3499,72 @@ function blogAutoSlug() {
   if (idEl.value) return;
   if (slugEl.dataset.touched === '1') return;
   slugEl.value = blogSlugify(titleEl.value);
+}
+
+// Tiny Markdown → HTML renderer for the in-editor preview. Intentionally
+// conservative (headings, paragraphs, bold/italic, lists, links, blockquotes,
+// fenced code) so it gives the author a readable sanity check without pulling
+// in a full parser. The static build still uses the canonical build/md.js.
+function blogRenderPreview(md) {
+  if (!md) return '<p style="color:var(--slate);font-style:italic;">(Nothing to preview yet.)</p>';
+  var esc = function (s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var out = esc(md);
+  // Fenced code
+  out = out.replace(/```([\s\S]*?)```/g, function (_, body) {
+    return '<pre style="background:#f5f3ee;padding:12px 14px;border-radius:4px;overflow:auto;font-size:12px;"><code>' + body.replace(/^\n/, '') + '</code></pre>';
+  });
+  // Headings
+  out = out.replace(/^### (.+)$/gm, '<h3 style="margin-top:22px;">$1</h3>');
+  out = out.replace(/^## (.+)$/gm, '<h2 style="margin-top:28px;border-bottom:1px solid rgba(28,28,30,0.08);padding-bottom:6px;">$1</h2>');
+  out = out.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  // Blockquote
+  out = out.replace(/^&gt; (.+)$/gm, '<blockquote style="border-left:3px solid #C9A84C;padding:4px 12px;color:var(--slate);margin:10px 0;">$1</blockquote>');
+  // Inline
+  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  out = out.replace(/`([^`]+)`/g, '<code style="background:#f5f3ee;padding:2px 5px;border-radius:3px;font-size:0.92em;">$1</code>');
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#C9A84C;" target="_blank" rel="noopener">$1</a>');
+  // Lists (simple)
+  out = out.replace(/(^|\n)((?:- .+\n?)+)/g, function (_, pre, block) {
+    var items = block.trim().split(/\n/).map(function (l) { return '<li>' + l.replace(/^- /, '') + '</li>'; }).join('');
+    return pre + '<ul style="margin:10px 0;padding-left:22px;">' + items + '</ul>';
+  });
+  // Paragraphs (double newline)
+  out = out.split(/\n\n+/).map(function (para) {
+    if (/^\s*<(h\d|ul|ol|pre|blockquote)/.test(para)) return para;
+    return '<p style="margin:10px 0;">' + para.replace(/\n/g, '<br>') + '</p>';
+  }).join('\n');
+  return out;
+}
+
+function blogSetEditorMode(mode) {
+  var body = document.getElementById('blog-edit-body');
+  var prev = document.getElementById('blog-edit-preview');
+  var wBtn = document.getElementById('blog-edit-mode-write');
+  var pBtn = document.getElementById('blog-edit-mode-preview');
+  if (!body || !prev) return;
+  if (mode === 'preview') {
+    prev.innerHTML = blogRenderPreview(body.value);
+    body.style.display = 'none';
+    prev.style.display = 'block';
+    if (wBtn) wBtn.style.background = '';
+    if (pBtn) pBtn.style.background = 'rgba(201,168,76,0.18)';
+  } else {
+    body.style.display = '';
+    prev.style.display = 'none';
+    if (wBtn) wBtn.style.background = 'rgba(201,168,76,0.18)';
+    if (pBtn) pBtn.style.background = '';
+  }
+}
+
+function blogUpdateMetaDescCount() {
+  var el = document.getElementById('blog-edit-meta-desc');
+  var out = document.getElementById('blog-edit-metadesc-count');
+  if (!el || !out) return;
+  var n = (el.value || '').trim().length;
+  var hint = n === 0 ? '(uses excerpt)' : n < 50 ? 'too short — aim for 50–160' : n > 160 ? 'too long — Google truncates past 160' : '✓ good length';
+  out.textContent = n + ' chars · ' + hint;
+  out.style.color = (n === 0 || (n >= 50 && n <= 160)) ? 'var(--slate)' : '#c2410c';
 }
 
 // ═══════════════════════════════════════════════════════════════════════
