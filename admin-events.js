@@ -67,6 +67,12 @@ var blogTitleEl = document.getElementById('blog-edit-title');
 if(blogTitleEl) blogTitleEl.addEventListener('input', blogAutoSlug);
 var blogSlugEl = document.getElementById('blog-edit-slug');
 if(blogSlugEl) blogSlugEl.addEventListener('input', function(){ this.dataset.touched = '1'; });
+var blogMetaEl = document.getElementById('blog-edit-meta-desc');
+if(blogMetaEl) blogMetaEl.addEventListener('input', blogUpdateMetaDescCount);
+var blogModeWriteBtn = document.getElementById('blog-edit-mode-write');
+if(blogModeWriteBtn) blogModeWriteBtn.addEventListener('click', function(){ blogSetEditorMode('write'); });
+var blogModePreviewBtn = document.getElementById('blog-edit-mode-preview');
+if(blogModePreviewBtn) blogModePreviewBtn.addEventListener('click', function(){ blogSetEditorMode('preview'); });
 
 // ── Moderation tab (suburb reviews + blog comments) ─────────────────────────
 var modKindReviewsBtn = document.getElementById('mod-kind-reviews');
