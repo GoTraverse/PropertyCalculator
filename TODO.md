@@ -19,9 +19,6 @@ General - (DO NOT REMOVE THIS LINE)
 13. Add "Related calculators" cross-link block to all 9 /tools/*.html pages
 17. Harden password reset: 8-char alphanumeric codes + 5-attempt-per-code lockout — auth.js:333, 775
 18. Add content-type + size cap to profile photo upload; magic-byte sniff — auth.js:741
-21. Cap deposit >= 0 and loanAmt <= price in calculator input handling — app.js:600
-22. Verify QLD FHB stamp-duty price ceiling matches current state schedule and add cap note — app.js:131
-23. Document fortnightly-benefit formula in methodology.html (rate/100/26 approximation vs 13-payments/yr model) — app.js:219
 26. Add suburb-specific og:image generation (state + suburb name card) to replace favicon fallback
 30. Need to create a better blog post editor in the admin page, something more professional with more features and a way to add posts to different sections like tool, suburb or other blog content etc.
 31. The Blog page on main site needs to be laid out like other proffesional blog sites, we need to upgrade this to be better.
