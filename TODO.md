@@ -12,8 +12,6 @@ General - (DO NOT REMOVE THIS LINE)
 -
 1. Convert screenshots to WebP format (Performance - High) — requires cwebp or similar tool
 2. Create 1200x630px OG social sharing image (SEO - High) — requires image editor
-10. Expand methodology.html to 1,200+ words (currently ~275) — SEO/AdSense E-E-A-T
-11. Expand data-sources.html to 1,200+ words (currently ~249) — SEO/AdSense E-E-A-T
 26. Add suburb-specific og:image generation (state + suburb name card) to replace favicon fallback
 30. Need to create a better blog post editor in the admin page, something more professional with more features and a way to add posts to different sections like tool, suburb or other blog content etc.
 31. The Blog page on main site needs to be laid out like other proffesional blog sites, we need to upgrade this to be better.
