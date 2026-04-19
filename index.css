@@ -645,3 +645,7 @@
   /* Tools section CTA button — full width so long text doesn't wrap */
   .tools-cta-btn { display: block !important; width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
 }
+
+/* State-tile hover — replaces inline onmouseover handlers so CSP
+   script-src-attr can forbid 'unsafe-inline'. */
+.state-tile:hover { border-color: rgba(201,168,76,0.4); }
