@@ -48,6 +48,17 @@
   [headers.values]
     Cache-Control = "public, max-age=604800, immutable"
 
+# ── Trailing-slash policy ───────────────────────────────────────────────────
+# Directory-backed URLs (served by /<path>/index.html on disk) use a trailing
+# slash and are listed that way in every sitemap + internal link:
+#   /invest/<state>/, /invest/<state>/<city>/, /suburb/<state>/<slug>/, /blog/
+# Flat-file URLs (served by /<path>.html via Netlify pretty-URLs) have NO
+# trailing slash and are canonicalised below:
+#   /pricing, /about, /contact, /app, /showcase, /privacy, /terms, …
+#   /tools/<calculator-name>
+# Netlify serves each form at both URLs, so only the canonical variant appears
+# in sitemaps and <a href=...> links. Keep new pages on the same pattern.
+
 [[redirects]]
   from = "/favicon.ico"
   to = "/favicon.svg"

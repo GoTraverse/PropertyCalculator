@@ -128,17 +128,20 @@
         else if (price <= 750000) duty *= (price - 600000) / 150000;
       }
     } else if (state === 'qld') {
+      // QLD First Home Concession schedule effective 9 May 2025 (QRO).
+      // New home (any price) — no duty. Existing home — full concession to
+      // $700k, linear phase-out to $800k, no concession at/above $800k.
       if (isFHB && isNew) {
-        duty = 0; // QLD FHB new build: no transfer duty from May 2025
+        duty = 0;
       } else {
         duty = bracket(price, [
           [0, 0, 0], [5000, 0, 0.015], [75000, 1050, 0.035],
           [540000, 17325, 0.045], [1000000, 38025, 0.0575]
         ]);
         if (isFHB) {
-          if (price <= 500000) duty = 0;
-          else if (price <= 550000) duty *= (price - 500000) / 50000;
-          else if (price <= 700000) duty *= 0.5; // home concession rate approx
+          if (price <= 700000) duty = 0;
+          else if (price < 800000) duty *= (price - 700000) / 100000;
+          // price >= 800000: no FHB concession — full duty applies
         }
       }
     } else if (state === 'sa') {
@@ -574,13 +577,15 @@
     trackUsage('recalc');
     if(!_restoringDraft) _forceDirty = true;
     autosaveDraft();
-    const price   = Math.min(50000000, v('inp-price'));
-    const savings = Math.min(50000000, v('inp-savings'));
-    const depPct  = v('inp-depp');
-    const govtPct = v('inp-govt');
-    const rate    = Math.min(20, v('inp-rate'));
+    const price   = Math.max(0, Math.min(50000000, v('inp-price')));
+    const savings = Math.max(0, Math.min(50000000, v('inp-savings')));
+    // Clamp percentages to [0,100] so negative input can't produce a negative
+    // deposit (which would push loanAmt above price) or a negative govt grant.
+    const depPct  = Math.max(0, Math.min(100, v('inp-depp')));
+    const govtPct = Math.max(0, Math.min(100, v('inp-govt')));
+    const rate    = Math.max(0, Math.min(20, v('inp-rate')));
     const term    = Math.min(50, Math.max(1, v('inp-term')));
-    const contPct = v('inp-cont');
+    const contPct = Math.max(0, Math.min(100, v('inp-cont')));
     const address = document.getElementById('inp-address').value||'your property';
 
     const deposit  = price*depPct/100;

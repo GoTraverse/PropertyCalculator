@@ -72,8 +72,8 @@
         <button class="form-submit" id="fp-btn">Send Reset Code →</button>
       </div>
       <div id="forgot-step-reset" style="display:none;">
-        <div style="font-size:13px;color:rgba(245,240,232,0.55);margin-bottom:14px;">Enter the 6-digit code we sent to your email, then choose a new password.</div>
-        <div class="form-field"><label class="form-label">Reset Code</label><input class="form-input" id="fp-code" type="text" inputmode="numeric" maxlength="6" placeholder="123456"></div>
+        <div style="font-size:13px;color:rgba(245,240,232,0.55);margin-bottom:14px;">Enter the 8-character code we sent to your email, then choose a new password.</div>
+        <div class="form-field"><label class="form-label">Reset Code</label><input class="form-input" id="fp-code" type="text" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="ABCDE234" style="letter-spacing:2px;text-transform:uppercase;"></div>
         <div class="form-field"><label class="form-label">New Password</label><input class="form-input" id="fp-newpw" type="password" placeholder="Min 8 characters" autocomplete="new-password"></div>
         <div class="form-error" id="fp-reset-error"></div>
         <button class="form-submit" id="fp-reset-btn">Set New Password →</button>
@@ -108,8 +108,8 @@
 
       <div id="signup-verify-step" style="display:none;margin-top:18px;border-top:1px solid rgba(255,255,255,0.09);padding-top:18px;">
         <div class="form-label" style="margin-bottom:10px;">Step 2 — Verify email</div>
-        <div class="verify-note" id="verify-note">Enter the 6-digit code we sent to your email.</div>
-        <div class="form-field"><label class="form-label">Verification code</label><input class="form-input" id="su-verify-code" type="text" inputmode="numeric" maxlength="6" placeholder="123456"></div>
+        <div class="verify-note" id="verify-note">Enter the 8-character code we sent to your email.</div>
+        <div class="form-field"><label class="form-label">Verification code</label><input class="form-input" id="su-verify-code" type="text" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="ABCDE234" style="letter-spacing:2px;text-transform:uppercase;"></div>
         <div class="form-error" id="verify-error"></div>
         <button class="form-submit" id="verify-btn">Verify Email →</button>
         <button class="btn-guest" id="resend-code-btn" style="margin-top:10px;">Resend code</button>

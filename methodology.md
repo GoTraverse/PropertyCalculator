@@ -118,10 +118,30 @@ Everything in between is labelled **moderate**. The exact thresholds are in `bui
 - We do not collect any paid data from agents or developers, and we do not accept sponsored content.
 - The investment score does not factor live sales prices, so it cannot be used as a gross-yield estimate in isolation.
 
-## 11. Change log
+## 11. Mortgage repayment formulas (main calculator)
 
-- **April 2026** — First published methodology. Introduced multi-factor noindex gate, deterministic strategy verdicts, comparison tables, and formula-driven prose to replace templated phrase pools.
+The Purchase Calculator (`/app`) uses the standard monthly amortisation formula:
 
-## 12. Questions?
+```
+monthly = P × r / (1 − (1 + r)^−n)
+```
+
+where `P` is the loan amount, `r` is the **monthly** rate (annual rate ÷ 12 ÷ 100), and `n` is the number of monthly periods (term × 12). Total interest is `monthly × n − P`.
+
+### Fortnightly-benefit figure
+
+The "switching to fortnightly saves X years and $Y in interest" number is computed by full amortisation, not a closed form. Specifically:
+
+- **Payment**: `monthly / 2` paid every 14 days. Because there are 26 fortnights per year (not 24), this is the equivalent of 13 monthly payments per year — an extra monthly payment vs. the strict 12-per-year schedule.
+- **Periodic rate**: annual rate ÷ 26 (applied once per fortnight).
+- **Loop**: we iterate fortnight-by-fortnight, applying interest then reducing the balance, until the balance hits zero. `yearsLess` = (term × 12 − monthsEquivalent) ÷ 12 and `interestSaved` = monthlyInterestTotal − fortnightlyInterestTotal.
+
+This matches the "pay half the monthly amount every fortnight" offer most Australian lenders advertise. It is **not** the same as paying `annual / 26` every fortnight (which would just be monthly repayments relabelled and would save nothing).
+
+## 12. Change log
+
+- **April 2026** — First published methodology. Introduced multi-factor noindex gate, deterministic strategy verdicts, comparison tables, and formula-driven prose to replace templated phrase pools. Documented mortgage repayment formulas used by the Purchase Calculator.
+
+## 13. Questions?
 
 If anything on this page is unclear, or you find a calculation error, email us at [support@equitysight.app](mailto:support@equitysight.app). Corrections are logged in the change log above.

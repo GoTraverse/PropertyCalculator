@@ -329,15 +329,23 @@ exports.handler = async function(event) {
     try {
       const r = await rGet('review:' + id);
       if (!r) return fail('Review not found', 404);
-      if (r.status === 'approved') return ok({ ok: true, already: true });
+      const wasApproved = r.status === 'approved';
       r.status = 'approved';
-      r.approved_at = Date.now();
+      if (!wasApproved) r.approved_at = Date.now();
       await rSet('review:' + id, r);
+      // Always reconcile both lists — LREM is a no-op when the value is
+      // absent, so calling it repeatedly is safe and self-heals a half-
+      // completed previous run.
       await rListRemove('reviews:queue', id);
+      await rListRemove(suburbListKey(r.state, r.suburbSlug), id);
       await rListPrepend(suburbListKey(r.state, r.suburbSlug), id);
-      await rHIncrBy(aggKey(r.state, r.suburbSlug), 'count', 1);
-      await rHIncrBy(aggKey(r.state, r.suburbSlug), 'sum', r.rating);
-      return ok({ ok: true });
+      // Only mutate the aggregate on a real state transition, otherwise
+      // re-approving would double-count the rating.
+      if (!wasApproved) {
+        await rHIncrBy(aggKey(r.state, r.suburbSlug), 'count', 1);
+        await rHIncrBy(aggKey(r.state, r.suburbSlug), 'sum', r.rating);
+      }
+      return ok({ ok: true, already: wasApproved });
     } catch (e) { return fail('Error: ' + e.message, 500); }
   }
 
@@ -347,16 +355,21 @@ exports.handler = async function(event) {
     try {
       const r = await rGet('review:' + id);
       if (!r) return fail('Review not found', 404);
-      if (r.status === 'approved') {
-        await rListRemove(suburbListKey(r.state, r.suburbSlug), id);
+      const wasApproved = r.status === 'approved';
+      // Aggregate decrement only runs when transitioning out of approved —
+      // re-rejecting (already rejected) must not over-decrement.
+      if (wasApproved) {
         await rHIncrBy(aggKey(r.state, r.suburbSlug), 'count', -1);
         await rHIncrBy(aggKey(r.state, r.suburbSlug), 'sum', -r.rating);
       }
-      r.status = 'rejected';
-      r.rejected_at = Date.now();
-      await rSet('review:' + id, r);
+      // List removals are idempotent (LREM with count=0), so run them
+      // unconditionally to self-heal any drift.
+      await rListRemove(suburbListKey(r.state, r.suburbSlug), id);
       await rListRemove('reviews:queue', id);
-      return ok({ ok: true });
+      r.status = 'rejected';
+      if (!r.rejected_at) r.rejected_at = Date.now();
+      await rSet('review:' + id, r);
+      return ok({ ok: true, already: !wasApproved && r.status === 'rejected' });
     } catch (e) { return fail('Error: ' + e.message, 500); }
   }
 
@@ -366,11 +379,15 @@ exports.handler = async function(event) {
     try {
       const r = await rGet('review:' + id);
       if (!r) return ok({ ok: true, alreadyGone: true });
+      // Only decrement aggregate on an approved→deleted transition. If the
+      // review is already marked rejected/pending, the aggregate never
+      // included it and must stay unchanged.
       if (r.status === 'approved') {
-        await rListRemove(suburbListKey(r.state, r.suburbSlug), id);
         await rHIncrBy(aggKey(r.state, r.suburbSlug), 'count', -1);
         await rHIncrBy(aggKey(r.state, r.suburbSlug), 'sum', -r.rating);
       }
+      // List removals are idempotent; run them unconditionally.
+      await rListRemove(suburbListKey(r.state, r.suburbSlug), id);
       await rListRemove('reviews:queue', id);
       await rListRemove('reviews:all', id);
       await redisCmd('DEL', 'review:' + id);

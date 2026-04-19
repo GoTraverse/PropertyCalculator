@@ -377,7 +377,7 @@ function showVerificationStep(data){
   document.getElementById('signup-verify-step').style.display='block';
   document.getElementById('su-btn').style.display='none';
   const email = data.email || document.getElementById('su-email').value.trim();
-  document.getElementById('verify-note').textContent = 'Enter the 6-digit code sent to '+email+'.';
+  document.getElementById('verify-note').textContent = 'Enter the 8-character code sent to '+email+'.';
 }
 
 async function doSignin(){
