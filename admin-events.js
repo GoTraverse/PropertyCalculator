@@ -44,35 +44,13 @@ var tabCallbacks = {
   'database': function(){ loadDatabaseBrowser('*'); }
 };
 
-// ── Blog editor ──────────────────────────────────────────────────────────────
+// ── Blog tab — open editor in new tab ────────────────────────────────────────
+// "+ New Post" opens the dedicated blog editor in a new tab
 var blogNewBtn = document.getElementById('blog-new-post-btn');
-if(blogNewBtn) blogNewBtn.addEventListener('click', function(){ blogOpenEditor(''); });
-var blogCloseBtn = document.getElementById('blog-editor-close-btn');
-if(blogCloseBtn) blogCloseBtn.addEventListener('click', function(){
-  document.getElementById('blog-editor-wrap').style.display = 'none';
-});
-var blogSaveDraftBtn = document.getElementById('blog-save-draft-btn');
-if(blogSaveDraftBtn) blogSaveDraftBtn.addEventListener('click', function(){ blogSavePost(false); });
-var blogPublishBtn = document.getElementById('blog-save-publish-btn');
-if(blogPublishBtn) blogPublishBtn.addEventListener('click', function(){ blogSavePost(true); });
-var blogUnpublishBtn = document.getElementById('blog-unpublish-btn');
-if(blogUnpublishBtn) blogUnpublishBtn.addEventListener('click', blogUnpublish);
-var blogDeleteBtn = document.getElementById('blog-delete-btn');
-if(blogDeleteBtn) blogDeleteBtn.addEventListener('click', blogDeletePost);
+if(blogNewBtn) blogNewBtn.addEventListener('click', function(){ window.open('/blog-editor.html', '_blank'); });
+// "Sync to GitHub" still works from admin tab
 var blogSyncGhBtn = document.getElementById('blog-sync-github-btn');
 if(blogSyncGhBtn) blogSyncGhBtn.addEventListener('click', blogSyncAllToGitHub);
-var blogBodyEl = document.getElementById('blog-edit-body');
-if(blogBodyEl) blogBodyEl.addEventListener('input', blogUpdateWordCount);
-var blogTitleEl = document.getElementById('blog-edit-title');
-if(blogTitleEl) blogTitleEl.addEventListener('input', blogAutoSlug);
-var blogSlugEl = document.getElementById('blog-edit-slug');
-if(blogSlugEl) blogSlugEl.addEventListener('input', function(){ this.dataset.touched = '1'; });
-var blogMetaEl = document.getElementById('blog-edit-meta-desc');
-if(blogMetaEl) blogMetaEl.addEventListener('input', blogUpdateMetaDescCount);
-var blogModeWriteBtn = document.getElementById('blog-edit-mode-write');
-if(blogModeWriteBtn) blogModeWriteBtn.addEventListener('click', function(){ blogSetEditorMode('write'); });
-var blogModePreviewBtn = document.getElementById('blog-edit-mode-preview');
-if(blogModePreviewBtn) blogModePreviewBtn.addEventListener('click', function(){ blogSetEditorMode('preview'); });
 
 // ── Moderation tab (suburb reviews + blog comments) ─────────────────────────
 var modKindReviewsBtn = document.getElementById('mod-kind-reviews');

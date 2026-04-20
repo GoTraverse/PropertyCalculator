@@ -3318,14 +3318,10 @@ async function loadBlogPosts() {
       '</div>' +
       '<div>' + statusBadge + '</div>' +
       '<div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">' + escHtml(blogFormatDate(p.updated_at || p.created_at)) + '</div>' +
-      '<button class="btn-admin-outline blog-edit-btn" data-id="' + escHtml(p.id) + '" style="font-size:10px;padding:6px 12px;">Edit</button>' +
+      '<a class="btn-admin-outline blog-edit-btn" href="/blog-editor.html?id=' + escHtml(p.id) + '" target="_blank" style="font-size:10px;padding:6px 12px;text-decoration:none;">Edit ↗</a>' +
     '</div>';
   }).join('');
   listEl.innerHTML = rows;
-  // Wire row edit buttons
-  listEl.querySelectorAll('.blog-edit-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () { blogOpenEditor(this.dataset.id); });
-  });
 }
 
 function blogResetEditor() {
