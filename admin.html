@@ -1064,8 +1064,11 @@
   <div class="admin-section" id="tab-blog">
     <div class="admin-card">
       <div class="admin-card-head">
-        <h3>Blog Posts</h3>
-        <span style="font-size:11px;color:var(--slate);">Author, publish and edit long-form articles. Posts are stored in Redis and rendered to static HTML at build time.</span>
+        <div>
+          <h3>Blog Posts</h3>
+          <span style="font-size:11px;color:var(--slate);">Author, publish and edit long-form articles. Posts are stored in Redis and rendered to static HTML at build time.</span>
+        </div>
+        <a href="/blog-editor.html" target="_blank" class="btn-admin btn-admin-primary" style="font-size:11px;padding:8px 16px;text-decoration:none;">Open Blog Editor ↗</a>
       </div>
       <div style="padding:16px 20px;">
         <!-- Post list -->
@@ -1076,97 +1079,13 @@
             <button class="btn-admin btn-admin-primary" id="blog-new-post-btn" style="font-size:11px;padding:8px 14px;">+ New Post</button>
           </div>
         </div>
-        <div id="blog-posts-list" style="border:1px solid rgba(28,28,30,0.08);border-radius:6px;overflow:hidden;margin-bottom:24px;">
+        <div id="blog-posts-list" style="border:1px solid rgba(28,28,30,0.08);border-radius:6px;overflow:hidden;margin-bottom:8px;">
           <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
         </div>
-
-        <!-- Editor -->
-        <div id="blog-editor-wrap" style="display:none;border-top:1px solid rgba(28,28,30,0.08);padding-top:20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <h4 id="blog-editor-title" style="margin:0;font-size:15px;">New Post</h4>
-            <button class="btn-admin-outline" id="blog-editor-close-btn" style="font-size:11px;padding:6px 12px;">Close editor</button>
-          </div>
-          <input type="hidden" id="blog-edit-id" value="">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-            <div>
-              <label class="config-label">Title *</label>
-              <input type="text" class="config-input" id="blog-edit-title" placeholder="How the RBA cash rate actually hits your repayment">
-            </div>
-            <div>
-              <label class="config-label">Slug (URL path) *</label>
-              <input type="text" class="config-input" id="blog-edit-slug" placeholder="rba-cash-rate-repayments">
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
-            <div>
-              <label class="config-label">Excerpt (shown on blog card, 140–200 chars)</label>
-              <input type="text" class="config-input" id="blog-edit-excerpt" placeholder="A short summary shown on the blog index and in the page meta description.">
-            </div>
-            <div>
-              <label class="config-label">Tags (comma-separated, max 6)</label>
-              <input type="text" class="config-input" id="blog-edit-tags" placeholder="strategy, first-home-buyer">
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
-            <div>
-              <label class="config-label">Category / Section</label>
-              <select class="config-input" id="blog-edit-category">
-                <option value="general">General</option>
-                <option value="guide">Guide / How-to</option>
-                <option value="market-insight">Market Insight</option>
-                <option value="calculator-tip">Calculator Tip</option>
-                <option value="suburb-spotlight">Suburb Spotlight</option>
-                <option value="news">News</option>
-              </select>
-            </div>
-            <div>
-              <label class="config-label">Author name</label>
-              <input type="text" class="config-input" id="blog-edit-author" placeholder="Alex Chen">
-            </div>
-            <div>
-              <label class="config-label">Cover image URL (optional)</label>
-              <input type="text" class="config-input" id="blog-edit-cover" placeholder="https://...">
-            </div>
-          </div>
-          <div style="margin-bottom:14px;">
-            <label class="config-label">Author bio (shown under the article)</label>
-            <input type="text" class="config-input" id="blog-edit-author-bio" placeholder="Co-founder & CTO. Former fintech engineer with …">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;margin-bottom:14px;">
-            <div>
-              <label class="config-label">SEO meta description (search-result snippet, 50–160 chars — falls back to excerpt if blank)</label>
-              <input type="text" class="config-input" id="blog-edit-meta-desc" placeholder="Override the excerpt with a tighter SEO snippet.">
-              <div id="blog-edit-metadesc-count" style="font-size:10px;color:var(--slate);margin-top:4px;font-family:var(--font-mono);">0 chars</div>
-            </div>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--charcoal);cursor:pointer;padding-bottom:20px;white-space:nowrap;">
-              <input type="checkbox" id="blog-edit-featured" style="width:16px;height:16px;accent-color:#C9A84C;">
-              Featured on blog hero
-            </label>
-          </div>
-          <div style="margin-bottom:14px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
-              <label class="config-label" style="margin:0;">Body (Markdown — use ## for section headings)</label>
-              <div style="display:flex;gap:6px;">
-                <button type="button" class="btn-admin-outline" id="blog-edit-mode-write" style="font-size:10px;padding:5px 10px;">Write</button>
-                <button type="button" class="btn-admin-outline" id="blog-edit-mode-preview" style="font-size:10px;padding:5px 10px;">Preview</button>
-              </div>
-            </div>
-            <textarea id="blog-edit-body" class="config-input" style="width:100%;min-height:360px;font-family:var(--font-mono);font-size:12px;resize:vertical;line-height:1.5;" placeholder="## Introduction&#10;&#10;Write 1,500+ words here using Markdown…"></textarea>
-            <div id="blog-edit-preview" style="display:none;min-height:360px;max-height:600px;overflow:auto;padding:18px 22px;border:1px solid rgba(28,28,30,0.12);border-radius:4px;background:#fff;line-height:1.7;font-size:14px;color:var(--charcoal);"></div>
-            <div id="blog-edit-wordcount" style="font-size:10px;color:var(--slate);margin-top:6px;font-family:var(--font-mono);">0 words · 0 min read · AdSense floor: 1,500 words</div>
-          </div>
-          <div id="blog-edit-status" class="admin-status" style="margin-bottom:14px;"></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn-admin btn-admin-primary" id="blog-save-draft-btn">Save draft</button>
-            <button class="btn-admin" id="blog-save-publish-btn" style="background:#2e7d32;color:#fff;">Save &amp; Publish</button>
-            <button class="btn-admin-outline" id="blog-unpublish-btn">Unpublish</button>
-            <button class="btn-admin-outline" id="blog-delete-btn" style="color:#c62828;border-color:#c62828;">Delete</button>
-          </div>
-        </div>
+        <div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);padding:4px 2px;">Click <strong>Edit</strong> on a post or <strong>+ New Post</strong> to open the full-screen blog editor in a new tab.</div>
       </div>
     </div>
   </div>
-
   <!-- MODERATION TAB -->
   <div class="admin-section" id="tab-moderation">
     <div class="admin-card">
