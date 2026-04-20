@@ -1,5 +1,20 @@
 {
-  "syncedAt": "2026-04-16T00:00:00.000Z",
-  "count": 0,
-  "errors": []
+  "syncedAt": "2026-04-20T08:47:00.983Z",
+  "count": 1,
+  "errors": [
+    {
+      "at": 1776674819958,
+      "message": "CSP violation: font-src — blocked \"https://equitysight.app/fonts/Sora-VariableFont_wght.woff2\"",
+      "source": "https://www.googletagmanager.com/gtag/js",
+      "line": 854,
+      "col": 377,
+      "stack": "",
+      "url": "https://equitysight.app/?ref=producthunt",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    }
+  ]
 }
