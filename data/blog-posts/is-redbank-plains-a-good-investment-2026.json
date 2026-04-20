@@ -19,9 +19,9 @@
   ],
   "category": "general",
   "featured": true,
-  "status": "draft",
+  "status": "published",
   "created_at": 1776662070432,
-  "updated_at": 1776662070432,
-  "published_at": null,
+  "updated_at": 1776662072164,
+  "published_at": 1776662072164,
   "comment_count": 0
 }
