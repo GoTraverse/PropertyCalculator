@@ -12,9 +12,9 @@
   "tags": [],
   "category": "general",
   "featured": false,
-  "status": "draft",
+  "status": "published",
   "created_at": 1776765034905,
-  "updated_at": 1776765034905,
-  "published_at": null,
+  "updated_at": 1776765036873,
+  "published_at": 1776765036873,
   "comment_count": 0
 }
