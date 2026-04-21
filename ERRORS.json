@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-04-20T08:58:54.020Z",
-  "count": 10,
+  "syncedAt": "2026-04-21T04:25:08.378Z",
+  "count": 11,
   "errors": [
+    {
+      "at": 1776745506649,
+      "message": "CSP violation: connect-src — blocked \"https://pagead2.googlesyndication.com/pagead/ping?e=1\"",
+      "source": "https://equitysight.app/tools/house-flip-calculator",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/tools/house-flip-calculator",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1776675532999,
       "message": "CSP violation: connect-src — blocked \"https://www.google.mu/ads/ga-audiences?v=1&t=sr&slf_rd=1&_r=4&tid=G-TYQXT24670&cid=558117238.1776662506&gtm=45je64g0h2v9246793855za200zd9246793855&rcb=14&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=0~115938466~115938469~117266400&z=1171319569\"",
