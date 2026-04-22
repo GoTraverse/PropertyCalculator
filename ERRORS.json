@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-04-21T04:25:08.378Z",
-  "count": 11,
+  "syncedAt": "2026-04-22T04:55:16.158Z",
+  "count": 12,
   "errors": [
+    {
+      "at": 1776833715154,
+      "message": "TypeError: undefined is not an object (evaluating 'r[\"@context\"].toLowerCase')",
+      "source": "https://equitysight.app/suburb/wa/bushmead/",
+      "line": 3,
+      "col": 185,
+      "stack": "@https://equitysight.app/suburb/wa/bushmead/:3:185\nglobal code@https://equitysight.app/suburb/wa/bushmead/:3:362",
+      "url": "https://equitysight.app/suburb/wa/bushmead/",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1776745506649,
       "message": "CSP violation: connect-src — blocked \"https://pagead2.googlesyndication.com/pagead/ping?e=1\"",
