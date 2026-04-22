@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-04-22T04:55:16.158Z",
-  "count": 12,
+  "syncedAt": "2026-04-22T13:12:25.231Z",
+  "count": 13,
   "errors": [
+    {
+      "at": 1776863544218,
+      "message": "CSP violation: connect-src — blocked \"https://www.google.co.in/ads/ga-audiences?v=1&t=sr&slf_rd=1&_r=4&tid=G-TYQXT24670&cid=2133233936.1776863420&gtm=45je64h1v9246793855za200zd9246793855&rcb=19&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=0~115938466~115938468~117266400~117384405~117512542&z=1453257609\"",
+      "source": "https://equitysight.app/",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1776833715154,
       "message": "TypeError: undefined is not an object (evaluating 'r[\"@context\"].toLowerCase')",
