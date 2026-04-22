@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 110" width="400" height="110">
+  <defs>
+    
+  </defs>
+  
+  <g transform="translate(0,15)">
+    
+  <rect x="19.24" y="59.36" width="8.4" height="15.04" rx="2.69" fill="rgba(26,26,26,0.15)"></rect>
+  <rect x="33.4" y="50.34" width="8.4" height="24.06" rx="2.69" fill="rgba(26,26,26,0.30)"></rect>
+  <rect x="47.56" y="39.06" width="8.4" height="35.34" rx="2.69" fill="#F2C94C"></rect>
+  <rect x="49.2" y="13.3" width="8.8" height="14.04" rx="1.32" fill="#1A1A1A"></rect>
+  <path d="M 12.8 36.8 Q 8 36.8 11.69 33.73 L 34.4 14.8 Q 40 11.6 45.6 14.8 L 68.31 33.73 Q 72 36.8 67.2 36.8 Z" fill="#1A1A1A"></path>
+  </g>
+  <text x="96" y="63.24999999999999" font-family="&#39;Sora&#39;, sans-serif" font-weight="600" font-size="38" letter-spacing="-0.9" fill="#1A1A1A">Equity</text>
+  <text x="209" y="63.24999999999999" font-family="&#39;Sora&#39;, sans-serif" font-weight="600" font-size="38" letter-spacing="-0.9" fill="#F2C94C">Sight</text>
+  
+</svg>
