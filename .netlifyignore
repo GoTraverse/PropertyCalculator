@@ -43,5 +43,8 @@ data/blog-posts/
 # HTML templates (used at build time only)
 templates/
 
+# Logo/OG image generator HTML templates (use React via CDN; source only)
+images/*.html
+
 # Node artefacts
 node_modules/

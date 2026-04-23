@@ -805,7 +805,7 @@ async function loadConfig(){
   }
   setV('cfg-site-name',       c.siteName       || 'EquitySight.app');
   setV('cfg-site-tagline',    c.siteTagline    || '');
-  setV('cfg-logo-mark',       c.logoMark       || '🏠');
+  setV('cfg-logo-mark',       c.logoMark       || '');
   setV('cfg-logo-name',       c.logoName       || 'EquitySight');
   setV('cfg-logo-tld',        c.logoTld        !== undefined ? c.logoTld : '.app');
   setV('cfg-brand-color',     c.brandColor     || '#C9A84C');
@@ -822,7 +822,15 @@ async function loadConfig(){
   var bpMark = document.getElementById('brand-preview-mark');
   var bpName = document.getElementById('brand-preview-name');
   var bpTld  = document.getElementById('brand-preview-tld');
-  if(bpMark) bpMark.textContent = c.logoMark || '🏠';
+  if(bpMark) {
+    if (c.logoMark) {
+      bpMark.classList.add('site-logo-mark--emoji');
+      bpMark.textContent = c.logoMark;
+    } else {
+      bpMark.classList.remove('site-logo-mark--emoji');
+      bpMark.innerHTML = '<img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52">';
+    }
+  }
   if(bpName) bpName.textContent = c.logoName || 'EquitySight';
   if(bpTld)  bpTld.textContent  = c.logoTld  !== undefined ? c.logoTld : '.app';
   if(c.brandColor) applyBrandColor(c.brandColor);
@@ -834,8 +842,14 @@ async function loadConfig(){
     var emojiEl2 = document.getElementById('logo-img-emoji');
     var imgEl2   = document.getElementById('logo-img-preview');
     var clrBtn2  = document.getElementById('logo-img-clear-btn');
-    if(emojiEl2) { emojiEl2.textContent = c.logoMark || '🏠'; emojiEl2.style.display = ''; }
-    if(imgEl2)   { imgEl2.src = ''; imgEl2.style.display = 'none'; }
+    if(emojiEl2) { emojiEl2.textContent = c.logoMark || ''; emojiEl2.style.display = c.logoMark ? '' : 'none'; }
+    if(imgEl2)   {
+      if (c.logoMark) {
+        imgEl2.src = ''; imgEl2.style.display = 'none';
+      } else {
+        imgEl2.src = '/images/icon-dark.svg'; imgEl2.style.display = 'block';
+      }
+    }
     if(clrBtn2)  clrBtn2.style.display = 'none';
   }
   setV('cfg-support-email',   c.supportEmail   || 'support@equitysight.app');
@@ -901,10 +915,22 @@ function clearLogoImage(){
   var clearBtn = document.getElementById('logo-img-clear-btn');
   var previewMark = document.getElementById('brand-preview-mark');
   if(inp) inp.value = '';
-  if(imgEl)  { imgEl.src = ''; imgEl.style.display = 'none'; }
-  if(emojiEl) emojiEl.style.display = '';
+  var mark = getV('cfg-logo-mark','');
+  if(emojiEl) { emojiEl.textContent = mark; emojiEl.style.display = mark ? '' : 'none'; }
+  if(imgEl)  {
+    if (mark) { imgEl.src = ''; imgEl.style.display = 'none'; }
+    else { imgEl.src = '/images/icon-dark.svg'; imgEl.style.display = 'block'; }
+  }
   if(clearBtn) clearBtn.style.display = 'none';
-  if(previewMark) previewMark.textContent = getV('cfg-logo-mark','') || '🏠';
+  if(previewMark) {
+    if (mark) {
+      previewMark.classList.add('site-logo-mark--emoji');
+      previewMark.textContent = mark;
+    } else {
+      previewMark.classList.remove('site-logo-mark--emoji');
+      previewMark.innerHTML = '<img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52">';
+    }
+  }
 }
 
 function _applyLogoImagePreview(dataUri){
@@ -915,15 +941,31 @@ function _applyLogoImagePreview(dataUri){
   if(imgEl)  { imgEl.src = dataUri; imgEl.style.display = 'block'; }
   if(emojiEl) emojiEl.style.display = 'none';
   if(clearBtn) clearBtn.style.display = '';
-  if(previewMark) previewMark.innerHTML = '<img src="'+dataUri+'" style="width:100%;height:100%;object-fit:contain;" alt="">';
+  if(previewMark) {
+    previewMark.classList.remove('site-logo-mark--emoji');
+    previewMark.innerHTML = '<img src="'+dataUri+'" alt="">';
+  }
 }
 
 function updateLogoEmojiPreview(val){
   var emojiEl = document.getElementById('logo-img-emoji');
-  if(emojiEl) emojiEl.textContent = val || '🏠';
+  var imgEl = document.getElementById('logo-img-preview');
+  if(emojiEl) { emojiEl.textContent = val || ''; emojiEl.style.display = val ? '' : 'none'; }
+  if(!_logoImageData && imgEl){
+    if(val) { imgEl.src = ''; imgEl.style.display = 'none'; }
+    else    { imgEl.src = '/images/icon-dark.svg'; imgEl.style.display = 'block'; }
+  }
   if(!_logoImageData){
     var previewMark = document.getElementById('brand-preview-mark');
-    if(previewMark) previewMark.textContent = val || '🏠';
+    if(previewMark) {
+      if (val) {
+        previewMark.classList.add('site-logo-mark--emoji');
+        previewMark.textContent = val;
+      } else {
+        previewMark.classList.remove('site-logo-mark--emoji');
+        previewMark.innerHTML = '<img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52">';
+      }
+    }
   }
 }
 // ── Colour theme presets ───────────────────────────────────────────────────
@@ -1006,7 +1048,7 @@ async function saveConfig(){
     siteName:            getV('cfg-site-name',''),
     siteTagline:         getV('cfg-site-tagline',''),
     logoImage:           _logoImageData || '',
-    logoMark:            getV('cfg-logo-mark','🏠'),
+    logoMark:            getV('cfg-logo-mark',''),
     logoName:            getV('cfg-logo-name','EquitySight'),
     logoTld:             getV('cfg-logo-tld','.app'),
     brandColor:          getV('cfg-brand-color','#C9A84C'),

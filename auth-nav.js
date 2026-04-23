@@ -479,10 +479,14 @@ window.toggleTheme = function(){
     if (cfg.logoImage) {
       document.querySelectorAll('.site-logo-mark').forEach(function(el) {
         var safeLogo = safePhotoSrc(cfg.logoImage);
-        if (safeLogo) el.innerHTML = '<img src="' + safeLogo + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" alt="">';
+        if (safeLogo) {
+          el.classList.remove('site-logo-mark--emoji');
+          el.innerHTML = '<img src="' + safeLogo + '" alt="">';
+        }
       });
     } else if (mark) {
       document.querySelectorAll('.site-logo-mark').forEach(function(el) {
+        el.classList.add('site-logo-mark--emoji');
         el.textContent = mark;
       });
     }

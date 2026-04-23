@@ -31,7 +31,7 @@
 <nav class="site-nav">
   <div class="site-nav-inner">
     <a href="/" class="site-logo">
-      <div class="site-logo-mark">🏠</div>
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
     <ul class="site-nav-links">
@@ -635,7 +635,7 @@
         <div style="margin-bottom:24px;padding:14px 20px;background:var(--charcoal);border-radius:8px;display:flex;align-items:center;gap:16px;">
           <span style="font-size:11px;color:rgba(245,240,232,0.35);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">Preview</span>
           <span class="site-logo" style="pointer-events:none;display:flex;align-items:center;gap:10px;">
-            <span class="site-logo-mark" id="brand-preview-mark">🏠</span>
+            <span class="site-logo-mark" id="brand-preview-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></span>
             <span class="site-logo-text">
               <span class="site-logo-name" id="brand-preview-name">EquitySight</span>
               <span class="site-logo-tld" id="brand-preview-tld">.app</span>
@@ -648,10 +648,10 @@
             <label class="config-label">Logo Image</label>
             <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
               <div id="logo-img-tile"
-                style="width:52px;height:52px;border-radius:12px;background:var(--gold);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative;"
-                id="logo-img-zone" title="Click to upload">
-                <img id="logo-img-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:contain;">
-                <span id="logo-img-emoji" style="font-size:22px;">🏠</span>
+                style="width:52px;height:52px;border-radius:12px;background:transparent;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative;"
+                title="Click to upload">
+                <img id="logo-img-preview" src="/images/icon-dark.svg" alt="EquitySight" style="display:block;width:100%;height:100%;object-fit:contain;">
+                <span id="logo-img-emoji" style="font-size:22px;display:none;"></span>
               </div>
               <div style="flex:1;min-width:180px;">
                 <input type="file" id="logo-img-input" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none;">
@@ -666,7 +666,7 @@
           <div class="config-field">
             <label class="config-label">Fallback Emoji</label>
             <input type="text" class="config-input" id="cfg-logo-mark" placeholder="🏠" maxlength="4">
-            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Shown in the logo tile when no image is uploaded (e.g. 🏠 🏡 🏢)</div>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Leave blank to use the default EquitySight icon. Enter an emoji (🏠 🏡 🏢) to override.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Brand Name</label>

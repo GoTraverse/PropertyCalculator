@@ -151,7 +151,6 @@ img { max-width: 100%; display: block; }
 .site-logo-mark {
   width: 52px;
   height: 52px;
-  background: var(--gold);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -160,8 +159,20 @@ img { max-width: 100%; display: block; }
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
+  background: transparent;
 }
-.site-logo-mark::after {
+.site-logo-mark > img,
+.site-logo-mark > svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+/* Gold tile fallback for custom-branding mode (user-set emoji/text) */
+.site-logo-mark.site-logo-mark--emoji {
+  background: var(--gold);
+}
+.site-logo-mark.site-logo-mark--emoji::after {
   content: '';
   position: absolute;
   inset: 0;

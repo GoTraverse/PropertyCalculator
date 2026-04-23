@@ -2234,7 +2234,7 @@ const dirIndexHTML = `<!DOCTYPE html>
 
 <header class="tool-header">
   <a href="/" class="tool-logo">
-    <span class="tool-logo-mark">🏠</span>
+    <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
   <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
