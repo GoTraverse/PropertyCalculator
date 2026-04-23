@@ -2,6 +2,13 @@
 // Provides calculator interaction, conversion, and user behavior tracking
 // Call gtag() functions from this file to log structured events
 
+// Safety shim — if gtag-init.js didn't load (blocked by ad blocker, CSP, network),
+// avoid ReferenceError that would abort page scripts. All tracking becomes a no-op.
+if (typeof window.gtag !== 'function') {
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+}
+
 // ── Initialize custom user properties ─────────────────────────────────────
 function initAnalytics() {
   // Set user ID if authenticated (for cross-device tracking)
