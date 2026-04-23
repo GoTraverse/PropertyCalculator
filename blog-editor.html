@@ -95,8 +95,26 @@
               <input type="text" class="config-input" id="blog-edit-title" placeholder="How the RBA cash rate actually affects your repayments">
             </div>
             <div>
-              <label class="config-label be-label">Slug (URL path) *</label>
-              <input type="text" class="config-input" id="blog-edit-slug" placeholder="rba-cash-rate-repayments">
+              <label class="config-label be-label">Section (folder)</label>
+              <div style="display:flex;gap:6px;">
+                <select class="config-input" id="blog-edit-section" style="flex:1;">
+                  <option value="general">General</option>
+                </select>
+                <button type="button" class="btn-admin-outline" id="be-section-new-btn" style="font-size:10px;padding:6px 10px;white-space:nowrap;flex-shrink:0;" title="Create a new section">+ New</button>
+              </div>
+              <!-- New section input (hidden by default) -->
+              <div id="be-section-create" style="display:none;margin-top:6px;display:none;">
+                <div style="display:flex;gap:6px;">
+                  <input type="text" class="config-input" id="be-section-name-input" placeholder="e.g. First Home Buyers" style="flex:1;">
+                  <button type="button" class="btn-admin btn-admin-primary" id="be-section-create-btn" style="font-size:10px;padding:6px 12px;white-space:nowrap;">Create</button>
+                  <button type="button" class="btn-admin-outline" id="be-section-cancel-btn" style="font-size:10px;padding:6px 10px;">✕</button>
+                </div>
+              </div>
+            </div>
+            <!-- URL preview (full width) -->
+            <div style="grid-column:1/-1;">
+              <label class="config-label be-label">Post URL</label>
+              <div id="be-url-preview" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);padding:7px 10px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:4px;">/blog/general/your-post-title/</div>
             </div>
             <div>
               <label class="config-label be-label">Excerpt (shown on blog card, 140–200 chars)</label>
@@ -117,23 +135,18 @@
           <!-- Extended metadata (collapsible) -->
           <div id="be-meta-extra" class="be-meta-extra">
             <div>
-              <label class="config-label be-label">Category</label>
-              <select class="config-input" id="blog-edit-category">
-                <option value="general">General</option>
-                <option value="guide">Guide / How-to</option>
-                <option value="market-insight">Market Insight</option>
-                <option value="calculator-tip">Calculator Tip</option>
-                <option value="suburb-spotlight">Suburb Spotlight</option>
-                <option value="news">News</option>
-              </select>
-            </div>
-            <div>
               <label class="config-label be-label">Author name</label>
               <input type="text" class="config-input" id="blog-edit-author" placeholder="Alex Chen">
             </div>
             <div>
-              <label class="config-label be-label">Cover image URL (optional)</label>
-              <input type="text" class="config-input" id="blog-edit-cover" placeholder="https://…">
+              <label class="config-label be-label">Cover / hero image (shown at top of post + blog cards)</label>
+              <div style="display:flex;gap:8px;align-items:flex-start;">
+                <input type="text" class="config-input" id="blog-edit-cover" placeholder="https://… paste an image URL" style="flex:1;min-width:0;">
+                <div id="be-cover-preview" style="width:72px;height:46px;border-radius:4px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.1);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                  <img id="be-cover-thumb" style="width:100%;height:100%;object-fit:cover;display:none;" alt="Cover preview">
+                  <span id="be-cover-placeholder" style="font-size:18px;opacity:0.3;">🖼</span>
+                </div>
+              </div>
             </div>
             <div class="be-meta-extra-full">
               <label class="config-label be-label">Author bio (shown under the article)</label>
@@ -155,10 +168,29 @@
           <!-- Body editor -->
           <div class="be-body-area">
             <div class="be-body-toolbar">
-              <span class="be-body-label">Body — Markdown (use ## for section headings)</span>
+              <span class="be-body-label">Body — Markdown</span>
               <button type="button" class="be-mode-btn active" id="blog-edit-mode-write">Write</button>
               <button type="button" class="be-mode-btn" id="blog-edit-mode-preview">Preview</button>
+              <button type="button" class="be-mode-btn" id="blog-insert-image-btn" title="Insert an image into the body">🖼 Image</button>
               <div id="blog-edit-wordcount">0 words</div>
+            </div>
+            <!-- Inline image insert panel -->
+            <div id="be-insert-image-panel" style="display:none;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:4px;padding:8px 10px;margin-bottom:6px;flex-shrink:0;">
+              <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:6px;align-items:center;">
+                <div>
+                  <label class="be-label" style="margin-bottom:3px;">Image URL</label>
+                  <input type="text" class="config-input" id="be-img-url" placeholder="https://… paste image URL" style="font-size:12px;">
+                </div>
+                <div>
+                  <label class="be-label" style="margin-bottom:3px;">Alt text</label>
+                  <input type="text" class="config-input" id="be-img-alt" placeholder="Describe the image" style="font-size:12px;">
+                </div>
+                <div style="display:flex;gap:5px;padding-top:16px;">
+                  <button type="button" class="btn-admin btn-admin-primary" id="be-img-insert-btn" style="font-size:10px;padding:6px 12px;white-space:nowrap;">Insert</button>
+                  <button type="button" class="btn-admin-outline" id="be-img-cancel-btn" style="font-size:10px;padding:6px 8px;">✕</button>
+                </div>
+              </div>
+              <div style="font-size:10px;color:var(--slate);margin-top:5px;font-family:var(--font-mono);">Inserts <code style="background:rgba(28,28,30,0.07);padding:1px 4px;border-radius:2px;">![alt](url)</code> at the cursor position in the body.</div>
             </div>
             <textarea id="blog-edit-body" class="config-input" placeholder="## Introduction&#10;&#10;Write 1,500+ words here using Markdown…"></textarea>
             <div id="blog-edit-preview"></div>

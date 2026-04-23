@@ -3314,7 +3314,7 @@ async function loadBlogPosts() {
     return '<div class="blog-row" data-id="' + escHtml(p.id) + '" style="display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(28,28,30,0.06);font-size:12px;">' +
       '<div style="min-width:0;overflow:hidden;">' +
         '<div style="font-weight:600;color:var(--charcoal);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.title) + '</div>' +
-        '<div style="font-size:10px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">/' + escHtml(p.slug) + ' · ' + escHtml(p.author || '—') + ' · ' + escHtml(tagsStr) + '</div>' +
+        '<div style="font-size:10px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.section || 'general') + ' · ' + escHtml(p.author || '—') + ' · ' + escHtml(tagsStr) + '</div>' +
       '</div>' +
       '<div>' + statusBadge + '</div>' +
       '<div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">' + escHtml(blogFormatDate(p.updated_at || p.created_at)) + '</div>' +

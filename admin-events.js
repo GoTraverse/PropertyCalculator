@@ -44,11 +44,8 @@ var tabCallbacks = {
   'database': function(){ loadDatabaseBrowser('*'); }
 };
 
-// ── Blog tab — open editor in new tab ────────────────────────────────────────
-// "+ New Post" opens the dedicated blog editor in a new tab
-var blogNewBtn = document.getElementById('blog-new-post-btn');
-if(blogNewBtn) blogNewBtn.addEventListener('click', function(){ window.open('/blog-editor.html', '_blank'); });
-// "Sync to GitHub" still works from admin tab
+// ── Blog tab ──────────────────────────────────────────────────────────────────
+// "Sync to GitHub" triggers a full sync of all published posts to GitHub
 var blogSyncGhBtn = document.getElementById('blog-sync-github-btn');
 if(blogSyncGhBtn) blogSyncGhBtn.addEventListener('click', blogSyncAllToGitHub);
 

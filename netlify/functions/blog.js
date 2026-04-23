@@ -193,13 +193,18 @@ function validatePost(p) {
   if (p.body_md.length > 200000) return 'body_md too large (max 200 KB)';
   return null;
 }
-const BLOG_CATEGORIES = ['general','guide','market-insight','calculator-tip','suburb-spotlight','news'];
+// Default sections pre-populated on first use.
+const DEFAULT_SECTIONS = ['general', 'guides', 'market-insights', 'calculator-tips', 'suburb-spotlights', 'news'];
+function validSectionSlug(s) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(s || ''));
+}
 function sanitizePost(p) {
-  // Strip anything that shouldn't round-trip
-  const rawCat = String(p.category || 'general').trim().toLowerCase();
+  const rawSection = String(p.section || p.category || 'general').trim().toLowerCase().replace(/\s+/g, '-');
+  const section = validSectionSlug(rawSection) ? rawSection : 'general';
   return {
     id: p.id,
     slug: p.slug,
+    section,
     title: String(p.title || '').trim(),
     excerpt: String(p.excerpt || '').trim().slice(0, 400),
     meta_description: String(p.meta_description || '').trim().slice(0, 200),
@@ -209,7 +214,6 @@ function sanitizePost(p) {
     author_email: String(p.author_email || '').trim().slice(0, 120),
     cover_image: String(p.cover_image || '').trim().slice(0, 400),
     tags: parseTags(p.tags),
-    category: BLOG_CATEGORIES.includes(rawCat) ? rawCat : 'general',
     featured: !!p.featured,
     status: p.status === 'published' ? 'published' : 'draft',
     created_at: p.created_at || nowMs(),
@@ -217,6 +221,18 @@ function sanitizePost(p) {
     published_at: p.published_at || null,
     comment_count: Number(p.comment_count || 0),
   };
+}
+async function getSections() {
+  try {
+    const raw = await redisCmd('GET', 'blog:sections');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  } catch (e) { /* fall through */ }
+  // First call — seed defaults
+  await redisCmd('SET', 'blog:sections', JSON.stringify(DEFAULT_SECTIONS));
+  return DEFAULT_SECTIONS;
 }
 
 // ── Handler ───────────────────────────────────────────────────────────
@@ -306,7 +322,8 @@ exports.handler = async function (event) {
           const p = await rGet('blog:post:' + id);
           if (p) {
             posts.push({
-              id: p.id, slug: p.slug, title: p.title, status: p.status,
+              id: p.id, slug: p.slug, section: p.section || 'general',
+              title: p.title, status: p.status,
               author: p.author, tags: p.tags || [],
               created_at: p.created_at, updated_at: p.updated_at,
               published_at: p.published_at, comment_count: p.comment_count || 0,
@@ -315,6 +332,27 @@ exports.handler = async function (event) {
         }
         return ok({ ok: true, posts });
       } catch (e) { return fail('list failed: ' + e.message, 500); }
+    }
+
+    if (action === 'adminListSections') {
+      try {
+        const sections = await getSections();
+        return ok({ ok: true, sections });
+      } catch (e) { return fail('listSections failed: ' + e.message, 500); }
+    }
+
+    if (action === 'adminCreateSection') {
+      const { name } = body;
+      const slug = String(name || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      if (!slug || !validSectionSlug(slug)) return fail('Invalid section name');
+      if (slug.length > 50) return fail('Section name too long');
+      try {
+        const sections = await getSections();
+        if (sections.includes(slug)) return ok({ ok: true, sections, existing: true });
+        sections.push(slug);
+        await redisCmd('SET', 'blog:sections', JSON.stringify(sections));
+        return ok({ ok: true, sections, slug });
+      } catch (e) { return fail('createSection failed: ' + e.message, 500); }
     }
 
     if (action === 'adminGetPost') {
