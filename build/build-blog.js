@@ -232,7 +232,7 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
   const primaryTag = (post.tags && post.tags[0]) ? post.tags[0] : 'Insights';
   const coverImageAbs = post.cover_image
     ? (post.cover_image.startsWith('http') ? post.cover_image : SITE_URL + post.cover_image)
-    : SITE_URL + '/favicon.svg';
+    : SITE_URL + '/images/og-image.svg';
   const coverImageHtml = post.cover_image
     ? '<img class="blog-cover" src="' + escHtml(post.cover_image) + '" alt="' + escHtml(post.title) + '" loading="lazy">'
     : '';

@@ -8,20 +8,26 @@
   function safeSrc(u){ return (typeof u==='string'&&(/^data:image\/[a-z+]+;base64,/.test(u)||/^https:\/\//.test(u)))?u:''; }
   var cfg = {};
   try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e) {}
-  var logoMark    = cfg.logoMark || '🏠';
+  var logoMark    = cfg.logoMark || '';
   var logoName    = esc(cfg.logoName || 'EquitySight');
   var logoTld     = esc(cfg.logoTld  !== undefined ? cfg.logoTld : '.app');
   var safeImg     = safeSrc(cfg.logoImage);
-  var logoMarkHtml = safeImg
-    ? '<img src="' + safeImg + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" alt="">'
-    : logoMark;
+  var logoMarkHtml, logoMarkClass = 'site-logo-mark';
+  if (safeImg) {
+    logoMarkHtml = '<img src="' + safeImg + '" alt="">';
+  } else if (logoMark) {
+    logoMarkHtml = esc(logoMark);
+    logoMarkClass += ' site-logo-mark--emoji';
+  } else {
+    logoMarkHtml = '<img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52">';
+  }
 
   var FOOTER_HTML = [
     '<footer class="site-footer">',
     '  <div class="site-footer-inner">',
     '    <div class="footer-bar">',
     '      <a href="/" class="site-logo" style="flex-shrink:0;">',
-    '        <div class="site-logo-mark">' + logoMarkHtml + '</div>',
+    '        <div class="' + logoMarkClass + '">' + logoMarkHtml + '</div>',
     '        <div class="site-logo-text"><span class="site-logo-name">' + logoName + '</span><span class="site-logo-tld">' + logoTld + '</span></div>',
     '      </a>',
     '      <nav class="footer-nav">',
