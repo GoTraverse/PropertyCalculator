@@ -200,15 +200,22 @@ function renderCommentsBlock(postSlug, comments) {
          '</section>';
 }
 
-// ── Category labels (kept in sync with admin.html + netlify/functions/blog.js)
-const CATEGORY_LABELS = {
-  'general': 'All',
-  'guide': 'Guides',
-  'market-insight': 'Market Insights',
-  'calculator-tip': 'Calculator Tips',
-  'suburb-spotlight': 'Suburb Spotlights',
-  'news': 'News',
-};
+// Derive a human-readable label from a section slug.
+// e.g. 'market-insights' → 'Market Insights'
+function sectionLabel(slug) {
+  return String(slug || 'general')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+// URL for a post — always /blog/<section>/<slug>/
+function postUrl(p) {
+  const section = (p.section || 'general').replace(/[^a-z0-9-]/g, '');
+  return '/blog/' + section + '/' + escHtml(p.slug) + '/';
+}
+function postUrlRaw(p) {
+  const section = (p.section || 'general').replace(/[^a-z0-9-]/g, '');
+  return '/blog/' + section + '/' + (p.slug || '') + '/';
+}
 
 // ── Render a single blog post → HTML ──────────────────────────────────
 function renderPost(post, allPosts, template, commentsData, neighbours) {
@@ -241,10 +248,10 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
     .sort((a, b) => (b.overlap - a.overlap) || ((b.p.published_at || 0) - (a.p.published_at || 0)))
     .slice(0, 3)
     .map(x => x.p);
-  const relatedHtml = related.length ? related.map(p => {
-    const rExcerpt = (p.excerpt && p.excerpt.length) ? p.excerpt : md.excerpt(p.body_md || '', 110);
-    return '<a class="blog-related-card" href="/blog/' + escHtml(p.slug) + '/">' +
-      '<div class="blog-related-card-title">' + escHtml(p.title) + '</div>' +
+  const relatedHtml = related.length ? related.map(rp => {
+    const rExcerpt = (rp.excerpt && rp.excerpt.length) ? rp.excerpt : md.excerpt(rp.body_md || '', 110);
+    return '<a class="blog-related-card" href="' + postUrl(rp) + '">' +
+      '<div class="blog-related-card-title">' + escHtml(rp.title) + '</div>' +
       '<div class="blog-related-card-excerpt">' + escHtml(rExcerpt) + '</div>' +
     '</a>';
   }).join('') : '<p style="font-size:12px;color:rgba(28,28,30,0.5);">More posts coming soon.</p>';
@@ -258,7 +265,7 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
   let prevNextHtml = '';
   if (prev || next) {
     const cell = (p, label) => p
-      ? '<a class="blog-adj-card blog-adj-' + label.toLowerCase() + '" href="/blog/' + escHtml(p.slug) + '/">' +
+      ? '<a class="blog-adj-card blog-adj-' + label.toLowerCase() + '" href="' + postUrl(p) + '">' +
           '<div class="blog-adj-label">' + label + '</div>' +
           '<div class="blog-adj-title">' + escHtml(p.title) + '</div>' +
         '</a>'
@@ -268,8 +275,8 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
     '</nav>';
   }
 
-  // Category badge in hero
-  const categoryLabel = CATEGORY_LABELS[post.category || 'general'] || 'Insights';
+  // Section badge in hero
+  const categoryLabel = sectionLabel(post.section || post.category || 'general');
 
   return replaceAll(template, {
     TITLE: escHtml(post.title),
@@ -311,7 +318,7 @@ function renderCard(p, variant) {
     ? '<img class="blog-card-cover" src="' + escHtml(p.cover_image) + '" alt="' + escHtml(p.title) + '" loading="lazy">'
     : '<div class="blog-card-cover blog-card-cover-placeholder" aria-hidden="true"></div>';
   const classes = variant === 'featured' ? 'blog-card blog-card-featured' : 'blog-card';
-  return '<a class="' + classes + '" href="/blog/' + escHtml(p.slug) + '/">' +
+  return '<a class="' + classes + '" href="' + postUrl(p) + '">' +
     cover +
     '<div class="blog-card-body">' +
       '<div class="blog-card-tag">' + escHtml(tag) + '</div>' +
@@ -374,7 +381,7 @@ function renderIndex(posts, page, totalPages, template, opts) {
 // ── RSS feed ──────────────────────────────────────────────────────────
 function renderRss(posts) {
   const items = posts.slice(0, 50).map(p => {
-    const link = SITE_URL + '/blog/' + p.slug + '/';
+    const link = SITE_URL + postUrlRaw(p);
     const excerpt = (p.excerpt && p.excerpt.length) ? p.excerpt : md.excerpt(p.body_md || '', 260);
     return '<item>' +
       '<title>' + escHtml(p.title) + '</title>' +
@@ -427,7 +434,8 @@ async function main() {
   let totalComments = 0;
   for (let i = 0; i < posts.length; i++) {
     const p = posts[i];
-    const outDir = path.join(BLOG_DIR, p.slug);
+    const section = (p.section || 'general').replace(/[^a-z0-9-]/g, '');
+    const outDir = path.join(BLOG_DIR, section, p.slug);
     fs.mkdirSync(outDir, { recursive: true });
     const comments = await fetchCommentsForPost(p.slug);
     totalComments += (comments.totalCount || 0);
@@ -436,33 +444,31 @@ async function main() {
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
-  // ── Group by category + tag ────────────────────────────────────────
-  const byCategory = {};
+  // ── Group by section + tag ─────────────────────────────────────────
+  const bySection = {};
   const byTag = {};
   for (const p of posts) {
-    const cat = p.category || 'general';
-    (byCategory[cat] || (byCategory[cat] = [])).push(p);
+    const sec = (p.section || 'general').replace(/[^a-z0-9-]/g, '');
+    (bySection[sec] || (bySection[sec] = [])).push(p);
     for (const t of (p.tags || [])) {
       (byTag[t] || (byTag[t] = [])).push(p);
     }
   }
 
-  // Build the shared category-nav used on every index variant
-  function buildCatNav(activeHref) {
+  // Build the shared section-nav used on every index variant
+  function buildSectionNav(activeHref) {
     const nav = [{ href: '/blog/', label: 'All', count: posts.length, active: activeHref === '/blog/' }];
-    for (const cat of Object.keys(CATEGORY_LABELS)) {
-      if (cat === 'general') continue; // "All" covers general
-      if (!byCategory[cat] || !byCategory[cat].length) continue;
-      const href = '/blog/category/' + cat + '/';
-      nav.push({ href, label: CATEGORY_LABELS[cat], count: byCategory[cat].length, active: activeHref === href });
+    for (const [sec, secPosts] of Object.entries(bySection)) {
+      if (!secPosts.length) continue;
+      const href = '/blog/' + sec + '/';
+      nav.push({ href, label: sectionLabel(sec), count: secPosts.length, active: activeHref === href });
     }
     return nav;
   }
 
-  // Pick a featured post: the most recent post where featured===true,
-  // falling back to the newest post overall. Only shown on page 1 of the
-  // main index (not on category pages / not on tag pages / not on page 2+).
-  const featuredPost = posts.find(p => p.featured) || posts[0] || null;
+  // Pick a featured post for the hero (page 1 main index only) — only when
+  // there are 2+ posts so the grid below is never left empty.
+  const featuredPost = posts.length >= 2 ? (posts.find(p => p.featured) || posts[0] || null) : null;
 
   // ── Main index (paged) ─────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
@@ -471,10 +477,8 @@ async function main() {
     const opts = {
       baseHref: '/blog/',
       featured: page === 1 ? featuredPost : null,
-      categoryNav: buildCatNav('/blog/'),
+      categoryNav: buildSectionNav('/blog/'),
     };
-    // When there's a featured hero on page 1, remove that post from the grid
-    // to avoid showing it twice.
     const gridSlice = (page === 1 && featuredPost)
       ? slice.filter(x => x.id !== featuredPost.id)
       : slice;
@@ -484,31 +488,29 @@ async function main() {
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
-  // ── Category index pages ───────────────────────────────────────────
-  for (const [cat, catPosts] of Object.entries(byCategory)) {
-    if (cat === 'general') continue; // general posts already surface on /blog/
-    if (!CATEGORY_LABELS[cat]) continue;
-    const outDir = path.join(BLOG_DIR, 'category', cat);
+  // ── Section index pages ────────────────────────────────────────────
+  for (const [sec, secPosts] of Object.entries(bySection)) {
+    const outDir = path.join(BLOG_DIR, sec);
     fs.mkdirSync(outDir, { recursive: true });
     const opts = {
-      baseHref: '/blog/category/' + cat + '/',
+      baseHref: '/blog/' + sec + '/',
       featured: null,
-      categoryNav: buildCatNav('/blog/category/' + cat + '/'),
+      categoryNav: buildSectionNav('/blog/' + sec + '/'),
     };
-    const html = renderIndex(catPosts, 1, 1, indexTpl, opts);
+    const html = renderIndex(secPosts, 1, 1, indexTpl, opts);
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
   // ── Tag index pages ────────────────────────────────────────────────
   for (const [tag, tagPosts] of Object.entries(byTag)) {
-    const slug = tag.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-    if (!slug) continue;
-    const outDir = path.join(BLOG_DIR, 'tag', slug);
+    const tagSlug = tag.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    if (!tagSlug) continue;
+    const outDir = path.join(BLOG_DIR, 'tag', tagSlug);
     fs.mkdirSync(outDir, { recursive: true });
     const opts = {
-      baseHref: '/blog/tag/' + slug + '/',
+      baseHref: '/blog/tag/' + tagSlug + '/',
       featured: null,
-      categoryNav: buildCatNav(''),
+      categoryNav: buildSectionNav(''),
     };
     const html = renderIndex(tagPosts, 1, 1, indexTpl, opts);
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
@@ -518,21 +520,17 @@ async function main() {
   fs.writeFileSync(path.join(BLOG_DIR, 'rss.xml'), renderRss(posts));
 
   // ── Sitemap supplement ─────────────────────────────────────────────
-  // Write a stand-alone sitemap-blog.xml that gets referenced from sitemap.xml
-  // (same pattern as sitemap-suburbs-*.xml).
   const urls = [SITE_URL + '/blog/']
-    .concat(posts.map(p => SITE_URL + '/blog/' + p.slug + '/'))
+    .concat(posts.map(p => SITE_URL + postUrlRaw(p)))
     .concat(Object.keys(byTag).map(t => SITE_URL + '/blog/tag/' + t + '/'))
-    .concat(Object.keys(byCategory)
-      .filter(c => c !== 'general' && CATEGORY_LABELS[c])
-      .map(c => SITE_URL + '/blog/category/' + c + '/'));
+    .concat(Object.keys(bySection).map(sec => SITE_URL + '/blog/' + sec + '/'));
   const sitemapBlog = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urls.map(u => '  <url><loc>' + u + '</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>').join('\n') +
     '\n</urlset>\n';
   fs.writeFileSync(path.join(ROOT, 'sitemap-blog.xml'), sitemapBlog);
 
-  console.log('[build-blog] Built', posts.length, 'posts,', totalPages, 'index page(s),', Object.keys(byTag).length, 'tag pages,', totalComments, 'approved comment(s) injected');
+  console.log('[build-blog] Built', posts.length, 'posts,', totalPages, 'index page(s),', Object.keys(bySection).length, 'section pages,', Object.keys(byTag).length, 'tag pages,', totalComments, 'approved comment(s) injected');
 }
 
 if (require.main === module) {
