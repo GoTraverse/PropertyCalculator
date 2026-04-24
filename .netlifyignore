@@ -1,0 +1,54 @@
+# Files that should never be deployed to the Netlify CDN.
+# This is the primary defence — these files won't be uploaded at all.
+# netlify.toml forced-404 redirects act as a secondary safety net.
+
+# Dev / AI working notes
+CLAUDE.md
+README.md
+CODEBASE.md
+TODO.md
+LINK_AUDIT_REPORT.md
+TRACKING_GUIDE.md
+BROKEN_LINKS_QUICK_REFERENCE.txt
+
+# Dev/admin utility script — uses REDIS_TOKEN directly, never runs in prod
+reset-admin-pw.js
+
+# Dev tooling: Lighthouse CI config + Playwright smoke tests
+.lighthouserc.json
+tests/
+
+# Secrets / VCS / package manifests — defensive blocks (none should be in repo,
+# but publish = "." means anything present on disk gets uploaded by default)
+.env
+.env.*
+.git
+.gitignore
+package.json
+package-lock.json
+
+# Runtime error log (auto-synced from Redis — contains client stack traces)
+ERRORS.json
+
+# Build scripts (server-side only, not needed on CDN)
+build.js
+build/
+
+# Build-adjacent scripts still at root
+fetch-overpass-amenities.js
+
+# Raw / fetched source data (large intermediate files, not needed at runtime)
+data/abs-suburbs.json
+data/overpass-amenities.json
+data/blog-fixture.json
+data/blog-posts/
+# Note: data/suburbs.json must remain public — admin Suburbs tab fetches it directly
+
+# HTML templates (used at build time only)
+templates/
+
+# Logo/OG image generator HTML templates (use React via CDN; source only)
+images/*.html
+
+# Node artefacts
+node_modules/

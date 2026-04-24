@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script src="tool-page.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Equity Release Calculator Australia 2026 — Free Home Equity Tool</title>
+<meta name="description" content="Free Australian equity release calculator. Calculate how much home equity you can release based on property value, mortgage, and LVR. Instant results, no signup.">
+<meta name="keywords" content="equity release calculator, home equity calculator, equity release calculator Australia, mortgage equity release, home loan equity, property equity">
+<link rel="canonical" href="https://equitysight.app/tools/equity-release-calculator">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/equity-release-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Equity Release Calculator Australia 2026 — Free Tool">
+<meta property="og:description" content="Calculate how much home equity you can release instantly.">
+<meta property="og:url" content="https://equitysight.app/tools/equity-release-calculator">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Equity Release Calculator Australia — Free Tool">
+<meta name="twitter:description" content="Calculate home equity release and borrowing capacity based on LVR limits.">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script src="../adsense.js" defer></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Equity Release Calculator","url":"https://equitysight.app/tools/equity-release-calculator","description":"Free home equity release calculator for Australian property owners. Calculate available equity and borrowing capacity based on LVR.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Equity Release Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does equity release work in Australia?","acceptedAnswer":{"@type":"Answer","text":"Equity release lets you access the difference between your property's current market value and your outstanding mortgage balance. You can release equity by refinancing your existing loan to a higher amount, taking out a separate line of credit, or using a reverse mortgage. Most lenders require you to maintain a Loan-to-Value Ratio (LVR) of 80% or below to avoid Lenders Mortgage Insurance."}},{"@type":"Question","name":"How much equity can I release from my home?","acceptedAnswer":{"@type":"Answer","text":"The amount depends on your property value, current mortgage balance, and the lender's maximum LVR. At 80% LVR, you can borrow up to 80% of your property's value minus what you currently owe. For example, a $1M property with a $400K mortgage could release up to $400K in usable equity ($800K minus $400K)."}},{"@type":"Question","name":"What can you use released equity for in Australia?","acceptedAnswer":{"@type":"Answer","text":"Common uses include funding a deposit on an investment property, renovating your home to increase its value, consolidating higher-interest debts, or investing in shares or other assets. Tax deductibility of interest depends on what the funds are used for — consult a tax adviser."}}]}]}
+</script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
+
+<section class="tool-hero" id="main-content">
+  <div class="tool-eyebrow">Free Tool · Property Financing</div>
+  <h1>Equity Release Calculator</h1>
+  <p>Calculate how much home equity you can release or refinance based on your loan-to-value ratio (LVR) limits.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Property & loan details</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="propval">Current property value</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="propval" value="650,000" placeholder="e.g. 650,000">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="mortgage">Outstanding mortgage</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="mortgage" value="400,000" placeholder="e.g. 400,000">
+      </div>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Lending parameters</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="lvr">Maximum LVR allowed (%)</label>
+        <input class="tool-input" type="number" id="lvr" placeholder="e.g. 80" step="1" min="50" max="95" value="80">
+      </div>
+    </div>
+
+    <button class="tool-btn" id="equity-calc-btn">Calculate Available Equity</button>
+  </div>
+
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result" style="display:none">
+    <div class="tool-result-title">Your equity position</div>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">Total Equity</div>
+        <div class="tool-stat-value" id="r-equity">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Current LVR</div>
+        <div class="tool-stat-value" id="r-current-lvr">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Max Borrowing (at LVR limit)</div>
+        <div class="tool-stat-value" id="r-max-borrow">—</div>
+      </div>
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Available to Release</div>
+        <div class="tool-stat-value" id="r-available">—</div>
+      </div>
+    </div>
+    <p class="tool-disclaimer">This estimate assumes the LVR limit is the only constraint. Lenders also consider income, expenses, and credit history. Speak with a mortgage broker for a pre-approval.</p>
+  </div>
+
+  <div class="ad-slot" data-ad-type="calculator"></div>
+
+  <div id="tool-partners-root"></div>
+  <div id="tool-disclosure-root"></div>
+  <div id="tool-cta-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>What is equity release?</h2>
+  <p>Equity release means borrowing against the equity in your home — the difference between your property value and outstanding mortgage. It's commonly used to fund renovations, investment properties, or debt consolidation.</p>
+
+  <h2>How LVR (loan-to-value ratio) works</h2>
+  <p>LVR is the percentage of your property value you owe on the mortgage. For example, a $500,000 home with a $400,000 mortgage has an LVR of 80%.</p>
+  <ul>
+    <li><strong>Lower LVR</strong> = more equity released, easier to get approved</li>
+    <li><strong>Higher LVR</strong> = less equity available, may need LMI (Lenders Mortgage Insurance)</li>
+    <li><strong>Typical limits</strong>: 80% for owner-occupied homes, 70–75% for investment properties</li>
+  </ul>
+
+  <h2>What affects equity release approval?</h2>
+  <p>Lenders consider multiple factors beyond just LVR:</p>
+  <ul>
+    <li>Income and serviceability</li>
+    <li>Employment history and stability</li>
+    <li>Credit history and existing debts</li>
+    <li>Property type (residential, investment, commercial)</li>
+    <li>Loan structure (fixed vs. variable rate)</li>
+  </ul>
+
+  <h2>LMI — When It Applies and What It Costs</h2>
+  <p>If releasing equity pushes your LVR above 80%, most lenders require <strong>Lenders Mortgage Insurance (LMI)</strong>. LMI protects the lender (not you) if you default. Costs vary by LVR and loan amount:</p>
+  <ul>
+    <li><strong>80–85% LVR:</strong> Roughly 0.5–1.0% of the loan amount</li>
+    <li><strong>85–90% LVR:</strong> Roughly 1.5–2.5% of the loan amount</li>
+    <li><strong>Above 90%:</strong> Rarely available for equity release; 2.5–4%+ if approved</li>
+  </ul>
+  <p>On a $700,000 loan at 85% LVR, LMI could be $7,000–$17,500 added to your loan balance. Some lenders allow LMI to be capitalised (added to the loan) rather than paid upfront.</p>
+
+  <h2>Common Uses for Equity Release in Australia</h2>
+  <ul>
+    <li><strong>Home renovation:</strong> Using equity to fund renovations that add value to the property</li>
+    <li><strong>Investment property deposit:</strong> The most common use — releasing equity in your home to fund the deposit on an IP</li>
+    <li><strong>Debt consolidation:</strong> Rolling higher-interest debts (car loans, credit cards) into a lower-rate mortgage — note this extends the repayment period</li>
+    <li><strong>School fees or large expenses:</strong> Drawing on equity for major life events</li>
+    <li><strong>Business purposes:</strong> Self-employed borrowers sometimes use equity as working capital (note: business-purpose loans may have different tax treatment)</li>
+  </ul>
+
+  <h2>Tax Considerations</h2>
+  <p>Interest on equity released is only tax-deductible if the funds are used for income-producing purposes (e.g. a rental property deposit). Interest on equity used for personal purposes (renovation, school fees, holidays) is not deductible. Keep your loans split by purpose — mixing personal and investment borrowing in one account complicates your tax position. Speak to your accountant before releasing equity for mixed purposes.</p>
+
+  <h2>Next steps</h2>
+  <p>Use this calculator to understand your borrowing capacity, then contact a mortgage broker or your bank for a formal pre-approval with specific terms and rates.</p>
+</section>
+
+<div id="tool-resources-root"></div>
+<div id="tool-trust-root"></div>
+<div id="tool-footer-root"></div>
+
+<script src="equity-release-calculator.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,154 @@
+/* ═══ RATE DATA ═══ */
+var RATES = {
+  cosmetic: { budget: [200, 400],  mid: [400, 700],   premium: [700, 1200] },
+  mid:      { budget: [600, 1000], mid: [1000, 1600],  premium: [1600, 2500] },
+  full:     { budget: [1400, 2000],mid: [2000, 3500],  premium: [3500, 6000] }
+};
+var BATH = { budget: [8000, 15000], mid: [15000, 28000], premium: [28000, 60000] };
+var KITCHEN_REFRESH = { budget: [5000, 10000], mid: [10000, 18000], premium: [18000, 35000] };
+var KITCHEN_FULL    = { budget: [12000, 20000], mid: [20000, 45000], premium: [45000, 100000] };
+var LANDSCAPE = { budget: [8000, 15000], mid: [15000, 30000], premium: [30000, 60000] };
+
+function calculate() {
+  var area = parseFloat(document.getElementById('area').value) || 0;
+  var scope = document.getElementById('scope').value;
+  var finish = document.getElementById('finish').value;
+  var baths = parseInt(document.getElementById('bathrooms').value) || 0;
+  var kitchen = document.getElementById('kitchen').value;
+  var landscape = document.getElementById('landscaping').checked;
+  var addCont = document.getElementById('contingency').checked;
+
+  if (!area || area < 10) { if (!_isInit) alert('Please enter a floor area.'); return; }
+
+  var r = RATES[scope][finish];
+  var baseLow = area * r[0];
+  var baseHigh = area * r[1];
+
+  var br = BATH[finish];
+  baseLow += baths * br[0];
+  baseHigh += baths * br[1];
+
+  if (kitchen === 'refresh') {
+    var kr = KITCHEN_REFRESH[finish];
+    baseLow += kr[0]; baseHigh += kr[1];
+  } else if (kitchen === 'full') {
+    var kf = KITCHEN_FULL[finish];
+    baseLow += kf[0]; baseHigh += kf[1];
+  }
+
+  if (landscape) {
+    var lr = LANDSCAPE[finish];
+    baseLow += lr[0]; baseHigh += lr[1];
+  }
+
+  var contLow = 0, contHigh = 0;
+  if (addCont) {
+    contLow = baseLow * 0.15;
+    contHigh = baseHigh * 0.15;
+  }
+
+  var totalLow = baseLow + contLow;
+  var totalHigh = baseHigh + contHigh;
+  var totalMid = (totalLow + totalHigh) / 2;
+
+  document.getElementById('r-low').textContent = fmt(totalLow);
+  document.getElementById('r-high').textContent = fmt(totalHigh);
+  document.getElementById('r-mid').textContent = fmt(totalMid);
+  document.getElementById('r-sqm').textContent = fmt(totalMid / area) + '/m\u00B2';
+  document.getElementById('r-cont').textContent = addCont ? fmt((contLow + contHigh) / 2) : '$0';
+
+  document.getElementById('result').style.display = '';
+  if (!_isInit) {
+    document.getElementById('cta').style.display = '';
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Track calculator result
+    if(window.trackCalculatorResult) trackCalculatorResult('renovation-cost', {
+      floorArea: area,
+      renovationScope: scope,
+      finishLevel: finish,
+      bathrooms: baths,
+      kitchenWork: kitchen,
+      landscaping: landscape,
+      estimatedCostLow: Math.round(totalLow),
+      estimatedCostHigh: Math.round(totalHigh),
+      estimatedCostMid: Math.round(totalMid),
+      hasContingency: addCont
+    });
+  }
+}
+
+/* ═══ TOOL CONFIG ═══ */
+ToolPage.init({
+  partnerSlug: 'renovation-cost',
+  cta: {
+    eyebrow: 'Go deeper',
+    title: 'Does the renovation make financial sense?',
+    description: 'Model whether your renovation will add more value than it costs \u2014 and compare before vs after scenarios in EquitySight.',
+    buttonText: 'Analyse the numbers free \u2192',
+    buttonHref: '/login?tab=signup'
+  },
+  resources: {
+    groups: [
+      {
+        icon: '\uD83C\uDFE2', title: 'Building & Construction',
+        links: [
+          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'ASIC: Building Inspections', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Consumer Affairs: Building Info', href: 'https://www.consumer.vic.gov.au/housing' }
+        ]
+      },
+      {
+        icon: '\uD83D\uDCB0', title: 'Tax & Finance',
+        links: [
+          { text: 'ATO: Capital Gains Tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
+          { text: 'ATO: Property Tax Deductions', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'MoneySmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' }
+        ]
+      },
+      {
+        icon: '\uD83D\uDCCB', title: 'Legal & Compliance',
+        links: [
+          { text: 'Law Society Australia', href: 'https://www.lawsociety.com.au/' },
+          { text: 'Master Builders Australia', href: 'https://www.masterbuilders.com.au/' },
+          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' }
+        ]
+      }
+    ],
+    disclaimer: 'This is general information only. Renovation costs vary significantly by location, complexity, and contractor. Always get multiple quotes and consult a quantity surveyor and accountant before proceeding.'
+  },
+  share: {
+    url: 'https://equitysight.app/tools/renovation-cost-calculator',
+    text: 'Just calculated my renovation budget!'
+  },
+  related: [
+    { href: '/tools/house-flip-calculator', icon: '\uD83C\uDFE0', label: 'House Flip' },
+    { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
+    { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
+    { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
+  ],
+  footer: [
+    { href: '/', text: 'EquitySight.app' },
+    { href: '/tools', text: 'All Calculators' },
+    { href: '/tools/house-flip-calculator', text: 'House Flip' },
+    { href: '/tools/equity-release-calculator', text: 'Equity Release' },
+    { href: '/privacy', text: 'Privacy' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '🏠', href: '/tools/house-flip-calculator', label: 'House Flip Profit Calculator' },
+    { group: 'Other Tools', icon: '💰', href: '/tools/equity-release-calculator', label: 'Equity Release (fund the reno)' },
+    { group: 'Other Tools', icon: '🏦', href: '/tools/borrowing-power-calculator', label: 'Borrowing Power' },
+    { group: 'Other Tools', icon: '📉', href: '/tools/capital-gains-calculator', label: 'Capital Gains Tax' },
+    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '📖', href: '/methodology', label: 'How we calculate (methodology)' }
+  ]
+});
+
+var _isInit = true;
+if(window.trackCalculatorStart) trackCalculatorStart('renovation-cost');
+calculate();
+_isInit = false;
+var calcBtn = document.getElementById('reno-calc-btn');
+if(calcBtn) calcBtn.addEventListener('click', function(){
+  if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'renovation-cost'});
+  calculate();
+});

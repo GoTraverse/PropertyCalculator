@@ -1,16 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
 <meta charset="UTF-8">
-<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
-<script src="error-capture.js"></script>
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
+<script src="/site-init.js" defer></script>
+<script src="/error-capture.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Admin — EquitySight.app</title>
+<meta name="description" content="EquitySight administration dashboard.">
+<meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="shortcut icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="admin.css">
 <style>
@@ -19,23 +27,24 @@
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 <!-- Nav -->
 <nav class="site-nav">
   <div class="site-nav-inner">
-    <a href="index.html" class="site-logo">
-      <div class="site-logo-mark">🏠</div>
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
     <ul class="site-nav-links">
-      <li><a href="pricing.html">Pricing</a></li>
-      <li><a href="contact.html">Support</a></li>
-      <li><a href="about.html">About</a></li>
+      <li><a href="/pricing">Pricing</a></li>
+      <li><a href="/contact">Support</a></li>
+      <li><a href="/about">About</a></li>
     </ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham">☰</button>
   </div>
 </nav>
-<script src="auth-nav.js"></script>
+<script src="auth-nav.js" defer></script>
 
 <!-- Custom Confirm/Alert Dialog -->
 <div class="custom-dialog-overlay" id="custom-dialog-overlay">
@@ -49,14 +58,14 @@
       <input type="password" class="custom-dialog-input" id="custom-dialog-input" placeholder="" style="display:none;">
     </div>
     <div class="custom-dialog-footer" id="custom-dialog-footer">
-      <button class="btn-admin-outline" id="custom-dialog-cancel" onclick="_dialogResolve(false)">Cancel</button>
-      <button class="btn-admin" id="custom-dialog-confirm" onclick="_dialogResolve(true)">Confirm</button>
+      <button class="btn-admin-outline" id="custom-dialog-cancel">Cancel</button>
+      <button class="btn-admin" id="custom-dialog-confirm">Confirm</button>
     </div>
   </div>
 </div>
 
 <!-- Stat Popup Modal -->
-<div class="stat-popup-overlay" id="stat-popup-overlay" onclick="if(event.target===this)closeStatPopup()">
+<div class="stat-popup-overlay" id="stat-popup-overlay">
   <div class="stat-popup">
     <div class="stat-popup-head">
       <div>
@@ -65,15 +74,15 @@
       </div>
       <div style="display:flex;align-items:center;gap:16px;">
         <div class="stat-popup-value" id="stat-popup-value">—</div>
-        <button class="btn-admin-outline" style="font-size:10px;padding:6px 12px;flex-shrink:0;" onclick="closeStatPopup()">✕ Close</button>
+        <button class="btn-admin-outline" id="stat-popup-close-btn" style="font-size:10px;padding:6px 12px;flex-shrink:0;">✕ Close</button>
       </div>
     </div>
     <div class="stat-popup-body">
       <div class="stat-popup-filter-bar">
         <span style="font-family:var(--font-mono);font-size:10px;color:var(--slate);letter-spacing:0.5px;">SHOW:</span>
-        <button class="stat-popup-filter-btn active" onclick="setStatPopupRange(7,this)">7 days</button>
-        <button class="stat-popup-filter-btn" onclick="setStatPopupRange(14,this)">14 days</button>
-        <button class="stat-popup-filter-btn" onclick="setStatPopupRange(30,this)">30 days</button>
+        <button class="stat-popup-filter-btn" data-range="7" active">7 days</button>
+        <button class="stat-popup-filter-btn" data-range="14"">14 days</button>
+        <button class="stat-popup-filter-btn" data-range="30"">30 days</button>
         <span style="margin-left:auto;font-family:var(--font-mono);font-size:9px;color:var(--slate);" id="stat-popup-range-label"></span>
       </div>
       <div class="stat-popup-chart" id="stat-popup-chart"></div>
@@ -93,13 +102,14 @@
     </div>
     <div id="reset-modal-status" class="admin-status"></div>
     <div class="reset-modal-btns">
-      <button class="btn-admin" onclick="confirmResetPw()">Set Password</button>
-      <button class="btn-admin-outline" onclick="closeResetModal()">Cancel</button>
-      <button class="btn-admin-outline" id="reset-back-btn" onclick="closeResetModal();backToUserDetail()" style="display:none;">← Back to User</button>
+      <button class="btn-admin" id="reset-pw-confirm-btn">Set Password</button>
+      <button class="btn-admin-outline" id="reset-modal-cancel-btn">Cancel</button>
+      <button class="btn-admin-outline" id="reset-back-btn" style="display:none;">← Back to User</button>
     </div>
   </div>
 </div>
 
+<div id="main-content"></div>
 <div class="admin-layout" id="admin-layout" style="display:none">
 
   <div class="admin-header">
@@ -109,87 +119,96 @@
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <span class="admin-badge">🔒 Admin</span>
-      <a href="app.html" class="btn-admin-outline" style="font-size:10px;padding:7px 14px;">← Back to App</a>
+      <a href="/app" class="btn-admin-outline" style="font-size:10px;padding:7px 14px;">← Back to App</a>
     </div>
   </div>
 
   <!-- Stats row — always visible outside tabs -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
     <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);">Overview</div>
-    <button class="btn-admin-outline" id="stats-refresh-btn" style="font-size:10px;padding:6px 14px;" onclick="refreshStats()" title="Manually refresh all stats and graphs">↻ Refresh Stats</button>
+    <button class="btn-admin-outline" id="stats-refresh-btn" style="font-size:10px;padding:6px 14px;" title="Manually refresh all stats and graphs">↻ Refresh Stats</button>
   </div>
   <div class="admin-stats" id="admin-stats">
-    <div class="stat-card" onclick="openStatPopup('total')" title="Click to expand">
+    <div class="stat-card" data-stat="total" title="Click to expand">
       <div class="stat-value" id="stat-total"><div class="stat-spinner"></div></div>
       <div class="stat-label">Total Users</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">All registered accounts</div>
       <div class="stat-chart" id="stat-chart-total"><div class="stat-chart-loading"></div></div>
     </div>
-    <div class="stat-card" onclick="openStatPopup('free')" title="Click to expand">
+    <div class="stat-card" data-stat="free" title="Click to expand">
       <div class="stat-value" id="stat-free"><div class="stat-spinner"></div></div>
       <div class="stat-label">Free Plan</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">1 saved scenario limit</div>
       <div class="stat-chart" id="stat-chart-free"><div class="stat-chart-loading"></div></div>
     </div>
-    <div class="stat-card" onclick="openStatPopup('pro')" title="Click to expand">
+    <div class="stat-card" data-stat="pro" title="Click to expand">
       <div class="stat-value" id="stat-pro"><div class="stat-spinner"></div></div>
       <div class="stat-label">Pro Plan</div>
       <div style="font-size:11px;color:var(--stat);margin-top:4px;">Unlimited + PDF + Projection</div>
       <div class="stat-chart" id="stat-chart-pro"><div class="stat-chart-loading"></div></div>
     </div>
-    <div class="stat-card" onclick="openStatPopup('adviser')" title="Click to expand">
+    <div class="stat-card" data-stat="adviser" title="Click to expand">
       <div class="stat-value" id="stat-adviser"><div class="stat-spinner"></div></div>
       <div class="stat-label">Adviser Plan</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Multi-client + white-label</div>
       <div class="stat-chart" id="stat-chart-adviser"><div class="stat-chart-loading"></div></div>
     </div>
-    <div class="stat-card" onclick="openStatPopup('sessions')" title="Click to expand">
-      <div class="stat-value" id="stat-sessions"><div class="stat-spinner"></div></div>
-      <div class="stat-label" style="display:flex;align-items:center;gap:5px;">Login Tokens
-        <span title="Each sign-in creates one session token per device/browser (30-day TTL). A user with 3 devices has 3 tokens. High counts are normal — they don&#39;t mean multiple simultaneous logins." style="cursor:help;font-size:12px;color:var(--sky);line-height:1;">ⓘ</span>
-      </div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Active sessions — 1 per device/browser</div>
-      <div class="stat-chart" id="stat-chart-sessions"><div class="stat-chart-loading"></div></div>
-    </div>
-    <div class="stat-card" onclick="openStatPopup('scenarios')" title="Click to expand">
-      <div class="stat-value" id="stat-scenarios-top"><div class="stat-spinner"></div></div>
-      <div class="stat-label">Scenario Sets</div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Saved property scenario lists</div>
-      <div class="stat-chart" id="stat-chart-scenarios"><div class="stat-chart-loading"></div></div>
-    </div>
-    <div class="stat-card" onclick="openStatPopup('new-users')" title="Click to expand">
-      <div class="stat-value" id="stat-new-users"><div class="stat-spinner"></div></div>
-      <div class="stat-label">New This Week</div>
-      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Signups in last 7 days</div>
-      <div class="stat-chart" id="stat-chart-new-users"><div class="stat-chart-loading"></div></div>
-    </div>
-    <div class="stat-card" onclick="openStatPopup('revenue')" title="Click to expand">
+    <div class="stat-card" data-stat="revenue" title="Click to expand">
       <div class="stat-value" id="stat-revenue"><div class="stat-spinner"></div></div>
       <div class="stat-label">Revenue Est.</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Monthly AUD (Pro + Adviser) <span id="stat-discount-note" style="display:none;color:#C9A84C;" title="Some users have active discounts — actual revenue may be lower"></span></div>
       <div class="stat-chart" id="stat-chart-revenue"><div class="stat-chart-loading"></div></div>
     </div>
-    <div class="stat-card" onclick="openStatPopup('avg')" title="Click to expand">
+    <div class="stat-card" data-stat="avg" title="Click to expand">
       <div class="stat-value" id="stat-avg-scenarios"><div class="stat-spinner"></div></div>
       <div class="stat-label">Avg Scenarios</div>
       <div style="font-size:11px;color:var(--slate);margin-top:4px;">Scenario lists per user</div>
       <div class="stat-chart" id="stat-chart-avg"><div class="stat-chart-loading"></div></div>
     </div>
+    <div class="stat-card" data-stat="total-scenarios" title="Click to expand">
+      <div class="stat-value" id="stat-total-scenarios"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Total Scenarios</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Individual saved scenarios</div>
+      <div class="stat-chart" id="stat-chart-total-scenarios"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card" data-stat="shared" title="Click to expand">
+      <div class="stat-value" id="stat-shared"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Shared Scenarios</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Scenarios shared between users</div>
+      <div class="stat-chart" id="stat-chart-shared"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card" data-stat="errors" title="Click to expand">
+      <div class="stat-value" id="stat-errors"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Client Errors</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">JS errors in error log</div>
+      <div class="stat-chart" id="stat-chart-errors"><div class="stat-chart-loading"></div></div>
+    </div>
+    <div class="stat-card" data-stat="db-keys" title="Click to expand">
+      <div class="stat-value" id="stat-db-keys"><div class="stat-spinner"></div></div>
+      <div class="stat-label">Database Keys</div>
+      <div style="font-size:11px;color:var(--slate);margin-top:4px;">Total Redis keys stored</div>
+      <div class="stat-chart" id="stat-chart-db-keys"><div class="stat-chart-loading"></div></div>
+    </div>
   </div>
 
   <!-- Tabs -->
   <div class="admin-tabs">
-    <button class="admin-tab" onclick="showAdminTab('users',this)">Users</button>
-    <button class="admin-tab" onclick="showAdminTab('scenarios',this);loadAllScenarios();">Scenarios</button>
-    <button class="admin-tab" onclick="showAdminTab('schemes',this);loadSchemes();">Gov Schemes</button>
-    <button class="admin-tab" onclick="showAdminTab('growth',this);loadGrowthData();">Growth Data</button>
-    <button class="admin-tab" onclick="showAdminTab('database',this);">Database</button>
-    <button class="admin-tab" onclick="showAdminTab('client-errors',this);loadClientErrors();">Error Log</button>
-    <button class="admin-tab" onclick="showAdminTab('config',this);loadConfig();">Configuration</button>
-    <button class="admin-tab" onclick="showAdminTab('branding',this);loadConfig();">Branding</button>
-    <button class="admin-tab" onclick="showAdminTab('email-templates',this);loadEmailTemplates();">Email Templates</button>
-    <button class="admin-tab" onclick="showAdminTab('about-page',this);loadAboutPage();">About Page</button>
-    <button class="admin-tab" onclick="showAdminTab('legal-pages',this);loadLegalPagesList();">Legal Pages</button>
+    <button class="admin-tab" data-tab="users">Users</button>
+    <button class="admin-tab" data-tab="scenarios">Scenarios</button>
+    <button class="admin-tab" data-tab="schemes">Gov Schemes</button>
+    <button class="admin-tab" data-tab="growth">Growth Data</button>
+    <button class="admin-tab" data-tab="database">Database</button>
+    <button class="admin-tab" data-tab="client-errors">Error Log</button>
+    <button class="admin-tab" data-tab="settings">Settings</button>
+    <button class="admin-tab" data-tab="features">Features</button>
+    <button class="admin-tab" data-tab="integrations">Integrations</button>
+    <button class="admin-tab" data-tab="branding">Branding</button>
+    <button class="admin-tab" data-tab="email-templates">Email Templates</button>
+    <button class="admin-tab" data-tab="about-page">About Page</button>
+    <button class="admin-tab" data-tab="legal-pages">Legal Pages</button>
+    <button class="admin-tab" data-tab="suburbs">Suburbs</button>
+    <button class="admin-tab" data-tab="blog">Blog</button>
+    <button class="admin-tab" data-tab="moderation">Moderation</button>
   </div>
 
   <!-- USERS TAB -->
@@ -198,26 +217,26 @@
       <div class="admin-card-head">
         <h3>All Accounts</h3>
         <div class="filter-bar">
-          <input class="filter-input" id="user-search" placeholder="Search email or name…" oninput="filterUsers()">
-          <select class="filter-select" id="plan-filter" onchange="filterUsers()">
+          <input class="filter-input" id="user-search" placeholder="Search email or name…">
+          <select class="filter-select" id="plan-filter">
             <option value="">All plans</option>
             <option value="free">Free</option>
             <option value="pro">Pro</option>
             <option value="adviser">Adviser</option>
           </select>
-          <select class="filter-select" id="login-filter" onchange="filterUsers()" title="Filter by login activity">
+          <select class="filter-select" id="login-filter" title="Filter by login activity">
             <option value="">All users</option>
             <option value="active-30">Active last 30d</option>
             <option value="active-7">Active last 7d</option>
             <option value="never">Never logged in</option>
           </select>
-          <select class="filter-select" id="sort-filter" onchange="filterUsers()" title="Sort users">
+          <select class="filter-select" id="sort-filter" title="Sort users">
             <option value="joined-desc">Joined: newest first</option>
             <option value="joined-asc">Joined: oldest first</option>
             <option value="login-desc">Last login: newest first</option>
             <option value="login-asc">Last login: oldest first</option>
           </select>
-          <button class="btn-admin" style="font-size:10px;padding:7px 14px;" onclick="loadUsers()">↻ Refresh</button>
+          <button class="btn-admin" id="load-users-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
         </div>
       </div>
       <div id="users-table-wrap" style="overflow-x:auto;">
@@ -240,6 +259,36 @@
       </div>
     </div>
     <div id="users-status" class="admin-status"></div>
+
+    <!-- Deleted Users -->
+    <div class="admin-card" style="margin-top:20px;">
+      <div class="admin-card-head" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h3 style="margin:0;display:inline;">Deleted Users</h3>
+          <span style="font-size:11px;color:var(--slate);margin-left:8px;">Soft-deleted accounts (retained 90 days)</span>
+        </div>
+        <button class="btn-admin" id="load-deleted-users-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+      </div>
+      <div id="deleted-users-wrap" style="overflow-x:auto;">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Plan</th>
+              <th>Joined</th>
+              <th>Deleted</th>
+              <th>Deleted By</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="deleted-users-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Click refresh to load</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="deleted-users-status" class="admin-status"></div>
   </div>
 
   <!-- CLIENT ERROR LOG TAB -->
@@ -254,8 +303,9 @@
           Shows up to the 500 most recent errors. Useful for diagnosing CSS/JS loading issues and runtime exceptions in production.
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-          <button class="btn-admin" id="ce-refresh-btn" onclick="loadClientErrors()" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
-          <button class="btn-admin-outline" onclick="clearClientErrors()" style="font-size:10px;padding:7px 14px;color:#c45a5a;border-color:rgba(196,90,90,0.4);">🗑 Clear All</button>
+          <button class="btn-admin" id="ce-refresh-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+          <button class="btn-admin-outline" id="ce-clear-btn" style="font-size:10px;padding:7px 14px;color:#c45a5a;border-color:rgba(196,90,90,0.4);">🗑 Clear All</button>
+          <button class="btn-admin" id="ce-sync-btn" style="font-size:10px;padding:7px 14px;">⬆ Sync to GitHub</button>
         </div>
         <div id="client-errors-wrap" style="overflow-x:auto;">
           <div id="client-errors-loading" style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">Click refresh to load errors.</div>
@@ -264,8 +314,8 @@
     </div>
   </div>
 
-  <!-- CONFIG TAB -->
-  <div class="admin-section" id="tab-config">
+  <!-- SETTINGS TAB -->
+  <div class="admin-section" id="tab-settings">
 
     <!-- Site Identity -->
     <div class="admin-card">
@@ -384,6 +434,16 @@
       </div>
     </div>
 
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <button class="btn-admin" id="save-config-btn">Save Settings</button>
+      <button class="btn-admin-outline" id="export-config-btn">Export JSON</button>
+    </div>
+    <div id="config-status" class="admin-status"></div>
+  </div>
+
+  <!-- FEATURES TAB -->
+  <div class="admin-section" id="tab-features">
+
     <!-- Feature Flags -->
     <div class="admin-card">
       <div class="admin-card-head">
@@ -419,6 +479,13 @@
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Number of free Pro days awarded to a referrer when their link converts to a signup.</div>
           </div>
           <div class="config-field">
+            <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="cfg-admin-view-all" style="width:16px;height:16px;accent-color:var(--gold);">
+              Admin View All Scenarios
+            </label>
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Shows all users' saved scenarios in the admin's library (read-only). Uncheck to hide.</div>
+          </div>
+          <div class="config-field">
             <label class="config-label">Max Upload Size (MB)</label>
             <input type="number" class="config-input" id="cfg-max-upload" value="5" min="1" max="50">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Maximum file size for property photo uploads. Applies to all users.</div>
@@ -452,22 +519,31 @@
           </div>
           <div class="config-field">
             <label class="config-label">Pro Monthly Price (AUD $)</label>
-            <input type="number" class="config-input" id="cfg-pro-monthly" value="9" min="0" max="99999999" oninput="if(parseFloat(this.value)>99999999)this.value=99999999;">
+            <input type="number" class="config-input" id="cfg-pro-monthly" value="9" min="0" max="99999999">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Displayed on the Pricing page. Must match your Stripe price configuration.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Pro Annual Price (AUD $)</label>
-            <input type="number" class="config-input" id="cfg-pro-annual" value="86" min="0" max="99999999" oninput="if(parseFloat(this.value)>99999999)this.value=99999999;">
+            <input type="number" class="config-input" id="cfg-pro-annual" value="86" min="0" max="99999999">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Yearly Pro price shown on Pricing page. Typically ~20% discount vs monthly.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Adviser Monthly Price (AUD $)</label>
-            <input type="number" class="config-input" id="cfg-adviser-monthly" value="29" min="0" max="99999999" oninput="if(parseFloat(this.value)>99999999)this.value=99999999;">
+            <input type="number" class="config-input" id="cfg-adviser-monthly" value="29" min="0" max="99999999">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Displayed on the Pricing page for the Adviser tier. Includes multi-client access.</div>
           </div>
         </div>
       </div>
     </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <button class="btn-admin" id="save-features-btn">Save Features</button>
+    </div>
+    <div id="features-status" class="admin-status"></div>
+  </div>
+
+  <!-- INTEGRATIONS TAB -->
+  <div class="admin-section" id="tab-integrations">
 
     <!-- Stripe Integration -->
     <div class="admin-card">
@@ -501,6 +577,38 @@
       </div>
     </div>
 
+    <!-- Google Sign-In -->
+    <div class="admin-card">
+      <div class="admin-card-head"><h3>Google Sign-In</h3></div>
+      <div style="padding:24px;">
+        <div class="config-field">
+          <label class="config-label">Google Client ID</label>
+          <input type="text" class="config-input" id="google-client-id" placeholder="123456789-abc….apps.googleusercontent.com">
+        </div>
+        <div style="margin-top:16px;font-size:12px;color:var(--slate);line-height:1.8;background:rgba(28,28,30,0.03);padding:12px 16px;border-radius:var(--radius-sm);">
+          <strong>Setup:</strong> Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--gold);">Google Cloud Console → APIs &amp; Services → Credentials</a> → Create OAuth 2.0 Client ID (Web application). Add <code>https://equitysight.app</code> as an authorised JavaScript origin. Paste the Client ID above and save. Optionally set <code>GOOGLE_CLIENT_ID</code> in Netlify env vars for server-side verification.<br>Leave blank to hide the Google Sign-In button.
+        </div>
+      </div>
+    </div>
+
+    <!-- Partner / Referral Links -->
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>🤝 Partner / Referral Links</h3>
+        <button type="button" id="add-partner-btn" class="btn-admin-sm">＋ Add Partner</button>
+      </div>
+      <div style="padding:24px;">
+        <p style="font-size:12px;color:var(--slate);margin:0 0 16px;line-height:1.7;">
+          Add referral or affiliate partners (e.g. Mortgage House). Each appears as a branded tile on the chosen calculator page(s) above the sign-up prompt. An affiliate disclosure is shown automatically.
+        </p>
+        <div id="partner-links-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+        <p id="partner-links-empty" style="font-size:13px;color:var(--slate);font-style:italic;margin:0 0 4px;display:none;">No partners added yet. Click <strong>＋ Add Partner</strong> above to add one.</p>
+        <div id="partner-links-error" style="color:#ff453a;font-size:12px;margin-top:4px;display:none;"></div>
+        <!-- Hidden textarea — kept as JSON sync target for saveConfig() -->
+        <textarea id="cfg-partner-links" style="display:none;" aria-hidden="true" spellcheck="false"></textarea>
+      </div>
+    </div>
+
     <!-- Admin Account -->
     <div class="admin-card">
       <div class="admin-card-head"><h3>Admin Account</h3></div>
@@ -510,10 +618,9 @@
     </div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-      <button class="btn-admin" onclick="saveConfig()">Save All Configuration</button>
-      <button class="btn-admin-outline" onclick="exportConfigJson()">Export JSON</button>
+      <button class="btn-admin" id="save-integrations-btn">Save Integrations</button>
     </div>
-    <div id="config-status" class="admin-status"></div>
+    <div id="integrations-status" class="admin-status"></div>
   </div>
 
 
@@ -529,7 +636,7 @@
         <div style="margin-bottom:24px;padding:14px 20px;background:var(--charcoal);border-radius:8px;display:flex;align-items:center;gap:16px;">
           <span style="font-size:11px;color:rgba(245,240,232,0.35);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">Preview</span>
           <span class="site-logo" style="pointer-events:none;display:flex;align-items:center;gap:10px;">
-            <span class="site-logo-mark" id="brand-preview-mark">🏠</span>
+            <span class="site-logo-mark" id="brand-preview-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></span>
             <span class="site-logo-text">
               <span class="site-logo-name" id="brand-preview-name">EquitySight</span>
               <span class="site-logo-tld" id="brand-preview-tld">.app</span>
@@ -542,16 +649,16 @@
             <label class="config-label">Logo Image</label>
             <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
               <div id="logo-img-tile"
-                style="width:52px;height:52px;border-radius:12px;background:var(--gold);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative;"
-                onclick="document.getElementById('logo-img-input').click()" title="Click to upload">
-                <img id="logo-img-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:contain;">
-                <span id="logo-img-emoji" style="font-size:22px;">🏠</span>
+                style="width:52px;height:52px;border-radius:12px;background:transparent;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer;position:relative;"
+                title="Click to upload">
+                <img id="logo-img-preview" src="/images/icon-dark.svg" alt="EquitySight" style="display:block;width:100%;height:100%;object-fit:contain;">
+                <span id="logo-img-emoji" style="font-size:22px;display:none;"></span>
               </div>
               <div style="flex:1;min-width:180px;">
-                <input type="file" id="logo-img-input" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none;" onchange="handleLogoImageUpload(this)">
+                <input type="file" id="logo-img-input" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none;">
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-                  <button type="button" class="btn-admin-outline" style="font-size:11px;padding:7px 14px;" onclick="document.getElementById('logo-img-input').click()">Upload image…</button>
-                  <button type="button" class="btn-admin-outline" id="logo-img-clear-btn" style="display:none;font-size:11px;padding:7px 14px;color:var(--risk-red);border-color:rgba(196,90,90,0.3);" onclick="clearLogoImage()">Remove image</button>
+                  <button type="button" class="btn-admin-outline" id="logo-img-upload-btn" style="font-size:11px;padding:7px 14px;">Upload image…</button>
+                  <button type="button" class="btn-admin-outline" id="logo-img-clear-btn" style="display:none;font-size:11px;padding:7px 14px;color:var(--risk-red);border-color:rgba(196,90,90,0.3);">Remove image</button>
                 </div>
                 <div style="font-size:11px;color:var(--slate);">PNG, SVG, JPG or WebP — max 200 KB. When set, replaces the emoji in the logo tile sitewide.</div>
               </div>
@@ -559,32 +666,29 @@
           </div>
           <div class="config-field">
             <label class="config-label">Fallback Emoji</label>
-            <input type="text" class="config-input" id="cfg-logo-mark" placeholder="🏠" maxlength="4"
-              oninput="updateLogoEmojiPreview(this.value)">
-            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Shown in the logo tile when no image is uploaded (e.g. 🏠 🏡 🏢)</div>
+            <input type="text" class="config-input" id="cfg-logo-mark" placeholder="🏠" maxlength="4">
+            <div style="font-size:11px;color:var(--slate);margin-top:4px;">Leave blank to use the default EquitySight icon. Enter an emoji (🏠 🏡 🏢) to override.</div>
           </div>
           <div class="config-field">
             <label class="config-label">Brand Name</label>
-            <input type="text" class="config-input" id="cfg-logo-name" placeholder="EquitySight"
-              oninput="document.getElementById('brand-preview-name').textContent=this.value||'EquitySight'">
+            <input type="text" class="config-input" id="cfg-logo-name" placeholder="EquitySight">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Main logo text</div>
           </div>
           <div class="config-field">
             <label class="config-label">Logo Suffix</label>
-            <input type="text" class="config-input" id="cfg-logo-tld" placeholder=".app"
-              oninput="document.getElementById('brand-preview-tld').textContent=this.value">
+            <input type="text" class="config-input" id="cfg-logo-tld" placeholder=".app">
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Suffix after brand name (e.g. .app, .io, .com — or leave blank)</div>
           </div>
           <div class="config-field" style="grid-column:1/-1;">
             <label class="config-label">Colour Theme</label>
             <input type="hidden" id="cfg-color-theme" value="">
             <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;" id="brand-theme-swatches">
-              <button type="button" class="brand-theme-swatch" data-theme="gold"       onclick="selectTheme('gold')"       title="Classic Gold"    style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#1C1C1E;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#C9A84C;"></span></span>Classic Gold</button>
-              <button type="button" class="brand-theme-swatch" data-theme="navy"       onclick="selectTheme('navy')"       title="Deep Navy"       style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#0D1B2A;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#4B88C8;"></span></span>Deep Navy</button>
-              <button type="button" class="brand-theme-swatch" data-theme="forest"     onclick="selectTheme('forest')"     title="Forest Green"    style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#0F2318;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#5A9E6F;"></span></span>Forest Green</button>
-              <button type="button" class="brand-theme-swatch" data-theme="terracotta" onclick="selectTheme('terracotta')" title="Terracotta"       style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#2B1407;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#C4714A;"></span></span>Terracotta</button>
-              <button type="button" class="brand-theme-swatch" data-theme="indigo"     onclick="selectTheme('indigo')"     title="Midnight Indigo" style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#12102A;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#7B6FD0;"></span></span>Midnight Indigo</button>
-              <button type="button" class="brand-theme-swatch" data-theme="slate"      onclick="selectTheme('slate')"      title="Cool Slate"      style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#14202E;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#6B8FAF;"></span></span>Cool Slate</button>
+              <button type="button" class="brand-theme-swatch" data-theme="gold"       title="Classic Gold"    style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#1C1C1E;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#C9A84C;"></span></span>Classic Gold</button>
+              <button type="button" class="brand-theme-swatch" data-theme="navy"       title="Deep Navy"       style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#0D1B2A;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#4B88C8;"></span></span>Deep Navy</button>
+              <button type="button" class="brand-theme-swatch" data-theme="forest"     title="Forest Green"    style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#0F2318;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#5A9E6F;"></span></span>Forest Green</button>
+              <button type="button" class="brand-theme-swatch" data-theme="terracotta" title="Terracotta"       style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#2B1407;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#C4714A;"></span></span>Terracotta</button>
+              <button type="button" class="brand-theme-swatch" data-theme="indigo"     title="Midnight Indigo" style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#12102A;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#7B6FD0;"></span></span>Midnight Indigo</button>
+              <button type="button" class="brand-theme-swatch" data-theme="slate"      title="Cool Slate"      style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:6px;border:2px solid rgba(28,28,30,0.15);background:white;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:#1C1C1E;transition:border-color 0.15s,box-shadow 0.15s;"><span style="display:inline-flex;gap:3px;"><span style="display:block;width:14px;height:14px;border-radius:3px;background:#14202E;"></span><span style="display:block;width:14px;height:14px;border-radius:3px;background:#6B8FAF;"></span></span>Cool Slate</button>
             </div>
             <div style="font-size:11px;color:var(--slate);margin-top:6px;">Pick a preset to apply colours site-wide, or customise the accent below</div>
           </div>
@@ -592,16 +696,14 @@
             <label class="config-label">Accent Colour</label>
             <div style="display:flex;gap:8px;align-items:center;">
               <input type="color" id="cfg-brand-color" value="#C9A84C"
-                style="width:44px;height:36px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;cursor:pointer;padding:2px;background:none;"
-                oninput="syncBrandColor(this.value)">
-              <input type="text" class="config-input" id="cfg-brand-color-hex" placeholder="#C9A84C" maxlength="7" style="flex:1;font-family:var(--font-mono);"
-                oninput="syncBrandColorHex(this.value)">
+                style="width:44px;height:36px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;cursor:pointer;padding:2px;background:none;">
+              <input type="text" class="config-input" id="cfg-brand-color-hex" placeholder="#C9A84C" maxlength="7" style="flex:1;font-family:var(--font-mono);">
             </div>
             <div style="font-size:11px;color:var(--slate);margin-top:4px;">Primary accent colour — or pick a theme above for a full colour set</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(28,28,30,0.08);">
-          <button class="btn-admin" onclick="saveConfig()">Save Branding</button>
+          <button class="btn-admin" id="save-branding-btn">Save Branding</button>
           <div id="branding-status" class="admin-status"></div>
         </div>
       </div>
@@ -613,7 +715,10 @@
     <div class="admin-card">
       <div class="admin-card-head">
         <h3>All Saved Scenarios</h3>
-        <button class="btn-admin" style="font-size:10px;padding:7px 14px;" onclick="loadAllScenarios()">↻ Refresh</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-admin-outline" id="export-scenarios-csv-btn" style="font-size:10px;padding:7px 14px;">↓ Export CSV</button>
+          <button class="btn-admin" id="load-scenarios-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+        </div>
       </div>
       <div id="scenarios-list-wrap" style="padding:16px 20px;">
         <div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading scenarios…</div>
@@ -628,9 +733,9 @@
       <div class="admin-card-head">
         <h3>Government Schemes &amp; Grants</h3>
         <div style="display:flex;gap:8px;">
-          <button class="btn-admin" style="font-size:10px;padding:7px 14px;" onclick="addScheme()">＋ Add</button>
-          <button class="btn-admin-outline" style="font-size:10px;padding:7px 14px;" onclick="collapseAllSchemes()">Collapse All</button>
-          <button class="btn-admin-outline" style="font-size:10px;padding:7px 14px;" onclick="saveSchemes()">Save All</button>
+          <button class="btn-admin" id="add-scheme-btn" style="font-size:10px;padding:7px 14px;">＋ Add</button>
+          <button class="btn-admin-outline" id="collapse-schemes-btn" style="font-size:10px;padding:7px 14px;">Collapse All</button>
+          <button class="btn-admin-outline" id="save-schemes-btn" style="font-size:10px;padding:7px 14px;">Save All</button>
         </div>
       </div>
       <div style="padding:16px 20px;">
@@ -659,10 +764,10 @@
           You can manually add, edit or delete entries below.
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
-          <button class="btn-admin" onclick="loadGrowthData()" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
-          <button class="btn-admin" onclick="showAddGrowthEntry()" style="font-size:10px;padding:7px 14px;">+ Add Entry</button>
-          <button class="btn-admin" onclick="document.getElementById('growth-csv-input').click()" style="font-size:10px;padding:7px 14px;" title="CSV format: suburb,state,rate,note (header row optional)">⬆ Import CSV</button>
-          <input type="file" id="growth-csv-input" accept=".csv,text/csv" style="display:none;" onchange="importGrowthCSV(this)">
+          <button class="btn-admin" id="load-growth-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+          <button class="btn-admin" id="show-add-growth-btn" style="font-size:10px;padding:7px 14px;">+ Add Entry</button>
+          <button class="btn-admin" id="import-growth-csv-btn" style="font-size:10px;padding:7px 14px;" title="CSV format: suburb,state,rate,note (header row optional)">⬆ Import CSV</button>
+          <input type="file" id="growth-csv-input" accept=".csv,text/csv" style="display:none;">
           <span style="font-size:10px;color:var(--slate);">CSV columns: suburb, state, rate, note</span>
         </div>
         <div id="growth-add-form" style="display:none;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.15);border-radius:6px;padding:16px;margin-bottom:16px;">
@@ -687,8 +792,8 @@
               <label style="font-size:11px;color:var(--slate);">Note (optional)</label>
               <input id="growth-add-note" class="config-input" placeholder="historical estimate" style="width:200px;">
             </div>
-            <button class="btn-admin" onclick="saveGrowthEntry()" style="font-size:10px;padding:7px 14px;">Save</button>
-            <button class="btn-admin-outline" onclick="hideAddGrowthEntry()" style="font-size:10px;padding:7px 14px;">Cancel</button>
+            <button class="btn-admin" id="save-growth-entry-btn" style="font-size:10px;padding:7px 14px;">Save</button>
+            <button class="btn-admin-outline" id="hide-growth-entry-btn" style="font-size:10px;padding:7px 14px;">Cancel</button>
           </div>
         </div>
         <div id="growth-table-wrap" style="overflow-x:auto;">
@@ -699,6 +804,36 @@
   </div>
 
   <div class="admin-section" id="tab-database">
+    <!-- Database Browser -->
+    <div class="admin-card" style="margin-bottom:20px;">
+      <div class="admin-card-head">
+        <h3>Database Browser</h3>
+        <span style="font-size:11px;color:var(--slate);">Browse and filter all Redis keys for debugging</span>
+      </div>
+      <div style="padding:20px;">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="text" id="db-filter-input" placeholder="Filter pattern (e.g. user:* or token:*)" style="flex:1;min-width:200px;padding:8px 12px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.12);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:12px;color:var(--charcoal);">
+          <button class="btn-admin-outline" id="db-browse-btn">Browse</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="btn-admin-sm" data-db-filter="*" style="font-size:10px;">All</button>
+          <button class="btn-admin-sm" data-db-filter="user:*" style="font-size:10px;">Users</button>
+          <button class="btn-admin-sm" data-db-filter="token:*" style="font-size:10px;">Tokens</button>
+          <button class="btn-admin-sm" data-db-filter="profile:*" style="font-size:10px;">Profiles</button>
+          <button class="btn-admin-sm" data-db-filter="scenarios:*" style="font-size:10px;">Scenarios</button>
+          <button class="btn-admin-sm" data-db-filter="config:*" style="font-size:10px;">Config</button>
+          <button class="btn-admin-sm" data-db-filter="stats:*" style="font-size:10px;">Stats</button>
+          <button class="btn-admin-sm" data-db-filter="email-template:*" style="font-size:10px;">Email Templates</button>
+          <button class="btn-admin-sm" data-db-filter="growth:*" style="font-size:10px;">Growth</button>
+          <button class="btn-admin-sm" data-db-filter="client-errors" style="font-size:10px;">Errors</button>
+        </div>
+        <div id="db-browse-info" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);margin-bottom:12px;"></div>
+        <div id="db-browse-results" style="max-height:600px;overflow-y:auto;"></div>
+        <div id="db-browse-pager" style="margin-top:12px;text-align:center;"></div>
+      </div>
+    </div>
+
+    <!-- Database Maintenance -->
     <div class="admin-card">
       <div class="admin-card-head">
         <h3>Database Maintenance</h3>
@@ -709,22 +844,22 @@
           <div style="background:rgba(196,90,90,0.06);border:1px solid rgba(196,90,90,0.15);border-radius:var(--radius-sm);padding:16px 20px;">
             <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--charcoal);">🗑 Purge Expired Sessions</div>
             <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Remove all login tokens that have expired. Active users won't be affected — only stale sessions older than the TTL are removed.</div>
-            <button class="btn-admin-outline" onclick="purgeExpiredSessions()">Purge Expired Sessions</button>
+            <button class="btn-admin-outline" id="purge-sessions-btn">Purge Expired Sessions</button>
           </div>
           <div style="background:rgba(196,90,90,0.06);border:1px solid rgba(196,90,90,0.15);border-radius:var(--radius-sm);padding:16px 20px;">
             <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--charcoal);">🗑 Purge Orphaned Profiles</div>
             <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Remove profile data for accounts that no longer exist. Safe to run — only deletes profiles with no matching user account.</div>
-            <button class="btn-admin-outline" onclick="purgeOrphanedProfiles()">Purge Orphaned Profiles</button>
+            <button class="btn-admin-outline" id="purge-profiles-btn">Purge Orphaned Profiles</button>
           </div>
           <div style="background:rgba(196,90,90,0.06);border:1px solid rgba(196,90,90,0.15);border-radius:var(--radius-sm);padding:16px 20px;">
             <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--charcoal);">🗑 Purge Orphaned Scenarios</div>
             <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Remove saved scenarios for accounts that no longer exist. This frees up storage space without affecting active user data.</div>
-            <button class="btn-admin-outline" onclick="purgeOrphanedScenarios()">Purge Orphaned Scenarios</button>
+            <button class="btn-admin-outline" id="purge-scenarios-btn">Purge Orphaned Scenarios</button>
           </div>
           <div style="background:rgba(196,90,90,0.08);border:1px solid rgba(196,90,90,0.25);border-radius:var(--radius-sm);padding:16px 20px;">
             <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--risk-red);">⚠ Export All User Data</div>
             <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Download a JSON export of all user accounts (no passwords). Useful for backup or migration purposes.</div>
-            <button class="btn-admin-outline" onclick="exportAllUsers()">Export User Data JSON</button>
+            <button class="btn-admin-outline" id="export-users-btn">Export User Data JSON</button>
           </div>
         </div>
       </div>
@@ -741,16 +876,18 @@
       </div>
       <div style="padding:24px;">
         <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <select id="et-type-select" class="config-input" style="width:240px;font-size:13px;" onchange="onEmailTemplateTypeChange()">
+          <select id="et-type-select" class="config-input" style="width:240px;font-size:13px;">
             <option value="verification">Verification Code Email</option>
             <option value="welcome">Welcome Email</option>
             <option value="subscription">Subscription / Plan Update</option>
             <option value="security_alert">Security Alert</option>
             <option value="promotional">Promotional / Feature Update</option>
             <option value="password_reset">Password Reset</option>
+            <option value="scenario_shared">Scenario Shared (Existing User)</option>
+            <option value="scenario_invite">Scenario Invite (New User)</option>
           </select>
           <span id="et-custom-badge" style="display:none;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);border-radius:3px;padding:2px 8px;">CUSTOMISED</span>
-          <button class="btn-admin" style="margin-left:auto;" onclick="resetEmailTemplate()">Reset to Default</button>
+          <button class="btn-admin" id="reset-et-btn" style="margin-left:auto;">Reset to Default</button>
         </div>
         <div style="margin-bottom:10px;">
           <label class="config-label">Available variables: <span id="et-vars" style="font-family:var(--font-mono);font-size:11px;color:var(--gold);"></span></label>
@@ -764,9 +901,9 @@
           <textarea id="et-html" class="config-input" style="width:100%;min-height:220px;font-family:var(--font-mono);font-size:12px;resize:vertical;line-height:1.5;" placeholder="HTML content…"></textarea>
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <button class="btn-admin btn-admin-primary" onclick="saveEmailTemplate()">Save Template</button>
-          <button class="btn-admin-outline" onclick="previewEmailTemplate()">Preview</button>
-          <button class="btn-admin-outline" id="et-test-btn" onclick="sendTestEmail()">Send Test Email</button>
+          <button class="btn-admin btn-admin-primary" id="save-et-btn">Save Template</button>
+          <button class="btn-admin-outline" id="preview-et-btn">Preview</button>
+          <button class="btn-admin-outline" id="et-test-btn">Send Test Email</button>
           <div id="et-status" class="admin-status" style="margin:0;"></div>
         </div>
       </div>
@@ -799,9 +936,92 @@
         </div>
         <div id="about-page-status" class="admin-status" style="margin-bottom:16px;"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn-admin btn-admin-primary" onclick="saveAboutPage()">Save Changes</button>
-          <button class="btn-admin-outline" onclick="resetAboutPage()">Reset to Default</button>
-          <a href="about.html" class="btn-admin-outline" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;padding:10px 18px;">Preview on Site →</a>
+          <button class="btn-admin btn-admin-primary" id="save-about-btn">Save Changes</button>
+          <button class="btn-admin-outline" id="reset-about-btn">Reset to Default</button>
+          <a href="/about" class="btn-admin-outline" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;padding:10px 18px;">Preview on Site →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBURBS TAB -->
+  <div class="admin-section" id="tab-suburbs">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <h3>Suburb Pages</h3>
+        <span style="font-size:11px;color:var(--slate);">Manage 14,500+ suburb insight pages — real ABS population data + postcodes</span>
+      </div>
+      <div style="padding:16px 20px;">
+        <!-- Status cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:20px;">
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Total Suburbs</div>
+            <div class="admin-stat-value" id="suburbs-total">—</div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Indexed (Featured)</div>
+            <div class="admin-stat-value" id="suburbs-indexed">—</div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Noindexed</div>
+            <div class="admin-stat-value" id="suburbs-noindexed">—</div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">With Postcodes</div>
+            <div class="admin-stat-value" id="suburbs-with-pc">—</div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Data Source</div>
+            <div class="admin-stat-value" style="font-size:13px;">ABS 2021 Census</div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-label">Last Page Build</div>
+            <div class="admin-stat-value" id="suburbs-last-build" style="font-size:13px;">—</div>
+          </div>
+        </div>
+
+        <!-- Index report (AdSense gate) -->
+        <div id="suburbs-index-report" style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.15);border-radius:6px;padding:14px;margin-bottom:20px;display:none;">
+          <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:8px;">AdSense indexing gate</div>
+          <div id="suburbs-index-report-body" style="font-size:11px;color:var(--slate);line-height:1.6;"></div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center;">
+          <button class="btn-admin" id="trigger-suburb-rebuild-btn" style="font-size:10px;padding:7px 14px;">🔄 Rebuild Suburb Pages</button>
+          <span style="font-size:10px;color:var(--slate);max-width:360px;line-height:1.5;">Triggers a Netlify deploy with REBUILD_SUBURBS=true. Requires a deploy hook URL in Configuration → Deploy Hook.</span>
+        </div>
+
+        <!-- Deploy hook config -->
+        <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.15);border-radius:6px;padding:14px;margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:8px;">Deploy Hook URL</div>
+          <div style="font-size:10px;color:var(--slate);margin-bottom:8px;line-height:1.5;">
+            Create a deploy hook in Netlify → Site Configuration → Build hooks. Paste the URL here. The rebuild button uses this to trigger deploys.
+          </div>
+          <!-- Edit mode -->
+          <div id="suburbs-hook-edit" style="display:flex;gap:8px;align-items:center;">
+            <input id="suburbs-deploy-hook" class="config-input" placeholder="https://api.netlify.com/build_hooks/..." style="flex:1;font-size:12px;">
+            <button class="btn-admin" id="save-suburb-hook-btn" style="font-size:10px;padding:7px 14px;">Save</button>
+          </div>
+          <!-- Saved display mode (hidden by default) -->
+          <div id="suburbs-hook-saved" style="display:none;align-items:center;gap:8px;">
+            <div id="suburbs-hook-display" style="flex:1;font-size:12px;color:var(--slate);font-family:var(--font-mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+            <button class="btn-admin" id="edit-suburb-hook-btn" style="font-size:10px;padding:7px 14px;">Edit</button>
+          </div>
+        </div>
+
+        <!-- State breakdown -->
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;color:var(--slate);margin-bottom:10px;">SUBURBS BY STATE</div>
+        <div id="suburbs-state-breakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:20px;"></div>
+
+        <!-- Search -->
+        <div style="margin-bottom:12px;">
+          <input id="suburbs-admin-search" class="config-input" placeholder="Search suburbs by name or postcode..." style="width:100%;max-width:400px;font-size:13px;">
+        </div>
+
+        <!-- Results table -->
+        <div id="suburbs-table-wrap" style="overflow-x:auto;max-height:500px;overflow-y:auto;">
+          <div id="suburbs-loading" style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">Click a state or search to browse suburbs</div>
         </div>
       </div>
     </div>
@@ -818,16 +1038,16 @@
         <div style="margin-bottom:16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
           <div style="flex:1;min-width:200px;">
             <label class="config-label">Select Page</label>
-            <select id="legal-page-select" class="config-input" style="width:100%;font-size:13px;" onchange="loadLegalPage(this.value)">
+            <select id="legal-page-select" class="config-input" style="width:100%;font-size:13px;">
               <option value="privacy">Privacy Policy</option>
               <option value="terms">Terms of Service</option>
               <option value="disclaimer">Disclaimer</option>
               <option value="cookies">Cookies Policy</option>
             </select>
           </div>
-          <button class="btn-admin-outline" onclick="previewLegalPage()" style="font-size:11px;padding:10px 16px;">👁 Preview</button>
-          <button class="btn-admin-outline" onclick="reloadLegalFromFile()" style="font-size:11px;padding:10px 16px;">📄 Reload from .md</button>
-          <button class="btn-admin-outline" onclick="resetLegalPage()" style="font-size:11px;padding:10px 16px;">↺ Reset</button>
+          <button class="btn-admin-outline" id="preview-legal-btn" style="font-size:11px;padding:10px 16px;">👁 Preview</button>
+          <button class="btn-admin-outline" id="reload-legal-btn" style="font-size:11px;padding:10px 16px;">📄 Reload from .md</button>
+          <button class="btn-admin-outline" id="reset-legal-btn" style="font-size:11px;padding:10px 16px;">↺ Reset</button>
         </div>
         <div style="margin-bottom:16px;">
           <label class="config-label">Markdown Content</label>
@@ -835,7 +1055,59 @@
         </div>
         <div id="legal-page-status" class="admin-status" style="margin-bottom:16px;"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn-admin btn-admin-primary" onclick="saveLegalPage()">Save & Update</button>
+          <button class="btn-admin btn-admin-primary">Save & Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOG TAB -->
+  <div class="admin-section" id="tab-blog">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <div>
+          <h3>Blog Posts</h3>
+          <span style="font-size:11px;color:var(--slate);">Author, publish and edit long-form articles. Posts are stored in Redis and rendered to static HTML at build time.</span>
+        </div>
+        <a href="/blog-editor" target="_blank" class="btn-admin btn-admin-primary" style="font-size:11px;padding:8px 16px;text-decoration:none;">Open Blog Editor ↗</a>
+      </div>
+      <div style="padding:16px 20px;">
+        <!-- Post list -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+          <div id="blog-stats" style="font-size:11px;color:var(--slate);">—</div>
+          <button class="btn-admin-outline" id="blog-sync-github-btn" style="font-size:11px;padding:8px 14px;" title="Push all published posts to GitHub as JSON files (triggers auto-deploy)">Sync to GitHub</button>
+        </div>
+        <div id="blog-posts-list" style="border:1px solid rgba(28,28,30,0.08);border-radius:6px;overflow:hidden;margin-bottom:8px;">
+          <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
+        </div>
+        <div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);padding:4px 2px;">Click <strong>Edit</strong> on a post or <strong>+ New Post</strong> to open the full-screen blog editor in a new tab.</div>
+      </div>
+    </div>
+  </div>
+  <!-- MODERATION TAB -->
+  <div class="admin-section" id="tab-moderation">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <div>
+          <h3>Moderation</h3>
+          <span style="font-size:11px;color:var(--slate);">Approve, reject, or delete user-submitted suburb reviews and blog comments. Approved content appears on the site at the next build.</span>
+        </div>
+        <div id="moderation-stats" style="font-size:11px;color:var(--slate);">—</div>
+      </div>
+      <div style="padding:20px 24px 24px;">
+        <div class="mod-segmented" role="tablist" aria-label="Content type">
+          <button type="button" id="mod-kind-reviews" class="mod-seg-btn is-active" data-kind="reviews" role="tab">Suburb reviews</button>
+          <button type="button" id="mod-kind-comments" class="mod-seg-btn" data-kind="comments" role="tab">Blog comments</button>
+        </div>
+        <div class="mod-filter-row">
+          <div class="mod-filter-group" role="tablist" aria-label="Status filter">
+            <button type="button" id="mod-subtab-pending" class="btn-admin-sm is-active" data-subtab="pending">Pending</button>
+            <button type="button" id="mod-subtab-all" class="btn-admin-sm" data-subtab="all">All</button>
+          </div>
+          <button type="button" id="mod-refresh-btn" class="btn-admin-sm" style="margin-left:auto;">↻ Refresh</button>
+        </div>
+        <div id="mod-reviews-list">
+          <div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>
         </div>
       </div>
     </div>
@@ -844,14 +1116,14 @@
 </div>
 
 <!-- Legal Page Preview Modal -->
-<div id="legal-preview-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.72);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;" onclick="if(event.target===this){document.getElementById('legal-preview-overlay').style.display='none';}">
+<div id="legal-preview-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.72);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">
   <div style="background:white;border-radius:8px;width:min(800px,95vw);box-shadow:0 24px 80px rgba(0,0,0,0.6);display:flex;flex-direction:column;max-height:90vh;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#1C1C1E;border-radius:8px 8px 0 0;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);">
       <div>
         <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">PREVIEW</div>
         <div id="legal-preview-title" style="font-size:14px;font-weight:600;color:#F5F0E8;font-family:'Playfair Display',serif;"></div>
       </div>
-      <button onclick="document.getElementById('legal-preview-overlay').style.display='none'" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+      <button style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
     <div id="legal-preview-body" style="padding:24px;overflow-y:auto;color:#1C1C1E;line-height:1.6;flex:1;">Loading preview…</div>
   </div>
@@ -863,7 +1135,7 @@
     <h3 id="scenario-detail-title">Scenario Overview</h3>
     <div id="scenario-detail-body" style="max-height:70vh;overflow-y:auto;"></div>
     <div class="reset-modal-btns">
-      <button class="btn-admin-outline" onclick="document.getElementById('scenario-detail-overlay').classList.remove('open')">Close</button>
+      <button class="btn-admin-outline" id="close-scenario-detail-btn">Close</button>
     </div>
   </div>
 </div>
@@ -874,7 +1146,7 @@
     <h3 id="user-detail-title">User Details</h3>
     <div id="user-detail-body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;word-break:break-word;"></div>
     <div class="reset-modal-btns">
-      <button class="btn-admin-outline" onclick="document.getElementById('user-detail-overlay').classList.remove('open')">Close</button>
+      <button class="btn-admin-outline" id="close-user-detail-btn">Close</button>
     </div>
   </div>
 </div>
@@ -898,9 +1170,9 @@
     </div>
     <div id="plan-modal-status" class="admin-status"></div>
     <div class="reset-modal-btns">
-      <button class="btn-admin" onclick="confirmPlanChange()">Update Plan</button>
-      <button class="btn-admin-outline" onclick="closePlanModal()">Cancel</button>
-      <button class="btn-admin-outline" id="plan-back-btn" onclick="closePlanModal();backToUserDetail()" style="display:none;">← Back to User</button>
+      <button class="btn-admin" id="confirm-plan-change-btn">Update Plan</button>
+      <button class="btn-admin-outline" id="close-plan-modal-btn">Cancel</button>
+      <button class="btn-admin-outline" id="plan-back-btn" style="display:none;">← Back to User</button>
     </div>
   </div>
 </div>
@@ -911,8 +1183,8 @@
   <h2>Access Restricted</h2>
   <p id="access-denied-msg">This page requires an admin account. Please sign in with an admin account to continue.</p>
   <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-    <a href="login.html" class="btn-admin">Sign In</a>
-    <button class="btn-admin-outline" id="bootstrap-btn" onclick="bootstrapAdmin()" style="display:none;">Claim Admin (first user only)</button>
+    <a href="/login" class="btn-admin">Sign In</a>
+    <button class="btn-admin-outline" id="bootstrap-btn" style="display:none;">Claim Admin (first user only)</button>
   </div>
   <div id="bootstrap-status" class="admin-status" style="margin-top:12px;"></div>
 </div>
@@ -924,7 +1196,7 @@
 </div>
 
 <!-- User Event History Modal -->
-<div id="history-modal-overlay" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;" onclick="if(event.target===this)closeHistoryModal()">
+<div id="history-modal-overlay" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;">
   <div style="background:white;border:1px solid rgba(28,28,30,0.12);border-radius:8px;width:min(580px,94vw);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.35);">
     <div style="padding:16px 20px 12px;border-bottom:1px solid rgba(28,28,30,0.08);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:var(--charcoal);border-radius:8px 8px 0 0;">
       <div>
@@ -932,8 +1204,8 @@
         <div id="history-modal-email" style="font-family:var(--font-mono);font-size:11px;color:rgba(245,240,232,0.5);margin-top:2px;"></div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
-        <button id="history-back-btn" onclick="closeHistoryModal();backToUserDetail()" style="display:none;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:12px;cursor:pointer;padding:4px 8px;">← Back</button>
-        <button onclick="closeHistoryModal()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:16px;cursor:pointer;line-height:1;padding:4px 8px;">✕</button>
+        <button id="history-back-btn" style="display:none;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:12px;cursor:pointer;padding:4px 8px;">← Back</button>
+        <button style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:16px;cursor:pointer;line-height:1;padding:4px 8px;">✕</button>
       </div>
     </div>
     <div id="history-modal-body" style="overflow-y:auto;padding:16px 20px;flex:1;min-height:100px;">
@@ -943,19 +1215,20 @@
 </div>
 
 <!-- Email Preview Modal -->
-<div id="email-preview-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.72);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;" onclick="if(event.target===this)closeEmailPreview()">
+<div id="email-preview-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.72);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">
   <div style="background:white;border-radius:8px;width:min(720px,95vw);box-shadow:0 24px 80px rgba(0,0,0,0.6);display:flex;flex-direction:column;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#1C1C1E;border-radius:8px 8px 0 0;flex-shrink:0;">
       <div>
         <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">EMAIL PREVIEW</div>
         <div id="email-preview-subject" style="font-size:14px;font-weight:600;color:#F5F0E8;font-family:'Playfair Display',serif;"></div>
       </div>
-      <button onclick="closeEmailPreview()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+      <button style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
     <iframe id="email-preview-frame" style="width:100%;height:620px;border:none;border-radius:0 0 8px 8px;display:block;" sandbox="allow-same-origin"></iframe>
   </div>
 </div>
 
-<script src="admin.js?v=5"></script>
+<script src="admin.js?v=6"></script>
+<script src="admin-events.js"></script>
 </body>
 </html>

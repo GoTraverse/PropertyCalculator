@@ -1,4 +1,5 @@
 [build]
+  command = "node build.js"
   publish = "."
   functions = "netlify/functions"
 
@@ -13,13 +14,16 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(self)"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.stripe.com https://nominatim.openstreetmap.org https://ipwho.is https://ipapi.co; frame-src https://js.stripe.com https://hooks.stripe.com; object-src 'none'; base-uri 'self'; form-action 'self';"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://pagead2.googlesyndication.com https://adservice.google.com https://www.googletagservices.com https://www.googletagmanager.com https://accounts.google.com https://ep2.adtrafficquality.google 'sha256-1yHDvs7+Z29Z4G1LhYbHujCAQgQe6Dl/3X8zy2dAQfs=' 'sha256-pXTTJfAUfWH4QBYak7cRfbfeMucEscH05RFbEVdE6Gw=' 'sha256-l8cueVaQVgCqUWLBWMkWAJQ8zRdEPAOdUrceYKg0hAY='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://ep2.adtrafficquality.google; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.stripe.com https://challenges.cloudflare.com https://nominatim.openstreetmap.org https://ipwho.is https://ipapi.co https://api.rba.gov.au https://data.api.abs.gov.au https://api.domain.com.au https://auth.domain.com.au https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://stats.g.doubleclick.net https://adservice.google.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://region1.analytics.google.com https://www.googletagmanager.com https://ingesteer.services-prod.nsvcs.net https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://accounts.google.com https://oauth2.googleapis.com https://www.google.com https://www.google.com.au https://www.google.co.uk https://www.google.co.in https://www.google.co.nz https://www.google.co.jp https://www.google.co.za https://www.google.ca https://www.google.de https://www.google.fr https://www.google.it https://www.google.es https://www.google.nl https://www.google.ie https://www.google.com.br https://www.google.mu; frame-src https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://pagead2.googlesyndication.com https://accounts.google.com https://maps.google.com https://www.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; object-src 'none'; base-uri 'self'; form-action 'self';"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
 
 [[headers]]
   for = "/.netlify/functions/*"
   [headers.values]
-    Access-Control-Allow-Origin = "*"
+    # Default CORS is locked to the canonical origin. Individual functions
+    # override Access-Control-Allow-Origin dynamically via getCorsHeaders(event)
+    # so deploy-preview URLs on *.netlify.app still work.
+    Access-Control-Allow-Origin = "https://equitysight.app"
     Access-Control-Allow-Headers = "Content-Type, Authorization, Stripe-Signature"
     Access-Control-Allow-Methods = "GET, POST, DELETE, OPTIONS"
     X-Content-Type-Options = "nosniff"
@@ -27,23 +31,538 @@
 [[headers]]
   for = "/*.css"
   [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
+    Cache-Control = "public, max-age=86400, must-revalidate"
 
 [[headers]]
   for = "/*.js"
   [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
+    Cache-Control = "public, max-age=86400, must-revalidate"
+
+[[headers]]
+  for = "/tools/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, must-revalidate"
 
 [[headers]]
   for = "/*.svg"
   [headers.values]
-    Cache-Control = "public, max-age=86400, must-revalidate"
+    Cache-Control = "public, max-age=604800, immutable"
+
+# ── Trailing-slash policy ───────────────────────────────────────────────────
+# Directory-backed URLs (served by /<path>/index.html on disk) use a trailing
+# slash and are listed that way in every sitemap + internal link:
+#   /invest/<state>/, /invest/<state>/<city>/, /suburb/<state>/<slug>/, /blog/
+# Flat-file URLs (served by /<path>.html via Netlify pretty-URLs) have NO
+# trailing slash and are canonicalised below:
+#   /pricing, /about, /contact, /app, /showcase, /privacy, /terms, …
+#   /tools/<calculator-name>
+# Netlify serves each form at both URLs, so only the canonical variant appears
+# in sitemaps and <a href=...> links. Keep new pages on the same pattern.
 
 [[redirects]]
   from = "/favicon.ico"
   to = "/favicon.svg"
   status = 200
 
+# ── Block dev/internal files from public access ─────────────────────────────
+# force=true is required so redirects take priority over existing files on disk.
+# Legal .md files (privacy.md, terms.md, cookies.md, disclaimer.md) are
+# intentionally NOT blocked — legal.js fetches them at runtime.
+
+[[redirects]]
+  from = "/CLAUDE.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/README.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/CODEBASE.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/TODO.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/LINK_AUDIT_REPORT.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/TRACKING_GUIDE.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/BROKEN_LINKS_QUICK_REFERENCE.txt"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/reset-admin-pw.js"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.lighthouserc.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/tests/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/package.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/package-lock.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env.*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/ERRORS.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/build.js"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/build/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify.toml"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/templates/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/images/*.html"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/data/abs-suburbs.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/data/blog-posts/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# ── Block common bot/exploit probes ──────────────────────────────────────────
+# These are automated attacks scanning for WordPress/PHP installations.
+# Catch-all already returns 404, but explicit rules skip disk lookup entirely.
+
+[[redirects]]
+  from = "/wp-admin/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-login.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/xmlrpc.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wordpress/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-includes/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/index.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# ── Calculator clean-URL redirects (root-level → /tools/) ────────────────────
+# Handles /slug and /slug.html variants that users or old links may use.
+
+[[redirects]]
+  from = "/rental-yield-calculator"
+  to = "/tools/rental-yield-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/rental-yield-calculator.html"
+  to = "/tools/rental-yield-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator"
+  to = "/tools/stamp-duty-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator.html"
+  to = "/tools/stamp-duty-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-qld.html"
+  to = "/tools/stamp-duty-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/mortgage-stress-calculator"
+  to = "/tools/mortgage-stress-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/mortgage-stress-calculator.html"
+  to = "/tools/mortgage-stress-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/house-flip-calculator"
+  to = "/tools/house-flip-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/house-flip-calculator.html"
+  to = "/tools/house-flip-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/cost-of-purchase-calculator"
+  to = "/tools/cost-of-purchase-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/cost-of-purchase-calculator.html"
+  to = "/tools/cost-of-purchase-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/loan-serviceability-calculator"
+  to = "/tools/loan-serviceability-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/loan-serviceability-calculator.html"
+  to = "/tools/loan-serviceability-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/renovation-cost-calculator"
+  to = "/tools/renovation-cost-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/renovation-cost-calculator.html"
+  to = "/tools/renovation-cost-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/equity-release-calculator"
+  to = "/tools/equity-release-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/equity-release-calculator.html"
+  to = "/tools/equity-release-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/first-home-buyer-grants-calculator"
+  to = "/tools/first-home-buyer-grants-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/first-home-buyer-grants-calculator.html"
+  to = "/tools/first-home-buyer-grants-calculator"
+  status = 301
+
+# ── Canonicalise .html → clean URLs (301 redirect for SEO) ──────────────────
+# Netlify pretty-URLs serves foo.html at /foo. These redirects ensure
+# old .html bookmarks/links get 301'd to the clean canonical URL.
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator.html"
+  to = "/tools/stamp-duty-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/rental-yield-calculator.html"
+  to = "/tools/rental-yield-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/mortgage-stress-calculator.html"
+  to = "/tools/mortgage-stress-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/cost-of-purchase-calculator.html"
+  to = "/tools/cost-of-purchase-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/loan-serviceability-calculator.html"
+  to = "/tools/loan-serviceability-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/equity-release-calculator.html"
+  to = "/tools/equity-release-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/first-home-buyer-grants-calculator.html"
+  to = "/tools/first-home-buyer-grants-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/house-flip-calculator.html"
+  to = "/tools/house-flip-calculator"
+  status = 301
+
+[[redirects]]
+  from = "/tools/renovation-cost-calculator.html"
+  to = "/tools/renovation-cost-calculator"
+  status = 301
+
+# ── Canonicalise core page .html → clean URLs ────────────────────────────────
+# Redirects old .html links to clean URLs for consistency and SEO.
+
+[[redirects]]
+  from = "/pricing.html"
+  to = "/pricing"
+  status = 301
+
+[[redirects]]
+  from = "/about.html"
+  to = "/about"
+  status = 301
+
+[[redirects]]
+  from = "/contact.html"
+  to = "/contact"
+  status = 301
+
+[[redirects]]
+  from = "/login.html"
+  to = "/login"
+  status = 301
+
+[[redirects]]
+  from = "/app.html"
+  to = "/app"
+  status = 301
+
+[[redirects]]
+  from = "/account.html"
+  to = "/account"
+  status = 301
+
+[[redirects]]
+  from = "/admin.html"
+  to = "/admin"
+  status = 301
+
+[[redirects]]
+  from = "/showcase.html"
+  to = "/showcase"
+  status = 301
+
+[[redirects]]
+  from = "/privacy.html"
+  to = "/privacy"
+  status = 301
+
+[[redirects]]
+  from = "/terms.html"
+  to = "/terms"
+  status = 301
+
+[[redirects]]
+  from = "/cookies.html"
+  to = "/cookies"
+  status = 301
+
+[[redirects]]
+  from = "/disclaimer.html"
+  to = "/disclaimer"
+  status = 301
+
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/tools.html"
+  to = "/tools"
+  status = 301
+
+[[redirects]]
+  from = "/tools/"
+  to = "/tools"
+  status = 301
+
+# ── Fix relative-path asset requests from cached suburb/invest pages ─────────
+# Older cached builds used relative paths (e.g. shared.css instead of /shared.css).
+# These rewrites serve the correct root-level files transparently until a
+# suburb rebuild regenerates all pages with correct absolute paths.
+
+[[redirects]]
+  from = "/invest/*/shared.css"
+  to = "/shared.css"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/invest/*/tools.css"
+  to = "/tools.css"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/invest/*/suburb-insights.css"
+  to = "/suburb-insights.css"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/invest/*/auth-nav.js"
+  to = "/auth-nav.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/invest/*/site-init.js"
+  to = "/site-init.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/invest/*/footer.js"
+  to = "/footer.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/invest/*/error-capture.js"
+  to = "/error-capture.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/suburb/*/shared.css"
+  to = "/shared.css"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/suburb/*/tools.css"
+  to = "/tools.css"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/suburb/*/suburb-insights.css"
+  to = "/suburb-insights.css"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/suburb/*/auth-nav.js"
+  to = "/auth-nav.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/suburb/*/site-init.js"
+  to = "/site-init.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/suburb/*/footer.js"
+  to = "/footer.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/suburb/*/error-capture.js"
+  to = "/error-capture.js"
+  status = 200
+  force = true
+
+# ── Allow ads.txt through (must come before catch-all) ───────────────────────
+[[redirects]]
+  from = "/ads.txt"
+  to = "/ads.txt"
+  status = 200
+  force = false
+
+# ── Catch-all 404 ────────────────────────────────────────────────────────────
 [[redirects]]
   from = "/*"
   to = "/404.html"

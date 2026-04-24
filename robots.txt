@@ -1,9 +1,53 @@
+# ── Legitimate crawlers ───────────────────────────────────────────────────────
 User-agent: *
 Allow: /
 
+Disallow: /admin
 Disallow: /admin.html
+Disallow: /account
 Disallow: /account.html
+Disallow: /app
 Disallow: /app.html
+Disallow: /login
+Disallow: /login.html
 Disallow: /.netlify/
+
+# ── Google AdSense crawler — explicit allow required for AdSense review ───────
+User-agent: Mediapartners-Google
+Allow: /
+
+# ── SEO crawlers / link analysers ────────────────────────────────────────────
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: serpstatbot
+Disallow: /
+
+User-agent: SiteAuditBot
+Disallow: /
+
+User-agent: rogerbot
+Disallow: /
+
+User-agent: YandexBot
+Disallow: /
 
 Sitemap: https://equitysight.app/sitemap.xml

@@ -1,66 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
 <meta charset="UTF-8">
-<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
-<script>
-  // In PWA standalone mode, index.html is never the right page — go straight to app
-  if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
-    window.location.replace('app.html');
-  }
-</script>
+<meta name="google-adsense-account" content="ca-pub-8128501193606953">
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
+<script src="/site-init.js" defer></script>
+<script src="/index-init.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="description" content="EquitySight — Australia's smartest property finance calculator. Model the Shared Equity Scheme, track renovation budgets, compare scenarios, and go from browsing to buying with confidence.">
+<meta name="description" content="Australia's smartest property finance calculator. 10 free tools for stamp duty, rental yield, mortgage stress and more. No signup required.">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/">
 <meta name="theme-color" content="#1C1C1E">
-<title>EquitySight.app — Property Finance Made Clear</title>
+<title>Australian Property Finance Calculator | EquitySight.app</title>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="EquitySight.app">
-<meta property="og:title" content="EquitySight.app — Property Finance Made Clear">
-<meta property="og:description" content="Australia's smartest property finance calculator. Model the Shared Equity Scheme, compare scenarios, and go from browsing to buying with confidence.">
+<meta property="og:title" content="Australian Property Finance Calculator | EquitySight.app">
+<meta property="og:description" content="Australia's smartest property finance calculator. 10 free tools for stamp duty, rental yield, mortgage stress and more.">
 <meta property="og:url" content="https://equitysight.app/">
-<meta property="og:image" content="https://equitysight.app/favicon.svg">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <link rel="canonical" href="https://equitysight.app/">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="EquitySight.app — Property Finance Made Clear">
-<meta name="twitter:description" content="Australia's smartest property finance calculator. Model the Shared Equity Scheme, compare scenarios, and go from browsing to buying with confidence.">
-<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
-<meta name="keywords" content="property finance calculator Australia, shared equity scheme calculator, first home buyer calculator, mortgage calculator Australia, property investment calculator, equity calculator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Australian Property Finance Calculator | EquitySight.app">
+<meta name="twitter:description" content="Australia's smartest property finance calculator. 10 free tools for stamp duty, rental yield, mortgage stress and more.">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
+<meta name="keywords" content="property calculator Australia, stamp duty calculator Australia, rental yield calculator, mortgage calculator Australia, first home buyer calculator, loan serviceability calculator, property investment calculator, mortgage stress calculator, equity release calculator">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"EquitySight","url":"https://equitysight.app","description":"Australia's smartest property finance calculator. Model the Shared Equity Scheme, track renovation budgets, and compare scenarios side by side.","applicationCategory":"FinanceApplication","operatingSystem":"Web, iOS, Android","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}},{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app","logo":"https://equitysight.app/favicon.svg","contactPoint":{"@type":"ContactPoint","contactType":"customer support","url":"https://equitysight.app/contact.html"}}]}
+{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"EquitySight","url":"https://equitysight.app","description":"Australia's smartest property finance calculator. Model the Shared Equity Scheme, track renovation budgets, and compare scenarios side by side.","applicationCategory":"FinanceApplication","operatingSystem":"Web, iOS, Android","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}},{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app","logo":"https://equitysight.app/images/logo-dark.svg","contactPoint":{"@type":"ContactPoint","contactType":"customer support","url":"https://equitysight.app/contact"}}]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"EquitySight","url":"https://equitysight.app/","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://equitysight.app/invest/?q={search_term_string}"},"query-input":"required name=search_term_string"}}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="index.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="alternate icon" href="favicon.svg">
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- ══ SITE NAV ══ --><nav class="site-nav">
   <div class="site-nav-inner">
-    <a href="index.html" class="site-logo">
-      <div class="site-logo-mark">🏠</div>
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text">
         <span class="site-logo-name">EquitySight</span>
         <span class="site-logo-tld">.app</span>
       </div>
     </a>
     <ul class="site-nav-links">
-      <li><a href="pricing.html">Pricing</a></li>
-      <li><a href="contact.html">Support</a></li>
-      <li><a href="about.html">About</a></li>
+      <li><a href="/pricing">Pricing</a></li>
+      <li><a href="/showcase">Gallery</a></li>
+      <li><a href="/blog">Blog</a></li>
+      <li><a href="/contact">Support</a></li>
+      <li><a href="/about">About</a></li>
     </ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham">☰</button>
   </div>
 </nav>
-<script src="auth-nav.js"></script>
-<script src="error-capture.js"></script>
+<script src="/error-capture.js"></script>
+<script src="auth-nav.js" defer></script>
 
 <!-- ══ HERO ══ -->
-<section class="hero">
+<section class="hero" id="main-content">
   <div class="hero-bg"></div>
   <div class="hero-grid-overlay"></div>
   <div class="hero-body">
@@ -72,21 +84,17 @@
       <h1 class="hero-h1">Property finance,<br><em>finally clear.</em></h1>
       <p class="hero-sub">Model the Shared Equity Scheme, track renovation budgets, compare scenarios side by side, and go from browsing to buying with total clarity — all in one place.</p>
       <div class="hero-ctas">
-        <button class="btn-hero-primary" onclick="location.href='login.html?tab=signup'">
-          Get started free
-        </button>
-        <button class="btn-hero-secondary" onclick="location.href='pricing.html'">
-          View pricing
+        <a href="/login?tab=signup" class="btn-hero-primary">
+          Create free account →
+        </a>
+        <button class="btn-hero-secondary" id="scroll-to-tools-btn">
+          Try free tools ↓
         </button>
       </div>
       <div class="hero-social-proof">
-        <div class="hero-avatars">
-          <div class="hero-avatar">👩</div>
-          <div class="hero-avatar">👨</div>
-          <div class="hero-avatar">👩‍💼</div>
-          <div class="hero-avatar">🧑</div>
-        </div>
-        <p class="hero-proof-text"><strong>Free to start</strong> — no credit card required</p>
+        <span class="hero-proof-pill">Free forever</span>
+        <span class="hero-proof-pill">No credit card</span>
+        <span class="hero-proof-pill">10 free tools</span>
       </div>
     </div>
     <div class="hero-preview">
@@ -177,10 +185,216 @@
         <div style="font-size:28px;margin-bottom:14px;">✨</div>
         <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:8px;color:var(--cream);">Free to Start</h3>
         <p style="font-size:13px;color:rgba(245,240,232,0.5);line-height:1.7;margin-bottom:16px;">No credit card. No time limit. Upgrade to Pro for unlimited properties, PDF export, and cloud sync.</p>
-        <button onclick="location.href='pricing.html'" style="background:var(--gold);color:var(--charcoal);border:none;padding:9px 18px;border-radius:3px;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">See pricing →</button>
+        <a href="/pricing"  style="background:var(--gold);color:var(--charcoal);border:none;padding:9px 18px;border-radius:3px;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">See pricing →</a>
       </div>
     </div>
     <p style="text-align:center;font-size:12px;color:rgba(28,28,30,0.3);margin-top:32px;font-family:var(--font-mono);">Not financial advice. Always consult a licensed adviser.</p>
+  </div>
+</section>
+
+<!-- ── App Showcase Teaser ── -->
+<section class="showcase-teaser">
+  <div class="showcase-teaser-inner">
+    <div class="showcase-teaser-head">
+      <div class="section-tag" style="color:var(--gold);">App Gallery</div>
+      <h2>See it in action.</h2>
+      <p>A real-time calculator that works beautifully on desktop and mobile — no install required.</p>
+    </div>
+    <div class="showcase-devices">
+      <!-- Laptop mockup -->
+      <div class="showcase-laptop-wrap">
+        <div class="device-laptop">
+          <div class="device-laptop-top">
+            <div class="device-laptop-cam-dot"></div>
+          </div>
+          <div class="device-laptop-body">
+            <div class="sc-slot sc-slot-desktop">
+              <div class="sc-slot-ph">
+                <span class="sc-slot-ph-icon">🖥️</span>
+                screenshots/desktop-projection.png
+              </div>
+              <picture><source srcset="/screenshots/desktop-projection.webp" type="image/webp"><img src="/screenshots/desktop-projection.png" alt="EquitySight desktop — 30-year projection tab" loading="lazy" width="1794" height="1082"></picture>
+            </div>
+          </div>
+          <div class="device-laptop-hinge"></div>
+          <div class="device-laptop-foot"></div>
+        </div>
+      </div>
+      <!-- Phone mockup -->
+      <div class="showcase-phone-wrap">
+        <div class="device-phone">
+          <div class="device-phone-status">
+            <div class="device-phone-pill"></div>
+          </div>
+          <div class="sc-slot sc-slot-phone">
+            <div class="sc-slot-ph">
+              <span class="sc-slot-ph-icon">📱</span>
+              screenshots/mobile-main.png
+            </div>
+            <picture><source srcset="/screenshots/mobile-main.webp" type="image/webp"><img src="/screenshots/mobile-main.png" alt="EquitySight mobile — calculator inputs" loading="lazy" width="582" height="1021"></picture>
+          </div>
+          <div class="device-phone-home">
+            <div class="device-phone-home-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="showcase-cta">
+      <a href="/showcase" class="showcase-cta-primary">View full gallery →</a>
+      <a href="/login?tab=signup" class="showcase-cta-ghost">Try it free →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Free Tools ── -->
+<section id="free-tools" style="background:var(--warm-white);padding:72px 0;">
+  <div style="max-width:1200px;margin:0 auto;padding:0 24px;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <div class="section-tag">Try First, Sign Up Later</div>
+      <h2 style="font-family:var(--font-display);font-size:clamp(26px,4vw,38px);font-weight:700;line-height:1.2;margin-top:8px;">Free property finance tools</h2>
+      <p style="color:var(--slate);font-size:15px;margin-top:12px;max-width:600px;margin-left:auto;margin-right:auto;">No signup required. Use these calculators to explore stamp duty, equity, affordability, and investment returns across Australia.</p>
+    </div>
+
+    <div class="tools-grid">
+      <a href="/tools/stamp-duty-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">🏛️</div>
+          <h3 class="tg-name">Stamp Duty Calculator</h3>
+          <p class="tg-desc">All Australian states — NSW, VIC, QLD, SA, WA, TAS, ACT, NT. Transfer duty, FHB exemptions, and foreign surcharges.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/cost-of-purchase-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">💵</div>
+          <h3 class="tg-name">Cost of Purchase</h3>
+          <p class="tg-desc">See all costs when buying — stamp duty, legal fees, bank charges, inspections, insurance, moving, and lease break.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/equity-release-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">💰</div>
+          <h3 class="tg-name">Equity Release</h3>
+          <p class="tg-desc">See how much home equity you can release or refinance based on property value, mortgage, and LVR limits.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/loan-serviceability-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">📊</div>
+          <h3 class="tg-name">Loan Serviceability</h3>
+          <p class="tg-desc">Estimate your mortgage borrowing capacity based on income, expenses, and Australian bank lending criteria.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/first-home-buyer-grants-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">🎁</div>
+          <h3 class="tg-name">FHB Grants & Concessions</h3>
+          <p class="tg-desc">Check what first home buyer grants, stamp duty exemptions, and concessions you qualify for in your state.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/rental-yield-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">🏢</div>
+          <h3 class="tg-name">Rental Yield</h3>
+          <p class="tg-desc">Calculate gross and net rental yield for any property. See if your investment stacks up financially.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/house-flip-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">🔨</div>
+          <h3 class="tg-name">House Flip Profit</h3>
+          <p class="tg-desc">Model a buy-renovate-sell strategy. Calculate net profit, ROI, and annualised return before you commit.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/renovation-cost-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">🛠️</div>
+          <h3 class="tg-name">Renovation Cost Estimator</h3>
+          <p class="tg-desc">Build an itemised renovation budget with line items, categories, and contingency by room and phase.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/mortgage-stress-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">📈</div>
+          <h3 class="tg-name">Mortgage Stress Test</h3>
+          <p class="tg-desc">Test your loan repayment against interest rate increases and see how much buffer runway you have.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/mortgage-repayment-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">🏦</div>
+          <h3 class="tg-name">Mortgage Repayment</h3>
+          <p class="tg-desc">See weekly, fortnightly, and monthly repayments for Australian home loans — P&amp;I or interest-only.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/deposit-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">💵</div>
+          <h3 class="tg-name">Deposit Calculator</h3>
+          <p class="tg-desc">How much deposit do you need? Includes stamp duty, LMI, legals, and FHB concessions across all Australian states.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/borrowing-power-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">🏦</div>
+          <h3 class="tg-name">Borrowing Power</h3>
+          <p class="tg-desc">How much can an Australian bank lend you? Applies the APRA 3% serviceability buffer used by major lenders.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/capital-gains-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">🏛️</div>
+          <h3 class="tg-name">Capital Gains Tax</h3>
+          <p class="tg-desc">Calculate CGT on an Australian property sale — with the 50% discount and marginal tax rates applied.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+      <a href="/tools/interest-only-vs-principal-calculator">
+        <div class="tg-card">
+          <div class="tg-icon">⚖️</div>
+          <h3 class="tg-name">Interest Only vs P&amp;I</h3>
+          <p class="tg-desc">Compare Interest Only and Principal + Interest home loans side-by-side. See total cost and cash-flow difference.</p>
+          <div class="tg-link">Try calculator →</div>
+        </div>
+      </a>
+    </div>
+
+    <div style="text-align:center;padding:32px 24px;background:rgba(201,168,76,0.05);border-radius:10px;border:1px solid rgba(201,168,76,0.15);">
+      <p style="font-size:14px;color:var(--slate);margin-bottom:16px;line-height:1.6;">Love the free tools? The full EquitySight calculator adds scenario comparison, 30-year projections, PDF export, property library, and cloud sync.</p>
+      <a href="/login?tab=signup" class="tools-cta-btn" style="background:var(--gold);color:var(--charcoal);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Get started with the full calculator →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Suburb Insights ── -->
+<section style="background:var(--charcoal);padding:64px 0;">
+  <div style="max-width:960px;margin:0 auto;padding:0 24px;">
+    <div style="text-align:center;margin-bottom:36px;">
+      <div class="section-tag" style="color:var(--gold);">14,512 suburb profiles</div>
+      <h2 style="font-family:var(--font-display);font-size:clamp(22px,4vw,34px);font-weight:700;color:var(--cream);line-height:1.2;margin-top:8px;">Explore Australian suburbs</h2>
+      <p style="color:rgba(245,240,232,0.5);font-size:14px;margin-top:10px;">Population data, amenity scores, and investment context for every suburb across all 8 states and territories.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+      <a href="invest/nsw/" class="state-tile" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">New South Wales</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">NSW suburbs →</div></a>
+      <a href="invest/vic/" class="state-tile" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Victoria</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">VIC suburbs →</div></a>
+      <a href="invest/qld/" class="state-tile" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Queensland</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">QLD suburbs →</div></a>
+      <a href="invest/wa/" class="state-tile" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Western Australia</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">WA suburbs →</div></a>
+      <a href="invest/sa/" class="state-tile" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">South Australia</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">SA suburbs →</div></a>
+      <a href="invest/tas/" class="state-tile" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Tasmania</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">TAS suburbs →</div></a>
+      <a href="invest/act/" class="state-tile" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">ACT</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">ACT suburbs →</div></a>
+      <a href="invest/nt/" class="state-tile" style="display:block;padding:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;text-decoration:none;transition:border-color 0.15s;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cream);">Northern Territory</div><div style="font-family:var(--font-mono);font-size:10px;color:rgba(245,240,232,0.35);margin-top:4px;letter-spacing:0.5px;">NT suburbs →</div></a>
+    </div>
   </div>
 </section>
 
@@ -191,8 +405,8 @@
     <h2 style="font-family:var(--font-display);font-size:clamp(28px,5vw,42px);font-weight:700;color:var(--cream);line-height:1.15;margin-bottom:14px;">Start for free today.</h2>
     <p style="color:rgba(245,240,232,0.45);font-size:15px;line-height:1.6;margin-bottom:32px;">Create a free account and open the calculator in 30 seconds.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-      <button onclick="location.href='login.html?tab=signup'" style="background:var(--gold);color:var(--charcoal);border:none;padding:15px 32px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Create free account →</button>
-      <button onclick="location.href='about.html'" style="background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 24px;border-radius:3px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;cursor:pointer;">Learn about us</button>
+      <a href="/login?tab=signup"  style="background:var(--gold);color:var(--charcoal);border:none;padding:15px 32px;border-radius:3px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:0.5px;cursor:pointer;">Create free account →</a>
+      <a href="/about"  style="background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid rgba(255,255,255,0.15);padding:14px 24px;border-radius:3px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;cursor:pointer;">Learn about us</a>
     </div>
   </div>
 </section>
@@ -201,6 +415,7 @@
 <!-- ══ FOOTER ══ -->
 <div id="site-footer-root"></div>
 <script src="footer.js"></script>
+<script src="index-events.js"></script>
 
 </body>
 </html>

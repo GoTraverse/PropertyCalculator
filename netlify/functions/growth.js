@@ -12,12 +12,27 @@ const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 const GROWTH_TTL  = 30 * 24 * 60 * 60; // 30 days in seconds
 
-const H = {
-  'Content-Type':'application/json',
-  'Access-Control-Allow-Origin':'*',
-  'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers':'Content-Type,Authorization',
-};
+const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// CSRF defense-in-depth. See auth.js for the rationale.
+function isAllowedOrigin(event){
+  const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  if(!o) return true;
+  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+}
+function getCorsHeaders(event) {
+  const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
+    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Content-Type':'application/json',
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers':'Content-Type,Authorization',
+    'Access-Control-Allow-Credentials':'true',
+  };
+}
+let H = {};
 
 async function redisCmd(...args){
   if(!REDIS_URL||!REDIS_TOKEN) throw new Error('UPSTASH env vars missing');
@@ -37,16 +52,30 @@ async function rSet(key,val,ttl){
 async function rDel(key){ return redisCmd('DEL',key); }
 
 // Verify admin token
-async function verifyAdmin(authHeader){
-  if(!authHeader||!authHeader.startsWith('Bearer ')) return false;
-  const token=authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyAdmin(event){
+  const token = readCookieToken(event);
   if(!token) return false;
   const raw=await redisCmd('GET','token:'+token);
   if(!raw) return false;
   let data;
   try{data=JSON.parse(raw);}catch(e){return false;}
   if(data.expires&&Date.now()>data.expires) return false;
-  return data.role==='admin';
+  if(data.role!=='admin') return false;
+  // Check user still exists — deleted users should not retain access
+  if(data.email){ const u=await redisCmd('GET','user:'+data.email); if(!u) return false; }
+  return true;
 }
 
 function gKey(suburb, state){
@@ -57,7 +86,9 @@ const ok  = (body, s=200) => ({statusCode:s, headers:H, body:JSON.stringify(body
 const fail = (msg, s=400) => ({statusCode:s, headers:H, body:JSON.stringify({ok:false,error:msg})});
 
 exports.handler = async (event) => {
+  H = getCorsHeaders(event);
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
+  if(event.httpMethod!=='GET' && !isAllowedOrigin(event)) return fail('Forbidden',403);
 
   let body={};
   try{ body=JSON.parse(event.body||'{}'); }catch(e){}
@@ -65,6 +96,7 @@ exports.handler = async (event) => {
 
   if(action==='get'){
     if(!suburb) return fail('suburb required');
+    if(String(suburb).length > 100) return fail('suburb too long');
     const s = (state||'QLD').toUpperCase();
     const entry = await rGet(gKey(suburb, s));
     if(!entry) return ok({ok:true, found:false});
@@ -72,13 +104,14 @@ exports.handler = async (event) => {
   }
 
   if(action==='set'){
-    const isAdminSet = await verifyAdmin(event.headers.authorization||event.headers.Authorization||'');
+    const isAdminSet = await verifyAdmin(event);
     if(!isAdminSet) return fail('Forbidden', 403);
     if(!suburb||rate==null) return fail('suburb and rate required');
+    if(String(suburb).length > 100) return fail('suburb too long');
     const parsedRate = parseFloat(rate);
     if(!isFinite(parsedRate) || parsedRate < -30 || parsedRate > 100) return fail('rate must be a number between -30 and 100');
     const s = (state||'QLD').toUpperCase();
-    const entry = {rate:parsedRate, note:note||'', fetchedAt:Date.now()};
+    const entry = {rate:parsedRate, note:String(note||'').slice(0,300), fetchedAt:Date.now()};
     await rSet(gKey(suburb, s), entry, GROWTH_TTL);
     // Update index (no TTL on index — we prune stale entries on list)
     const key = suburb.toLowerCase().trim()+'|'+s;
@@ -92,7 +125,7 @@ exports.handler = async (event) => {
 
   if(action==='list'){
     // Admin only
-    const isAdmin = await verifyAdmin(event.headers.authorization||event.headers.Authorization||'');
+    const isAdmin = await verifyAdmin(event);
     if(!isAdmin) return fail('Forbidden', 403);
     const index = (await rGet('growth:index')) || [];
     // Filter out expired entries (older than 30 days)
@@ -104,7 +137,7 @@ exports.handler = async (event) => {
   }
 
   if(action==='delete'){
-    const isAdmin = await verifyAdmin(event.headers.authorization||event.headers.Authorization||'');
+    const isAdmin = await verifyAdmin(event);
     if(!isAdmin) return fail('Forbidden', 403);
     if(!suburb) return fail('suburb required');
     const s = (state||'QLD').toUpperCase();

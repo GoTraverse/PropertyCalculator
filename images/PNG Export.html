@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EquitySight — PNG Export</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:#ECEAE4; color:#1A1A1A; padding:60px 72px; }
+h1 { font-family:'Sora',sans-serif; font-size:22px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px; }
+.subtitle { font-size:13px; color:rgba(26,26,26,0.45); margin-bottom:52px; }
+.section { margin-bottom:48px; }
+.section-title { font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:rgba(26,26,26,0.4); margin-bottom:20px; }
+.grid { display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; }
+.export-card { background:#fff; border:1px solid rgba(0,0,0,0.07); border-radius:10px; overflow:hidden; }
+.card-preview { display:flex; align-items:center; justify-content:center; padding:20px; }
+.card-dark { background:#1A1A1A; }
+.card-meta { padding:10px 14px; border-top:1px solid rgba(0,0,0,0.06); background:#FAFAFA; }
+.card-name { font-size:12px; font-weight:500; color:#1A1A1A; }
+.card-dim  { font-size:11px; color:rgba(26,26,26,0.4); margin-top:2px; }
+.dl-btn { display:block; width:100%; margin-top:8px; padding:7px 0; background:#1A1A1A; color:#fff; border:none; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; text-align:center; }
+.dl-btn:hover { background:#333; }
+.dl-btn.gold { background:#F2C94C; color:#1A1A1A; }
+.dl-btn.gold:hover { background:#e8bc3a; }
+.status { font-size:11px; color:rgba(26,26,26,0.4); margin-top:6px; text-align:center; min-height:16px; }
+canvas { display:none; }
+</style>
+</head>
+<body>
+<h1>EquitySight — PNG Export</h1>
+<div class="subtitle">Click any Download button to save the PNG. Font must be loaded — wait a moment before exporting.</div>
+
+<div id="root"></div>
+<canvas id="c"></canvas>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+
+const B = { charcoal:'#1A1A1A', gold:'#F2C94C', goldLight:'#F7DC82', goldDark:'#D4A017', white:'#FFFFFF', offWhite:'#F5F2EC' };
+
+function RoofMark({ size=48, roofColor=B.white, barColors, chimney=false,
+                    chimneyWidthScale=1, chimneyHeightScale=1 }) {
+  const s=size, cx=s*0.5;
+  const peakY=s*0.15, eaveY=s*0.46, eaveL=s*0.10, eaveR=s*0.90, bend=s*0.07, baseY=s*0.93, cr=s*0.06;
+  const A=[eaveL,eaveY], BL=[cx-bend,peakY+s*0.035], BR=[cx+bend,peakY+s*0.035], C=[eaveR,eaveY];
+  const uv=(ax,ay,bx,by)=>{const l=Math.sqrt((bx-ax)**2+(by-ay)**2);return[(bx-ax)/l,(by-ay)/l];};
+  const uInA=uv(C[0],C[1],A[0],A[1]), uOutA=uv(A[0],A[1],BL[0],BL[1]);
+  const A_in=[A[0]-cr*uInA[0],A[1]-cr*uInA[1]], A_out=[A[0]+cr*uOutA[0],A[1]+cr*uOutA[1]];
+  const uInC=uv(BR[0],BR[1],C[0],C[1]), uOutC=uv(C[0],C[1],A[0],A[1]);
+  const C_in=[C[0]-cr*uInC[0],C[1]-cr*uInC[1]], C_out=[C[0]+cr*uOutC[0],C[1]+cr*uOutC[1]];
+  const barCount=chimney?3:4, barW=s*0.105, gap=s*0.072;
+  const bx=(s-(barCount*barW+(barCount-1)*gap))/2-(chimney?s*0.03:0);
+  const maxH=baseY-eaveY, barHs=chimney?[0.40,0.64,0.94]:[0.34,0.54,0.72,0.92];
+  const bc=barColors||(chimney?['rgba(255,255,255,0.28)','rgba(255,255,255,0.52)',B.gold]:['rgba(255,255,255,0.28)','rgba(255,255,255,0.48)','rgba(255,255,255,0.68)',B.gold]);
+  let roofPath;
+  if (chimney) {
+    const chW=s*0.11*chimneyWidthScale, chCx=s*0.67, chRx=s*0.11*chimneyWidthScale*0.18;
+    const chLeft=chCx-chW/2, chRight=chCx+chW/2;
+    const slopeY=x=>BR[1]+((x-BR[0])/(C[0]-BR[0]))*(C[1]-BR[1]);
+    const chTopY=slopeY(chCx)-s*0.21*chimneyHeightScale;
+    const chRY=slopeY(chRight), chLY=slopeY(chLeft);
+    roofPath=[
+      `M ${A_in[0]} ${A_in[1]}`,
+      `Q ${A[0]} ${A[1]} ${A_out[0]} ${A_out[1]}`,
+      `L ${BL[0]} ${BL[1]}`,
+      `Q ${cx} ${peakY-s*0.005} ${BR[0]} ${BR[1]}`,
+      `L ${chRight} ${chRY}`,
+      `L ${chRight} ${chTopY+chRx}`,
+      `Q ${chRight} ${chTopY} ${chRight-chRx} ${chTopY}`,
+      `L ${chLeft+chRx} ${chTopY}`,
+      `Q ${chLeft} ${chTopY} ${chLeft} ${chTopY+chRx}`,
+      `L ${chLeft} ${chLY}`,
+      `L ${C_in[0]} ${C_in[1]}`,
+      `Q ${C[0]} ${C[1]} ${C_out[0]} ${C_out[1]}`,
+      'Z',
+    ].join(' ');
+  } else {
+    roofPath=[
+      `M ${A_in[0]} ${A_in[1]}`,
+      `Q ${A[0]} ${A[1]} ${A_out[0]} ${A_out[1]}`,
+      `L ${BL[0]} ${BL[1]}`,
+      `Q ${cx} ${peakY-s*0.005} ${BR[0]} ${BR[1]}`,
+      `L ${C_in[0]} ${C_in[1]}`,
+      `Q ${C[0]} ${C[1]} ${C_out[0]} ${C_out[1]}`,
+      'Z',
+    ].join(' ');
+  }
+  return (
+    <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none" style={{flexShrink:0}}>
+      {barHs.map((h,i)=><rect key={i} x={bx+i*(barW+gap)} y={baseY-maxH*h} width={barW} height={maxH*h} rx={barW*0.32} fill={bc[i]}/>)}
+      <path d={roofPath} fill={roofColor}/>
+    </svg>
+  );
+}
+
+function Logo({ dark, size=1, tagline=true, bg }) {
+  const base=28*size, iS=40*size, pad=20*size;
+  const rc=dark?B.white:B.charcoal;
+  const bc=dark?['rgba(255,255,255,0.28)','rgba(255,255,255,0.52)',B.gold]:['rgba(26,26,26,0.15)','rgba(26,26,26,0.30)',B.gold];
+  return(
+    <div style={{background:bg,padding:`${pad}px ${pad*1.5}px`,display:'flex',alignItems:'center',gap:12*size}}>
+      <RoofMark size={iS} roofColor={rc} barColors={bc} chimney cWS={1} cHS={0.55}/>
+      <div>
+        <div style={{display:'flex',alignItems:'baseline'}}>
+          <span style={{fontFamily:"'Sora',sans-serif",fontWeight:600,fontSize:base,letterSpacing:'-0.025em',color:dark?B.white:B.charcoal}}>Equity</span>
+          <span style={{fontFamily:"'Sora',sans-serif",fontWeight:600,fontSize:base,letterSpacing:'-0.025em',color:B.gold}}>Sight</span>
+        </div>
+        {tagline&&<div style={{fontFamily:"'DM Sans',sans-serif",fontStyle:'italic',fontSize:8*size,fontWeight:400,letterSpacing:'0.05em',color:dark?'rgba(255,255,255,0.45)':'rgba(26,26,26,0.38)',marginTop:4}}>Property finance, finally clear.</div>}
+      </div>
+    </div>
+  );
+}
+
+function AppIconEl({ size=60, dark=true }) {
+  const r=size*.22;
+  const bc=['rgba(255,255,255,0.28)','rgba(255,255,255,0.52)',B.gold];
+  return(
+    <div style={{width:size,height:size,borderRadius:r,background:B.charcoal,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+      <RoofMark size={size*.65} roofColor={B.white} barColors={bc} chimney cWS={1} cHS={0.55}/>
+    </div>
+  );
+}
+
+// ── PNG download helper ────────────────────────────────────
+async function downloadPNG(containerId, filename, width, height) {
+  const el = document.getElementById(containerId);
+  const statusEl = document.getElementById(`${containerId}-status`);
+  if (!el || !statusEl) return;
+  statusEl.textContent = 'Generating…';
+  await document.fonts.load('600 16px Sora');
+  await document.fonts.load('400 16px "DM Sans"');
+
+  // Use html-to-image approach via svg foreignObject
+  const xml = new XMLSerializer().serializeToString(el);
+  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+    <foreignObject width="${width}" height="${height}">
+      <div xmlns="http://www.w3.org/1999/xhtml">${el.outerHTML}</div>
+    </foreignObject>
+  </svg>`;
+  const blob = new Blob([svgStr], {type:'image/svg+xml'});
+  const url  = URL.createObjectURL(blob);
+  const img  = new Image();
+  img.onload = () => {
+    const c = document.getElementById('c');
+    c.width  = width;
+    c.height = height;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = filename;
+    a.click();
+    statusEl.textContent = '✓ Downloaded';
+    setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+  };
+  img.onerror = () => { statusEl.textContent = 'Error — try screenshot instead'; };
+  img.src = url;
+}
+
+const exports_list = [
+  { id:'exp-logo-light',    label:'Logo — Light',     dim:'800×220',  w:800,  h:220,  node: <Logo dark={false} size={2}   tagline bg={B.offWhite}/> },
+  { id:'exp-logo-dark',     label:'Logo — Dark',      dim:'800×220',  w:800,  h:220,  node: <Logo dark={true}  size={2}   tagline bg={B.charcoal}/> },
+  { id:'exp-logo-lt-notag', label:'Logo — Light (no tagline)', dim:'800×180', w:800, h:180, node:<Logo dark={false} size={2} tagline={false} bg={B.offWhite}/> },
+  { id:'exp-logo-dk-notag', label:'Logo — Dark (no tagline)',  dim:'800×180', w:800, h:180, node:<Logo dark={true}  size={2} tagline={false} bg={B.charcoal}/> },
+  { id:'exp-icon-512',      label:'App Icon 512px',   dim:'512×512',  w:512,  h:512,  node: <div style={{width:512,height:512,background:B.charcoal,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:512*.22}}><RoofMark size={330} roofColor={B.white} barColors={['rgba(255,255,255,0.28)','rgba(255,255,255,0.52)',B.gold]} chimney cWS={1} cHS={0.55}/></div> },
+  { id:'exp-icon-192',      label:'App Icon 192px',   dim:'192×192',  w:192,  h:192,  node: <div style={{width:192,height:192,background:B.charcoal,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:192*.22}}><RoofMark size={125} roofColor={B.white} barColors={['rgba(255,255,255,0.28)','rgba(255,255,255,0.52)',B.gold]} chimney cWS={1} cHS={0.55}/></div> },
+  { id:'exp-favicon-32',    label:'Favicon 32px',     dim:'32×32',    w:32,   h:32,   node: <div style={{width:32,height:32,background:B.charcoal,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:32*.22}}><RoofMark size={21} roofColor={B.white} barColors={['rgba(255,255,255,0.3)','rgba(255,255,255,0.55)',B.gold]} chimney cWS={1} cHS={0.55}/></div> },
+];
+
+function ExportCard({ id, label, dim, w, h, node }) {
+  const dark = label.includes('Dark') || label.includes('App') || label.includes('Favicon');
+  const isDim = w < 100;
+  const previewScale = isDim ? 4 : Math.min(1, 320/w);
+  return (
+    <div className="export-card" style={{width: isDim ? 140 : Math.min(340, w*previewScale+2)}}>
+      <div className={`card-preview ${dark?'card-dark':''}`} style={{height: isDim ? 120 : Math.min(120, h*previewScale+16)}}>
+        <div id={id} style={{transform:`scale(${previewScale})`,transformOrigin:'center center',display:'inline-flex'}}>
+          {node}
+        </div>
+      </div>
+      <div className="card-meta">
+        <div className="card-name">{label}</div>
+        <div className="card-dim">{dim} px</div>
+        <button className={`dl-btn ${label.includes('512')||label.includes('192')?'gold':''}`}
+          onClick={()=>downloadPNG(id, `equitysight-${id.replace('exp-','')}.png`, w, h)}>
+          ↓ Download PNG
+        </button>
+        <div className="status" id={`${id}-status`}></div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <div>
+      <div className="section">
+        <div className="section-title">Horizontal Lockup</div>
+        <div className="grid">
+          {exports_list.slice(0,4).map(e => <ExportCard key={e.id} {...e}/>)}
+        </div>
+      </div>
+      <div className="section">
+        <div className="section-title">App Icon & Favicon</div>
+        <div className="grid">
+          {exports_list.slice(4).map(e => <ExportCard key={e.id} {...e}/>)}
+        </div>
+      </div>
+      <div style={{marginTop:8,fontSize:11,color:'rgba(26,26,26,0.35)'}}>
+        Note: PNG export uses canvas rendering — results are best in Chrome/Edge. For vector use, download the SVG files from the exports/ folder.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

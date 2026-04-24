@@ -1,0 +1,652 @@
+/* ═══════════════════════════════════════
+   EquitySight.app — Suburb Insights
+   ═══════════════════════════════════════ */
+
+/* ── Breadcrumb ── */
+.suburb-breadcrumb { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.5px; margin-bottom: 14px; }
+.suburb-breadcrumb a { color: rgba(245,240,232,0.5); text-decoration: none; transition: color 0.15s; }
+.suburb-breadcrumb a:hover { color: var(--gold); }
+.suburb-breadcrumb span { color: rgba(245,240,232,0.3); margin: 0 4px; }
+.suburb-breadcrumb span:last-child { color: rgba(245,240,232,0.7); margin: 0; }
+
+/* ── Data source note in hero ── */
+.suburb-data-note { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3px; color: rgba(245,240,232,0.45); margin-top: 8px; }
+
+/* ── Map embed ── */
+.suburb-map-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  background: var(--warm-white);
+}
+.suburb-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+.suburb-map-note { font-size: 11px !important; color: var(--mid-grey) !important; margin-top: 10px !important; }
+html.dark-mode .suburb-map-wrap { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
+
+/* ── Main layout ── */
+.suburb-main { max-width: 720px; margin: -20px auto 56px; padding: 0 16px; }
+
+/* ── Sections ── */
+.suburb-section { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 16px; }
+.suburb-section h2 { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--charcoal); margin-bottom: 14px; }
+.suburb-section h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin: 18px 0 8px; }
+.suburb-section p { font-size: 14px; color: var(--slate); line-height: 1.7; margin-bottom: 10px; }
+.suburb-section p:last-child { margin-bottom: 0; }
+
+/* ── Stats grid ── */
+.suburb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.suburb-stat {
+  background: var(--warm-white);
+  border-radius: 6px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.suburb-stat[open] { border-color: rgba(201,168,76,0.25); }
+.suburb-stat > summary {
+  display: block;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+  user-select: none;
+}
+.suburb-stat > summary::-webkit-details-marker { display: none; }
+.suburb-stat > summary::after {
+  content: '›';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  font-size: 14px;
+  color: var(--gold);
+  transition: transform 0.2s;
+  opacity: 0.6;
+}
+.suburb-stat[open] > summary::after { transform: translateY(-50%) rotate(270deg); opacity: 1; }
+.suburb-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
+.suburb-stat-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--charcoal); }
+.suburb-stat-value.suburb-score span { font-size: 13px; color: var(--slate); font-weight: 400; }
+.suburb-stat-detail {
+  padding: 0 14px 13px;
+  border-top: 1px solid rgba(28,28,30,0.06);
+  margin-top: 0;
+}
+.suburb-stat-detail p {
+  font-size: 12px !important;
+  color: var(--slate) !important;
+  line-height: 1.6 !important;
+  margin: 10px 0 6px !important;
+}
+.suburb-stat-detail a {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--gold);
+  text-decoration: none;
+}
+.suburb-stat-detail a:hover { text-decoration: underline; }
+.suburb-amenity-list {
+  list-style: none;
+  padding: 8px 0 6px;
+  margin: 0;
+}
+.suburb-amenity-list li {
+  font-size: 12px;
+  color: var(--slate);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(28,28,30,0.05);
+  line-height: 1.45;
+}
+.suburb-amenity-list li:last-child { border-bottom: none; }
+html.dark-mode .suburb-amenity-list li {
+  color: rgba(245,240,232,0.55);
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+@media (max-width: 480px) { .suburb-grid { grid-template-columns: 1fr; } }
+
+/* ── Live market data section ── */
+.suburb-live-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.12); padding: 2px 7px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
+.suburb-live-note { font-family: var(--font-mono); font-size: 10px; color: var(--slate); letter-spacing: 0.3px; margin-top: 12px; margin-bottom: 0; }
+.suburb-stat-sub { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.5px; color: var(--slate); margin-top: 3px; }
+.suburb-stat-value--green { color: #2e7d32; }
+.suburb-stat-value--red { color: #c62828; }
+/* Skeleton loading */
+.suburb-skel { background: linear-gradient(90deg, rgba(28,28,30,0.08) 25%, rgba(28,28,30,0.15) 50%, rgba(28,28,30,0.08) 75%); background-size: 200% 100%; animation: suburb-shimmer 1.4s infinite; border-radius: 4px; height: 26px; width: 80%; }
+@keyframes suburb-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── Mid-page calculator CTA ── */
+.suburb-calc-cta { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+.suburb-calc-cta-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 12px; }
+.suburb-calc-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.suburb-calc-link { display: inline-block; padding: 8px 16px; background: white; border: 1px solid rgba(201,168,76,0.4); border-radius: 5px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.5px; color: var(--charcoal); text-decoration: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.suburb-calc-link:hover { border-color: var(--gold); box-shadow: 0 2px 8px rgba(201,168,76,0.2); }
+
+/* ── Bottom CTA ── */
+.suburb-cta { background: var(--charcoal); border-radius: 10px; padding: 28px 24px; color: var(--cream); text-align: center; margin-bottom: 16px; }
+.suburb-cta h3 { font-family: var(--font-display); font-size: 19px; font-weight: 700; margin-bottom: 8px; color: var(--cream); }
+.suburb-cta p { font-size: 13px; color: rgba(245,240,232,0.65); margin-bottom: 16px; line-height: 1.5; }
+.suburb-cta-secondary { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(245,240,232,0.1); font-size: 11px; color: rgba(245,240,232,0.4); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
+.suburb-cta-secondary a { color: rgba(245,240,232,0.65); text-decoration: none; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; padding: 4px 10px; border: 1px solid rgba(245,240,232,0.15); border-radius: 4px; transition: border-color 0.15s, color 0.15s; }
+.suburb-cta-secondary a:hover { color: var(--gold); border-color: rgba(201,168,76,0.4); }
+
+/* ── FAQ ── */
+.suburb-faq details { border-bottom: 1px solid rgba(28,28,30,0.08); padding: 12px 0; }
+.suburb-faq details:last-of-type { border-bottom: none; }
+.suburb-faq summary { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--charcoal); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.suburb-faq summary::after { content: '+'; font-size: 18px; color: var(--gold); flex-shrink: 0; margin-left: 12px; }
+.suburb-faq details[open] summary::after { content: '−'; }
+.suburb-faq summary::-webkit-details-marker { display: none; }
+.suburb-faq details p { margin-top: 10px; font-size: 13px; color: var(--slate); line-height: 1.7; }
+
+/* ── Related suburbs ── */
+.suburb-related { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.suburb-related a { display: block; background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-decoration: none; color: var(--charcoal); transition: border-color 0.15s, box-shadow 0.15s; border: 1px solid transparent; }
+.suburb-related a:hover { border-color: rgba(201,168,76,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.suburb-related .sr-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+.suburb-related .sr-type { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+
+/* ── Resources ── */
+.suburb-resources a { display: block; font-size: 13px; color: var(--gold); text-decoration: none; padding: 6px 0; border-bottom: 1px solid rgba(28,28,30,0.06); font-family: var(--font-mono); letter-spacing: 0.3px; }
+.suburb-resources a:last-child { border-bottom: none; }
+.suburb-resources a:hover { color: var(--charcoal); }
+
+/* ── State hub: nav ── */
+.state-nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.state-nav a { display: inline-block; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.5px; padding: 7px 14px; border-radius: 4px; text-decoration: none; color: var(--charcoal); background: var(--warm-white); border: 1px solid rgba(28,28,30,0.1); transition: border-color 0.15s, background 0.15s; }
+.state-nav a:hover, .state-nav a.active { border-color: var(--gold); background: rgba(201,168,76,0.08); color: var(--gold); }
+
+/* ── State hub: suburb list ── */
+.hub-suburb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.hub-suburb-card { display: block; background: var(--warm-white); border-radius: 8px; padding: 18px 20px; text-decoration: none; color: inherit; border: 1px solid rgba(28,28,30,0.06); transition: border-color 0.15s, box-shadow 0.15s; }
+.hub-suburb-card:hover { border-color: rgba(201,168,76,0.35); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.hub-suburb-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin-bottom: 6px; }
+.hub-suburb-pc { font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--slate); letter-spacing: 0.5px; }
+.hub-suburb-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); display: flex; gap: 14px; flex-wrap: wrap; }
+.hub-suburb-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.1); padding: 2px 8px; border-radius: 3px; margin-top: 8px; }
+
+/* ── Hub search & pagination ── */
+.hub-list-intro { font-family: var(--font-body); font-size: 13px; color: var(--slate); margin: -4px 0 14px; line-height: 1.55; }
+.hub-search { width: 100%; max-width: 480px; padding: 10px 14px; margin-bottom: 20px; border: 1px solid rgba(28,28,30,0.12); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: var(--warm-white); color: var(--charcoal); outline: none; transition: border-color 0.15s; }
+.hub-search:focus { border-color: var(--gold); }
+.hub-show-more { display: block; width: 100%; max-width: 320px; margin: 24px auto 0; padding: 12px 24px; background: var(--charcoal); color: var(--warm-white); border: none; border-radius: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.hub-show-more:hover { background: var(--gold); color: var(--charcoal); }
+.hub-no-results { text-align: center; color: var(--slate); font-family: var(--font-body); font-size: 14px; padding: 24px 0; }
+
+/* ── Hub reference drawer (noindexed localities) ── */
+.hub-reference-drawer { margin-top: 32px; border-top: 1px solid rgba(28,28,30,0.08); padding-top: 20px; }
+.hub-reference-drawer summary { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); cursor: pointer; padding: 8px 0; list-style: none; }
+.hub-reference-drawer summary::-webkit-details-marker { display: none; }
+.hub-reference-drawer summary::before { content: '▸ '; display: inline-block; transition: transform 0.15s; }
+.hub-reference-drawer[open] summary::before { transform: rotate(90deg); }
+.hub-reference-drawer[open] summary { color: var(--gold); }
+.hub-reference-note { font-family: var(--font-body); font-size: 12px; color: var(--slate); margin: 8px 0 14px; line-height: 1.5; }
+.hub-reference-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 16px; font-family: var(--font-body); font-size: 12px; }
+.hub-reference-link { display: block; padding: 4px 0; text-decoration: none; color: var(--slate); transition: color 0.1s; }
+.hub-reference-link:hover { color: var(--gold); }
+.hub-reference-pc { font-family: var(--font-mono); font-size: 10px; color: rgba(28,28,30,0.4); margin-left: 4px; }
+
+/* ── Dark mode ── */
+html.dark-mode .suburb-section { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-section h2,
+html.dark-mode .suburb-section h3 { color: #F5F0E8; }
+html.dark-mode .suburb-section p { color: rgba(245,240,232,0.7); }
+html.dark-mode .suburb-stat { background: rgba(255,255,255,0.04); }
+html.dark-mode .suburb-stat[open] { border-color: rgba(201,168,76,0.25); }
+html.dark-mode .suburb-stat-value { color: #F5F0E8; }
+html.dark-mode .suburb-stat-detail { border-top-color: rgba(255,255,255,0.07); }
+html.dark-mode .suburb-stat-detail p { color: rgba(245,240,232,0.55) !important; }
+html.dark-mode .suburb-related a { background: rgba(255,255,255,0.04); color: #F5F0E8; }
+html.dark-mode .suburb-related a:hover { border-color: rgba(201,168,76,0.3); }
+html.dark-mode .suburb-faq summary { color: #F5F0E8; }
+html.dark-mode .suburb-resources a:hover { color: #F5F0E8; }
+html.dark-mode .state-nav a { background: rgba(255,255,255,0.04); color: #F5F0E8; border-color: rgba(255,255,255,0.08); }
+html.dark-mode .hub-suburb-card { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06); }
+html.dark-mode .hub-suburb-name { color: #F5F0E8; }
+html.dark-mode .hub-search { background: rgba(255,255,255,0.04); color: #F5F0E8; border-color: rgba(255,255,255,0.12); }
+html.dark-mode .hub-show-more { background: rgba(255,255,255,0.1); color: #F5F0E8; }
+html.dark-mode .hub-show-more:hover { background: var(--gold); color: var(--charcoal); }
+html.dark-mode .hub-reference-drawer { border-top-color: rgba(255,255,255,0.08); }
+html.dark-mode .hub-reference-note { color: rgba(245,240,232,0.55); }
+html.dark-mode .hub-reference-link { color: rgba(245,240,232,0.65); }
+html.dark-mode .hub-reference-link:hover { color: var(--gold); }
+html.dark-mode .hub-reference-pc { color: rgba(245,240,232,0.35); }
+html.dark-mode .hub-list-intro { color: rgba(245,240,232,0.55); }
+
+/* ── Investment Score ── */
+.suburb-score-badge { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 12px; }
+.suburb-score-value { font-family: var(--font-display); font-size: 42px; font-weight: 900; color: var(--charcoal); line-height: 1; }
+.suburb-score-max { font-family: var(--font-mono); font-size: 14px; color: var(--slate); }
+.suburb-score-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; margin-left: 4px; }
+.suburb-score--strong { background: rgba(46,125,50,0.12); color: #2e7d32; }
+.suburb-score--good { background: rgba(201,168,76,0.15); color: #b8960c; }
+.suburb-score--moderate { background: rgba(245,124,0,0.12); color: #e65100; }
+.suburb-score--weak { background: rgba(198,40,40,0.12); color: #c62828; }
+
+/* ── Investment Strategy ── */
+.suburb-strategy-list { display: flex; flex-direction: column; gap: 14px; }
+.suburb-strategy-item { display: flex; gap: 12px; align-items: flex-start; }
+.suburb-strategy-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.suburb-strategy-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--charcoal); margin-bottom: 2px; }
+.suburb-strategy-item p { font-size: 13px !important; color: var(--slate) !important; line-height: 1.6 !important; margin: 0 !important; }
+
+/* ── Risk Factors ── */
+.suburb-risk-list { list-style: none; padding: 0; margin: 0; }
+.suburb-risk-list li { font-size: 13px; color: var(--slate); line-height: 1.7; padding: 8px 0; border-bottom: 1px solid rgba(28,28,30,0.06); }
+.suburb-risk-list li:last-child { border-bottom: none; }
+.suburb-risk-list li::before { content: '\26A0\FE0F'; margin-right: 8px; }
+
+/* ── City page stats ── */
+.city-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.city-stat { background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-align: center; }
+.city-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
+.city-stat-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--charcoal); }
+@media (max-width: 480px) { .city-stats-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ── City top suburbs ── */
+.city-top-suburbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.city-top-card { display: block; background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-decoration: none; color: inherit; border: 1px solid transparent; transition: border-color 0.15s, box-shadow 0.15s; }
+.city-top-card:hover { border-color: rgba(201,168,76,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.city-top-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.city-top-score { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.5px; color: var(--slate); margin-bottom: 4px; }
+.city-top-score .suburb-score-label { font-size: 11px; padding: 1px 6px; margin-right: 4px; }
+
+/* ── City links on state hubs ── */
+.city-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.city-card { display: block; background: var(--warm-white); border-radius: 8px; padding: 16px 18px; text-decoration: none; color: inherit; border: 1px solid rgba(201,168,76,0.15); transition: border-color 0.15s, box-shadow 0.15s; }
+.city-card:hover { border-color: rgba(201,168,76,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.city-card-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.city-card-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); }
+
+/* ── Dark mode: city pages ── */
+html.dark-mode .city-stat { background: rgba(255,255,255,0.04); }
+html.dark-mode .city-stat-value { color: #F5F0E8; }
+html.dark-mode .city-top-card { background: rgba(255,255,255,0.04); color: #F5F0E8; }
+html.dark-mode .city-top-card:hover { border-color: rgba(201,168,76,0.3); }
+html.dark-mode .city-top-name { color: #F5F0E8; }
+html.dark-mode .city-card { background: rgba(255,255,255,0.04); border-color: rgba(201,168,76,0.1); }
+html.dark-mode .city-card:hover { border-color: rgba(201,168,76,0.35); }
+html.dark-mode .city-card-name { color: #F5F0E8; }
+
+/* ── 2026 Outlook ── */
+.suburb-outlook-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.suburb-outlook-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: var(--warm-white); color: var(--slate); border: 1px solid rgba(28,28,30,0.08); }
+.suburb-outlook-tag--strong { background: rgba(46,125,50,0.1); color: #2e7d32; border-color: rgba(46,125,50,0.2); }
+.suburb-outlook-tag--moderate { background: rgba(245,124,0,0.1); color: #e65100; border-color: rgba(245,124,0,0.2); }
+.suburb-outlook-tag--low { background: rgba(198,40,40,0.08); color: #c62828; border-color: rgba(198,40,40,0.15); }
+
+/* ── Dark mode: new sections ── */
+html.dark-mode .suburb-score-value { color: #F5F0E8; }
+html.dark-mode .suburb-score--strong { background: rgba(46,125,50,0.2); color: #66bb6a; }
+html.dark-mode .suburb-score--good { background: rgba(201,168,76,0.2); color: #d4af37; }
+html.dark-mode .suburb-score--moderate { background: rgba(245,124,0,0.18); color: #ffb74d; }
+html.dark-mode .suburb-score--weak { background: rgba(198,40,40,0.18); color: #ef9a9a; }
+html.dark-mode .suburb-strategy-name { color: #F5F0E8; }
+html.dark-mode .suburb-strategy-item p { color: rgba(245,240,232,0.65) !important; }
+html.dark-mode .suburb-risk-list li { color: rgba(245,240,232,0.65); border-bottom-color: rgba(255,255,255,0.06); }
+html.dark-mode .suburb-outlook-tag { background: rgba(255,255,255,0.04); color: rgba(245,240,232,0.6); border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-outlook-tag--strong { background: rgba(46,125,50,0.15); color: #66bb6a; border-color: rgba(46,125,50,0.25); }
+html.dark-mode .suburb-outlook-tag--moderate { background: rgba(245,124,0,0.15); color: #ffb74d; border-color: rgba(245,124,0,0.25); }
+html.dark-mode .suburb-outlook-tag--low { background: rgba(198,40,40,0.12); color: #ef9a9a; border-color: rgba(198,40,40,0.2); }
+
+/* ── Ad Slot ── */
+.ad-slot { max-width: 900px; margin: 0 auto 24px; text-align: center; overflow: hidden; }
+@media(max-width:600px) { .ad-slot { margin-bottom: 16px; } }
+
+/* ── Suburb vs state comparison table (Phase 2 enrichment) ── */
+.suburb-compare-note { font-family: var(--font-mono); font-size: 12px; color: var(--slate); margin: 4px 0 14px; line-height: 1.55; }
+.suburb-compare-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid rgba(201,168,76,0.15); }
+.suburb-compare { width: 100%; border-collapse: collapse; font-size: 14px; }
+.suburb-compare thead th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--slate); font-weight: 500; text-align: left; padding: 10px 14px; background: var(--warm-white); border-bottom: 1px solid rgba(201,168,76,0.2); }
+.suburb-compare thead th:not(:first-child) { text-align: right; }
+.suburb-compare tbody th { font-family: var(--font-sans); font-weight: 500; color: var(--charcoal); text-align: left; padding: 12px 14px; border-bottom: 1px solid rgba(28,28,30,0.05); }
+.suburb-compare tbody td { font-family: var(--font-mono); font-size: 13px; color: var(--charcoal); text-align: right; padding: 12px 14px; border-bottom: 1px solid rgba(28,28,30,0.05); }
+.suburb-compare tbody tr:last-child th, .suburb-compare tbody tr:last-child td { border-bottom: none; }
+.compare-delta { font-weight: 600; color: var(--slate); }
+.compare-delta--pos { color: #2e7d32; }
+.compare-delta--neg { color: #c62828; }
+
+/* ── Investor checklist ── */
+.suburb-checklist-note { font-family: var(--font-mono); font-size: 12px; color: var(--slate); margin: 4px 0 14px; line-height: 1.55; }
+.suburb-checklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.suburb-checklist li { font-family: var(--font-sans); font-size: 14px; line-height: 1.6; color: var(--charcoal); padding: 12px 14px 12px 36px; background: var(--warm-white); border-radius: 8px; border: 1px solid rgba(201,168,76,0.12); position: relative; }
+.suburb-checklist li::before { content: "✓"; position: absolute; left: 14px; top: 12px; color: #2e7d32; font-weight: 700; font-size: 14px; }
+.suburb-checklist strong { color: var(--charcoal); font-weight: 600; }
+
+/* ── Methodology pointer block ── */
+.suburb-methodology { background: var(--warm-white); border-radius: 10px; padding: 18px 22px; border: 1px solid rgba(201,168,76,0.15); }
+.suburb-methodology h2 { font-size: 16px; margin-bottom: 8px; }
+.suburb-methodology p { font-size: 13px; color: var(--slate); line-height: 1.7; margin: 0; }
+.suburb-methodology a { color: var(--gold); text-decoration: none; }
+.suburb-methodology a:hover { text-decoration: underline; }
+
+/* ── Dark mode: Phase 2 enrichment blocks ── */
+html.dark-mode .suburb-compare-note,
+html.dark-mode .suburb-checklist-note { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-compare-wrap { border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-compare thead th { background: rgba(255,255,255,0.03); color: rgba(245,240,232,0.55); border-bottom-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-compare tbody th { color: #F5F0E8; border-bottom-color: rgba(255,255,255,0.05); }
+html.dark-mode .suburb-compare tbody td { color: rgba(245,240,232,0.85); border-bottom-color: rgba(255,255,255,0.05); }
+html.dark-mode .compare-delta--pos { color: #66bb6a; }
+html.dark-mode .compare-delta--neg { color: #ef9a9a; }
+html.dark-mode .suburb-checklist li { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); color: rgba(245,240,232,0.85); }
+html.dark-mode .suburb-checklist strong { color: #F5F0E8; }
+html.dark-mode .suburb-checklist li::before { color: #66bb6a; }
+html.dark-mode .suburb-methodology { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); }
+html.dark-mode .suburb-methodology p { color: rgba(245,240,232,0.55); }
+
+/* ═══════════════════════════════════════
+   Phase 4 — Suburb reviews + star ratings
+   ═══════════════════════════════════════ */
+.suburb-reviews-section { }
+.suburb-reviews-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  background: var(--warm-white);
+  border-radius: 10px;
+  border: 1px solid rgba(201,168,76,0.18);
+}
+.suburb-reviews-avg { display: flex; align-items: baseline; gap: 10px; }
+.suburb-reviews-stars {
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  line-height: 1;
+}
+.suburb-reviews-number {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: 'Playfair Display', serif;
+}
+.suburb-reviews-count { font-size: 13px; color: var(--slate); }
+
+.suburb-reviews-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 6px;
+}
+.suburb-review-card {
+  background: #fff;
+  border: 1px solid rgba(28,28,30,0.06);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(28,28,30,0.03);
+}
+.suburb-review-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.suburb-review-head .suburb-review-stars {
+  font-size: 16px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+}
+.suburb-review-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  margin: 0;
+  color: var(--ink);
+}
+.suburb-review-meta {
+  font-size: 12px;
+  color: var(--slate);
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.suburb-review-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink);
+  margin: 0;
+}
+.suburb-review-more-btn {
+  display: block;
+  margin: 14px auto 0;
+  padding: 10px 22px;
+  border: 1px solid rgba(201,168,76,0.35);
+  background: transparent;
+  color: var(--gold);
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.suburb-review-more-btn:hover { background: rgba(201,168,76,0.08); }
+.suburb-review-more-btn:disabled { opacity: .6; cursor: wait; }
+
+/* ── Review form ── */
+.suburb-review-form-wrap { background: var(--warm-white); border-radius: 10px; padding: 20px 22px; border: 1px solid rgba(201,168,76,0.18); }
+.suburb-review-form-wrap h2 { font-size: 18px; margin-bottom: 4px; }
+.suburb-review-intro { font-size: 13px; color: var(--slate); margin: 0 0 14px; line-height: 1.6; }
+
+.suburb-review-guest {
+  text-align: center;
+  padding: 14px 0;
+}
+.suburb-review-guest p { font-size: 14px; color: var(--slate); margin-bottom: 10px; }
+
+.suburb-review-form { display: grid; gap: 14px; }
+.suburb-review-form fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.suburb-review-form legend {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+.suburb-review-stars-row { display: flex; gap: 4px; }
+.suburb-review-star-btn {
+  font-size: 30px;
+  color: rgba(28,28,30,0.2);
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color .15s;
+}
+.suburb-review-star-btn:hover,
+.suburb-review-star-btn.is-on { color: var(--gold); }
+
+.suburb-review-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.suburb-review-field > span {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.suburb-review-field small { color: var(--slate); text-transform: none; font-weight: 400; margin-left: 4px; }
+.suburb-review-field input,
+.suburb-review-field textarea {
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(28,28,30,0.12);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  resize: vertical;
+}
+.suburb-review-field input:focus,
+.suburb-review-field textarea:focus {
+  outline: 2px solid rgba(201,168,76,0.4);
+  outline-offset: 0;
+  border-color: rgba(201,168,76,0.6);
+}
+.suburb-review-counter {
+  font-size: 11px;
+  color: var(--slate);
+}
+.suburb-review-counter.is-ok { color: #2e7d32; }
+
+.suburb-review-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.suburb-review-notice {
+  font-size: 11px;
+  color: var(--slate);
+}
+.suburb-review-result {
+  font-size: 13px;
+  padding: 8px 0;
+}
+.suburb-review-result.is-success { color: #2e7d32; }
+.suburb-review-result.is-error   { color: #c62828; }
+
+/* ── Dark mode: reviews ── */
+html.dark-mode .suburb-reviews-summary { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-reviews-number { color: #F5F0E8; }
+html.dark-mode .suburb-reviews-count { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-review-card { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); box-shadow: none; }
+html.dark-mode .suburb-review-title { color: #F5F0E8; }
+html.dark-mode .suburb-review-body { color: rgba(245,240,232,0.85); }
+html.dark-mode .suburb-review-meta { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-review-form-wrap { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); }
+html.dark-mode .suburb-review-intro { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-review-field > span { color: #F5F0E8; }
+html.dark-mode .suburb-review-field input,
+html.dark-mode .suburb-review-field textarea {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.10);
+  color: #F5F0E8;
+}
+html.dark-mode .suburb-review-star-btn { color: rgba(245,240,232,0.25); }
+html.dark-mode .suburb-review-counter { color: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-review-notice { color: rgba(245,240,232,0.45); }
+html.dark-mode .suburb-review-guest p { color: rgba(245,240,232,0.7); }
+html.dark-mode .suburb-review-more-btn { border-color: rgba(201,168,76,0.45); color: #E6C870; }
+
+/* ── Lifestyle / Why people like living here ───────────────────────── */
+.suburb-lifestyle-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.suburb-lifestyle-list li {
+  position: relative;
+  padding: 10px 14px 10px 38px;
+  background: rgba(201,168,76,0.06);
+  border-left: 3px solid #C9A84C;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--charcoal);
+  line-height: 1.55;
+}
+.suburb-lifestyle-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  background: #C9A84C;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+html.dark-mode .suburb-lifestyle-list li { background: rgba(201,168,76,0.10); color: #F5F0E8; }
+
+/* ── Audience fit grid ──────────────────────────────────────────────── */
+.suburb-audience-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.suburb-audience-chip {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(28,28,30,0.08);
+  background: #fafafa;
+}
+.suburb-audience-chip.suburb-audience-fit { border-color: rgba(34,139,34,0.3); background: rgba(34,139,34,0.06); }
+.suburb-audience-chip.suburb-audience-miss { opacity: 0.8; }
+.suburb-audience-mark {
+  grid-row: 1 / span 2;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 50%;
+  font-weight: 700;
+  color: #fff;
+  background: #888;
+}
+.suburb-audience-fit .suburb-audience-mark { background: #2E8B57; }
+.suburb-audience-miss .suburb-audience-mark { background: #B0B0B0; }
+.suburb-audience-icon { font-size: 18px; }
+.suburb-audience-label { font-weight: 700; font-size: 14px; color: var(--charcoal); }
+.suburb-audience-reason { grid-column: 2 / span 2; font-size: 12px; color: var(--slate); margin-top: 2px; line-height: 1.45; }
+html.dark-mode .suburb-audience-chip { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-audience-chip.suburb-audience-fit { background: rgba(46,139,87,0.12); border-color: rgba(46,139,87,0.4); }
+html.dark-mode .suburb-audience-label { color: #F5F0E8; }
+html.dark-mode .suburb-audience-reason { color: rgba(245,240,232,0.6); }
+
+/* ── Pros and Cons ──────────────────────────────────────────────────── */
+.suburb-proscons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.suburb-proscons-col ul { list-style: none; padding: 0; margin: 0; }
+.suburb-proscons-col li { position: relative; padding: 8px 8px 8px 28px; font-size: 14px; color: var(--charcoal); line-height: 1.55; }
+.suburb-proscons-col li::before {
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+.suburb-proscons-pros li::before { content: '+'; background: #2E8B57; }
+.suburb-proscons-cons li::before { content: '–'; background: #C84A3E; }
+.suburb-proscons-col h3 { display: inline-block; padding-bottom: 4px; border-bottom: 2px solid currentColor; margin-bottom: 8px; }
+.suburb-proscons-pros h3 { color: #2E8B57; }
+.suburb-proscons-cons h3 { color: #C84A3E; }
+@media (max-width: 600px) { .suburb-proscons-grid { grid-template-columns: 1fr; } }
+html.dark-mode .suburb-proscons-col li { color: #F5F0E8; }
+
+/* ── Investment tip callout ─────────────────────────────────────────── */
+.suburb-tip { border-left: 4px solid #C9A84C; }
+.suburb-tip h2 { color: #C9A84C; }
+.suburb-tip p { font-size: 15px; line-height: 1.65; }
+html.dark-mode .suburb-tip h2 { color: #E6C870; }
+
+/* ── Blog cross-links inside the calc-CTA section ───────────────────── */
+.suburb-blog-links { margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,0.2); }
+.suburb-blog-links-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+.suburb-blog-link {
+  display: inline-block;
+  margin: 4px 6px 4px 0;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #F5F0E8;
+  text-decoration: none;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.suburb-blog-link:hover { background: rgba(255,255,255,0.15); }

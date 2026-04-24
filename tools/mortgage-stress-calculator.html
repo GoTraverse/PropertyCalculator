@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script src="tool-page.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Australian Mortgage Stress Calculator 2026 — Affordability Test</title>
+<meta name="description" content="Free Australian mortgage stress calculator. Test if your repayments put you in stress. Check debt-to-income ratio and rate rise buffer.">
+<meta name="keywords" content="mortgage stress calculator Australia, mortgage affordability calculator, mortgage repayment calculator Australia, debt to income ratio calculator, can I afford this mortgage">
+<link rel="canonical" href="https://equitysight.app/tools/mortgage-stress-calculator">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/mortgage-stress-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mortgage Stress Calculator Australia 2026 — Free Tool">
+<meta property="og:description" content="Find out if your mortgage puts you in financial stress. Calculate repayments and test against rate rises.">
+<meta property="og:url" content="https://equitysight.app/tools/mortgage-stress-calculator">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mortgage Stress Calculator Australia — Free Tool">
+<meta name="twitter:description" content="Test whether your mortgage repayments put you in financial stress — free and instant.">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script src="../adsense.js" defer></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Mortgage Stress Calculator Australia","url":"https://equitysight.app/tools/mortgage-stress-calculator","description":"Free Australian mortgage stress calculator. Calculate repayments, stress test against rate rises, and check debt-to-income ratio.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Mortgage Stress Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What percentage of income is considered mortgage stress in Australia?","acceptedAnswer":{"@type":"Answer","text":"In Australia, mortgage stress is generally defined as spending more than 30% of gross household income on mortgage repayments. Severe mortgage stress is when repayments exceed 50% of income. This 30% threshold is used by bodies like the RBA and housing affordability researchers."}},{"@type":"Question","name":"What is the APRA serviceability buffer?","acceptedAnswer":{"@type":"Answer","text":"APRA requires Australian banks to assess loan applications at the current interest rate plus a 3% buffer. This means if the current rate is 6%, the bank tests whether you can afford repayments at 9%. This buffer protects borrowers against future rate rises."}},{"@type":"Question","name":"How can I reduce mortgage stress?","acceptedAnswer":{"@type":"Answer","text":"Key strategies include making extra repayments when possible, refinancing to a lower rate, extending the loan term to reduce monthly payments, switching to an offset account to reduce interest, or increasing household income. Reviewing your budget and reducing discretionary spending can also free up cash flow."}}]}]}
+</script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
+<script src="../market-rate.js" defer></script>
+
+<section class="tool-hero" id="main-content">
+  <div class="tool-eyebrow">Free Tool · Mortgage Affordability</div>
+  <h1>Mortgage Stress Test Calculator</h1>
+  <p>Find out if your mortgage repayments are sustainable — and how much buffer you have against interest rate rises.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Loan details</div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="loan">Loan amount</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="loan" value="580,000" placeholder="e.g. 580,000">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
+        <input class="tool-input" type="number" id="rate" value="6.25" placeholder="e.g. 6.25" step="0.05" min="0.1" max="20">
+        <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
+      </div>
+    </div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="term">Loan term (years)</label>
+        <select class="tool-input tool-select" id="term">
+          <option value="30" selected>30 years</option>
+          <option value="25">25 years</option>
+          <option value="20">20 years</option>
+          <option value="15">15 years</option>
+          <option value="10">10 years</option>
+        </select>
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="ltype">Loan type</label>
+        <select class="tool-input tool-select" id="ltype">
+          <option value="pi">Principal & Interest</option>
+          <option value="io">Interest Only</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Household income & expenses</div>
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="income">Gross monthly income ($)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="income" value="12,500" placeholder="e.g. 12,500">
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="expenses">Other monthly debt ($)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="expenses" placeholder="e.g. 800">
+      </div>
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="buffer">Stress test: rate rise buffer (%)</label>
+      <select class="tool-input tool-select" id="buffer">
+        <option value="2">+2% (below APRA requirement)</option>
+        <option value="3" selected>+3% (APRA requirement)</option>
+        <option value="4">+4% (conservative)</option>
+      </select>
+    </div>
+
+    <button class="tool-btn" id="stress-calc-btn">Run Stress Test</button>
+  </div>
+
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result" style="display:none">
+    <div class="tool-result-title">Stress test results</div>
+    <div class="tool-grid">
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Current Repayment</div>
+        <div class="tool-stat-value" id="r-repay">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Stressed Repayment</div>
+        <div class="tool-stat-value" id="r-stressed">—</div>
+      </div>
+      <div class="tool-stat" id="r-dsr-wrap">
+        <div class="tool-stat-label">Repayment / Income</div>
+        <div class="tool-stat-value" id="r-dsr">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Stressed Repayment / Income</div>
+        <div class="tool-stat-value" id="r-dsr-stress">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Total DSR (incl. other debt)</div>
+        <div class="tool-stat-value" id="r-tdsr">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Monthly Surplus</div>
+        <div class="tool-stat-value" id="r-surplus">—</div>
+      </div>
+      <div class="tool-stat full" id="r-verdict-wrap">
+        <div class="tool-stat-label">Verdict</div>
+        <div style="font-size:14px;color:var(--slate);margin-top:4px;" id="r-verdict">—</div>
+      </div>
+    </div>
+    <p class="tool-disclaimer">Based on the 30% income rule and APRA's mortgage serviceability guidance. Gross income used — net (after-tax) income will be lower. Consult a mortgage broker for personalised advice.</p>
+  </div>
+
+  <div class="ad-slot" data-ad-type="calculator"></div>
+
+  <div id="tool-partners-root"></div>
+  <div id="tool-disclosure-root"></div>
+  <div id="tool-cta-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>What is mortgage stress?</h2>
+  <p>You're considered to be in <strong>mortgage stress</strong> when your mortgage repayments exceed 30% of your gross household income. At this level, there's limited room to cover other living expenses or absorb unexpected costs.</p>
+  <p>Severe mortgage stress is typically defined as repayments exceeding 50% of gross income.</p>
+
+  <h2>APRA's 3% serviceability buffer</h2>
+  <p>The Australian Prudential Regulation Authority (APRA) requires banks to assess your ability to service a loan at your actual rate <strong>plus 3%</strong>. This buffer is designed to protect borrowers from rate rises and was introduced (and later raised from 2.5%) to cool the property market.</p>
+  <p>Even if rates don't rise by 3%, you should be able to comfortably meet the stressed repayment.</p>
+
+  <h2>Debt-to-income ratio</h2>
+  <p>Banks also consider your <strong>Debt-to-Income (DTI) ratio</strong> — total debt divided by gross annual income. Most Australian lenders are cautious above a DTI of 6×, and APRA monitors banks' exposures to high-DTI loans.</p>
+  <table>
+    <tr><th>DTI ratio</th><th>Risk level</th></tr>
+    <tr><td>Below 4×</td><td>Low risk — comfortable serviceability</td></tr>
+    <tr><td>4× – 6×</td><td>Moderate — manageable for stable incomes</td></tr>
+    <tr><td>Above 6×</td><td>High — scrutinised by lenders and APRA</td></tr>
+  </table>
+
+  <h2>How to reduce mortgage stress risk</h2>
+  <ul>
+    <li>Keep repayments below 25–30% of gross income</li>
+    <li>Build a cash buffer of 3–6 months repayments in an offset or savings account</li>
+    <li>Lock in a fixed rate if you're concerned about rate rises</li>
+    <li>Reduce other debts before taking on a mortgage</li>
+    <li>Pay down principal aggressively in early years while rates are manageable</li>
+  </ul>
+</section>
+
+<div id="tool-resources-root"></div>
+<div id="tool-trust-root"></div>
+<div id="tool-footer-root"></div>
+
+<script src="mortgage-stress-calculator.js"></script>
+
+</body>
+</html>

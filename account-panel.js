@@ -15,7 +15,7 @@
   function getProfileKey(){ var s = getSession(); return PROFILE_BASE + '_' + (s && (s.id || s.userId) || 'guest'); }
   function getProfile()  { try { return JSON.parse(localStorage.getItem(getProfileKey())) || {}; } catch(e) { return {}; } }
   function saveProfile(p){ localStorage.setItem(getProfileKey(), JSON.stringify(p)); }
-  function getAuthHeader(){ var s = getSession(); return s && s.token ? 'Bearer ' + s.token : null; }
+  function isLoggedIn(){ var s = getSession(); return !!(s && s.id); }
   // Only allow data:image/* (from canvas) or https:// URLs in photo src attributes
   function safePhotoSrc(url) {
     if (!url) return null;
@@ -29,7 +29,7 @@
     '#ap-overlay{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);}',
     '#ap-overlay.open{display:block;}',
     '#ap-panel{position:fixed;top:0;right:-480px;width:min(480px,100vw);height:100vh;',
-      'background:#F5F3EE;z-index:3001;overflow-y:auto;',
+      'background:var(--warm-white,#F5F3EE);z-index:3001;overflow-y:auto;',
       'transition:right 0.3s cubic-bezier(0.4,0,0.2,1);',
       'box-shadow:-8px 0 40px rgba(0,0,0,0.3);',
       'padding-top:env(safe-area-inset-top,0px);}',
@@ -45,15 +45,15 @@
     '.ap2-body{padding:24px;}',
     '.ap2-section{margin-bottom:24px;}',
     '.ap2-section-title{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px;',
-      'text-transform:uppercase;color:#4A4A52;margin-bottom:12px;',
-      'padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.08);}',
+      'text-transform:uppercase;color:var(--slate,#4A4A52);margin-bottom:12px;',
+      'padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);}',
     '.ap2-card{background:white;border-radius:8px;border:1px solid rgba(28,28,30,0.08);padding:16px;margin-bottom:12px;}',
     '.ap2-field{margin-bottom:12px;}',
     '.ap2-label{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1.5px;',
-      'text-transform:uppercase;color:#4A4A52;display:block;margin-bottom:5px;}',
-    '.ap2-input{width:100%;background:#F5F3EE;border:1px solid rgba(28,28,30,0.12);',
+      'text-transform:uppercase;color:var(--slate,#4A4A52);display:block;margin-bottom:5px;}',
+    '.ap2-input{width:100%;background:var(--warm-white,#F5F3EE);border:1px solid rgba(28,28,30,0.12);',
       'border-radius:4px;padding:9px 12px;font-family:"DM Sans",sans-serif;font-size:14px;',
-      'color:#1C1C1E;outline:none;box-sizing:border-box;}',
+      'color:var(--charcoal,#1C1C1E);outline:none;box-sizing:border-box;}',
     '.ap2-input:focus{border-color:rgba(201,168,76,0.6);background:white;}',
     '.ap2-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}',
     '.ap2-btn{padding:10px 16px;border-radius:4px;font-family:"DM Mono",monospace;',
@@ -76,7 +76,22 @@
     '.ap2-color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}',
     '.ap2-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;',
       'border:2px solid transparent;transition:transform 0.15s,border-color 0.15s;}',
-    '.ap2-swatch:hover,.ap2-swatch.active{transform:scale(1.2);border-color:white;box-shadow:0 0 0 1px rgba(0,0,0,0.2);}'
+    '.ap2-swatch:hover,.ap2-swatch.active{transform:scale(1.2);border-color:white;box-shadow:0 0 0 1px rgba(0,0,0,0.2);}',
+    /* ── Dark mode overrides ── */
+    'html.dark-mode #ap-panel{background:#111113!important;}',
+    'html.dark-mode .ap2-card{background:#1C1C1E!important;border-color:rgba(255,255,255,0.09)!important;color:#F5F0E8!important;}',
+    'html.dark-mode .ap2-section-title{color:rgba(245,240,232,0.4)!important;border-bottom-color:rgba(255,255,255,0.07)!important;}',
+    'html.dark-mode .ap2-label{color:rgba(245,240,232,0.45)!important;}',
+    'html.dark-mode .ap2-input{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.11)!important;color:#F5F0E8!important;}',
+    'html.dark-mode .ap2-input:focus{background:rgba(255,255,255,0.09)!important;border-color:rgba(201,168,76,0.5)!important;}',
+    'html.dark-mode .ap2-btn-primary{background:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;border:1px solid rgba(255,255,255,0.15)!important;}',
+    'html.dark-mode .ap2-btn-primary:hover{background:rgba(255,255,255,0.16)!important;}',
+    'html.dark-mode .ap2-status.ok{background:rgba(90,158,123,0.15)!important;}',
+    'html.dark-mode .ap2-status.err{background:rgba(196,90,90,0.15)!important;}',
+    'html.dark-mode #ap-panel p,html.dark-mode #ap-panel span:not(.ap2-plan-badge):not(.scheme-pill){color:inherit;}',
+    /* Plan badge & inline text inside cards */
+    'html.dark-mode .ap2-card *{color:inherit;}',
+    'html.dark-mode .ap2-plan-badge{background:rgba(201,168,76,0.12)!important;border-color:rgba(201,168,76,0.3)!important;color:#C9A84C!important;}'
   ].join('');
   document.head.appendChild(style);
 
@@ -103,7 +118,7 @@
             '<div class="ap2-avatar" id="ap2-avatar">?</div>',
             '<div>',
               '<div style="font-size:14px;font-weight:600;color:#1C1C1E;" id="ap2-name-display">—</div>',
-              '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:#4A4A52;margin-top:2px;" id="ap2-email-display"></div>',
+              '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:10px;color:#4A4A52;margin-top:2px;" id="ap2-email-display"></div>',
               '<div class="ap2-plan-badge" id="ap2-plan-display" style="margin-top:8px;">Starter</div>',
             '</div>',
           '</div>',
@@ -119,7 +134,7 @@
             '<label class="ap2-label">Profile Photo</label>',
             '<input type="file" id="ap2-photo-input" accept="image/*" style="display:none" onchange="ap2LoadPhoto(this)">',
             '<div style="display:flex;gap:8px;flex-wrap:wrap;">',
-              '<button class="ap2-btn ap2-btn-primary" onclick="document.getElementById(\'ap2-photo-input\').click()">&#x1F4F7; Upload Photo</button>',
+              '<button class="ap2-btn ap2-btn-primary" onclick="document.getElementById(\u0027ap2-photo-input\u0027).click()">&#x1F4F7; Upload Photo</button>',
               '<button class="ap2-btn" style="background:rgba(196,90,90,0.08);color:#C45A5A;border:1px solid rgba(196,90,90,0.2);" onclick="ap2RemovePhoto()">Remove</button>',
             '</div>',
           '</div>',
@@ -139,7 +154,7 @@
               '<div style="font-size:11px;color:#C45A5A;margin-top:8px;display:none;padding:8px 10px;background:rgba(196,90,90,0.08);border-radius:3px;border-left:3px solid #C45A5A;" id="ap2-plan-canceled">Plan canceled — expires <span id="ap2-plan-expires"></span></div>',
               '<div style="font-size:11px;color:#4A4A52;margin-top:8px;padding:8px 10px;background:rgba(201,168,76,0.08);border-radius:3px;" id="ap2-plan-renews" style="display:none;">Renews <span id="ap2-renew-date"></span></div>',
             '</div>',
-            '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" onclick="location.href=\'pricing.html\'" style="display:none;">Upgrade to Pro &#x2192;</button>',
+            '<button class="ap2-btn ap2-btn-gold" id="ap2-upgrade-btn" onclick="location.href=\u0027/pricing\u0027" style="display:none;">Upgrade to Pro &#x2192;</button>',
           '</div>',
         '</div>',
       '</div>',
@@ -174,7 +189,7 @@
           '<div style="font-size:13px;color:#4A4A52;line-height:1.5;margin-bottom:12px;">Share your link. When a friend signs up and upgrades to a paid plan, you both get <strong style="color:#1C1C1E;">1 month at 50% off</strong>.</div>',
           '<div id="ap2-ref-loading" style="font-size:12px;color:#4A4A52;">Loading…</div>',
           '<div id="ap2-ref-content" style="display:none;">',
-            '<div style="font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#4A4A52;margin-bottom:5px;">Your referral link</div>',
+            '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#4A4A52;margin-bottom:5px;">Your referral link</div>',
             '<div style="display:flex;gap:8px;align-items:center;">',
               '<input class="ap2-input" id="ap2-ref-link" type="text" readonly style="font-size:12px;color:#1C1C1E;cursor:default;">',
               '<button class="ap2-btn ap2-btn-gold" onclick="ap2CopyRefLink()" style="white-space:nowrap;flex-shrink:0;">Copy</button>',
@@ -236,7 +251,7 @@
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); } catch(e) {}
     var freeLimit = cfg.freeScenarioLimit || 1;
-    var proPrice = cfg.proMonthlyPrice || 9;
+    var proPrice = cfg.proMonthlyPrice || 2.99;
     var advPrice = cfg.adviserMonthlyPrice || 29;
     var planLabel = plan === 'free' ? '&#x2B50; Starter' : (plan === 'pro' ? '&#x26A1; Pro' : '&#x1F451; Adviser');
     var planName  = plan === 'free' ? 'Starter (Free)'  : (plan === 'pro' ? `Pro \u2014 A$${proPrice.toFixed(2)}/mo AUD` : `Adviser \u2014 A$${advPrice.toFixed(2)}/mo AUD`);
@@ -275,7 +290,7 @@
     var cr = el('ap2-colors');
     if (cr) {
       cr.innerHTML = AP_COLORS.map(function (c) {
-        return '<div class="ap2-swatch' + (c === color ? ' active' : '') + '" style="background:' + c + ';" onclick="ap2SetColor(this,\'' + c + '\')"></div>';
+        return '<div class="ap2-swatch' + (c === color ? ' active' : '') + '" style="background:' + c + ';" onclick="ap2SetColor(this,\u0027' + c + '\u0027)"></div>';
       }).join('');
     }
   }
@@ -339,13 +354,12 @@
     saveProfile(_apProfile);
 
     // Sync to backend
-    var authH = getAuthHeader();
-    if (authH) {
+    if (isLoggedIn()) {
       try {
         var p2 = Object.assign({}, _apProfile); delete p2.photo;
-        await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': authH }, body: JSON.stringify({ action: 'setProfile', profile: p2 }) });
+        await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setProfile', profile: p2 }) });
         if (_apProfile.photo) {
-          await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': authH }, body: JSON.stringify({ action: 'setPhoto', photo: _apProfile.photo }) });
+          await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'setPhoto', photo: _apProfile.photo }) });
         }
       } catch (e) {}
     }
@@ -380,7 +394,7 @@
     if (nw !== cf) { st.textContent = "Passwords don\u2019t match"; st.className = 'ap2-status err'; return; }
     st.textContent = 'Updating\u2026'; st.className = 'ap2-status ok';
     try {
-      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw }) });
+      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', },body: JSON.stringify({ action: 'changePassword', currentPassword: cur, newPassword: nw }) });
       var d = await r.json();
       if (d.ok) {
         st.textContent = '\u2713 Password updated';
@@ -393,13 +407,20 @@
   };
 
   // ── Delete account ────────────────────────────────────────────────────────────
+  var AP2_DELETE_REASONS = ['No longer need it','Too expensive','Found a better alternative','Missing features I need','Too difficult to use','Privacy concerns','Just testing / temporary account','Other'];
+
   window.ap2DeleteAccount = async function () {
+    var reason = prompt('We\'re sorry to see you go! Why are you deleting?\n\n' + AP2_DELETE_REASONS.map(function(r,i){ return (i+1)+'. '+r; }).join('\n') + '\n\nEnter a number (1-'+AP2_DELETE_REASONS.length+') or type your own reason:');
+    if (!reason) return;
+    // Map number selection to reason text
+    var idx = parseInt(reason);
+    var deleteReason = (idx >= 1 && idx <= AP2_DELETE_REASONS.length) ? AP2_DELETE_REASONS[idx - 1] : reason;
     var pw = prompt('Enter your password to permanently delete your account. This cannot be undone.');
     if (!pw) return;
     try {
-      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': getAuthHeader() || '' }, body: JSON.stringify({ action: 'deleteAccount', password: pw }) });
+      var r = await fetch('/.netlify/functions/auth', { method: 'POST', headers: { 'Content-Type': 'application/json', },body: JSON.stringify({ action: 'deleteAccount', password: pw, deleteReason: deleteReason }) });
       var d = await r.json();
-      if (d.ok) { localStorage.clear(); alert('Account deleted. Goodbye!'); location.href = 'index.html'; }
+      if (d.ok) { localStorage.clear(); alert('Account deleted. Goodbye!'); location.href = '/'; }
       else alert(d.error || 'Incorrect password \u2014 account not deleted');
     } catch (e) { alert('Network error \u2014 try again'); }
   };
@@ -407,7 +428,7 @@
   // ── Public API ────────────────────────────────────────────────────────────────
   window.openAccountPanel = function () {
     var sess = getSession();
-    if (!sess || !(sess.id || sess.email)) { location.href = 'login.html'; return; }
+    if (!sess || !(sess.id || sess.email)) { location.href = '/login'; return; }
     el('ap-panel').classList.add('open');
     el('ap-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -416,13 +437,12 @@
   };
 
   function ap2LoadReferralCode() {
-    var auth = getAuthHeader();
-    if (!auth) return;
+    if (!isLoggedIn()) return;
     el('ap2-ref-loading').style.display = '';
     el('ap2-ref-content').style.display = 'none';
     fetch('/.netlify/functions/auth', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': auth },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'getReferralCode' })
     })
     .then(function(r){ return r.json(); })
@@ -432,7 +452,7 @@
         el('ap2-ref-link').value = data.link;
         var countEl = el('ap2-ref-count');
         if (countEl) countEl.textContent = data.referralCount > 0
-          ? 'You\'ve referred ' + data.referralCount + ' user' + (data.referralCount === 1 ? '' : 's') + ' so far.'
+          ? 'You\u0027ve referred ' + data.referralCount + ' user' + (data.referralCount === 1 ? '' : 's') + ' so far.'
           : 'No referrals yet — share your link to get started.';
         el('ap2-ref-content').style.display = '';
       }

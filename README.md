@@ -1,70 +1,232 @@
-# EquitySight
+# EquitySight.app
 
-**Australian property investment calculator** — analyse purchase costs, renovation budgets, repayments, rental overlap, 30-year projections, and risk scenarios in one place.
+**Australia's smartest property investment calculator** — Built for Australian first home buyers and investors. Model property purchase costs, renovation budgets, loan repayments, rental overlap, 30-year projections, and risk indicators in one integrated platform.
+
+🇦🇺 **Australian-focused:** All 8 states (NSW, VIC, QLD, SA, WA, TAS, ACT, NT), AUD currency, Australian regulatory frameworks (ATO, ASIC, RBA), and state-specific grant/duty rules.
 
 ---
 
-## What It Does
+## Core Features
 
-| Tab | What it shows |
-|-----|--------------|
-| **Costs** | Full purchase cost breakdown — stamp duty, legal, inspections, etc. |
-| **Renovation** | Itemised reno budget with progress bar and totals |
-| **Repayments** | Monthly repayments, amortisation table, extra repayment impact |
-| **Rent Overlap** | Cost of carrying both a current rental and new mortgage |
-| **Projection** | 30-year equity/value chart, quarterly table, early payoff scenarios |
-| **Risk** | LVR, debt-to-income, buffer runway, stress-test indicators |
+### Main Calculator (`app.html`)
+| Feature | What it does |
+|---------|------------|
+| **Costs Tab** | Full purchase cost breakdown — purchase price, stamp duty, legal fees, building inspection, valuation, lender fees, etc. LVR badge + auto stamp duty estimate + LMI calc + FHOG display |
+| **Renovation Tab** | Itemised renovation budget — line items with costs, progress bar, totals by category |
+| **Repayments Tab** | Loan amortisation table, monthly/fortnightly repayment schedule, fortnightly benefit, impact of extra repayments |
+| **Rent Overlap** | Calculate cost of carrying both current rental and new mortgage simultaneously |
+| **Projection (30-year)** | Equity/value growth chart, quarterly breakdown table, offset account modelling, early payoff scenarios |
+| **Risk** | LVR (Loan-to-Value Ratio), debt-to-income ratio, interest rate stress testing, buffer runway analysis |
 
-Other features:
-- Save multiple property **scenarios** per account
-- Government **grant/scheme** eligibility (configured per state in admin)
-- **Suburb growth rate** auto-lookup and 30-day cache
-- **PDF export** — print-optimised standalone snapshot
-- **Photo** attach — paste URL or drag-and-drop image
-- **PWA** — installable on iOS/Android, offline-capable
+### Account Features
+- **Scenarios** — save multiple property analyses per account, restore/delete saved scenarios (photo preserved on save/restore)
+- **Government Schemes** — state-specific grant/scheme eligibility (NSW/VIC/QLD/WA/SA/TAS)
+- **Suburb Growth Lookup** — auto-fetch 20-year suburb growth rates, 30-day cache
+- **PDF Export** — print-optimised standalone snapshot of current scenario
+- **Photo Attachment** — drag-and-drop or paste image URL for property
+- **Profile Management** — color theme, profile picture, subscription management
+- **PWA** — install as mobile app on iOS/Android, offline capable
+
+### Admin Dashboard (`admin.html`)
+**16 tabs for system & user management:**
+- **Users** — table with sorting, plan badges, discount indicators; click to view full details + error history
+- **Scenarios** — browse all saved property scenarios per user; delete individual scenarios
+- **Gov Schemes** — government scheme eligibility editor per state
+- **Growth Data** — suburb growth rate cache management
+- **Database** — maintenance tools (purge sessions/profiles/scenarios)
+- **Error Log** — JS error logs from user browsers, filterable by email/message/browser/date
+- **Settings** — core site config: name, support email, session TTL, password policy, signup control
+- **Features** — feature flags: PDF export, projections, referral program, upload limits
+- **Integrations** — Stripe keys, Google Sign-In client ID, API credentials
+- **Branding** — logo (emoji or image upload), brand colour, colour theme presets, banner message
+- **Email Templates** — 6 transactional email templates (verification, welcome, password reset, subscription, security alert, promotional)
+- **About Page** — edit the About page content from admin
+- **Legal Pages** — edit privacy, terms, cookies, disclaimer from admin
+- **Suburbs** — browse/search suburb data, state breakdown, trigger suburb page rebuilds via Netlify deploy hook
+- **Blog** — author posts in Markdown with live word count (vs AdSense 1,500-word floor), draft/publish workflow, slug collision check; posts stored in Upstash Redis and rendered to static HTML at deploy time
+- **Moderation** — approve, reject, or delete user-submitted suburb reviews **and** blog comments; top-level kind switcher with nested Pending/All sub-tabs; atomic aggregate updates on approve/reject
 
 ---
 
 ## Tech Stack
 
-| Layer | Tech |
-|-------|------|
-| Frontend | Plain HTML + CSS + vanilla JS — no framework, no build step |
-| Backend | Netlify Functions (Node.js serverless) |
-| Database | Upstash Redis (REST API) |
-| Auth | Custom token-based auth in `netlify/functions/auth.js` |
-| Payments | Stripe (subscriptions) |
-| Hosting | Netlify (git push to deploy) |
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | Plain HTML + CSS + vanilla JS — no framework, no build step, no bundler |
+| **Backend** | Netlify Functions (Node.js serverless) |
+| **Database** | Upstash Redis (REST API) |
+| **Authentication** | HttpOnly cookie session auth with Upstash Redis |
+| **Payments** | Stripe (subscriptions, webhooks, discount tracking) |
+| **Email** | Resend API (transactional & contact form emails) |
+| **Hosting** | Netlify (automatic deployment on git push) |
+| **Maps** | OpenStreetMap tiles (via mapproxy.js) |
 
 ---
 
-## Project Structure
+## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages + Redis-backed blog + suburb reviews + blog comments, 14 Netlify functions, 9 SEO tools)
 
+### Application Pages
 ```
-/
-├── app.html / app.css / app.js     # Main calculator (requires auth)
-├── admin.html / admin.css / admin.js # Admin dashboard (requires role=admin)
-├── index.html / index.css          # Landing page
-├── login.html / login.css          # Sign-in / sign-up
-├── account.html                    # User account & subscription
-├── pricing.html                    # Pricing page
-├── shared.css                      # Design tokens + shared components
-├── auth-nav.js                     # Injects nav header + help modal on every page
-├── footer.js                       # Injects footer on every page
-├── error-capture.js                # Captures JS errors from browsers → client-errors function
-├── netlify/functions/
-│   ├── auth.js                     # All auth + admin actions
-│   ├── scenarios.js                # Scenario save/load/delete
-│   ├── stripe.js                   # Subscription management + discount tracking
-│   ├── contact.js                  # Contact/support form → Resend email
-│   ├── client-errors.js            # Stores JS error logs from browsers
-│   ├── growth.js                   # Suburb growth rate lookup + cache
-│   └── photo.js                    # Property photo proxy
-├── netlify.toml                    # Build config + CSP headers
-└── CODEBASE.md                     # Developer architecture guide
+app.html                # Main calculator (authenticated)
+admin.html              # Admin dashboard (role=admin only) — 16 tabs (incl. Blog CMS + Moderation)
+account.html            # User account settings & subscription management
+login.html              # Sign-up & sign-in with email verification + Google Sign-In
+showcase.html           # App gallery — real mobile screenshots (light + dark)
 ```
 
-> For a full developer guide including auth model, session keys, design tokens, CSP notes, and coding conventions — read **`CODEBASE.md`**.
+### Marketing Pages
+```
+index.html              # Landing page with features & pricing preview
+pricing.html            # Full pricing page with feature comparison
+about.html              # About page
+contact.html            # Contact form
+```
+
+### Free SEO Tool Calculators (lead generation — 9 tools in /tools/)
+```
+stamp-duty-calculator.html           # All 8 Australian states (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) with state dropdown
+cost-of-purchase-calculator.html     # Total cost breakdown — stamp duty, legal, bank fees, inspections, insurance, moving, lease break
+equity-release-calculator.html       # Home equity release & borrowing capacity based on LVR
+loan-serviceability-calculator.html  # Mortgage affordability based on income & expenses
+first-home-buyer-grants-calculator.html # State-specific FHB grants & stamp duty exemptions
+rental-yield-calculator.html         # Rental yield analysis
+renovation-cost-calculator.html      # Renovation budget
+house-flip-calculator.html           # Buy/renovate/sell profit
+mortgage-stress-calculator.html      # Loan stress testing
+```
+
+All SEO tools feature:
+- **Comprehensive SEO**: Meta tags, keywords, structured data (JSON-LD schema)
+- **Mobile-optimized**: Responsive design, PWA-ready
+- **Lead generation**: CTAs linking to main app signup
+- **Educational**: Built-in content sections with explanations
+- **Accurate rates**: 2025-26 Australian government rates, conditions, and thresholds
+- **Live market data**: RBA cash rate + ABS state median prices via `market-rate.js`
+
+### Legal Pages (rendered from Markdown)
+```
+privacy.html            # Privacy policy (privacy.md)
+terms.html              # Terms of service (terms.md)
+cookies.html            # Cookie policy (cookies.md)
+disclaimer.html         # Financial disclaimer (disclaimer.md)
+```
+
+### Core Styles
+```
+shared.css              # Design tokens, nav, footer, buttons (included by all pages)
+app.css                 # Main calculator styles
+admin.css               # Admin dashboard styles
+legal.css               # Legal page styles
+index.css, pricing.css, about.css, login.css, contact.css, tools.css, suburb-insights.css
+```
+
+### Shared Scripts
+```
+auth-nav.js             # Nav header + profile menu + help modal (514 lines)
+footer.js               # Site footer
+error-capture.js        # JS error logging (on app/admin/account only)
+account-panel.js        # Account settings component (483 lines)
+account.js              # Account page logic — subscription, Stripe portal (555 lines)
+legal.js                # Markdown → HTML parser for legal pages
+stripe-config.js        # Stripe API key + plan IDs (client-safe)
+shared-calcs.js         # Common calc utilities (fmt, parse, repayment, growth) — used by all calculators
+market-rate.js          # Live RBA cash rate + ABS state median prices (window.MarketRate)
+site-init.js            # Applies dark/light theme before first paint (synchronous)
+adsense.js              # Google AdSense integration
+gtag-init.js            # Google Analytics initialization
+```
+
+### Page-specific Scripts
+```
+app-init.js / app-events.js         # Main calculator init + event wiring
+admin-events.js                     # Admin dashboard event wiring
+index-init.js / index-events.js     # Landing page init + events
+login.js                            # Login/signup page
+pricing.js                          # Pricing page
+about-init.js                       # About page init
+contact.js                          # Contact form handling
+suburb-insights.js                  # Suburb insights page JS
+state-hub-search.js                 # State hub client-side search by name/postcode
+```
+
+### Backend Functions (`netlify/functions/`)
+```
+auth.js                 # User auth + admin management (~800 lines, 10+ actions)
+scenarios.js            # Scenario CRUD operations (~300 lines)
+stripe.js               # Stripe checkout, portal, webhooks (~500 lines)
+contact.js              # Contact form email submission
+client-errors.js        # JS error log aggregation
+growth.js               # Suburb growth rate cache (30-day TTL)
+photo.js                # Property photo storage proxy
+mapproxy.js             # OpenStreetMap tile proxy
+address-suggest.js      # Address autocomplete (rate-limited: 30 req/min)
+market-data.js          # Suburb insights market data API
+blog.js                 # Blog CMS — admin CRUD over Upstash Redis (posts, slug index, tag lists)
+reviews.js              # Suburb reviews & star ratings — auth, rate-limited, 3-state moderation queue
+comments.js             # Blog post comments — auth, rate-limited, 3-state moderation queue (flat threading)
+```
+
+### Blog CMS (static-first, Redis-backed)
+```
+netlify/functions/blog.js         # Admin CRUD: save/publish/unpublish/delete + slug collision check
+build/md.js                       # Shared Markdown parser (CommonJS) — mirrors legal.js
+build/build-blog.js               # Deploy-time renderer: Redis → static HTML + sitemap-blog.xml + RSS
+templates/blog-post.html          # BlogPosting + BreadcrumbList + Person JSON-LD
+templates/blog-index.html         # Blog landing + paginated pages
+blog.css                          # Layered on legal.css
+data/blog-fixture.json            # Offline fixture for local builds (ignored on CDN)
+blog/ (generated)                 # /blog/index.html, /blog/<slug>/, /blog/tag/<tag>/, /blog/rss.xml
+```
+
+Posts are authored in the admin Blog tab (Markdown editor with live word count vs 1,500-word AdSense floor) → stored in Upstash Redis → rendered to static HTML at deploy time. Public `/blog/` pages are 100% pre-rendered so Googlebot/AdSense crawl complete JSON-LD without hydration.
+
+### Suburb Reviews & Ratings (UGC, moderated)
+```
+netlify/functions/reviews.js      # Submit/list/admin actions, auth + rate limits (10/hr IP, 3/day user)
+build/fetch-reviews.js            # Scans reviews:agg:* → JSON map to stdout (spawned by build-suburbs)
+build/build-suburbs.js            # Injects up to 10 approved reviews as static HTML + AggregateRating JSON-LD
+suburb-reviews.js                 # Frontend star picker + form hydration + "Show more" pagination
+templates/suburb-page.html        # {{REVIEWS_HTML}} + {{AGGREGATE_RATING_JSON}} placeholders
+```
+
+Logged-in users post 100+ char reviews with 1–5 star ratings on non-noindexed suburb pages. Reviews enter a pending moderation queue, are approved from the admin **Moderation** tab, and are then injected at build time as static HTML so Google crawls real text (not JS-hydrated content). Empty review sections are never rendered (AdSense negative signal) — the zero state is an absent `<section>`, not a "0 reviews" heading. `AggregateRating` schema.org JSON-LD is emitted only when `count > 0`.
+
+### Blog Comments (UGC, moderated)
+```
+netlify/functions/comments.js     # Submit/list/admin actions, auth + rate limits (10/hr IP, 5/day user)
+build/build-blog.js               # Inline async fetch → injects up to 20 approved comments as static HTML
+blog-comments.js                  # Frontend textarea + live counter + "Show more" pagination
+templates/blog-post.html          # {{COMMENTS_HTML}} placeholder + login-gated form
+blog.css                          # Comments styles (light + dark)
+```
+
+Logged-in users post 20–2000 char comments on any blog post. Flat threading (no nested replies in v1). Same pattern as suburb reviews — pending moderation queue, admin approves via the **Moderation** tab (kind switcher), then comments are injected at build time as static HTML. Empty comment sections render as absent `<section>`, never a "0 comments" heading.
+
+### Suburb Insights System (14,512 suburb pages + 19 city pages)
+```
+fetch-abs-data.js               # Downloads ABS 2021 Census suburb data → data/abs-suburbs.json
+generate-suburbs-data.js        # Merges ABS data + postcodes → data/suburbs.json
+build-suburbs.js                # Generates suburb pages + city pages + state hubs + sitemap from templates
+data/suburbs.json               # 14,512 suburbs with real names, populations, postcodes
+templates/suburb-page.html      # Suburb page template (investment score, strategy, risks, outlook)
+templates/city-page.html        # City page template (19 major cities, aggregate scores, top suburbs)
+templates/state-hub.html        # State hub template (search, progressive loading, city links)
+suburb-insights.css             # Shared styles for suburb/city/state pages
+suburb/{state}/{slug}/index.html         # Generated suburb pages (gitignored, built on deploy)
+invest/{state}/{city-slug}/index.html    # Generated city pages (gitignored, built on deploy)
+invest/{state}/index.html                # Generated state hub pages (gitignored, built on deploy)
+```
+
+### Configuration
+```
+netlify.toml            # Netlify build config, CSP headers, cache rules, force-404 redirects for dev files
+.netlifyignore          # Files excluded from Netlify CDN (dev docs, build scripts, ERRORS.json, raw data)
+manifest.json           # PWA manifest (app name, icons, theme colors)
+robots.txt              # Search engine crawling directives
+sitemap.xml             # Sitemap index → sitemap-core.xml (70 URLs) + 19 state-grouped sitemap-suburbs-*.xml files (14,539 URLs total, max 1000 per file)
+```
+
+> **For detailed architecture, conventions, auth flows, and data models** — see **`CODEBASE.md`**
 
 ---
 
@@ -72,49 +234,72 @@ Other features:
 
 Set in **Netlify → Site Settings → Environment Variables**:
 
-| Variable | Purpose |
-|----------|---------|
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token |
-| `AUTH_SALT` | Password hashing salt (strong random secret) |
-| `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `RESEND_API_KEY` | Resend API key for contact form emails |
+| Variable | Used by | Purpose |
+|----------|---------|---------|
+| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js, client-errors.js, growth.js | Upstash Redis REST endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js, client-errors.js, growth.js | Upstash Redis auth token |
+| `AUTH_SALT` | auth.js | Password hashing salt — **required in production**. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `STRIPE_SECRET_KEY` | stripe.js | Stripe API secret key |
+| `STRIPE_WEBHOOK_SECRET` | stripe.js | Stripe webhook signing secret (for verifying webhooks) |
+| `RESEND_API_KEY` | contact.js, auth.js | Resend API key for transactional & contact form emails |
+| `VERIFY_EMAIL_FROM` | auth.js | Email sender address (default: noreply@equitysight.app) |
+| `GITHUB_TOKEN` | client-errors.js | GitHub API token for auto-syncing errors to ERRORS.json in repo |
 
 ---
 
-## Development
+## Development & Workflow
 
-No build step. Edit files locally, push to git — Netlify deploys automatically.
+**No build step.** Edit files directly, push to git — Netlify deploys automatically.
 
 ```bash
-# Run locally with Netlify CLI (requires env vars set in .env or Netlify dashboard)
+# Development with local functions
 npx netlify dev
+
+# This runs:
+# - Static files on http://localhost:8888
+# - Functions on /.netlify/functions/*
+# - Requires .env or Netlify dashboard env vars
 ```
 
-- **Plans**: `free` | `pro` | `adviser` — stored in session and Redis user record
-- **Roles**: `user` | `admin` — admin unlocks `admin.html`
-- **Task tracking**: see `TODO.md` — update it when completing or adding tasks
-- **AUTH_SALT** must be set in production — the function will refuse to start if missing
+### Git Branches
+- **`main`** — protected, read-only; pull current tasks from here
+- **`Staging`** — staging/pre-production branch
+- **`claude/***` — temporary feature branches (deleted after merge)
+- **`TODO.md`** — source of truth for outstanding work; remove lines when tasks complete
+
+### Plans & Roles
+- **Plans**: `free` | `pro` | `adviser` — stored in localStorage session + Redis user record
+- **Roles**: `user` | `admin` — admin role unlocks `admin.html` dashboard
+- **Session**: HttpOnly Secure cookie `es_session` (auth token); localStorage key `propCalc_session_v1` = `{id, email, name, plan, role}` (UI state only, no token)
+
+### Important Notes
+- **AUTH_SALT** — throws hard error at startup in production if not set. Never deploy without.
+- **CSP Policy** — defined in `netlify.toml`; update if adding new external APIs
+- **Mobile breakpoint** — `@media(max-width:600px)` for PWA/iOS
+- **Password hashing** — HMAC-SHA256 with salt (adequate for this app; consider bcrypt if risk profile increases)
+- **Dev file security** — `publish = "."` serves the entire repo; new dev/internal files must be added to `.netlifyignore` or they'll be publicly accessible. See `CODEBASE.md` Security Notes for full details.
 
 ---
 
-## Plans
+## Subscription Plans
 
 | Plan | Features |
 |------|---------|
-| Free | Single scenario, basic calculator |
-| Pro | Unlimited scenarios, projections, PDF export, suburb growth lookup |
-| Adviser | Pro + multi-client management (coming soon) |
+| **Free** | Single scenario, basic calculator tabs, limited export |
+| **Pro** | Unlimited scenarios, 30-year projections, PDF export, suburb growth lookup, priority support |
+| **Adviser** | Pro + multi-client management, white-label options (future) |
 
 ---
 
-## Contributing / Handoff
+## Quick Start for New Contributors
 
-If picking up this project for the first time:
-1. Read `CODEBASE.md` — architecture, file map, auth model, conventions
-2. Read `TODO.md` — current open tasks
-3. Set up environment variables (table above)
-4. Run `npx netlify dev` to develop locally with functions
-
-When making changes: update `CODEBASE.md` if the architecture changes, and update `TODO.md` as tasks are completed or discovered.
+1. **Read architecture** — `CODEBASE.md` (auth model, file map, conventions, data flows)
+2. **Check open tasks** — `TODO.md` (lists work to be done)
+3. **Set environment variables** — copy the table above into Netlify dashboard
+4. **Run locally** — `npx netlify dev` (requires env vars)
+5. **Make changes** — edit HTML/CSS/JS directly (no build step)
+6. **Test** — open browser, check desktop + mobile (600px breakpoint)
+7. **Security check** — if adding a new dev/internal file, add it to `.netlifyignore`
+8. **Commit & push** — to `Staging` or feature branch
+9. **Update docs** — if architecture changes, update `CODEBASE.md` and `README.md`
+10. **Update TODO.md** — remove completed tasks, add new ones as discovered

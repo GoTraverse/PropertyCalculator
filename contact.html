@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
 <meta charset="UTF-8">
-<script>(function(){ try{ if(localStorage.getItem("equitySight_theme")==="dark") document.documentElement.classList.add("dark-mode"); }catch(e){} })();</script>
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
+<script src="/site-init.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Contact &amp; Support — EquitySight.app</title>
 <meta name="description" content="Get help with EquitySight. Send us a message, report a bug, or ask about your account — we typically reply within one business day.">
@@ -13,37 +18,44 @@
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:title" content="Contact &amp; Support — EquitySight.app">
 <meta property="og:description" content="Get help with EquitySight. Send a message, report a bug, or ask about your account.">
-<meta property="og:url" content="https://equitysight.app/contact.html">
-<meta property="og:image" content="https://equitysight.app/favicon.svg">
-<link rel="canonical" href="https://equitysight.app/contact.html">
-<meta name="twitter:card" content="summary">
+<meta property="og:url" content="https://equitysight.app/contact">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<link rel="canonical" href="https://equitysight.app/contact">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Contact &amp; Support — EquitySight.app">
 <meta name="twitter:description" content="Get help with EquitySight. Send a message, report a bug, or ask about your account.">
-<meta name="twitter:image" content="https://equitysight.app/favicon.svg">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="contact.css">
 </head>
-<body><nav class="site-nav">
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+<nav class="site-nav">
   <div class="site-nav-inner">
-    <a href="index.html" class="site-logo">
-      <div class="site-logo-mark">🏠</div>
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
     <ul class="site-nav-links">
-      <li><a href="pricing.html">Pricing</a></li>
-      <li><a href="contact.html" class="active">Support</a></li>
-      <li><a href="about.html">About</a></li>
+      <li><a href="/pricing">Pricing</a></li>
+      <li><a href="/showcase">Gallery</a></li>
+      <li><a href="/contact" class="active">Support</a></li>
+      <li><a href="/about">About</a></li>
     </ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham">☰</button>
   </div>
 </nav>
-<script src="auth-nav.js"></script>
+<script src="auth-nav.js" defer></script>
 
-<section class="contact-hero">
+<section class="contact-hero" id="main-content">
   <div class="contact-hero-inner">
     <div class="section-tag" style="color:var(--gold);">Support</div>
     <h1>How can we help?</h1>
@@ -60,7 +72,7 @@
       <h2 style="font-family:var(--font-display);font-size:26px;font-weight:700;margin-bottom:24px;line-height:1.2;">Support options</h2>
       <div class="support-options">
 
-        <div class="support-card" style="cursor:pointer;" onclick="location.href='mailto:support@EquitySight.app'">
+        <div class="support-card" style="cursor:pointer;">
           <div class="support-icon" style="background:rgba(201,168,76,0.12);">✉️</div>
           <div class="support-card-text">
             <h3>Email support</h3>
@@ -69,7 +81,7 @@
           </div>
         </div>
 
-        <div class="support-card" style="cursor:pointer;" onclick="showChatNotice()">
+        <div class="support-card" style="cursor:pointer;">
           <div class="support-icon" style="background:rgba(91,143,171,0.12);">💬</div>
           <div class="support-card-text">
             <h3>Live chat</h3>
@@ -78,7 +90,7 @@
           </div>
         </div>
 
-        <div class="support-card" style="cursor:pointer;" onclick="location.href='pricing.html#comparison'">
+        <div class="support-card" style="cursor:pointer;">
           <div class="support-icon" style="background:rgba(123,158,135,0.12);">📖</div>
           <div class="support-card-text">
             <h3>Documentation</h3>
@@ -122,8 +134,8 @@
           </select>
         </div>
         <div class="cf-field"><label class="cf-label">Message</label><textarea class="cf-textarea" id="cf-message" placeholder="Tell us what's on your mind..."></textarea></div>
-        <div style="font-size:12px;color:var(--slate);margin-bottom:16px;line-height:1.5;">By submitting this form you agree to our <a href="#" style="color:var(--gold);">Privacy Policy</a>. We'll only use your email to respond to your enquiry.</div>
-        <button class="cf-submit" id="cf-submit" onclick="submitForm()">Send Message →</button>
+        <div style="font-size:12px;color:var(--slate);margin-bottom:16px;line-height:1.5;">By submitting this form you agree to our <a href="/privacy" style="color:var(--gold);">Privacy Policy</a>. We'll only use your email to respond to your enquiry.</div>
+        <button class="cf-submit" id="cf-submit">Send Message →</button>
         <div style="font-size:12px;color:#E8956A;margin-top:8px;min-height:18px;font-family:var(--font-mono);" id="cf-error"></div>
       </div>
 
@@ -131,7 +143,7 @@
         <div class="cf-success-icon">✅</div>
         <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--charcoal);margin-bottom:8px;">Message sent!</div>
         <div style="color:var(--slate);font-family:var(--font-body);font-size:14px;">We'll get back to you within 24 hours. While you wait, try the calculator →</div>
-        <button onclick="location.href=\'login.html?tab=signup\'" style="margin-top:20px;background:var(--charcoal);color:var(--cream);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.5px;">Open Calculator →</button>
+        <button style="margin-top:20px;background:var(--charcoal);color:var(--cream);border:none;padding:12px 24px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.5px;">Open Calculator →</button>
       </div>
     </div>
 
@@ -143,47 +155,23 @@
   <div class="faq-inner">
     <h2 style="font-family:var(--font-display);font-size:32px;font-weight:700;margin-bottom:48px;text-align:center;">Common questions</h2>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How does the shared equity calculator work?<span class="faq-ico">+</span></button><div class="faq-ans">EquitySight models the government's equity contribution based on the scheme rules for your state (QLD, NSW, or VIC). It calculates the government's percentage share, what you'll owe when you sell or buy out, and how that changes over time as property values grow. It uses the purchase price, your savings, and the applicable income/property caps to determine eligibility.</div></div>
+    <div class="faq-item"><button class="faq-q">How does the shared equity calculator work?<span class="faq-ico">+</span></button><div class="faq-ans">EquitySight models the government's equity contribution based on the scheme rules for your state (QLD, NSW, or VIC). It calculates the government's percentage share, what you'll owe when you sell or buy out, and how that changes over time as property values grow. It uses the purchase price, your savings, and the applicable income/property caps to determine eligibility.</div></div>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Is EquitySight actually accurate?<span class="faq-ico">+</span></button><div class="faq-ans">Our calculations are based on publicly available scheme rules and standard mortgage calculations. They're designed to give you an accurate planning picture, not a legal quote. Always verify eligibility and final figures with a licensed mortgage broker or financial adviser before making any decisions.</div></div>
+    <div class="faq-item"><button class="faq-q">Is EquitySight actually accurate?<span class="faq-ico">+</span></button><div class="faq-ans">Our calculations are based on publicly available scheme rules and standard mortgage calculations. They're designed to give you an accurate planning picture, not a legal quote. Always verify eligibility and final figures with a licensed mortgage broker or financial adviser before making any decisions.</div></div>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">I'm having trouble logging in — what do I do?<span class="faq-ico">+</span></button><div class="faq-ans">Try clearing your browser cache and logging in again. If that doesn't work, use the "forgot password" option on the login page. If you're still stuck, send us a message using the form above with "Billing / subscription" selected and we'll sort it out promptly.</div></div>
+    <div class="faq-item"><button class="faq-q">I'm having trouble logging in — what do I do?<span class="faq-ico">+</span></button><div class="faq-ans">Try clearing your browser cache and logging in again. If that doesn't work, use the "forgot password" option on the login page. If you're still stuck, send us a message using the form above with "Billing / subscription" selected and we'll sort it out promptly.</div></div>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">How do I cancel my subscription?<span class="faq-ico">+</span></button><div class="faq-ans">Go to Account Settings → Subscription → Cancel Plan. Your Pro access will continue until the end of the billing period. We don't charge cancellation fees. If you cancel mid-year on an annual plan and want a partial refund, contact us.</div></div>
+    <div class="faq-item"><button class="faq-q">How do I cancel my subscription?<span class="faq-ico">+</span></button><div class="faq-ans">Go to Account Settings → Subscription → Cancel Plan. Your Pro access will continue until the end of the billing period. We don't charge cancellation fees. If you cancel mid-year on an annual plan and want a partial refund, contact us.</div></div>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Can I use this on my phone?<span class="faq-ico">+</span></button><div class="faq-ans">Yes — EquitySight is fully responsive and works well on iPhone and Android. You can also add it to your home screen as a PWA (Progressive Web App) for a native-app-like experience. On iPhone: tap Share → Add to Home Screen. On Android: tap the menu → Install App.</div></div>
+    <div class="faq-item"><button class="faq-q">Can I use this on my phone?<span class="faq-ico">+</span></button><div class="faq-ans">Yes — EquitySight is fully responsive and works well on iPhone and Android. You can also add it to your home screen as a PWA (Progressive Web App) for a native-app-like experience. On iPhone: tap Share → Add to Home Screen. On Android: tap the menu → Install App.</div></div>
 
-    <div class="faq-item"><button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">Do you have an API for developers?<span class="faq-ico">+</span></button><div class="faq-ans">An API is in our Q3 2025 roadmap, starting with the Adviser plan. If you have a specific integration in mind, send us a message — we'd love to hear what you're building.</div></div>
+    <div class="faq-item"><button class="faq-q">Do you have an API for developers?<span class="faq-ico">+</span></button><div class="faq-ans">An API is planned, starting with the Adviser plan. If you have a specific integration in mind, send us a message — we'd love to hear what you're building.</div></div>
   </div>
 </section>
 
 <div id="site-footer-root"></div>
 <script src="footer.js"></script>
 
-<script>
-  async function submitForm(){
-    const fname=document.getElementById('cf-fname').value.trim();
-    const lname=(document.getElementById('cf-lname')||{}).value||'';
-    const email=document.getElementById('cf-email').value.trim();
-    const subject=document.getElementById('cf-subject').value;
-    const msg=document.getElementById('cf-message').value.trim();
-    const errEl=document.getElementById('cf-error');
-    const btn=document.getElementById('cf-submit');
-    if(!fname||!email||!subject||!msg){ errEl.textContent='Please fill in all required fields.'; return; }
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errEl.textContent='Please enter a valid email address.'; return; }
-    errEl.textContent='';
-    btn.disabled=true; btn.textContent='Sending…';
-    try{
-      const r=await fetch('/.netlify/functions/contact',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name:(fname+' '+lname).trim(),email,subject,message:msg})
-      });
-      const d=await r.json();
-      if(!d.ok){ errEl.textContent=d.error||'Failed to send — please try again.'; btn.disabled=false; btn.textContent='Send Message →'; return; }
-    }catch(e){ errEl.textContent='Network error — please try again.'; btn.disabled=false; btn.textContent='Send Message →'; return; }
-    document.getElementById('contact-form').style.display='none';
-    document.getElementById('cf-success').style.display='block';
-  }
-</script>
+<script src="contact.js"></script>
 </body>
 </html>

@@ -4,48 +4,43 @@
  * then include this script.
  */
 (function () {
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function safeSrc(u){ return (typeof u==='string'&&(/^data:image\/[a-z+]+;base64,/.test(u)||/^https:\/\//.test(u)))?u:''; }
   var cfg = {};
   try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e) {}
-  var logoMark    = cfg.logoMark || '🏠';
-  var logoName    = cfg.logoName || 'EquitySight';
-  var logoTld     = cfg.logoTld  !== undefined ? cfg.logoTld : '.app';
-  var logoMarkHtml = cfg.logoImage
-    ? '<img src="' + cfg.logoImage + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" alt="">'
-    : logoMark;
+  var logoMark    = cfg.logoMark || '';
+  var logoName    = esc(cfg.logoName || 'EquitySight');
+  var logoTld     = esc(cfg.logoTld  !== undefined ? cfg.logoTld : '.app');
+  var safeImg     = safeSrc(cfg.logoImage);
+  var logoMarkHtml, logoMarkClass = 'site-logo-mark';
+  if (safeImg) {
+    logoMarkHtml = '<img src="' + safeImg + '" alt="">';
+  } else if (logoMark) {
+    logoMarkHtml = esc(logoMark);
+    logoMarkClass += ' site-logo-mark--emoji';
+  } else {
+    logoMarkHtml = '<img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52">';
+  }
 
   var FOOTER_HTML = [
     '<footer class="site-footer">',
     '  <div class="site-footer-inner">',
-    '    <div class="site-footer-grid">',
-    '      <div class="footer-brand">',
-    '        <a href="index.html" class="site-logo" style="margin-bottom:14px;">',
-    '          <div class="site-logo-mark">' + logoMarkHtml + '</div>',
-    '          <div class="site-logo-text"><span class="site-logo-name">' + logoName + '</span><span class="site-logo-tld">' + logoTld + '</span></div>',
-    '        </a>',
-    '        <p>Australia\'s smartest property finance calculator for first home buyers.</p>',
-    '      </div>',
-    '      <div class="footer-col"><h4>Product</h4><ul>',
-    '        <li><a href="app.html">Calculator</a></li>',
-    '        <li><a href="pricing.html">Pricing</a></li>',
-    '      </ul></div>',
-    '      <div class="footer-col"><h4>Company</h4><ul>',
-    '        <li><a href="about.html">About</a></li>',
-    '        <li><a href="contact.html">Contact &amp; Support</a></li>',
-    '      </ul></div>',
-    '      <div class="footer-col"><h4>Legal</h4><ul>',
-    '        <li><a href="privacy.html">Privacy Policy</a></li>',
-    '        <li><a href="terms.html">Terms of Service</a></li>',
-    '        <li><a href="cookies.html">Cookie Policy</a></li>',
-    '        <li><a href="disclaimer.html">Disclaimer</a></li>',
-    '      </ul></div>',
-    '    </div>',
-    '    <div class="footer-bottom">',
-    '      <p>&#169; ' + new Date().getFullYear() + ' ' + logoName + logoTld + ' &middot; Not financial advice &middot; ABN pending.</p>',
-    '      <div class="footer-bottom-links">',
-    '        <a href="privacy.html">Privacy</a>',
-    '        <a href="terms.html">Terms</a>',
-    '        <a href="contact.html">Contact</a>',
-    '      </div>',
+    '    <div class="footer-bar">',
+    '      <a href="/" class="site-logo" style="flex-shrink:0;">',
+    '        <div class="' + logoMarkClass + '">' + logoMarkHtml + '</div>',
+    '        <div class="site-logo-text"><span class="site-logo-name">' + logoName + '</span><span class="site-logo-tld">' + logoTld + '</span></div>',
+    '      </a>',
+    '      <nav class="footer-nav">',
+    '        <a href="/pricing">Pricing</a>',
+    '        <a href="/blog">Blog</a>',
+    '        <a href="/about">About</a>',
+    '        <a href="/methodology">Methodology</a>',
+    '        <a href="/data-sources">Data Sources</a>',
+    '        <a href="/contact">Support</a>',
+    '        <a href="/privacy">Privacy</a>',
+    '        <a href="/terms">Terms</a>',
+    '      </nav>',
+    '      <p class="footer-copy">&#169; ' + new Date().getFullYear() + ' ' + logoName + logoTld + ' &middot; Not financial advice</p>',
     '    </div>',
     '  </div>',
     '</footer>'

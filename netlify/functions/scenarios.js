@@ -14,13 +14,30 @@
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
+const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
+const EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
 
-const H = {
-  'Content-Type':'application/json',
-  'Access-Control-Allow-Origin':'*',
-  'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers':'Content-Type,Authorization',
-};
+const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// CSRF defense-in-depth. See auth.js for the rationale.
+function isAllowedOrigin(event){
+  const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  if(!o) return true;
+  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+}
+function getCorsHeaders(event) {
+  const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
+    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Content-Type':'application/json',
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers':'Content-Type,Authorization',
+    'Access-Control-Allow-Credentials':'true',
+  };
+}
+let H = {};
 
 // ── Redis ─────────────────────────────────────────────────────────────
 async function redisCmd(...args){
@@ -42,30 +59,93 @@ async function rGet(key){
 }
 async function rSet(key,val){ return redisCmd('SET',key,typeof val==='string'?val:JSON.stringify(val)); }
 
+// Append a structured event for a userId (shared with auth.js event log)
+async function scanAll(pattern){
+  const results=[];
+  let cursor='0';
+  do{
+    const res=await redisCmd('SCAN',cursor,'MATCH',pattern,'COUNT','200');
+    cursor=res[0]; if(res[1]) results.push(...res[1]);
+  }while(cursor!=='0');
+  return results;
+}
+
+async function logEvent(userId,type,extra){
+  if(!userId) return;
+  try{
+    await redisCmd('RPUSH','events:'+userId, JSON.stringify({type,at:Date.now(),...extra}));
+    await redisCmd('LTRIM','events:'+userId,'0','199');
+  }catch(e){ console.warn('[scenarios] logEvent failed:',e.message); }
+}
+
+// Default templates (must match auth.js DEFAULT_TEMPLATES for these types)
+const SHARE_DEFAULTS = {
+  scenario_shared: {
+    subject: '{{senderName}} shared a property scenario with you',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open your calculator to view the shared scenario:</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View Scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">You can find shared scenarios in your Saved Library.</p></div>',
+  },
+  scenario_invite: {
+    subject: '{{senderName}} shared a property with you on EquitySight',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">You\'ve been invited to EquitySight</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Sign up for a free EquitySight account to view it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a></p><p style="font-size:12px;color:#999;line-height:1.6;">EquitySight is Australia\'s smartest property investment calculator. Free to use, no credit card required.</p></div>',
+  },
+};
+
+function applyVars(str, vars){
+  return Object.entries(vars).reduce((s,[k,v])=>s.replace(new RegExp('\\{\\{'+k+'\\}\\}','g'),v||''), str);
+}
+
+async function getEmailTemplate(type){
+  try{
+    const saved = await rGet('email-template:'+type);
+    if(saved && saved.subject && saved.html) return saved;
+  }catch(e){}
+  return SHARE_DEFAULTS[type] || null;
+}
+
+// Send share email via Resend (template-based)
+async function sendShareEmail(toEmail, templateType, vars){
+  if(!RESEND_API_KEY) return false;
+  try{
+    const tpl = await getEmailTemplate(templateType);
+    if(!tpl) return false;
+    const subject = applyVars(tpl.subject, vars);
+    const html = applyVars(tpl.html, vars);
+    const r = await fetch('https://api.resend.com/emails',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+RESEND_API_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({from:EMAIL_FROM, to:[toEmail], subject, html})
+    });
+    if(!r.ok){ console.warn('[scenarios] share email error:',r.status); return false; }
+    return true;
+  }catch(e){ console.warn('[scenarios] share email failed:',e.message); return false; }
+}
+
 // ── Token verification ────────────────────────────────────────────────
-async function verifyToken(authHeader){
-  if(!authHeader||!authHeader.startsWith('Bearer ')) return null;
-  const token=authHeader.slice(7).trim();
+function readCookieToken(event) {
+  const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+  if (!raw) return '';
+  for (const p of raw.split(/;\s*/)) {
+    const eq = p.indexOf('=');
+    if (eq < 0) continue;
+    if (p.slice(0, eq) === 'es_session') {
+      try { return decodeURIComponent(p.slice(eq + 1)); } catch (e) { return p.slice(eq + 1); }
+    }
+  }
+  return '';
+}
+async function verifyToken(event){
+  const token = readCookieToken(event);
   if(!token) return null;
   const raw=await redisCmd('GET','token:'+token);
   if(!raw) return null;
   let data;
   try{data=JSON.parse(raw);}catch(e){return null;}
   if(data.expires&&Date.now()>data.expires){ await redisCmd('DEL','token:'+token); return null; }
+  // Check user still exists — deleted users should not retain access
+  if(data.email){ const u=await redisCmd('GET','user:'+data.email); if(!u) return null; }
   return data; // {userId, email, name, plan, role}
 }
 
-// ── userId validation — verify userId exists as a registered user ─────
-// Prevents arbitrary userId injection — must correspond to a real account
-async function verifyUserId(userId){
-  if(!userId||typeof userId!=='string'||userId.length<4) return false;
-  // userId is the 'id' field stored in user records, e.g. "lp3x4a8f..."
-  // We look for it in the user index. Efficient: userId is in the token payload,
-  // and we store it on signup. We trust it here because the alternative (brute-forcing
-  // a valid userId) is rate-limited by Upstash and the IDs are random hex.
-  // For extra security you can add an allow-list check here.
-  return true; // Accept any non-empty userId — Redis namespacing isolates users
-}
 
 function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
@@ -82,40 +162,26 @@ async function readIndex(uid){
 async function writeIndex(uid,arr){ return rSet(indexKey(uid),arr); }
 
 // ── Resolve user from request ─────────────────────────────────────────
-// Returns userId string or null. Tries Bearer token first, then body.userId fallback.
-async function resolveUser(event, body){
-  // 1. Try Bearer token (preferred)
-  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
-  if(authHeader){
-    try{
-      const user = await verifyToken(authHeader);
-      if(user) return user.userId;
-    }catch(e){ console.warn('[scenarios] token verify error:', e.message); }
-    // Token was present but invalid — hard fail (don't fall through to userId)
-    return null;
-  }
-
-  // 2. Fallback: userId in request body (for existing sessions without token field)
-  const userId = (body && body.userId) || null;
-  if(userId && await verifyUserId(userId)) return userId;
-
-  // 3. Fallback: userId in query string (for GET/DELETE with no body)
-  const qsUserId = event.queryStringParameters?.userId;
-  if(qsUserId && await verifyUserId(qsUserId)) return qsUserId;
-
-  return null;
+// Returns userId string or null. Requires a valid session (cookie or Bearer token).
+async function resolveUser(event, _body){
+  try{
+    const user = await verifyToken(event);
+    return user ? user.userId : null;
+  }catch(e){ console.warn('[scenarios] token verify error:', e.message); return null; }
 }
 
 // ── Admin: resolve admin token ────────────────────────────────────────
-async function verifyAdminToken(authHeader){
-  const data = await verifyToken(authHeader);
+async function verifyAdminToken(event){
+  const data = await verifyToken(event);
   if(!data || data.role !== 'admin') return null;
   return data;
 }
 
 // ── Handler ───────────────────────────────────────────────────────────
 exports.handler = async function(event){
+  H = getCorsHeaders(event);
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
+  if(event.httpMethod!=='GET' && !isAllowedOrigin(event)) return fail('Forbidden',403);
 
   if(!REDIS_URL||!REDIS_TOKEN){
     console.error('[scenarios] Missing UPSTASH env vars');
@@ -128,14 +194,12 @@ exports.handler = async function(event){
     try{ body = JSON.parse(event.body); }catch(e){ return fail('Bad request body',400); }
   }
 
-  const authHeader = event.headers?.authorization || event.headers?.Authorization || '';
-
   // ── GET — list all scenarios ─────────────────────────────────────────
   if(event.httpMethod==='GET'){
     // Admin override: admin can view any user's scenarios
     const adminTargetId = event.queryStringParameters?.adminUserId;
     if(adminTargetId){
-      const admin = await verifyAdminToken(authHeader);
+      const admin = await verifyAdminToken(event);
       if(!admin) return fail('Admin access required', 401);
       try{
         const index = await readIndex(adminTargetId);
@@ -159,20 +223,65 @@ exports.handler = async function(event){
   // ── POST ─────────────────────────────────────────────────────────────
   if(event.httpMethod==='POST'){
     if(!body) return fail('Request body required', 400);
-    const uid = await resolveUser(event, body);
-    if(!uid) return fail('Authentication required — please sign in', 401);
 
     const {action} = body;
+
+    // Admin: list all users' scenarios (no resolveUser needed — uses admin token)
+    if(action==='adminListAllScenarios'){
+      const admin=await verifyAdminToken(event);
+      if(!admin) return fail('Admin access required',401);
+      try{
+        // Scan all scenario index keys and user keys
+        const indexKeys=await scanAll('scenarios:*:index');
+        const userKeys=await scanAll('user:*');
+        // Build userId→{email,name} map
+        const userMap={};
+        await Promise.all((userKeys||[]).map(async k=>{
+          const u=await rGet(k);
+          if(u&&u.id) userMap[u.id]={email:u.email||k.replace('user:',''),name:u.name||''};
+        }));
+        // Build groups
+        const groups=[];
+        await Promise.all((indexKeys||[]).map(async k=>{
+          const uid=k.replace('scenarios:','').replace(':index','');
+          const idx=await rGet(k);
+          if(!Array.isArray(idx)||!idx.length) return;
+          const u=userMap[uid]||{email:'unknown',name:''};
+          groups.push({userId:uid,userEmail:u.email,userName:u.name,scenarios:idx});
+        }));
+        return ok({ok:true,groups});
+      }catch(e){ return fail('Error: '+e.message); }
+    }
+
+    // Admin: get another user's scenario state
+    if(action==='adminGetScenarioState'){
+      const admin=await verifyAdminToken(event);
+      if(!admin) return fail('Admin access required',401);
+      const {userId:targetUid,id}=body;
+      if(!targetUid||!id) return fail('userId and id required');
+      try{
+        const state=await rGet(stateKey(targetUid,id));
+        const photo=await rGet(photoKey(targetUid,id));
+        return ok({ok:true,state,photo:photo||null});
+      }catch(e){ return fail('Error: '+e.message); }
+    }
+
+    const uid = await resolveUser(event, body);
+    if(!uid) return fail('Authentication required — please sign in', 401);
 
     if(!action || action==='save'){
       const {id, fullAddr, state, hasPhoto, status, thumb} = body;
       if(!id || !fullAddr || !state) return fail('id, fullAddr and state are required');
-      await rSet(stateKey(uid,id), typeof state==='string'?state:JSON.stringify(state));
+      const stateStr = typeof state==='string' ? state : JSON.stringify(state);
+      if(stateStr.length > 2_000_000) return fail('Scenario state too large');
+      await rSet(stateKey(uid,id), stateStr);
       const index = await readIndex(uid);
       const existing = index.findIndex(s=>s.id===id);
       const entry = {id, fullAddr, hasPhoto:!!hasPhoto, status:status||'browsing', savedAt:Date.now(), thumb:thumb||''};
-      if(existing>=0) index[existing]=entry; else index.push(entry);
+      const isNew = existing < 0;
+      if(isNew) index.push(entry); else index[existing]=entry;
       await writeIndex(uid, index);
+      if(isNew) logEvent(uid,'scenario_created',{address:fullAddr}).catch(()=>{});
       return ok({ok:true, id});
     }
 
@@ -180,7 +289,10 @@ exports.handler = async function(event){
       const {id, photo} = body;
       if(!id) return fail('id required');
       if(photo){
-        await rSet(photoKey(uid,id), photo);
+        const ps = String(photo);
+        if(!/^data:image\/(jpeg|png|webp|gif);base64,/.test(ps)) return fail('Invalid photo format');
+        if(ps.length > 1100000) return fail('Photo too large — maximum ~800 KB');
+        await rSet(photoKey(uid,id), ps);
         const index=await readIndex(uid);
         const idx=index.findIndex(s=>s.id===id);
         if(idx>=0){index[idx].hasPhoto=true; await writeIndex(uid,index);}
@@ -209,6 +321,8 @@ exports.handler = async function(event){
 
     if(action==='updateStatus'){
       const {id, status} = body;
+      const VALID_STATUSES = ['browsing','auction','for-sale','offered','under-offer','unconditional','sold'];
+      if(!VALID_STATUSES.includes(status)) return fail('Invalid status value');
       const index = await readIndex(uid);
       const idx = index.findIndex(s=>s.id===id);
       if(idx>=0){index[idx].status=status; await writeIndex(uid,index);}
@@ -219,12 +333,38 @@ exports.handler = async function(event){
       const {scenarioId, targetEmail} = body;
       if(!scenarioId||!targetEmail) return fail('scenarioId and targetEmail required');
       // Verify caller identity from token (need name/email for share record)
-      const ownerData = await verifyToken(authHeader);
+      const ownerData = await verifyToken(event);
       if(!ownerData||ownerData.userId!==uid) return fail('Auth error');
+      // Rate-limit share-email blast: prevents one account from spamming
+      // arbitrary addresses with "X invited you" notifications. Mirrors the
+      // pattern used by comments.js / reviews.js.
+      try {
+        const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+        const userDayKey = 'scenarios:shareCount:' + uid + ':' + today;
+        const userCount = parseInt(await redisCmd('INCR', userDayKey), 10);
+        if (userCount === 1) await redisCmd('EXPIRE', userDayKey, '86400');
+        if (userCount > 20) return fail('You have reached the daily share limit (20/day)', 429);
+        const clientIp = (event.headers['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
+        const ipKey = 'ratelimit:scenarios-share:' + clientIp;
+        const ipCount = parseInt(await redisCmd('INCR', ipKey), 10);
+        if (ipCount === 1) await redisCmd('EXPIRE', ipKey, '3600');
+        if (ipCount > 30) return fail('Too many share requests — please try again later', 429);
+      } catch(e) { console.warn('[scenarios] share rate-limit error:', e.message); }
       // Look up target user
       const norm = targetEmail.toLowerCase().trim();
       const targetUser = await rGet('user:'+norm);
-      if(!targetUser) return fail('No EquitySight account found for that email address');
+      if(!targetUser){
+        // User doesn't exist — send invite email using scenario_invite template
+        const idx2 = await readIndex(uid);
+        const sc2 = idx2.find(s=>s.id===scenarioId);
+        const addrStr = sc2&&sc2.fullAddr ? ' \u2014 <em>'+sc2.fullAddr.replace(/[<>&"]/g,'')+'</em>' : '';
+        const sent = await sendShareEmail(norm, 'scenario_invite', {
+          senderName: (ownerData.name||ownerData.email).replace(/[<>&"]/g,''),
+          address: addrStr,
+        });
+        logEvent(uid,'share_invite_sent',{to:norm,address:sc2?sc2.fullAddr:''}).catch(()=>{});
+        return ok({ok:true, invited:true, email:norm, sent});
+      }
       if(targetUser.id===uid) return fail('Cannot share with yourself');
       // Confirm scenario exists in owner's library
       const idx = await readIndex(uid);
@@ -241,6 +381,15 @@ exports.handler = async function(event){
       const swList = (await rGet(swKey)) || [];
       swList.push({ownerId:uid, ownerEmail:ownerData.email, ownerName:ownerData.name||ownerData.email, scenarioId, fullAddr:sc.fullAddr, thumb:sc.thumb||'', hasPhoto:sc.hasPhoto||false, sharedAt:Date.now()});
       await rSet(swKey, swList);
+      // Send notification email to existing user using scenario_shared template
+      const addrStr = sc.fullAddr ? ' \u2014 <em>'+sc.fullAddr.replace(/[<>&"]/g,'')+'</em>' : '';
+      const recipientFirst = targetUser.name ? targetUser.name.split(' ')[0] : norm;
+      sendShareEmail(norm, 'scenario_shared', {
+        firstName: recipientFirst.replace(/[<>&"]/g,''),
+        senderName: (ownerData.name||ownerData.email).replace(/[<>&"]/g,''),
+        address: addrStr,
+      }).catch(()=>{});
+      logEvent(uid,'scenario_shared',{address:sc.fullAddr,to:norm}).catch(()=>{});
       return ok({ok:true, name:targetUser.name||norm});
     }
 
@@ -302,11 +451,24 @@ exports.handler = async function(event){
     // Admin override: admin can delete any user's scenario
     const adminTargetId = event.queryStringParameters?.adminUserId;
     if(adminTargetId){
-      const admin = await verifyAdminToken(authHeader);
+      const admin = await verifyAdminToken(event);
       if(!admin) return fail('Admin access required', 401);
       const index = await readIndex(adminTargetId);
       await writeIndex(adminTargetId, index.filter(s=>s.id!==id));
-      try{ await redisPipe([['DEL',stateKey(adminTargetId,id)],['DEL',photoKey(adminTargetId,id)]]); }
+      const adminDelCmds = [['DEL',stateKey(adminTargetId,id)],['DEL',photoKey(adminTargetId,id)]];
+      try{
+        const sk = 'share:'+adminTargetId+':'+id;
+        const sl = await rGet(sk);
+        if(sl && Array.isArray(sl)){
+          for(const s of sl){
+            const swk = 'sharedwith:'+s.userId;
+            const swl = ((await rGet(swk))||[]).filter(x=>!(x.ownerId===adminTargetId&&x.scenarioId===id));
+            await rSet(swk, swl);
+          }
+          adminDelCmds.push(['DEL', sk]);
+        }
+      }catch(e){ console.warn('[scenarios] admin share cleanup warn:', e.message); }
+      try{ await redisPipe(adminDelCmds); }
       catch(e){ console.warn('[scenarios] admin DEL pipeline warn:', e.message); }
       return ok({ok:true});
     }
@@ -314,8 +476,25 @@ exports.handler = async function(event){
     const uid = await resolveUser(event, body);
     if(!uid) return fail('Authentication required', 401);
     const index = await readIndex(uid);
+    const deleted = index.find(s=>s.id===id);
     await writeIndex(uid, index.filter(s=>s.id!==id));
-    try{ await redisPipe([['DEL',stateKey(uid,id)],['DEL',photoKey(uid,id)]]); }
+    if(deleted) logEvent(uid,'scenario_deleted',{address:deleted.fullAddr||''}).catch(()=>{});
+    // Clean up state, photo, and share data
+    const delCmds = [['DEL',stateKey(uid,id)],['DEL',photoKey(uid,id)]];
+    try{
+      // Remove share list and notify recipients
+      const shareKey = 'share:'+uid+':'+id;
+      const shareList = await rGet(shareKey);
+      if(shareList && Array.isArray(shareList)){
+        for(const s of shareList){
+          const swKey = 'sharedwith:'+s.userId;
+          const swList = ((await rGet(swKey))||[]).filter(x=>!(x.ownerId===uid&&x.scenarioId===id));
+          await rSet(swKey, swList);
+        }
+        delCmds.push(['DEL', shareKey]);
+      }
+    }catch(e){ console.warn('[scenarios] share cleanup warn:', e.message); }
+    try{ await redisPipe(delCmds); }
     catch(e){ console.warn('[scenarios] DEL pipeline warn:', e.message); }
     return ok({ok:true});
   }

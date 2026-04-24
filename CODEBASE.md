@@ -1,7 +1,11 @@
 # EquitySight.app — Codebase Guide
 
-Static HTML/CSS/JS site hosted on **Netlify** with **Netlify Functions** as the backend.
+**Australia's smartest property finance calculator** — Static HTML/CSS/JS site hosted on Netlify with Netlify Functions backend.
 No framework, no build step — what you see in the repo is what gets deployed.
+
+**Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
+
+**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **Redis-backed authored blog** (static-rendered at build time) + **suburb reviews & star ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **14 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic in app.js | **3100+ lines** of admin logic in admin.js
 
 ---
 
@@ -10,11 +14,19 @@ No framework, no build step — what you see in the repo is what gets deployed.
 ```
 Browser (static files)
   │
-  ├── HTML pages + per-page CSS/JS
-  ├── shared.css       — design tokens & shared component styles
-  ├── auth-nav.js      — injects nav header + session refresh into every page
-  ├── footer.js        — injects site footer into every page
-  ├── error-capture.js — captures JS errors and sends to client-errors function
+  ├── HTML pages (15 handwritten root + 9 tool calculators + 14,512 generated suburb pages + 19 city pages + 8 state hubs)
+  ├── shared.css          — design tokens & shared component styles
+  ├── site-init.js        — applies dark/light theme before first paint (sync, no defer)
+  ├── auth-nav.js         — injects nav header + session refresh into every page
+  ├── footer.js           — injects site footer into every page
+  ├── error-capture.js    — captures JS errors and sends to client-errors function
+  ├── account-panel.js    — standalone account settings panel
+  ├── account.js          — account page logic (subscription, Stripe portal)
+  ├── shared-calcs.js     — common calculator utility functions (fmt, parse, repayment, growth)
+  ├── market-rate.js      — live RBA cash rate + ABS state median prices (window.MarketRate)
+  ├── legal.js            — markdown parser for legal pages
+  ├── adsense.js          — Google AdSense integration
+  ├── gtag-init.js        — Google Analytics initialization
   │
   └── /.netlify/functions/   (Node.js serverless, Netlify deploys automatically)
         ├── auth.js           — all user auth + admin actions (Upstash Redis)
@@ -23,32 +35,366 @@ Browser (static files)
         ├── contact.js        — contact/support form → Resend email
         ├── client-errors.js  — stores/retrieves JS error logs from browsers
         ├── growth.js         — suburb growth rate lookup + 30-day cache
-        ├── mapproxy.js       — map tile proxy
-        └── photo.js          — property photo proxy/upload
+        ├── photo.js          — property photo storage/retrieval proxy
+        ├── mapproxy.js       — OpenStreetMap tile proxy for map rendering
+        ├── address-suggest.js — address autocomplete (rate-limited: 30 req/min)
+        ├── market-data.js    — suburb insights market data API
+        ├── blog.js           — blog CMS (admin CRUD, Redis-backed, build-fetch)
+        ├── reviews.js        — suburb reviews/ratings (UGC, auth, rate-limited, moderation queue)
+        └── comments.js       — blog post comments (UGC, auth, rate-limited, moderation queue)
 ```
 
 ---
 
-## File Map
+## File Map — Complete
 
+### Core Application
+| File | Size | Purpose |
+|------|------|---------|
+| `app.html` + `app.css` + `app.js` | — | **Main calculator app** (authenticated) — 30-year projections, cost breakdown, reno items, loan amortization, LVR/LMI/FHOG, suburb growth, scenario save/load, PDF export, PWA capable |
+| `app-init.js` + `app-events.js` | — | App page initialization and event wiring (split from app.js for clarity) |
+| `admin.html` + `admin.css` + `admin.js` | — | **Admin dashboard** (role=admin only) — 16 tabs: Users, Scenarios, Gov Schemes, Growth Data, Database, Error Log, Settings, Features, Integrations, Branding, Email Templates, About Page, Legal Pages, Suburbs, Blog, Moderation |
+| `admin-events.js` | — | Admin dashboard event listener wiring |
+| `account.html` + `account.js` | — | User account & subscription management panel |
+| `login.html` + `login.css` + `login.js` | — | Sign-in & sign-up page — email verification flow + Google Sign-In |
+| `showcase.html` | — | App gallery — real mobile screenshots in light + dark mode |
+
+### Marketing Pages
+| File | Size | Purpose |
+|------|------|---------|
+| `index.html` + `index.css` | 15K + 17K | Landing/marketing page — hero, features, pricing preview, CTAs |
+| `pricing.html` + `pricing.css` | 17K + 5.9K | Pricing page — plan cards, feature comparison |
+| `about.html` + `about.css` | 9.1K + 3.5K | About page — company mission & values |
+| `contact.html` + `contact.css` | 13K + 4.3K | Contact/support page — form submission via Resend |
+
+### Legal Pages (rendered from .md sources)
 | File | Purpose |
 |------|---------|
-| `index.html` + `index.css` | Marketing landing page |
-| `app.html` + `app.css` + `app.js` | Main calculator app (authenticated) |
-| `admin.html` + `admin.css` + `admin.js` | Admin dashboard (role=admin only) |
-| `account.html` | User account / subscription management |
-| `login.html` + `login.css` | Sign-in / sign-up page |
-| `pricing.html` + `pricing.css` | Pricing page |
-| `about.html` + `about.css` | About page |
-| `contact.html` + `contact.css` | Contact / support page |
-| `privacy.html`, `terms.html`, `cookies.html`, `disclaimer.html` | Legal pages |
-| `shared.css` | CSS custom properties (design tokens), nav, footer, buttons — included on every page |
-| `auth-nav.js` | Renders nav header into `.site-nav-actions`, help modal, session display, background session refresh |
-| `footer.js` | Renders full site footer into `#site-footer-root` |
-| `stripe-config.js` | Stripe publishable key + plan IDs (client-side only) |
-| `account-panel.js` | Floating account panel shown from the app (plan info, sign out) |
-| `error-capture.js` | Captures unhandled JS errors + promise rejections, posts to `client-errors` function |
-| `netlify.toml` | Build config, CSP headers, CORS for functions, static asset cache headers |
+| `privacy.html` + `privacy.md` | Privacy policy |
+| `terms.html` + `terms.md` | Terms of service |
+| `cookies.html` + `cookies.md` | Cookie policy |
+| `disclaimer.html` + `disclaimer.md` | Financial disclaimer |
+
+### Free SEO Tools (marketing lead generation, in `/tools/`)
+| File | Purpose |
+|------|---------|
+| `rental-yield-calculator.html` | Rental yield, cash flow, ROI calculator |
+| `renovation-cost-calculator.html` | Renovation budget with itemized costs |
+| `house-flip-calculator.html` | Buy/renovate/sell profit analysis |
+| `mortgage-stress-calculator.html` | Loan repayment stress testing |
+| `stamp-duty-calculator.html` | All Australian states stamp duty calculator (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) |
+| `cost-of-purchase-calculator.html` | Total cost of purchase — stamp duty, legal, bank, inspections, insurance, moving, lease break |
+| `equity-release-calculator.html` | Home equity release & borrowing capacity based on LVR |
+| `loan-serviceability-calculator.html` | Mortgage affordability & borrowing capacity based on income/expenses |
+| `first-home-buyer-grants-calculator.html` | State-specific FHB grants, exemptions, and concessions |
+| `tools.css` | Shared styles for all calculators |
+
+All calculators use `shared-calcs.js` for common utilities and optionally `market-rate.js` for live RBA/ABS data.
+
+### Utilities & Configuration
+| File | Purpose |
+|------|---------|
+| `shared.css` | **Design system** — CSS variables (colors, fonts, radii, shadows), nav, footer, buttons, dark mode, responsive breakpoints |
+| `site-init.js` | Applies saved dark/light theme before first paint — synchronous (no defer), 3 lines |
+| `auth-nav.js` | Injects sticky nav header with profile button, help modal, background session refresh (every 5 min) — 514 lines |
+| `footer.js` | Injects site footer with dynamic branding from localStorage config |
+| `error-capture.js` | Captures unhandled JS errors & promise rejections, POSTs to client-errors function |
+| `account-panel.js` | Standalone account settings component — profile pic, color theme, plan info, sign out — 483 lines |
+| `account.js` | Account page logic — subscription status, plan display, Stripe portal — 555 lines |
+| `shared-calcs.js` | Common calculator utilities: `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()` — 232 lines |
+| `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` — 69 lines |
+| `legal.js` | Markdown → HTML parser — frontmatter, headings, TOC, safe links — 300+ lines |
+| `stripe-config.js` | Exports Stripe publishable key + plan IDs (client-safe config) |
+| `adsense.js` | Google AdSense integration |
+| `gtag-init.js` | Google Analytics (gtag) initialization |
+| `manifest.json` | PWA manifest — app name, icons, start URL, display mode, theme colors |
+| `netlify.toml` | Build config, CSP headers, CORS, cache headers for static assets; `force=true` redirects blocking dev files |
+| `.netlifyignore` | Dev/internal files excluded from Netlify CDN — **add new dev files here** |
+| `404.html` + `import-test.html` | Error page & dev test page |
+| `robots.txt` | Site crawling directives — allows public pages, blocks admin/app/account |
+| `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + 19 state-grouped `sitemap-suburbs-*.xml` files (14,539 URLs total, max 1000 per file) |
+
+### Suburb Insights System (generated at build time)
+| File | Purpose |
+|------|---------|
+| `fetch-abs-data.js` | Downloads real ABS 2021 Census suburb data from ArcGIS FeatureServer → `data/abs-suburbs.json` |
+| `generate-suburbs-data.js` | Merges ABS population data + postcodes (`data/au_postcodes.csv`) → `data/suburbs.json` |
+| `build-suburbs.js` | Generates 14,512 suburb pages + 19 city pages + 8 state hubs + directory index + state-grouped `sitemap-suburbs-*.xml` files from templates |
+| `data/suburbs.json` | 14,512 suburbs with real names, populations, postcodes + placeholder income/distance/scores |
+| `templates/suburb-page.html` | Suburb page template — investment score, strategy, risks, outlook, `{{PLACEHOLDER}}` syntax, schema.org JSON-LD |
+| `templates/city-page.html` | City page template — aggregate city score, top suburbs, strategy, risks, outlook for 19 major Australian cities |
+| `templates/state-hub.html` | State hub template — progressive loading (100 suburbs, "Show more"), search by name/postcode, city navigation |
+| `suburb-insights.css` | Shared styles for suburb pages, city pages, state hubs, hub search, pagination |
+| `suburb/{state}/{slug}/index.html` | Generated suburb pages (gitignored, built on Netlify deploy) |
+| `invest/{state}/{city-slug}/index.html` | Generated city pages (gitignored, built on Netlify deploy) |
+| `invest/{state}/index.html` | Generated state hub pages (gitignored, built on Netlify deploy) |
+| `favicon.svg` | SVG favicon (logo mark) |
+| `BingSiteAuth.xml` + `ms43432176.txt` | Search engine verification tokens |
+
+### Blog CMS (static-first, Redis-backed)
+| File | Purpose |
+|------|---------|
+| `netlify/functions/blog.js` | Admin CRUD over Upstash Redis — `adminListPosts`, `adminGetPost`, `adminSavePost` (slug collision + tag index diff), `adminPublish`, `adminUnpublish`, `adminDeletePost`; public `list`/`get` actions for client fallback |
+| `build/md.js` | **Shared Markdown parser** (CommonJS) — mirrors `legal.js` so browser + Node emit byte-identical HTML. Build-only extras: `excerpt()`, `wordCount()` |
+| `build/build-blog.js` | Fetches `blog:published` from Upstash → renders static HTML via `templates/blog-*.html` + `build/md.js`. Produces `/blog/index.html` (paged 12/page), `/blog/<slug>/index.html`, `/blog/tag/<tag>/index.html`, `/blog/rss.xml`, `sitemap-blog.xml`. Falls back to `BLOG_FIXTURE` JSON when Upstash env vars absent — build never fails |
+| `templates/blog-post.html` | Per-post template — `BlogPosting` + `BreadcrumbList` + `Person` JSON-LD, author bio card, 3 related posts by tag overlap, cover image, reading-minutes estimate |
+| `templates/blog-index.html` | Blog landing + paginated pages — `Blog` + `BreadcrumbList` JSON-LD, card grid, pagination |
+| `blog.css` | Layered on `legal.css` — `.blog-breadcrumb`, `.blog-article`, `.blog-cover`, `.blog-author-card`, `.blog-tag-pill`, `.blog-related-grid`, `.blog-card`, `.blog-pagination`, dark-mode variants |
+| `data/blog-fixture.json` | Local-only JSON fixture (2 sample authored posts) used when Upstash env vars are absent. Excluded from Netlify CDN via `.netlifyignore` |
+| `blog/` (generated) | Built at deploy time; gitignored; deployed to Netlify CDN |
+| `sitemap-blog.xml` (generated) | Referenced from the master `sitemap.xml` index alongside suburb sitemaps |
+
+### Suburb Reviews & Ratings (UGC, moderated)
+| File | Purpose |
+|------|---------|
+| `netlify/functions/reviews.js` | ~340 lines. User-facing `submitReview` (auth, 1–5 stars, 4–120 char title, 100–4000 char body, `escHtml()` on write, IP rate-limit 10/hr via `ratelimit:reviews:<ip>`, per-user 3/day via `reviews:userCount:<userId>:<YYYYMMDD>`) + public `list` (approved only, paged) + admin actions (`adminPending`, `adminListAll`, `adminApprove`, `adminReject`, `adminDeleteReview`, `adminGet`). 3-state moderation: `pending`/`approved`/`rejected`. Atomic `HINCRBY` on `{count,sum}` aggregate when approving/reverting |
+| Redis schema | `review:<id>` (full JSON), `reviews:<state>:<slug>` (LIST of approved IDs, newest first), `reviews:agg:<state>:<slug>` (HASH `{count,sum}` → avg computed on read), `reviews:queue` (pending LIST), `reviews:all` (all-IDs LIST for admin browse), `ratelimit:reviews:<ip>` (INCR+EXPIRE 3600), `reviews:userCount:<userId>:<YYYYMMDD>` (INCR+EXPIRE 86400) |
+| `build/fetch-reviews.js` | Spawned by `build-suburbs.js` via `execSync` to keep the main build synchronous. SCANs `reviews:agg:*`, fetches `HGETALL` + first 10 approved review IDs per suburb, prints `{"STATE:slug": {agg, reviews:[]}}` to stdout. Missing env vars → outputs `{}` and exits 0 (non-fatal) |
+| `build/build-suburbs.js` | `generateReviewsBlock(state,slug,suburb)` renders up to 10 reviews as static HTML — **returns `''` when `count===0`** so no empty shells appear (AdSense negative signal). `generateAggregateRatingJson()` returns a string with leading comma for slotting into the existing JSON-LD array after the `Place` node. Both gated on `!isNoindexed` |
+| `suburb-reviews.js` | ~260-line IIFE. Reads session from `propCalc_session_v1`, mounts star picker + title + body form (with live char counter) into `#review-form-mount` on non-noindexed pages. Guest users see sign-in CTA. Submits to `/.netlify/functions/reviews` (auth via HttpOnly cookie). "Show more reviews" button paginates via `?action=list&state=&slug=&page=` |
+| `templates/suburb-page.html` | `{{REVIEWS_HTML}}` (empty string when none) + `{{AGGREGATE_RATING_JSON}}` (empty string when none) + `<section id="review-form">` login-gated form container. Renders zero-state as an absent `<section>`, not a "0 reviews" heading |
+| `suburb-insights.css` | Reviews styles — `.suburb-reviews-section`, `.suburb-reviews-avg`, `.suburb-review-card`, `.suburb-review-form-wrap`, `.suburb-review-stars-row` (gold on `.is-on`), `.suburb-review-counter.is-ok`, `.suburb-review-result.is-success/.is-error`, with `html.dark-mode` variants |
+| `admin.html` + `admin.js` + `admin-events.js` | New **Moderation** tab with Pending/All sub-tabs. `callReviews(action, payload)` hits `/reviews` directly; `modLoadReviews`, `modApprove`, `modReject`, `modDelete`, `modSetSubtab` handle the UI |
+
+### Blog Comments (UGC, moderated)
+| File | Purpose |
+|------|---------|
+| `netlify/functions/comments.js` | ~290 lines. Public GET `list` (approved only, paged) + user POST `submitComment` (auth, 20–2000 char body, `escHtml()` on write, IP rate-limit 10/hr via `ratelimit:comments:<ip>`, per-user 5/day via `comments:userCount:<userId>:<YYYYMMDD>`) + admin actions (`adminPending`, `adminListAll`, `adminApprove`, `adminReject`, `adminDeleteComment`, `adminGet`). 3-state moderation: `pending`/`approved`/`rejected`. Flat threading — no nested replies in v1 |
+| Redis schema | `comment:<id>` (full JSON), `comments:<postSlug>` (LIST of approved IDs, newest first), `comments:queue` (pending LIST), `comments:all` (all-IDs LIST for admin browse), `ratelimit:comments:<ip>` (INCR+EXPIRE 3600), `comments:userCount:<userId>:<YYYYMMDD>` (INCR+EXPIRE 86400) |
+| `build/build-blog.js` | New `fetchCommentsForPost(slug)` pulls up to 20 approved comments per post directly from Redis (build-blog is already async — no execSync needed). New `renderCommentsBlock(slug, data)` emits static HTML — **returns empty string when `count === 0`** so empty shells never appear (AdSense negative signal). Build log reports total approved comments injected |
+| `blog-comments.js` | ~230-line IIFE. Reads session from `propCalc_session_v1`, mounts textarea + live char counter into `#comment-form-mount` on every blog post page. Guest users see sign-in CTA. Submits to `/.netlify/functions/comments` (auth via HttpOnly cookie). "Show more comments" button paginates via `?action=list&slug=&page=` |
+| `templates/blog-post.html` | `{{COMMENTS_HTML}}` placeholder (empty string when none) + `<section id="comment-form">` login-gated form container. Renders zero state as an absent `<section id="blog-comments">`, not a "0 comments" heading |
+| `blog.css` | Comments styles — `.blog-comments-section`, `.blog-comment-card`, `.blog-comment-head`, `.blog-comment-body`, `.blog-comment-more-btn`, `.blog-comment-form-wrap`, `.blog-comment-field textarea` (gold focus outline), `.blog-comment-counter.is-ok`, `.blog-comment-result.is-success/.is-error`, with `html.dark-mode` variants |
+| `admin.html` + `admin.js` + `admin-events.js` | Moderation tab now has a **kind switcher** (`mod-kind-reviews` / `mod-kind-comments`) layered above Pending/All. `callComments(action, payload)` hits `/comments` directly; `modLoadReviews` dispatches to the right fetcher + renderer based on `modCurrentKind`. `modRenderCommentCard()` renders comment-specific card markup (no star rating, post slug link instead of suburb link) |
+
+---
+
+---
+
+## Netlify Functions — Complete Reference
+
+### auth.js (User Authentication & Admin)
+**~800 lines** — Upstash Redis backed auth engine.
+
+**User Actions:**
+- `signup` — register with email, creates user record + sends verification email
+- `signin` — lookup by email (not password) + sends verification code
+- `verifyEmail` — verify code, set `emailVerified=true`, create token, set HttpOnly cookie
+- `verify` — read token from cookie, validate TTL + check user still exists (logs out deleted users)
+- `signout` — delete token from Redis, clear session cookie
+- `getProfile` — retrieve profile settings + photo
+- `setProfile` — save profile color/theme
+- `setPhoto` — save base64 photo
+- `changePassword` — update password hash
+- `requestPasswordReset` — send reset code email
+- `resetPasswordWithToken` — set new password with code
+- `deleteAccount` — purge all user data from Redis
+
+**Admin Actions** (require `role === 'admin'` + valid session cookie):
+- `adminListUsers` — returns all users (no passwords)
+- `adminGetUserDetails` — full user record + profile + scenario count + active tokens + error count
+- `adminSetPlan` — upgrade/downgrade plan
+- `adminSetRole` — grant/revoke admin
+- `adminResetPassword` — admin forces password reset
+- `adminDeleteUser` — purge user from system
+- `adminGetConfig` — site config (logo, pricing, feature flags)
+- `adminSetConfig` — update site config
+- `adminGetStats` — signup/login metrics + revenue estimate
+- `adminGetSchemes` — government grant schemes per state
+- `adminSetSchemes` — update schemes
+- `adminGetClientErrors` — retrieve JS error logs with filters
+- `adminGetEmailTemplates` — 6 transactional email templates
+- `adminSetEmailTemplate` — update email template (HTML + subject)
+
+**Data stored in Redis:**
+- `user:<email>` → full user record (name, hash, id, plan, role, createdAt, lastLoginAt, loginCount, emailVerified, etc.)
+- `token:<token>` → {userId, email, name, plan, role, expires} with 30-day TTL
+- `profile:<userId>` → {color, ...settings}
+- `photo:<userId>` → base64 image data
+- `email-template:*` → 6 types (verification, welcome, password_reset, subscription, security_alert, promotional)
+- `events:<userId>` → user action history
+
+### scenarios.js (Scenario Save/Load)
+**~300 lines** — Per-user property scenario library.
+
+**Actions:**
+- `listScenarios` — get all scenarios for user (index + metadata)
+- `saveScenario` — create/update scenario with full state
+- `deleteScenario` — purge scenario
+- `getScenario` — retrieve single scenario full state
+- `getScenarioIndex` — list of scenario IDs + metadata only (for listing)
+
+**Data stored:**
+- `scenarios:<userId>:index` → [{id, address, type, createdAt, ...}]
+- `scenarios:<userId>:state:<id>` → full calculator state (inputs + outputs)
+- `scenarios:<userId>:photo:<id>` → base64 property photo
+
+### stripe.js (Payment Processing)
+**~500 lines** — Stripe checkout, portal, webhooks, discount tracking.
+
+**Actions:**
+- `createCheckout` — create Stripe Checkout session, return redirect URL
+- `createPortalSession` — create Stripe Billing Portal session URL for self-service
+- `getSubscriptionStatus` — current subscription details for user
+
+**Webhooks** (verified via STRIPE_WEBHOOK_SECRET HMAC):
+- `checkout.session.completed` — new subscription, extract discount, upgrade plan
+- `customer.subscription.updated` — plan/status change
+- `customer.subscription.deleted` — downgrade to free
+- `invoice.payment_failed` — send failure email (future)
+
+**Discount tracking** — when coupon applied:
+```
+stripeDiscountInfo: {
+  couponId, couponName, percentOff, amountOffCents,
+  currency, effectiveAmountCents, appliedAt
+}
+```
+
+### contact.js (Contact Form)
+**~100 lines** — Contact form submission via Resend email.
+
+**Action:**
+- `POST /contact` with {name, email, subject, message, diagnostics}
+- Validates email format, escapes HTML
+- Sends via Resend API to `supportEmail` from `config:site`
+- If RESEND_API_KEY missing, logs to console (dev fallback)
+
+### client-errors.js (Error Logging)
+**~150 lines** — Aggregates JS errors from browsers.
+
+**Actions:**
+- `submitError` — receives error log from `error-capture.js` (message, stack, userAgent, URL, userId, etc.)
+- `adminGetClientErrors` — retrieve logs with filters (message, userEmail, browser, dateRange)
+
+**Data stored:**
+- `client-errors:log` → array of up to 500 recent errors (FIFO, oldest dropped)
+
+### growth.js (Suburb Growth Cache)
+**~200 lines** — Growth rate lookup + 30-day cache.
+
+**Actions:**
+- `get` → lookup growth rate for suburb:state (from cache or return null)
+- `set` — **admin only** — store growth rate (validates: finite number, -30 to 100)
+- `clear` — **admin only** — purge growth cache
+
+**Data stored:**
+- `growth:<suburb>:<state>` → {rate, timestamp} with 30-day TTL
+
+### photo.js (Photo Storage)
+**~80 lines** — Property photo proxy.
+
+**Actions:**
+- `get` — retrieve base64 photo by scenario ID (actually handled by scenarios.js)
+- Stores base64 in `photo:<userId>` key
+
+### mapproxy.js (Map Tile Proxy)
+**~120 lines** — OpenStreetMap tile fetching.
+
+**Actions:**
+- `POST /mapproxy` with {lat, lng} — fetches 3×3 grid of map tiles
+- Round-robins across tile servers (a/b/c.tile.openstreetmap.org)
+- Returns base64-encoded PNG grid to client for stitching
+- No auth required (public data)
+
+### address-suggest.js (Address Autocomplete)
+Rate-limited at **30 requests/min** per IP. Provides address autocomplete suggestions for the main app property address field.
+
+### market-data.js (Suburb Market Data)
+Returns market data (median prices, growth rates, demographics) for suburb insights pages. Backed by cached data from ABS + growth Redis store.
+
+### blog.js (Blog CMS)
+**~280 lines** — Admin-only CRUD over Upstash Redis; powers the admin Blog tab and is fetched by `build/build-blog.js` at deploy time.
+
+**Public GET actions** (used as a client fallback; the production surface is the static `/blog/` HTML):
+- `list` — paged published posts (lightweight cards)
+- `get?slug=...` — single post by slug
+
+**Admin POST actions** (all require `session.role === 'admin'`):
+- `adminListPosts` — all posts + metadata
+- `adminGetPost` — full post by id
+- `adminSavePost` — upsert; validates title ≥4 chars, body_md ≥200 chars, ≤6 tags; checks `blog:slug:<slug>` for collisions; diffs old vs new tags and updates only the affected `blog:tag:<t>` lists
+- `adminPublish` — sets `status=published`, prepends to `blog:published`
+- `adminUnpublish` — reverts to draft, removes from `blog:published`
+- `adminDeletePost` — purges post, slug index, all tag lists, both index lists
+
+**Redis key schema:**
+- `blog:post:<id>` → full post JSON
+- `blog:slug:<slug>` → id (unique index for collision check)
+- `blog:index` → LIST of all post IDs
+- `blog:published` → LIST of published IDs (newest first)
+- `blog:tag:<tag>` → LIST of post IDs per tag
+
+**Post schema:** `{id, slug, title, excerpt, body_md, author, author_bio, author_email, cover_image, tags[], status: 'draft'|'published', created_at, updated_at, published_at, comment_count}`
+
+**Build integration:** `build/build-blog.js` pulls from `blog:published` at deploy time and writes static HTML; missing Upstash env vars fall back to `BLOG_FIXTURE` JSON, then to an empty index. `build.js` calls `buildBlog()` after the suburb build branch (restore or full rebuild).
+
+### reviews.js (Suburb Reviews & Ratings)
+**~340 lines** — UGC review submission, listing, and admin moderation for suburb pages. Pattern source: `scenarios.js` for CORS/auth, `contact.js` for rate limits.
+
+**Public GET actions:**
+- `list?state=&slug=&page=&pageSize=` — approved reviews for one suburb (newest first, paged)
+
+**User POST actions (auth required):**
+- `submitReview` — validates `rating 1–5`, `title 4–120 chars`, `body 100–4000 chars`; `escHtml()` on title/body at write time; enforces **IP rate limit** (10/hour via `ratelimit:reviews:<ip>`) and **per-user cap** (3/day via `reviews:userCount:<userId>:<YYYYMMDD>`); persists as `status='pending'` in `reviews:queue`
+
+**Admin POST actions** (all require `session.role === 'admin'`):
+- `adminPending` — list pending reviews from `reviews:queue`
+- `adminListAll` — browse every review via `reviews:all`
+- `adminGet` — single review by id
+- `adminApprove` — flips status to `approved`, removes from queue, prepends to `reviews:<state>:<slug>`, `HINCRBY` count +1 & sum +rating on the aggregate
+- `adminReject` — flips status; if the review was previously approved, reverses the aggregate
+- `adminDeleteReview` — full cleanup across `review:<id>`, per-suburb list, queue, all-list, and aggregate (if previously approved)
+
+**Redis key schema:**
+- `review:<id>` → full review JSON
+- `reviews:<state>:<slug>` → LIST of approved IDs (newest first)
+- `reviews:agg:<state>:<slug>` → HASH `{count, sum}` → average computed on read
+- `reviews:queue` → LIST of pending IDs
+- `reviews:all` → LIST of every review ID (for admin browse)
+- `ratelimit:reviews:<ip>` → INCR+EXPIRE 3600 (10/hour cap)
+- `reviews:userCount:<userId>:<YYYYMMDD>` → INCR+EXPIRE 86400 (3/day cap)
+
+**Review schema:** `{id, suburbSlug, state, userId, userName, rating 1–5, title, body, created_at, status: 'pending'|'approved'|'rejected', approved_at?, rejected_at?}`
+
+**Build integration:** `build/fetch-reviews.js` SCANs `reviews:agg:*` at deploy time and writes a `{"STATE:slug": {agg, reviews:[]}}` map to stdout. `build-suburbs.js` calls it via `execSync` (keeps the main build sync) and injects up to 10 approved reviews as **static HTML** into `{{REVIEWS_HTML}}` plus an `AggregateRating` JSON-LD node into `{{AGGREGATE_RATING_JSON}}` — **only when `count > 0`** and **only on non-noindexed suburbs**. Empty review sections never render (AdSense negative signal).
+
+**Frontend:** `suburb-reviews.js` hydrates the star picker + title + body form into `#review-form-mount` for logged-in users (guests see a sign-in CTA). Auth handled via HttpOnly session cookie. "Show more reviews" button paginates via the `list` action client-side.
+
+**XSS defence:** `title` and `body` are HTML-escaped at write time (stored pre-escaped). Build-time injection and client-side pagination treat them as safe and only convert `\n → <br>` for display (after escape).
+
+### comments.js (Blog Post Comments)
+**~290 lines** — UGC comment submission, listing, and admin moderation for blog posts. Same architectural pattern as `reviews.js`, simpler because there's no rating aggregate to maintain (count is just `LLEN` of the per-post list).
+
+**Public GET actions:**
+- `list?slug=&page=&pageSize=` — approved comments for one post (newest first, paged)
+
+**User POST actions (auth required):**
+- `submitComment` — validates `body 20–2000 chars`; `escHtml()` on body at write time; enforces **IP rate limit** (10/hour via `ratelimit:comments:<ip>`) and **per-user cap** (5/day via `comments:userCount:<userId>:<YYYYMMDD>`); persists as `status='pending'` in `comments:queue`
+
+**Admin POST actions** (all require `session.role === 'admin'`):
+- `adminPending` — list pending comments from `comments:queue`
+- `adminListAll` — browse every comment via `comments:all`
+- `adminGet` — single comment by id
+- `adminApprove` — flips status to `approved`, removes from queue, prepends to `comments:<postSlug>`
+- `adminReject` — flips status; if the comment was previously approved, removes it from the public list
+- `adminDeleteComment` — full cleanup across `comment:<id>`, per-post list, queue, and all-list
+
+**Redis key schema:**
+- `comment:<id>` → full comment JSON
+- `comments:<postSlug>` → LIST of approved IDs (newest first)
+- `comments:queue` → LIST of pending IDs
+- `comments:all` → LIST of every comment ID (for admin browse)
+- `ratelimit:comments:<ip>` → INCR+EXPIRE 3600 (10/hour cap)
+- `comments:userCount:<userId>:<YYYYMMDD>` → INCR+EXPIRE 86400 (5/day cap)
+
+**Comment schema:** `{id, postSlug, userId, userName, body, created_at, status: 'pending'|'approved'|'rejected', approved_at?, rejected_at?}`
+
+**Build integration:** `build/build-blog.js` calls `fetchCommentsForPost(slug)` inline for each published post (no `execSync` helper needed — build-blog is already async). Up to 20 approved comments are injected as **static HTML** into `{{COMMENTS_HTML}}` — **only when `count > 0`**. Empty comment sections never render (AdSense negative signal).
+
+**Frontend:** `blog-comments.js` hydrates a textarea + live char counter into `#comment-form-mount` on every blog post page for logged-in users (guests see a sign-in CTA). Auth handled via HttpOnly session cookie. "Show more comments" button paginates via the `list` action client-side.
+
+**XSS defence:** Same as reviews — `body` is HTML-escaped at write time (stored pre-escaped). Build-time injection and client-side pagination treat it as safe and only convert `\n → <br>` for display (after escape).
 
 ---
 
@@ -87,28 +433,31 @@ Every page that needs the nav and footer follows this pattern:
 - Profile dropdown uses `position:fixed` to avoid being clipped by the nav's `backdrop-filter` stacking context
 - Injects a **help/contact modal** (the `?` button); calls `/.netlify/functions/contact` on submit
 - `window.renderSiteNav` is exposed so other scripts can re-render after profile changes
-- Runs a background `verify` token check 5s after load and every 5 minutes; re-renders nav via `window.renderSiteNav()` if plan/role has changed
+- Runs a background `verify` check (via cookie) 5s after load; re-renders nav via `window.renderSiteNav()` if plan/role has changed
 
 ---
 
 ## Authentication & Session
 
 - **Backend**: Netlify Function `auth.js`, backed by **Upstash Redis**
-- **Session storage**: `localStorage` key `propCalc_session_v1`
-  - Shape: `{ id, email, name, plan, token, role }`
-- **Token**: 30-day TTL token stored in Redis as `token:<token>`
+- **Session cookie**: HttpOnly Secure cookie `es_session` — set on login, cleared on signout. Token never exposed to client JS.
+- **Session storage**: `localStorage` key `propCalc_session_v1` (UI state only — no token)
+  - Shape: `{ id, email, name, plan, role }`
+- **Token**: 30-day TTL token stored in Redis as `token:<token>`, transmitted only via cookie
 - **Plans**: `free` | `pro` | `adviser`
 - **Roles**: `user` | `admin` (admin gets access to `admin.html`)
-- **Auth guard**: Every authenticated page has an inline `<script>` at the top of `<head>` that checks localStorage and redirects to `login.html` if no session — this runs synchronously before any rendering
+- **Login guard**: `isLoggedIn()` checks `session.id` on client side; every authenticated page also has an inline `<script>` at the top of `<head>` that checks localStorage and redirects to `login.html` if no session
+- **Server-side auth**: `verifyToken(event)` reads the HttpOnly `es_session` cookie only — no Authorization header fallback
 
 ### Calling the auth function (client-side pattern)
 
 ```javascript
 const resp = await fetch('/.netlify/functions/auth', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ action: 'getProfile' })
 });
+// Auth is handled automatically via the HttpOnly es_session cookie
 ```
 
 Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setProfile`,
@@ -120,19 +469,29 @@ Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setPr
 
 ## Admin Dashboard (`admin.html` / `admin.js`)
 
-Role=admin only. Tabs:
+**Role=admin only.** Auth hardened: `verify` action called on every load (reads token from cookie) — never falls back to localStorage role; access denied if verification fails.
+
+**16 tabs with full user/system management:**
 
 | Tab | Key features |
 |-----|-------------|
-| **Users** | Table of all users with plan badges + DISC badge for discounted subscriptions. Click row → user detail popup. Cog menu per row → quick actions. |
-| **User Popup** | Full user details, collapsible Recent Errors section (from error log), all cog-wheel actions inline (Reset PW, Change Plan, Grant/Revoke Admin, View History, Delete). |
-| **Scenarios** | Browse and delete user scenarios |
-| **Gov Schemes** | Configure government grant/scheme eligibility per state |
-| **Growth Data** | View and clear suburb growth cache |
-| **Database** | Purge sessions / profiles / scenarios |
-| **Error Log** | JS errors captured from user browsers via `error-capture.js`. Filter by message, user, browser, time. Filters persist when results are empty. Dark-themed table for readability. |
-| **Configuration** | Site identity, pricing, Stripe keys, feature flags, email templates |
-| **Email Templates** | Edit HTML + subject for 6 transactional email types. Content confined to max-width container. |
+| **Users** | Table of all users (sortable by name/email/plan/joined). Plan badges (free/pro/adviser) + DISC badge for coupon discounts. Click row → detailed popup. Cog menu per row → quick actions. |
+| **User Popup** | Full user record (name, email, plan, role, dates, login count, tokens, scenarios, error count). **Login Status badge**: ✓ Active (green), ✓ Email Verified (gold), ⏳ Awaiting Verification (slate). Collapsible Recent Errors section. Inline action buttons (Reset PW, Change Plan, Grant/Revoke Admin, View History, Delete User). |
+| **Scenarios** | Browse all saved property scenarios per user with details. Delete individual scenarios. |
+| **Gov Schemes** | Government grant/scheme eligibility per Australian state (NSW, VIC, QLD, WA, SA, TAS). Edit scheme details, active status. |
+| **Growth Data** | Cached suburb growth rates (20-year average, LGA, etc.). Admin can update rates or clear entire cache. 30-day Redis TTL. |
+| **Database** | Maintenance tools — purge sessions, profiles, or scenarios for testing/recovery. |
+| **Error Log** | JS error logs captured from user browsers. Filter by message keyword, user email, browser type, date range. Errors include stack trace, user agent, page URL. "Sync to GitHub" button pushes to ERRORS.json. |
+| **Settings** | Core site config: site name, support email, session TTL, min password length, email domain restriction, signup toggle, guest access toggle. |
+| **Features** | Feature flags: PDF export, 30-year projections, referral program, max upload size. Scenario limits per plan. |
+| **Integrations** | Stripe publishable key + plan price IDs, Google Sign-In client ID. |
+| **Branding** | Logo (emoji or image upload up to 200KB), brand colour picker, colour theme presets, banner message + type + expiry, maintenance mode. |
+| **Email Templates** | Edit 6 transactional email templates (verification, welcome, password reset, subscription update, security alert, promotional). Supports `{{variable}}` interpolation. |
+| **About Page** | Edit About page content directly from admin. |
+| **Legal Pages** | Edit privacy, terms, cookies, disclaimer content from admin. |
+| **Suburbs** | Browse/search 14,512 suburb records, state breakdown, trigger suburb page rebuild via Netlify deploy hook. |
+| **Blog** | Create/edit/delete blog posts (Redis-backed CMS). Live Markdown word counter vs AdSense 1,500-word floor. Draft/publish toggle. Slug collision check. |
+| **Moderation** | Approve, reject, or delete user-submitted suburb reviews **and** blog comments. Top-level kind switcher (Suburb reviews ↔ Blog comments) with nested Pending / All sub-tabs. Review cards show star rating, suburb link, title, body, status badge; comment cards show post slug link, user, body, status badge. Approving a review increments the aggregate atomically; rejecting/deleting reverses it. |
 
 ### Revenue / discount tracking
 
@@ -217,12 +576,13 @@ Set these in **Netlify → Site Settings → Environment Variables**:
 
 | Variable | Used by | Purpose |
 |----------|---------|---------|
-| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js, client-errors.js | Upstash Redis endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js, client-errors.js | Upstash Redis auth token |
+| `UPSTASH_REDIS_REST_URL` | auth.js, scenarios.js, client-errors.js, blog.js, reviews.js, comments.js, build/fetch-reviews.js, build/build-blog.js | Upstash Redis endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | auth.js, scenarios.js, client-errors.js, blog.js, reviews.js, comments.js, build/fetch-reviews.js, build/build-blog.js | Upstash Redis auth token |
 | `AUTH_SALT` | auth.js | Password hashing salt — **required in production**, must be strong random secret. Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `STRIPE_SECRET_KEY` | stripe.js | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | stripe.js | Stripe webhook signing secret |
 | `RESEND_API_KEY` | contact.js | Resend API key for sending contact form emails |
+| `GITHUB_TOKEN` | client-errors.js | GitHub API token — auto-pushes errors to ERRORS.json in repo (max once per 5 min) |
 
 ---
 
@@ -240,12 +600,18 @@ The CSP `connect-src` currently allows:
 
 - **XSS**: All user-supplied data rendered into HTML goes through `escHtml()` in admin.js / `_escBanner()` in app.js, which escape `&`, `<`, `>`. Do not embed user data in HTML without this.
 - **Photo URLs**: Profile photos inserted via `innerHTML` must pass `safePhotoSrc()` (defined in `account-panel.js` and `auth-nav.js`). Only `data:image/(jpeg|png|gif|webp);base64,` and `https://` URLs are allowed.
-- **Admin auth**: Every admin action in auth.js verifies `user.role === 'admin'` via token. Never skip this check. `growth.js set` action also requires admin.
+- **Session auth**: HttpOnly Secure cookie (`es_session`) — token never exposed to client JS. All server functions read the cookie; the Authorization header fallback has been removed so stolen tokens from an XSS-compromised build can't be replayed via JS. XSS cannot steal session tokens.
+- **Admin auth**: Every admin action in auth.js verifies `user.role === 'admin'` via session cookie. Never skip this check. `growth.js set` action also requires admin.
 - **Growth rate writes**: `growth.js` action `set` is admin-only and validates rate is a finite number between -30 and 100.
 - **Stripe webhooks**: Verified via HMAC-SHA256 signature (`STRIPE_WEBHOOK_SECRET`) with replay protection (5-minute timestamp window).
 - **AUTH_SALT**: Throws a hard error at startup if not set in production (`NODE_ENV=production` or `CONTEXT=production`). Never deploy without this set.
 - **Password hashing**: HMAC-SHA256 with global salt. Adequate for this app's risk profile; consider bcrypt migration if requirements change.
-- **CORS**: Functions return `Access-Control-Allow-Origin: *`. Sensitive actions are all token-gated.
+- **CORS**: Functions return dynamic `Access-Control-Allow-Origin` (allowlisted origins). Sensitive actions are all cookie-gated.
+- **Dev file exposure**: `publish = "."` means Netlify serves the entire repo root. Two-layer defence keeps internal files off the CDN:
+  - **`.netlifyignore`** (primary) — CLAUDE.md, README.md, CODEBASE.md, TODO.md, ERRORS.json, build scripts (`build.js`, `build-suburbs.js`, `generate-suburbs-data.js`, `fetch-abs-data.js`), and raw data (`data/`) are never uploaded to the CDN.
+  - **`netlify.toml` force-404 redirects** (secondary) — `force = true` redirects return 404 for those paths even if a file somehow lands on CDN.
+  - **Rule**: When adding any new dev/internal file to the repo, add it to `.netlifyignore` immediately.
+  - **Exception**: `privacy.md`, `terms.md`, `cookies.md`, `disclaimer.md` must stay public — `legal.js` fetches them at runtime to render legal pages.
 
 ---
 
@@ -253,6 +619,7 @@ The CSP `connect-src` currently allows:
 
 - **No build step**: edit files directly, push to git, Netlify deploys automatically
 - **No framework**: plain JS, no React/Vue/etc. DOM manipulation is direct.
+- **Page JS split pattern**: large pages split into `*-init.js` (setup, auth guard, state restore) + `*-events.js` (event listener wiring) to keep app.js/admin.js focused on logic only.
 - **`recalc()` in app.js**: master recalculation function — called whenever any input changes. Reads all inputs, computes everything, updates all DOM output elements. Called directly for immediate updates (tab switch, load). Use `dRecalc()` from oninput handlers to debounce rapid user input (180ms).
 - **`dRecalc()` in app.js**: debounced wrapper around `recalc()` — use this in all `oninput` HTML attributes to avoid firing recalc on every keystroke.
 - **Tab system in app.js**: `showTab(id, btn)` shows/hides `<section id="tab-{id}">` panels
@@ -261,3 +628,4 @@ The CSP `connect-src` currently allows:
 - **PWA-only styles**: use `@media (display-mode: standalone)` to hide/show elements only in PWA mode (no JS needed)
 - **Print/PDF**: `exportPDF()` in app.js generates a full standalone HTML document in a new window, captures current scenario state as a snapshot
 - **Admin pages**: admin.css hides `.site-nav-links` and `.nav-hamburger` — profile icon stays pinned via `grid-column:3`
+- **Dark mode init**: `site-init.js` loaded synchronously (no `defer`) applies `dark-mode` class to `<html>` before CSS paints — prevents flash of wrong theme

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Blog Editor — EquitySight.app</title>
+<meta name="description" content="EquitySight blog editor — admin only.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="shortcut icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="blog-editor.css">
+</head>
+<body>
+
+<!-- Loading view -->
+<div id="loading-view" class="be-loading">
+  <div class="be-loading-text">Verifying access…</div>
+</div>
+
+<!-- Access denied -->
+<div id="access-denied" class="be-access-denied" style="display:none;">
+  <div class="be-access-icon">🔒</div>
+  <h2>Access Restricted</h2>
+  <p id="access-denied-msg">This page requires an admin account. Please sign in to continue.</p>
+  <a href="/login" class="btn-admin" style="margin-top:4px;">Sign In</a>
+</div>
+
+<!-- Main editor layout (shown after auth) -->
+<div id="editor-layout" style="display:none;flex:1;flex-direction:column;height:100vh;overflow:hidden;">
+
+  <!-- Top bar -->
+  <header class="be-topbar">
+    <div class="be-topbar-brand">
+      <!-- Mobile: toggle sidebar -->
+      <button class="be-topbar-mobile-toggle btn-admin-outline" id="be-sidebar-toggle" style="font-size:11px;padding:5px 10px;color:rgba(245,240,232,0.6);border-color:rgba(245,240,232,0.18);" title="Toggle post list">☰</button>
+      <a href="/admin" id="be-back-link" class="be-back-btn">← Admin</a>
+      <span class="be-brand-title">Blog Editor</span>
+    </div>
+    <div id="be-save-status" class="be-topbar-status"></div>
+    <div class="be-topbar-actions">
+      <button class="btn-admin-outline" id="blog-sync-github-btn" style="font-size:11px;padding:6px 12px;color:rgba(245,240,232,0.7);border-color:rgba(245,240,232,0.2);" title="Push all published posts to GitHub (triggers auto-deploy)">Sync to GitHub</button>
+      <button class="btn-admin btn-admin-primary" id="blog-new-post-btn" style="font-size:11px;padding:6px 14px;">+ New Post</button>
+    </div>
+  </header>
+
+  <!-- Body: sidebar + main -->
+  <div class="be-body">
+
+    <!-- Left sidebar: post list -->
+    <aside class="be-sidebar" id="be-sidebar">
+      <div class="be-sidebar-head">
+        <div id="blog-stats" class="be-sidebar-stats">—</div>
+        <div class="be-sidebar-btns">
+          <button class="btn-admin btn-admin-primary" id="blog-new-post-btn-2" style="font-size:10px;padding:5px 10px;flex:1;">+ New Post</button>
+        </div>
+      </div>
+      <div id="blog-posts-list" class="be-posts-list">
+        <div class="be-list-loading">Loading…</div>
+      </div>
+    </aside>
+
+    <!-- Right: editor area -->
+    <main class="be-main">
+
+      <!-- Empty state (no post selected) -->
+      <div id="be-empty" class="be-empty">
+        <div class="be-empty-icon">✍️</div>
+        <div class="be-empty-text">Select a post or click + New Post to begin</div>
+      </div>
+
+      <!-- Editor form -->
+      <div id="blog-editor-form" class="be-editor" style="display:none;">
+
+        <!-- Editor header row -->
+        <div class="be-editor-head">
+          <div id="blog-editor-title" class="be-editor-head-title">New Post</div>
+          <button class="btn-admin-outline" id="blog-editor-close-btn" style="font-size:10px;padding:4px 10px;flex-shrink:0;">✕ Close</button>
+        </div>
+
+        <input type="hidden" id="blog-edit-id" value="">
+
+        <!-- Scrollable: metadata + body -->
+        <div class="be-editor-scroll">
+
+          <!-- Core metadata (always visible) -->
+          <div class="be-meta-core">
+            <div>
+              <label class="config-label be-label">Title *</label>
+              <input type="text" class="config-input" id="blog-edit-title" placeholder="How the RBA cash rate actually affects your repayments">
+            </div>
+            <div>
+              <label class="config-label be-label">Section (folder)</label>
+              <div style="display:flex;gap:6px;">
+                <select class="config-input" id="blog-edit-section" style="flex:1;">
+                  <option value="general">General</option>
+                </select>
+                <button type="button" class="btn-admin-outline" id="be-section-new-btn" style="font-size:10px;padding:6px 10px;white-space:nowrap;flex-shrink:0;" title="Create a new section">+ New</button>
+              </div>
+              <!-- New section input (hidden by default) -->
+              <div id="be-section-create" style="display:none;margin-top:6px;display:none;">
+                <div style="display:flex;gap:6px;">
+                  <input type="text" class="config-input" id="be-section-name-input" placeholder="e.g. First Home Buyers" style="flex:1;">
+                  <button type="button" class="btn-admin btn-admin-primary" id="be-section-create-btn" style="font-size:10px;padding:6px 12px;white-space:nowrap;">Create</button>
+                  <button type="button" class="btn-admin-outline" id="be-section-cancel-btn" style="font-size:10px;padding:6px 10px;">✕</button>
+                </div>
+              </div>
+            </div>
+            <!-- URL preview (full width) -->
+            <div style="grid-column:1/-1;">
+              <label class="config-label be-label">Post URL</label>
+              <div id="be-url-preview" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);padding:7px 10px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:4px;">/blog/general/your-post-title/</div>
+            </div>
+            <div>
+              <label class="config-label be-label">Excerpt (shown on blog card, 140–200 chars)</label>
+              <input type="text" class="config-input" id="blog-edit-excerpt" placeholder="A short summary shown on the blog index and in the page meta description.">
+            </div>
+            <div>
+              <label class="config-label be-label">Tags (comma-separated, max 6)</label>
+              <input type="text" class="config-input" id="blog-edit-tags" placeholder="strategy, first-home-buyer">
+            </div>
+          </div>
+
+          <!-- Post Settings toggle -->
+          <button type="button" class="be-meta-toggle-btn" id="be-meta-toggle">
+            <span class="be-meta-toggle-arrow">▸</span>
+            Post Settings — author, cover image, SEO
+          </button>
+
+          <!-- Extended metadata (collapsible) -->
+          <div id="be-meta-extra" class="be-meta-extra">
+            <div>
+              <label class="config-label be-label">Author name</label>
+              <input type="text" class="config-input" id="blog-edit-author" placeholder="Alex Chen">
+            </div>
+            <div>
+              <label class="config-label be-label">Cover / hero image (shown at top of post + blog cards)</label>
+              <div style="display:flex;gap:8px;align-items:flex-start;">
+                <input type="text" class="config-input" id="blog-edit-cover" placeholder="https://… paste an image URL" style="flex:1;min-width:0;">
+                <div id="be-cover-preview" style="width:72px;height:46px;border-radius:4px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.1);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                  <img id="be-cover-thumb" style="width:100%;height:100%;object-fit:cover;display:none;" alt="Cover preview">
+                  <span id="be-cover-placeholder" style="font-size:18px;opacity:0.3;">🖼</span>
+                </div>
+              </div>
+            </div>
+            <div class="be-meta-extra-full">
+              <label class="config-label be-label">Author bio (shown under the article)</label>
+              <input type="text" class="config-input" id="blog-edit-author-bio" placeholder="Co-founder &amp; CTO. Former fintech engineer with …">
+            </div>
+            <div class="be-meta-extra-two">
+              <label class="config-label be-label">SEO meta description (50–160 chars — falls back to excerpt if blank)</label>
+              <input type="text" class="config-input" id="blog-edit-meta-desc" placeholder="Override the excerpt with a tighter search snippet.">
+              <div id="blog-edit-metadesc-count" style="font-size:10px;color:var(--slate);margin-top:3px;font-family:var(--font-mono);">0 chars</div>
+            </div>
+            <div style="display:flex;align-items:center;padding-top:22px;">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--charcoal);cursor:pointer;white-space:nowrap;">
+                <input type="checkbox" id="blog-edit-featured" style="width:16px;height:16px;accent-color:#C9A84C;">
+                Featured on blog hero
+              </label>
+            </div>
+          </div>
+
+          <!-- Body editor -->
+          <div class="be-body-area">
+            <div class="be-body-toolbar">
+              <span class="be-body-label">Body — Markdown</span>
+              <button type="button" class="be-mode-btn active" id="blog-edit-mode-write">Write</button>
+              <button type="button" class="be-mode-btn" id="blog-edit-mode-preview">Preview</button>
+              <button type="button" class="be-mode-btn" id="blog-insert-image-btn" title="Insert an image into the body">🖼 Image</button>
+              <div id="blog-edit-wordcount">0 words</div>
+            </div>
+            <!-- Inline image insert panel -->
+            <div id="be-insert-image-panel" style="display:none;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:4px;padding:8px 10px;margin-bottom:6px;flex-shrink:0;">
+              <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:6px;align-items:center;">
+                <div>
+                  <label class="be-label" style="margin-bottom:3px;">Image URL</label>
+                  <input type="text" class="config-input" id="be-img-url" placeholder="https://… paste image URL" style="font-size:12px;">
+                </div>
+                <div>
+                  <label class="be-label" style="margin-bottom:3px;">Alt text</label>
+                  <input type="text" class="config-input" id="be-img-alt" placeholder="Describe the image" style="font-size:12px;">
+                </div>
+                <div style="display:flex;gap:5px;padding-top:16px;">
+                  <button type="button" class="btn-admin btn-admin-primary" id="be-img-insert-btn" style="font-size:10px;padding:6px 12px;white-space:nowrap;">Insert</button>
+                  <button type="button" class="btn-admin-outline" id="be-img-cancel-btn" style="font-size:10px;padding:6px 8px;">✕</button>
+                </div>
+              </div>
+              <div style="font-size:10px;color:var(--slate);margin-top:5px;font-family:var(--font-mono);">Inserts <code style="background:rgba(28,28,30,0.07);padding:1px 4px;border-radius:2px;">![alt](url)</code> at the cursor position in the body.</div>
+            </div>
+            <textarea id="blog-edit-body" class="config-input" placeholder="## Introduction&#10;&#10;Write 1,500+ words here using Markdown…"></textarea>
+            <div id="blog-edit-preview"></div>
+          </div>
+
+        </div><!-- /.be-editor-scroll -->
+
+        <!-- Fixed action bar -->
+        <div class="be-actions">
+          <div id="blog-edit-status" class="be-status"></div>
+          <button class="btn-admin btn-admin-primary" id="blog-save-draft-btn">Save draft</button>
+          <button class="btn-admin" id="blog-save-publish-btn" style="background:#2e7d32;color:#fff;">Save &amp; Publish</button>
+          <button class="btn-admin-outline" id="blog-unpublish-btn" style="display:none;">Unpublish</button>
+          <button class="btn-admin-outline" id="blog-delete-btn" style="color:#c62828;border-color:#c62828;display:none;">Delete</button>
+        </div>
+
+      </div><!-- /#blog-editor-form -->
+
+    </main>
+  </div><!-- /.be-body -->
+
+</div><!-- /#editor-layout -->
+
+<!-- Confirm dialog -->
+<div id="be-confirm-overlay" class="be-confirm-overlay" style="display:none;">
+  <div class="be-confirm-dialog">
+    <div class="be-confirm-title" id="be-confirm-title">Confirm</div>
+    <div class="be-confirm-msg" id="be-confirm-msg"></div>
+    <div class="be-confirm-btns">
+      <button class="btn-admin-outline" id="be-confirm-cancel">Cancel</button>
+      <button class="btn-admin" id="be-confirm-ok" style="background:#c62828;color:white;">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="be-toast" class="be-toast" style="display:none;opacity:0;"></div>
+
+<script src="error-capture.js"></script>
+<script src="blog-editor.js"></script>
+</body>
+</html>

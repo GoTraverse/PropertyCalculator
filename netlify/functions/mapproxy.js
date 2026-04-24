@@ -4,6 +4,22 @@
  * Uses the main tile.openstreetmap.org servers which are far more reliable than staticmap.openstreetmap.de
  */
 
+const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g, '').trim();
+const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g, '').trim();
+
+async function redisCmd(...args) {
+  if (!REDIS_URL || !REDIS_TOKEN) return null;
+  try {
+    const r = await fetch(REDIS_URL, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify(args),
+    });
+    if (!r.ok) return null;
+    return (await r.json()).result;
+  } catch (e) { return null; }
+}
+
 const H = {
   'Content-Type':'application/json',
   'Access-Control-Allow-Origin':'*',
@@ -21,6 +37,13 @@ function latLonToTile(lat, lon, zoom){
 
 exports.handler = async (event) => {
   if(event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
+
+  // Rate limit: 60 map requests per IP per hour (1/min average)
+  const clientIp = (event.headers['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
+  const rlKey = 'mapl:' + clientIp;
+  const count = await redisCmd('INCR', rlKey);
+  if (count === 1) await redisCmd('EXPIRE', rlKey, '3600');
+  if (count > 60) return { statusCode: 429, headers: H, body: JSON.stringify({ ok: false, error: 'Too many requests' }) };
 
   const lat  = parseFloat(event.queryStringParameters?.lat);
   const lon  = parseFloat(event.queryStringParameters?.lon);

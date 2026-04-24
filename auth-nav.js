@@ -11,6 +11,48 @@
   }catch(e){}
 })();
 
+// ── Page transition spinner — inject once, expose goTo() globally ──
+(function(){
+  if(!document.getElementById('page-spinner')){
+    var s=document.createElement('div');s.id='page-spinner';
+    s.innerHTML='<div class="spinner-ring"></div>';
+    document.body.appendChild(s);
+  }
+  window.showPageSpinner=function(){var el=document.getElementById('page-spinner');if(el)el.classList.add('show');};
+  window.goTo=function(url){window.showPageSpinner();setTimeout(function(){location.href=url;},80);};
+})();
+
+// ── PWA Install prompt — capture for deferred install button ──
+var _deferredInstallPrompt = null;
+var _isPWAStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  // Show install button if dropdown is already rendered
+  var btn = document.getElementById('anav-install-btn');
+  if(btn) btn.style.display = '';
+});
+
+window.installPWA = async function(){
+  if(_deferredInstallPrompt){
+    _deferredInstallPrompt.prompt();
+    var result = await _deferredInstallPrompt.userChoice;
+    if(result.outcome === 'accepted'){
+      _deferredInstallPrompt = null;
+      var btn = document.getElementById('anav-install-btn');
+      if(btn) btn.style.display = 'none';
+    }
+  } else {
+    // iOS — show manual instructions
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if(isIOS){
+      alert('To install:\n\n1. Tap the Share button (square with arrow)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
+    } else {
+      alert('To install:\n\nOpen your browser menu (⋮) and tap "Install app" or "Add to Home Screen".');
+    }
+  }
+};
+
 window.toggleTheme = function(){
   var isDark = document.documentElement.classList.toggle('dark-mode');
   try{ localStorage.setItem('equitySight_theme', isDark ? 'dark' : 'light'); }catch(e){}
@@ -62,7 +104,7 @@ window.toggleTheme = function(){
       '#anav-help-overlay.open{display:flex!important;}',
       '#anav-help-modal{background:#F5F0E8;border-radius:8px;width:min(520px,96vw);',
         'max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.55);}',
-      '.anav-cf-label{font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:1px;',
+      '.anav-cf-label{font-family:\u0027DM Mono\u0027,monospace;font-size:10px;letter-spacing:1px;',
         'text-transform:uppercase;color:#4A4A52;display:block;margin-bottom:5px;}',
       '.anav-cf-input,.anav-cf-select,.anav-cf-textarea{width:100%;padding:9px 10px;',
         'border:1px solid rgba(28,28,30,0.15);border-radius:4px;',
@@ -100,14 +142,16 @@ window.toggleTheme = function(){
     el.innerHTML =
       '<div id="anav-signout-modal">' +
         '<h3>Sign out?</h3>' +
-        '<p>You\'ll need to sign back in to access your saved scenarios.</p>' +
+        '<p>You\u0027ll need to sign back in to access your saved scenarios.</p>' +
         '<div class="anav-signout-actions">' +
-          '<button class="anav-signout-cancel" onclick="window.closeSignOutModal()">Cancel</button>' +
-          '<button class="anav-signout-confirm" onclick="window.confirmSignOut()">Sign out</button>' +
+          '<button class="anav-signout-cancel" id="anav-signout-cancel-btn">Cancel</button>' +
+          '<button class="anav-signout-confirm" id="anav-signout-confirm-btn">Sign out</button>' +
         '</div>' +
       '</div>';
     el.addEventListener('click', function(e) { if (e.target === el) window.closeSignOutModal(); });
     document.body.appendChild(el);
+    document.getElementById('anav-signout-cancel-btn').addEventListener('click', window.closeSignOutModal);
+    document.getElementById('anav-signout-confirm-btn').addEventListener('click', window.confirmSignOut);
   }
 
   window.closeSignOutModal = function() {
@@ -118,14 +162,12 @@ window.toggleTheme = function(){
   window.confirmSignOut = function() {
     window.closeSignOutModal();
     var sess = getSession();
-    if (sess && sess.token) {
-      fetch('/.netlify/functions/auth', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({action:'signout', token:sess.token})
-      }).catch(function(){});
-    }
+    fetch('/.netlify/functions/auth', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({action:'signout'})
+    }).catch(function(){});
     localStorage.removeItem(SESSION_KEY);
-    window.location.href = 'index.html';
+    window.goTo('/');
   };
 
   // Inject help modal HTML into body once
@@ -137,10 +179,10 @@ window.toggleTheme = function(){
       '<div id="anav-help-modal">' +
         '<div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">' +
           '<div>' +
-            '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">SUPPORT</div>' +
-            '<div style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:700;color:#F5F0E8;">Send us a message</div>' +
+            '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">SUPPORT</div>' +
+            '<div style="font-family:\u0027Playfair Display\u0027,serif;font-size:17px;font-weight:700;color:#F5F0E8;">Send us a message</div>' +
           '</div>' +
-          '<button onclick="window.closeHelpModal()" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>' +
+          '<button id="anav-cf-close-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>' +
         '</div>' +
         '<div style="padding:22px;">' +
           '<div id="anav-cf-name-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">' +
@@ -148,7 +190,7 @@ window.toggleTheme = function(){
             '<div><label class="anav-cf-label">Last name</label><input class="anav-cf-input" id="anav-cf-lname" type="text" placeholder="Smith"></div>' +
           '</div>' +
           '<div id="anav-cf-email-row" style="margin-bottom:14px;"><label class="anav-cf-label">Email</label><input class="anav-cf-input" id="anav-cf-email" type="email" placeholder="you@email.com"></div>' +
-          '<div id="anav-cf-sending-as" style="display:none;margin-bottom:14px;font-size:12px;color:#6B7280;font-family:\'DM Mono\',monospace;padding:8px 10px;background:rgba(28,28,30,0.05);border-radius:4px;"></div>' +
+          '<div id="anav-cf-sending-as" style="display:none;margin-bottom:14px;font-size:12px;color:#6B7280;font-family:\u0027DM Mono\u0027,monospace;padding:8px 10px;background:rgba(28,28,30,0.05);border-radius:4px;"></div>' +
           '<div style="margin-bottom:14px;"><label class="anav-cf-label">Subject</label>' +
             '<select class="anav-cf-select" id="anav-cf-subject">' +
               '<option value="">Select a topic...</option>' +
@@ -160,23 +202,27 @@ window.toggleTheme = function(){
               '<option value="other">Other</option>' +
             '</select>' +
           '</div>' +
-          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" placeholder="Tell us what\'s on your mind..."></textarea></div>' +
-          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to our <a href="privacy.html" style="color:#C9A84C;">Privacy Policy</a>. We\'ll only use your email to respond.</div>' +
+          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" placeholder="Tell us what\u0027s on your mind..."></textarea></div>' +
+          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to our <a href="/privacy" style="color:#C9A84C;">Privacy Policy</a>. We\u0027ll only use your email to respond.</div>' +
           '<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">' +
-            '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:\'DM Mono\',monospace;"></div>' +
-            '<button onclick="window.closeHelpModal()" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
-            '<button id="anav-cf-submit" onclick="window.submitHelpForm()" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">Send Message →</button>' +
+            '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:\u0027DM Mono\u0027,monospace;"></div>' +
+            '<button id="anav-cf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\u0027DM Mono\u0027,monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
+            '<button id="anav-cf-submit" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:\u0027DM Mono\u0027,monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">Send Message →</button>' +
           '</div>' +
         '</div>' +
         '<div id="anav-cf-success" style="display:none;padding:40px 22px;text-align:center;">' +
           '<div style="font-size:36px;margin-bottom:12px;">✅</div>' +
           '<div style="font-size:20px;font-weight:700;color:#1C1C1E;margin-bottom:8px;">Message sent!</div>' +
-          '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">We\'ll get back to you within 24 hours.</div>' +
-          '<button onclick="window.closeHelpModal()" style="background:#1C1C1E;color:#C9A84C;border:none;padding:11px 24px;border-radius:4px;font-family:\'DM Mono\',monospace;font-size:11px;cursor:pointer;font-weight:600;">Close</button>' +
+          '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">We\u0027ll get back to you within 24 hours.</div>' +
+          '<button id="anav-cf-success-close-btn" style="background:#1C1C1E;color:#C9A84C;border:none;padding:11px 24px;border-radius:4px;font-family:\u0027DM Mono\u0027,monospace;font-size:11px;cursor:pointer;font-weight:600;">Close</button>' +
         '</div>' +
       '</div>';
     el.addEventListener('click', function(e){ if(e.target===el) window.closeHelpModal(); });
     document.body.appendChild(el);
+    document.getElementById('anav-cf-close-btn').addEventListener('click', window.closeHelpModal);
+    document.getElementById('anav-cf-cancel-btn').addEventListener('click', window.closeHelpModal);
+    document.getElementById('anav-cf-submit').addEventListener('click', window.submitHelpForm);
+    document.getElementById('anav-cf-success-close-btn').addEventListener('click', window.closeHelpModal);
   }
 
   window.openHelpModal = function() {
@@ -281,6 +327,10 @@ window.toggleTheme = function(){
     if(success)success.style.display='';
   };
 
+  function _esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   function safePhotoSrc(url) {
     if (!url) return null;
     if (/^data:image\/(jpeg|png|gif|webp);base64,/.test(url)) return url;
@@ -301,7 +351,42 @@ window.toggleTheme = function(){
     if (el) el.classList.add('open');
   };
 
+  // Canonical site-wide nav link set. One source of truth — every page that
+  // includes auth-nav.js gets the same header.
+  // `match` is a list of pathname prefixes (or exact strings) used to highlight
+  // the active link.
+  var SITE_NAV_LINKS = [
+    { href: '/tools',     label: 'Calculators', match: ['/tools'] },
+    { href: '/blog',      label: 'Blog',        match: ['/blog'] },
+    { href: '/showcase',  label: 'Gallery',     match: ['/showcase'] },
+    { href: '/pricing',   label: 'Pricing',     match: ['/pricing'] },
+    { href: '/about',     label: 'About',       match: ['/about'] },
+    { href: '/contact',   label: 'Support',     match: ['/contact'] },
+  ];
+
+  function activeMatch(currentPath, link) {
+    for (var i = 0; i < link.match.length; i++) {
+      var m = link.match[i];
+      if (currentPath === m || currentPath.indexOf(m + '/') === 0 || currentPath === m + '/') return true;
+    }
+    return false;
+  }
+
+  function renderSiteNavLinks() {
+    var ul = document.querySelector('.site-nav-links');
+    if (!ul) return;
+    var currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+    var html = SITE_NAV_LINKS.map(function (link) {
+      var cls = activeMatch(currentPath, link) ? ' class="active"' : '';
+      return '<li><a href="' + link.href + '"' + cls + '>' + link.label + '</a></li>';
+    }).join('');
+    ul.innerHTML = html;
+  }
+
   function renderNav() {
+    // Always rewrite the link list from the canonical set so every page matches.
+    renderSiteNavLinks();
+
     var actions = document.querySelector('.site-nav-actions');
     if (!actions) return;
     injectCSS();
@@ -310,12 +395,14 @@ window.toggleTheme = function(){
     var profile = session ? getProfile(session.id || session.userId) : null;
 
     if (session && (session.id || session.email)) {
-      var name     = session.name || session.email || 'Account';
-      var email    = session.email || '';
-      var color    = (profile && profile.color) || '#C9A84C';
+      var rawName  = session.name || session.email || 'Account';
+      var name     = _esc(rawName);
+      var email    = _esc(session.email || '');
+      var rawColor = (profile && profile.color) || '';
+      var color    = /^#[0-9A-Fa-f]{3,8}$/.test(rawColor) ? rawColor : '#C9A84C';
       var photo    = safePhotoSrc(profile && profile.photo);
-      var initials = getInitials(name);
-      var page     = window.location.pathname.split('/').pop() || 'index.html';
+      var initials = getInitials(rawName);
+      var page     = (window.location.pathname.split('/').pop() || '').replace(/\.html$/, '') || 'index';
 
       var avatarHTML = photo
         ? '<img src="' + photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
@@ -323,13 +410,12 @@ window.toggleTheme = function(){
 
       actions.innerHTML =
         '<div style="display:flex;align-items:center;gap:10px;">' +
-          '<button id="anav-help-btn" onclick="window.openHelpModal()" title="Send us a message">?</button>' +
+          '<button id="anav-help-btn" title="Send us a message">?</button>' +
         '<div style="position:relative;" id="site-profile-wrap">' +
           '<button id="site-profile-btn"' +
-          ' onclick="var m=document.getElementById(\'site-profile-menu\'),r=this.getBoundingClientRect();m.style.top=(r.bottom+6)+\'px\';m.style.right=(window.innerWidth-r.right)+\'px\';m.classList.toggle(\'open\')"' +
           ' style="width:42px;height:42px;border-radius:50%;background:' + (photo ? 'transparent' : color) + ';' +
           'border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;' +
-          'justify-content:center;font-family:\'DM Mono\',monospace;font-size:15px;font-weight:700;' +
+          'justify-content:center;font-family:\u0027DM Mono\u0027,monospace;font-size:15px;font-weight:700;' +
           'color:#1C1C1E;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;' +
           'box-shadow:0 3px 16px rgba(0,0,0,0.35);" title="' + name + '">' +
           avatarHTML +
@@ -339,20 +425,46 @@ window.toggleTheme = function(){
           'min-width:240px;box-shadow:0 16px 48px rgba(0,0,0,0.65);z-index:9999;">' +
             '<div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:6px;">' +
               '<div style="font-size:15px;font-weight:600;color:#F5F0E8;">' + name + '</div>' +
-              '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
+              '<div style="font-family:\u0027DM Mono\u0027,monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
             '</div>' +
             '<div style="padding:2px 0;">' +
-              '<a href="app.html" class="anav-item' + (page==='app.html'?' active':'') + '">Open Calculator</a>' +
-              '<a href="account.html" class="anav-item' + (page==='account.html'?' active':'') + '">Account Settings</a>' +
-              (session.role === 'admin' ? '<a href="admin.html" class="anav-item' + (page==='admin.html'?' active':'') + '">Admin Dashboard</a>' : '') +
+              '<a href="/app" class="anav-item' + (page==='app'?' active':'') + '">Open Calculator</a>' +
+              '<a href="/account" class="anav-item' + (page==='account'?' active':'') + '">Account Settings</a>' +
+              (session.role === 'admin' ? '<a href="/admin" class="anav-item' + (page==='admin'?' active':'') + '">Admin Dashboard</a>' : '') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
-              '<button onclick="toggleTheme()" data-theme-toggle class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
+              '<button data-theme-toggle id="anav-theme-btn" class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
+              (_isPWAStandalone ? '' : '<button id="anav-install-btn" class="anav-item" style="' + (_deferredInstallPrompt ? '' : (/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1) ? '' : 'display:none;')) + '">📲 Install App</button>') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
-              '<button onclick="siteSignOut()" class="anav-item anav-item-danger">→ Sign Out</button>' +
+              '<button id="anav-signout-btn" class="anav-item anav-item-danger">→ Sign Out</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
         '</div>';
+
+      document.getElementById('anav-help-btn').addEventListener('click', window.openHelpModal);
+      document.getElementById('site-profile-btn').addEventListener('click', function() {
+        var m = document.getElementById('site-profile-menu');
+        var r = this.getBoundingClientRect();
+        m.style.top = (r.bottom + 6) + 'px';
+        m.style.right = (window.innerWidth - r.right) + 'px';
+        m.classList.toggle('open');
+      });
+      var themeBtn = document.getElementById('anav-theme-btn');
+      if (themeBtn) themeBtn.addEventListener('click', window.toggleTheme);
+      var installBtn = document.getElementById('anav-install-btn');
+      if (installBtn) installBtn.addEventListener('click', window.installPWA);
+      var signOutBtn = document.getElementById('anav-signout-btn');
+      if (signOutBtn) signOutBtn.addEventListener('click', window.siteSignOut);
+
+      // Intercept dropdown nav links to show spinner before page transition
+      var navLinks = document.querySelectorAll('#site-profile-menu a.anav-item');
+      navLinks.forEach(function(link){
+        link.addEventListener('click', function(e){
+          if(link.classList.contains('active')) return; // already on this page
+          e.preventDefault();
+          window.goTo(link.getAttribute('href'));
+        });
+      });
 
       document.addEventListener('click', function(e) {
         var wrap = document.getElementById('site-profile-wrap');
@@ -364,8 +476,8 @@ window.toggleTheme = function(){
 
     } else {
       actions.innerHTML =
-        '<button class="btn-ghost" onclick="location.href=\'login.html\'">Sign in</button>' +
-        '<button class="btn-gold" onclick="location.href=\'login.html?tab=signup\'">Get started free</button>';
+        '<a href="/login" class="btn-ghost">Sign in</a>' +
+        '<a href="/login?tab=signup" class="btn-gold"><span class="nav-btn-full">Get started free</span><span class="nav-btn-short">Start free</span></a>';
     }
   }
 
@@ -401,10 +513,15 @@ window.toggleTheme = function(){
 
     if (cfg.logoImage) {
       document.querySelectorAll('.site-logo-mark').forEach(function(el) {
-        el.innerHTML = '<img src="' + cfg.logoImage + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" alt="">';
+        var safeLogo = safePhotoSrc(cfg.logoImage);
+        if (safeLogo) {
+          el.classList.remove('site-logo-mark--emoji');
+          el.innerHTML = '<img src="' + safeLogo + '" alt="">';
+        }
       });
     } else if (mark) {
       document.querySelectorAll('.site-logo-mark').forEach(function(el) {
+        el.classList.add('site-logo-mark--emoji');
         el.textContent = mark;
       });
     }
@@ -466,11 +583,11 @@ window.toggleTheme = function(){
       var raw = localStorage.getItem('propCalc_session_v1');
       if (!raw) return;
       var sess = JSON.parse(raw);
-      if (!sess || !sess.token) return;
+      if (!sess || !sess.id) return;
       fetch('/.netlify/functions/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'verify', token: sess.token })
+        body: JSON.stringify({ action: 'verify' })
       }).then(function(r){ return r.json(); }).then(function(d){
         if (!d.ok) return;
         var changed = d.plan !== sess.plan || d.role !== sess.role;

@@ -16,8 +16,8 @@
  *   loadStats()         — fetches signup/login stats via adminGetStats
  *   callAuth(action)    — helper: POST to /.netlify/functions/auth with session token
  *
- * All backend calls go to /.netlify/functions/auth with { action, token, ...params }
- * Session token stored in localStorage 'propCalc_session_v1'.token
+ * All backend calls go to /.netlify/functions/auth with { action, ...params }
+ * Session stored in localStorage 'propCalc_session_v1'; auth via HttpOnly cookie
  */
 
 const SESSION_KEY = 'propCalc_session_v1';
@@ -33,17 +33,16 @@ function getSession(){
 }
 
 async function callAuth(action, payload){
-  const sess = getSession();
-  const token = sess && sess.token;
-  const r = await fetch('/.netlify/functions/auth', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + (token || '')
-    },
-    body: JSON.stringify(Object.assign({action}, payload || {}))
-  });
-  return r.json();
+  try {
+    const r = await fetch('/.netlify/functions/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({action}, payload || {}))
+    });
+    return r.json();
+  } catch(e) {
+    return { ok: false, error: 'Network error — check your connection and try again.' };
+  }
 }
 
 // ── Custom Dialog (replaces browser confirm/alert/prompt) ─────────────────
@@ -121,23 +120,35 @@ async function init(){
     return;
   }
 
-  // Verify token with backend to get current role
+  // Verify token with backend — never fall back to localStorage role
   let d = {};
-  try { d = await callAuth('verify', {token: sess.token}); } catch(e){}
+  try { d = await callAuth('verify', {}); } catch(e){
+    showAccessDenied('Network error verifying session — check your connection and try again.');
+    return;
+  }
 
-  const role = (d.ok ? d.role : sess.role) || 'user';
+  if(!d.ok){
+    showAccessDenied(d.error || 'Could not verify your session — please sign in again.');
+    return;
+  }
 
-  if(role !== 'admin'){
+  if(d.role !== 'admin'){
     showAccessDenied('This page requires an admin account. Use the button below to claim admin (only works if no admin exists yet).');
     document.getElementById('bootstrap-btn').style.display = '';
     return;
   }
 
-  adminSession = d.ok ? d : sess;
+  adminSession = d;
   document.getElementById('access-denied').style.display = 'none';
   document.getElementById('admin-layout').style.display = 'block';
-  const email = (d.ok ? d.email : sess.email) || '';
+  const email = d.email || '';
   document.getElementById('self-admin-info').textContent = 'Logged in as: ' + email;
+
+  // Track admin page access
+  if(window.trackPageEvent) trackPageEvent('admin_page_access', {
+    'admin_email': email,
+    'timestamp': new Date().toISOString()
+  });
 
   loadUsers();
   loadStats(); // populate top stats row immediately
@@ -151,13 +162,12 @@ function showAccessDenied(msg){
 
 async function bootstrapAdmin(){
   const sess = getSession();
-  if(!sess){ location.href='login.html'; return; }
+  if(!sess){ location.href='/login'; return; }
   const st = document.getElementById('bootstrap-status');
   st.textContent = 'Claiming admin role…'; st.className = 'admin-status info';
   const d = await callAuth('setSelfAdmin');
   if(d.ok){
-    // Update local session with new token and admin role
-    const updated = Object.assign({}, sess, {token: d.token || sess.token, role: 'admin'});
+    const updated = Object.assign({}, sess, {role: 'admin'});
     localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
     st.textContent = '✓ Admin role granted! Reloading…'; st.className = 'admin-status ok';
     setTimeout(() => location.reload(), 1200);
@@ -347,7 +357,7 @@ function renderUsers(users){
       <td>${roleHtml}</td>
       <td>
         <div class="user-cog-wrap">
-          <button class="user-cog-btn" data-cog-email="${escHtml(u.email)}" title="Actions" onclick="toggleUserCog(event,this)">⚙</button>
+          <button class="user-cog-btn" data-cog-email="${escHtml(u.email)}" title="Actions" data-action="toggle-cog">⚙</button>
           <div class="user-cog-menu">
             <button class="cog-menu-item" data-action="reset-pw"     data-email="${escHtml(u.email)}">Reset Password</button>
             <button class="cog-menu-item" data-action="set-plan"     data-email="${escHtml(u.email)}" data-plan="${escHtml(plan)}">Change Plan</button>
@@ -491,8 +501,54 @@ async function deleteUser(email){
   const st = document.getElementById('users-status');
   st.textContent = 'Deleting…'; st.className = 'admin-status info';
   const d = await callAuth('adminDeleteUser', {targetEmail: email});
-  if(d.ok){ st.textContent = '✓ User deleted'; st.className = 'admin-status ok'; loadUsers(); }
+  if(d.ok){ st.textContent = '✓ User deleted'; st.className = 'admin-status ok'; loadUsers(); loadDeletedUsers(); }
   else { st.textContent = '✗ ' + (d.error||'Failed'); st.className = 'admin-status err'; }
+}
+
+// ── Deleted Users ─────────────────────────────────────────────────────────────
+async function loadDeletedUsers(){
+  const tbody = document.getElementById('deleted-users-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading…</td></tr>';
+  const d = await callAuth('adminListDeletedUsers');
+  if(!d.ok){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed')+'</td></tr>';
+    return;
+  }
+  const users = d.deletedUsers || [];
+  if(!users.length){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No deleted users</td></tr>';
+    return;
+  }
+  var fmtDate = function(ts){ return ts ? new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '\u2014'; };
+  var fmtDateTime = function(ts){ return ts ? new Date(ts).toLocaleString('en-AU',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '\u2014'; };
+  tbody.innerHTML = users.map(function(u){
+    var deletedBy = u.deletedBy === 'self' ? '<span style="color:var(--slate);font-size:11px;">self</span>' : '<span style="font-size:11px;">'+escHtml(u.deletedBy||'\u2014')+'</span>';
+    var reason = u.deleteReason ? escHtml(u.deleteReason) : '<span style="color:var(--slate);font-style:italic;">none</span>';
+    var lifespan = '';
+    if(u.createdAt && u.deletedAt){
+      var days = Math.round((u.deletedAt - u.createdAt) / (1000*60*60*24));
+      lifespan = days < 1 ? ' (<1 day)' : ' ('+days+'d)';
+    }
+    return '<tr>'+
+      '<td style="font-weight:500;">'+escHtml(u.name||'\u2014')+'</td>'+
+      '<td><span class="user-email">'+escHtml(u.email||'\u2014')+'</span></td>'+
+      '<td><span class="plan-badge plan-'+escHtml(u.plan||'free')+'">'+escHtml(u.plan||'free')+'</span></td>'+
+      '<td style="font-family:var(--font-mono);font-size:11px;">'+fmtDate(u.createdAt)+'</td>'+
+      '<td style="font-family:var(--font-mono);font-size:11px;">'+fmtDateTime(u.deletedAt)+escHtml(lifespan)+'</td>'+
+      '<td>'+deletedBy+'</td>'+
+      '<td style="font-size:12px;max-width:200px;">'+reason+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function _renderUsageRows(usage){
+  var labels={recalc:'Calculations',pdf_export:'PDF Exports',save_scenario:'Saves',load_scenario:'Loads',share_scenario:'Shares',tab_switch:'Tab Switches',pro_upgrade_prompt:'Pro Prompts',compare_view:'Comparisons',amortisation_view:'Amortisation',projection_view:'Projections'};
+  var keys=Object.keys(usage||{});
+  if(!keys.length) return '<div style="font-size:12px;color:var(--slate);padding:6px 0;">No usage data recorded yet.</div>';
+  return keys.sort(function(a,b){ return (usage[b]||0)-(usage[a]||0); }).map(function(k){
+    return '<div style="display:flex;justify-content:space-between;padding:4px 8px;background:rgba(28,28,30,0.04);border-radius:4px;margin-bottom:3px;"><span style="font-size:12px;color:var(--charcoal);">'+ escHtml(labels[k]||k) +'</span><span style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--charcoal);">'+(usage[k]||0)+'</span></div>';
+  }).join('');
 }
 
 async function openUserDetails(email){
@@ -510,6 +566,9 @@ async function openUserDetails(email){
   }
   const u = d.user || {};
   const profile = d.profile || {};
+  // Fetch feature usage stats in background (non-blocking — panel renders before it arrives)
+  var _usageData = {};
+  if(u.id) callAuth('adminGetUsage',{targetUserId:u.id}).then(function(r){ if(r.ok) _usageData=r.usage||{}; var el=document.getElementById('ud-usage-body'); if(el) el.innerHTML=_renderUsageRows(_usageData); }).catch(function(){});
 
   const fmt = ts => ts ? new Date(ts).toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Never';
   const ip = u.lastLoginIp || '';
@@ -525,15 +584,15 @@ async function openUserDetails(email){
   const _udPlan  = u.plan  || 'free';
   const _udId    = u.id    || '';
   const _udRoleBtn = u.role === 'admin'
-    ? `<button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setRole('${escHtml(_udEmail)}','user')">Revoke Admin</button>`
-    : `<button class="btn-admin" onclick="document.getElementById('user-detail-overlay').classList.remove('open');setRole('${escHtml(_udEmail)}','admin')">Grant Admin</button>`;
+    ? `<button class="btn-admin" data-udaction="revoke-admin" data-email="${escHtml(_udEmail)}">Revoke Admin</button>`
+    : `<button class="btn-admin" data-udaction="grant-admin" data-email="${escHtml(_udEmail)}">Grant Admin</button>`;
 
   const _udActionsHtml = `<div style="padding:14px 0 4px;border-top:1px solid rgba(28,28,30,0.08);display:flex;flex-wrap:wrap;gap:8px;">
-    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>openResetPw('${escHtml(_udEmail)}'))">Reset Password</button>
-    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>setPlan('${escHtml(_udEmail)}','${escHtml(_udPlan)}'))">Change Plan</button>
+    <button class="btn-admin" data-udaction="reset-pw" data-email="${escHtml(_udEmail)}">Reset Password</button>
+    <button class="btn-admin" data-udaction="change-plan" data-email="${escHtml(_udEmail)}" data-plan="${escHtml(_udPlan)}">Change Plan</button>
     ${_udRoleBtn}
-    <button class="btn-admin" onclick="_openFromDetail('${escHtml(_udEmail)}',()=>openUserHistory('${escHtml(_udId)}','${escHtml(_udEmail)}'))">View History</button>
-    <button class="btn-admin" style="color:var(--risk-red);border-color:rgba(196,90,90,0.4);" onclick="document.getElementById('user-detail-overlay').classList.remove('open');deleteUser('${escHtml(_udEmail)}')">Delete User</button>
+    <button class="btn-admin" data-udaction="view-history" data-userid="${escHtml(_udId)}" data-email="${escHtml(_udEmail)}">View History</button>
+    <button class="btn-admin" style="color:var(--risk-red);border-color:rgba(196,90,90,0.4);" data-udaction="delete-user" data-email="${escHtml(_udEmail)}">Delete User</button>
   </div>`;
 
   // Pre-compute user errors section (Task 5)
@@ -555,6 +614,25 @@ async function openUserDetails(email){
   const _udErrorsHtml = `<details style="margin-top:14px;border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
     <summary style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);cursor:pointer;user-select:none;">Recent Errors (${_udUserErrs.length})</summary>
     <div style="margin-top:10px;">${_udErrRows}</div>
+  </details>`;
+
+  // Pre-signup page trail (pages visited before signup)
+  const _trail = Array.isArray(u.signupPageTrail) ? u.signupPageTrail : [];
+  let _trailRows = '';
+  if (!_trail.length) {
+    _trailRows = '<div style="font-size:12px;color:var(--slate);padding:6px 0;">No page trail recorded (user signed up before tracking was added).</div>';
+  } else {
+    _trailRows = _trail.map(function(e) {
+      var t = e.t ? new Date(e.t).toLocaleString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+      var qs = e.q ? escHtml(e.q) : '';
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:rgba(28,28,30,0.04);border-radius:4px;margin-bottom:4px;">' +
+        '<span style="font-family:var(--font-mono);font-size:12px;color:var(--charcoal);word-break:break-all;">' + escHtml(e.p||'') + (qs ? '<span style="color:var(--slate);">' + qs + '</span>' : '') + '</span>' +
+        '<span style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;margin-left:12px;">' + t + '</span></div>';
+    }).join('');
+  }
+  const _udTrailHtml = `<details style="margin-top:14px;border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
+    <summary style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);cursor:pointer;user-select:none;">Signup Page Trail (${_trail.length})</summary>
+    <div style="margin-top:10px;">${_trailRows}</div>
   </details>`;
 
   // Pre-compute discount display HTML (Task 6)
@@ -590,12 +668,20 @@ async function openUserDetails(email){
         <div style="margin-top:4px;">${u.role==='admin'?'<span class="role-badge">admin</span>':'<span style="color:var(--slate);font-size:13px;">user</span>'}</div>
       </div>
       <div>
+        <div class="config-label">Login Status</div>
+        <div style="margin-top:4px;"><span style="font-size:12px;padding:4px 8px;border-radius:3px;background:${u.emailVerified&&u.lastLoginAt?'rgba(90,158,111,0.15);color:#5A9E6F':u.emailVerified?'rgba(201,168,76,0.15);color:#C9A84C':u.emailVerificationCodeHash?'rgba(91,143,171,0.15);color:#5B8FAB':'rgba(107,127,128,0.15);color:#6B7F80'};font-weight:500;">${u.emailVerified&&u.lastLoginAt?'✓ Active':u.emailVerified?'✓ Email Verified':'⏳ Awaiting Verification'}</span></div>
+      </div>
+      <div>
         <div class="config-label">Date Joined</div>
         <div style="font-family:var(--font-mono);font-size:12px;margin-top:3px;">${fmt(u.createdAt)}</div>
       </div>
       <div>
         <div class="config-label">Last Login</div>
         <div style="font-family:var(--font-mono);font-size:12px;margin-top:3px;">${fmt(u.lastLoginAt)}</div>
+      </div>
+      <div>
+        <div class="config-label">Last Active</div>
+        <div style="font-family:var(--font-mono);font-size:12px;margin-top:3px;">${fmt(u.lastActiveAt||u.lastLoginAt)}</div>
       </div>
       <div>
         <div class="config-label">Total Logins</div>
@@ -626,17 +712,40 @@ async function openUserDetails(email){
           <span style="font-family:var(--font-mono);font-size:11px;color:var(--slate);">${escHtml(profile.color)}</span>
         </div>
       </div>` : ''}
-      ${profile.photo ? `<div>
+      ${safePhotoSrc(profile.photo) ? `<div>
         <div class="config-label">Avatar</div>
-        <img src="${escHtml(profile.photo)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-top:4px;border:2px solid rgba(28,28,30,0.1);">
+        <img src="${safePhotoSrc(profile.photo)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-top:4px;border:2px solid rgba(28,28,30,0.1);">
       </div>` : ''}
     </div>
     <div style="padding:12px 0;border-top:1px solid rgba(28,28,30,0.08);font-size:11px;color:var(--slate);font-family:var(--font-mono);">
       User ID: ${escHtml(u.id||'—')}
     </div>
     ${_udActionsHtml}
+    ${_udTrailHtml}
+    <details style="margin-top:14px;border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
+      <summary style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);cursor:pointer;user-select:none;">Feature Usage</summary>
+      <div id="ud-usage-body" style="margin-top:10px;"><div style="font-size:12px;color:var(--slate);padding:6px 0;font-style:italic;">Loading usage data…</div></div>
+    </details>
     ${_udErrorsHtml}
   `;
+
+  // Wire user detail action buttons (inline handlers removed for CSP compliance)
+  body.addEventListener('click', function _udHandler(e){
+    var btn = e.target.closest('[data-udaction]');
+    if(!btn) return;
+    var action = btn.dataset.udaction;
+    var email  = btn.dataset.email || '';
+    var plan   = btn.dataset.plan  || 'free';
+    var userid = btn.dataset.userid || '';
+    if(action === 'reset-pw')    { _openFromDetail(email, ()=>openResetPw(email)); }
+    else if(action === 'change-plan')   { _openFromDetail(email, ()=>setPlan(email, plan)); }
+    else if(action === 'revoke-admin')  { document.getElementById('user-detail-overlay').classList.remove('open'); setRole(email,'user'); }
+    else if(action === 'grant-admin')   { document.getElementById('user-detail-overlay').classList.remove('open'); setRole(email,'admin'); }
+    else if(action === 'view-history')  { _openFromDetail(email, ()=>openUserHistory(userid, email)); }
+    else if(action === 'delete-user')   { document.getElementById('user-detail-overlay').classList.remove('open'); deleteUser(email); }
+    // Remove this one-shot listener after use (re-added each time panel opens)
+    body.removeEventListener('click', _udHandler);
+  });
 
   // Asynchronously populate geolocation for this IP
   if(ip){
@@ -656,9 +765,13 @@ async function openUserDetails(email){
 
 function showAdminTab(tab, btn){
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(function(b){
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
   document.getElementById('tab-'+tab).classList.add('active');
   btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
   // Scroll tab button into view horizontally (inline only) without affecting vertical scroll
   setTimeout(function(){
     const savedY = window.scrollY;
@@ -671,26 +784,32 @@ function getV(id, fallback){ const el=document.getElementById(id); return el?(el
 function setV(id, val){ const el=document.getElementById(id); if(!el) return; if(el.type==='checkbox') el.checked=!!val; else el.value=val??''; }
 
 async function loadConfig(){
-  const st = document.getElementById('config-status');
-  st.textContent = 'Loading configuration…'; st.className = 'admin-status info';
+  function setCfgStatus(msg, cls){
+    ['config-status','features-status','integrations-status'].forEach(function(id){
+      const el = document.getElementById(id);
+      if(el){ el.textContent = msg; el.className = 'admin-status ' + cls; }
+    });
+  }
+  setCfgStatus('Loading configuration…', 'info');
   const d = await callAuth('adminGetConfig');
   let c = {};
   if(d.ok){
     c = d.config || {};
     // Cache locally for app-side use
     try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(c)); } catch(e){}
+    setCfgStatus('', '');
   } else {
     // Fall back to locally cached config
     try { c = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}'); } catch(e){ c = {}; }
     if(Object.keys(c).length){
-      st.textContent = 'Using locally cached config (API unavailable)'; st.className = 'admin-status info';
+      setCfgStatus('Using locally cached config (API unavailable)', 'info');
     } else {
-      st.textContent = '✗ ' + (d.error||'Failed to load config'); st.className = 'admin-status err'; return;
+      setCfgStatus('✗ ' + (d.error||'Failed to load config'), 'err'); return;
     }
   }
   setV('cfg-site-name',       c.siteName       || 'EquitySight.app');
   setV('cfg-site-tagline',    c.siteTagline    || '');
-  setV('cfg-logo-mark',       c.logoMark       || '🏠');
+  setV('cfg-logo-mark',       c.logoMark       || '');
   setV('cfg-logo-name',       c.logoName       || 'EquitySight');
   setV('cfg-logo-tld',        c.logoTld        !== undefined ? c.logoTld : '.app');
   setV('cfg-brand-color',     c.brandColor     || '#C9A84C');
@@ -707,7 +826,15 @@ async function loadConfig(){
   var bpMark = document.getElementById('brand-preview-mark');
   var bpName = document.getElementById('brand-preview-name');
   var bpTld  = document.getElementById('brand-preview-tld');
-  if(bpMark) bpMark.textContent = c.logoMark || '🏠';
+  if(bpMark) {
+    if (c.logoMark) {
+      bpMark.classList.add('site-logo-mark--emoji');
+      bpMark.textContent = c.logoMark;
+    } else {
+      bpMark.classList.remove('site-logo-mark--emoji');
+      bpMark.innerHTML = '<img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52">';
+    }
+  }
   if(bpName) bpName.textContent = c.logoName || 'EquitySight';
   if(bpTld)  bpTld.textContent  = c.logoTld  !== undefined ? c.logoTld : '.app';
   if(c.brandColor) applyBrandColor(c.brandColor);
@@ -719,8 +846,14 @@ async function loadConfig(){
     var emojiEl2 = document.getElementById('logo-img-emoji');
     var imgEl2   = document.getElementById('logo-img-preview');
     var clrBtn2  = document.getElementById('logo-img-clear-btn');
-    if(emojiEl2) { emojiEl2.textContent = c.logoMark || '🏠'; emojiEl2.style.display = ''; }
-    if(imgEl2)   { imgEl2.src = ''; imgEl2.style.display = 'none'; }
+    if(emojiEl2) { emojiEl2.textContent = c.logoMark || ''; emojiEl2.style.display = c.logoMark ? '' : 'none'; }
+    if(imgEl2)   {
+      if (c.logoMark) {
+        imgEl2.src = ''; imgEl2.style.display = 'none';
+      } else {
+        imgEl2.src = '/images/icon-dark.svg'; imgEl2.style.display = 'block';
+      }
+    }
     if(clrBtn2)  clrBtn2.style.display = 'none';
   }
   setV('cfg-support-email',   c.supportEmail   || 'support@equitysight.app');
@@ -739,19 +872,22 @@ async function loadConfig(){
   setV('cfg-enable-pdf',      c.enablePdfExport!==false);
   setV('cfg-enable-proj',     c.enableProjections!==false);
   setV('cfg-enable-referral', c.referralEnabled||false);
+  setV('cfg-admin-view-all',  c.adminViewAllScenarios||false);
   setV('cfg-referral-bonus',  c.referralBonus||30);
   setV('cfg-max-upload',      c.maxUploadMb||5);
   setV('cfg-session-ttl',     c.sessionTtlDays||30);
   setV('cfg-free-limit',      c.freeScenarioLimit||1);
   setV('cfg-pro-limit',       c.proScenarioLimit!=null?c.proScenarioLimit:-1);
-  setV('cfg-pro-monthly',     c.proMonthlyPrice||9);
-  setV('cfg-pro-annual',      c.proAnnualPrice||86);
+  setV('cfg-pro-monthly',     c.proMonthlyPrice||2.99);
+  setV('cfg-pro-annual',      c.proAnnualPrice||29);
   setV('cfg-adviser-monthly', c.adviserMonthlyPrice||29);
+  setV('google-client-id',    c.googleClientId||'');
+  renderPartnerLinksUI(c.partnerLinks || {});
   setV('stripe-pub-key',      c.stripePubKey||'');
   setV('stripe-pro-monthly',  c.stripeProMonthly||'');
   setV('stripe-pro-annual',   c.stripeProAnnual||'');
   setV('stripe-portal',       c.stripePortal||'');
-  st.textContent = ''; st.className = 'admin-status';
+  setCfgStatus('', '');
   updateBannerPreview();
   // NOTE: stats are NOT auto-refreshed here — use the Refresh Stats button
 }
@@ -783,10 +919,22 @@ function clearLogoImage(){
   var clearBtn = document.getElementById('logo-img-clear-btn');
   var previewMark = document.getElementById('brand-preview-mark');
   if(inp) inp.value = '';
-  if(imgEl)  { imgEl.src = ''; imgEl.style.display = 'none'; }
-  if(emojiEl) emojiEl.style.display = '';
+  var mark = getV('cfg-logo-mark','');
+  if(emojiEl) { emojiEl.textContent = mark; emojiEl.style.display = mark ? '' : 'none'; }
+  if(imgEl)  {
+    if (mark) { imgEl.src = ''; imgEl.style.display = 'none'; }
+    else { imgEl.src = '/images/icon-dark.svg'; imgEl.style.display = 'block'; }
+  }
   if(clearBtn) clearBtn.style.display = 'none';
-  if(previewMark) previewMark.textContent = getV('cfg-logo-mark','') || '🏠';
+  if(previewMark) {
+    if (mark) {
+      previewMark.classList.add('site-logo-mark--emoji');
+      previewMark.textContent = mark;
+    } else {
+      previewMark.classList.remove('site-logo-mark--emoji');
+      previewMark.innerHTML = '<img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52">';
+    }
+  }
 }
 
 function _applyLogoImagePreview(dataUri){
@@ -797,15 +945,31 @@ function _applyLogoImagePreview(dataUri){
   if(imgEl)  { imgEl.src = dataUri; imgEl.style.display = 'block'; }
   if(emojiEl) emojiEl.style.display = 'none';
   if(clearBtn) clearBtn.style.display = '';
-  if(previewMark) previewMark.innerHTML = '<img src="'+dataUri+'" style="width:100%;height:100%;object-fit:contain;" alt="">';
+  if(previewMark) {
+    previewMark.classList.remove('site-logo-mark--emoji');
+    previewMark.innerHTML = '<img src="'+dataUri+'" alt="">';
+  }
 }
 
 function updateLogoEmojiPreview(val){
   var emojiEl = document.getElementById('logo-img-emoji');
-  if(emojiEl) emojiEl.textContent = val || '🏠';
+  var imgEl = document.getElementById('logo-img-preview');
+  if(emojiEl) { emojiEl.textContent = val || ''; emojiEl.style.display = val ? '' : 'none'; }
+  if(!_logoImageData && imgEl){
+    if(val) { imgEl.src = ''; imgEl.style.display = 'none'; }
+    else    { imgEl.src = '/images/icon-dark.svg'; imgEl.style.display = 'block'; }
+  }
   if(!_logoImageData){
     var previewMark = document.getElementById('brand-preview-mark');
-    if(previewMark) previewMark.textContent = val || '🏠';
+    if(previewMark) {
+      if (val) {
+        previewMark.classList.add('site-logo-mark--emoji');
+        previewMark.textContent = val;
+      } else {
+        previewMark.classList.remove('site-logo-mark--emoji');
+        previewMark.innerHTML = '<img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52">';
+      }
+    }
   }
 }
 // ── Colour theme presets ───────────────────────────────────────────────────
@@ -878,16 +1042,17 @@ document.addEventListener('input',  function(e){ if(e.target.id==='cfg-banner') 
 async function saveConfig(){
   const st  = document.getElementById('config-status');
   const stB = document.getElementById('branding-status');
+  const stF = document.getElementById('features-status');
+  const stI = document.getElementById('integrations-status');
   function setStatus(msg, cls) {
-    if(st)  { st.textContent  = msg; st.className  = 'admin-status ' + cls; }
-    if(stB) { stB.textContent = msg; stB.className = 'admin-status ' + cls; }
+    [st, stB, stF, stI].forEach(function(el){ if(el){ el.textContent = msg; el.className = 'admin-status ' + cls; } });
   }
   setStatus('Saving…', 'info');
   const config = {
     siteName:            getV('cfg-site-name',''),
     siteTagline:         getV('cfg-site-tagline',''),
     logoImage:           _logoImageData || '',
-    logoMark:            getV('cfg-logo-mark','🏠'),
+    logoMark:            getV('cfg-logo-mark',''),
     logoName:            getV('cfg-logo-name','EquitySight'),
     logoTld:             getV('cfg-logo-tld','.app'),
     brandColor:          getV('cfg-brand-color','#C9A84C'),
@@ -908,18 +1073,21 @@ async function saveConfig(){
     enablePdfExport:     getV('cfg-enable-pdf',true),
     enableProjections:   getV('cfg-enable-proj',true),
     referralEnabled:     getV('cfg-enable-referral',false),
+    adminViewAllScenarios: getV('cfg-admin-view-all',false),
     referralBonus:       parseInt(getV('cfg-referral-bonus','30'))||30,
     maxUploadMb:         parseInt(getV('cfg-max-upload','5'))||5,
     sessionTtlDays:      parseInt(getV('cfg-session-ttl','30'))||30,
     freeScenarioLimit:   parseInt(getV('cfg-free-limit','1'))||1,
     proScenarioLimit:    parseInt(getV('cfg-pro-limit','-1')),
-    proMonthlyPrice:     parseFloat(getV('cfg-pro-monthly','9'))||9,
-    proAnnualPrice:      parseFloat(getV('cfg-pro-annual','86'))||86,
+    proMonthlyPrice:     parseFloat(getV('cfg-pro-monthly','2.99'))||2.99,
+    proAnnualPrice:      parseFloat(getV('cfg-pro-annual','29'))||29,
     adviserMonthlyPrice: parseFloat(getV('cfg-adviser-monthly','29'))||29,
+    googleClientId:      getV('google-client-id',''),
     stripePubKey:        getV('stripe-pub-key',''),
     stripeProMonthly:    getV('stripe-pro-monthly',''),
     stripeProAnnual:     getV('stripe-pro-annual',''),
     stripePortal:        getV('stripe-portal',''),
+    partnerLinks:        serializePartnerLinksUI(),
   };
   const d = await callAuth('adminSetConfig', {config});
   if(d.ok){
@@ -928,10 +1096,7 @@ async function saveConfig(){
     setStatus('✓ Configuration saved', 'ok');
     setTimeout(()=>{ setStatus('', ''); }, 3000);
   } else {
-    // If API fails, still save locally so frontend settings are applied
-    try { localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(config)); } catch(e){}
-    setStatus('✓ Saved locally (API: ' + (d.error||'check backend') + ')', 'ok');
-    setTimeout(()=>{ setStatus('', ''); }, 4000);
+    setStatus('✗ Save failed: ' + (d.error||'check backend — changes not saved to database'), 'err');
   }
 }
 
@@ -958,8 +1123,8 @@ async function loadStats(){
   // Show loading state immediately
   const spinner = '<div class="stat-spinner"></div>';
   const chartLoad = '<div class="stat-chart-loading"></div>';
-  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-sessions','stat-scenarios-top','stat-new-users','stat-revenue','stat-avg-scenarios'];
-  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-sessions','stat-chart-scenarios','stat-chart-new-users','stat-chart-revenue','stat-chart-avg'];
+  const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-revenue','stat-avg-scenarios','stat-total-scenarios','stat-shared','stat-errors','stat-db-keys'];
+  const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-revenue','stat-chart-avg','stat-chart-total-scenarios','stat-chart-shared','stat-chart-errors','stat-chart-db-keys'];
   statIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=spinner; });
   chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=chartLoad; });
 
@@ -979,11 +1144,12 @@ async function loadStats(){
   if(el('stat-free'))          el('stat-free').textContent          = s.freeUsers          ?? '—';
   if(el('stat-pro'))           el('stat-pro').textContent           = s.proUsers           ?? '—';
   if(el('stat-adviser'))       el('stat-adviser').textContent       = s.adviserUsers       ?? '—';
-  if(el('stat-sessions'))      el('stat-sessions').textContent      = s.activeSessions     ?? '—';
-  if(el('stat-scenarios-top')) el('stat-scenarios-top').textContent = s.totalScenarioLists ?? '—';
-  if(el('stat-new-users'))     el('stat-new-users').textContent     = s.newUsersLast7      ?? '—';
   if(el('stat-revenue'))       el('stat-revenue').textContent       = s.revenueEstimate !== undefined ? '$' + s.revenueEstimate : '—';
   if(el('stat-avg-scenarios')) el('stat-avg-scenarios').textContent = s.avgScenariosPerUser ?? '—';
+  if(el('stat-total-scenarios'))el('stat-total-scenarios').textContent= s.totalScenarios    ?? '—';
+  if(el('stat-shared'))         el('stat-shared').textContent         = s.sharedScenarios   ?? '—';
+  if(el('stat-errors'))         el('stat-errors').textContent         = s.clientErrors      ?? '—';
+  if(el('stat-db-keys'))        el('stat-db-keys').textContent        = s.dbKeys            ?? '—';
 
   // Render 7-day sparklines for every stat card
   const mk = (key) => history.map(h => ({ date: h.date, value: h[key] }));
@@ -991,15 +1157,147 @@ async function loadStats(){
   renderSparkline('stat-chart-free',      mk('freeUsers'),          'rgba(100,100,110,0.8)',     'rgba(100,100,110,0.4)');
   renderSparkline('stat-chart-pro',       mk('proUsers'),           'rgba(180,140,50,0.9)',      'rgba(201,168,76,0.5)');
   renderSparkline('stat-chart-adviser',   mk('adviserUsers'),       'rgba(60,120,165,0.9)',      'rgba(91,143,171,0.5)');
-  renderSparkline('stat-chart-sessions',  mk('activeSessions'),     'rgba(91,143,171,0.85)',     'rgba(91,143,171,0.4)');
-  renderSparkline('stat-chart-scenarios', mk('totalScenarioLists'), 'rgba(70,140,110,0.85)',     'rgba(90,158,123,0.4)');
-  renderSparkline('stat-chart-new-users', mk('newUsersLast7'),      'rgba(90,158,123,0.9)',      'rgba(90,158,123,0.5)');
   renderSparkline('stat-chart-revenue',   mk('revenueEstimate'),    'rgba(201,168,76,0.9)',      'rgba(201,168,76,0.5)');
   renderSparkline('stat-chart-avg',       mk('avgScenariosPerUser'),'rgba(150,100,180,0.8)',     'rgba(150,100,180,0.4)');
+  renderSparkline('stat-chart-total-scenarios', mk('totalScenarios'),  'rgba(120,100,160,0.85)', 'rgba(120,100,160,0.4)');
+  renderSparkline('stat-chart-shared',          mk('sharedScenarios'), 'rgba(91,143,171,0.85)',  'rgba(91,143,171,0.4)');
+  renderSparkline('stat-chart-errors',          mk('clientErrors'),    'rgba(196,90,90,0.85)',   'rgba(196,90,90,0.4)');
+  renderSparkline('stat-chart-db-keys',         mk('dbKeys'),         'rgba(74,74,82,0.85)',     'rgba(74,74,82,0.4)');
 }
 
 function escHtml(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── Partner / Referral Links UI ──────────────────────────────────────────────
+
+var PARTNER_PAGES = [
+  { slug: 'global',              label: 'All calculator pages' },
+  { slug: 'stamp-duty',          label: 'Stamp Duty Calculator' },
+  { slug: 'rental-yield',        label: 'Rental Yield Calculator' },
+  { slug: 'mortgage-stress',     label: 'Mortgage Stress Calculator' },
+  { slug: 'loan-serviceability', label: 'Loan Serviceability Calculator' },
+  { slug: 'equity-release',      label: 'Equity Release Calculator' },
+  { slug: 'first-home-buyer',    label: 'First Home Buyer Grants' },
+  { slug: 'house-flip',          label: 'House Flip Calculator' },
+  { slug: 'renovation-cost',     label: 'Renovation Cost Calculator' },
+  { slug: 'cost-of-purchase',    label: 'Cost of Purchase Calculator' },
+];
+
+function renderPartnerLinksUI(data) {
+  var list  = document.getElementById('partner-links-list');
+  var empty = document.getElementById('partner-links-empty');
+  if (!list) return;
+  list.innerHTML = '';
+  // Invert { slug: [partner,...] } into flat rows, de-duping by name+url
+  var rows = [];
+  var byKey = {};
+  Object.keys(data || {}).forEach(function(slug) {
+    (data[slug] || []).forEach(function(p) {
+      var key = (p.name || '') + '||' + (p.url || '');
+      if (byKey[key] !== undefined) {
+        rows[byKey[key]].pages.push(slug);
+      } else {
+        byKey[key] = rows.length;
+        rows.push({ partner: p, pages: [slug] });
+      }
+    });
+  });
+  if (!rows.length) {
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  rows.forEach(function(r) { _addPartnerRow(r.partner, r.pages); });
+}
+
+function _addPartnerRow(partner, selectedPages) {
+  partner = partner || {};
+  selectedPages = selectedPages || ['global'];
+  var list  = document.getElementById('partner-links-list');
+  var empty = document.getElementById('partner-links-empty');
+  if (!list) return;
+  if (empty) empty.style.display = 'none';
+
+  var div = document.createElement('div');
+  div.className = 'partner-entry-row';
+
+  var pagesHtml = PARTNER_PAGES.map(function(pg) {
+    var checked = selectedPages.indexOf(pg.slug) !== -1 ? ' checked' : '';
+    return '<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;white-space:nowrap;">' +
+      '<input type="checkbox" data-page="' + pg.slug + '"' + checked +
+      ' style="accent-color:var(--gold);width:13px;height:13px;"> ' +
+      escHtml(pg.label) + '</label>';
+  }).join('');
+
+  div.innerHTML =
+    '<div class="partner-entry-head">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;">' +
+        '<div class="config-field" style="grid-column:1/-1;">' +
+          '<label class="config-label">Partner Name</label>' +
+          '<input type="text" class="config-input pr-name" value="' + escHtml(partner.name||'') + '" placeholder="e.g. Mortgage House">' +
+        '</div>' +
+        '<div class="config-field" style="grid-column:1/-1;">' +
+          '<label class="config-label">Tagline</label>' +
+          '<input type="text" class="config-input pr-tag" value="' + escHtml(partner.tagline||'') + '" placeholder="e.g. Compare 60+ lenders — free, no credit check.">' +
+        '</div>' +
+        '<div class="config-field">' +
+          '<label class="config-label">Referral URL</label>' +
+          '<input type="url" class="config-input pr-url" value="' + escHtml(partner.url||'') + '" placeholder="https://…">' +
+        '</div>' +
+        '<div class="config-field">' +
+          '<label class="config-label">Badge <span style="font-weight:400;text-transform:none;font-size:10px;">(optional)</span></label>' +
+          '<input type="text" class="config-input pr-badge" value="' + escHtml(partner.badge||'') + '" placeholder="e.g. Recommended">' +
+        '</div>' +
+        '<div class="config-field" style="grid-column:1/-1;">' +
+          '<label class="config-label" style="margin-bottom:8px;">Show On</label>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:8px 20px;">' + pagesHtml + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<button type="button" class="row-del-btn pr-delete" title="Remove this partner" style="margin-left:12px;align-self:flex-start;flex-shrink:0;">−</button>' +
+    '</div>';
+
+  div.querySelector('.pr-delete').addEventListener('click', function() {
+    div.remove();
+    if (!document.querySelectorAll('.partner-entry-row').length) {
+      var e = document.getElementById('partner-links-empty');
+      if (e) e.style.display = '';
+    }
+  });
+
+  list.appendChild(div);
+}
+
+function serializePartnerLinksUI() {
+  var result = {};
+  document.querySelectorAll('.partner-entry-row').forEach(function(row) {
+    var name = (row.querySelector('.pr-name') || {}).value || '';
+    var url  = (row.querySelector('.pr-url')  || {}).value || '';
+    name = name.trim(); url = url.trim();
+    if (!name || !url) return;
+    var tagline = ((row.querySelector('.pr-tag')   || {}).value || '').trim();
+    var badge   = ((row.querySelector('.pr-badge') || {}).value || '').trim();
+    var partner = { name: name, tagline: tagline, url: url };
+    if (badge) partner.badge = badge;
+    var checked = row.querySelectorAll('input[data-page]:checked');
+    var pages = Array.from(checked).map(function(c) { return c.dataset.page; });
+    if (!pages.length) pages = ['global'];
+    pages.forEach(function(slug) {
+      if (!result[slug]) result[slug] = [];
+      result[slug].push(partner);
+    });
+  });
+  var ta = document.getElementById('cfg-partner-links');
+  if (ta) ta.value = JSON.stringify(result);
+  return result;
+}
+
+function safePhotoSrc(url){
+  if(!url) return '';
+  var s = String(url);
+  if(s.startsWith('data:image/') && s.includes(';base64,')) return s;
+  if(s.startsWith('https://')) return s;
+  return '';
 }
 
 // ── STAT POPUP ────────────────────────────────────────────────
@@ -1011,11 +1309,12 @@ const STAT_META = {
   free:       { title: 'Free Plan Users',     desc: '1 saved scenario limit',               valueId: 'stat-free',          histKey: 'freeUsers',           stroke: 'rgba(100,100,110,0.8)',   fill: 'rgba(100,100,110,0.4)',   prefix: '', suffix: '' },
   pro:        { title: 'Pro Plan Users',      desc: 'Unlimited + PDF + Projection',         valueId: 'stat-pro',           histKey: 'proUsers',            stroke: 'rgba(180,140,50,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '', suffix: '' },
   adviser:    { title: 'Adviser Plan Users',  desc: 'Multi-client + white-label',           valueId: 'stat-adviser',       histKey: 'adviserUsers',        stroke: 'rgba(60,120,165,0.9)',    fill: 'rgba(91,143,171,0.5)',    prefix: '', suffix: '' },
-  sessions:   { title: 'Login Tokens',        desc: 'One token per device/browser per user (30-day TTL). High counts are normal — each device sign-in creates a new token. Use Database → Purge Expired Sessions to clean up stale tokens.',   valueId: 'stat-sessions',      histKey: 'activeSessions',      stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
-  scenarios:  { title: 'Scenario Sets',       desc: 'Saved property scenario lists',        valueId: 'stat-scenarios-top', histKey: 'totalScenarioLists',  stroke: 'rgba(70,140,110,0.85)',   fill: 'rgba(90,158,123,0.4)',    prefix: '', suffix: '' },
-  'new-users':{ title: 'New This Week',       desc: 'Signups in last 7 days',               valueId: 'stat-new-users',     histKey: 'newUsersLast7',       stroke: 'rgba(90,158,123,0.9)',    fill: 'rgba(90,158,123,0.5)',    prefix: '', suffix: '' },
-  revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans at list price — may differ if discounts are active', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
-  avg:        { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',      valueId: 'stat-avg-scenarios', histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
+  revenue:    { title: 'Revenue Estimate',    desc: 'Monthly AUD from Pro + Adviser plans, net of Stripe fees (1.75% + $0.30 per charge)', valueId: 'stat-revenue',       histKey: 'revenueEstimate',     stroke: 'rgba(201,168,76,0.9)',    fill: 'rgba(201,168,76,0.5)',    prefix: '$', suffix: '' },
+  avg:              { title: 'Avg Scenarios/User',  desc: 'Average scenario lists per user',                valueId: 'stat-avg-scenarios',   histKey: 'avgScenariosPerUser', stroke: 'rgba(150,100,180,0.8)',   fill: 'rgba(150,100,180,0.4)',   prefix: '', suffix: '' },
+  'total-scenarios':{ title: 'Total Scenarios',      desc: 'Individual saved scenarios across all users',   valueId: 'stat-total-scenarios', histKey: 'totalScenarios',      stroke: 'rgba(120,100,160,0.85)',  fill: 'rgba(120,100,160,0.4)',   prefix: '', suffix: '' },
+  shared:           { title: 'Shared Scenarios',     desc: 'Scenarios shared between users',                valueId: 'stat-shared',          histKey: 'sharedScenarios',     stroke: 'rgba(91,143,171,0.85)',   fill: 'rgba(91,143,171,0.4)',    prefix: '', suffix: '' },
+  errors:           { title: 'Client Errors',        desc: 'JavaScript errors in the error log (max 500)',  valueId: 'stat-errors',          histKey: 'clientErrors',        stroke: 'rgba(196,90,90,0.85)',    fill: 'rgba(196,90,90,0.4)',     prefix: '', suffix: '' },
+  'db-keys':        { title: 'Database Keys',        desc: 'Total Redis keys stored in the database',      valueId: 'stat-db-keys',         histKey: 'dbKeys',              stroke: 'rgba(74,74,82,0.85)',     fill: 'rgba(74,74,82,0.4)',      prefix: '', suffix: '' },
 };
 
 function openStatPopup(key){
@@ -1144,6 +1443,40 @@ function renderStatPopupChart(days){
 }
 
 // ── SCENARIOS TAB ─────────────────────────────────────────────
+// ── SCENARIO CSV EXPORT ───────────────────────────────────────
+async function exportScenariosCsv(){
+  var btn=document.getElementById('export-scenarios-csv-btn');
+  var st=document.getElementById('scenarios-tab-status');
+  if(btn){btn.disabled=true;btn.textContent='Exporting…';}
+  if(st){st.textContent='Fetching all scenario data…';st.className='admin-status info';}
+  var d=await callAuth('adminExportScenarios');
+  if(!d.ok||!d.rows){
+    if(st){st.textContent='✗ '+(d.error||'Export failed');st.className='admin-status err';}
+    if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+    return;
+  }
+  var rows=d.rows;
+  if(!rows.length){
+    if(st){st.textContent='No scenarios to export';st.className='admin-status info';}
+    if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+    return;
+  }
+  // Build CSV
+  var cols=['userEmail','userName','userPlan','scenarioId','address','status','savedAt','price','deposit','govtGrant','rate','term','rent','offset','state','suburb','propertyType','bed','bath','car','land','house','yearBuilt','fhb','newBuild','agentName','agentAgency','notes','costItems','renoItems'];
+  var headers=['User Email','User Name','Plan','Scenario ID','Address','Status','Saved At','Price','Deposit','Govt Grant','Rate %','Term (yrs)','Weekly Rent','Offset','State','Suburb','Property Type','Bed','Bath','Car','Land m²','House m²','Year Built','First Home Buyer','New Build','Agent Name','Agency','Notes','Cost Items','Reno Items'];
+  function csvEsc(v){var s=String(v==null?'':v);if(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)return '"'+s.replace(/"/g,'""')+'"';return s;}
+  var csv=headers.map(csvEsc).join(',')+'\n';
+  rows.forEach(function(r){csv+=cols.map(function(c){return csvEsc(r[c]);}).join(',')+'\n';});
+  // Download
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='equitysight-scenarios-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  if(st){st.textContent='✓ Exported '+rows.length+' scenario'+(rows.length!==1?'s':'')+' to CSV';st.className='admin-status ok';setTimeout(function(){st.className='admin-status';},5000);}
+  if(btn){btn.disabled=false;btn.textContent='↓ Export CSV';}
+}
+
 // Cache for quick scenario lookup by id
 var _scenarioDetailCache = {};
 
@@ -1155,16 +1488,12 @@ async function loadAllScenarios(){
   if(!d.ok){ wrap.innerHTML='<div style="color:var(--risk-red);padding:24px;">'+escHtml(d.error||'Failed')+'</div>'; return; }
   const users = d.users || [];
   if(!users.length){ wrap.innerHTML='<div style="color:var(--slate);padding:24px;text-align:center;font-style:italic;">No users found</div>'; return; }
-  const sess = getSession();
-  const token = sess && sess.token;
   let totalScenarios = 0;
   _scenarioDetailCache = {};
   const rows = await Promise.all(users.map(async u => {
     if(!u.id) return null;
     try {
-      const r = await fetch('/.netlify/functions/scenarios?' + new URLSearchParams({adminUserId: u.id}), {
-        headers: token ? {'Authorization': 'Bearer ' + token} : {}
-      });
+      const r = await fetch('/.netlify/functions/scenarios?' + new URLSearchParams({adminUserId: u.id}));
       const arr = await r.json();
       const count = Array.isArray(arr) ? arr.length : 0;
       totalScenarios += count;
@@ -1186,17 +1515,17 @@ async function loadAllScenarios(){
         <span style="color:var(--charcoal);">${scenarios.length} scenario${scenarios.length!==1?'s':''}</span>
       </div>
       ${scenarios.map(s => `
-        <div onclick="openScenarioDetail('${escHtml(s.id)}')"
-             style="display:flex;align-items:center;gap:12px;padding:9px 8px;border-bottom:1px solid rgba(28,28,30,0.04);font-size:13px;cursor:pointer;border-radius:4px;transition:background 0.12s;"
-             onmouseover="this.style.background='rgba(28,28,30,0.04)'" onmouseout="this.style.background=''">
+        <div data-scenarioid="${escHtml(s.id)}" data-userid="${escHtml(user.id)}" data-addr="${escHtml(s.fullAddr||'this scenario')}"
+             class="admin-scenario-row"
+             style="display:flex;align-items:center;gap:12px;padding:9px 8px;border-bottom:1px solid rgba(28,28,30,0.04);font-size:13px;cursor:pointer;border-radius:4px;transition:background 0.12s;">
           <div style="flex:1;min-width:0;">
             <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.fullAddr||'Unnamed')}</div>
             ${s.type||s.state?.values?.['pd-type'] ? `<div style="font-size:11px;color:var(--slate);margin-top:2px;">${escHtml(s.type||s.state?.values?.['pd-type']||'')}${s.bed?` · ${s.bed}bd`:''}</div>` : ''}
           </div>
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;text-transform:capitalize;">${s.status||'browsing'}</div>
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;">${s.savedAt ? new Date(s.savedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
-          <button class="act-btn" style="font-size:9px;padding:3px 7px;" onclick="event.stopPropagation();openScenarioDetail('${escHtml(s.id)}')">View</button>
-          <button class="act-btn danger" onclick="event.stopPropagation();adminDeleteScenario('${escHtml(user.id)}','${escHtml(s.id)}','${escHtml(s.fullAddr||'this scenario')}')">Delete</button>
+          <button class="act-btn" style="font-size:9px;padding:3px 7px;" data-action="view-scenario" data-scenarioid="${escHtml(s.id)}">View</button>
+          <button class="act-btn danger" data-action="del-scenario-admin" data-userid="${escHtml(user.id)}" data-scenarioid="${escHtml(s.id)}" data-addr="${escHtml(s.fullAddr||'this scenario')}">Delete</button>
         </div>`).join('')}
     </div>`).join('');
   st.textContent = '✓ Loaded ' + totalScenarios + ' scenario' + (totalScenarios!==1?'s':'') + ' across ' + valid.length + ' user' + (valid.length!==1?'s':'');
@@ -1352,13 +1681,11 @@ async function adminDeleteScenario(userId, scenarioId, label){
   );
   if(!confirmed) return;
   const sess = getSession();
-  const token = sess && sess.token;
   const st = document.getElementById('scenarios-tab-status');
   st.textContent = 'Deleting…'; st.className = 'admin-status info';
   try {
     const r = await fetch('/.netlify/functions/scenarios?' + new URLSearchParams({id: scenarioId, adminUserId: userId}), {
-      method: 'DELETE',
-      headers: token ? {'Authorization': 'Bearer ' + token} : {}
+      method: 'DELETE'
     });
     const d = await r.json();
     if(d.ok){
@@ -1370,6 +1697,48 @@ async function adminDeleteScenario(userId, scenarioId, label){
   } catch(e){
     st.textContent = '✗ Network error'; st.className = 'admin-status err';
   }
+}
+
+// ── DATABASE BROWSER ──────────────────────────────────────────
+var _dbOffset=0;
+var _dbPattern='*';
+async function loadDatabaseBrowser(pattern,offset){
+  if(pattern!==undefined) _dbPattern=pattern;
+  if(offset!==undefined) _dbOffset=offset; else _dbOffset=0;
+  var info=document.getElementById('db-browse-info');
+  var results=document.getElementById('db-browse-results');
+  var pager=document.getElementById('db-browse-pager');
+  info.textContent='Loading…';
+  results.innerHTML='';
+  pager.innerHTML='';
+  var res=await callAuth('adminBrowseDatabase',{pattern:_dbPattern,offset:_dbOffset,limit:50});
+  if(!res.ok){ info.textContent='Error: '+(res.error||'Unknown'); return; }
+  info.textContent=res.total+' key'+(res.total===1?'':'s')+' found'+(_dbPattern!=='*'?' matching "'+escHtml(_dbPattern)+'"':'')+' · showing '+(_dbOffset+1)+'–'+Math.min(_dbOffset+50,res.total);
+  if(!res.keys.length){ results.innerHTML='<div style="padding:20px;text-align:center;color:var(--slate);font-size:12px;">No keys found</div>'; return; }
+  var html='';
+  res.keys.forEach(function(entry){
+    var valStr;
+    if(entry.value&&typeof entry.value==='object') valStr=JSON.stringify(entry.value,null,2);
+    else if(entry.value===null||entry.value===undefined) valStr='null';
+    else valStr=String(entry.value);
+    // Truncate very long values for display
+    var truncated=valStr.length>500;
+    var display=truncated?valStr.substring(0,500)+'…':valStr;
+    html+='<details class="db-entry" style="border:1px solid rgba(28,28,30,0.08);border-radius:var(--radius-sm);margin-bottom:6px;">';
+    html+='<summary style="padding:8px 12px;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:var(--charcoal);background:rgba(28,28,30,0.03);user-select:text;-webkit-user-select:text;">'+escHtml(entry.key)+'</summary>';
+    html+='<pre style="padding:10px 14px;margin:0;font-size:11px;font-family:var(--font-mono);color:var(--slate);white-space:pre-wrap;word-break:break-all;overflow-x:auto;background:rgba(28,28,30,0.02);border-top:1px solid rgba(28,28,30,0.06);">'+escHtml(display)+'</pre>';
+    html+='</details>';
+  });
+  results.innerHTML=html;
+  // Pager
+  var btns='';
+  if(_dbOffset>0) btns+='<button class="btn-admin-sm" id="db-prev-btn" style="font-size:10px;">← Previous</button> ';
+  if(_dbOffset+50<res.total) btns+='<button class="btn-admin-sm" id="db-next-btn" style="font-size:10px;">Next →</button>';
+  pager.innerHTML=btns;
+  var prevBtn=document.getElementById('db-prev-btn');
+  if(prevBtn) prevBtn.addEventListener('click',function(){ loadDatabaseBrowser(undefined,Math.max(0,_dbOffset-50)); });
+  var nextBtn=document.getElementById('db-next-btn');
+  if(nextBtn) nextBtn.addEventListener('click',function(){ loadDatabaseBrowser(undefined,_dbOffset+50); });
 }
 
 // ── DATABASE PURGE ─────────────────────────────────────────────
@@ -1586,38 +1955,33 @@ function renderSchemes(){
     const isLMI     = type === 'lmi-waiver' || type === 'mixed';
 
     const suburbRows = (s.suburbBonuses||[]).map((b, bi) => `
-      <div class="suburb-bonus-row">
-        <input type="text" class="config-input" placeholder="Suburb name" value="${escHtml(b.suburb||'')}"
-          onchange="_schemes[${i}].suburbBonuses[${bi}].suburb=this.value">
-        <input type="number" class="config-input" placeholder="Bonus $" value="${b.bonusAmount||0}" min="0" step="1000"
-          onchange="_schemes[${i}].suburbBonuses[${bi}].bonusAmount=parseInt(this.value)||0" style="max-width:110px;">
-        <input type="text" class="config-input" placeholder="Notes (optional)" value="${escHtml(b.notes||'')}"
-          onchange="_schemes[${i}].suburbBonuses[${bi}].notes=this.value">
-        <button class="row-del-btn" onclick="removeSuburbBonus(${i},${bi})">−</button>
+      <div class="suburb-bonus-row" data-bidx="${bi}">
+        <input type="text" class="config-input" placeholder="Suburb name" value="${escHtml(b.suburb||'')}" data-field="suburb">
+        <input type="number" class="config-input" placeholder="Bonus $" value="${b.bonusAmount||0}" min="0" step="1000" data-field="bonusAmount" style="max-width:110px;">
+        <input type="text" class="config-input" placeholder="Notes (optional)" value="${escHtml(b.notes||'')}" data-field="notes">
+        <button class="row-del-btn" data-action="del-suburb-bonus" data-bidx="${bi}">−</button>
       </div>`).join('');
 
     const incomeRows = (s.incomeThresholds||[]).map((t, ti) => `
-      <div class="income-thresh-row">
-        <input type="text" class="config-input" placeholder="Label (e.g. Single)" value="${escHtml(t.label||'')}"
-          onchange="_schemes[${i}].incomeThresholds[${ti}].label=this.value">
-        <input type="number" class="config-input" placeholder="Max income $" value="${t.maxIncome||0}" min="0" step="1000"
-          onchange="_schemes[${i}].incomeThresholds[${ti}].maxIncome=parseInt(this.value)||0" style="max-width:140px;">
-        <button class="row-del-btn" onclick="removeIncomeThreshold(${i},${ti})">−</button>
+      <div class="income-thresh-row" data-tidx="${ti}">
+        <input type="text" class="config-input" placeholder="Label (e.g. Single)" value="${escHtml(t.label||'')}" data-field="label">
+        <input type="number" class="config-input" placeholder="Max income $" value="${t.maxIncome||0}" min="0" step="1000" data-field="maxIncome" style="max-width:140px;">
+        <button class="row-del-btn" data-action="del-income-thresh" data-tidx="${ti}">−</button>
       </div>`).join('');
 
     return `
-    <div class="scheme-panel ${i === _schemes.length - 1 ? 'open' : ''}" id="scheme-panel-${i}">
-      <div class="scheme-panel-header" onclick="toggleSchemePanel(${i})">
+    <div class="scheme-panel ${i === _schemes.length - 1 ? 'open' : ''}" id="scheme-panel-${i}" data-sidx="${i}">
+      <div class="scheme-panel-header" data-action="toggle-scheme-panel">
         <div class="scheme-panel-toggle">▼</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:14px;font-weight:600;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.name)}</div>
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:1px;">${escHtml(s.country||'')}</div>
         </div>
         <span class="scheme-type-badge ${typeBadgeClass(type)}">${typeBadgeLabel(type)}</span>
-        <label style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;" onclick="event.stopPropagation()">
-          <input type="checkbox" ${s.active?'checked':''} onchange="_schemes[${i}].active=this.checked" style="accent-color:var(--gold);width:13px;height:13px;"> Active
+        <label style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;cursor:pointer;white-space:nowrap;" data-stop-propagation>
+          <input type="checkbox" ${s.active?'checked':''} data-field="active" style="accent-color:var(--gold);width:13px;height:13px;"> Active
         </label>
-        <button class="act-btn danger" style="white-space:nowrap;" onclick="event.stopPropagation();removeScheme(${i})">Remove</button>
+        <button class="act-btn danger" style="white-space:nowrap;" data-action="remove-scheme">Remove</button>
       </div>
       <div class="scheme-panel-body">
 
@@ -1625,41 +1989,41 @@ function renderSchemes(){
         <div class="config-grid" style="margin-bottom:10px;">
           <div class="config-field">
             <label class="config-label">Scheme Name</label>
-            <input type="text" class="config-input" value="${escHtml(s.name)}" oninput="_schemes[${i}].name=this.value;updateSchemeHeaderName(${i},this.value)">
+            <input type="text" class="config-input" value="${escHtml(s.name)}" data-field="name">
           </div>
           <div class="config-field">
             <label class="config-label">Type</label>
-            <select class="config-input" onchange="_schemes[${i}].type=this.value;renderSchemes()">
+            <select class="config-input" data-field="type">
               ${SCHEME_TYPES.map(t=>`<option value="${t.value}" ${type===t.value?'selected':''}>${t.label} — ${t.desc}</option>`).join('')}
             </select>
           </div>
           <div class="config-field">
             <label class="config-label">Country / State</label>
-            <input type="text" class="config-input" value="${escHtml(s.country||'')}" oninput="_schemes[${i}].country=this.value">
+            <input type="text" class="config-input" value="${escHtml(s.country||'')}" data-field="country">
           </div>
           <div class="config-field">
             <label class="config-label">Max Property Price (AUD $)</label>
-            <input type="number" class="config-input" value="${s.maxPropertyPrice||0}" min="0" step="10000" onchange="_schemes[${i}].maxPropertyPrice=parseInt(this.value)||0">
+            <input type="number" class="config-input" value="${s.maxPropertyPrice||0}" min="0" step="10000" data-field="maxPropertyPrice">
           </div>
         </div>
         <div class="config-field" style="margin-bottom:10px;">
           <label class="config-label">Description</label>
-          <input type="text" class="config-input" value="${escHtml(s.description||'')}" oninput="_schemes[${i}].description=this.value">
+          <input type="text" class="config-input" value="${escHtml(s.description||'')}" data-field="description">
         </div>
         <div class="config-field" style="margin-bottom:10px;">
           <label class="config-label">Eligibility Requirements</label>
-          <input type="text" class="config-input" value="${escHtml(s.eligibility||'')}" oninput="_schemes[${i}].eligibility=this.value">
+          <input type="text" class="config-input" value="${escHtml(s.eligibility||'')}" data-field="eligibility">
         </div>
         <div class="config-field" style="margin-bottom:10px;">
           <label class="config-label">Official Government Website</label>
           <div style="display:flex;gap:8px;align-items:center;">
-            <input type="url" class="config-input" value="${escHtml(s.websiteUrl||'')}" placeholder="https://www.housing.gov.au/..." oninput="_schemes[${i}].websiteUrl=this.value" style="flex:1;">
+            <input type="url" class="config-input" value="${escHtml(s.websiteUrl||'')}" placeholder="https://www.housing.gov.au/..." data-field="websiteUrl" style="flex:1;">
             ${s.websiteUrl ? `<a href="${escHtml(s.websiteUrl)}" target="_blank" rel="noopener" style="flex-shrink:0;font-family:var(--font-mono);font-size:11px;color:var(--sky);text-decoration:none;white-space:nowrap;padding:6px 10px;border:1px solid rgba(91,143,171,0.3);border-radius:3px;" title="Open website">Visit ↗</a>` : ''}
           </div>
         </div>
         <div class="config-field" style="margin-bottom:4px;">
           <label class="config-label">Admin Notes (internal only)</label>
-          <input type="text" class="config-input" value="${escHtml(s.notes||'')}" placeholder="Internal notes, caveats, links..." oninput="_schemes[${i}].notes=this.value">
+          <input type="text" class="config-input" value="${escHtml(s.notes||'')}" placeholder="Internal notes, caveats, links..." data-field="notes">
         </div>
 
         ${isEquity ? `
@@ -1667,15 +2031,15 @@ function renderSchemes(){
         <div class="config-grid" style="margin-bottom:4px;">
           <div class="config-field">
             <label class="config-label">Min Govt % Contribution</label>
-            <input type="number" class="config-input" value="${s.govtMinPct||0}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtMinPct=parseFloat(this.value)||0">
+            <input type="number" class="config-input" value="${s.govtMinPct||0}" min="0" max="50" step="0.5" data-field="govtMinPct">
           </div>
           <div class="config-field">
             <label class="config-label">Max Govt % Contribution</label>
-            <input type="number" class="config-input" value="${s.govtMaxPct||0}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtMaxPct=parseFloat(this.value)||0">
+            <input type="number" class="config-input" value="${s.govtMaxPct||0}" min="0" max="50" step="0.5" data-field="govtMaxPct">
           </div>
           <div class="config-field">
             <label class="config-label">Default Govt % (pre-fill in app)</label>
-            <input type="number" class="config-input" value="${s.govtDefaultPct||0}" min="0" max="50" step="0.5" onchange="_schemes[${i}].govtDefaultPct=parseFloat(this.value)||0">
+            <input type="number" class="config-input" value="${s.govtDefaultPct||0}" min="0" max="50" step="0.5" data-field="govtDefaultPct">
           </div>
         </div>` : ''}
 
@@ -1684,7 +2048,7 @@ function renderSchemes(){
         <div class="config-grid" style="margin-bottom:4px;">
           <div class="config-field">
             <label class="config-label">Fixed Grant Amount (AUD $)</label>
-            <input type="number" class="config-input" value="${s.fixedGrantAmount||0}" min="0" step="500" onchange="_schemes[${i}].fixedGrantAmount=parseInt(this.value)||0">
+            <input type="number" class="config-input" value="${s.fixedGrantAmount||0}" min="0" step="500" data-field="fixedGrantAmount">
             <div style="font-size:11px;color:var(--slate);margin-top:3px;">Base grant amount. Use Suburb Bonuses below for location-specific variations.</div>
           </div>
         </div>` : ''}
@@ -1693,7 +2057,7 @@ function renderSchemes(){
         <div class="scheme-section-label">LMI Waiver</div>
         <div class="config-field" style="margin-bottom:4px;">
           <label class="config-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" ${s.removesLMI?'checked':''} onchange="_schemes[${i}].removesLMI=this.checked" style="accent-color:var(--gold);width:14px;height:14px;">
+            <input type="checkbox" ${s.removesLMI?'checked':''} data-field="removesLMI" style="accent-color:var(--gold);width:14px;height:14px;">
             This scheme removes Lenders Mortgage Insurance (LMI)
           </label>
           <div style="font-size:11px;color:var(--slate);margin-top:3px;">When enabled, the calculator will show $0 LMI cost for this scheme.</div>
@@ -1701,12 +2065,12 @@ function renderSchemes(){
 
         <div class="scheme-section-label">Income Thresholds</div>
         <div id="income-rows-${i}">${incomeRows}</div>
-        <button class="add-row-btn" onclick="addIncomeThreshold(${i})">＋ Add income threshold</button>
+        <button class="add-row-btn" data-action="add-income-thresh">＋ Add income threshold</button>
 
         <div class="scheme-section-label" style="margin-top:14px;">Suburb-Specific Bonuses</div>
         <div style="font-size:11px;color:var(--slate);margin-bottom:8px;">Some schemes pay more in certain suburbs or regions. Add suburb-specific bonus amounts here.</div>
         <div id="suburb-rows-${i}">${suburbRows}</div>
-        <button class="add-row-btn" onclick="addSuburbBonus(${i})">＋ Add suburb bonus</button>
+        <button class="add-row-btn" data-action="add-suburb-bonus">＋ Add suburb bonus</button>
 
       </div>
     </div>`;
@@ -1810,16 +2174,16 @@ async function saveSchemes(){
 // ── GROWTH DATA ───────────────────────────────────────────────────────────────
 async function callGrowth(payload){
   const sess = getSession();
-  const token = sess && sess.token;
-  const r = await fetch('/.netlify/functions/growth', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + (token || '')
-    },
-    body: JSON.stringify(payload)
-  });
-  return r.json();
+  try {
+    const r = await fetch('/.netlify/functions/growth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return r.json();
+  } catch(e) {
+    return { ok: false, error: 'Network error — check your connection and try again.' };
+  }
 }
 
 async function loadGrowthData(){
@@ -1843,7 +2207,7 @@ async function loadGrowthData(){
       <td style="font-family:var(--font-mono);color:var(--gold);">${parseFloat(e.rate).toFixed(1)}%</td>
       <td style="font-size:11px;color:var(--slate);">${escHtml(e.note||'')}</td>
       <td style="font-size:11px;color:${expiry<=7?'#c45a5a':'var(--slate)'};">${expiry}d left</td>
-      <td><button class="act-btn danger" onclick="deleteGrowthEntry('${escHtml(e.suburb)}','${escHtml(e.state)}')">Delete</button></td>
+      <td><button class="act-btn danger" data-action="del-growth" data-suburb="${escHtml(e.suburb)}" data-state="${escHtml(e.state)}">Delete</button></td>
     </tr>`;
   }).join('');
   wrap.innerHTML = `<table class="user-table" style="min-width:600px;">
@@ -1917,13 +2281,16 @@ async function deleteGrowthEntry(suburb, state){
 // ── Client Error Log ─────────────────────────────────────────────────────────
 async function callClientErrors(payload){
   const sess = getSession();
-  const token = sess && sess.token;
-  const r = await fetch('/.netlify/functions/client-errors', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token || '') },
-    body: JSON.stringify(payload)
-  });
-  return r.json();
+  try {
+    const r = await fetch('/.netlify/functions/client-errors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return r.json();
+  } catch(e) {
+    return { ok: false, error: 'Network error — check your connection and try again.' };
+  }
 }
 
 let _allClientErrors = [];
@@ -1951,26 +2318,33 @@ function renderClientErrors(errors){
     }
     return;
   }
+  const SEV_STYLE = {
+    error:   { badge: 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;', border: 'border-left:3px solid #f87171;' },
+    warning: { badge: 'background:#fef9c3;color:#854d0e;border:1px solid #fde047;', border: 'border-left:3px solid #facc15;' },
+    info:    { badge: 'background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;', border: 'border-left:3px solid #60a5fa;' },
+  };
   const rows = errors.map(e => {
+    const sev     = SEV_STYLE[e.severity] || SEV_STYLE.error;
+    const sevLabel = e.severity || 'error';
     const time    = e.at ? new Date(e.at).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
     const browser = parseBrowser(e.userAgent||'');
     const rawSrc  = e.source || '';
     const srcPath = rawSrc ? rawSrc.replace(/^https?:\/\/[^/]+/,'') : '';
-    // If source path matches the page URL path, the error is from an inline script
     const pageUrl = e.url || '';
     const pagePath = pageUrl ? pageUrl.replace(/^https?:\/\/[^/]+/,'').split('?')[0] : '';
     const isInline = srcPath && pagePath && (srcPath === pagePath || srcPath.endsWith(pagePath));
-    const srcLabel = isInline
-      ? `[inline] ${escHtml(srcPath)}`
-      : (srcPath ? escHtml(srcPath) : '');
+    const srcLabel = isInline ? `[inline] ${escHtml(srcPath)}` : (srcPath ? escHtml(srcPath) : '');
     const src     = [srcLabel, e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
     const page    = pageUrl ? escHtml(pagePath.slice(0,60)) : '';
     const user    = e.userEmail ? escHtml(e.userEmail) : (e.userName ? escHtml(e.userName) : '<span style="color:rgba(245,240,232,0.5)">guest</span>');
     const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:var(--slate);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:var(--slate);margin:4px 0 0;line-height:1.4;background:rgba(28,28,30,0.04);padding:6px;border-radius:3px;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
-    return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);">
-      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 0;">${time}</td>
+    return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);${sev.border}">
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;vertical-align:top;padding:10px 8px 10px 6px;">${time}</td>
       <td style="vertical-align:top;padding:10px 8px;max-width:340px;">
-        <div style="font-size:12px;font-weight:600;color:var(--charcoal);">${escHtml(e.message||'')}</div>
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;${sev.badge}">${sevLabel}</span>
+          <span style="font-size:12px;font-weight:600;color:var(--charcoal);">${escHtml(e.message||'')}</span>
+        </div>
         ${src ? `<div style="font-family:var(--font-mono);font-size:10px;color:#C9A84C;margin-top:2px;">${src}</div>` : ''}
         ${page ? `<div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);margin-top:1px;">${page}</div>` : ''}
         ${stack}
@@ -1988,16 +2362,22 @@ function renderClientErrors(errors){
 
   wrap.innerHTML = `
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
-    <input id="ce-filter-msg"  class="config-input" placeholder="Search message…"  oninput="filterClientErrors()" style="width:180px;font-size:11px;padding:6px 10px;">
-    <input id="ce-filter-user" class="config-input" placeholder="User email/name…" oninput="filterClientErrors()" style="width:160px;font-size:11px;padding:6px 10px;">
-    <select id="ce-filter-browser" class="config-input" onchange="filterClientErrors()" style="width:130px;font-size:11px;padding:6px 10px;">
+    <input id="ce-filter-msg"  class="config-input" placeholder="Search message…"  style="width:180px;font-size:11px;padding:6px 10px;">
+    <input id="ce-filter-user" class="config-input" placeholder="User email/name…" style="width:160px;font-size:11px;padding:6px 10px;">
+    <select id="ce-filter-severity" class="config-input" style="width:120px;font-size:11px;padding:6px 10px;">
+      <option value="">All levels</option>
+      <option value="error">🔴 Error</option>
+      <option value="warning">🟡 Warning</option>
+      <option value="info">🔵 Info</option>
+    </select>
+    <select id="ce-filter-browser" class="config-input" style="width:130px;font-size:11px;padding:6px 10px;">
       <option value="">All browsers</option>
       <option value="Firefox">Firefox</option>
       <option value="Chrome">Chrome</option>
       <option value="Safari">Safari</option>
       <option value="Edge">Edge</option>
     </select>
-    <select id="ce-filter-time" class="config-input" onchange="filterClientErrors()" style="width:130px;font-size:11px;padding:6px 10px;">
+    <select id="ce-filter-time" class="config-input" style="width:130px;font-size:11px;padding:6px 10px;">
       <option value="">All time</option>
       <option value="1h">Last hour</option>
       <option value="24h">Last 24 hours</option>
@@ -2015,6 +2395,15 @@ function renderClientErrors(errors){
     </tr></thead>
     <tbody id="ce-tbody">${rows}</tbody>
   </table></div>`;
+  // Wire filter inputs after initial render (IDs are now in DOM)
+  ['ce-filter-msg','ce-filter-user'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('input', filterClientErrors);
+  });
+  ['ce-filter-severity','ce-filter-browser','ce-filter-time'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('change', filterClientErrors);
+  });
 
   if(countEl) countEl.textContent = `${errors.length} of ${_allClientErrors.length} error${_allClientErrors.length!==1?'s':''}`;
   // set count after re-render
@@ -2023,17 +2412,19 @@ function renderClientErrors(errors){
 }
 
 function filterClientErrors(){
-  const msg     = (document.getElementById('ce-filter-msg')||{}).value||'';
-  const user    = (document.getElementById('ce-filter-user')||{}).value||'';
-  const browser = (document.getElementById('ce-filter-browser')||{}).value||'';
-  const time    = (document.getElementById('ce-filter-time')||{}).value||'';
-  const now     = Date.now();
-  const cutoffs = {'1h':3600000,'24h':86400000,'7d':604800000};
+  const msg      = (document.getElementById('ce-filter-msg')||{}).value||'';
+  const user     = (document.getElementById('ce-filter-user')||{}).value||'';
+  const severity = (document.getElementById('ce-filter-severity')||{}).value||'';
+  const browser  = (document.getElementById('ce-filter-browser')||{}).value||'';
+  const time     = (document.getElementById('ce-filter-time')||{}).value||'';
+  const now      = Date.now();
+  const cutoffs  = {'1h':3600000,'24h':86400000,'7d':604800000};
 
   let filtered = _allClientErrors;
-  if(msg)     filtered = filtered.filter(e => (e.message||'').toLowerCase().includes(msg.toLowerCase()));
-  if(user)    filtered = filtered.filter(e => ((e.userEmail||'')+(e.userName||'')).toLowerCase().includes(user.toLowerCase()));
-  if(browser) filtered = filtered.filter(e => parseBrowser(e.userAgent||'').startsWith(browser));
+  if(msg)      filtered = filtered.filter(e => (e.message||'').toLowerCase().includes(msg.toLowerCase()));
+  if(user)     filtered = filtered.filter(e => ((e.userEmail||'')+(e.userName||'')).toLowerCase().includes(user.toLowerCase()));
+  if(severity) filtered = filtered.filter(e => (e.severity||'error') === severity);
+  if(browser)  filtered = filtered.filter(e => parseBrowser(e.userAgent||'').startsWith(browser));
   if(time && cutoffs[time]) filtered = filtered.filter(e => e.at && (now - e.at) <= cutoffs[time]);
 
   renderClientErrors(filtered);
@@ -2060,6 +2451,22 @@ async function loadClientErrors(){
   renderClientErrors(_allClientErrors);
 }
 
+async function syncErrorsToGitHub(){
+  var btn = document.getElementById('ce-sync-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Syncing…'; }
+  try{
+    var d = await callClientErrors({action:'syncErrorsToGitHub'});
+    if(d.ok){
+      showAdminToast(d.message||'Errors synced to GitHub');
+    } else {
+      showAdminToast(d.error||'Sync failed', true);
+    }
+  }catch(e){
+    showAdminToast('Sync failed: '+e.message, true);
+  }
+  if(btn){ btn.disabled=false; btn.textContent='⬆ Sync to GitHub'; }
+}
+
 async function clearClientErrors(){
   if(!confirm('Clear all logged client errors?')) return;
   const d = await callClientErrors({action:'adminClearClientErrors'});
@@ -2072,12 +2479,18 @@ const EVENT_LABELS = {
   signup:               '🆕 Signed up',
   email_verified:       '✅ Email verified',
   signin:               '🔐 Signed in',
+  signout:              '👋 Signed out',
   password_changed:     '🔑 Password changed',
   password_reset:       '🔁 Password reset (self-service)',
   admin_password_reset: '🔧 Password reset by admin',
+  plan_changed:         '📋 Plan changed',
   plan_upgraded:        '⬆️ Plan upgraded',
   plan_downgraded:      '⬇️ Plan downgraded',
   role_changed:         '👤 Role changed',
+  scenario_created:     '🏠 Scenario created',
+  scenario_deleted:     '🗑️ Scenario deleted',
+  scenario_shared:      '🔗 Scenario shared',
+  share_invite_sent:    '✉️ Share invite sent',
 };
 
 function fmtEventTime(at){
@@ -2106,12 +2519,19 @@ async function openUserHistory(userId, email){
   }
 
   const rows = events.map(ev => {
-    const label = EVENT_LABELS[ev.type] || escHtml(ev.type);
+    let label = EVENT_LABELS[ev.type] || escHtml(ev.type);
+    // Distinguish Google sign-in/sign-up
+    if(ev.provider==='google'){
+      if(ev.type==='signin') label = '🔐 Signed in (Google)';
+      else if(ev.type==='signup') label = '🆕 Signed up (Google)';
+    }
     const meta = [];
-    if(ev.plan)  meta.push('Plan: '+escHtml(ev.plan));
+    if(ev.plan)     meta.push('Plan: '+escHtml(ev.plan));
     if(ev.from && ev.to) meta.push(escHtml(ev.from)+' → '+escHtml(ev.to));
-    if(ev.ip)    meta.push('IP: '+escHtml(ev.ip));
-    if(ev.by)    meta.push('By: '+escHtml(ev.by));
+    if(ev.address)  meta.push(escHtml(ev.address));
+    if(ev.to && !ev.from) meta.push('To: '+escHtml(ev.to));
+    if(ev.ip)       meta.push('IP: '+escHtml(ev.ip));
+    if(ev.by)       meta.push('By: '+escHtml(ev.by));
     return `<tr style="border-bottom:1px solid rgba(28,28,30,0.07);">
       <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate);white-space:nowrap;padding:8px 8px 8px 0;vertical-align:top;">${fmtEventTime(ev.at)}</td>
       <td style="font-size:12px;color:var(--charcoal);padding:8px;vertical-align:top;">${label}</td>
@@ -2166,7 +2586,9 @@ const ET_VARS = {
   password_reset:'{{code}}',
   subscription:  '{{firstName}}, {{name}}, {{plan}}',
   security_alert:'{{firstName}}, {{name}}, {{event}}',
-  promotional:   '{{firstName}}, {{name}}',
+  promotional:      '{{firstName}}, {{name}}',
+  scenario_shared:  '{{firstName}}, {{senderName}}, {{address}}',
+  scenario_invite:  '{{senderName}}, {{address}}',
 };
 
 async function loadEmailTemplates(){
@@ -2272,7 +2694,7 @@ const DEFAULT_ABOUT = {
   heroH1: 'Built by buyers,<br>for buyers.',
   heroLead: 'We got frustrated trying to understand the Shared Equity Scheme using government PDFs and a spreadsheet. So we built the tool we wished existed.',
   storyH2: 'The spreadsheet that became an app.',
-  storyP1: 'In 2023, trying to figure out whether the Queensland Shared Equity Scheme actually made sense for our budget, we built a spreadsheet. It had 14 tabs, nested formulas, and still couldn\'t tell us what we owed the government in year 10.'
+  storyP1: 'In 2023, trying to figure out whether the Queensland Shared Equity Scheme actually made sense for our budget, we built a spreadsheet. It had 14 tabs, nested formulas, and still couldn\u0027t tell us what we owed the government in year 10.'
 };
 
 async function loadAboutPage(){
@@ -2642,6 +3064,753 @@ function previewLegalPage(){
 
   bodyEl.innerHTML = preview;
   overlay.style.display = 'flex';
+}
+
+// -- SUBURBS TAB --
+
+var _suburbsData = null; // cached suburb data from suburbs.json
+var _suburbsReport = null; // cached index report from suburb-index-report.json
+var _suburbsFilteredState = null;
+
+async function loadSuburbsTab() {
+  // Load suburbs.json if not cached
+  if (!_suburbsData) {
+    try {
+      const resp = await fetch('/data/suburbs.json');
+      _suburbsData = await resp.json();
+    } catch (e) {
+      document.getElementById('suburbs-loading').textContent = 'Failed to load suburbs data: ' + e.message;
+      return;
+    }
+  }
+
+  // Load the AdSense-gate index report if available (written by build-suburbs.js)
+  if (!_suburbsReport) {
+    try {
+      const r = await fetch('/data/suburb-index-report.json', { cache: 'no-store' });
+      if (r.ok) _suburbsReport = await r.json();
+    } catch (e) { /* optional — may not exist on first deploy */ }
+  }
+
+  const data = _suburbsData;
+  const total = data.length;
+  const withPC = data.filter(s => s.postcode).length;
+
+  document.getElementById('suburbs-total').textContent = total.toLocaleString();
+  document.getElementById('suburbs-with-pc').textContent = withPC.toLocaleString() + ' (' + Math.round(100 * withPC / total) + '%)';
+
+  // Indexed / noindexed cards (from report, with live fallback)
+  var indexed, noindexed, reportAvailable = !!_suburbsReport;
+  if (reportAvailable) {
+    indexed = _suburbsReport.indexed;
+    noindexed = _suburbsReport.noindexed;
+  } else {
+    // Mirror the build-time shouldNoindex() gate so the admin view is
+    // accurate even before the first post-prune build has landed.
+    indexed = data.filter(function(s) {
+      return !s.tiny && s.postcode && (s.population || 0) >= 2000 && s.median_household_income;
+    }).length;
+    noindexed = total - indexed;
+  }
+  var idxEl = document.getElementById('suburbs-indexed');
+  var nEl = document.getElementById('suburbs-noindexed');
+  if (idxEl) idxEl.textContent = indexed.toLocaleString() + ' (' + Math.round(100 * indexed / total) + '%)';
+  if (nEl) nEl.textContent = noindexed.toLocaleString() + ' (' + Math.round(100 * noindexed / total) + '%)';
+
+  // Index report panel — explains the gate and shows the quality histogram
+  var reportPanel = document.getElementById('suburbs-index-report');
+  var reportBody = document.getElementById('suburbs-index-report-body');
+  if (reportPanel && reportBody) {
+    var lines = [];
+    lines.push('Gate: <code>population &ge; ' + (_suburbsReport && _suburbsReport.min_population_for_index || 2000) + ' &amp;&amp; has postcode &amp;&amp; has median household income</code>');
+    lines.push('Indexed suburbs are featured on state hub pages + sitemap. Noindexed pages remain reachable via the "All localities" drawer with <code>noindex, follow</code>.');
+    if (reportAvailable && _suburbsReport.quality_score_histogram) {
+      var hist = _suburbsReport.quality_score_histogram;
+      var bins = Object.keys(hist).map(function(k) { return k + ': ' + hist[k].toLocaleString(); }).join(' &middot; ');
+      lines.push('Quality histogram &mdash; ' + bins);
+      lines.push('Report generated: ' + new Date(_suburbsReport.generated_at).toLocaleString('en-AU'));
+    } else {
+      lines.push('<em>Report not yet generated. Counts above are computed live from suburbs.json; run a suburb rebuild to produce the canonical report.</em>');
+    }
+    reportBody.innerHTML = lines.join('<br>');
+    reportPanel.style.display = 'block';
+  }
+
+  // Load last build time from config
+  try {
+    const cfg = await callAuth('adminGetConfig');
+    if (cfg && cfg.config && cfg.config.suburbLastBuild) {
+      var d = new Date(cfg.config.suburbLastBuild);
+      document.getElementById('suburbs-last-build').textContent = d.toLocaleDateString('en-AU') + ' ' + d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+    }
+    if (cfg && cfg.config && cfg.config.suburbDeployHook) {
+      document.getElementById('suburbs-deploy-hook').value = cfg.config.suburbDeployHook;
+      showSuburbHookSaved(cfg.config.suburbDeployHook);
+    }
+  } catch (e) { /* ignore */ }
+
+  // State breakdown — shows indexed/total per state when the report is loaded
+  var states = {};
+  for (var i = 0; i < data.length; i++) {
+    var st = data[i].state;
+    states[st] = (states[st] || 0) + 1;
+  }
+  var breakdownHTML = '';
+  var stateKeys = Object.keys(states).sort();
+  var byState = (_suburbsReport && _suburbsReport.by_state) || {};
+  for (var j = 0; j < stateKeys.length; j++) {
+    var sk = stateKeys[j];
+    var stRow = byState[sk];
+    var subText = stRow
+      ? (stRow.indexed.toLocaleString() + '/' + stRow.total.toLocaleString() + ' indexed')
+      : (states[sk].toLocaleString() + ' suburbs');
+    breakdownHTML += '<button class="btn-admin-outline" data-action="filter-state" data-state="' + escHtml(sk) + '" style="font-size:11px;padding:8px 12px;text-align:left;">' +
+      '<div style="font-weight:600;">' + escHtml(sk) + '</div>' +
+      '<div style="font-size:10px;color:var(--slate);">' + subText + '</div>' +
+      '</button>';
+  }
+  document.getElementById('suburbs-state-breakdown').innerHTML = breakdownHTML;
+}
+
+function filterSuburbsByState(state) {
+  _suburbsFilteredState = state;
+  document.getElementById('suburbs-admin-search').value = '';
+  renderSuburbTable(_suburbsData.filter(function(s) { return s.state === state; }).slice(0, 200), state);
+}
+
+function searchAdminSuburbs() {
+  var q = (document.getElementById('suburbs-admin-search').value || '').trim().toLowerCase();
+  if (q.length < 2) {
+    if (_suburbsFilteredState) {
+      renderSuburbTable(_suburbsData.filter(function(s) { return s.state === _suburbsFilteredState; }).slice(0, 200), _suburbsFilteredState);
+    } else {
+      document.getElementById('suburbs-table-wrap').innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">Type at least 2 characters to search</div>';
+    }
+    return;
+  }
+  var results = _suburbsData.filter(function(s) {
+    return s.suburb.toLowerCase().indexOf(q) >= 0 || (s.postcode && s.postcode.indexOf(q) >= 0);
+  });
+  renderSuburbTable(results.slice(0, 200), null, results.length);
+}
+
+function _adminSuburbNoindexed(s) {
+  // Mirrors build-suburbs.js shouldNoindex() — keep in sync when the gate changes.
+  if (s.tiny) return true;
+  if (!s.postcode) return true;
+  if ((s.population || 0) < 2000) return true;
+  if (!s.median_household_income) return true;
+  return false;
+}
+
+function renderSuburbTable(rows, stateLabel, totalMatches) {
+  if (!rows || rows.length === 0) {
+    document.getElementById('suburbs-table-wrap').innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:13px;">No suburbs found</div>';
+    return;
+  }
+  var label = stateLabel ? escHtml(stateLabel) + ' — ' + rows.length + ' shown' : (totalMatches ? totalMatches + ' matches (showing ' + rows.length + ')' : rows.length + ' suburbs');
+  var html = '<div style="font-size:10px;color:var(--slate);margin-bottom:8px;font-family:var(--font-mono);">' + label + '</div>';
+  html += '<table class="admin-table"><thead><tr><th>Suburb</th><th>State</th><th>Postcode</th><th>Population</th><th>Type</th><th>Index</th></tr></thead><tbody>';
+  for (var i = 0; i < rows.length; i++) {
+    var s = rows[i];
+    var noidx = _adminSuburbNoindexed(s);
+    var badge = noidx
+      ? '<span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.5px;padding:2px 6px;border-radius:3px;background:rgba(192,57,43,0.1);color:#c0392b;">NOINDEX</span>'
+      : '<span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.5px;padding:2px 6px;border-radius:3px;background:rgba(39,174,96,0.1);color:#27ae60;">INDEXED</span>';
+    html += '<tr>' +
+      '<td><a href="/suburb/' + s.state.toLowerCase() + '/' + escHtml(s.slug) + '/" target="_blank" style="color:var(--gold);text-decoration:none;">' + escHtml(s.suburb) + ' ↗</a></td>' +
+      '<td>' + escHtml(s.state) + '</td>' +
+      '<td>' + escHtml(s.postcode || '—') + '</td>' +
+      '<td>' + (s.population || 0).toLocaleString() + '</td>' +
+      '<td>' + escHtml(s.suburb_type) + '</td>' +
+      '<td>' + badge + '</td>' +
+      '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('suburbs-table-wrap').innerHTML = html;
+}
+
+async function saveSuburbDeployHook() {
+  var url = (document.getElementById('suburbs-deploy-hook').value || '').trim();
+  if (!url) return;
+  try {
+    var result = await callAuth('adminSetConfig', { config: { suburbDeployHook: url } });
+    if (result && result.ok) {
+      showAdminToast('Deploy hook saved');
+      showSuburbHookSaved(url);
+    } else {
+      showAdminToast('Save failed: ' + (result && result.error || 'unknown error'), true);
+    }
+  } catch (e) {
+    showAdminToast('Failed to save: ' + e.message, true);
+  }
+}
+
+function showSuburbHookSaved(url) {
+  var masked = url.replace(/\/([^\/]{6})[^\/]*$/, '/\u2026$1');
+  document.getElementById('suburbs-hook-display').textContent = masked;
+  document.getElementById('suburbs-hook-edit').style.display = 'none';
+  document.getElementById('suburbs-hook-saved').style.display = 'flex';
+}
+
+function editSuburbDeployHook() {
+  document.getElementById('suburbs-hook-saved').style.display = 'none';
+  document.getElementById('suburbs-hook-edit').style.display = 'flex';
+  document.getElementById('suburbs-deploy-hook').focus();
+}
+
+async function triggerSuburbRebuild() {
+  var hookUrl = (document.getElementById('suburbs-deploy-hook').value || '').trim();
+  if (!hookUrl) {
+    showAdminToast('Set a deploy hook URL first (Netlify → Site Configuration → Build hooks)', true);
+    return;
+  }
+  if (!confirm('This will trigger a Netlify deploy that rebuilds all suburb pages. Continue?')) return;
+  try {
+    // Save hook URL first if not saved yet
+    await saveSuburbDeployHook();
+    // Trigger via server-side function (avoids CORS)
+    var result = await callAuth('triggerSuburbBuild');
+    if (result && result.ok) {
+      showAdminToast('Suburb rebuild triggered! Deploy will start shortly.');
+      document.getElementById('suburbs-last-build').textContent = 'Building now...';
+    } else {
+      showAdminToast((result && result.error) || 'Failed to trigger rebuild', true);
+    }
+  } catch (e) {
+    showAdminToast('Failed: ' + e.message, true);
+  }
+}
+
+function showAdminToast(msg, isError) {
+  // Simple toast — reuse existing pattern if available, or create one
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;padding:12px 24px;border-radius:8px;font-size:13px;font-family:var(--font-body);color:white;max-width:400px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);' +
+    (isError ? 'background:#C0392B;' : 'background:#27AE60;');
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 4000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  BLOG ADMIN — CRUD for long-form posts stored in Redis
+// ═══════════════════════════════════════════════════════════════════════
+
+async function callBlog(action, payload, opts) {
+  opts = opts || {};
+  try {
+    var url = '/.netlify/functions/blog';
+    var method = 'POST';
+    var body = JSON.stringify(Object.assign({ action: action }, payload || {}));
+    if (opts.get) {
+      url += '?' + new URLSearchParams(Object.assign({ action: action }, payload || {})).toString();
+      method = 'GET';
+      body = undefined;
+    }
+    var r = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body,
+    });
+    return await r.json();
+  } catch (e) {
+    return { ok: false, error: 'Network error — ' + e.message };
+  }
+}
+
+function blogSlugify(s) {
+  return String(s || '').toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 80);
+}
+
+function blogFormatDate(ms) {
+  if (!ms) return '—';
+  try { return new Date(ms).toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch (e) { return '—'; }
+}
+
+async function loadBlogPosts() {
+  var listEl = document.getElementById('blog-posts-list');
+  var statsEl = document.getElementById('blog-stats');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>';
+  var res = await callBlog('adminListPosts');
+  if (!res || !res.ok) {
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#c62828;font-size:11px;">Failed to load posts: ' + escHtml(res && res.error || 'unknown error') + '</div>';
+    return;
+  }
+  var posts = res.posts || [];
+  var published = posts.filter(function (p) { return p.status === 'published'; }).length;
+  if (statsEl) {
+    statsEl.textContent = posts.length + ' post' + (posts.length === 1 ? '' : 's') + ' · ' + published + ' published · ' + (posts.length - published) + ' draft';
+  }
+  if (!posts.length) {
+    listEl.innerHTML = '<div style="padding:32px;text-align:center;color:var(--slate);font-size:12px;">No blog posts yet. Click <strong>+ New Post</strong> to author your first one.</div>';
+    return;
+  }
+  var rows = posts.map(function (p) {
+    var statusBadge = p.status === 'published'
+      ? '<span style="background:rgba(46,125,50,0.1);color:#2e7d32;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Published</span>'
+      : '<span style="background:rgba(28,28,30,0.08);color:var(--slate);padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Draft</span>';
+    var tagsStr = (p.tags || []).map(escHtml).join(', ') || '—';
+    return '<div class="blog-row" data-id="' + escHtml(p.id) + '" style="display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(28,28,30,0.06);font-size:12px;">' +
+      '<div style="min-width:0;overflow:hidden;">' +
+        '<div style="font-weight:600;color:var(--charcoal);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.title) + '</div>' +
+        '<div style="font-size:10px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.section || 'general') + ' · ' + escHtml(p.author || '—') + ' · ' + escHtml(tagsStr) + '</div>' +
+      '</div>' +
+      '<div>' + statusBadge + '</div>' +
+      '<div style="font-size:10px;color:var(--slate);font-family:var(--font-mono);">' + escHtml(blogFormatDate(p.updated_at || p.created_at)) + '</div>' +
+      '<a class="btn-admin-outline blog-edit-btn" href="/blog-editor.html?id=' + escHtml(p.id) + '" target="_blank" style="font-size:10px;padding:6px 12px;text-decoration:none;">Edit ↗</a>' +
+    '</div>';
+  }).join('');
+  listEl.innerHTML = rows;
+}
+
+function blogResetEditor() {
+  document.getElementById('blog-edit-id').value = '';
+  ['blog-edit-title','blog-edit-slug','blog-edit-excerpt','blog-edit-tags','blog-edit-author','blog-edit-cover','blog-edit-author-bio','blog-edit-body','blog-edit-meta-desc'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var cat = document.getElementById('blog-edit-category'); if (cat) cat.value = 'general';
+  var feat = document.getElementById('blog-edit-featured'); if (feat) feat.checked = false;
+  document.getElementById('blog-edit-status').innerHTML = '';
+  document.getElementById('blog-editor-title').textContent = 'New Post';
+  blogSetEditorMode('write');
+  blogUpdateWordCount();
+  blogUpdateMetaDescCount();
+}
+
+async function blogOpenEditor(id) {
+  var wrap = document.getElementById('blog-editor-wrap');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!id) {
+    blogResetEditor();
+    return;
+  }
+  var res = await callBlog('adminGetPost', { id: id });
+  if (!res || !res.ok || !res.post) {
+    showAdminToast('Failed to load post', true);
+    return;
+  }
+  var p = res.post;
+  document.getElementById('blog-edit-id').value = p.id || '';
+  document.getElementById('blog-edit-title').value = p.title || '';
+  document.getElementById('blog-edit-slug').value = p.slug || '';
+  document.getElementById('blog-edit-excerpt').value = p.excerpt || '';
+  document.getElementById('blog-edit-tags').value = (p.tags || []).join(', ');
+  document.getElementById('blog-edit-author').value = p.author || '';
+  document.getElementById('blog-edit-cover').value = p.cover_image || '';
+  document.getElementById('blog-edit-author-bio').value = p.author_bio || '';
+  document.getElementById('blog-edit-body').value = p.body_md || '';
+  var catEl = document.getElementById('blog-edit-category'); if (catEl) catEl.value = p.category || 'general';
+  var featEl = document.getElementById('blog-edit-featured'); if (featEl) featEl.checked = !!p.featured;
+  var metaEl = document.getElementById('blog-edit-meta-desc'); if (metaEl) metaEl.value = p.meta_description || '';
+  document.getElementById('blog-editor-title').textContent = 'Edit: ' + (p.title || '(untitled)');
+  document.getElementById('blog-edit-status').innerHTML = '';
+  blogSetEditorMode('write');
+  blogUpdateWordCount();
+  blogUpdateMetaDescCount();
+}
+
+function blogCollectForm() {
+  var catEl = document.getElementById('blog-edit-category');
+  var featEl = document.getElementById('blog-edit-featured');
+  var metaEl = document.getElementById('blog-edit-meta-desc');
+  return {
+    id: document.getElementById('blog-edit-id').value || undefined,
+    title: document.getElementById('blog-edit-title').value.trim(),
+    slug: document.getElementById('blog-edit-slug').value.trim() || blogSlugify(document.getElementById('blog-edit-title').value),
+    excerpt: document.getElementById('blog-edit-excerpt').value.trim(),
+    tags: document.getElementById('blog-edit-tags').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean),
+    author: document.getElementById('blog-edit-author').value.trim(),
+    author_bio: document.getElementById('blog-edit-author-bio').value.trim(),
+    cover_image: document.getElementById('blog-edit-cover').value.trim(),
+    body_md: document.getElementById('blog-edit-body').value,
+    category: catEl ? (catEl.value || 'general') : 'general',
+    featured: !!(featEl && featEl.checked),
+    meta_description: metaEl ? metaEl.value.trim() : '',
+  };
+}
+
+function blogSetStatus(msg, isErr) {
+  var el = document.getElementById('blog-edit-status');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:10px 14px;border-radius:4px;font-size:11px;' +
+    (isErr ? 'background:rgba(198,40,40,0.08);color:#c62828;border:1px solid rgba(198,40,40,0.2);'
+           : 'background:rgba(46,125,50,0.08);color:#2e7d32;border:1px solid rgba(46,125,50,0.2);') +
+    '">' + escHtml(msg) + '</div>';
+}
+
+async function blogSavePost(publish) {
+  var post = blogCollectForm();
+  if (!post.title || post.title.length < 4) { blogSetStatus('Title must be at least 4 chars', true); return; }
+  if (!post.body_md || post.body_md.length < 200) { blogSetStatus('Body must be at least 200 chars', true); return; }
+  var draftBtn = document.getElementById('blog-save-draft-btn');
+  var pubBtn = document.getElementById('blog-save-publish-btn');
+  if (draftBtn) { draftBtn.disabled = true; }
+  if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = publish ? 'Publishing…' : 'Saving…'; }
+  try {
+    var res = await callBlog('adminSavePost', { post: post });
+    if (!res || !res.ok) {
+      blogSetStatus('Save failed: ' + (res && res.error || 'unknown'), true);
+      return;
+    }
+    document.getElementById('blog-edit-id').value = res.id;
+    if (publish) {
+      var pub = await callBlog('adminPublish', { id: res.id });
+      if (!pub || !pub.ok) { blogSetStatus('Saved but publish failed: ' + (pub && pub.error || 'unknown'), true); return; }
+      loadBlogPosts();
+      blogResetEditor();
+      document.getElementById('blog-editor-wrap').style.display = 'none';
+      showAdminToast('Post published ✓');
+      return;
+    }
+    blogSetStatus('Draft saved ✓', false);
+    loadBlogPosts();
+  } finally {
+    if (draftBtn) { draftBtn.disabled = false; }
+    if (pubBtn) { pubBtn.disabled = false; pubBtn.textContent = 'Save & Publish'; }
+  }
+}
+
+async function blogUnpublish() {
+  var id = document.getElementById('blog-edit-id').value;
+  if (!id) return;
+  var res = await callBlog('adminUnpublish', { id: id });
+  if (!res || !res.ok) { blogSetStatus('Unpublish failed: ' + (res && res.error || 'unknown'), true); return; }
+  blogSetStatus('Moved back to draft ✓', false);
+  loadBlogPosts();
+}
+
+async function blogDeletePost() {
+  var id = document.getElementById('blog-edit-id').value;
+  if (!id) { blogSetStatus('Nothing to delete', true); return; }
+  var confirmed = await customConfirm('Delete this post?', 'This permanently removes the post from Redis. It will disappear from the public blog on the next deploy.', { danger: true });
+  if (!confirmed) return;
+  var res = await callBlog('adminDeletePost', { id: id });
+  if (!res || !res.ok) { blogSetStatus('Delete failed: ' + (res && res.error || 'unknown'), true); return; }
+  blogResetEditor();
+  document.getElementById('blog-editor-wrap').style.display = 'none';
+  loadBlogPosts();
+}
+
+function blogUpdateWordCount() {
+  var el = document.getElementById('blog-edit-body');
+  var out = document.getElementById('blog-edit-wordcount');
+  if (!el || !out) return;
+  var words = (el.value || '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/[#>*_`|\[\]()-]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .length;
+  var mins = Math.max(1, Math.round(words / 220));
+  var gap = 1500 - words;
+  out.textContent = words + ' words · ' + mins + ' min read · ' + (gap > 0 ? gap + ' words to reach 1,500 (AdSense floor)' : '✓ above 1,500-word floor');
+  out.style.color = gap > 0 ? 'var(--slate)' : '#2e7d32';
+}
+
+// Sync all published posts to GitHub (migration / manual trigger)
+async function blogSyncAllToGitHub() {
+  var btn = document.getElementById('blog-sync-github-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+  var res = await callBlog('adminSyncAllToGitHub');
+  if (btn) { btn.disabled = false; btn.textContent = 'Sync to GitHub'; }
+  if (res && res.ok) {
+    showAdminToast('Synced ' + (res.synced || 0) + ' post(s) to GitHub — auto-deploy triggered');
+  } else {
+    showAdminToast('Sync failed: ' + (res && res.error || 'unknown'), true);
+  }
+}
+
+// Auto-slug from title while editing a new post
+function blogAutoSlug() {
+  var titleEl = document.getElementById('blog-edit-title');
+  var slugEl = document.getElementById('blog-edit-slug');
+  var idEl = document.getElementById('blog-edit-id');
+  if (!titleEl || !slugEl) return;
+  // Only overwrite slug if editing a brand-new post (no id) and the slug
+  // field hasn't been manually edited.
+  if (idEl.value) return;
+  if (slugEl.dataset.touched === '1') return;
+  slugEl.value = blogSlugify(titleEl.value);
+}
+
+// Tiny Markdown → HTML renderer for the in-editor preview. Intentionally
+// conservative (headings, paragraphs, bold/italic, lists, links, blockquotes,
+// fenced code) so it gives the author a readable sanity check without pulling
+// in a full parser. The static build still uses the canonical build/md.js.
+function blogRenderPreview(md) {
+  if (!md) return '<p style="color:var(--slate);font-style:italic;">(Nothing to preview yet.)</p>';
+  var esc = function (s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var out = esc(md);
+  // Fenced code
+  out = out.replace(/```([\s\S]*?)```/g, function (_, body) {
+    return '<pre style="background:#f5f3ee;padding:12px 14px;border-radius:4px;overflow:auto;font-size:12px;"><code>' + body.replace(/^\n/, '') + '</code></pre>';
+  });
+  // Headings
+  out = out.replace(/^### (.+)$/gm, '<h3 style="margin-top:22px;">$1</h3>');
+  out = out.replace(/^## (.+)$/gm, '<h2 style="margin-top:28px;border-bottom:1px solid rgba(28,28,30,0.08);padding-bottom:6px;">$1</h2>');
+  out = out.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  // Blockquote
+  out = out.replace(/^&gt; (.+)$/gm, '<blockquote style="border-left:3px solid #C9A84C;padding:4px 12px;color:var(--slate);margin:10px 0;">$1</blockquote>');
+  // Inline
+  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  out = out.replace(/`([^`]+)`/g, '<code style="background:#f5f3ee;padding:2px 5px;border-radius:3px;font-size:0.92em;">$1</code>');
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#C9A84C;" target="_blank" rel="noopener">$1</a>');
+  // Lists (simple)
+  out = out.replace(/(^|\n)((?:- .+\n?)+)/g, function (_, pre, block) {
+    var items = block.trim().split(/\n/).map(function (l) { return '<li>' + l.replace(/^- /, '') + '</li>'; }).join('');
+    return pre + '<ul style="margin:10px 0;padding-left:22px;">' + items + '</ul>';
+  });
+  // Paragraphs (double newline)
+  out = out.split(/\n\n+/).map(function (para) {
+    if (/^\s*<(h\d|ul|ol|pre|blockquote)/.test(para)) return para;
+    return '<p style="margin:10px 0;">' + para.replace(/\n/g, '<br>') + '</p>';
+  }).join('\n');
+  return out;
+}
+
+function blogSetEditorMode(mode) {
+  var body = document.getElementById('blog-edit-body');
+  var prev = document.getElementById('blog-edit-preview');
+  var wBtn = document.getElementById('blog-edit-mode-write');
+  var pBtn = document.getElementById('blog-edit-mode-preview');
+  if (!body || !prev) return;
+  if (mode === 'preview') {
+    prev.innerHTML = blogRenderPreview(body.value);
+    body.style.display = 'none';
+    prev.style.display = 'block';
+    if (wBtn) wBtn.style.background = '';
+    if (pBtn) pBtn.style.background = 'rgba(201,168,76,0.18)';
+  } else {
+    body.style.display = '';
+    prev.style.display = 'none';
+    if (wBtn) wBtn.style.background = 'rgba(201,168,76,0.18)';
+    if (pBtn) pBtn.style.background = '';
+  }
+}
+
+function blogUpdateMetaDescCount() {
+  var el = document.getElementById('blog-edit-meta-desc');
+  var out = document.getElementById('blog-edit-metadesc-count');
+  if (!el || !out) return;
+  var n = (el.value || '').trim().length;
+  var hint = n === 0 ? '(uses excerpt)' : n < 50 ? 'too short — aim for 50–160' : n > 160 ? 'too long — Google truncates past 160' : '✓ good length';
+  out.textContent = n + ' chars · ' + hint;
+  out.style.color = (n === 0 || (n >= 50 && n <= 160)) ? 'var(--slate)' : '#c2410c';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MODERATION TAB — suburb reviews + blog comments (Phase 4 + 5)
+// ═══════════════════════════════════════════════════════════════════════
+
+var modCurrentKind = 'reviews'; // 'reviews' | 'comments'
+var modCurrentSubtab = 'pending';
+
+async function callReviews(action, payload) {
+  try {
+    var r = await fetch('/.netlify/functions/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ action: action }, payload || {})),
+    });
+    return await r.json();
+  } catch (e) {
+    return { ok: false, error: 'Network error — ' + e.message };
+  }
+}
+
+async function callComments(action, payload) {
+  try {
+    var r = await fetch('/.netlify/functions/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ action: action }, payload || {})),
+    });
+    return await r.json();
+  } catch (e) {
+    return { ok: false, error: 'Network error — ' + e.message };
+  }
+}
+
+function modStarBar(rating) {
+  var n = Math.max(0, Math.min(5, Math.round(rating || 0)));
+  return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+}
+
+function modFormatDate(ms) {
+  if (!ms) return '—';
+  try { return new Date(ms).toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch (e) { return '—'; }
+}
+
+function modStatusBadge(status) {
+  var color = status === 'approved' ? '#2e7d32' : (status === 'rejected' ? '#c62828' : '#C9A84C');
+  return '<span style="display:inline-block;padding:2px 8px;font-size:10px;font-weight:600;color:#fff;background:' + color + ';border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;">' + escHtml(status || 'pending') + '</span>';
+}
+
+function modRenderReviewCard(r) {
+  var suburbLabel = escHtml((r.state || '?') + ' / ' + (r.suburbSlug || '?'));
+  var suburbLink = '/suburb/' + encodeURIComponent((r.state || '').toLowerCase()) + '/' + encodeURIComponent(r.suburbSlug || '') + '/';
+  var isApproved = r.status === 'approved';
+  var isRejected = r.status === 'rejected';
+
+  var actions = [];
+  if (!isApproved) actions.push('<button class="btn-admin mod-action-btn" data-action="approve" data-id="' + escHtml(r.id) + '">Approve</button>');
+  if (!isRejected) actions.push('<button class="btn-admin-outline mod-action-btn" data-action="reject" data-id="' + escHtml(r.id) + '">Reject</button>');
+  actions.push('<button class="btn-admin-outline mod-action-btn mod-action-danger" data-action="delete" data-id="' + escHtml(r.id) + '">Delete</button>');
+
+  return (
+    '<div class="mod-card">' +
+      '<div class="mod-card-head">' +
+        modStatusBadge(r.status) +
+        '<a class="mod-card-link" href="' + suburbLink + '" target="_blank" rel="noopener">' + suburbLabel + '</a>' +
+        '<span class="mod-card-dot">·</span>' +
+        '<span class="mod-card-date">' + modFormatDate(r.created_at) + '</span>' +
+      '</div>' +
+      '<div class="mod-card-title">' + (r.title || '(no title)') + '</div>' +
+      '<div class="mod-card-meta">' + escHtml(r.userName || 'Anonymous') + ' <span class="mod-card-stars">' + modStarBar(r.rating) + '</span> <span class="mod-card-rating">(' + (r.rating || 0) + '/5)</span></div>' +
+      '<p class="mod-card-body">' + (r.body || '') + '</p>' +
+      '<div class="mod-card-actions">' + actions.join('') + '</div>' +
+    '</div>'
+  );
+}
+
+function modRenderCommentCard(c) {
+  var postSlug = escHtml(c.postSlug || '?');
+  var postLink = '/blog/' + encodeURIComponent(c.postSlug || '') + '/';
+  var isApproved = c.status === 'approved';
+  var isRejected = c.status === 'rejected';
+
+  var actions = [];
+  if (!isApproved) actions.push('<button class="btn-admin mod-action-btn" data-action="approve" data-id="' + escHtml(c.id) + '">Approve</button>');
+  if (!isRejected) actions.push('<button class="btn-admin-outline mod-action-btn" data-action="reject" data-id="' + escHtml(c.id) + '">Reject</button>');
+  actions.push('<button class="btn-admin-outline mod-action-btn mod-action-danger" data-action="delete" data-id="' + escHtml(c.id) + '">Delete</button>');
+
+  return (
+    '<div class="mod-card">' +
+      '<div class="mod-card-head">' +
+        modStatusBadge(c.status) +
+        '<a class="mod-card-link" href="' + postLink + '" target="_blank" rel="noopener">/blog/' + postSlug + '/</a>' +
+        '<span class="mod-card-dot">·</span>' +
+        '<span class="mod-card-date">' + modFormatDate(c.created_at) + '</span>' +
+      '</div>' +
+      '<div class="mod-card-meta">' + escHtml(c.userName || 'Anonymous') + '</div>' +
+      '<p class="mod-card-body">' + (c.body || '') + '</p>' +
+      '<div class="mod-card-actions">' + actions.join('') + '</div>' +
+    '</div>'
+  );
+}
+
+async function modLoadReviews() {
+  var listEl = document.getElementById('mod-reviews-list');
+  var statsEl = document.getElementById('moderation-stats');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--slate);font-size:11px;">Loading…</div>';
+
+  var kind = modCurrentKind;
+  var action = modCurrentSubtab === 'pending' ? 'adminPending' : 'adminListAll';
+  var fetcher = kind === 'comments' ? callComments : callReviews;
+  var renderer = kind === 'comments' ? modRenderCommentCard : modRenderReviewCard;
+  var labelSingular = kind === 'comments' ? 'comment' : 'review';
+  var labelPlural = kind === 'comments' ? 'comments' : 'reviews';
+
+  var res = await fetcher(action, { page: 1, pageSize: 50 });
+  if (!res || !res.ok) {
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#c62828;font-size:11px;">Failed to load ' + labelPlural + ': ' + escHtml(res && res.error || 'unknown error') + '</div>';
+    return;
+  }
+  var items = res.items || [];
+  if (statsEl) {
+    statsEl.textContent = (modCurrentSubtab === 'pending' ? 'Pending ' : 'Total ') + labelPlural + ': ' + (res.total || 0);
+  }
+  if (!items.length) {
+    listEl.innerHTML = '<div style="padding:32px;text-align:center;color:var(--slate);font-size:12px;">' +
+      (modCurrentSubtab === 'pending'
+        ? 'No ' + labelPlural + ' pending moderation — you\'re all caught up.'
+        : 'No ' + labelPlural + ' yet.') +
+      '</div>';
+    return;
+  }
+  listEl.innerHTML = items.map(renderer).join('');
+
+  // Wire action buttons
+  listEl.querySelectorAll('[data-action]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var action = btn.getAttribute('data-action');
+      var id = btn.getAttribute('data-id');
+      if (action === 'approve') modApprove(id);
+      else if (action === 'reject') modReject(id);
+      else if (action === 'delete') modDelete(id);
+    });
+  });
+}
+
+async function modApprove(id) {
+  var fetcher = modCurrentKind === 'comments' ? callComments : callReviews;
+  var res = await fetcher('adminApprove', { id: id });
+  if (res && res.ok) modLoadReviews();
+  else alert('Approve failed: ' + (res && res.error || 'unknown error'));
+}
+
+async function modReject(id) {
+  var labelSingular = modCurrentKind === 'comments' ? 'comment' : 'review';
+  var confirmed = await customConfirm('Reject this ' + labelSingular + '?', 'Rejected ' + labelSingular + 's are hidden from the public but kept in the database for audit. You can delete later from the "All" list.', { danger: false, confirmLabel: 'Reject' });
+  if (!confirmed) return;
+  var fetcher = modCurrentKind === 'comments' ? callComments : callReviews;
+  var res = await fetcher('adminReject', { id: id });
+  if (res && res.ok) modLoadReviews();
+  else alert('Reject failed: ' + (res && res.error || 'unknown error'));
+}
+
+async function modDelete(id) {
+  var kind = modCurrentKind;
+  var labelSingular = kind === 'comments' ? 'comment' : 'review';
+  var deleteAction = kind === 'comments' ? 'adminDeleteComment' : 'adminDeleteReview';
+  var fetcher = kind === 'comments' ? callComments : callReviews;
+  var detail = kind === 'comments'
+    ? 'This permanently removes the comment from Redis. This cannot be undone.'
+    : 'This permanently removes the review from Redis and updates the suburb aggregate count. This cannot be undone.';
+  var confirmed = await customConfirm('Delete this ' + labelSingular + '?', detail, { danger: true, confirmLabel: 'Delete' });
+  if (!confirmed) return;
+  var res = await fetcher(deleteAction, { id: id });
+  if (res && res.ok) modLoadReviews();
+  else alert('Delete failed: ' + (res && res.error || 'unknown error'));
+}
+
+function modSetSubtab(name) {
+  modCurrentSubtab = name;
+  var pendingBtn = document.getElementById('mod-subtab-pending');
+  var allBtn = document.getElementById('mod-subtab-all');
+  if (pendingBtn && allBtn) {
+    pendingBtn.classList.toggle('is-active', name === 'pending');
+    pendingBtn.setAttribute('aria-selected', name === 'pending' ? 'true' : 'false');
+    allBtn.classList.toggle('is-active', name === 'all');
+    allBtn.setAttribute('aria-selected', name === 'all' ? 'true' : 'false');
+  }
+  modLoadReviews();
+}
+
+function modSetKind(kind) {
+  modCurrentKind = kind;
+  var revBtn = document.getElementById('mod-kind-reviews');
+  var comBtn = document.getElementById('mod-kind-comments');
+  if (revBtn && comBtn) {
+    revBtn.classList.toggle('is-active', kind === 'reviews');
+    revBtn.setAttribute('aria-selected', kind === 'reviews' ? 'true' : 'false');
+    comBtn.classList.toggle('is-active', kind === 'comments');
+    comBtn.setAttribute('aria-selected', kind === 'comments' ? 'true' : 'false');
+  }
+  modLoadReviews();
 }
 
 document.addEventListener('DOMContentLoaded', init);

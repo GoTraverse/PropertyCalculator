@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670"></script>
+<script src="/gtag-init.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script src="tool-page.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Loan Serviceability Calculator Australia 2026 — Mortgage Affordability</title>
+<meta name="description" content="Free Australian loan serviceability calculator. Check mortgage borrowing capacity using Australian bank lending criteria and your income/expenses.">
+<meta name="keywords" content="loan serviceability calculator, mortgage affordability calculator, how much can I borrow, borrowing capacity calculator, loan serviceability Australia">
+<link rel="canonical" href="https://equitysight.app/tools/loan-serviceability-calculator">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/loan-serviceability-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Loan Serviceability Calculator Australia 2026 — Free Tool">
+<meta property="og:description" content="Check how much you can borrow based on Australian bank lending criteria.">
+<meta property="og:url" content="https://equitysight.app/tools/loan-serviceability-calculator">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Loan Serviceability Calculator Australia — Free Tool">
+<meta name="twitter:description" content="Calculate mortgage borrowing capacity using Australian bank lending criteria.">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script src="../adsense.js" defer></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Loan Serviceability Calculator","url":"https://equitysight.app/tools/loan-serviceability-calculator","description":"Free loan serviceability calculator for Australian property buyers. Estimate borrowing capacity based on income, expenses, and bank lending criteria.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Loan Serviceability Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do Australian banks calculate loan serviceability?","acceptedAnswer":{"@type":"Answer","text":"Banks assess your gross income minus tax, living expenses (HEM or declared expenses, whichever is higher), existing debt commitments, and credit card limits. They apply the current interest rate plus a 3% buffer (APRA requirement) and calculate whether your net surplus income can cover the proposed repayments."}},{"@type":"Question","name":"What income do I need to borrow $1 million in Australia?","acceptedAnswer":{"@type":"Answer","text":"As a rough guide, you typically need a household income of $150,000-$200,000 to borrow $1 million, depending on your existing debts, expenses, dependents, and the interest rate. Banks assess at the rate plus a 3% buffer, so actual serviceability is tighter than the advertised rate suggests."}},{"@type":"Question","name":"What reduces your borrowing capacity in Australia?","acceptedAnswer":{"@type":"Answer","text":"Key factors that reduce borrowing capacity include existing debts (car loans, personal loans, HECS/HELP), credit card limits (even if unused — lenders assume the full limit), high living expenses, dependents, short employment history, and casual or contract employment. Reducing credit card limits and paying off debts before applying can significantly increase capacity."}}]}]}
+</script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
+<script src="../auth-nav.js"></script>
+<script src="../error-capture.js"></script>
+<script src="../market-rate.js" defer></script>
+
+<section class="tool-hero" id="main-content">
+  <div class="tool-eyebrow">Free Tool · Mortgage Planning</div>
+  <h1>Loan Serviceability Calculator</h1>
+  <p>See how much you can borrow based on Australian bank lending criteria and your income and expenses.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Gross annual income</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="salary">Your salary/wages ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="salary" value="120,000" placeholder="e.g. 120,000" >
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="partner">Partner salary/wages ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="partner" placeholder="e.g. 85,000" >
+      </div>
+    </div>
+
+    <div class="tool-field">
+      <label class="tool-label" for="other">Other income (rental, investment, etc.)</label>
+      <input class="tool-input" type="text" inputmode="decimal" id="other" placeholder="e.g. 15,000" >
+    </div>
+
+    <div class="tool-card-title" style="margin-top:20px;">Monthly expenses</div>
+
+    <div class="tool-row">
+      <div class="tool-field">
+        <label class="tool-label" for="expenses">Living expenses (rent, utilities, food, transport, etc.)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="expenses" placeholder="e.g. 4,500" >
+      </div>
+      <div class="tool-field">
+        <label class="tool-label" for="debt">Existing debt repayments (credit cards, car loans, HECS)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="debt" placeholder="e.g. 1,200" >
+      </div>
+    </div>
+
+    <div class="tool-field" style="margin-top:16px;">
+      <label class="tool-label" for="base-rate">Assessment interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
+      <input class="tool-input" type="number" id="base-rate" value="6.50" placeholder="e.g. 6.50" step="0.05" min="1" max="20">
+      <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
+    </div>
+
+    <button class="tool-btn" id="loan-calc-btn">Calculate Borrowing Capacity</button>
+  </div>
+
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result" style="display:none">
+    <div class="tool-result-title">Your serviceability estimate</div>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">Gross Income (adjusted)</div>
+        <div class="tool-stat-value" id="r-income">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Monthly Commitments</div>
+        <div class="tool-stat-value" id="r-monthly">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Monthly Disposable</div>
+        <div class="tool-stat-value" id="r-disposable">—</div>
+      </div>
+      <div class="tool-stat highlight">
+        <div class="tool-stat-label">Est. Borrowing Capacity</div>
+        <div class="tool-stat-value" id="r-borrow">—</div>
+      </div>
+    </div>
+    <div class="tool-disclaimer" id="r-note" style="display:none"></div>
+    <p class="tool-disclaimer">Estimates only. Actual borrowing capacity varies by lender, loan product, interest rate assumptions, and serviceability calculations. Get pre-approved for an exact amount.</p>
+  </div>
+
+  <div class="ad-slot" data-ad-type="calculator"></div>
+
+  <div id="tool-partners-root"></div>
+  <div id="tool-disclosure-root"></div>
+  <div id="tool-cta-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+  <div id="tool-examples-root"></div>
+  <div id="tool-faq-root"></div>
+  <div id="tool-useful-links-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>How mortgage serviceability works in Australia</h2>
+  <p>Australian banks assess serviceability — your ability to repay the loan — using strict lending criteria. They typically use a 3% interest rate buffer when assessing your ability to repay, regardless of the actual rate.</p>
+
+  <h2>Key serviceability metrics</h2>
+  <ul>
+    <li><strong>Debt-to-income ratio:</strong> Banks typically limit total debt repayments to 40–50% of gross income.</li>
+    <li><strong>Living expense allowances:</strong> Banks apply minimum living expense guidelines ($2,600–$3,500/month for individuals) to ensure you can meet other obligations.</li>
+    <li><strong>Interest rate buffer:</strong> Most banks assume a 3% buffer above the current rate for repayment capacity.</li>
+    <li><strong>Loan-to-value (LVR):</strong> Typically limited to 80–90% depending on loan type and circumstances.</li>
+  </ul>
+
+  <h2>What can affect your borrowing capacity?</h2>
+  <ul>
+    <li>Income stability and type (employment vs. self-employed)</li>
+    <li>Credit history and existing debts</li>
+    <li>Deposit size and LVR</li>
+    <li>Interest rate environment</li>
+    <li>Employment in key sectors (some lenders restrict mining, defence, etc.)</li>
+    <li>Age of applicants</li>
+  </ul>
+
+  <h2>APRA Serviceability Buffer — Why 3%?</h2>
+  <p>In October 2021, APRA directed Australian lenders to assess loan serviceability at the loan rate plus a 3% buffer. This replaced the previous 2.5% buffer to manage risk as rates were expected to rise. So if your actual rate is 6.5%, the bank assesses your ability to repay at 9.5%. This buffer is the biggest constraint on borrowing capacity for most Australians.</p>
+
+  <h2>HEM — Household Expenditure Measure</h2>
+  <p>When you apply for a loan, Australian banks apply the <strong>Household Expenditure Measure (HEM)</strong> — a minimum living expense benchmark published quarterly by the Melbourne Institute. If your declared expenses are lower than HEM, the bank uses HEM instead. This prevents borrowers from understating expenses to borrow more. HEM varies by household size and income level.</p>
+
+  <h2>Borrowing Capacity by Income (Approximate)</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;">
+    <thead><tr style="border-bottom:2px solid var(--border)"><th style="text-align:left;padding:8px 4px">Gross Income</th><th style="text-align:right;padding:8px 4px">Approx. Max Borrowing (Single)</th><th style="text-align:right;padding:8px 4px">Approx. Max Borrowing (Couple)</th></tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 4px">$60,000/yr</td><td style="text-align:right;padding:8px 4px">~$300,000</td><td style="text-align:right;padding:8px 4px">—</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 4px">$80,000/yr</td><td style="text-align:right;padding:8px 4px">~$420,000</td><td style="text-align:right;padding:8px 4px">—</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 4px">$100,000/yr</td><td style="text-align:right;padding:8px 4px">~$550,000</td><td style="text-align:right;padding:8px 4px">—</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 4px">$120,000/yr each</td><td style="text-align:right;padding:8px 4px">—</td><td style="text-align:right;padding:8px 4px">~$1,200,000</td></tr>
+      <tr><td style="padding:8px 4px">$150,000/yr each</td><td style="text-align:right;padding:8px 4px">—</td><td style="text-align:right;padding:8px 4px">~$1,600,000</td></tr>
+    </tbody>
+  </table>
+  <p><em>Estimates assume no existing debts, standard HEM expenses, and a 30-year P&I loan at ~6.5% (assessed at ~9.5% with buffer). Actual lender limits will vary.</em></p>
+
+  <h2>Next steps</h2>
+  <p>Use this estimate to understand your rough borrowing capacity, then get pre-approved by a lender for an exact amount. Mortgage brokers can shop multiple lenders and often get better rates.</p>
+</section>
+
+<div id="tool-resources-root"></div>
+<div id="tool-trust-root"></div>
+<div id="tool-footer-root"></div>
+
+<script src="loan-serviceability-calculator.js"></script>
+
+</body>
+</html>
