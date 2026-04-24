@@ -2,13 +2,23 @@ name: Production canary
 
 # Hourly synthetic check against https://equitysight.app. If the smoke suite
 # fails, GitHub raises the workflow as a failed run — wire that into Slack /
-# email via GitHub repository notification settings. Cheaper and more reliable
-# than a third-party uptime service for a Netlify-hosted static site.
+# email via GitHub repository notification settings.
+#
+# ⚠️ SCHEDULE DISABLED until PR #197 lands on production.
+# The smoke suite asserts on features that ship in that PR (6-link nav, /tools
+# landing, aria-live on result containers, no inline onclick). Running against
+# pre-merge production produces noisy hourly failure emails.
+#
+# Once PR #197 is deployed to prod:
+#   1. Uncomment the `schedule:` block below
+#   2. Push to `Staging` or `main`
+# The `workflow_dispatch` trigger stays on so you can still run the canary
+# manually from the Actions tab at any time.
 
 on:
-  schedule:
-    - cron: '17 * * * *'   # every hour at :17 (off-peak-minute to spread load)
-  workflow_dispatch:        # allow manual trigger from the Actions tab
+  # schedule:
+  #   - cron: '17 * * * *'   # every hour at :17
+  workflow_dispatch:        # manual run from the Actions tab
 
 jobs:
   canary:
