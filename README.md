@@ -43,7 +43,7 @@
 - **About Page** — edit the About page content from admin
 - **Legal Pages** — edit privacy, terms, cookies, disclaimer from admin
 - **Suburbs** — browse/search suburb data, state breakdown, trigger suburb page rebuilds via Netlify deploy hook
-- **Blog** — author posts in Markdown with live word count (vs AdSense 1,500-word floor), draft/publish workflow, slug collision check; posts stored in Upstash Redis and rendered to static HTML at deploy time
+- **Blog** — author posts in Markdown with live word count vs the `BLOG_MIN_WORDS` build gate (default 1200, AdSense target 1500), draft/publish workflow, slug collision check; posts stored in Upstash Redis and rendered to static HTML at deploy time. Sub-floor posts still render but are marked `noindex` and excluded from sitemap/RSS/index.
 - **Moderation** — approve, reject, or delete user-submitted suburb reviews **and** blog comments; top-level kind switcher with nested Pending/All sub-tabs; atomic aggregate updates on approve/reject
 
 ---
@@ -63,7 +63,7 @@
 
 ---
 
-## Project Structure (24 HTML pages + 14,512 suburb pages + 19 city pages + Redis-backed blog + suburb reviews + blog comments, 14 Netlify functions, 9 SEO tools)
+## Project Structure (~32 HTML pages + 14,512 suburb pages + 19 city pages + Redis-backed blog + suburb reviews + blog comments, 12 Netlify functions + 1 shared helper, 14 SEO tools + landing page)
 
 ### Application Pages
 ```
@@ -77,31 +77,43 @@ showcase.html           # App gallery — real mobile screenshots (light + dark)
 ### Marketing Pages
 ```
 index.html              # Landing page with features & pricing preview
+tools/index.html        # /tools landing page — all 14 calculators grouped (Buying / Borrowing / Investment)
 pricing.html            # Full pricing page with feature comparison
-about.html              # About page
+about.html              # About page (with Organization JSON-LD)
 contact.html            # Contact form
+methodology.html        # Methodology (formulas, thresholds) — rendered from methodology.md
+data-sources.html       # Data sources + attribution — rendered from data-sources.md
 ```
 
-### Free SEO Tool Calculators (lead generation — 9 tools in /tools/)
+### Free SEO Tool Calculators (lead generation — 14 tools in /tools/)
 ```
-stamp-duty-calculator.html           # All 8 Australian states (NSW, VIC, QLD, SA, WA, TAS, ACT, NT) with state dropdown
-cost-of-purchase-calculator.html     # Total cost breakdown — stamp duty, legal, bank fees, inspections, insurance, moving, lease break
-equity-release-calculator.html       # Home equity release & borrowing capacity based on LVR
-loan-serviceability-calculator.html  # Mortgage affordability based on income & expenses
-first-home-buyer-grants-calculator.html # State-specific FHB grants & stamp duty exemptions
-rental-yield-calculator.html         # Rental yield analysis
-renovation-cost-calculator.html      # Renovation budget
-house-flip-calculator.html           # Buy/renovate/sell profit
-mortgage-stress-calculator.html      # Loan stress testing
+stamp-duty-calculator.html             # All 8 Australian states with state dropdown
+cost-of-purchase-calculator.html       # Total cost breakdown incl. stamp duty, legal, bank fees, inspections
+deposit-calculator.html                # How much deposit needed — LMI, stamp duty, FHB concessions
+first-home-buyer-grants-calculator.html# State-specific FHB grants & stamp duty exemptions
+borrowing-power-calculator.html        # How much a bank will lend (APRA 3% serviceability buffer)
+loan-serviceability-calculator.html    # Mortgage affordability from income + expenses
+mortgage-repayment-calculator.html     # Weekly / fortnightly / monthly repayments, P&I or IO
+interest-only-vs-principal-calculator.html # IO vs P&I side-by-side cost comparison
+mortgage-stress-calculator.html        # Rate-rise stress test, DSR/TDSR/DTI
+rental-yield-calculator.html           # Gross + net rental yield
+capital-gains-calculator.html          # CGT with 50% discount + FY2025-26 marginal rates
+equity-release-calculator.html         # Home equity release based on LVR
+house-flip-calculator.html             # Buy / renovate / sell profit
+renovation-cost-calculator.html        # Itemised renovation budget
 ```
 
 All SEO tools feature:
-- **Comprehensive SEO**: Meta tags, keywords, structured data (JSON-LD schema)
-- **Mobile-optimized**: Responsive design, PWA-ready
+- **Comprehensive SEO**: Meta tags, keywords, structured data (WebApplication + BreadcrumbList + FAQPage JSON-LD)
+- **Shared site-nav**: every tool gets the standard 6-link nav (Calculators / Blog / Gallery / Pricing / About / Support) via `auth-nav.js`
+- **Mobile-optimized**: responsive design, `inputmode="decimal"` on currency inputs for the right mobile keyboard, PWA-ready, SW pre-caches all 14 for first-visit offline
+- **Accessibility**: `aria-live="polite"` on result containers, `aria-selected` on tabs, WAI-ARIA keyboard nav, `prefers-reduced-motion` respected
+- **Input persistence**: inputs snapshot to localStorage so a refresh doesn't lose work
 - **Lead generation**: CTAs linking to main app signup
-- **Educational**: Built-in content sections with explanations
-- **Accurate rates**: 2025-26 Australian government rates, conditions, and thresholds
+- **Educational**: built-in content sections with explanations
+- **Accurate rates**: FY2025-26 Australian government rates (ATO Stage 3 brackets, APRA APS 220 3% buffer, HEM, per-state stamp duty + FHB concessions)
 - **Live market data**: RBA cash rate + ABS state median prices via `market-rate.js`
+- **Cross-linking**: `related[]` + `footer[]` + `usefulLinks[]` (grouped Other Tools / Popular Suburbs / Guides) on every tool
 
 ### Legal Pages (rendered from Markdown)
 ```
@@ -122,16 +134,16 @@ index.css, pricing.css, about.css, login.css, contact.css, tools.css, suburb-ins
 
 ### Shared Scripts
 ```
-auth-nav.js             # Nav header + profile menu + help modal (514 lines)
-footer.js               # Site footer
-error-capture.js        # JS error logging (on app/admin/account only)
-account-panel.js        # Account settings component (483 lines)
-account.js              # Account page logic — subscription, Stripe portal (555 lines)
+auth-nav.js             # Site-nav renderer (SITE_NAV_LINKS source of truth) + profile menu + help modal (~606 lines)
+footer.js               # Site footer (links to /methodology + /data-sources)
+error-capture.js        # JS error logging, SUPPRESS list for network noise (~118 lines)
+account-panel.js        # Account settings component (~488 lines)
+account.js              # Account page logic — subscription, Stripe portal (~612 lines)
 legal.js                # Markdown → HTML parser for legal pages
 stripe-config.js        # Stripe API key + plan IDs (client-safe)
 shared-calcs.js         # Common calc utilities (fmt, parse, repayment, growth) — used by all calculators
 market-rate.js          # Live RBA cash rate + ABS state median prices (window.MarketRate)
-site-init.js            # Applies dark/light theme before first paint (synchronous)
+site-init.js            # Applies dark/light theme before first paint + pre-signup page trail (~21 lines)
 adsense.js              # Google AdSense integration
 gtag-init.js            # Google Analytics initialization
 ```
@@ -151,19 +163,19 @@ state-hub-search.js                 # State hub client-side search by name/postc
 
 ### Backend Functions (`netlify/functions/`)
 ```
-auth.js                 # User auth + admin management (~800 lines, 10+ actions)
-scenarios.js            # Scenario CRUD operations (~300 lines)
-stripe.js               # Stripe checkout, portal, webhooks (~500 lines)
+auth.js                 # User auth + admin management (~1480 lines, many actions). Per-email + per-IP signin rate limits.
+scenarios.js            # Scenario CRUD (~503 lines). Share action has 20/day/user + 30/hr/IP caps.
+stripe.js               # Stripe checkout, portal, webhooks (~643 lines). Idempotent via Redis SET NX, dead-letter list, atomic pipeline writes, 3-day payment-failed grace flag.
 contact.js              # Contact form email submission
 client-errors.js        # JS error log aggregation
 growth.js               # Suburb growth rate cache (30-day TTL)
-photo.js                # Property photo storage proxy
 mapproxy.js             # OpenStreetMap tile proxy
 address-suggest.js      # Address autocomplete (rate-limited: 30 req/min)
-market-data.js          # Suburb insights market data API
+market-data.js          # Suburb insights market data API (GET is stale-while-revalidate cached by the SW)
 blog.js                 # Blog CMS — admin CRUD over Upstash Redis (posts, slug index, tag lists)
 reviews.js              # Suburb reviews & star ratings — auth, rate-limited, 3-state moderation queue
 comments.js             # Blog post comments — auth, rate-limited, 3-state moderation queue (flat threading)
+_log.js                 # Shared structured JSON-logging helper (not a Netlify function handler)
 ```
 
 ### Blog CMS (static-first, Redis-backed)
@@ -178,7 +190,7 @@ data/blog-fixture.json            # Offline fixture for local builds (ignored on
 blog/ (generated)                 # /blog/index.html, /blog/<slug>/, /blog/tag/<tag>/, /blog/rss.xml
 ```
 
-Posts are authored in the admin Blog tab (Markdown editor with live word count vs 1,500-word AdSense floor) → stored in Upstash Redis → rendered to static HTML at deploy time. Public `/blog/` pages are 100% pre-rendered so Googlebot/AdSense crawl complete JSON-LD without hydration.
+Posts are authored in the admin Blog tab (Markdown editor with autosave + recovery + live word count vs `BLOG_MIN_WORDS` gate — default 1200, AdSense target 1500) → stored in Upstash Redis → rendered to static HTML at deploy time. Public `/blog/` pages are 100% pre-rendered so Googlebot/AdSense crawl complete JSON-LD without hydration. Sub-floor posts still render but are marked `noindex, follow` and are excluded from sitemap/RSS/paged index/section/tag pages.
 
 ### Suburb Reviews & Ratings (UGC, moderated)
 ```
@@ -223,7 +235,7 @@ netlify.toml            # Netlify build config, CSP headers, cache rules, force-
 .netlifyignore          # Files excluded from Netlify CDN (dev docs, build scripts, ERRORS.json, raw data)
 manifest.json           # PWA manifest (app name, icons, theme colors)
 robots.txt              # Search engine crawling directives
-sitemap.xml             # Sitemap index → sitemap-core.xml (70 URLs) + 19 state-grouped sitemap-suburbs-*.xml files (14,539 URLs total, max 1000 per file)
+sitemap.xml             # Sitemap index → sitemap-core.xml (~35 URLs) + sitemap-blog.xml + 19 state-grouped sitemap-suburbs-*.xml files (max 1000 per file)
 ```
 
 > **For detailed architecture, conventions, auth flows, and data models** — see **`CODEBASE.md`**
@@ -261,11 +273,12 @@ npx netlify dev
 # - Requires .env or Netlify dashboard env vars
 ```
 
-### Git Branches
-- **`main`** — protected, read-only; pull current tasks from here
-- **`Staging`** — staging/pre-production branch
-- **`claude/***` — temporary feature branches (deleted after merge)
-- **`TODO.md`** — source of truth for outstanding work; remove lines when tasks complete
+### Git Branches + Merge Policy (April 2026 update)
+- **`main`** — production. Netlify auto-deploys from here.
+- **`Staging`** — legacy staging branch; kept around but no longer the default PR target.
+- **`claude/***` — temporary feature branches.
+- **PR target** — changes go directly to `main` with immediate squash-merge (the team-approved auto-merge policy). No Staging hop. Exception: payment-flow, schema migrations, or broad refactors still want a human review.
+- **`TODO.md`** — source of truth for outstanding work; remove lines when tasks complete.
 
 ### Plans & Roles
 - **Plans**: `free` | `pro` | `adviser` — stored in localStorage session + Redis user record
@@ -300,6 +313,7 @@ npx netlify dev
 5. **Make changes** — edit HTML/CSS/JS directly (no build step)
 6. **Test** — open browser, check desktop + mobile (600px breakpoint)
 7. **Security check** — if adding a new dev/internal file, add it to `.netlifyignore`
-8. **Commit & push** — to `Staging` or feature branch
-9. **Update docs** — if architecture changes, update `CODEBASE.md` and `README.md`
-10. **Update TODO.md** — remove completed tasks, add new ones as discovered
+8. **Commit & push** — to a `claude/***` feature branch
+9. **PR → `main` with squash-merge** — direct to main per current policy. Netlify auto-deploys on merge.
+10. **Update docs** — if architecture changes, update `CODEBASE.md` and `README.md`
+11. **Update TODO.md** — remove completed tasks, add new ones as discovered
