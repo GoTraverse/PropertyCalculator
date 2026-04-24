@@ -353,6 +353,30 @@ var ToolPage = (function() {
     observer.observe(cta, { attributes: true, attributeFilter: ['style'] });
   }
 
+  /* ── Scroll the result into view after Calculate is clicked. On mobile
+   *    the result sits below the button and is often off-screen — without
+   *    this the user thinks nothing happened. Uses `prefers-reduced-motion`
+   *    to decide between smooth and instant scroll.
+   */
+  function _installScrollToResult() {
+    var btn = document.querySelector('.tool-main .tool-btn, #calc-btn');
+    var result = document.querySelector('.tool-result');
+    if (!btn || !result) return;
+    var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    btn.addEventListener('click', function () {
+      // Defer past the calc() run so the result container is rendered/visible
+      // before we scroll to it.
+      setTimeout(function () {
+        try {
+          result.scrollIntoView({
+            behavior: prefersReduced ? 'auto' : 'smooth',
+            block: 'nearest',
+          });
+        } catch (e) { /* older browsers — noop */ }
+      }, 60);
+    });
+  }
+
   /* ── Init ── */
 
   function _fetchPartners(slug) {
@@ -383,8 +407,48 @@ var ToolPage = (function() {
     .catch(function(){});
   }
 
+  /* ── Persist tool inputs to localStorage so refreshing doesn't lose work ── */
+  function _installInputPersistence(slug) {
+    if (!slug) return;
+    var key = 'tool_inputs_v1:' + slug;
+    var inputs = document.querySelectorAll('.tool-main input, .tool-main select');
+    if (!inputs.length) return;
+
+    // Restore (if anything saved) before the page runs its initial calc
+    try {
+      var saved = JSON.parse(localStorage.getItem(key) || 'null');
+      if (saved && typeof saved === 'object') {
+        inputs.forEach(function (el) {
+          if (!el.id || !(el.id in saved)) return;
+          if (el.type === 'checkbox') el.checked = !!saved[el.id];
+          else el.value = saved[el.id];
+        });
+      }
+    } catch (e) { /* bad JSON — ignore */ }
+
+    function snapshot() {
+      var snap = {};
+      inputs.forEach(function (el) {
+        if (!el.id) return;
+        snap[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+      });
+      try { localStorage.setItem(key, JSON.stringify(snap)); } catch (e) {}
+    }
+    // Debounced snapshot on any input/change (lightweight — only serialises
+    // the ~10 inputs per tool form).
+    var t;
+    var sched = function () { clearTimeout(t); t = setTimeout(snapshot, 250); };
+    inputs.forEach(function (el) {
+      el.addEventListener('input', sched);
+      el.addEventListener('change', sched);
+    });
+  }
+
   function init(config) {
     var el;
+
+    _installInputPersistence(config.partnerSlug);
+    _installScrollToResult();
 
     el = document.getElementById('tool-cta-root');
     if (el) renderCTA(el, config.cta);

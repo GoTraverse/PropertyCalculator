@@ -114,10 +114,21 @@ ToolPage.init({
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools', text: 'All Calculators' },
     { href: '/tools/renovation-cost-calculator', text: 'Reno Cost' },
-    { href: '/tools/rental-yield-calculator', text: 'Rental Yield' },
+    { href: '/tools/capital-gains-calculator', text: 'CGT' },
     { href: '/privacy', text: 'Privacy' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '🔨', href: '/tools/renovation-cost-calculator', label: 'Renovation Cost Estimator' },
+    { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
+    { group: 'Other Tools', icon: '💵', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase' },
+    { group: 'Other Tools', icon: '📉', href: '/tools/capital-gains-calculator', label: 'Capital Gains Tax (on the resale)' },
+    { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD (flip-friendly)' },
+    { group: 'Popular Suburbs', icon: '📍', href: '/suburb/vic/werribee/', label: 'Werribee VIC' },
+    { group: 'Popular Suburbs', icon: '📍', href: '/invest/qld/', label: 'All QLD Investment Suburbs' },
+    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '📖', href: '/methodology', label: 'How we calculate (methodology)' }
   ]
 });
 

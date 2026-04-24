@@ -492,14 +492,20 @@ exports.handler = async function(event){
     const signinIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
     if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, signinIp)) return fail('Security check failed — please try again', 403);
     const normalizedEmail=email.toLowerCase().trim();
-    // Rate limit: max 10 failed attempts per email per 15 minutes
+    // Rate limit — per-email cap prevents credential stuffing on a single
+    // account; per-IP cap prevents low-and-slow attacks hitting many accounts
+    // from one source.
     const failKey='loginFail:'+normalizedEmail;
     const failCount=Number(await rGet(failKey)||0);
     if(failCount>=10) return fail('Too many failed sign-in attempts. Please wait 15 minutes or reset your password.');
+    const ipKey='loginFailIp:'+signinIp;
+    const ipFailCount=Number(await rGet(ipKey)||0);
+    if(ipFailCount>=30) return fail('Too many failed sign-in attempts from your network. Please wait 15 minutes.');
     const user=await rGet('user:'+normalizedEmail);
-    if(!user){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
-    if(!safeEqual(user.hash,hashPw(password))){ await rRateInc(failKey,900); return fail('Email or password incorrect'); }
-    await rDel(failKey); // clear on success
+    if(!user){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
+    if(!safeEqual(user.hash,hashPw(password))){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
+    await rDel(failKey); // clear per-email counter on success (IP counter keeps
+                        // its window — legitimate users rarely exceed 30/15min)
     if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
     if(user.emailVerified===false){
       return ok({ok:false,error:'Please verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
@@ -671,14 +677,25 @@ exports.handler = async function(event){
     // Check if user still exists (deleted users should be logged out)
     const userData=await rGet('user:'+data.email);
     if(!userData) return fail('User account has been deleted');
-    // Always return latest plan/role from user record so admin changes take effect immediately
+    // Always return latest plan/role from user record so admin changes + Stripe
+    // webhook upgrades take effect immediately on the next verify poll.
+    const freshPlan = userData.plan||data.plan;
+    const freshRole = userData.role||data.role;
+    const planDrifted = (data.plan !== freshPlan) || (data.role !== freshRole);
     try{
-      data.plan=userData.plan||data.plan;
-      data.role=userData.role||data.role;
+      data.plan = freshPlan;
+      data.role = freshRole;
       // Include subscription status fields
       if(userData.subscription_canceled_at) data.canceledAt=userData.subscription_canceled_at;
       if(userData.subscription_expires_at) data.expiresAt=userData.subscription_expires_at;
       if(userData.subscription_renews_at) data.renewsAt=userData.subscription_renews_at;
+      // Tighten cached token record when it's gone stale (plan upgrade /
+      // admin role change). Preserves the TTL so we don't extend session
+      // life silently.
+      if (planDrifted) {
+        const remaining = Math.max(1, Math.round(((data.expires||0) - Date.now())/1000));
+        await rSet('token:'+token, data, remaining);
+      }
     }catch(e){}
     // Throttled "last active" refresh: bump lastActiveAt at most once per hour
     // to record ongoing usage separate from explicit sign-ins. lastLoginAt is

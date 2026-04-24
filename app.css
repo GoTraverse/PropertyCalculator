@@ -16,7 +16,7 @@
   .header-text{flex:1;padding:28px 36px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;}
   .header-tag{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
   h1{font-family:'Playfair Display',serif;font-size:clamp(24px,3.5vw,40px);font-weight:900;line-height:1.1;margin-bottom:4px;}
-  .header-sub{font-size:13px;color:rgba(245,240,232,0.45);font-weight:300;margin-bottom:14px;}
+  .header-sub{font-size:13px;color:rgba(245,240,232,0.70);font-weight:300;margin-bottom:14px;}
   .header-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0;}
   /* Overflow menu */
   .hdr-overflow-wrap{display:none;}
@@ -572,7 +572,7 @@
   .splash-inner{text-align:center;padding:40px 24px;max-width:480px;}
   .splash-logo{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0.7;}
   .splash-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--cream);line-height:1.2;margin-bottom:10px;}
-  .splash-sub{font-size:15px;color:rgba(245,240,232,0.45);margin-bottom:40px;line-height:1.6;}
+  .splash-sub{font-size:15px;color:rgba(245,240,232,0.70);margin-bottom:40px;line-height:1.6;}
   .splash-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
   .splash-btn{padding:14px 28px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;cursor:pointer;transition:transform 0.15s,opacity 0.15s;border:none;}
   .splash-btn:hover{transform:translateY(-2px);opacity:0.9;}
@@ -621,7 +621,7 @@
   .pp-color-btn:hover,.pp-color-btn.active{border-color:var(--cream);transform:scale(1.15);}
   .pp-save-btn{margin:14px 22px 6px;background:var(--gold);color:var(--charcoal);border:none;border-radius:3px;padding:12px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:opacity 0.15s;}
   .pp-save-btn:hover{opacity:0.88;}
-  .pp-login-note{margin:0 22px 18px;padding:11px 13px;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:3px;font-size:11px;color:rgba(245,240,232,0.45);line-height:1.7;}
+  .pp-login-note{margin:0 22px 18px;padding:11px 13px;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:3px;font-size:11px;color:rgba(245,240,232,0.70);line-height:1.7;}
   .pp-login-note strong{color:rgba(201,168,76,0.8);}
   .pp-signout-btn{margin:0 22px 22px;background:rgba(255,255,255,0.04);color:rgba(245,240,232,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:3px;padding:9px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;width:calc(100% - 44px);}
   .pp-signout-btn:hover{background:rgba(255,255,255,0.07);color:rgba(245,240,232,0.6);}
@@ -720,12 +720,12 @@ html.dark-mode main{background:#111113!important;}
 html.dark-mode .card{background:#1C1C1E!important;border-color:rgba(255,255,255,0.08)!important;color:#F5F0E8!important;}
 html.dark-mode .card label,html.dark-mode .card .card-label,html.dark-mode .pd-field label{color:rgba(245,240,232,0.6)!important;}
 html.dark-mode .pd-field input[type="text"],html.dark-mode .pd-field input[type="number"],html.dark-mode .pd-field input[type="tel"],html.dark-mode .pd-field input[type="email"],html.dark-mode .pd-field select,html.dark-mode .pd-field textarea{background:rgba(255,255,255,0.06)!important;border-color:rgba(255,255,255,0.1)!important;color:#F5F0E8!important;}
-html.dark-mode .tab{color:rgba(245,240,232,0.45)!important;border-bottom-color:transparent!important;}
+html.dark-mode .tab{color:rgba(245,240,232,0.70)!important;border-bottom-color:transparent!important;}
 html.dark-mode .tab.active{color:#F5F0E8!important;border-bottom-color:var(--gold)!important;}
 html.dark-mode .tab:hover{color:rgba(245,240,232,0.8)!important;}
 html.dark-mode .lib-row{background:#1C1C1E!important;border-color:rgba(255,255,255,0.08)!important;color:#F5F0E8!important;}
 html.dark-mode .lib-row:hover{background:#2C2C2E!important;}
-html.dark-mode .lib-row-sub{color:rgba(245,240,232,0.45)!important;}
+html.dark-mode .lib-row-sub{color:rgba(245,240,232,0.70)!important;}
 html.dark-mode .addr-suggestions{background:#2C2C2E!important;border-color:rgba(255,255,255,0.12)!important;}
 html.dark-mode .addr-sug-item:hover{background:rgba(255,255,255,0.06)!important;}
 html.dark-mode .reno-note{background:rgba(255,255,255,0.04)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.75)!important;}
@@ -774,7 +774,7 @@ html.dark-mode .bm{color:rgba(245,240,232,0.55)!important;}
 html.dark-mode .bm span:last-child{color:#F5F0E8!important;}
 
 /* Amortisation table */
-html.dark-mode #amort-table th{border-bottom-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.45)!important;}
+html.dark-mode #amort-table th{border-bottom-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.70)!important;}
 html.dark-mode #amort-table td{border-bottom-color:rgba(255,255,255,0.05)!important;color:#F5F0E8!important;}
 html.dark-mode #amort-table td:first-child{color:rgba(245,240,232,0.5)!important;}
 html.dark-mode #amort-table tbody tr:nth-child(even){background:rgba(255,255,255,0.025)!important;}

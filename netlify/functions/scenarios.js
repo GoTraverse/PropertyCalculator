@@ -335,6 +335,21 @@ exports.handler = async function(event){
       // Verify caller identity from token (need name/email for share record)
       const ownerData = await verifyToken(event);
       if(!ownerData||ownerData.userId!==uid) return fail('Auth error');
+      // Rate-limit share-email blast: prevents one account from spamming
+      // arbitrary addresses with "X invited you" notifications. Mirrors the
+      // pattern used by comments.js / reviews.js.
+      try {
+        const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+        const userDayKey = 'scenarios:shareCount:' + uid + ':' + today;
+        const userCount = parseInt(await redisCmd('INCR', userDayKey), 10);
+        if (userCount === 1) await redisCmd('EXPIRE', userDayKey, '86400');
+        if (userCount > 20) return fail('You have reached the daily share limit (20/day)', 429);
+        const clientIp = (event.headers['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
+        const ipKey = 'ratelimit:scenarios-share:' + clientIp;
+        const ipCount = parseInt(await redisCmd('INCR', ipKey), 10);
+        if (ipCount === 1) await redisCmd('EXPIRE', ipKey, '3600');
+        if (ipCount > 30) return fail('Too many share requests — please try again later', 429);
+      } catch(e) { console.warn('[scenarios] share rate-limit error:', e.message); }
       // Look up target user
       const norm = targetEmail.toLowerCase().trim();
       const targetUser = await rGet('user:'+norm);

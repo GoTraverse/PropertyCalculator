@@ -17,19 +17,20 @@
 <meta property="og:description" content="Free Australian borrowing power calculator. See how much a bank will lend you based on income and expenses.">
 <meta property="og:url" content="https://equitysight.app/tools/borrowing-power-calculator">
 <meta property="og:site_name" content="EquitySight.app">
-<meta property="og:image" content="https://equitysight.app/images/og-image.svg">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Australian Borrowing Power Calculator 2026 — How Much Can I Borrow?">
 <meta name="twitter:description" content="Free Australian borrowing power calculator based on income, expenses and APRA buffer.">
-<meta name="twitter:image" content="https://equitysight.app/images/og-image.svg">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
 <script src="../adsense.js" defer></script>
@@ -43,13 +44,17 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header class="tool-header">
-  <a href="/" class="tool-logo">
-    <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
-    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
-  </a>
-  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
-</header>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
 
@@ -66,38 +71,38 @@
 
     <div class="tool-field">
       <label class="tool-label" for="income">Gross annual income (household)</label>
-      <input class="tool-input" type="text" id="income" value="120,000" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" inputmode="decimal" id="income" value="120,000">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="expenses">Monthly living expenses</label>
-      <input class="tool-input" type="text" id="expenses" value="3,500" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" inputmode="decimal" id="expenses" value="3,500">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="debts">Other monthly debt repayments (cards, car, HECS)</label>
-      <input class="tool-input" type="text" id="debts" value="400" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" inputmode="decimal" id="debts" value="400">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="deps">Number of dependants</label>
-      <input class="tool-input" type="number" id="deps" value="0" step="1" min="0" max="10" oninput="calc()">
+      <input class="tool-input" type="number" id="deps" value="0" step="1" min="0" max="10">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="rate">Interest rate (%)</label>
-      <input class="tool-input" type="number" id="rate" value="6.25" step="0.01" min="0" oninput="calc()">
+      <input class="tool-input" type="number" id="rate" value="6.25" step="0.01" min="0">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="term">Loan term (years)</label>
-      <input class="tool-input" type="number" id="term" value="30" step="1" min="1" max="40" oninput="calc()">
+      <input class="tool-input" type="number" id="term" value="30" step="1" min="1" max="40">
     </div>
 
-    <button class="tool-btn" onclick="calc()">Calculate Borrowing Power</button>
+    <button class="tool-btn" id="calc-btn" aria-label="Calculate borrowing power">Calculate Borrowing Power</button>
   </div>
 
-  <div class="tool-result" id="result">
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result">
     <div class="tool-result-title">Your estimated borrowing power</div>
     <div class="tool-grid">
       <div class="tool-stat highlight">

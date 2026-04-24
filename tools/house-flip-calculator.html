@@ -18,19 +18,20 @@
 <meta property="og:description" content="Calculate your house flip profit, ROI, and annualised return before you buy.">
 <meta property="og:url" content="https://equitysight.app/tools/house-flip-calculator">
 <meta property="og:site_name" content="EquitySight.app">
-<meta property="og:image" content="https://equitysight.app/images/og-image.svg">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="House Flip Calculator Australia — Free Tool">
 <meta name="twitter:description" content="Calculate house flip profit, ROI and annualised return for Australian properties.">
-<meta name="twitter:image" content="https://equitysight.app/images/og-image.svg">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
 <script src="../adsense.js" defer></script>
@@ -44,13 +45,17 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header class="tool-header">
-  <a href="/" class="tool-logo">
-    <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
-    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
-  </a>
-  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
-</header>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
 
@@ -67,21 +72,21 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="purchase">Purchase price</label>
-        <input class="tool-input" type="text" id="purchase" value="520,000" placeholder="e.g. 520,000" >
+        <input class="tool-input" type="text" inputmode="decimal" id="purchase" value="520,000" placeholder="e.g. 520,000" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="stamp">Stamp duty</label>
-        <input class="tool-input" type="text" id="stamp" placeholder="e.g. 18,000" >
+        <input class="tool-input" type="text" inputmode="decimal" id="stamp" placeholder="e.g. 18,000" >
       </div>
     </div>
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="buyconvey">Conveyancing (buy)</label>
-        <input class="tool-input" type="text" id="buyconvey" placeholder="e.g. 1,500" >
+        <input class="tool-input" type="text" inputmode="decimal" id="buyconvey" placeholder="e.g. 1,500" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="buyinspect">Inspections / due diligence</label>
-        <input class="tool-input" type="text" id="buyinspect" placeholder="e.g. 800" >
+        <input class="tool-input" type="text" inputmode="decimal" id="buyinspect" placeholder="e.g. 800" >
       </div>
     </div>
 
@@ -89,11 +94,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="reno">Renovation budget</label>
-        <input class="tool-input" type="text" id="reno" placeholder="e.g. 85,000">
+        <input class="tool-input" type="text" inputmode="decimal" id="reno" placeholder="e.g. 85,000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="renocontingency">Contingency (15%)</label>
-        <input class="tool-input" type="text" id="renocontingency" placeholder="Auto-calculated" readonly style="background:var(--warm-white);color:var(--slate);">
+        <input class="tool-input" type="text" inputmode="decimal" id="renocontingency" placeholder="Auto-calculated" readonly style="background:var(--warm-white);color:var(--slate);">
       </div>
     </div>
 
@@ -105,7 +110,7 @@
       </div>
       <div class="tool-field">
         <label class="tool-label" for="monthly">Monthly holding costs ($)</label>
-        <input class="tool-input" type="text" id="monthly" placeholder="e.g. 3,200" >
+        <input class="tool-input" type="text" inputmode="decimal" id="monthly" placeholder="e.g. 3,200" >
       </div>
     </div>
 
@@ -113,7 +118,7 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="saleprice">Expected sale price</label>
-        <input class="tool-input" type="text" id="saleprice" value="750,000" placeholder="e.g. 750,000" >
+        <input class="tool-input" type="text" inputmode="decimal" id="saleprice" value="750,000" placeholder="e.g. 750,000" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="commission">Agent commission (%)</label>
@@ -123,18 +128,18 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="sellconvey">Conveyancing (sell)</label>
-        <input class="tool-input" type="text" id="sellconvey" placeholder="e.g. 1,500" >
+        <input class="tool-input" type="text" inputmode="decimal" id="sellconvey" placeholder="e.g. 1,500" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="staging">Styling / staging</label>
-        <input class="tool-input" type="text" id="staging" placeholder="e.g. 3,000" >
+        <input class="tool-input" type="text" inputmode="decimal" id="staging" placeholder="e.g. 3,000" >
       </div>
     </div>
 
     <button class="tool-btn" id="flip-calc-btn">Calculate Flip Profit</button>
   </div>
 
-  <div class="tool-result" id="result" style="display:none">
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result" style="display:none">
     <div class="tool-result-title">Flip analysis</div>
     <div class="tool-grid">
       <div class="tool-stat">

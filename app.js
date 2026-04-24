@@ -1051,9 +1051,13 @@
     if(window.trackTabNavigation) trackTabNavigation(id);
 
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(function(t){
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
     document.getElementById(id).classList.add('active');
     btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
     // Scroll content back to top when switching tabs
     var mainEl = document.querySelector('main');
     if(mainEl) mainEl.scrollTop = 0; else window.scrollTo(0,0);

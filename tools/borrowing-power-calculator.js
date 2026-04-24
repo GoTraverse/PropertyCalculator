@@ -1,15 +1,19 @@
 /* ═══ BORROWING POWER CALCULATOR ═══ */
 
 function approxTax(gross) {
-  // Simplified 2026 resident individual tax scale (Stage 3 post-adjustments, rounded).
+  // ATO resident individual tax scale, FY 2025-26 (Stage 3 cuts, in effect 1 Jul 2024).
+  // Verify against https://www.ato.gov.au/rates/individual-income-tax-rates/ each
+  // financial year — brackets indexed annually.
   var tax = 0;
   if (gross <= 18200) tax = 0;
   else if (gross <= 45000) tax = (gross - 18200) * 0.16;
   else if (gross <= 135000) tax = 4288 + (gross - 45000) * 0.30;
   else if (gross <= 190000) tax = 31288 + (gross - 135000) * 0.37;
   else tax = 51638 + (gross - 190000) * 0.45;
-  // Medicare levy (2%) for simplicity
-  if (gross > 27222) tax += gross * 0.02;
+  // Medicare levy: 0% below $27,222; sliding 10% of excess in $27,222-$34,027
+  // shading-in band; flat 2% of taxable above $34,027 (singles, FY 2025-26).
+  if (gross > 34027) tax += gross * 0.02;
+  else if (gross > 27222) tax += (gross - 27222) * 0.10;
   return tax;
 }
 
@@ -43,13 +47,16 @@ function calc() {
   var net = gross - approxTax(gross);
   var netMonthly = net / 12;
 
-  // HEM floor roughly $2,200 single + $800 per dependant (indicative)
+  // Indicative HEM floor (Melbourne Institute Household Expenditure Measure,
+  // FY 2025-26 single person + dependant uplift). Lenders apply their own HEM
+  // benchmarks per income/postcode/lifestyle band; this is a conservative floor.
   var hemFloor = 2200 + deps * 800;
   var effectiveExpenses = Math.max(expenses, hemFloor);
 
   var available = netMonthly - effectiveExpenses - debts;
 
-  // APRA 3% serviceability buffer
+  // APRA serviceability buffer (Prudential Standard APS 220, current 3.00%
+  // since Oct 2021). Verify at apra.gov.au if APRA revises.
   var assessRate = rate + 3;
   var maxLoan = maxLoanFromRepayment(available, assessRate, term);
   if (maxLoan < 0) maxLoan = 0;
@@ -182,3 +189,17 @@ ToolPage.init({
 
 if (window.trackCalculatorStart) trackCalculatorStart('borrowing-power');
 calc();
+
+['income','expenses','debts'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function(){ fmtInput(this); calc(); });
+});
+['deps','rate','term'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', calc);
+});
+var calcBtn = document.getElementById('calc-btn');
+if (calcBtn) calcBtn.addEventListener('click', function(){
+  if (window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'borrowing-power'});
+  calc();
+});

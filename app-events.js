@@ -2,11 +2,27 @@
 // Loaded after app.js so all functions are available.
 
 // ── Tab navigation ────────────────────────────────────────────────────────────
-document.querySelectorAll('.tab[data-tab]').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    showTab(this.dataset.tab, this);
+(function(){
+  var tabs = document.querySelectorAll('.tab[data-tab]');
+  tabs.forEach(function(btn, idx){
+    btn.addEventListener('click', function(){
+      showTab(this.dataset.tab, this);
+    });
+    // WAI-ARIA tab keyboard pattern: Left/Right moves focus+activates, Home/End
+    // jumps to first/last. Works alongside aria-selected (set by showTab).
+    btn.addEventListener('keydown', function(e){
+      var key = e.key;
+      if (key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Home' && key !== 'End') return;
+      e.preventDefault();
+      var next;
+      if (key === 'Home') next = tabs[0];
+      else if (key === 'End') next = tabs[tabs.length - 1];
+      else if (key === 'ArrowLeft') next = tabs[idx === 0 ? tabs.length - 1 : idx - 1];
+      else next = tabs[(idx + 1) % tabs.length];
+      if (next) { next.focus(); next.click(); }
+    });
   });
-});
+})();
 
 // ── Sidebar toggles ──────────────────────────────────────────────────────────
 var mobileOverlay = document.getElementById('mobile-overlay');

@@ -118,6 +118,18 @@
   force = true
 
 [[redirects]]
+  from = "/.lighthouserc.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/tests/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
   from = "/package.json"
   to = "/404.html"
   status = 404
@@ -442,6 +454,16 @@
 [[redirects]]
   from = "/index.html"
   to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/tools.html"
+  to = "/tools"
+  status = 301
+
+[[redirects]]
+  from = "/tools/"
+  to = "/tools"
   status = 301
 
 # ── Fix relative-path asset requests from cached suburb/invest pages ─────────

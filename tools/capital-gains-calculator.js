@@ -1,14 +1,18 @@
 /* ═══ CAPITAL GAINS TAX CALCULATOR ═══ */
 
 function calcTax(taxable) {
-  // 2026 resident individual tax scale (Stage 3 indicative) incl. Medicare levy
+  // 2025-26 resident individual tax scale (Stage 3) including Medicare levy.
+  // Brackets per ATO; thresholds in AUD.
   var tax = 0;
   if (taxable <= 18200) tax = 0;
   else if (taxable <= 45000) tax = (taxable - 18200) * 0.16;
   else if (taxable <= 135000) tax = 4288 + (taxable - 45000) * 0.30;
   else if (taxable <= 190000) tax = 31288 + (taxable - 135000) * 0.37;
   else tax = 51638 + (taxable - 190000) * 0.45;
-  if (taxable > 27222) tax += taxable * 0.02; // Medicare levy 2%
+  // Medicare levy: 0% below $27,222; sliding 10% of excess in $27,222-$34,027
+  // shading-in band; flat 2% of taxable above $34,027 (singles, 2025-26).
+  if (taxable > 34027) tax += taxable * 0.02;
+  else if (taxable > 27222) tax += (taxable - 27222) * 0.10;
   return tax;
 }
 
@@ -182,3 +186,17 @@ ToolPage.init({
 
 if (window.trackCalculatorStart) trackCalculatorStart('capital-gains');
 calc();
+
+['sale','purchase','costs','improvements','income'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function(){ fmtInput(this); calc(); });
+});
+['held','ppor'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('change', calc);
+});
+var calcBtn = document.getElementById('calc-btn');
+if (calcBtn) calcBtn.addEventListener('click', function(){
+  if (window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'capital-gains'});
+  calc();
+});

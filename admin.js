@@ -765,9 +765,13 @@ async function openUserDetails(email){
 
 function showAdminTab(tab, btn){
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(function(b){
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
   document.getElementById('tab-'+tab).classList.add('active');
   btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
   // Scroll tab button into view horizontally (inline only) without affecting vertical scroll
   setTimeout(function(){
     const savedY = window.scrollY;
@@ -3789,7 +3793,9 @@ function modSetSubtab(name) {
   var allBtn = document.getElementById('mod-subtab-all');
   if (pendingBtn && allBtn) {
     pendingBtn.classList.toggle('is-active', name === 'pending');
+    pendingBtn.setAttribute('aria-selected', name === 'pending' ? 'true' : 'false');
     allBtn.classList.toggle('is-active', name === 'all');
+    allBtn.setAttribute('aria-selected', name === 'all' ? 'true' : 'false');
   }
   modLoadReviews();
 }
@@ -3800,7 +3806,9 @@ function modSetKind(kind) {
   var comBtn = document.getElementById('mod-kind-comments');
   if (revBtn && comBtn) {
     revBtn.classList.toggle('is-active', kind === 'reviews');
+    revBtn.setAttribute('aria-selected', kind === 'reviews' ? 'true' : 'false');
     comBtn.classList.toggle('is-active', kind === 'comments');
+    comBtn.setAttribute('aria-selected', kind === 'comments' ? 'true' : 'false');
   }
   modLoadReviews();
 }

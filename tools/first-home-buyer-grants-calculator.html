@@ -18,19 +18,20 @@
 <meta property="og:description" content="Check FHB grants and concessions available in your state.">
 <meta property="og:url" content="https://equitysight.app/tools/first-home-buyer-grants-calculator">
 <meta property="og:site_name" content="EquitySight.app">
-<meta property="og:image" content="https://equitysight.app/images/og-image.svg">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="First Home Buyer Grants Calculator Australia — Free Tool">
 <meta name="twitter:description" content="Check your eligibility for first home buyer grants and assistance in your state.">
-<meta name="twitter:image" content="https://equitysight.app/images/og-image.svg">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
 <script src="../adsense.js" defer></script>
@@ -44,13 +45,17 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header class="tool-header">
-  <a href="/" class="tool-logo">
-    <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
-    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
-  </a>
-  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
-</header>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
 
@@ -83,7 +88,7 @@
 
     <div class="tool-field">
       <label class="tool-label" for="price">Property purchase price</label>
-      <input class="tool-input" type="text" id="price" value="550,000" placeholder="e.g. 550,000">
+      <input class="tool-input" type="text" inputmode="decimal" id="price" value="550,000" placeholder="e.g. 550,000">
     </div>
 
     <div class="tool-field">
@@ -98,7 +103,7 @@
     <button class="tool-btn" id="fhb-calc-btn">Check Available Assistance</button>
   </div>
 
-  <div class="tool-result" id="result" style="display:none">
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result" style="display:none">
     <div class="tool-result-title">Available assistance</div>
     <div id="results-container"></div>
     <p class="tool-disclaimer" id="disclaimer" style="margin-top:12px;"></p>

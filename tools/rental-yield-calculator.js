@@ -96,7 +96,7 @@ ToolPage.init({
     { href: '/tools/stamp-duty-calculator', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
     { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
     { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' }
+    { href: '/tools/capital-gains-calculator', icon: '\uD83D\uDCC9', label: 'Capital Gains Tax' }
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },

@@ -1459,7 +1459,7 @@ function generateInvestorChecklist(s, sm) {
   const lis = items.map(i => `      <li>${i}</li>`).join('\n');
   return `  <section class="suburb-section">
     <h2>Investor Checklist</h2>
-    <p class="suburb-checklist-note">Pre-inspection briefing for ${escHtml(s.suburb)} — every item pulls live from ABS 2021 Census data and can be reconciled against the sources in our <a href="/data-sources.html">data sources</a> page.</p>
+    <p class="suburb-checklist-note">Pre-inspection briefing for ${escHtml(s.suburb)} — every item pulls live from ABS 2021 Census data and can be reconciled against the sources in our <a href="/data-sources">data sources</a> page.</p>
     <ul class="suburb-checklist">
 ${lis}
     </ul>
@@ -1843,7 +1843,7 @@ ${links}
 function generateMethodologyBlock(s) {
   return `  <section class="suburb-section suburb-methodology">
     <h2>How we built this ${escHtml(s.suburb)} profile</h2>
-    <p>Every number on this page comes from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census of Population and Housing</a>, Australia Post postcode reference data, and OpenStreetMap amenity tiles. The investment score, strategy verdicts, and comparison table are computed deterministically from those inputs — no opinion, no estimation. See our <a href="/methodology.html">full methodology</a> and the <a href="/data-sources.html">data sources and licences</a> for the formulas we use.</p>
+    <p>Every number on this page comes from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census of Population and Housing</a>, Australia Post postcode reference data, and OpenStreetMap amenity tiles. The investment score, strategy verdicts, and comparison table are computed deterministically from those inputs — no opinion, no estimation. See our <a href="/methodology">full methodology</a> and the <a href="/data-sources">data sources and licences</a> for the formulas we use.</p>
   </section>`;
 }
 

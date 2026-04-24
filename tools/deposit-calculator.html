@@ -17,19 +17,20 @@
 <meta property="og:description" content="Free Australian house deposit calculator. See how much deposit you need including LMI, stamp duty, and upfront costs.">
 <meta property="og:url" content="https://equitysight.app/tools/deposit-calculator">
 <meta property="og:site_name" content="EquitySight.app">
-<meta property="og:image" content="https://equitysight.app/images/og-image.svg">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Australian Deposit Calculator 2026 — How Much Do You Need?">
 <meta name="twitter:description" content="Free Australian house deposit calculator including LMI, stamp duty, and upfront costs.">
-<meta name="twitter:image" content="https://equitysight.app/images/og-image.svg">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
 <script src="../adsense.js" defer></script>
@@ -43,13 +44,17 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header class="tool-header">
-  <a href="/" class="tool-logo">
-    <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
-    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
-  </a>
-  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
-</header>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
 
@@ -66,12 +71,12 @@
 
     <div class="tool-field">
       <label class="tool-label" for="price">Target property price</label>
-      <input class="tool-input" type="text" id="price" value="650,000" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" inputmode="decimal" id="price" value="650,000">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="dep-pct">Deposit %</label>
-      <select class="tool-input tool-select" id="dep-pct" onchange="calc()">
+      <select class="tool-input tool-select" id="dep-pct">
         <option value="5">5% (minimum with LMI / First Home Guarantee)</option>
         <option value="10">10% (most common with LMI)</option>
         <option value="15">15%</option>
@@ -82,7 +87,7 @@
 
     <div class="tool-field">
       <label class="tool-label" for="state">State</label>
-      <select class="tool-input tool-select" id="state" onchange="calc()">
+      <select class="tool-input tool-select" id="state">
         <option value="NSW">New South Wales</option>
         <option value="VIC">Victoria</option>
         <option value="QLD" selected>Queensland</option>
@@ -95,14 +100,14 @@
     </div>
 
     <div class="tool-check">
-      <input type="checkbox" id="fhb" onchange="calc()">
+      <input type="checkbox" id="fhb">
       <label for="fhb">First home buyer (applies stamp duty concession)</label>
     </div>
 
-    <button class="tool-btn" onclick="calc()">Calculate Deposit</button>
+    <button class="tool-btn" id="calc-btn" aria-label="Calculate deposit">Calculate Deposit</button>
   </div>
 
-  <div class="tool-result" id="result">
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result">
     <div class="tool-result-title">Your estimated deposit requirement</div>
     <div class="tool-grid">
       <div class="tool-stat highlight">

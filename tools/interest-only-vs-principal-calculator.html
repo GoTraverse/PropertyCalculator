@@ -17,19 +17,20 @@
 <meta property="og:description" content="Free Australian IO vs P&I calculator — compare repayment and total cost side-by-side.">
 <meta property="og:url" content="https://equitysight.app/tools/interest-only-vs-principal-calculator">
 <meta property="og:site_name" content="EquitySight.app">
-<meta property="og:image" content="https://equitysight.app/images/og-image.svg">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Interest Only vs Principal + Interest Calculator Australia 2026">
 <meta name="twitter:description" content="Side-by-side comparison of IO vs P&I Australian home loans.">
-<meta name="twitter:image" content="https://equitysight.app/images/og-image.svg">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
 <script src="../adsense.js" defer></script>
@@ -43,13 +44,17 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header class="tool-header">
-  <a href="/" class="tool-logo">
-    <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
-    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
-  </a>
-  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
-</header>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
 
@@ -66,33 +71,33 @@
 
     <div class="tool-field">
       <label class="tool-label" for="amount">Loan amount</label>
-      <input class="tool-input" type="text" id="amount" value="600,000" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" inputmode="decimal" id="amount" value="600,000">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="rate-pi">P&amp;I interest rate (%)</label>
-      <input class="tool-input" type="number" id="rate-pi" value="6.25" step="0.01" min="0" oninput="calc()">
+      <input class="tool-input" type="number" id="rate-pi" value="6.25" step="0.01" min="0">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="rate-io">Interest Only rate (%) — usually ~0.25% higher</label>
-      <input class="tool-input" type="number" id="rate-io" value="6.60" step="0.01" min="0" oninput="calc()">
+      <input class="tool-input" type="number" id="rate-io" value="6.60" step="0.01" min="0">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="io-years">Interest Only period (years)</label>
-      <input class="tool-input" type="number" id="io-years" value="5" step="1" min="1" max="10" oninput="calc()">
+      <input class="tool-input" type="number" id="io-years" value="5" step="1" min="1" max="10">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="term">Total loan term (years)</label>
-      <input class="tool-input" type="number" id="term" value="30" step="1" min="5" max="40" oninput="calc()">
+      <input class="tool-input" type="number" id="term" value="30" step="1" min="5" max="40">
     </div>
 
-    <button class="tool-btn" onclick="calc()">Compare Loans</button>
+    <button class="tool-btn" id="calc-btn" aria-label="Compare interest-only versus principal and interest loans">Compare Loans</button>
   </div>
 
-  <div class="tool-result" id="result">
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result">
     <div class="tool-result-title">Side-by-side comparison</div>
     <div class="tool-grid">
       <div class="tool-stat highlight">
