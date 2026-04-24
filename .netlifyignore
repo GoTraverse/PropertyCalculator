@@ -14,9 +14,8 @@ BROKEN_LINKS_QUICK_REFERENCE.txt
 # Dev/admin utility script — uses REDIS_TOKEN directly, never runs in prod
 reset-admin-pw.js
 
-# Dev tooling: Lighthouse CI config + Playwright smoke tests
+# Dev tooling: Lighthouse CI config
 .lighthouserc.json
-tests/
 
 # Secrets / VCS / package manifests — defensive blocks (none should be in repo,
 # but publish = "." means anything present on disk gets uploaded by default)
