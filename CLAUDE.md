@@ -5,16 +5,18 @@
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **14 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic | **3100+ lines** of admin logic
+**~32 HTML pages** (17 core pages + 14 free calculators + `/tools` landing) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **12 Netlify functions** + `_log.js` structured-log helper | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`)
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
 
-## Git Workflow
-- **Main branch** — production code, read-only; pull latest tasks from here
-- **Staging branch** — pre-production/testing branch
-- **Feature branches** — temporary `claude/***` branches (automatically cleaned up after merge)
-- **Push targets**: Feature branches go to `claude/***` (with matching session ID), merge/PR to Staging
+## Git Workflow (current policy)
+- **Main branch** — production. Netlify auto-deploys from here.
+- **Staging branch** — exists but no longer the default PR target; kept around for the previous Staging deploy preview URL.
+- **Feature branches** — temporary `claude/***` branches.
+- **PR target** — **open PRs directly to `main` and squash-merge immediately** (user-granted auto-merge policy, April 2026). No Staging intermediary, no waiting for review, no required CI gates.
+- **Exception** — if a change is genuinely risky (schema migration, payment-flow refactor, broad refactor that can't be rolled back with a single revert), ask the user before auto-merging. Default is merge.
+- **Never push directly to `main`**; always via a PR + `mcp__github__merge_pull_request` even when self-merging. This preserves a clean PR audit trail.
 
 ## Task Tracking
 **`TODO.md`** is the source of truth. After completing a task, **remove its line** from the file.
@@ -30,22 +32,22 @@ See **`README.md`** for feature overview and quick start guide.
 ### Application Logic
 | File | Lines | Key Functions |
 |------|-------|----------------|
-| `app.js` | 4698 | `recalc()` = master calculation function; `dRecalc()` = debounced wrapper; `showTab(id, btn)` = tab switcher; `exportPDF()` = snapshot export |
+| `app.js` | 5007 | `recalc()` = master calculation function; `dRecalc()` = debounced wrapper; `showTab(id, btn)` = tab switcher; `exportPDF()` = snapshot export |
 | `app-init.js` | — | App page initialization (auth guard, session restore, draft loading) |
-| `app-events.js` | — | App page event listener wiring (inputs, buttons, tab switches) |
-| `admin.js` | 2894 | `loadUsers()`, `openUserDetails(email)`, `showTab(id, btn)`, `callAuth(action, payload)`, admin dashboard logic |
-| `admin-events.js` | — | Admin page event listener wiring |
-| `auth-nav.js` | 514 | Injects nav header + profile dropdown + help modal; `window.renderSiteNav()` re-renders after profile changes |
-| `account-panel.js` | 483 | Standalone account panel with profile pic upload, color theme selection, plan display |
-| `account.js` | 555 | Account page logic — subscription status, plan display, Stripe portal |
+| `app-events.js` | — | App page event listener wiring (inputs, buttons, tab switches, WAI-ARIA arrow-key tab nav) |
+| `admin.js` | 3816 | `loadUsers()`, `openUserDetails(email)`, `showAdminTab()`, `callAuth(action, payload)`, admin dashboard logic |
+| `admin-events.js` | — | Admin page event listener wiring + WAI-ARIA arrow-key tab nav |
+| `auth-nav.js` | 606 | Source of truth for the site nav link set (`SITE_NAV_LINKS`) — renders `<ul class="site-nav-links">` on every page + profile dropdown + help modal. `window.renderSiteNav()` re-renders after profile changes. |
+| `account-panel.js` | 488 | Standalone account panel with profile pic upload, color theme selection, plan display |
+| `account.js` | 612 | Account page logic — subscription status, plan display, Stripe portal |
 
 ### Styling & Injection
 | File | Lines | Purpose |
 |------|-------|---------|
-| `shared.css` | 15K | CSS variables (colors, fonts, radii, shadows), nav, footer, buttons, dark mode, responsive breakpoints |
-| `footer.js` | 65 | Renders footer into `#site-footer-root` with branding from localStorage config |
-| `error-capture.js` | 67 | Global error handler — POSTs errors to `client-errors` function |
-| `site-init.js` | 3 | Applies saved dark/light theme before first paint (synchronous, no defer) |
+| `shared.css` | ~540 | CSS variables, nav, footer, buttons, dark mode, responsive breakpoints, `prefers-reduced-motion` overrides |
+| `footer.js` | 60 | Renders footer into `#site-footer-root`. Footer link set includes `/methodology` + `/data-sources` authority pages. |
+| `error-capture.js` | 118 | Global error handler — POSTs errors to `client-errors` function. SUPPRESS list for network noise + third-party `@context` parser errors. |
+| `site-init.js` | 21 | Dark-mode theme application + pre-signup page-trail recording (loaded with `defer`) |
 | `adsense.js` | 35 | Google AdSense integration |
 | `gtag-init.js` | 4 | Google Analytics (gtag) initialization |
 
@@ -86,9 +88,9 @@ See **`README.md`** for feature overview and quick start guide.
 - **Re-render Nav**: Call `window.renderSiteNav()` after session changes
 
 ### Feature Gating
-- **Pro Check**: `isPro()` — returns true if `session.plan === 'pro'`
+- **Pro Check**: `isPro()` (defined in `app.js:4442`) — returns true if `plan === 'pro' || plan === 'adviser'`. `adviser` is a superset of `pro`.
 - **Admin Check**: `session.role === 'admin'` for admin.html access
-- **Plan Types**: `free` | `pro` | `adviser` (stored in session + Redis)
+- **Plan Types**: `free` | `pro` | `adviser` (stored in session + Redis user record)
 
 ### Calculator Logic
 - **Master Function**: `recalc()` in app.js — reads all inputs, computes all outputs
@@ -97,14 +99,18 @@ See **`README.md`** for feature overview and quick start guide.
 - **PDF Export**: `exportPDF()` generates standalone HTML snapshot of current state
 
 ### Calculator Architecture (Unified Pattern)
-- **9 free calculators** in `/tools/` use identical HTML/CSS structure + `tools.css` (no duplication)
-- **Template pattern**: `.tool-header` → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (outputs) → `.tool-cta` → `.tool-resources` → footer div
+- **14 free calculators** in `/tools/` plus `/tools/index.html` landing page that groups them (Buying / Borrowing / Investment). All share identical HTML/CSS structure via `tools.css` (no duplication).
+- **Template pattern**: `<nav class="site-nav">` (full site nav) → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (aria-live polite) → `.tool-cta` → `.tool-resources` → footer div
+- **Currency inputs** use `type="text" inputmode="decimal"` with `fmtInput()` thousands-separator formatting. Pure numeric inputs (rate, term) use `type="number"`.
 - **Shared utilities**: `shared-calcs.js` contains `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()`, etc.
 - **Live market data**: `market-rate.js` provides `window.MarketRate` (RBA cash rate, ABS state medians) — included in calculators that need current rates
-- **Injected components**:
-  - `auth-nav.js` — injects site nav + profile dropdown (optional for calculators)
+- **Input persistence**: `tool-page.js _installInputPersistence()` snapshots every input/select to `localStorage['tool_inputs_v1:<slug>']` on change (250ms debounce) and restores on load — refresh doesn't lose work.
+- **Scroll-to-result**: `tool-page.js _installScrollToResult()` smooth-scrolls the result container into view 60ms after a Calculate click. Respects `prefers-reduced-motion`.
+- **Injected components** (standard across all 14 tool pages):
+  - `auth-nav.js` — injects full site-nav link list (`SITE_NAV_LINKS`) + auth controls
   - `footer.js` — injects footer into `#site-footer-root` div
   - `error-capture.js` — global error handler POSTs to `client-errors` function
+- **Cross-linking**: Each tool config has `related[]` (4-card grid), `footer[]` (small link row), and `usefulLinks[]` (grouped sidebar: Other Tools / Popular Suburbs / Guides). Every tool links to `/tools` from its footer.
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
 - **To update all calculators**: Edit `tools.css` (no need to touch individual HTML files)
 
@@ -141,7 +147,7 @@ See **`README.md`** for feature overview and quick start guide.
 - **Admin actions** (`netlify/functions/blog.js`, all admin-only): `adminListPosts`, `adminGetPost`, `adminSavePost` (slug collision check, tag index diff), `adminPublish`, `adminUnpublish`, `adminDeletePost`.
 - **Build output**: `/blog/index.html`, `/blog/page/<N>/index.html` (paged 12/page), `/blog/<slug>/index.html`, `/blog/tag/<tag>/index.html`, `/blog/rss.xml`, `sitemap-blog.xml`.
 - **Templates**: `templates/blog-post.html` (BlogPosting JSON-LD, author bio, 3 related posts by tag overlap) and `templates/blog-index.html`. Styled via `blog.css` layered on `legal.css`.
-- **AdSense quality gate**: Admin editor shows live word count + remaining-to-1,500-floor so every authored post clears Google's E-E-A-T quality threshold. Target: 20+ posts at 1,500–3,000 words before AdSense resubmission.
+- **AdSense word-count gate (in the build, not just UI)**: `build/build-blog.js` defaults to `BLOG_MIN_WORDS=1200` (overridable via env). Posts below the floor still render (direct URLs work) but get `<meta robots="noindex, follow">` and are excluded from sitemap, RSS, paged index, section + tag pages. Raise to 1500 once borderline posts are expanded — per-post briefs are in `TODO.md`. Admin editor shows live word count vs the floor.
 - **Offline builds**: Missing `UPSTASH_REDIS_REST_URL` falls back to `BLOG_FIXTURE` JSON file (see `data/blog-fixture.json`) and ultimately to an empty index — build never fails.
 - **Admin tab**: Admin → Blog — list/search posts, create/edit/delete, live Markdown word count, draft/publish toggle. `callBlog(action, payload)` helper in admin.js.
 - **Build integration**: `build.js` calls `buildBlog()` after suburb restore/build. Sitemap index (`sitemap.xml`) references `sitemap-blog.xml` alongside suburb sitemaps.
@@ -167,8 +173,8 @@ See **`README.md`** for feature overview and quick start guide.
 4. **Validate** — no new external APIs without updating CSP in `netlify.toml`
 5. **Security** — if adding a new dev/build/data file, add it to `.netlifyignore` (see Deployment Security under Known Gotchas)
 6. **Commit** — clear commit message with why (not just what)
-7. **Push** — to assigned feature branch (e.g., `claude/feature-abc-KVfMN`)
-8. **PR/Merge** — to Staging for staging deploy, then to main for production
+7. **Push** — to a `claude/***` feature branch
+8. **PR → `main` + squash-merge immediately** — direct to main, no Staging hop, no review gate. Netlify auto-deploys to production on merge. Use `mcp__github__merge_pull_request` with `merge_method: 'squash'` right after opening the PR. Exception: ask the user first for payment-flow, schema, or broad refactor changes.
 
 ## Known Gotchas & Pitfalls
 
@@ -231,7 +237,56 @@ Files intentionally NOT blocked (needed at runtime):
 - ✅ **Phase 4 — Suburb reviews & star ratings (UGC)** — logged-in users post 100+ char reviews with 1–5 star ratings on non-noindexed suburb pages. New `netlify/functions/reviews.js` (submit/list/admin actions with auth + per-IP 10/hr and per-user 3/day rate limits, `escHtml()` on write, 3-state moderation: pending/approved/rejected, atomic `HINCRBY` on `{count,sum}` aggregate). New `build/fetch-reviews.js` — spawned via `execSync` from `build-suburbs.js` to keep the build sync; SCANs `reviews:agg:*` and prints a JSON map of approved reviews to stdout. `build-suburbs.js` injects up to 10 approved reviews as **static HTML** and writes `AggregateRating` JSON-LD into the schema.org array — **only when `count > 0`** so empty review shells never appear (AdSense negative signal). New `suburb-reviews.js` frontend — star picker, live char counter, submit form, "Show more" pagination. New `{{REVIEWS_HTML}}` + `{{AGGREGATE_RATING_JSON}}` placeholders in `templates/suburb-page.html`. New Admin → **Moderation** tab (16 admin tabs total now) with Pending/All sub-tabs and approve/reject/delete actions. Styles in `suburb-insights.css` (light + dark).
 - ✅ **Phase 5 — Blog comments (UGC)** — logged-in users post 20–2000 char comments on blog posts. New `netlify/functions/comments.js` — same architectural pattern as reviews.js (auth + IP 10/hr + user 5/day rate limits, `escHtml()` on write, 3-state moderation, flat threading — no nested replies in v1). `build/build-blog.js` now fetches approved comments per post **inline** (already async, unlike build-suburbs) and injects up to 20 comments as **static HTML** into a new `{{COMMENTS_HTML}}` placeholder — **returns empty string when count === 0**, so empty comment shells never render. New `blog-comments.js` frontend — live char counter, submit form, "Show more" pagination. New `templates/blog-post.html` placeholder + login-gated `#comment-form` section. Admin Moderation tab now has a **kind switcher** (Suburb reviews ↔ Blog comments) layered above the Pending/All sub-tabs — same approve/reject/delete UI pattern. Comment styles in `blog.css` (light + dark).
 
-- ✅ **Phase 6 — HttpOnly cookie session migration** — session token moved from localStorage to HttpOnly Secure cookie (`es_session`). All 14 Netlify functions read cookie first with Authorization header fallback. All client-side Authorization headers removed (app.js, account.js, account-panel.js, admin.js, login.js, auth-nav.js, pricing.js, blog-comments.js, suburb-reviews.js). `getAuthHeader()` replaced by `isLoggedIn()` (checks `session.id`). Token removed from auth response bodies and localStorage session. Cookie policy and privacy policy updated to reflect HttpOnly cookie usage.
+- ✅ **Phase 6 — HttpOnly cookie session migration** — session token moved from localStorage to HttpOnly Secure cookie (`es_session`). All Netlify functions read cookie first with Authorization header fallback. All client-side Authorization headers removed (app.js, account.js, account-panel.js, admin.js, login.js, auth-nav.js, pricing.js, blog-comments.js, suburb-reviews.js). `getAuthHeader()` replaced by `isLoggedIn()` (checks `session.id`). Token removed from auth response bodies and localStorage session. Cookie policy and privacy policy updated to reflect HttpOnly cookie usage.
+
+## Recent Changes (April 2026 — Full-site audit, 5 rounds)
+
+Rounds 1–5 of the "audit the whole site" pass. PR #197 merged 2026-04-24, follow-ups in PRs #200 + #201.
+
+**Round 1 + 2** — baseline cleanup
+- Removed 5 inline `onclick`/`oninput`/`onchange` CSP leaks in tool pages (deposit / capital-gains / borrowing-power / mortgage-repayment / interest-only-vs-principal).
+- Replaced 6 hardcoded `.html` links with clean URLs (about, admin, blog-editor, `build-suburbs.js` × 2).
+- `Organization` JSON-LD added to `about.html`.
+- Added `/methodology` + `/data-sources` to the shared footer.
+- `aria-selected` wired into `showTab()` + `showAdminTab()` + moderation sub-tabs.
+- Dark-mode secondary text contrast bumped `rgba(245,240,232,0.45)` → `0.70`.
+- Rasterised `og-image.svg` → `og-image.png` (1200×630, 65 KB); swapped 50 refs across all pages/templates. WebP for all 13 screenshots (2.3 MB saved).
+- Capital-gains + borrowing-power Medicare levy fix (0→2% straight jump replaced with proper 10% sliding-scale in $27,222–$34,027 band).
+- Blog word-count gate with `BLOG_MIN_WORDS` env (default **1200**). Sub-floor posts get `noindex, follow`, excluded from sitemap/RSS/index/section/tag.
+- Scenarios `share` action now rate-limited (20/day/user + 30/hr/IP).
+- Blog editor autosave to localStorage + `beforeunload` guard + recovery prompt.
+- Service worker stale-while-revalidate for GET `/.netlify/functions/market-data`.
+- Suppress `["@context"]` third-party errors in `error-capture.js`.
+
+**Round 3** — nav + cross-linking
+- `auth-nav.js` is the single source of truth for the site-nav link set (`SITE_NAV_LINKS` = Calculators / Blog / Gallery / Pricing / About / Support). Every page's `<ul class="site-nav-links">` is overwritten on load.
+- All 14 tool pages got the full `<nav class="site-nav">` (was a minimal logo-only `<header class="tool-header">`).
+- New `/tools/index.html` landing page (CollectionPage JSON-LD) grouping all 14 calculators in Buying / Borrowing / Investment sections.
+- All 4 calculators missing `usefulLinks[]` now have full blocks (house-flip, mortgage-stress, equity-release, renovation-cost). Orphan inbound counts boosted across the board.
+- `inputmode="decimal"` on all 38 currency text inputs — correct mobile keyboard without breaking comma formatting.
+- Year-marker comments on hardcoded FY2025-26 constants (ATO Stage 3, APRA APS 220 3% since Oct 2021, HEM).
+
+**Round 4** — a11y + hardening + test harness (harness later removed)
+- `aria-live="polite"` on every `.tool-result` container.
+- Service worker v3 pre-caches all 14 tool URLs + `/tools` for first-visit offline.
+- Stripe webhook idempotency via Redis `SET NX EX 604800` (`claimEvent`). Duplicate event IDs short-circuit.
+- Stripe dead-letter list `stripe_deadletter` (capped at 200 via LPUSH+LTRIM) for webhooks that can't resolve to a user.
+- `upgradePlan` now returns `{ok, reason, email}`; failures enqueue to dead-letter.
+- (Round 4 also shipped Playwright + Lighthouse harnesses; Playwright was later removed per user request — PR #201.)
+
+**Round 5** — perf + observability + security polish
+- Per-IP signin cap (30 fails / 15 min) alongside existing per-email cap. Plugs credential stuffing.
+- Stripe `upgradePlan` writes `user:<email>` + `cid:<customerId>` atomically via new `redisPipe()` helper (Upstash `/pipeline` endpoint).
+- `invoice.payment_failed`: 3-day `subscription_grace:<email>` Redis flag + `paymentFailedAt` on user record. Banner hookup left to client.
+- `auth.js verify` now refreshes the `token:<token>` record in place when plan/role has drifted, preserving TTL. Keeps cached session data consistent after Stripe upgrades / admin role changes.
+- Tool-input persistence to `localStorage['tool_inputs_v1:<slug>']` — refresh no longer loses work.
+- `tool-page.js` scrolls the result into view 60ms after any Calculate click (respects `prefers-reduced-motion`).
+- WAI-ARIA arrow-key / Home / End keyboard pattern on `app.js` + `admin.js` tab switchers.
+- `shared.css` `prefers-reduced-motion` block: disables animations, transitions and smooth-scroll for users with OS reduced motion.
+- `<link rel="preload" as="style">` hint ahead of the Google Fonts stylesheet on 41 pages (+ template files).
+- `netlify/functions/_log.js` — structured JSON logger (`log.info(event, data)`), wired into stripe webhook entry + dedupe path as a demo. Migration of remaining `console.log` sites happens gradually.
+
+**Post-audit cleanup** — PR #201 removed the Playwright test harness + `.github/workflows/*.yml` canary + PR smoke workflows per user request.
 
 ## Recent Changes (March 2026)
 - ✅ Deleted user logout — `verify` action now checks user existence

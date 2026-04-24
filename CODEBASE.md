@@ -5,7 +5,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 
 **Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**24 HTML pages** (incl. 9 free calculators + showcase) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **Redis-backed authored blog** (static-rendered at build time) + **suburb reviews & star ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **14 Netlify functions** | **12 CSS files** | **4698+ lines** of calculator logic in app.js | **3100+ lines** of admin logic in admin.js
+**~32 HTML pages** (17 core pages incl. showcase + 14 free calculators + `/tools` landing) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **Redis-backed authored blog** (static-rendered at build time) + **suburb reviews & star ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **12 Netlify functions** + `_log.js` helper | **13 CSS files** | **~5000 lines** of calculator logic in `app.js` | **~3800 lines** of admin logic in `admin.js`
 
 ---
 
@@ -14,7 +14,7 @@ No framework, no build step — what you see in the repo is what gets deployed.
 ```
 Browser (static files)
   │
-  ├── HTML pages (15 handwritten root + 9 tool calculators + 14,512 generated suburb pages + 19 city pages + 8 state hubs)
+  ├── HTML pages (17 handwritten root + 14 tool calculators + /tools landing + 14,512 generated suburb pages + 19 city pages + 8 state hubs)
   ├── shared.css          — design tokens & shared component styles
   ├── site-init.js        — applies dark/light theme before first paint (sync, no defer)
   ├── auth-nav.js         — injects nav header + session refresh into every page
@@ -35,13 +35,13 @@ Browser (static files)
         ├── contact.js        — contact/support form → Resend email
         ├── client-errors.js  — stores/retrieves JS error logs from browsers
         ├── growth.js         — suburb growth rate lookup + 30-day cache
-        ├── photo.js          — property photo storage/retrieval proxy
         ├── mapproxy.js       — OpenStreetMap tile proxy for map rendering
         ├── address-suggest.js — address autocomplete (rate-limited: 30 req/min)
-        ├── market-data.js    — suburb insights market data API
+        ├── market-data.js    — suburb insights market data API (GET is SWR-cached by the SW)
         ├── blog.js           — blog CMS (admin CRUD, Redis-backed, build-fetch)
         ├── reviews.js        — suburb reviews/ratings (UGC, auth, rate-limited, moderation queue)
-        └── comments.js       — blog post comments (UGC, auth, rate-limited, moderation queue)
+        ├── comments.js       — blog post comments (UGC, auth, rate-limited, moderation queue)
+        └── _log.js           — shared structured-JSON logging helper (not a handler)
 ```
 
 ---
@@ -96,11 +96,11 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 |------|---------|
 | `shared.css` | **Design system** — CSS variables (colors, fonts, radii, shadows), nav, footer, buttons, dark mode, responsive breakpoints |
 | `site-init.js` | Applies saved dark/light theme before first paint — synchronous (no defer), 3 lines |
-| `auth-nav.js` | Injects sticky nav header with profile button, help modal, background session refresh (every 5 min) — 514 lines |
+| `auth-nav.js` | Source of truth for the site-nav link set (`SITE_NAV_LINKS`) — renders `<ul class="site-nav-links">` on every page, profile button, help modal, background session refresh. ~606 lines. |
 | `footer.js` | Injects site footer with dynamic branding from localStorage config |
 | `error-capture.js` | Captures unhandled JS errors & promise rejections, POSTs to client-errors function |
-| `account-panel.js` | Standalone account settings component — profile pic, color theme, plan info, sign out — 483 lines |
-| `account.js` | Account page logic — subscription status, plan display, Stripe portal — 555 lines |
+| `account-panel.js` | Standalone account settings component — profile pic, color theme, plan info, sign out — ~488 lines |
+| `account.js` | Account page logic — subscription status, plan display, Stripe portal — ~612 lines |
 | `shared-calcs.js` | Common calculator utilities: `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()` — 232 lines |
 | `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` — 69 lines |
 | `legal.js` | Markdown → HTML parser — frontmatter, headings, TOC, safe links — 300+ lines |
@@ -112,7 +112,7 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | `.netlifyignore` | Dev/internal files excluded from Netlify CDN — **add new dev files here** |
 | `404.html` + `import-test.html` | Error page & dev test page |
 | `robots.txt` | Site crawling directives — allows public pages, blocks admin/app/account |
-| `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (70 URLs) + 19 state-grouped `sitemap-suburbs-*.xml` files (14,539 URLs total, max 1000 per file) |
+| `sitemap.xml` | Sitemap index — references `sitemap-core.xml` (~35 URLs) + `sitemap-blog.xml` + 19 state-grouped `sitemap-suburbs-*.xml` files (max 1000 URLs per file) |
 
 ### Suburb Insights System (generated at build time)
 | File | Purpose |
@@ -174,13 +174,13 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 ## Netlify Functions — Complete Reference
 
 ### auth.js (User Authentication & Admin)
-**~800 lines** — Upstash Redis backed auth engine.
+**~1480 lines** — Upstash Redis backed auth engine.
 
 **User Actions:**
 - `signup` — register with email, creates user record + sends verification email
-- `signin` — lookup by email (not password) + sends verification code
+- `signin` — email/password; enforces per-email (10 fails / 15 min) AND per-IP (30 fails / 15 min) rate limits to block credential stuffing from a single source
 - `verifyEmail` — verify code, set `emailVerified=true`, create token, set HttpOnly cookie
-- `verify` — read token from cookie, validate TTL + check user still exists (logs out deleted users)
+- `verify` — read token from cookie, validate TTL + check user still exists; re-syncs `plan`/`role` from the user record every call and **refreshes the cached `token:<token>` record in-place when they've drifted** (preserving remaining TTL) — so cached session data stays consistent after Stripe upgrades or admin role changes
 - `signout` — delete token from Redis, clear session cookie
 - `getProfile` — retrieve profile settings + photo
 - `setProfile` — save profile color/theme
@@ -189,6 +189,8 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 - `requestPasswordReset` — send reset code email
 - `resetPasswordWithToken` — set new password with code
 - `deleteAccount` — purge all user data from Redis
+
+**Google Sign-In** — `googleSignin` action accepts a Google ID token and creates/links the account.
 
 **Admin Actions** (require `role === 'admin'` + valid session cookie):
 - `adminListUsers` — returns all users (no passwords)
@@ -215,7 +217,7 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 - `events:<userId>` → user action history
 
 ### scenarios.js (Scenario Save/Load)
-**~300 lines** — Per-user property scenario library.
+**~503 lines** — Per-user property scenario library.
 
 **Actions:**
 - `listScenarios` — get all scenarios for user (index + metadata)
@@ -223,6 +225,8 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 - `deleteScenario` — purge scenario
 - `getScenario` — retrieve single scenario full state
 - `getScenarioIndex` — list of scenario IDs + metadata only (for listing)
+- `share` — invite another user (or non-user via invite email) to view a scenario. Rate-limited: 20/day/user + 30/hr/IP to prevent invite-email spam (same pattern as comments/reviews).
+- `adminListAllScenarios`, `adminGetScenarioState` — admin browse + restore
 
 **Data stored:**
 - `scenarios:<userId>:index` → [{id, address, type, createdAt, ...}]
@@ -230,18 +234,24 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 - `scenarios:<userId>:photo:<id>` → base64 property photo
 
 ### stripe.js (Payment Processing)
-**~500 lines** — Stripe checkout, portal, webhooks, discount tracking.
+**~643 lines** — Stripe checkout, portal, webhooks, discount tracking, referral rewards.
 
 **Actions:**
 - `createCheckout` — create Stripe Checkout session, return redirect URL
 - `createPortalSession` — create Stripe Billing Portal session URL for self-service
 - `getSubscriptionStatus` — current subscription details for user
 
-**Webhooks** (verified via STRIPE_WEBHOOK_SECRET HMAC):
+**Webhooks** (verified via STRIPE_WEBHOOK_SECRET HMAC, 5-min replay window):
 - `checkout.session.completed` — new subscription, extract discount, upgrade plan
 - `customer.subscription.updated` — plan/status change
-- `customer.subscription.deleted` — downgrade to free
-- `invoice.payment_failed` — send failure email (future)
+- `customer.subscription.deleted` — immediate downgrade to free
+- `invoice.payment_failed` — sets 3-day `subscription_grace:<email>` TTL flag in Redis + records `paymentFailedAt` on user record. Does NOT immediately downgrade — relies on `customer.subscription.updated` with status=`unpaid`/`canceled` for the actual downgrade.
+
+**Hardening (April 2026 audit rounds 4-5):**
+- **Idempotency**: every webhook calls `claimEvent(stripeEvent.id)` which uses `SET NX EX 604800` to dedupe — duplicate event IDs short-circuit. TTL comfortably exceeds Stripe's retry window. Graceful degrade to process-anyway if Redis is down.
+- **Dead-letter list**: when `upgradePlan()` or lookup-by-customerId can't find a user, the full event body is `LPUSH`ed onto `stripe_deadletter` (capped at 200 via `LTRIM 0 199`) for manual replay. Paid users are never silently orphaned. `upgradePlan` returns `{ok, reason, email}` instead of a bare bool.
+- **Atomic Redis writes**: `upgradePlan()` writes `user:<email>` + `cid:<customerId>` via the Upstash `/pipeline` endpoint (`redisPipe()`) — either both land or neither.
+- **Structured logging**: webhook entry + dedupe path use `_log.info('stripe.webhook_received', {type, eventId})` for filterable Netlify logs.
 
 **Discount tracking** — when coupon applied:
 ```
@@ -280,13 +290,6 @@ stripeDiscountInfo: {
 
 **Data stored:**
 - `growth:<suburb>:<state>` → {rate, timestamp} with 30-day TTL
-
-### photo.js (Photo Storage)
-**~80 lines** — Property photo proxy.
-
-**Actions:**
-- `get` — retrieve base64 photo by scenario ID (actually handled by scenarios.js)
-- Stores base64 in `photo:<userId>` key
 
 ### mapproxy.js (Map Tile Proxy)
 **~120 lines** — OpenStreetMap tile fetching.
@@ -490,7 +493,7 @@ Available actions: `signup`, `signin`, `signout`, `verify`, `getProfile`, `setPr
 | **About Page** | Edit About page content directly from admin. |
 | **Legal Pages** | Edit privacy, terms, cookies, disclaimer content from admin. |
 | **Suburbs** | Browse/search 14,512 suburb records, state breakdown, trigger suburb page rebuild via Netlify deploy hook. |
-| **Blog** | Create/edit/delete blog posts (Redis-backed CMS). Live Markdown word counter vs AdSense 1,500-word floor. Draft/publish toggle. Slug collision check. |
+| **Blog** | Create/edit/delete blog posts (Redis-backed CMS). Autosave to localStorage every 10s + recovery prompt. Live word counter against the build-enforced `BLOG_MIN_WORDS` gate (default 1200, AdSense target 1500). Draft/publish toggle, slug collision check. |
 | **Moderation** | Approve, reject, or delete user-submitted suburb reviews **and** blog comments. Top-level kind switcher (Suburb reviews ↔ Blog comments) with nested Pending / All sub-tabs. Review cards show star rating, suburb link, title, body, status badge; comment cards show post slug link, user, body, status badge. Approving a review increments the aggregate atomically; rejecting/deleting reverses it. |
 
 ### Revenue / discount tracking
@@ -623,9 +626,22 @@ The CSP `connect-src` currently allows:
 - **`recalc()` in app.js**: master recalculation function — called whenever any input changes. Reads all inputs, computes everything, updates all DOM output elements. Called directly for immediate updates (tab switch, load). Use `dRecalc()` from oninput handlers to debounce rapid user input (180ms).
 - **`dRecalc()` in app.js**: debounced wrapper around `recalc()` — use this in all `oninput` HTML attributes to avoid firing recalc on every keystroke.
 - **Tab system in app.js**: `showTab(id, btn)` shows/hides `<section id="tab-{id}">` panels
-- **Pro features**: check `isPro()` before enabling. Plan stored in session (`session.plan === 'pro'`)
+- **Pro features**: check `isPro()` (in `app.js:4442`) before enabling. Returns true for both `plan === 'pro'` and `plan === 'adviser'` (adviser is a superset).
 - **Mobile breakpoint**: `@media(max-width:600px)` is the main PWA/mobile breakpoint in app.css
 - **PWA-only styles**: use `@media (display-mode: standalone)` to hide/show elements only in PWA mode (no JS needed)
 - **Print/PDF**: `exportPDF()` in app.js generates a full standalone HTML document in a new window, captures current scenario state as a snapshot
 - **Admin pages**: admin.css hides `.site-nav-links` and `.nav-hamburger` — profile icon stays pinned via `grid-column:3`
-- **Dark mode init**: `site-init.js` loaded synchronously (no `defer`) applies `dark-mode` class to `<html>` before CSS paints — prevents flash of wrong theme
+- **Dark mode init**: inline `<script>` in `<head>` of each HTML page applies `dark-mode` class to `<html>` before CSS paints — prevents flash of wrong theme. `site-init.js` (deferred) handles the pre-signup page trail.
+- **Site nav source of truth**: `auth-nav.js SITE_NAV_LINKS` array. Overwrites `<ul class="site-nav-links">` on every page, so updating the array updates all 32+ pages at once.
+- **Tool input persistence**: `tool-page.js _installInputPersistence()` saves every `.tool-main input/select` value to `localStorage['tool_inputs_v1:<slug>']` on change (debounced); restores before the initial calc() runs. Refresh doesn't lose work.
+- **Service worker**: `service-worker.js` (v3, cache = `equitysight-v3` + `equitysight-api-v1`). Pre-caches all 14 tool URLs + `/tools` + shared CSS/JS for first-visit offline. Stale-while-revalidate on GET `/.netlify/functions/market-data`. Network-first for HTML (with cached fallback) + cache-first for static assets.
+- **`prefers-reduced-motion`**: global override in `shared.css` kills animations, transitions and smooth-scroll for users with OS reduced motion preference. Tool `scrollIntoView()` respects it.
+- **Structured logging**: `netlify/functions/_log.js` — `log.info(event, data)` emits one JSON line per record. Use it over `console.log` so Netlify log filtering works.
+
+## Git Workflow (April 2026 policy)
+
+- **Feature branches** on `claude/***`.
+- **PR target is `main` directly.** No Staging intermediary. No review gate.
+- **Squash-merge immediately** after opening the PR (via `mcp__github__merge_pull_request`, `merge_method: 'squash'`). Netlify auto-deploys from main on merge.
+- **Exception** — for payment-flow, schema migration, or broad refactor changes, ask the user before self-merging. Default is merge.
+- **Never push to `main` directly** — always via a PR + API merge even when self-merging, so there's a clean audit trail.
