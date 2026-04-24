@@ -22,9 +22,18 @@
     'fetch is aborted',
   ];
 
+  // Substring match — suppress anywhere in the message. Used for third-party /
+  // extension-injected parsers that crash on our JSON-LD; our own code never
+  // reads `@context.toLowerCase()`, so this is always non-actionable noise.
+  var SUPPRESS_CONTAINS = [
+    '["@context"]',
+    "['@context']",
+  ];
+
   function shouldSuppress(msg) {
     var m = (msg || '').toLowerCase().trim();
-    return SUPPRESS.some(function(s){ return m === s.toLowerCase() || m.startsWith(s.toLowerCase() + ':'); });
+    if (SUPPRESS.some(function(s){ return m === s.toLowerCase() || m.startsWith(s.toLowerCase() + ':'); })) return true;
+    return SUPPRESS_CONTAINS.some(function(s){ return m.indexOf(s.toLowerCase()) !== -1; });
   }
 
   function getUser() {
