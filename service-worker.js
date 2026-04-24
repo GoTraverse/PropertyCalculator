@@ -6,7 +6,7 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v3';
+const CACHE_NAME = 'equitysight-v4';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/shared.css',
@@ -21,6 +21,13 @@ const STATIC_ASSETS = [
   '/market-rate.js',
   '/favicon.svg',
   '/manifest.json',
+  // Authenticated app bundle — pre-cache so first sign-in doesn't pay the
+  // cold-fetch cost for ~330 KB of JS + CSS. Sign-in flow on /login already
+  // has <link rel="prefetch"> hints for these, but pre-caching here covers
+  // users who arrive at /app via the sidebar nav from other pages.
+  '/app.js',
+  '/app-init.js',
+  '/app-events.js',
   // Calculator landing + all 14 tool HTML pages — enables first-visit offline
   // access so a user can open any calculator without a prior online visit. The
   // HTMLs stay small (~30 KB each); install cost ~400 KB. Individual tool JS
