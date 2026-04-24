@@ -229,7 +229,7 @@ ToolPage.init({
     { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Total Cost of Purchase' },
     { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
     { href: '/tools/first-home-buyer-grants-calculator', icon: '\uD83C\uDF81', label: 'FHB Grants' },
-    { href: '/tools/equity-release-calculator', icon: '\uD83D\uDCB0', label: 'Equity Release' }
+    { href: '/tools/deposit-calculator', icon: '\uD83E\uDE99', label: 'Deposit Calculator' }
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },

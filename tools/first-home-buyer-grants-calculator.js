@@ -156,7 +156,7 @@ ToolPage.init({
     { href: '/tools/loan-serviceability-calculator', icon: '📊', label: 'Loan Serviceability' },
     { href: '/tools/stamp-duty-calculator', icon: '🏛️', label: 'Stamp Duty' },
     { href: '/tools/cost-of-purchase-calculator', icon: '💵', label: 'Cost of Purchase' },
-    { href: '/tools/mortgage-stress-calculator', icon: '📈', label: 'Mortgage Stress' }
+    { href: '/tools/deposit-calculator', icon: '🪙', label: 'Deposit Calculator' }
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },

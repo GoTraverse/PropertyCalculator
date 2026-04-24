@@ -129,16 +129,24 @@ ToolPage.init({
   },
   related: [
     { href: '/tools/loan-serviceability-calculator', icon: '\uD83D\uDCCA', label: 'Loan Serviceability' },
-    { href: '/tools/stamp-duty-calculator', icon: '\uD83C\uDFDB\uFE0F', label: 'Stamp Duty' },
+    { href: '/tools/borrowing-power-calculator', icon: '\uD83C\uDFE6', label: 'Borrowing Power' },
     { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
     { href: '/tools/first-home-buyer-grants-calculator', icon: '\uD83C\uDF81', label: 'FHB Grants' }
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
-    { href: '/tools/rental-yield-calculator', text: 'Rental Yield' },
-    { href: '/tools/house-flip-calculator', text: 'House Flip' },
+    { href: '/tools', text: 'All Calculators' },
+    { href: '/tools/borrowing-power-calculator', text: 'Borrowing Power' },
+    { href: '/tools/mortgage-repayment-calculator', text: 'Repayment' },
     { href: '/privacy', text: 'Privacy' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '🏦', href: '/tools/borrowing-power-calculator', label: 'Borrowing Power Calculator' },
+    { group: 'Other Tools', icon: '💳', href: '/tools/mortgage-repayment-calculator', label: 'Mortgage Repayment' },
+    { group: 'Other Tools', icon: '⚖️', href: '/tools/interest-only-vs-principal-calculator', label: 'Interest Only vs P&I' },
+    { group: 'Other Tools', icon: '📊', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability' },
+    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '📖', href: '/methodology', label: 'How we calculate (methodology)' }
   ]
 });
 

@@ -44,13 +44,17 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header class="tool-header">
-  <a href="/" class="tool-logo">
-    <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
-    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
-  </a>
-  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
-</header>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
 
@@ -68,11 +72,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="propval">Property value</label>
-        <input class="tool-input" type="text" id="propval" value="750,000" placeholder="e.g. 750,000">
+        <input class="tool-input" type="text" inputmode="decimal" id="propval" value="750,000" placeholder="e.g. 750,000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="weekly">Weekly rent ($)</label>
-        <input class="tool-input" type="text" id="weekly" value="550" placeholder="e.g. 550">
+        <input class="tool-input" type="text" inputmode="decimal" id="weekly" value="550" placeholder="e.g. 550">
       </div>
     </div>
 
@@ -81,11 +85,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="rates">Council rates ($/yr)</label>
-        <input class="tool-input" type="text" id="rates" placeholder="e.g. 2,000">
+        <input class="tool-input" type="text" inputmode="decimal" id="rates" placeholder="e.g. 2,000">
       </div>
       <div class="tool-field">
         <label class="tool-label" for="insurance">Landlord insurance ($/yr)</label>
-        <input class="tool-input" type="text" id="insurance" placeholder="e.g. 1,500">
+        <input class="tool-input" type="text" inputmode="decimal" id="insurance" placeholder="e.g. 1,500">
       </div>
     </div>
     <div class="tool-row">
@@ -96,7 +100,7 @@
       </div>
       <div class="tool-field">
         <label class="tool-label" for="maintenance">Maintenance ($/yr)</label>
-        <input class="tool-input" type="text" id="maintenance" placeholder="e.g. 2,500">
+        <input class="tool-input" type="text" inputmode="decimal" id="maintenance" placeholder="e.g. 2,500">
       </div>
     </div>
     <div class="tool-field">

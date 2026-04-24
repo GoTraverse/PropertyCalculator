@@ -351,7 +351,42 @@ window.toggleTheme = function(){
     if (el) el.classList.add('open');
   };
 
+  // Canonical site-wide nav link set. One source of truth — every page that
+  // includes auth-nav.js gets the same header.
+  // `match` is a list of pathname prefixes (or exact strings) used to highlight
+  // the active link.
+  var SITE_NAV_LINKS = [
+    { href: '/tools',     label: 'Calculators', match: ['/tools'] },
+    { href: '/blog',      label: 'Blog',        match: ['/blog'] },
+    { href: '/showcase',  label: 'Gallery',     match: ['/showcase'] },
+    { href: '/pricing',   label: 'Pricing',     match: ['/pricing'] },
+    { href: '/about',     label: 'About',       match: ['/about'] },
+    { href: '/contact',   label: 'Support',     match: ['/contact'] },
+  ];
+
+  function activeMatch(currentPath, link) {
+    for (var i = 0; i < link.match.length; i++) {
+      var m = link.match[i];
+      if (currentPath === m || currentPath.indexOf(m + '/') === 0 || currentPath === m + '/') return true;
+    }
+    return false;
+  }
+
+  function renderSiteNavLinks() {
+    var ul = document.querySelector('.site-nav-links');
+    if (!ul) return;
+    var currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+    var html = SITE_NAV_LINKS.map(function (link) {
+      var cls = activeMatch(currentPath, link) ? ' class="active"' : '';
+      return '<li><a href="' + link.href + '"' + cls + '>' + link.label + '</a></li>';
+    }).join('');
+    ul.innerHTML = html;
+  }
+
   function renderNav() {
+    // Always rewrite the link list from the canonical set so every page matches.
+    renderSiteNavLinks();
+
     var actions = document.querySelector('.site-nav-actions');
     if (!actions) return;
     injectCSS();

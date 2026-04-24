@@ -44,13 +44,17 @@
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header class="tool-header">
-  <a href="/" class="tool-logo">
-    <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
-    <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
-  </a>
-  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
-</header>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
 <script src="../auth-nav.js"></script>
 <script src="../error-capture.js"></script>
 <script src="../market-rate.js" defer></script>
@@ -69,17 +73,17 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="salary">Your salary/wages ($/yr)</label>
-        <input class="tool-input" type="text" id="salary" value="120,000" placeholder="e.g. 120,000" >
+        <input class="tool-input" type="text" inputmode="decimal" id="salary" value="120,000" placeholder="e.g. 120,000" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="partner">Partner salary/wages ($/yr)</label>
-        <input class="tool-input" type="text" id="partner" placeholder="e.g. 85,000" >
+        <input class="tool-input" type="text" inputmode="decimal" id="partner" placeholder="e.g. 85,000" >
       </div>
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="other">Other income (rental, investment, etc.)</label>
-      <input class="tool-input" type="text" id="other" placeholder="e.g. 15,000" >
+      <input class="tool-input" type="text" inputmode="decimal" id="other" placeholder="e.g. 15,000" >
     </div>
 
     <div class="tool-card-title" style="margin-top:20px;">Monthly expenses</div>
@@ -87,11 +91,11 @@
     <div class="tool-row">
       <div class="tool-field">
         <label class="tool-label" for="expenses">Living expenses (rent, utilities, food, transport, etc.)</label>
-        <input class="tool-input" type="text" id="expenses" placeholder="e.g. 4,500" >
+        <input class="tool-input" type="text" inputmode="decimal" id="expenses" placeholder="e.g. 4,500" >
       </div>
       <div class="tool-field">
         <label class="tool-label" for="debt">Existing debt repayments (credit cards, car loans, HECS)</label>
-        <input class="tool-input" type="text" id="debt" placeholder="e.g. 1,200" >
+        <input class="tool-input" type="text" inputmode="decimal" id="debt" placeholder="e.g. 1,200" >
       </div>
     </div>
 

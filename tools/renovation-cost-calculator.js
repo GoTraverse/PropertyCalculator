@@ -128,10 +128,18 @@ ToolPage.init({
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
+    { href: '/tools', text: 'All Calculators' },
     { href: '/tools/house-flip-calculator', text: 'House Flip' },
-    { href: '/tools/mortgage-stress-calculator', text: 'Mortgage Stress' },
+    { href: '/tools/equity-release-calculator', text: 'Equity Release' },
     { href: '/privacy', text: 'Privacy' }
+  ],
+  usefulLinks: [
+    { group: 'Other Tools', icon: '🏠', href: '/tools/house-flip-calculator', label: 'House Flip Profit Calculator' },
+    { group: 'Other Tools', icon: '💰', href: '/tools/equity-release-calculator', label: 'Equity Release (fund the reno)' },
+    { group: 'Other Tools', icon: '🏦', href: '/tools/borrowing-power-calculator', label: 'Borrowing Power' },
+    { group: 'Other Tools', icon: '📉', href: '/tools/capital-gains-calculator', label: 'Capital Gains Tax' },
+    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
+    { group: 'Guides', icon: '📖', href: '/methodology', label: 'How we calculate (methodology)' }
   ]
 });
 

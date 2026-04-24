@@ -444,6 +444,16 @@
   to = "/"
   status = 301
 
+[[redirects]]
+  from = "/tools.html"
+  to = "/tools"
+  status = 301
+
+[[redirects]]
+  from = "/tools/"
+  to = "/tools"
+  status = 301
+
 # ── Fix relative-path asset requests from cached suburb/invest pages ─────────
 # Older cached builds used relative paths (e.g. shared.css instead of /shared.css).
 # These rewrites serve the correct root-level files transparently until a

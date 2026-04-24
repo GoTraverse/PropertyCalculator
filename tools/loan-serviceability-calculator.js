@@ -12,9 +12,10 @@ function calculate() {
   var monthlyCommitments = expenses + debt;
   var monthlyDisposable = monthlyIncome - monthlyCommitments;
 
-  // Use live assessment rate (displayed to user) + 3% APRA buffer
+  // APRA serviceability buffer (Prudential Standard APS 220, current 3.00% since
+  // Oct 2021). Verify at apra.gov.au if APRA revises.
   var baseRateInput = parseFloat(document.getElementById('base-rate').value) || 6.50;
-  var assessmentRate = baseRateInput + 3.0; // APRA 3% buffer
+  var assessmentRate = baseRateInput + 3.0;
   var monthlyAssessmentRate = assessmentRate / 100 / 12;
   // Monthly repayment factor for a 30-year P&I loan at the assessment rate
   var repayFactor = monthlyAssessmentRate > 0
@@ -122,7 +123,7 @@ ToolPage.init({
     { href: '/tools/mortgage-stress-calculator', icon: '\uD83D\uDCC8', label: 'Mortgage Stress' },
     { href: '/tools/first-home-buyer-grants-calculator', icon: '\uD83C\uDF81', label: 'FHB Grants' },
     { href: '/tools/cost-of-purchase-calculator', icon: '\uD83D\uDCB5', label: 'Cost of Purchase' },
-    { href: '/tools/rental-yield-calculator', icon: '\uD83D\uDCB0', label: 'Rental Yield' }
+    { href: '/tools/borrowing-power-calculator', icon: '\uD83C\uDFE6', label: 'Borrowing Power' }
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
