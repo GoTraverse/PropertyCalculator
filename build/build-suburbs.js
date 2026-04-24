@@ -32,6 +32,123 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase());
 }
 
+// ── Locator card (replaces the old Google Maps iframe — see PR shipping
+//    `<div class="suburb-locator">` for context) ───────────────────────────
+const STATE_OUTLINES = require('../data/state-outlines');
+
+// Project a (lat, lng) onto an SVG coordinate system. The outline is
+// rendered into a 0..W × 0..H viewBox; lat/lng are mapped via the bbox.
+// Returns null if outside the bbox (rare — sanity check).
+function projectLatLng(lat, lng, bbox, W, H) {
+  if (lat == null || lng == null) return null;
+  const x = ((lng - bbox.lngMin) / (bbox.lngMax - bbox.lngMin)) * W;
+  // SVG y is inverted vs latitude (north is up, but lat decreases southward
+  // in our hemisphere — latMax is more north → smaller y).
+  const y = ((bbox.latMax - lat) / (bbox.latMax - bbox.latMin)) * H;
+  if (!isFinite(x) || !isFinite(y)) return null;
+  return { x: Math.max(0, Math.min(W, x)), y: Math.max(0, Math.min(H, y)) };
+}
+
+// Build the SVG path "d" attribute from an array of [lat, lng] points by
+// projecting each onto the viewBox.
+function outlineToPathD(outline, bbox, W, H) {
+  if (!outline || !outline.length) return '';
+  const pts = outline.map(([lat, lng]) => projectLatLng(lat, lng, bbox, W, H)).filter(Boolean);
+  if (!pts.length) return '';
+  return 'M ' + pts.map(p => p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' L ') + ' Z';
+}
+
+// Render a complete suburb-locator card. Used in templates/suburb-page.html
+// in place of the old Google Maps iframe — loads instantly because it's
+// inline SVG, and the user sees their suburb's position relative to the
+// state at-a-glance. CBD distance comes from `s.distance_to_cbd` if known.
+function generateLocatorCard(s) {
+  const stateData = STATE_OUTLINES[s.state];
+  if (!stateData) {
+    // Unknown state code — fail soft to a name-only card so the page renders.
+    return '<div class="suburb-locator suburb-locator-unknown">'
+      + '<div class="suburb-locator-meta">'
+      +   '<div class="suburb-locator-name">' + escHtml(s.suburb) + '</div>'
+      +   '<div class="suburb-locator-state">' + escHtml(s.state_name || s.state) + '</div>'
+      + '</div></div>';
+  }
+  const { bbox, outline, capital } = stateData;
+
+  // Compute viewBox aspect ratio from bbox (degrees lat × degrees lng).
+  // We use the NATURAL aspect ratio inside the viewBox so the projection
+  // never falls outside the canvas — CSS `max-height` on the parent element
+  // controls the displayed size while preserveAspectRatio keeps things
+  // proportional. Tall states (WA, NT, QLD) just render taller; CSS clamps
+  // visually.
+  const lngSpan = bbox.lngMax - bbox.lngMin;
+  const latSpan = bbox.latMax - bbox.latMin;
+  const VIEW_W = 360;
+  const VIEW_H = Math.max(120, Math.round(VIEW_W * (latSpan / lngSpan)));
+
+  const pathD = outlineToPathD(outline, bbox, VIEW_W, VIEW_H);
+
+  // Plot the suburb dot. Prefer real centroid; fall back to capital city
+  // coords (still inside the state outline so the dot is honest about
+  // "we don't know exact, but it's somewhere in this state near {capital}").
+  const dotLat = (s.lat != null) ? s.lat : capital.latLng[0];
+  const dotLng = (s.lng != null) ? s.lng : capital.latLng[1];
+  const dotIsApprox = (s.lat == null);
+  const dot = projectLatLng(dotLat, dotLng, bbox, VIEW_W, VIEW_H);
+
+  // Capital reference (small grey dot so users can orient — "the suburb is
+  // X km from this dot").
+  const capDot = projectLatLng(capital.latLng[0], capital.latLng[1], bbox, VIEW_W, VIEW_H);
+
+  // CBD distance line — straight visual link from capital → suburb when
+  // both fit on the SVG. Helps convey "13 km from Brisbane".
+  const showLink = !!(dot && capDot);
+
+  // Compose the SVG. inline + hand-built so this is one HTTP roundtrip
+  // (the page itself), zero external map fetch, zero JS.
+  const svg = '<svg viewBox="0 0 ' + VIEW_W + ' ' + VIEW_H + '" '
+    + 'class="suburb-locator-svg" role="img" '
+    + 'aria-label="Map showing ' + escHtml(s.suburb) + ', ' + escHtml(s.state_name) + '">'
+    + '<path class="suburb-locator-state-fill" d="' + pathD + '"/>'
+    + (showLink
+        ? '<line class="suburb-locator-link" x1="' + capDot.x.toFixed(1) + '" y1="' + capDot.y.toFixed(1) + '" '
+          + 'x2="' + dot.x.toFixed(1) + '" y2="' + dot.y.toFixed(1) + '"/>'
+        : '')
+    + (capDot
+        ? '<circle class="suburb-locator-cap-dot" cx="' + capDot.x.toFixed(1) + '" cy="' + capDot.y.toFixed(1) + '" r="3"/>'
+          + '<text class="suburb-locator-cap-label" x="' + (capDot.x + 7).toFixed(1) + '" y="' + (capDot.y + 4).toFixed(1) + '">' + escHtml(capital.name) + '</text>'
+        : '')
+    + (dot
+        ? '<circle class="suburb-locator-pulse" cx="' + dot.x.toFixed(1) + '" cy="' + dot.y.toFixed(1) + '" r="10"/>'
+          + '<circle class="suburb-locator-dot" cx="' + dot.x.toFixed(1) + '" cy="' + dot.y.toFixed(1) + '" r="5"/>'
+        : '')
+    + '</svg>';
+
+  // Distance line for the meta panel. distance_to_cbd is set by
+  // apply-abs-data.js from a Haversine calc against the state capital.
+  const dist = (s.distance_to_cbd != null && isFinite(s.distance_to_cbd))
+    ? Math.round(s.distance_to_cbd) + ' km from ' + capital.name + ' CBD'
+    : 'Located in ' + s.state_name;
+
+  // Approximate-position note shown only when the dot is at the capital
+  // (real centroid unknown). Tells the user we're not pretending to
+  // pinpoint when we can't.
+  const approxNote = dotIsApprox
+    ? '<span class="suburb-locator-approx" title="Centroid not yet captured for this suburb — dot shows the state capital as a reference">approximate</span>'
+    : '';
+
+  return '<div class="suburb-locator">'
+    +   svg
+    +   '<div class="suburb-locator-meta">'
+    +     '<div class="suburb-locator-name">' + escHtml(s.suburb) + '</div>'
+    +     '<div class="suburb-locator-state">' + escHtml(s.state_name) + (s.postcode ? ' · ' + escHtml(s.postcode) : '') + '</div>'
+    +     '<div class="suburb-locator-cbd">' + escHtml(dist) + ' ' + approxNote + '</div>'
+    +     '<a class="suburb-locator-mapslink" href="https://www.google.com/maps/search/?api=1&query='
+    +       encodeURIComponent(s.suburb + ' ' + s.state + ' Australia')
+    +       '" target="_blank" rel="noopener">View on Google Maps ↗</a>'
+    +   '</div>'
+    + '</div>';
+}
+
 const stateNames = {
   QLD: 'Queensland', NSW: 'New South Wales', VIC: 'Victoria',
   WA: 'Western Australia', SA: 'South Australia', TAS: 'Tasmania',
@@ -2003,23 +2120,11 @@ for (const s of suburbs) {
   // Data source note for hero
   const dataSourceNote = `ABS 2021 Census · Updated ${BUILD_DATE}`;
 
-  // Google Maps embed URL — zoom derived from real bounding box data when available,
-  // otherwise falls back to suburb-type heuristic.
-  const MAPS_ZOOM_FALLBACK = {
-    'inner-city':  14,
-    'middle-ring': 13,
-    'outer-metro': 12,
-    'coastal':     12,
-    'regional':    11,
-  };
-  let mapsZoom = s.map_zoom;   // set by apply-abs-data.js from real polygon bbox
-  if (!mapsZoom) {
-    // Fallback: type-based heuristic; pull back one level for sparse regional localities
-    const base = MAPS_ZOOM_FALLBACK[s.suburb_type] || 13;
-    mapsZoom = (s.suburb_type === 'regional' && s.population < 500) ? base - 1 : base;
-  }
-  const mapsQuery = encodeURIComponent(`${s.suburb} ${s.state} Australia`);
-  const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&z=${mapsZoom}`;
+  // Suburb locator card — inline SVG state silhouette with a red dot at the
+  // suburb's lat/lng centroid (set by build/apply-abs-data.js from ABS
+  // polygon data). Replaces the old Google Maps iframe — renders instantly
+  // because there's nothing to fetch beyond the page itself.
+  const locatorCardHtml = generateLocatorCard(s);
 
   const isNoindexed = shouldNoindex(s);
   const robotsMeta = isNoindexed ? '<meta name="robots" content="noindex, follow">\n' : '';
@@ -2054,7 +2159,7 @@ for (const s of suburbs) {
     .replace(/\{\{SCHOOLS_DETAIL\}\}/g, schoolsDetail)
     .replace(/\{\{PARKS_DETAIL\}\}/g, parksDetail)
     .replace(/\{\{DATA_SOURCE_NOTE\}\}/g, escHtml(dataSourceNote))
-    .replace(/\{\{MAPS_EMBED_URL\}\}/g, mapsEmbedUrl)
+    .replace(/\{\{LOCATOR_CARD_HTML\}\}/g, locatorCardHtml)
     .replace(/\{\{INVESTMENT_INSIGHT\}\}/g, generateInsight(s, sm))
     .replace(/\{\{INVESTMENT_SCORE_HTML\}\}/g, generateInvestmentScore(s))
     .replace(/\{\{STRATEGY_HTML\}\}/g, generateStrategy(s, sm))
