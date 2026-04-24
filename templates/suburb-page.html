@@ -78,20 +78,14 @@
     {{INVESTMENT_SCORE_HTML}}
   </section>
 
-  <!-- Map -->
+  <!-- Location — inline SVG locator card. Replaces the old Google Maps
+       iframe (which cost ~2s of tile-fetch latency). Renders instantly,
+       offline-capable, and shows the suburb's position relative to the
+       state capital. "View on Google Maps ↗" link inside the card for
+       users who want the interactive map. -->
   <section class="suburb-section suburb-map-section">
     <h2>Location</h2>
-    <div class="suburb-map-wrap">
-      <iframe
-        class="suburb-map"
-        src="{{MAPS_EMBED_URL}}"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        allowfullscreen
-        title="Map of {{SUBURB}}, {{STATE_NAME}}">
-      </iframe>
-    </div>
-    <p class="suburb-map-note">Map shows {{SUBURB}}, {{STATE_NAME}}, Australia.</p>
+    {{LOCATOR_CARD_HTML}}
   </section>
 
   <!-- Key Indicators -->

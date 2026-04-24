@@ -12,26 +12,152 @@
 /* ── Data source note in hero ── */
 .suburb-data-note { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.3px; color: rgba(245,240,232,0.45); margin-top: 8px; }
 
-/* ── Map embed ── */
-.suburb-map-wrap {
-  position: relative;
-  width: 100%;
-  padding-top: 56.25%; /* 16:9 */
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-  background: var(--warm-white);
+/* ── Suburb locator card ──
+   Replaced the old Google Maps iframe with an inline SVG state silhouette
+   + dot at the suburb's lat/lng centroid. Renders instantly, no external
+   tile fetches, AdSense-friendly. */
+.suburb-locator {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(200px, 280px);
+  gap: 24px;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #FAF7F0 0%, #F1ECE0 100%);
+  border: 1px solid rgba(28,28,30,0.08);
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
-.suburb-map {
-  position: absolute;
-  inset: 0;
+.suburb-locator-svg {
   width: 100%;
-  height: 100%;
-  border: none;
+  height: auto;
+  max-height: 320px;
   display: block;
 }
-.suburb-map-note { font-size: 11px !important; color: var(--mid-grey) !important; margin-top: 10px !important; }
-html.dark-mode .suburb-map-wrap { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
+.suburb-locator-state-fill {
+  fill: rgba(201,168,76,0.10);
+  stroke: rgba(201,168,76,0.65);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.suburb-locator-link {
+  stroke: rgba(201,168,76,0.55);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  fill: none;
+}
+.suburb-locator-cap-dot {
+  fill: rgba(28,28,30,0.55);
+  stroke: rgba(255,255,255,0.85);
+  stroke-width: 1.5;
+}
+.suburb-locator-cap-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: rgba(28,28,30,0.65);
+  letter-spacing: 0.3px;
+}
+.suburb-locator-pulse {
+  fill: rgba(220,38,38,0.18);
+  /* Soft glow under the red marker; static (no animation) so reduced-motion
+     users get the same render. */
+}
+.suburb-locator-dot {
+  fill: #DC2626;
+  stroke: #fff;
+  stroke-width: 2;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+}
+.suburb-locator-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.suburb-locator-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--charcoal);
+  line-height: 1.15;
+}
+.suburb-locator-state {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.suburb-locator-cbd {
+  font-size: 13px;
+  color: var(--slate);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.suburb-locator-approx {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  background: rgba(28,28,30,0.06);
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--slate);
+  letter-spacing: 0.3px;
+  text-transform: lowercase;
+  cursor: help;
+}
+.suburb-locator-mapslink {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  align-self: flex-start;
+  border-bottom: 1px solid rgba(201,168,76,0.4);
+  padding-bottom: 1px;
+  transition: border-color 0.15s;
+}
+.suburb-locator-mapslink:hover { border-color: var(--gold); }
+.suburb-locator-unknown {
+  text-align: center;
+  padding: 32px 20px;
+}
+.suburb-locator-unknown .suburb-locator-meta {
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .suburb-locator {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  .suburb-locator-svg { max-height: 240px; }
+  .suburb-locator-meta { align-items: center; text-align: center; }
+  .suburb-locator-mapslink { align-self: center; }
+}
+
+html.dark-mode .suburb-locator {
+  background: linear-gradient(135deg, #1F1F22 0%, #18181A 100%);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.40);
+}
+html.dark-mode .suburb-locator-name { color: var(--cream); }
+html.dark-mode .suburb-locator-cbd { color: rgba(245,240,232,0.65); }
+html.dark-mode .suburb-locator-state-fill {
+  fill: rgba(201,168,76,0.12);
+  stroke: rgba(201,168,76,0.50);
+}
+html.dark-mode .suburb-locator-cap-dot {
+  fill: rgba(245,240,232,0.55);
+  stroke: rgba(28,28,30,0.85);
+}
+html.dark-mode .suburb-locator-cap-label { fill: rgba(245,240,232,0.55); }
+html.dark-mode .suburb-locator-link { stroke: rgba(201,168,76,0.40); }
+html.dark-mode .suburb-locator-approx {
+  background: rgba(255,255,255,0.06);
+  color: rgba(245,240,232,0.55);
+}
 
 /* ── Main layout ── */
 .suburb-main { max-width: 720px; margin: -20px auto 56px; padding: 0 16px; }
