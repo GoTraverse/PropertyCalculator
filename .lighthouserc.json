@@ -1,0 +1,44 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://equitysight.app/",
+        "https://equitysight.app/tools",
+        "https://equitysight.app/tools/stamp-duty-calculator",
+        "https://equitysight.app/tools/mortgage-repayment-calculator",
+        "https://equitysight.app/tools/rental-yield-calculator",
+        "https://equitysight.app/app",
+        "https://equitysight.app/pricing",
+        "https://equitysight.app/about",
+        "https://equitysight.app/blog",
+        "https://equitysight.app/suburb/qld/redbank-plains/"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--no-sandbox --headless=new"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance":   ["warn",  { "minScore": 0.85 }],
+        "categories:accessibility": ["error", { "minScore": 0.95 }],
+        "categories:best-practices":["warn",  { "minScore": 0.90 }],
+        "categories:seo":           ["error", { "minScore": 0.95 }],
+        "uses-webp-images":         "off",
+        "csp-xss":                  "off",
+        "color-contrast":           "error",
+        "document-title":           "error",
+        "meta-description":         "error",
+        "html-has-lang":            "error",
+        "image-alt":                "error",
+        "label":                    "error",
+        "link-name":                "error",
+        "tap-targets":              "warn"
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

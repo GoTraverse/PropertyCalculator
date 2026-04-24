@@ -1,0 +1,14 @@
+{
+  "name": "equitysight-tests",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "test": "playwright test",
+    "test:local": "BASE_URL=http://localhost:8888 playwright test",
+    "test:prod": "BASE_URL=https://equitysight.app playwright test",
+    "install-browsers": "playwright install --with-deps chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0"
+  }
+}

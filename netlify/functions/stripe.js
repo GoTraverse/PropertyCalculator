@@ -200,13 +200,35 @@ function extractDiscountInfo(discount, baseAmountCents, currency) {
   };
 }
 
+// ── Webhook idempotency + dead-letter helpers ────────────────────────────────
+// Stripe retries webhooks on timeouts / 5xx. Use a Redis SET NX with 7-day TTL
+// so duplicate event IDs are short-circuited. Returns true if the caller should
+// process the event (first time), false if already processed.
+async function claimEvent(eventId) {
+  if (!eventId) return true; // can't dedupe without an id — process anyway
+  // SET NX returns OK on first write, null if key exists. TTL in seconds.
+  const res = await redisCmd('SET', 'stripe_event:' + eventId, '1', 'NX', 'EX', '604800');
+  return res === 'OK';
+}
+
+// When upgradePlan can't find the user (race condition or account deletion),
+// stash the full webhook for manual replay rather than losing it silently.
+async function storeDeadLetter(event, reason) {
+  try {
+    const rec = { at: Date.now(), reason, event };
+    await redisCmd('LPUSH', 'stripe_deadletter', JSON.stringify(rec));
+    await redisCmd('LTRIM', 'stripe_deadletter', '0', '199'); // keep last 200
+    console.error('[stripe] DEAD-LETTER stored:', reason, '(event:', event && event.id, ')');
+  } catch (e) { console.error('[stripe] dead-letter write failed:', e.message); }
+}
+
 // ── Upgrade user plan in Redis ────────────────────────────────────────────────
 async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId, discountInfo) {
   const key = 'user:' + email.toLowerCase().trim();
   const userData = await rGet(key);
   if (!userData) {
     console.warn('[stripe] upgradePlan: user not found:', email);
-    return false;
+    return { ok: false, reason: 'user_not_found', email };
   }
   userData.plan = plan;
   if (stripeCustomerId)     userData.stripeCustomerId    = stripeCustomerId;
@@ -218,7 +240,7 @@ async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId, 
   if (stripeCustomerId) await rSet('cid:' + stripeCustomerId, email.toLowerCase().trim());
   await logEvent(userData.id, 'plan_upgraded', { plan, stripeCustomerId, stripeSubscriptionId });
   console.log('[stripe] Upgraded', email, '→', plan, discountInfo ? '(discounted)' : '');
-  return true;
+  return { ok: true };
 }
 
 // ── Lookup email by Stripe customerId (via cid: index, falls back to KEYS scan) ──
@@ -330,7 +352,22 @@ exports.handler = async function (event) {
     catch (e) { return fail('Invalid JSON', 400); }
 
     const type = stripeEvent.type;
-    console.log('[stripe] Webhook event:', type);
+    console.log('[stripe] Webhook event:', type, stripeEvent.id);
+
+    // Idempotency — short-circuit if this event ID has been processed. Stripe
+    // retries on timeouts/5xx, so without this we'd run upgradePlan twice for
+    // the same checkout. 7-day TTL comfortably exceeds Stripe's retry window.
+    try {
+      const claimed = await claimEvent(stripeEvent.id);
+      if (!claimed) {
+        console.log('[stripe] Duplicate event, skipping:', stripeEvent.id);
+        return ok({ received: true, duplicate: true });
+      }
+    } catch (e) {
+      // If Redis is down we'd rather process (possibly twice) than drop the
+      // event — upgradePlan writes are effectively idempotent anyway.
+      console.warn('[stripe] claimEvent failed, proceeding without dedupe:', e.message);
+    }
 
     try {
       if (type === 'checkout.session.completed') {
@@ -343,11 +380,18 @@ exports.handler = async function (event) {
           const baseAmount = session.amount_subtotal;
           const currency   = session.currency;
           const discountInfo = extractDiscountInfo(session.discount, baseAmount, currency);
-          await upgradePlan(email, plan, session.customer, session.subscription, discountInfo);
-          // Reward referrer if this user was referred
-          await processReferralReward(email).catch(e => console.warn('[stripe] processReferralReward error:', e.message));
+          const result = await upgradePlan(email, plan, session.customer, session.subscription, discountInfo);
+          if (!result || !result.ok) {
+            // User paid but we can't find their account — stash the full event
+            // for manual replay so the payment isn't silently lost.
+            await storeDeadLetter(stripeEvent, 'upgradePlan ' + (result && result.reason || 'unknown'));
+          } else {
+            // Reward referrer only on successful upgrade
+            await processReferralReward(email).catch(e => console.warn('[stripe] processReferralReward error:', e.message));
+          }
         } else {
           console.warn('[stripe] checkout.session.completed: no email in session');
+          await storeDeadLetter(stripeEvent, 'no_email_in_session');
         }
       }
 
@@ -363,7 +407,6 @@ exports.handler = async function (event) {
           const meta = sub.metadata || {};
           const plan = meta.plan;
           if (plan && sub.customer) {
-            // Find user by customerId via cid: index (avoids KEYS scan)
             const email = await emailByCustomerId(sub.customer);
             if (email) {
               const userData = await rGet('user:' + email);
@@ -374,7 +417,11 @@ exports.handler = async function (event) {
                 if (userData.plan !== plan || JSON.stringify(userData.stripeDiscountInfo) !== JSON.stringify(discountInfo)) {
                   await upgradePlan(userData.email, plan, sub.customer, sub.id, discountInfo);
                 }
+              } else {
+                await storeDeadLetter(stripeEvent, 'subscription_updated: user_record_missing');
               }
+            } else {
+              await storeDeadLetter(stripeEvent, 'subscription_updated: cid_not_mapped');
             }
           }
         } else if (sub.status === 'past_due' || sub.status === 'unpaid' || sub.status === 'canceled') {

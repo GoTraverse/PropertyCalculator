@@ -6,19 +6,40 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v2';
+const CACHE_NAME = 'equitysight-v3';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/shared.css',
   '/app.css',
   '/tools.css',
+  '/index.css',
   '/site-init.js',
   '/error-capture.js',
   '/auth-nav.js',
   '/footer.js',
   '/shared-calcs.js',
+  '/market-rate.js',
   '/favicon.svg',
-  '/manifest.json'
+  '/manifest.json',
+  // Calculator landing + all 14 tool HTML pages — enables first-visit offline
+  // access so a user can open any calculator without a prior online visit. The
+  // HTMLs stay small (~30 KB each); install cost ~400 KB. Individual tool JS
+  // files are cached on-demand by the static-asset pattern below.
+  '/tools',
+  '/tools/stamp-duty-calculator',
+  '/tools/cost-of-purchase-calculator',
+  '/tools/deposit-calculator',
+  '/tools/first-home-buyer-grants-calculator',
+  '/tools/borrowing-power-calculator',
+  '/tools/loan-serviceability-calculator',
+  '/tools/mortgage-repayment-calculator',
+  '/tools/interest-only-vs-principal-calculator',
+  '/tools/mortgage-stress-calculator',
+  '/tools/rental-yield-calculator',
+  '/tools/capital-gains-calculator',
+  '/tools/equity-release-calculator',
+  '/tools/house-flip-calculator',
+  '/tools/renovation-cost-calculator'
 ];
 
 // Idempotent GET endpoints that benefit from stale-while-revalidate so the
