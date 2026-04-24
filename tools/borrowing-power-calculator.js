@@ -182,3 +182,17 @@ ToolPage.init({
 
 if (window.trackCalculatorStart) trackCalculatorStart('borrowing-power');
 calc();
+
+['income','expenses','debts'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function(){ fmtInput(this); calc(); });
+});
+['deps','rate','term'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', calc);
+});
+var calcBtn = document.getElementById('calc-btn');
+if (calcBtn) calcBtn.addEventListener('click', function(){
+  if (window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'borrowing-power'});
+  calc();
+});

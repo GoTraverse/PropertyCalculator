@@ -10,8 +10,6 @@ Never delete anything above this line.
 
 General - (DO NOT REMOVE THIS LINE)
 -
-1. Convert screenshots to WebP format (Performance - High) — requires cwebp or similar tool
-2. Create 1200x630px OG social sharing image (SEO - High) — requires image editor
 26. Add suburb-specific og:image generation (state + suburb name card) to replace favicon fallback
 
 

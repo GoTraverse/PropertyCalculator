@@ -202,3 +202,17 @@ ToolPage.init({
 
 if (window.trackCalculatorStart) trackCalculatorStart('deposit');
 calc();
+
+['price'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function(){ fmtInput(this); calc(); });
+});
+['dep-pct','state','fhb'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('change', calc);
+});
+var calcBtn = document.getElementById('calc-btn');
+if (calcBtn) calcBtn.addEventListener('click', function(){
+  if (window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'deposit'});
+  calc();
+});

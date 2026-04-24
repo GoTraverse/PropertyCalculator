@@ -498,12 +498,12 @@ html.dark-mode .admin-header h1 { color: #F5F0E8 !important; }
 /* Stat cards */
 html.dark-mode .stat-card { background: #1C1C1E !important; border-color: rgba(255,255,255,0.08) !important; }
 html.dark-mode .stat-value { color: #F5F0E8 !important; }
-html.dark-mode .stat-label { color: rgba(245,240,232,0.45) !important; }
+html.dark-mode .stat-label { color: rgba(245,240,232,0.70) !important; }
 html.dark-mode .stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; }
 
 /* Admin tabs */
 html.dark-mode .admin-tabs { border-bottom-color: rgba(255,255,255,0.08) !important; }
-html.dark-mode .admin-tab { color: rgba(245,240,232,0.45) !important; }
+html.dark-mode .admin-tab { color: rgba(245,240,232,0.70) !important; }
 html.dark-mode .admin-tab:hover { color: #F5F0E8 !important; }
 html.dark-mode .admin-tab.active { color: #F5F0E8 !important; border-bottom-color: #F5F0E8 !important; background: rgba(255,255,255,0.06) !important; }
 
@@ -526,7 +526,7 @@ html.dark-mode .filter-input:focus,
 html.dark-mode .filter-select:focus { border-color: var(--gold) !important; background: rgba(255,255,255,0.09) !important; }
 
 /* Config inputs */
-html.dark-mode .config-label { color: rgba(245,240,232,0.45) !important; }
+html.dark-mode .config-label { color: rgba(245,240,232,0.70) !important; }
 html.dark-mode .config-input { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.11) !important; color: #F5F0E8 !important; }
 html.dark-mode .config-input:focus { background: rgba(255,255,255,0.09) !important; border-color: var(--gold) !important; }
 html.dark-mode .config-input[readonly] { background: rgba(255,255,255,0.03) !important; color: rgba(245,240,232,0.4) !important; }

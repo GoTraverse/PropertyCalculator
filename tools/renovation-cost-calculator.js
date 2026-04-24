@@ -110,7 +110,7 @@ ToolPage.init({
         links: [
           { text: 'Law Society Australia', href: 'https://www.lawsociety.com.au/' },
           { text: 'Master Builders Australia', href: 'https://www.masterbuilders.com.au/' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/housing-and-mortgages.html' }
+          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' }
         ]
       }
     ],

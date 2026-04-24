@@ -34,6 +34,8 @@
     '        <a href="/pricing">Pricing</a>',
     '        <a href="/blog">Blog</a>',
     '        <a href="/about">About</a>',
+    '        <a href="/methodology">Methodology</a>',
+    '        <a href="/data-sources">Data Sources</a>',
     '        <a href="/contact">Support</a>',
     '        <a href="/privacy">Privacy</a>',
     '        <a href="/terms">Terms</a>',

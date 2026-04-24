@@ -163,3 +163,17 @@ ToolPage.init({
 
 if (window.trackCalculatorStart) trackCalculatorStart('io-vs-pi');
 calc();
+
+['amount'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function(){ fmtInput(this); calc(); });
+});
+['rate-pi','rate-io','io-years','term'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', calc);
+});
+var calcBtn = document.getElementById('calc-btn');
+if (calcBtn) calcBtn.addEventListener('click', function(){
+  if (window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'io-vs-pi'});
+  calc();
+});

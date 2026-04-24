@@ -152,3 +152,19 @@ ToolPage.init({
 
 if (window.trackCalculatorStart) trackCalculatorStart('mortgage-repayment');
 calc();
+
+['amount'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function(){ fmtInput(this); calc(); });
+});
+['rate','term'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', calc);
+});
+var typeEl = document.getElementById('type');
+if (typeEl) typeEl.addEventListener('change', calc);
+var calcBtn = document.getElementById('calc-btn');
+if (calcBtn) calcBtn.addEventListener('click', function(){
+  if (window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'mortgage-repayment'});
+  calc();
+});

@@ -17,14 +17,14 @@
 <meta property="og:description" content="Free Australian capital gains tax calculator for property. Apply 50% CGT discount and calculate tax at marginal rates.">
 <meta property="og:url" content="https://equitysight.app/tools/capital-gains-calculator">
 <meta property="og:site_name" content="EquitySight.app">
-<meta property="og:image" content="https://equitysight.app/images/og-image.svg">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Australian Capital Gains Tax Calculator 2026 — Property CGT">
 <meta name="twitter:description" content="Free CGT calculator for Australian property investors.">
-<meta name="twitter:image" content="https://equitysight.app/images/og-image.svg">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,43 +66,43 @@
 
     <div class="tool-field">
       <label class="tool-label" for="sale">Sale price</label>
-      <input class="tool-input" type="text" id="sale" value="900,000" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" id="sale" value="900,000">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="purchase">Purchase price</label>
-      <input class="tool-input" type="text" id="purchase" value="600,000" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" id="purchase" value="600,000">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="costs">Buying + selling costs (stamp duty, agent fees, legals)</label>
-      <input class="tool-input" type="text" id="costs" value="45,000" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" id="costs" value="45,000">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="improvements">Capital improvements (renovations, extensions)</label>
-      <input class="tool-input" type="text" id="improvements" value="0" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" id="improvements" value="0">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="income">Your taxable income (excluding this gain)</label>
-      <input class="tool-input" type="text" id="income" value="100,000" oninput="fmtInput(this);calc()">
+      <input class="tool-input" type="text" id="income" value="100,000">
     </div>
 
     <div class="tool-field">
       <label class="tool-label" for="held">Held for more than 12 months?</label>
-      <select class="tool-input tool-select" id="held" onchange="calc()">
+      <select class="tool-input tool-select" id="held">
         <option value="yes" selected>Yes — 50% CGT discount applies</option>
         <option value="no">No — full gain is taxable</option>
       </select>
     </div>
 
     <div class="tool-check">
-      <input type="checkbox" id="ppor" onchange="calc()">
+      <input type="checkbox" id="ppor">
       <label for="ppor">Main residence (principal place of residence — may be CGT exempt)</label>
     </div>
 
-    <button class="tool-btn" onclick="calc()">Calculate CGT</button>
+    <button class="tool-btn" id="calc-btn" aria-label="Calculate capital gains tax">Calculate CGT</button>
   </div>
 
   <div class="tool-result" id="result">

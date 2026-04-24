@@ -33,6 +33,9 @@ const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|
 const FIXTURE = process.env.BLOG_FIXTURE || '';
 const SKIP = process.env.SKIP_BLOG_BUILD === 'true';
 const PAGE_SIZE = 12;
+// AdSense E-E-A-T floor. Posts shorter than this render but are marked noindex
+// and excluded from sitemap, RSS, and the paged index. Override via env.
+const MIN_WORDS = parseInt(process.env.BLOG_MIN_WORDS || '1500', 10);
 
 // ── Redis REST helpers ────────────────────────────────────────────────
 async function redisCmd(...args) {
@@ -218,6 +221,10 @@ function postUrlRaw(p) {
 }
 
 // ── Render a single blog post → HTML ──────────────────────────────────
+function isBelowWordGate(post) {
+  return md.wordCount(post.body_md || '') < MIN_WORDS;
+}
+
 function renderPost(post, allPosts, template, commentsData, neighbours) {
   const bodyHtml = md.render(post.body_md || '', { toc: false });
   const excerpt = post.excerpt && post.excerpt.length
@@ -232,7 +239,7 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
   const primaryTag = (post.tags && post.tags[0]) ? post.tags[0] : 'Insights';
   const coverImageAbs = post.cover_image
     ? (post.cover_image.startsWith('http') ? post.cover_image : SITE_URL + post.cover_image)
-    : SITE_URL + '/images/og-image.svg';
+    : SITE_URL + '/images/og-image.png';
   const coverImageHtml = post.cover_image
     ? '<img class="blog-cover" src="' + escHtml(post.cover_image) + '" alt="' + escHtml(post.title) + '" loading="lazy">'
     : '';
@@ -278,7 +285,10 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
   // Section badge in hero
   const categoryLabel = sectionLabel(post.section || post.category || 'general');
 
+  const robotsMeta = isBelowWordGate(post) ? 'noindex, follow' : 'index, follow';
+
   return replaceAll(template, {
+    ROBOTS_META: robotsMeta,
     TITLE: escHtml(post.title),
     TITLE_JSON: escJsonString(post.title),
     META_DESCRIPTION: escHtml(metaDescription),
@@ -419,7 +429,17 @@ async function main() {
     .filter(p => p && p.status === 'published' && p.slug && p.title && p.body_md)
     .sort((a, b) => (b.published_at || 0) - (a.published_at || 0));
 
-  console.log('[build-blog] Rendering', posts.length, 'posts');
+  const belowGate = posts.filter(isBelowWordGate);
+  if (belowGate.length) {
+    console.warn('[build-blog] ' + belowGate.length + ' post(s) below ' + MIN_WORDS + '-word floor — rendered with noindex, excluded from sitemap/RSS/index:');
+    for (const p of belowGate) {
+      console.warn('  - ' + p.slug + ' (' + md.wordCount(p.body_md || '') + ' words)');
+    }
+  }
+  // Indexable subset — used for sitemap, RSS, paged index, tag pages, section pages.
+  const indexablePosts = posts.filter(p => !isBelowWordGate(p));
+
+  console.log('[build-blog] Rendering', posts.length, 'posts (' + indexablePosts.length + ' indexable)');
 
   // Wipe and recreate /blog/
   if (fs.existsSync(BLOG_DIR)) execSync(`rm -rf "${BLOG_DIR}"`);
@@ -444,10 +464,11 @@ async function main() {
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
-  // ── Group by section + tag ─────────────────────────────────────────
+  // ── Group by section + tag (indexable posts only — sub-gate posts don't
+  //     appear in public listings) ─────────────────────────────────────
   const bySection = {};
   const byTag = {};
-  for (const p of posts) {
+  for (const p of indexablePosts) {
     const sec = (p.section || 'general').replace(/[^a-z0-9-]/g, '');
     (bySection[sec] || (bySection[sec] = [])).push(p);
     for (const t of (p.tags || [])) {
@@ -457,7 +478,7 @@ async function main() {
 
   // Build the shared section-nav used on every index variant
   function buildSectionNav(activeHref) {
-    const nav = [{ href: '/blog/', label: 'All', count: posts.length, active: activeHref === '/blog/' }];
+    const nav = [{ href: '/blog/', label: 'All', count: indexablePosts.length, active: activeHref === '/blog/' }];
     for (const [sec, secPosts] of Object.entries(bySection)) {
       if (!secPosts.length) continue;
       const href = '/blog/' + sec + '/';
@@ -468,12 +489,12 @@ async function main() {
 
   // Pick a featured post for the hero (page 1 main index only) — only when
   // there are 2+ posts so the grid below is never left empty.
-  const featuredPost = posts.length >= 2 ? (posts.find(p => p.featured) || posts[0] || null) : null;
+  const featuredPost = indexablePosts.length >= 2 ? (indexablePosts.find(p => p.featured) || indexablePosts[0] || null) : null;
 
-  // ── Main index (paged) ─────────────────────────────────────────────
-  const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
+  // ── Main index (paged) — indexable posts only ─────────────────────
+  const totalPages = Math.max(1, Math.ceil(indexablePosts.length / PAGE_SIZE));
   for (let page = 1; page <= totalPages; page++) {
-    const slice = posts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const slice = indexablePosts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     const opts = {
       baseHref: '/blog/',
       featured: page === 1 ? featuredPost : null,
@@ -516,12 +537,12 @@ async function main() {
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
   }
 
-  // ── RSS ────────────────────────────────────────────────────────────
-  fs.writeFileSync(path.join(BLOG_DIR, 'rss.xml'), renderRss(posts));
+  // ── RSS (indexable posts only) ─────────────────────────────────────
+  fs.writeFileSync(path.join(BLOG_DIR, 'rss.xml'), renderRss(indexablePosts));
 
-  // ── Sitemap supplement ─────────────────────────────────────────────
+  // ── Sitemap supplement (indexable posts only) ──────────────────────
   const urls = [SITE_URL + '/blog/']
-    .concat(posts.map(p => SITE_URL + postUrlRaw(p)))
+    .concat(indexablePosts.map(p => SITE_URL + postUrlRaw(p)))
     .concat(Object.keys(byTag).map(t => SITE_URL + '/blog/tag/' + t + '/'))
     .concat(Object.keys(bySection).map(sec => SITE_URL + '/blog/' + sec + '/'));
   const sitemapBlog = '<?xml version="1.0" encoding="UTF-8"?>\n' +

@@ -182,3 +182,17 @@ ToolPage.init({
 
 if (window.trackCalculatorStart) trackCalculatorStart('capital-gains');
 calc();
+
+['sale','purchase','costs','improvements','income'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function(){ fmtInput(this); calc(); });
+});
+['held','ppor'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('change', calc);
+});
+var calcBtn = document.getElementById('calc-btn');
+if (calcBtn) calcBtn.addEventListener('click', function(){
+  if (window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'capital-gains'});
+  calc();
+});
