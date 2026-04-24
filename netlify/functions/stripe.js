@@ -17,6 +17,7 @@
  */
 
 const crypto = require('crypto');
+const log    = require('./_log');
 
 const STRIPE_SECRET_KEY    = (process.env.STRIPE_SECRET_KEY    || '').trim();
 const STRIPE_WEBHOOK_SECRET = (process.env.STRIPE_WEBHOOK_SECRET || '').trim();
@@ -56,6 +57,21 @@ async function redisCmd(...args) {
   });
   if (!r.ok) throw new Error('Redis HTTP ' + r.status);
   return (await r.json()).result;
+}
+
+// Upstash REST pipeline: takes an array of [cmd,arg,...] arrays, returns an
+// array of results. All commands execute server-side in a single round-trip —
+// if the HTTP call succeeds, all commands landed; if it fails, none did. Gives
+// us the atomicity we need for "write user record + update cid: index".
+async function redisPipe(cmds) {
+  if (!REDIS_URL || !REDIS_TOKEN) throw new Error('UPSTASH env vars missing');
+  const r = await fetch(REDIS_URL + '/pipeline', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'Content-Type': 'application/json' },
+    body: JSON.stringify(cmds),
+  });
+  if (!r.ok) throw new Error('Redis pipeline HTTP ' + r.status);
+  return await r.json();
 }
 
 async function rGet(key) {
@@ -235,9 +251,12 @@ async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId, 
   if (stripeSubscriptionId) userData.stripeSubscriptionId = stripeSubscriptionId;
   if (discountInfo)         userData.stripeDiscountInfo  = discountInfo;
   else if (discountInfo === null) delete userData.stripeDiscountInfo; // explicitly cleared
-  await rSet(key, userData);
-  // Write cid: reverse index so downgradePlan can find user without KEYS scan
-  if (stripeCustomerId) await rSet('cid:' + stripeCustomerId, email.toLowerCase().trim());
+  // Atomic: both the user record and the `cid:` reverse index land together
+  // (or neither does). Previously a mid-flight Redis failure could leave the
+  // cid index stale, breaking downgradePlan lookups.
+  const cmds = [['SET', key, JSON.stringify(userData)]];
+  if (stripeCustomerId) cmds.push(['SET', 'cid:' + stripeCustomerId, email.toLowerCase().trim()]);
+  await redisPipe(cmds);
   await logEvent(userData.id, 'plan_upgraded', { plan, stripeCustomerId, stripeSubscriptionId });
   console.log('[stripe] Upgraded', email, '→', plan, discountInfo ? '(discounted)' : '');
   return { ok: true };
@@ -352,7 +371,7 @@ exports.handler = async function (event) {
     catch (e) { return fail('Invalid JSON', 400); }
 
     const type = stripeEvent.type;
-    console.log('[stripe] Webhook event:', type, stripeEvent.id);
+    log.info('stripe.webhook_received', { type, eventId: stripeEvent.id });
 
     // Idempotency — short-circuit if this event ID has been processed. Stripe
     // retries on timeouts/5xx, so without this we'd run upgradePlan twice for
@@ -360,7 +379,7 @@ exports.handler = async function (event) {
     try {
       const claimed = await claimEvent(stripeEvent.id);
       if (!claimed) {
-        console.log('[stripe] Duplicate event, skipping:', stripeEvent.id);
+        log.info('stripe.webhook_duplicate', { eventId: stripeEvent.id, type });
         return ok({ received: true, duplicate: true });
       }
     } catch (e) {
@@ -430,9 +449,32 @@ exports.handler = async function (event) {
       }
 
       if (type === 'invoice.payment_failed') {
-        // Optional: log payment failure (don't downgrade immediately — Stripe retries)
+        // Don't downgrade immediately — Stripe retries over several days and
+        // a transient card decline shouldn't kick a paying user out mid-month.
+        // Set a 3-day grace flag the client can read (on next verify) to show
+        // a "Payment failed — update your card" banner. If Stripe eventually
+        // hits `unpaid` / `canceled`, the customer.subscription.updated
+        // handler above downgrades properly.
         const invoice = stripeEvent.data.object;
         console.warn('[stripe] Payment failed for customer:', invoice.customer);
+        try {
+          const email = await emailByCustomerId(invoice.customer);
+          if (email) {
+            const userData = await rGet('user:' + email);
+            if (userData) {
+              userData.paymentFailedAt = Date.now();
+              userData.paymentFailureReason = (invoice.last_payment_error && invoice.last_payment_error.message) || 'card declined';
+              await rSet('user:' + email, userData);
+              // Separate TTL'd flag so downstream code can gate on presence
+              // without parsing the user record. 3-day window.
+              await redisCmd('SET', 'subscription_grace:' + email, String(Date.now()), 'EX', '259200');
+            } else {
+              await storeDeadLetter(stripeEvent, 'payment_failed: user_record_missing');
+            }
+          } else {
+            await storeDeadLetter(stripeEvent, 'payment_failed: cid_not_mapped');
+          }
+        } catch (e) { console.warn('[stripe] payment_failed flag error:', e.message); }
       }
 
     } catch (e) {

@@ -523,3 +523,18 @@ html.dark-mode .tools-grid .tg-name { color: #F5F0E8; }
 #page-spinner.show{display:flex;}
 .spinner-ring{width:40px;height:40px;border:3px solid rgba(201,168,76,0.2);border-top-color:#C9A84C;border-radius:50%;animation:pageSpinAnim 0.7s linear infinite;}
 @keyframes pageSpinAnim{to{transform:rotate(360deg)}}
+
+/* ── Respect prefers-reduced-motion ────────────────────────────────────────
+   Disable CSS animations, transitions and smooth-scroll for users who have
+   asked their OS for reduced motion (vestibular / migraine accessibility).
+   The spinner still rotates (it's a loading signal — no alternative), but
+   goes half-speed to minimise vertigo. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .spinner-ring { animation-duration: 1.4s !important; animation-iteration-count: infinite !important; }
+}
