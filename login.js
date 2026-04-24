@@ -44,8 +44,13 @@ if(refParam) localStorage.setItem('equitySight_pendingRef', refParam);
 // or falls back to the window global set by the script below.
 function initGoogleSignIn(){
   var clientId = (window.GOOGLE_CLIENT_ID || '').trim();
-  if(!clientId) return; // not configured — hide the button wrapper
   var wrap = document.getElementById('google-signin-wrap');
+  if(!clientId) {
+    // Not configured — hide the whole wrapper (including the skeleton
+    // placeholder we render eagerly in login.html for CLS-free layout).
+    if(wrap) wrap.style.display = 'none';
+    return;
+  }
   if(wrap) wrap.style.display = '';
 
   google.accounts.id.initialize({
@@ -55,8 +60,13 @@ function initGoogleSignIn(){
     cancel_on_tap_outside: true,
   });
 
+  // Clear the skeleton placeholder before Google renders into the same
+  // element — belt-and-braces, renderButton typically replaces children.
+  var btnHost = document.getElementById('google-signin-btn');
+  if(btnHost) btnHost.innerHTML = '';
+
   google.accounts.id.renderButton(
-    document.getElementById('google-signin-btn'),
+    btnHost,
     {
       theme: 'filled_black',
       size: 'large',
