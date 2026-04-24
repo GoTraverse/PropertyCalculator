@@ -14,6 +14,11 @@
 <title>Sign in — EquitySight.app</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Preconnect to third parties used on this page so their DNS/TLS handshake
+     happens in parallel with HTML/CSS download, not after. Saves ~100-300ms
+     on Google Sign-In button render + Turnstile widget on slow mobile. -->
+<link rel="preconnect" href="https://accounts.google.com" crossorigin>
+<link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="shared.css">
@@ -40,9 +45,13 @@
       <div class="login-heading" id="login-heading">Welcome back</div>
       <div class="login-sub" id="login-sub">Sign in to access your property scenarios</div>
     </div>
-    <!-- Google Sign-In -->
+    <!-- Google Sign-In (skeleton placeholder reserves vertical space so the
+         real button doesn't pop in + shove the form when Google's library
+         finishes loading — fixes the "button appears late" CLS jump). -->
     <div id="google-signin-wrap" style="margin-bottom:18px;text-align:center;">
-      <div id="google-signin-btn" style="display:flex;justify-content:center;"></div>
+      <div id="google-signin-btn" style="display:flex;justify-content:center;min-height:44px;align-items:center;">
+        <div class="google-btn-skeleton" aria-hidden="true" style="width:100%;max-width:260px;height:40px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:4px;"></div>
+      </div>
       <div id="google-signin-error" class="form-error" style="text-align:center;margin-top:8px;"></div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:16px;">
         <div style="flex:1;height:1px;background:rgba(245,240,232,0.1);"></div>
@@ -122,9 +131,9 @@
 <div class="login-footer">
   <a href="/contact">Support</a> &nbsp;·&nbsp; <a href="mailto:support@equitysight.app">support@equitysight.app</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/terms">Terms</a>
 </div>
-<script src="/error-capture.js"></script>
+<script src="/error-capture.js" defer></script>
 <script src="auth-nav.js" defer></script>
 <script src="https://accounts.google.com/gsi/client" async></script>
-<script src="login.js"></script>
+<script src="login.js" defer></script>
 </body>
 </html>
