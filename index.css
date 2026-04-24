@@ -78,6 +78,43 @@
   margin-bottom: 22px;
 }
 .hero-h1 em { font-style: italic; color: var(--gold); }
+.hero-h1-kicker {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 1.2vw, 14px);
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 18px;
+  opacity: 0.85;
+}
+/* Section H2 used by Features + Tools bands (was inline style; extracted for DRY) */
+.features-section-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 8px;
+}
+/* Feature cards (6 cards in the Features grid) — extracted from inline styles */
+.feature-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 28px 24px;
+  border: 1px solid rgba(28,28,30,0.08);
+}
+.feature-card-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.feature-card-body {
+  font-size: 13px;
+  color: var(--slate);
+  line-height: 1.7;
+}
 .hero-sub {
   font-size: 17px;
   color: rgba(245,240,232,0.55);
@@ -646,6 +683,181 @@
   .tools-cta-btn { display: block !important; width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
 }
 
-/* State-tile hover — replaces inline onmouseover handlers so CSP
-   script-src-attr can forbid 'unsafe-inline'. */
+/* State-tile (links to /invest/{state}/) — full styling moved off inline
+   `style=` per audit round 6 inline-style cleanup. */
+.state-tile {
+  display: block;
+  padding: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
 .state-tile:hover { border-color: rgba(201,168,76,0.4); }
+.state-tile-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cream);
+}
+.state-tile-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(245,240,232,0.35);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* ── Long-form SEO content sections (audit round 6) ───────────────── */
+.why-aus {
+  background: var(--bg);
+  padding: 72px 0;
+  border-top: 1px solid rgba(28,28,30,0.06);
+}
+.why-aus-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.why-aus-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 8px 0 36px;
+}
+.why-aus-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+.why-aus-col h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--charcoal);
+}
+.why-aus-col p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--slate);
+  margin: 0 0 14px;
+}
+.why-aus-col p a { color: var(--gold); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.why-aus-methodology {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(28,28,30,0.08);
+  font-size: 14px;
+  color: var(--slate);
+  line-height: 1.7;
+}
+.why-aus-methodology a { color: var(--gold); text-decoration: underline; }
+@media (max-width: 760px) {
+  .why-aus-grid { grid-template-columns: 1fr; gap: 28px; }
+  .why-aus { padding: 48px 0; }
+}
+
+/* Landing-page FAQ block */
+.landing-faq {
+  background: var(--warm-white, #F9F6F0);
+  padding: 64px 0;
+}
+.landing-faq-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.landing-faq-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 8px 0 32px;
+  text-align: center;
+}
+.landing-faq-list { display: flex; flex-direction: column; gap: 14px; }
+.landing-faq-item {
+  background: #fff;
+  border: 1px solid rgba(28,28,30,0.08);
+  border-radius: 8px;
+  padding: 18px 22px;
+}
+.landing-faq-item summary {
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--charcoal);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.landing-faq-item summary::-webkit-details-marker { display: none; }
+.landing-faq-item summary::after {
+  content: '+';
+  font-size: 22px;
+  color: var(--gold);
+  font-weight: 400;
+  flex-shrink: 0;
+}
+.landing-faq-item[open] summary::after { content: '−'; }
+.landing-faq-item p {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--slate);
+}
+.landing-faq-item p a { color: var(--gold); text-decoration: underline; }
+
+/* Data + methodology callout (outbound authority links) */
+.data-methodology {
+  background: var(--bg);
+  padding: 56px 0;
+  border-top: 1px solid rgba(28,28,30,0.06);
+}
+.data-methodology-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px;
+  text-align: center;
+}
+.data-methodology-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3.5vw, 28px);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 8px 0 16px;
+}
+.data-methodology p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--slate);
+  margin: 0 auto 14px;
+  max-width: 640px;
+}
+.data-methodology-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.data-methodology-sources a {
+  display: inline-block;
+  padding: 7px 14px;
+  background: #fff;
+  border: 1px solid rgba(28,28,30,0.12);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--charcoal);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  transition: border-color 0.15s;
+}
+.data-methodology-sources a:hover { border-color: var(--gold); }
