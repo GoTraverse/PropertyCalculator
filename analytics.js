@@ -8,11 +8,11 @@ if (typeof window.gtag !== 'function') {
   window.dataLayer = window.dataLayer || [];
   window.gtag = function () { window.dataLayer.push(arguments); };
 }
+var gtag = window.gtag;
 
 // ── Initialize custom user properties ─────────────────────────────────────
 function initAnalytics() {
-  // Set user ID if authenticated (for cross-device tracking)
-  // Check if getSession is available (loaded from auth-nav.js or login.js)
+  if (typeof gtag !== 'function') return;
   var session = null;
   if (typeof getSession === 'function') {
     session = getSession();
