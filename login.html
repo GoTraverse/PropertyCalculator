@@ -19,6 +19,13 @@
      on Google Sign-In button render + Turnstile widget on slow mobile. -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin>
+<!-- Prefetch the /app bundle while the user types credentials. Low-priority
+     background fetch; doesn't compete with login-critical resources. On
+     successful sign-in the browser uses the cached bundle instead of making
+     a fresh request — removes ~1-2s of cold /app load on 4G. -->
+<link rel="prefetch" href="/app.css" as="style">
+<link rel="prefetch" href="/app.js" as="script">
+<link rel="prefetch" href="/app-events.js" as="script">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="shared.css">
