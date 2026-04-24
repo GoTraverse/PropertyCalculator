@@ -6,7 +6,8 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v1';
+const CACHE_NAME = 'equitysight-v2';
+const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/shared.css',
   '/app.css',
@@ -18,6 +19,13 @@ const STATIC_ASSETS = [
   '/shared-calcs.js',
   '/favicon.svg',
   '/manifest.json'
+];
+
+// Idempotent GET endpoints that benefit from stale-while-revalidate so the
+// page renders instantly from cache while fresh data is fetched in the
+// background. Match against `url.pathname + url.search` (full GET URL).
+const SWR_API_PATTERNS = [
+  /^\/\.netlify\/functions\/market-data(\?|$)/,
 ];
 
 // Install — pre-cache essential static assets
@@ -32,10 +40,11 @@ self.addEventListener('install', function(event) {
 
 // Activate — clean up old caches
 self.addEventListener('activate', function(event) {
+  var keep = [CACHE_NAME, API_CACHE_NAME];
   event.waitUntil(
     caches.keys().then(function(names) {
       return Promise.all(
-        names.filter(function(name) { return name !== CACHE_NAME; })
+        names.filter(function(name) { return keep.indexOf(name) === -1; })
           .map(function(name) { return caches.delete(name); })
       );
     })
@@ -47,8 +56,32 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('fetch', function(event) {
   var url = new URL(event.request.url);
 
-  // Skip non-GET requests and API calls
+  // Skip non-GET requests
   if (event.request.method !== 'GET') return;
+
+  // Stale-while-revalidate for whitelisted API endpoints. Returns cached
+  // response immediately (so suburb pages render instantly when offline or on
+  // flaky mobile data) while a fresh response is fetched and stored for next
+  // time. The API cache is segregated from the static-asset cache so it can
+  // be evicted independently.
+  var pathQuery = url.pathname + url.search;
+  if (SWR_API_PATTERNS.some(function(re){ return re.test(pathQuery); })) {
+    event.respondWith(
+      caches.open(API_CACHE_NAME).then(function(cache) {
+        return cache.match(event.request).then(function(cached) {
+          var networkPromise = fetch(event.request).then(function(response) {
+            if (response && response.ok) cache.put(event.request, response.clone());
+            return response;
+          }).catch(function() { return cached; });
+          // Return cached immediately if present; otherwise wait for network.
+          return cached || networkPromise;
+        });
+      })
+    );
+    return;
+  }
+
+  // Skip all other Netlify Functions (auth, scenarios, etc.)
   if (url.pathname.startsWith('/.netlify/')) return;
 
   // Cache-first for static assets (CSS, JS, fonts, images, SVGs)

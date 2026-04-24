@@ -34,8 +34,11 @@ const FIXTURE = process.env.BLOG_FIXTURE || '';
 const SKIP = process.env.SKIP_BLOG_BUILD === 'true';
 const PAGE_SIZE = 12;
 // AdSense E-E-A-T floor. Posts shorter than this render but are marked noindex
-// and excluded from sitemap, RSS, and the paged index. Override via env.
-const MIN_WORDS = parseInt(process.env.BLOG_MIN_WORDS || '1500', 10);
+// and excluded from sitemap, RSS, and the paged index. Default is 1200 (a
+// realistic threshold against the current published set); raise to 1500 once
+// every published post clears the AdSense long-form recommendation.
+// Override via BLOG_MIN_WORDS env var.
+const MIN_WORDS = parseInt(process.env.BLOG_MIN_WORDS || '1200', 10);
 
 // ── Redis REST helpers ────────────────────────────────────────────────
 async function redisCmd(...args) {

@@ -815,4 +815,83 @@ document.addEventListener('DOMContentLoaded', function () {
       if (overlay && overlay.style.display !== 'none') beConfirmClose(false);
     }
   });
+
+  // Autosave + recovery: snapshot the in-progress post to localStorage every
+  // 10s while it's dirty. Flush a recovery prompt if a snapshot survived a
+  // crash or accidental navigation.
+  var AUTOSAVE_KEY = 'be_autosave_v1';
+  var lastSerialized = '';
+  function snapshotEqual() {
+    try { return JSON.stringify(blogCollectForm()) === lastSerialized; } catch(e) { return true; }
+  }
+  setInterval(function () {
+    var formEl = document.getElementById('blog-editor-form');
+    if (!formEl || formEl.style.display === 'none') return;
+    if (snapshotEqual()) return;
+    try {
+      var snap = blogCollectForm();
+      if (!snap.title && !snap.body_md) return;
+      lastSerialized = JSON.stringify(snap);
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ at: Date.now(), id: _currentPostId, post: snap }));
+      var t = document.getElementById('be-topbar-status');
+      if (t) { t.textContent = 'Autosaved'; setTimeout(function(){ if (t.textContent === 'Autosaved') t.textContent=''; }, 2000); }
+    } catch(e) { /* localStorage full or disabled — degrade silently */ }
+  }, 10000);
+
+  // Clear the autosave when a manual save completes (it's redundant once on server)
+  ['blog-save-draft-btn','blog-save-publish-btn'].forEach(function(id){
+    var btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', function(){
+      setTimeout(function(){ try { localStorage.removeItem(AUTOSAVE_KEY); } catch(e) {} }, 1500);
+    });
+  });
+
+  // Warn before navigating away with unsaved changes
+  window.addEventListener('beforeunload', function (e) {
+    var formEl = document.getElementById('blog-editor-form');
+    if (!formEl || formEl.style.display === 'none') return;
+    if (snapshotEqual()) return;
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  });
+
+  // Recovery: on load, offer to restore the autosave if one exists. Skip
+  // when the user is already editing the same post (server copy is fresher).
+  setTimeout(function () {
+    try {
+      var raw = localStorage.getItem(AUTOSAVE_KEY);
+      if (!raw) return;
+      var snap = JSON.parse(raw);
+      if (!snap || !snap.post) return;
+      // If the saved snapshot belongs to the post currently loaded, skip
+      if (snap.id && snap.id === _currentPostId) return;
+      var ageMins = Math.round((Date.now() - (snap.at || 0)) / 60000);
+      var label = snap.post.title ? '"' + snap.post.title + '"' : 'an unsaved draft';
+      if (confirm('Recover ' + label + ' from autosave (' + ageMins + ' min ago)?')) {
+        // Open a blank editor and pour the snapshot in
+        if (typeof blogResetEditor === 'function') blogResetEditor();
+        var p = snap.post;
+        document.getElementById('blog-edit-title').value = p.title || '';
+        document.getElementById('blog-edit-excerpt').value = p.excerpt || '';
+        document.getElementById('blog-edit-tags').value = (p.tags || []).join(', ');
+        document.getElementById('blog-edit-author').value = p.author || '';
+        document.getElementById('blog-edit-author-bio').value = p.author_bio || '';
+        document.getElementById('blog-edit-cover').value = p.cover_image || '';
+        document.getElementById('blog-edit-body').value = p.body_md || '';
+        var metaEl = document.getElementById('blog-edit-meta-desc');
+        if (metaEl) metaEl.value = p.meta_description || '';
+        var secEl = document.getElementById('blog-edit-section');
+        if (secEl && p.section) secEl.value = p.section;
+        var feat = document.getElementById('blog-edit-featured');
+        if (feat) feat.checked = !!p.featured;
+        if (typeof blogUpdateWordCount === 'function') blogUpdateWordCount();
+        if (typeof blogUpdateMetaDescCount === 'function') blogUpdateMetaDescCount();
+        if (typeof updateUrlPreview === 'function') updateUrlPreview();
+        if (typeof setEditingExistingPost === 'function') setEditingExistingPost(false);
+      } else {
+        try { localStorage.removeItem(AUTOSAVE_KEY); } catch(e) {}
+      }
+    } catch(e) { /* ignore — bad JSON or storage issues */ }
+  }, 800);
 });
