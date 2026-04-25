@@ -15,15 +15,32 @@ function safeNextUrl(raw) {
   return '/app';
 }
 
-// Redirect if already logged in
+// Redirect if already logged in (skip if arriving from expired session)
 (function(){
+  var isExpired = new URLSearchParams(location.search).get('expired') === '1';
+  if (isExpired) {
+    try { localStorage.removeItem('propCalc_session_v1'); } catch(e) {}
+  }
   try{
     const s = JSON.parse(localStorage.getItem('propCalc_session_v1'));
-    if(s && (s.id || s.email)){
+    if(s && (s.id || s.email) && !isExpired){
       const params = new URLSearchParams(location.search);
       goTo(safeNextUrl(params.get('next') || ''));
     }
   }catch(e){}
+})();
+
+// Show session-expired banner if redirected here due to expired session
+(function(){
+  var p = new URLSearchParams(location.search);
+  if (p.get('expired') === '1') {
+    var sub = document.getElementById('login-sub');
+    if (sub) {
+      sub.textContent = 'Your session has expired — please sign in again';
+      sub.style.color = '#C45A5A';
+    }
+    history.replaceState(null, '', location.pathname + (p.get('next') ? '?next=' + encodeURIComponent(p.get('next')) : ''));
+  }
 })();
 
 // ── Turnstile state (must be initialised before setTab may be called) ────────

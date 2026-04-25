@@ -1493,10 +1493,10 @@
         const r = await fetch('/.netlify/functions/scenarios'+qs);
         if(r.ok){
           const data = await r.json();
-          // Mirror to localStorage — survives Netlify rebuilds as a fallback
           if(data.length) lsSet(STORAGE_KEY, JSON.stringify(data));
           return data;
         }
+        if(r.status === 401 && window.handleSessionExpired){ window.handleSessionExpired(); return []; }
         console.error('[storage] GET failed:', r.status, await r.text());
       }catch(e){ console.error('[storage] GET exception:', e.message); }
     }
@@ -1538,6 +1538,7 @@
           }
           return true;
         }
+        if(r.status === 401 && window.handleSessionExpired){ window.handleSessionExpired(); return false; }
         const txt = await r.text();
         console.error('[storage] POST failed:', r.status, txt);
       }catch(e){ console.error('[storage] POST exception:', e.message); }
@@ -2190,6 +2191,7 @@
     try{
       if(!isLoggedIn()){ statusEl.textContent = 'Please sign in to share scenarios'; statusEl.style.color='var(--risk-red)'; btn.textContent='↗ Share'; btn.disabled=false; return; }
       const r = await fetch('/.netlify/functions/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'share',scenarioId:_shareTargetId,targetEmail:email})});
+      if(r.status === 401 && window.handleSessionExpired){ window.handleSessionExpired(); return; }
       const d = await r.json();
       if(d.ok){
         if(d.invited){

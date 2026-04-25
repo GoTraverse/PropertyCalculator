@@ -547,6 +547,17 @@ loadSession();
 renderAccount();
 loadPreferences();
 
+// Verify session server-side on load — redirect to login if expired
+if(session && session.id){
+  fetch('/.netlify/functions/auth', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({action: 'verify'})
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(!d.ok && window.handleSessionExpired) window.handleSessionExpired();
+  }).catch(function(){});
+}
+
 if(session && session.id){
   const isUpgradeReturn = urlParams.has('upgraded');
   const oldPlan = session.plan;

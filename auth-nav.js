@@ -576,9 +576,23 @@ window.toggleTheme = function(){
     initHamburger();
   }
 })();
+// Global session-expired handler — any code that gets a 401/expired response can call this.
+// Clears localStorage, redirects to login with a return URL so the user can pick up where they left off.
+window.handleSessionExpired = function() {
+  try { localStorage.removeItem('propCalc_session_v1'); } catch(e) {}
+  var next = window.location.pathname;
+  if (next && next !== '/' && next !== '/login') {
+    window.location.replace('/login?expired=1&next=' + encodeURIComponent(next));
+  } else {
+    window.location.replace('/login?expired=1');
+  }
+};
+
 // and reloads the page if needed so feature gates update without re-login.
 (function() {
+  var _sessionExpiredHandled = false;
   function refreshSession() {
+    if (_sessionExpiredHandled) return;
     try {
       var raw = localStorage.getItem('propCalc_session_v1');
       if (!raw) return;
@@ -589,12 +603,15 @@ window.toggleTheme = function(){
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'verify' })
       }).then(function(r){ return r.json(); }).then(function(d){
-        if (!d.ok) return;
+        if (!d.ok) {
+          _sessionExpiredHandled = true;
+          window.handleSessionExpired();
+          return;
+        }
         var changed = d.plan !== sess.plan || d.role !== sess.role;
         if (changed) {
           var updated = Object.assign({}, sess, { plan: d.plan, role: d.role });
           localStorage.setItem('propCalc_session_v1', JSON.stringify(updated));
-          // Re-render nav to reflect new plan/role
           if (window.renderSiteNav) window.renderSiteNav();
         }
       }).catch(function(){});
