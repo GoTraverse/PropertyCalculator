@@ -45,10 +45,14 @@
   --shadow-sm: 0 2px 12px rgba(0,0,0,0.08);
   --shadow-md: 0 8px 32px rgba(0,0,0,0.14);
   --shadow-lg: 0 20px 60px rgba(0,0,0,0.22);
+
+  /* Theme-switchable section background — used by .why-aus, .data-methodology
+     and tools/index.html. Was undefined, leaving those sections transparent. */
+  --bg: var(--cream);
 }
 
 /* ── Dark mode ── */
-html.dark-mode { color-scheme: dark; background: #111113; }
+html.dark-mode { color-scheme: dark; background: #111113; --bg: #111113; }
 html.dark-mode body { background: #111113 !important; color: #F5F0E8 !important; }
 html.dark-mode .site-nav { background: rgba(8,8,10,0.98) !important; }
 /* Cards & panels */
