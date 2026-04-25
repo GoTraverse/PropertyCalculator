@@ -1640,7 +1640,6 @@
   }
 
   async function saveScenario(quiet){
-    trackUsage('save_scenario');
     // Track scenario save
     if(window.trackScenarioAction) trackScenarioAction('save', {});
 
@@ -1710,6 +1709,7 @@
     if(!quiet) saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
     _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
+    if(usedCloud) trackUsage('save_scenario');
     if(!quiet){
       // Show saved checkmark briefly before restoring button
       saveBtns.forEach(b=>{b.innerHTML='<span style="color:var(--sage);">✓</span> Saved';});
