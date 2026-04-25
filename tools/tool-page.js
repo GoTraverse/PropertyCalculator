@@ -377,6 +377,38 @@ var ToolPage = (function() {
     });
   }
 
+  /* ── Feature usage tracking for logged-in users on tool pages.
+   *    Debounced per (event+meta) so rapid clicks collapse into one tick.
+   *    Silently no-ops if not logged in. Hooked into the Calculate button
+   *    click so admin sees which calculator the user actually used.
+   */
+  var _toolTrackQueue = {};
+  function trackUsage(evt, meta) {
+    var key = evt + ':' + (meta ? JSON.stringify(meta) : '');
+    if (_toolTrackQueue[key] && Date.now() - _toolTrackQueue[key] < 30000) return;
+    _toolTrackQueue[key] = Date.now();
+    try {
+      var s = JSON.parse(localStorage.getItem('propCalc_session_v1') || '{}');
+      if (!s.id) return;
+      var payload = { action: 'track', event: evt };
+      if (meta) payload.meta = meta;
+      fetch('/.netlify/functions/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function _installCalculateTracking(slug) {
+    var btn = document.querySelector('.tool-main .tool-btn, #calc-btn');
+    if (!btn) return;
+    var page = slug || (location.pathname.replace(/\/$/, '').split('/').pop() || 'tools');
+    btn.addEventListener('click', function () {
+      trackUsage('recalc', { page: page });
+    });
+  }
+
   /* ── Init ── */
 
   function _fetchPartners(slug) {
@@ -449,6 +481,7 @@ var ToolPage = (function() {
 
     _installInputPersistence(config.partnerSlug);
     _installScrollToResult();
+    _installCalculateTracking(config.partnerSlug);
 
     el = document.getElementById('tool-cta-root');
     if (el) renderCTA(el, config.cta);

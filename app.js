@@ -58,15 +58,19 @@
   function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   function safePhotoSrc(url){if(!url)return null;if(/^data:image\/(jpeg|png|gif|webp);base64,/.test(url))return url;try{var u=new URL(url);return u.protocol==='https:'?url:null;}catch(e){return null;}}
   // ── Feature usage tracking (fire-and-forget, no UI impact) ──
+  // Debounced per (event + meta) combo so different tabs/pages count distinctly
+  // while rapid repeats of the same event on the same surface collapse.
   var _trackQueue={};
-  function trackUsage(evt){
-    // Debounce: only send each event type once per 30 seconds
-    if(_trackQueue[evt]&&Date.now()-_trackQueue[evt]<30000) return;
-    _trackQueue[evt]=Date.now();
+  function trackUsage(evt,meta){
+    var key=evt+':'+(meta?JSON.stringify(meta):'');
+    if(_trackQueue[key]&&Date.now()-_trackQueue[key]<30000) return;
+    _trackQueue[key]=Date.now();
     try{
       var s=JSON.parse(localStorage.getItem('propCalc_session_v1')||'{}');
       if(!s.id) return;
-      fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'track',event:evt})}).catch(function(){});
+      var payload={action:'track',event:evt};
+      if(meta) payload.meta=meta;
+      fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(function(){});
     }catch(e){}
   }
 
@@ -574,7 +578,7 @@
   function dRecalc(){ clearTimeout(_dRecalcTimer); _dRecalcTimer = setTimeout(recalc, 180); }
 
   function recalc(){
-    trackUsage('recalc');
+    trackUsage('recalc',{page:'app'});
     if(!_restoringDraft) _forceDirty = true;
     autosaveDraft();
     const price   = Math.max(0, Math.min(50000000, v('inp-price')));
@@ -1046,7 +1050,9 @@
   }
 
   function showTab(id,btn){
-    trackUsage('tab_switch');
+    var _prevSection=document.querySelector('.section.active');
+    var _prevId=_prevSection?_prevSection.id:'';
+    trackUsage('tab_switch',{from:_prevId,to:id});
     // Track tab navigation
     if(window.trackTabNavigation) trackTabNavigation(id);
 
@@ -1709,7 +1715,7 @@
     if(!quiet) saveBtns.forEach(b=>{b._ot=b.innerHTML;b.innerHTML='<div class="spinner-sm"></div>';b.disabled=true;});
     _scenariosCache = null;
     const usedCloud = await saveScenarioToBackend(record, propPhotoDataUrl||null);
-    if(usedCloud) trackUsage('save_scenario');
+    if(usedCloud) trackUsage('save_scenario',{page:'app'});
     if(!quiet){
       // Show saved checkmark briefly before restoring button
       saveBtns.forEach(b=>{b.innerHTML='<span style="color:var(--sage);">✓</span> Saved';});
@@ -2008,7 +2014,7 @@
   }
 
   function applyScenarioState(state, photoSrc){
-    trackUsage('load_scenario');
+    trackUsage('load_scenario',{page:'app'});
     const {values, dynCostData, renoItemData, keyDates:kd, commsLog:cl} = state;
     const skipFields = new Set(['pd-type','pd-type-label','renoEnabled','rentEnabled']);
     Object.entries(values||{}).forEach(([id, val]) => {
@@ -3447,7 +3453,7 @@
   }
 
   function exportPDF(opts){
-    trackUsage('pdf_export');
+    trackUsage('pdf_export',{page:'app'});
     // Track PDF export
     if(window.trackPDFExport) trackPDFExport('app');
 
@@ -4445,7 +4451,7 @@
   window.isPro = isPro;
   function requirePro(featureName){
     if(isPro()) return true;
-    trackUsage('pro_upgrade_prompt');
+    trackUsage('pro_upgrade_prompt',{feature:featureName||''});
     // Track feature gating - free user attempted to access pro feature
     if(window.trackFeatureGated) trackFeatureGated(featureName, 'attempted_access');
     showToast('🔒 ' + featureName + ' is a Pro feature — <a href="/pricing" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);

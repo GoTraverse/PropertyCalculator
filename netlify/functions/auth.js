@@ -1427,8 +1427,9 @@ exports.handler = async function(event){
 
   // ── Feature usage tracking ─────────────────────────────────────────────────
   // Lightweight event tracking for logged-in users. Stores per-user aggregate
-  // counts in Redis hash `usage:<userId>`. Accepted events are whitelisted to
-  // prevent abuse. Rate-limited to 60 calls/min per IP.
+  // counts in Redis hash `usage:<userId>` plus a capped event log at
+  // `usage:events:<userId>` (last 100 events). Accepted events and meta keys
+  // are whitelisted to prevent abuse. Rate-limited to 60 calls/min per IP.
   if(action==='track'){
     const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
@@ -1440,17 +1441,35 @@ exports.handler = async function(event){
       const rc=await rRateInc('trackRate:'+trackIp,60);
       if(rc>60) return ok({ok:true}); // silent rate-limit
     }catch(e){}
-    // Increment per-user usage count for this event
+    // Sanitise meta: whitelist keys, cap value lengths
+    const META_KEYS=['page','from','to','feature'];
+    let meta=null;
+    if(body.meta&&typeof body.meta==='object'){
+      const out={};
+      for(const k of META_KEYS){
+        const v=body.meta[k];
+        if(v==null) continue;
+        const s=String(v).slice(0,50);
+        if(s) out[k]=s;
+      }
+      if(Object.keys(out).length) meta=out;
+    }
+    // Increment per-user aggregate counter
     try{
       await redisCmd('HINCRBY','usage:'+user.userId,evt,'1');
     }catch(e){
-      // Fallback: read-merge-write if HINCRBY not available
       try{
         const usage=await rGet('usage:'+user.userId)||{};
         usage[evt]=(usage[evt]||0)+1;
         await rSet('usage:'+user.userId,usage);
       }catch(e2){}
     }
+    // Append event to bounded timeline (keep last 100)
+    try{
+      const rec=JSON.stringify({e:evt,m:meta,t:Date.now()});
+      await redisCmd('LPUSH','usage:events:'+user.userId,rec);
+      await redisCmd('LTRIM','usage:events:'+user.userId,'0','99');
+    }catch(e){}
     return ok({ok:true});
   }
 
@@ -1474,6 +1493,25 @@ exports.handler = async function(event){
       usage=await rGet('usage:'+targetUserId)||{};
     }
     return ok({ok:true,usage});
+  }
+
+  // Admin: get recent usage events for a specific user (capped timeline)
+  if(action==='adminGetUsageEvents'){
+    const user=await verifyToken(event);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const {targetUserId}=body;
+    if(!targetUserId) return fail('targetUserId required');
+    const limit=Math.max(1,Math.min(100,parseInt(body.limit)||50));
+    const events=[];
+    try{
+      const raw=await redisCmd('LRANGE','usage:events:'+targetUserId,'0',String(limit-1));
+      if(Array.isArray(raw)){
+        for(const s of raw){
+          try{ events.push(JSON.parse(s)); }catch(e){}
+        }
+      }
+    }catch(e){}
+    return ok({ok:true,events});
   }
 
   return fail('Unknown action');

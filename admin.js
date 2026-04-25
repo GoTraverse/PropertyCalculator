@@ -551,6 +551,46 @@ function _renderUsageRows(usage){
   }).join('');
 }
 
+function _relTime(ts){
+  var d=Date.now()-(ts||0);
+  if(d<0) return 'just now';
+  if(d<60000) return Math.max(1,Math.floor(d/1000))+'s ago';
+  if(d<3600000) return Math.floor(d/60000)+'m ago';
+  if(d<86400000) return Math.floor(d/3600000)+'h ago';
+  return Math.floor(d/86400000)+'d ago';
+}
+
+function _describeEvent(ev){
+  var evt=ev.e||'';
+  var m=ev.m||{};
+  if(evt==='recalc'){
+    return 'Calculation <span style="color:var(--slate);">on</span> ' + escHtml(m.page||'—');
+  }
+  if(evt==='tab_switch'){
+    if(m.from||m.to) return 'Tab: ' + escHtml(m.from||'—') + ' → ' + escHtml(m.to||'—');
+    return 'Tab switch';
+  }
+  if(evt==='save_scenario')    return 'Saved scenario' + (m.page?' <span style="color:var(--slate);">on</span> '+escHtml(m.page):'');
+  if(evt==='load_scenario')    return 'Loaded scenario' + (m.page?' <span style="color:var(--slate);">on</span> '+escHtml(m.page):'');
+  if(evt==='share_scenario')   return 'Shared scenario';
+  if(evt==='pdf_export')       return 'PDF export' + (m.page?' <span style="color:var(--slate);">on</span> '+escHtml(m.page):'');
+  if(evt==='pro_upgrade_prompt') return 'Pro prompt' + (m.feature?' <span style="color:var(--slate);">·</span> '+escHtml(m.feature):'');
+  if(evt==='compare_view')     return 'Opened comparison';
+  if(evt==='amortisation_view')return 'Viewed amortisation';
+  if(evt==='projection_view')  return 'Viewed projection';
+  return escHtml(evt);
+}
+
+function _renderEventsTimeline(events){
+  if(!events||!events.length) return '<div style="font-size:12px;color:var(--slate);padding:6px 0;">No activity recorded yet.</div>';
+  return events.map(function(ev){
+    return '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 8px;background:rgba(28,28,30,0.04);border-radius:4px;margin-bottom:3px;">' +
+      '<span style="font-size:12px;color:var(--charcoal);min-width:0;flex:1;">'+ _describeEvent(ev) +'</span>' +
+      '<span style="font-family:var(--font-mono);font-size:10px;color:var(--slate);white-space:nowrap;">'+ escHtml(_relTime(ev.t||0)) +'</span>' +
+      '</div>';
+  }).join('');
+}
+
 async function openUserDetails(email){
   _detailReturnEmail = null;
   const overlay = document.getElementById('user-detail-overlay');
@@ -569,6 +609,8 @@ async function openUserDetails(email){
   // Fetch feature usage stats in background (non-blocking — panel renders before it arrives)
   var _usageData = {};
   if(u.id) callAuth('adminGetUsage',{targetUserId:u.id}).then(function(r){ if(r.ok) _usageData=r.usage||{}; var el=document.getElementById('ud-usage-body'); if(el) el.innerHTML=_renderUsageRows(_usageData); }).catch(function(){});
+  // Fetch recent usage events (timeline) — same non-blocking pattern
+  if(u.id) callAuth('adminGetUsageEvents',{targetUserId:u.id,limit:50}).then(function(r){ var el=document.getElementById('ud-events-body'); if(el) el.innerHTML=_renderEventsTimeline((r&&r.ok?r.events:[])||[]); }).catch(function(){});
 
   const fmt = ts => ts ? new Date(ts).toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Never';
   const ip = u.lastLoginIp || '';
@@ -725,6 +767,10 @@ async function openUserDetails(email){
     <details style="margin-top:14px;border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
       <summary style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);cursor:pointer;user-select:none;">Feature Usage</summary>
       <div id="ud-usage-body" style="margin-top:10px;"><div style="font-size:12px;color:var(--slate);padding:6px 0;font-style:italic;">Loading usage data…</div></div>
+    </details>
+    <details style="margin-top:14px;border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
+      <summary style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);cursor:pointer;user-select:none;">Activity Timeline (last 50)</summary>
+      <div id="ud-events-body" style="margin-top:10px;max-height:360px;overflow-y:auto;"><div style="font-size:12px;color:var(--slate);padding:6px 0;font-style:italic;">Loading activity…</div></div>
     </details>
     ${_udErrorsHtml}
   `;
