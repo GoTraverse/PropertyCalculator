@@ -213,39 +213,54 @@ function renderTurnstileForTab(tab){
   else if(tab==='signup') renderTurnstile('ts-signup');
   else if(tab==='forgot') renderTurnstile('ts-forgot');
 }
-// Called by Turnstile script once loaded — render active tab, then pre-render the other
+// Called by Turnstile script once loaded — render only the active tab.
+// (We deliberately do NOT pre-render the inactive tab's widget; spawning a
+// second cross-origin iframe at page load pinned the main thread on mobile
+// and made input/tab-switching laggy. The first tab switch will render its
+// widget on demand, which is fine.)
 window.onTurnstileReady = function(){
   var signupVisible = document.getElementById('form-signup').style.display !== 'none';
-  var activeTab = signupVisible ? 'signup' : 'signin';
-  renderTurnstileForTab(activeTab);
-  // Pre-render the inactive tab's widget so the first switch is instant.
-  // Briefly make the hidden form visibility:hidden (keeps dimensions, allows iframe load)
-  // then re-hide it — setTab() clears visibility before switching, so the timeout is safe.
-  var inactiveFormId = activeTab === 'signin' ? 'form-signup' : 'form-signin';
-  var inactiveTsId  = activeTab === 'signin' ? 'ts-signup'   : 'ts-signin';
-  setTimeout(function(){
-    var form = document.getElementById(inactiveFormId);
-    if(!form || typeof _tsWidgetIds === 'undefined' || _tsWidgetIds[inactiveTsId] !== undefined) return;
-    // Position off-screen so it's display:block (Turnstile can render) but takes no layout space
-    form.style.position = 'fixed';
-    form.style.top = '-9999px';
-    form.style.left = '-9999px';
-    form.style.visibility = 'hidden';
-    form.style.pointerEvents = 'none';
-    form.style.display = '';
-    renderTurnstile(inactiveTsId);
-    setTimeout(function(){
-      if(form.style.top === '-9999px'){
-        form.style.display = 'none';
-        form.style.position = '';
-        form.style.top = '';
-        form.style.left = '';
-        form.style.visibility = '';
-        form.style.pointerEvents = '';
-      }
-    }, 2000);
-  }, 400);
+  renderTurnstileForTab(signupVisible ? 'signup' : 'signin');
 };
+
+// ── Lazy-load third-party widgets (Turnstile + Google Sign-In) ───────────────
+// The login form is fully usable without these widgets — they only matter at
+// submit time. Loading them eagerly in <head>/<body> meant 3 cross-origin
+// iframes raced for the main thread during initial paint, causing input lag
+// and slow tab switches. We defer them until either:
+//   (a) the user focuses any form input (signal of imminent submit), or
+//   (b) ~400ms after DOMContentLoaded if nothing else triggers them.
+// Whichever fires first wins; the other becomes a no-op.
+(function lazyLoadAuthWidgets(){
+  var loaded = false;
+  function inject(){
+    if(loaded) return;
+    loaded = true;
+    var ts = document.createElement('script');
+    ts.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileReady';
+    ts.async = true;
+    ts.defer = true;
+    document.head.appendChild(ts);
+    var gsi = document.createElement('script');
+    gsi.src = 'https://accounts.google.com/gsi/client';
+    gsi.async = true;
+    gsi.defer = true;
+    document.head.appendChild(gsi);
+  }
+  // Fire on first focus inside the login box (most likely path)
+  var box = document.querySelector('.login-box');
+  if(box){
+    box.addEventListener('focusin', inject, {once:true, passive:true});
+    box.addEventListener('pointerdown', inject, {once:true, passive:true});
+  }
+  // Fallback timer in case the user never interacts (e.g. they only want
+  // to use Google Sign-In, which needs the GSI button to render first).
+  if('requestIdleCallback' in window){
+    requestIdleCallback(inject, {timeout: 1200});
+  } else {
+    setTimeout(inject, 400);
+  }
+})();
 
 // ── Functions ────────────────────────────────────────────────────────────────
 
