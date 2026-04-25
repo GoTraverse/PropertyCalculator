@@ -1,20 +1,5 @@
 {
   "syncedAt": "2026-04-25T03:11:33.232Z",
-  "count": 1,
-  "errors": [
-    {
-      "at": 1777086692204,
-      "message": "CSP violation: connect-src — blocked \"https://csi.gstatic.com/csi?v=2&s=pagead&action=csi_pagead&dmc=8&top=1&puid=1~modrj631&c=1249292141024314&e=42531706%2C95382263%2C31061691%2C31061693&ctx=1&met.6=6.1_CgsYxzUgZCoECAESAAoKGKw2INoDKgISAAoKGN46INICKgISAAoMGPE9IM0CKgQIARIACgwY90EgwwIqBAgBEgA\"",
-      "source": "https://pagead2.googlesyndication.com/pagead/js/r20260423/r20190131/rum.js",
-      "line": 83,
-      "col": 120,
-      "stack": "",
-      "url": "https://equitysight.app/suburb/wa/bushmead/",
-      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/128.0.0.0 Safari/537.36",
-      "userId": "",
-      "userName": "",
-      "userEmail": "",
-      "severity": "error"
-    }
-  ]
+  "count": 0,
+  "errors": []
 }
