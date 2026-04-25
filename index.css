@@ -209,18 +209,6 @@
 .trust-item { font-family: var(--font-mono); font-size: 11px; color: rgba(245,240,232,0.3); letter-spacing: 0.5px; display: flex; align-items: center; gap: 7px; }
 .trust-item span { font-size: 14px; }
 
-/* ── Features section ── */
-.features { padding: 100px 0; background: var(--warm-white); }
-.features-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-.features-header { max-width: 560px; margin-bottom: 64px; }
-.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: rgba(28,28,30,0.07); border-radius: var(--radius-md); overflow: hidden; }
-.feature-card { background: var(--warm-white); padding: 36px 32px; transition: background 0.2s; position: relative; }
-.feature-card:hover { background: white; }
-.feature-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; position: relative; }
-.feature-card h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
-.feature-card p { font-size: 14px; color: var(--slate); line-height: 1.7; }
-.feature-tag { display: inline-block; margin-top: 14px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; }
-
 /* ── "What it does" inline feature strip grid ── */
 .feat-strip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
@@ -640,7 +628,6 @@
 @media(max-width: 900px) {
   .hero-body { grid-template-columns: 1fr; gap: 40px; padding: 60px 24px 60px; }
   .hero-preview { display: none; }
-  .features-grid { grid-template-columns: 1fr 1fr; }
   .steps { grid-template-columns: 1fr 1fr; }
   .step-arrow { display: none; }
   .pricing-cards { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
@@ -649,7 +636,6 @@
   .feat-strip-grid { grid-template-columns: 1fr 1fr; }
 }
 @media(max-width: 600px) {
-  .features-grid { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
   .hero-h1 { font-size: 32px; letter-spacing: -0.5px; }
   .hero { min-height: auto; }
@@ -660,8 +646,6 @@
   .hero-ctas { flex-direction: column; align-items: stretch; gap: 10px; width: 100%; max-width: 320px; }
   .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; padding: 14px 20px; font-size: 13px; }
   .hero-social-proof { margin-top: 24px; justify-content: center; flex-wrap: wrap; gap: 10px; text-align: center; }
-  .features-grid { grid-template-columns: 1fr!important; gap: 12px; }
-  .features-grid > div { padding: 20px 18px!important; }
   .steps { grid-template-columns: 1fr!important; gap: 12px; }
   .pricing-cards { grid-template-columns: 1fr!important; max-width: 100%!important; padding: 0 4px; }
   .testimonials-grid { grid-template-columns: 1fr!important; }
