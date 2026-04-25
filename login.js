@@ -30,6 +30,13 @@ function safeNextUrl(raw) {
 var TURNSTILE_SITEKEY = '0x4AAAAAACvWg4IZeEydKXQ3';
 var _tsWidgetIds = {}; // containerId → turnstile widgetId
 
+// Mark inactive forms as inert immediately on script start so they're
+// out of focus order / screen-reader scope before any interaction.
+['form-signup','form-forgot'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(el){ el.setAttribute('inert',''); el.setAttribute('aria-hidden','true'); }
+});
+
 // Read plan/ref from URL
 const params = new URLSearchParams(location.search);
 if(params.get('tab') === 'signup') setTab('signup');
@@ -168,10 +175,10 @@ document.getElementById('back-to-signin-btn').addEventListener('click', function
 document.getElementById('si-email').addEventListener('keydown', function(e){ if(e.key==='Enter') doSignin(); });
 document.getElementById('si-password').addEventListener('keydown', function(e){ if(e.key==='Enter') doSignin(); });
 document.getElementById('fp-email').addEventListener('keydown', function(e){ if(e.key==='Enter') requestReset(); });
-document.getElementById('fp-code').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('fp-newpw').focus(); });
+document.getElementById('fp-code').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('fp-newpw').focus({preventScroll:true}); });
 document.getElementById('fp-newpw').addEventListener('keydown', function(e){ if(e.key==='Enter') confirmReset(); });
-document.getElementById('su-name').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('su-email').focus(); });
-document.getElementById('su-email').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('su-password').focus(); });
+document.getElementById('su-name').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('su-email').focus({preventScroll:true}); });
+document.getElementById('su-email').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('su-password').focus({preventScroll:true}); });
 document.getElementById('su-password').addEventListener('keydown', function(e){ if(e.key==='Enter') doSignup(); });
 document.getElementById('su-password').addEventListener('input', function(){ updatePwStrength(this.value); });
 document.getElementById('su-verify-code').addEventListener('keydown', function(e){ if(e.key==='Enter') doVerifyEmail(); });
@@ -219,8 +226,9 @@ function renderTurnstileForTab(tab){
 // and made input/tab-switching laggy. The first tab switch will render its
 // widget on demand, which is fine.)
 window.onTurnstileReady = function(){
-  var signupVisible = document.getElementById('form-signup').style.display !== 'none';
-  renderTurnstileForTab(signupVisible ? 'signup' : 'signin');
+  var wrap = document.querySelector('.login-forms');
+  var active = wrap ? (wrap.getAttribute('data-active') || 'signin') : 'signin';
+  renderTurnstileForTab(active);
 };
 
 // ── Lazy-load third-party widgets (Turnstile + Google Sign-In) ───────────────
@@ -264,33 +272,58 @@ window.onTurnstileReady = function(){
 
 // ── Functions ────────────────────────────────────────────────────────────────
 
-function setTab(t){
-  var siForm = document.getElementById('form-signin');
-  var suForm = document.getElementById('form-signup');
-  // Clear any off-screen positioning left by the Turnstile pre-render before showing/hiding
-  [siForm, suForm].forEach(function(f){
-    f.style.position = '';
-    f.style.top = '';
-    f.style.left = '';
-    f.style.visibility = '';
-    f.style.pointerEvents = '';
+// All three forms occupy the same grid cell. Tab switch is a single
+// attribute change with zero layout work — no display toggle, no reflow,
+// no visible scroll glitch. We also flip `inert` so inactive forms are
+// out of focus order and screen-reader output.
+function applyActiveForm(active){
+  var wrap = document.querySelector('.login-forms');
+  if(wrap) wrap.setAttribute('data-active', active);
+  ['form-signin','form-signup','form-forgot'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    var formKey = id.replace('form-', '');
+    var isActive = formKey === active;
+    if(isActive){
+      el.removeAttribute('inert');
+      el.removeAttribute('aria-hidden');
+    } else {
+      el.setAttribute('inert', '');
+      el.setAttribute('aria-hidden', 'true');
+    }
   });
-  siForm.style.display = t==='signin' ? '' : 'none';
-  suForm.style.display = t==='signup' ? '' : 'none';
-  document.getElementById('form-forgot').style.display = 'none';
-  document.getElementById('tab-signin').classList.toggle('active', t==='signin');
-  document.getElementById('tab-signup').classList.toggle('active', t==='signup');
+}
+
+function setTab(t){
+  applyActiveForm(t === 'signup' ? 'signup' : 'signin');
+  var siTab = document.getElementById('tab-signin');
+  var suTab = document.getElementById('tab-signup');
+  if(siTab){
+    siTab.classList.toggle('active', t==='signin');
+    siTab.setAttribute('aria-selected', t==='signin' ? 'true' : 'false');
+  }
+  if(suTab){
+    suTab.classList.toggle('active', t==='signup');
+    suTab.setAttribute('aria-selected', t==='signup' ? 'true' : 'false');
+  }
   var h = document.getElementById('login-heading');
   var s = document.getElementById('login-sub');
   if(h) h.textContent = t==='signin' ? 'Welcome back' : 'Create your account';
-  if(s) s.textContent = t==='signin' ? 'Sign in to access your property scenarios' : 'Start for free — no credit card required';
-  renderTurnstileForTab(t);
+  if(s){
+    s.textContent = t==='signin' ? 'Sign in to access your property scenarios' : 'Start for free — no credit card required';
+    s.style.color = '';
+  }
+  // Render Turnstile for the new active tab — but defer past the paint
+  // for this frame so the visible tab change feels instant.
+  if(window.requestAnimationFrame){
+    requestAnimationFrame(function(){ renderTurnstileForTab(t); });
+  } else {
+    renderTurnstileForTab(t);
+  }
 }
 
 function showForgotPassword(){
-  document.getElementById('form-signin').style.display = 'none';
-  document.getElementById('form-signup').style.display = 'none';
-  document.getElementById('form-forgot').style.display = '';
+  applyActiveForm('forgot');
   document.getElementById('forgot-step-request').style.display = '';
   document.getElementById('forgot-step-reset').style.display = 'none';
   document.getElementById('fp-error').textContent = '';
@@ -298,11 +331,15 @@ function showForgotPassword(){
   var h = document.getElementById('login-heading');
   var s = document.getElementById('login-sub');
   if(h) h.textContent = 'Reset password';
-  if(s) s.textContent = "We'll send a code to your email";
+  if(s){ s.textContent = "We'll send a code to your email"; s.style.color = ''; }
   var siEmail = document.getElementById('si-email').value;
   if(siEmail) document.getElementById('fp-email').value = siEmail;
-  renderTurnstileForTab('forgot');
-  setTimeout(function(){ document.getElementById('fp-email').focus(); }, 80);
+  if(window.requestAnimationFrame){
+    requestAnimationFrame(function(){ renderTurnstileForTab('forgot'); });
+  } else {
+    renderTurnstileForTab('forgot');
+  }
+  setTimeout(function(){ document.getElementById('fp-email').focus({preventScroll:true}); }, 80);
 }
 
 var _fpEmail = '';
@@ -321,7 +358,7 @@ async function requestReset(){
   btn.textContent = 'Send Reset Code →'; btn.disabled = false;
   document.getElementById('forgot-step-request').style.display = 'none';
   document.getElementById('forgot-step-reset').style.display = '';
-  setTimeout(function(){ document.getElementById('fp-code').focus(); }, 80);
+  setTimeout(function(){ document.getElementById('fp-code').focus({preventScroll:true}); }, 80);
 }
 
 async function confirmReset(){

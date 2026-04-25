@@ -1,35 +1,325 @@
-/* EquitySight.app — Login / Sign-up page styles */
+/* EquitySight.app — Login / Sign-up page styles
+ *
+ * Design goals (April 2026 perf rewrite):
+ *   1. Zero CLS during load. Every dynamically-rendered chunk (Google
+ *      Sign-In button, Turnstile widget, font swap) lands in pre-reserved
+ *      space so nothing pushes content around.
+ *   2. Tab switching is a single attribute flip. All three forms share one
+ *      grid cell; we toggle visibility/opacity instead of display, so the
+ *      browser does no layout work on switch.
+ *   3. No animated scroll on this page. The global `scroll-behavior: smooth`
+ *      from shared.css combined with iOS keyboard focus-scroll caused a
+ *      visible "scroll up/down for a second" glitch on initial paint.
+ *   4. No nested scroll container. Body owns the scroll; `.login-wrap`
+ *      doesn't fight the body for it.
+ *   5. No backdrop-filter on the login nav (cheap GPU + no flicker).
+ */
+
+/* Override smooth scrolling on the login page only — animated scroll
+   triggered by font swap / iframe instantiation looked like a glitch. */
+html { scroll-behavior: auto; }
 
 html { height: 100%; }
 body {
   background: var(--charcoal);
   min-height: 100dvh;
-  overscroll-behavior: none; /* prevents iOS rubber-band bounce without breaking scroll */
-  display: flex; flex-direction: column;
+  overscroll-behavior: none;     /* no iOS rubber-band on body */
+  display: flex;
+  flex-direction: column;
 }
-/* align-items: flex-start + margin:auto on child = centered when space allows,
-   scrollable from the top when content overflows (flex-center clips the top) */
-.login-wrap { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.login-box { width: min(420px, 100%); margin-top: auto; margin-bottom: auto; }
+
+/* No nested scroll container, no flex-center re-positioning. The login
+   box gets viewport-relative top padding (40px on short screens, up to
+   120px on tall ones) so the form sits at a comfortable position
+   without depending on flex-centering — which would re-position the
+   box on every dynamic height change. Body scrolls naturally if
+   content exceeds viewport. */
+.login-wrap {
+  flex: 1;
+  display: block;
+  padding: 56px 24px 32px;                          /* fallback for old Safari */
+  padding: clamp(40px, 8dvh, 120px) 24px 32px;       /* dvh-aware modern */
+  contain: layout;
+}
+.login-box {
+  width: min(420px, 100%);
+  margin: 0 auto;
+  contain: layout style;
+}
+
+/* Logo / heading */
 .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; justify-content: center; }
 .login-heading { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--cream); margin-bottom: 6px; }
-.login-sub { font-size: 14px; color: rgba(245,240,232,0.4); margin-bottom: 28px; }
-.login-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
-.login-tab { flex: 1; padding: 10px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; background: rgba(255,255,255,0.03); color: rgba(245,240,232,0.4); border: none; cursor: pointer; transition: all 0.15s; }
+.login-sub { font-size: 14px; color: rgba(245,240,232,0.55); margin-bottom: 28px; }
+
+/* Google Sign-In wrapper — skeleton placeholder reserves space so the
+   real button doesn't shove the form when GSI finishes loading. */
+#google-signin-wrap { margin-bottom: 18px; text-align: center; }
+#google-signin-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;              /* matches GSI 'large' button height */
+}
+.google-btn-skeleton {
+  width: 100%;
+  max-width: 260px;
+  height: 40px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+}
+.google-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+.google-divider-line { flex: 1; height: 1px; background: rgba(245,240,232,0.1); }
+.google-divider-text { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; color: rgba(245,240,232,0.28); }
+
+/* Tabs */
+.login-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.login-tab {
+  flex: 1;
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(245,240,232,0.55);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
 .login-tab.active { background: rgba(201,168,76,0.15); color: var(--gold); }
+
+/* ── Form stack ──
+   All three forms occupy the same grid cell. Switching active form
+   is a single CSS attribute change with zero layout work. */
+.login-forms {
+  display: grid;
+  grid-template-columns: 1fr;
+  /* All children land in the same implicit grid track */
+}
+.login-form {
+  grid-column: 1;
+  grid-row: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease-out;
+  contain: layout style;
+}
+.login-forms[data-active="signin"]  > #form-signin,
+.login-forms[data-active="signup"]  > #form-signup,
+.login-forms[data-active="forgot"]  > #form-forgot {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+/* `inert` (set by JS on inactive forms) removes them from focus order
+   and screen-reader output. Modern browsers respect it; older fall
+   back to the visibility/pointer-events combo above. */
+
+/* ── Form fields ── */
 .form-field { margin-bottom: 16px; }
-.form-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(245,240,232,0.4); margin-bottom: 6px; display: block; }
-.form-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; padding: 12px 14px; font-family: var(--font-body); font-size: 15px; color: var(--cream); outline: none; transition: border-color 0.15s; box-sizing: border-box; }
-.form-input:focus { border-color: rgba(201,168,76,0.6); background: rgba(255,255,255,0.07); }
-.form-submit { width: 100%; background: var(--gold); color: var(--charcoal); border: none; border-radius: 3px; padding: 14px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; margin-top: 8px; transition: opacity 0.15s; }
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.55);
+  margin-bottom: 6px;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 3px;
+  padding: 12px 14px;
+  font-family: var(--font-body);
+  font-size: 16px;               /* 16px stops iOS from auto-zooming on focus */
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.15s, background-color 0.15s;
+  box-sizing: border-box;
+}
+.form-input:focus {
+  border-color: rgba(201,168,76,0.6);
+  background: rgba(255,255,255,0.07);
+}
+.form-input-code {
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.form-note {
+  font-size: 13px;
+  color: rgba(245,240,232,0.65);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+select.form-input { background: rgba(255,255,255,0.05); }
+
+.form-submit {
+  width: 100%;
+  background: var(--gold);
+  color: var(--charcoal);
+  border: none;
+  border-radius: 3px;
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  transition: opacity 0.15s;
+}
 .form-submit:hover { opacity: 0.88; }
 .form-submit:disabled { opacity: 0.4; cursor: default; }
-.form-error { font-size: 12px; color: #E8956A; min-height: 18px; font-family: var(--font-mono); margin-top: 6px; }
-.verify-note { font-size: 12px; color: rgba(245,240,232,0.6); line-height: 1.5; margin: 6px 0 14px; }
-.divider { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-family: var(--font-mono); font-size: 9px; color: rgba(245,240,232,0.2); letter-spacing: 1px; }
-.divider::before,.divider::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.07); }
-.btn-guest { width: 100%; background: rgba(255,255,255,0.04); color: rgba(245,240,232,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 3px; padding: 12px; font-family: var(--font-mono); font-size: 11px; cursor: pointer; transition: all 0.15s; }
-.btn-guest:hover { background: rgba(255,255,255,0.07); color: rgba(245,240,232,0.7); }
-.login-footer { padding: 20px; text-align: center; font-family: var(--font-mono); font-size: 10px; color: rgba(245,240,232,0.2); border-top: 1px solid rgba(255,255,255,0.05); }
-.login-footer a { color: rgba(201,168,76,0.5); text-decoration: none; }
+.form-error {
+  font-size: 12px;
+  color: #E8956A;
+  min-height: 18px;
+  font-family: var(--font-mono);
+  margin-top: 6px;
+}
+.form-fineprint {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: rgba(245,240,232,0.45);
+  margin-top: 10px;
+}
+
+/* Terms checkbox row */
+.form-terms { margin-top: 10px; }
+.form-terms-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: rgba(245,240,232,0.75);
+  line-height: 1.5;
+}
+.form-terms-label input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: #C9A84C;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+.form-terms-label a { color: #C9A84C; }
+
+/* Password strength meter */
+#pw-strength-bar {
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 5px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+#pw-strength-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  transition: width 0.25s, background-color 0.25s;
+}
+#pw-strength-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: rgba(245,240,232,0.45);
+  margin-top: 3px;
+  min-height: 13px;
+}
+
+/* Verify-email step */
+#signup-verify-step {
+  margin-top: 18px;
+  border-top: 1px solid rgba(255,255,255,0.09);
+  padding-top: 18px;
+}
+.verify-note {
+  font-size: 12px;
+  color: rgba(245,240,232,0.6);
+  line-height: 1.5;
+  margin: 6px 0 14px;
+}
+
+/* Tertiary text-style buttons (Forgot password / Back to sign in). */
+.login-link-btn {
+  background: none;
+  border: none;
+  color: rgba(245,240,232,0.55);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: underline;
+  padding: 4px 8px;             /* easier hit target on mobile */
+}
+.login-link-btn:hover { color: var(--cream); }
+
+/* ── Turnstile slot — pre-reserve height ──
+   Turnstile's "normal" widget is 65px tall. Reserving the height
+   prevents the form from jumping when the iframe finishes loading. */
+.ts-slot {
+  min-height: 65px;
+  margin: 6px 0;
+}
+
+/* Guest button */
+.btn-guest {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  color: rgba(245,240,232,0.55);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 3px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.15s, color 0.15s;
+}
+.btn-guest:hover { background: rgba(255,255,255,0.07); color: rgba(245,240,232,0.9); }
+
+/* Footer */
+.login-footer {
+  padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(245,240,232,0.35);
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.login-footer a { color: rgba(201,168,76,0.65); text-decoration: none; }
 .login-footer a:hover { color: var(--gold); }
+
+/* ── Login-page nav: skip the expensive backdrop-filter ──
+   The login nav is a static logo bar with no scrolling links underneath.
+   Backdrop-filter is GPU-heavy and was causing repaint flicker on iOS
+   while the form's iframes were instantiating. We keep sticky positioning
+   but use a solid background instead. */
+body > .site-nav {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(28,28,30,1);
+}
+
+/* Reduced-motion users get instant tab switches (no fade). */
+@media (prefers-reduced-motion: reduce) {
+  .login-form { transition: none; }
+}
