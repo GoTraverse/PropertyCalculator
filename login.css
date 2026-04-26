@@ -52,22 +52,56 @@ body {
 .login-heading { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--cream); margin-bottom: 6px; }
 .login-sub { font-size: 14px; color: rgba(245,240,232,0.55); margin-bottom: 28px; }
 
-/* Google Sign-In wrapper — skeleton placeholder reserves space so the
-   real button doesn't shove the form when GSI finishes loading. */
+/* Google Sign-In wrapper. Skeleton is a fully styled mock of the
+   real GSI button (filled_black, size: 'large', width: 320). When
+   GSI renders into the host div, it visually replaces our skeleton
+   with an identical-looking iframe — no layout shift, no flicker. */
 #google-signin-wrap { margin-bottom: 18px; text-align: center; }
 #google-signin-btn {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 44px;              /* matches GSI 'large' button height */
+  min-height: 40px;              /* matches GSI 'large' button height */
 }
 .google-btn-skeleton {
-  width: 100%;
-  max-width: 260px;
+  width: 320px;
   height: 40px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  background: #131314;
+  border: 1px solid #5F6368;
   border-radius: 4px;
+  padding: 0 12px;
+  gap: 12px;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Subtle pulse so the user knows it's loading — but stays in the
+     same dimensions throughout. */
+  animation: gbtnPulse 1.6s ease-in-out infinite;
+}
+@keyframes gbtnPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.78; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .google-btn-skeleton { animation: none; }
+}
+.google-btn-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.google-btn-text {
+  flex: 1;
+  text-align: center;
+  padding-right: 18px;            /* visually balance the 18px logo on the left */
+  color: #E3E3E3;
+  font-family: 'Roboto', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+  white-space: nowrap;
 }
 .google-divider {
   display: flex;
