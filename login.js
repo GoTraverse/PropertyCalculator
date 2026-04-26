@@ -5,12 +5,19 @@
 //      the moment the script parses — no waiting on lazy IIFEs.
 //   2. Tab switch is a pure CSS attribute flip on `.login-forms[data-active]`.
 //      Zero reflow, zero third-party work.
-//   3. Cloudflare Turnstile loads ONLY when a submit button is clicked
-//      (with a "Verifying…" loading state during the load).
-//   4. Google Sign-In script is deferred until window.load + idle so it
-//      never competes with the user's first interaction.
-//   5. Nothing else third-party (gtag, analytics, auth-nav) loads on the
-//      login page. They're stripped from login.html.
+//   3. Cloudflare Turnstile pre-warms on first input focus (focusin
+//      bubbling up from `.login-box`). The widget renders into the
+//      active form's reserved 65px slot and runs its challenge while
+//      the user types email + password. By the time they hit submit,
+//      the token is cached and the call completes without an extra
+//      "Verifying…" wait.
+//   4. Google Sign-In script is loaded ~150ms after script parse —
+//      long enough for the page to paint and tab handlers to be
+//      hooked up, short enough for the button to appear within ~1s.
+//   5. After a successful sign-in/signup, the profile fetch runs
+//      fire-and-forget so it never blocks the redirect.
+//   6. Nothing else third-party (gtag, analytics, auth-nav) loads on
+//      the login page. They're stripped from login.html.
 
 'use strict';
 
@@ -275,18 +282,10 @@ async function initGoogleSignIn() {
 }
 
 (function scheduleGoogleSignIn() {
-  function go() {
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(function () { initGoogleSignIn(); }, { timeout: 4000 });
-    } else {
-      setTimeout(initGoogleSignIn, 1500);
-    }
-  }
-  if (document.readyState === 'complete') {
-    go();
-  } else {
-    window.addEventListener('load', go, { once: true });
-  }
+  // Fire ~150ms after script parse. Long enough for the page to paint
+  // and tab handlers to be hooked up; short enough that the Google
+  // button visually appears within ~1s on a typical mobile connection.
+  setTimeout(initGoogleSignIn, 150);
 })();
 
 async function handleGoogleCredential(response) {
@@ -303,16 +302,7 @@ async function handleGoogleCredential(response) {
   if (res.ok) {
     try { localStorage.removeItem('es_page_trail'); } catch (e) {}
     persistSession(res, { email: res.email });
-    try {
-      const profileRes = await fetch('/.netlify/functions/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getProfile' }),
-      }).then(function (r) { return r.json(); });
-      if (profileRes.ok && profileRes.profile) {
-        localStorage.setItem('propCalc_profile_v1_' + (res.id || res.email), JSON.stringify(profileRes.profile));
-      }
-    } catch (e) {}
+    refreshProfileInBackground(res.id || res.email);
     goTo(safeNextUrl(params.get('next') || ''));
   } else {
     if (errEl) errEl.textContent = res.error || 'Google sign-in failed — please try again or use email/password below';
@@ -338,7 +328,27 @@ async function callAuth(action, payload) {
 
 function showSpinner() { document.getElementById('page-spinner').classList.add('show'); }
 function hideSpinner() { document.getElementById('page-spinner').classList.remove('show'); }
-function goTo(url) { showSpinner(); setTimeout(function () { location.href = url; }, 60); }
+// Show the spinner and navigate immediately. The previous 60ms
+// setTimeout was a hand-wavy "let the spinner paint first" delay; the
+// browser commits the spinner class before initiating navigation
+// anyway, so the timeout was pure dead time.
+function goTo(url) { showSpinner(); location.href = url; }
+
+// Fire-and-forget profile fetch. Called after sign-in/signup success
+// so the user record is hot in localStorage by the time the next page
+// loads, but DOES NOT block redirect — the next page will fall back
+// to its own fetch if the data isn't there yet.
+function refreshProfileInBackground(userKey) {
+  fetch('/.netlify/functions/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'getProfile' }),
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (d && d.ok && d.profile) {
+      try { localStorage.setItem('propCalc_profile_v1_' + userKey, JSON.stringify(d.profile)); } catch (e) {}
+    }
+  }).catch(function () {});
+}
 
 function persistSession(res, fallback) {
   const session = {
@@ -397,7 +407,7 @@ async function requestReset() {
   const btn = document.getElementById('fp-btn');
   if (!email) { errEl.textContent = 'Please enter your email'; return; }
   errEl.textContent = '';
-  btn.disabled = true; btn.textContent = 'Verifying…';
+  btn.disabled = true; btn.textContent = 'Sending…';
   let token;
   try { token = await getTurnstileToken('ts-forgot'); }
   catch (e) {
@@ -405,7 +415,6 @@ async function requestReset() {
     errEl.textContent = 'Security check failed — please reload and try again';
     return;
   }
-  btn.textContent = 'Sending…';
   _fpEmail = email;
   await callAuth('requestPasswordReset', { email: email, turnstileToken: token });
   btn.textContent = 'Send Reset Code →'; btn.disabled = false;
@@ -459,7 +468,7 @@ async function doSignin() {
   const btn = document.getElementById('si-btn');
   if (!email || !password) { errEl.textContent = 'Please enter email and password'; return; }
   errEl.textContent = '';
-  btn.disabled = true; btn.textContent = 'Verifying…';
+  btn.disabled = true; btn.textContent = 'Signing in…';
   let token;
   try { token = await getTurnstileToken('ts-signin'); }
   catch (e) {
@@ -467,22 +476,11 @@ async function doSignin() {
     errEl.textContent = 'Security check failed — please reload and try again';
     return;
   }
-  btn.textContent = 'Signing in…';
   showSpinner();
   const res = await callAuth('signin', { email: email, password: password, turnstileToken: token });
   if (res.ok) {
     persistSession(res, { email: email });
-    try {
-      const profileRes = await fetch('/.netlify/functions/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getProfile' }),
-      }).then(function (r) { return r.json(); });
-      if (profileRes.ok && profileRes.profile) {
-        const profileKey = 'propCalc_profile_v1_' + (res.id || email);
-        localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
-      }
-    } catch (e) {}
+    refreshProfileInBackground(res.id || email);
     goTo(safeNextUrl(params.get('next') || ''));
     return;
   }
@@ -521,7 +519,7 @@ async function doSignup() {
   if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) pwErrors.push('one special character (!@#$…)');
   if (pwErrors.length) { errEl.textContent = 'Password needs: ' + pwErrors.join(', '); return; }
   errEl.textContent = '';
-  btn.disabled = true; btn.textContent = 'Verifying…';
+  btn.disabled = true; btn.textContent = 'Creating account…';
   let token;
   try { token = await getTurnstileToken('ts-signup'); }
   catch (e) {
@@ -529,7 +527,6 @@ async function doSignup() {
     errEl.textContent = 'Security check failed — please reload and try again';
     return;
   }
-  btn.textContent = 'Creating account…';
   const pendingRef = localStorage.getItem('equitySight_pendingRef') || '';
   let pageTrail = [];
   try { pageTrail = JSON.parse(localStorage.getItem('es_page_trail') || '[]'); } catch (e) {}
@@ -561,17 +558,7 @@ async function doVerifyEmail() {
   const res = await callAuth('verifyEmail', { email: email, code: code });
   if (res.ok) {
     persistSession(res, { email: email, name: name, plan: plan });
-    try {
-      const profileRes = await fetch('/.netlify/functions/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getProfile' }),
-      }).then(function (r) { return r.json(); });
-      if (profileRes.ok && profileRes.profile) {
-        const profileKey = 'propCalc_profile_v1_' + (res.id || email);
-        localStorage.setItem(profileKey, JSON.stringify(profileRes.profile));
-      }
-    } catch (e) {}
+    refreshProfileInBackground(res.id || email);
     postVerificationRedirect(res.plan || plan);
   } else {
     errEl.textContent = res.error || 'Could not verify email';
@@ -622,4 +609,29 @@ async function resendVerificationCode() {
   on('su-password', 'keydown', function (e) { if (e.key === 'Enter') doSignup(); });
   on('su-password', 'input', function () { updatePwStrength(this.value); });
   on('su-verify-code', 'keydown', function (e) { if (e.key === 'Enter') doVerifyEmail(); });
+
+  // Pre-warm Turnstile the first time the user touches an input.
+  // The widget renders into the active form's pre-reserved 65px slot
+  // and runs its challenge in the background while the user types.
+  // By the time they hit Sign In, the token is cached and submit
+  // skips the "Verifying…" wait entirely.
+  let _tsPrewarmed = false;
+  function prewarmTurnstile(e) {
+    if (_tsPrewarmed) return;
+    const target = e.target;
+    if (!target) return;
+    const tag = target.tagName;
+    if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'TEXTAREA') return;
+    _tsPrewarmed = true;
+    const wrap = document.querySelector('.login-forms');
+    const active = wrap ? (wrap.getAttribute('data-active') || 'signin') : 'signin';
+    const slot = active === 'signup' ? 'ts-signup'
+               : active === 'forgot' ? 'ts-forgot'
+               : 'ts-signin';
+    // Fire-and-forget — the persistent widget will hold its token in
+    // _tsWidgets[slot].lastToken until the submit handler picks it up.
+    getTurnstileToken(slot).catch(function () {});
+  }
+  const box = document.querySelector('.login-box');
+  if (box) box.addEventListener('focusin', prewarmTurnstile, { passive: true });
 })();
