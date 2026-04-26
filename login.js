@@ -638,11 +638,15 @@ async function resendVerificationCode() {
     });
   });
 
-  // Pre-warm Turnstile the first time the user touches an input.
-  // Invisible mode means the widget runs its challenge entirely in
-  // the background — no UI rendered. By the time the user hits Sign
-  // In, the token is cached in _tsState.lastToken and submit skips
-  // any wait at all.
+  // Pre-warm Turnstile after the user's first input focus. CRITICAL:
+  // we DEFER the actual script load with requestIdleCallback (or a
+  // 250ms setTimeout fallback). Loading + parsing the Turnstile script
+  // synchronously inside the focus handler pinned the main thread for
+  // ~1-3 seconds on mobile, which on iOS Safari delayed delivery of
+  // the user's first keystrokes (iOS batches input events while the
+  // main thread is busy). Deferring lets the focus complete, the
+  // keyboard appear, and the user start typing before any third-party
+  // script begins loading.
   let _tsPrewarmed = false;
   function prewarmTurnstile(e) {
     if (_tsPrewarmed) return;
@@ -651,7 +655,12 @@ async function resendVerificationCode() {
     const tag = target.tagName;
     if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'TEXTAREA') return;
     _tsPrewarmed = true;
-    getTurnstileToken().catch(function () {});
+    function go() { getTurnstileToken().catch(function () {}); }
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(go, { timeout: 1500 });
+    } else {
+      setTimeout(go, 250);
+    }
   }
   const box = document.querySelector('.login-box');
   if (box) box.addEventListener('focusin', prewarmTurnstile, { passive: true });
