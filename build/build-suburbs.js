@@ -32,6 +32,12 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase());
 }
 
+function ogImageUrl(title, subtitle, score, label) {
+  const p = new URLSearchParams({ title, subtitle });
+  if (score > 0 && label) { p.set('score', score); p.set('label', label); }
+  return 'https://equitysight.app/.netlify/functions/og-image?' + p.toString();
+}
+
 // ── Locator card (replaces the old Google Maps iframe — see PR shipping
 //    `<div class="suburb-locator">` for context) ───────────────────────────
 const STATE_OUTLINES = require('../data/state-outlines');
@@ -2126,6 +2132,11 @@ for (const s of suburbs) {
   // because there's nothing to fetch beyond the page itself.
   const locatorCardHtml = generateLocatorCard(s);
 
+  const suburbScore = computeScore(s);
+  const suburbScoreLabel = suburbScore >= 81 ? 'Strong' : suburbScore >= 61 ? 'Good' : suburbScore >= 41 ? 'Moderate' : 'Weak';
+  const suburbOgSubtitle = s.state_name + (pc ? ' · ' + pc : '');
+  const suburbOgUrl = ogImageUrl(s.suburb, suburbOgSubtitle, suburbScore, suburbScoreLabel);
+
   const isNoindexed = shouldNoindex(s);
   const robotsMeta = isNoindexed ? '<meta name="robots" content="noindex, follow">\n' : '';
   if (isNoindexed) noindexCount++;
@@ -2135,6 +2146,7 @@ for (const s of suburbs) {
   else stateIndexStats[s.state].indexed++;
 
   let html = SUBURB_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, suburbOgUrl)
     .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
     .replace(/\{\{STATE\}\}/g, escHtml(s.state))
@@ -2215,7 +2227,12 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
     `      <a href="/suburb/${cStateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
+  const cityScoreVal = computeCityScore(citySubs);
+  const cityScoreLabel = cityScoreVal >= 81 ? 'Strong' : cityScoreVal >= 61 ? 'Good' : cityScoreVal >= 41 ? 'Moderate' : 'Weak';
+  const cityOgUrl = ogImageUrl(cityName, cStateName + ' · ' + citySubs.length + ' suburbs', cityScoreVal, cityScoreLabel);
+
   let cityHtml = CITY_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, cityOgUrl)
     .replace(/\{\{CITY\}\}/g, escHtml(cityName))
     .replace(/\{\{CITY_SLUG\}\}/g, cSlug)
     .replace(/\{\{STATE\}\}/g, escHtml(state))
@@ -2288,7 +2305,10 @@ for (const state of allStates) {
     ? `<details class="hub-reference-drawer">\n    <summary>All localities in ${escHtml(stateName)} (${fmt(reference.length)} additional)</summary>\n    <p class="hub-reference-note">Smaller localities without enough data for a full property profile. Links stay available for research.</p>\n    <div class="hub-reference-list">\n${referenceListHTML}\n    </div>\n  </details>`
     : '';
 
+  const hubOgUrl = ogImageUrl(stateName, featured.length + ' featured suburbs · Australia', 0, '');
+
   let html = HUB_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, hubOgUrl)
     .replace(/\{\{STATE\}\}/g, escHtml(state))
     .replace(/\{\{STATE_LOWER\}\}/g, stateLower)
     .replace(/\{\{STATE_NAME\}\}/g, escHtml(stateName))
