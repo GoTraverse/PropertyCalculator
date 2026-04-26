@@ -141,19 +141,20 @@ function loadTurnstileScript() {
   return _turnstileScriptPromise;
 }
 
-// containerId -> { widgetId, lastToken, pendingResolve, pendingReject }
-// One persistent widget per slot. The callback wired at render-time
-// either pumps any waiting resolver or stashes the token for the next
-// caller. Reset re-runs the challenge against the same widget — much
-// cheaper than removing + re-rendering an iframe.
-const _tsWidgets = {};
+// One shared invisible Turnstile widget for the entire login page.
+// Invisible mode means there's no UI rendered at all — the challenge
+// runs as background JavaScript and we get a token via callback. This
+// removes the visible widget entirely (and the 65 px slot it used to
+// occupy in each form), which was the biggest remaining piece of
+// friction in the form.
+const TURNSTILE_HOST_ID = 'turnstile-host';
+let _tsState = null; // { widgetId, lastToken, pendingResolve, pendingReject }
 
-function _renderTurnstile(containerId) {
+function _renderTurnstile() {
   const state = { widgetId: undefined, lastToken: null, pendingResolve: null, pendingReject: null };
-  state.widgetId = turnstile.render('#' + containerId, {
+  state.widgetId = turnstile.render('#' + TURNSTILE_HOST_ID, {
     sitekey: TURNSTILE_SITEKEY,
-    theme: 'dark',
-    size: 'normal',
+    size: 'invisible',
     callback: function (token) {
       if (state.pendingResolve) {
         const r = state.pendingResolve;
@@ -175,19 +176,19 @@ function _renderTurnstile(containerId) {
     },
     'expired-callback': function () { state.lastToken = null; },
   });
-  _tsWidgets[containerId] = state;
+  _tsState = state;
   return state;
 }
 
-// Lazy-load Turnstile, ensure a widget exists in the given slot, and
+// Lazy-load Turnstile, ensure the shared widget is rendered, and
 // resolve with a fresh single-use token. The first call renders the
 // widget; subsequent calls reset it to get a new token without
-// re-rendering the iframe.
-async function getTurnstileToken(containerId) {
+// re-creating any iframe.
+async function getTurnstileToken() {
   await loadTurnstileScript();
-  let state = _tsWidgets[containerId];
+  let state = _tsState;
   if (!state) {
-    state = _renderTurnstile(containerId);
+    state = _renderTurnstile();
   } else if (!state.lastToken) {
     try { turnstile.reset(state.widgetId); } catch (e) {}
   }
@@ -202,12 +203,11 @@ async function getTurnstileToken(containerId) {
   });
 }
 
-function resetTurnstile(containerId) {
+function resetTurnstile() {
   if (typeof turnstile === 'undefined') return;
-  const state = _tsWidgets[containerId];
-  if (!state) return;
-  state.lastToken = null;
-  try { turnstile.reset(state.widgetId); } catch (e) {}
+  if (!_tsState) return;
+  _tsState.lastToken = null;
+  try { turnstile.reset(_tsState.widgetId); } catch (e) {}
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -230,37 +230,47 @@ function loadGoogleScript() {
 }
 
 async function initGoogleSignIn() {
-  // Resolve the Google client ID from cache, then from the backend.
+  // Cache fast path: if we already know the client ID, just load the
+  // GSI script and render. No network call needed.
   let clientId = '';
   try {
     const cached = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}');
     if (cached.googleClientId) clientId = cached.googleClientId;
   } catch (e) {}
-  if (!clientId) {
+
+  if (clientId) {
+    await loadGoogleScript();
+  } else {
+    // First visit: kick off the GSI script download and the config
+    // fetch in PARALLEL, then await both. Was sequential before, costing
+    // ~500 ms on cold loads.
+    const scriptPromise = loadGoogleScript();
+    let d = null;
     try {
       const r = await fetch('/.netlify/functions/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'getPublicConfig' }),
       });
-      const d = await r.json();
-      if (d.ok && d.config && d.config.googleClientId) {
-        clientId = d.config.googleClientId;
-        try {
-          const c = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}');
-          c.googleClientId = clientId;
-          localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(c));
-        } catch (e) {}
-      }
+      d = await r.json();
     } catch (e) {}
+    if (d && d.ok && d.config && d.config.googleClientId) {
+      clientId = d.config.googleClientId;
+      try {
+        const c = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1') || '{}');
+        c.googleClientId = clientId;
+        localStorage.setItem('propCalc_siteConfig_v1', JSON.stringify(c));
+      } catch (e) {}
+    }
+    await scriptPromise;
   }
+
   if (!clientId) {
     const w = document.getElementById('google-signin-wrap');
     if (w) w.style.display = 'none';
     return;
   }
 
-  await loadGoogleScript();
   google.accounts.id.initialize({
     client_id: clientId,
     callback: handleGoogleCredential,
@@ -409,7 +419,7 @@ async function requestReset() {
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Sending…';
   let token;
-  try { token = await getTurnstileToken('ts-forgot'); }
+  try { token = await getTurnstileToken(); }
   catch (e) {
     btn.disabled = false; btn.textContent = 'Send Reset Code →';
     errEl.textContent = 'Security check failed — please reload and try again';
@@ -470,13 +480,15 @@ async function doSignin() {
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Signing in…';
   let token;
-  try { token = await getTurnstileToken('ts-signin'); }
+  try { token = await getTurnstileToken(); }
   catch (e) {
     btn.disabled = false; btn.textContent = 'Sign In →';
     errEl.textContent = 'Security check failed — please reload and try again';
     return;
   }
-  showSpinner();
+  // No fullscreen spinner — the disabled button + `Signing in…` text
+  // is the loading signal. Stacking a spinner overlay on top adds
+  // visual noise and a moment of flicker before the redirect.
   const res = await callAuth('signin', { email: email, password: password, turnstileToken: token });
   if (res.ok) {
     persistSession(res, { email: email });
@@ -484,7 +496,6 @@ async function doSignin() {
     goTo(safeNextUrl(params.get('next') || ''));
     return;
   }
-  hideSpinner();
   if (res.requiresEmailVerification) {
     setActiveForm('signup');
     document.getElementById('su-email').value = email;
@@ -495,7 +506,7 @@ async function doSignin() {
   } else {
     errEl.textContent = res.error || 'Sign in failed — please try again';
   }
-  resetTurnstile('ts-signin');
+  resetTurnstile();
   btn.disabled = false; btn.textContent = 'Sign In →';
 }
 
@@ -521,7 +532,7 @@ async function doSignup() {
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Creating account…';
   let token;
-  try { token = await getTurnstileToken('ts-signup'); }
+  try { token = await getTurnstileToken(); }
   catch (e) {
     btn.disabled = false; btn.textContent = 'Create Account →';
     errEl.textContent = 'Security check failed — please reload and try again';
@@ -541,7 +552,7 @@ async function doSignup() {
     document.getElementById('verify-error').textContent = '';
   } else {
     errEl.textContent = res.error || 'Could not create account — please try again';
-    resetTurnstile('ts-signup');
+    resetTurnstile();
     btn.disabled = false; btn.textContent = 'Create Account →';
   }
 }
@@ -610,11 +621,28 @@ async function resendVerificationCode() {
   on('su-password', 'input', function () { updatePwStrength(this.value); });
   on('su-verify-code', 'keydown', function (e) { if (e.key === 'Enter') doVerifyEmail(); });
 
+  // ── Password show/hide toggles ──
+  // Each .form-input-toggle has a data-toggle-pw attribute pointing to
+  // the input it controls. Click flips the input's type between
+  // 'password' and 'text' and updates the aria-pressed state and label.
+  Array.prototype.forEach.call(document.querySelectorAll('.form-input-toggle'), function (btn) {
+    btn.addEventListener('click', function () {
+      const id = btn.getAttribute('data-toggle-pw');
+      const input = document.getElementById(id);
+      if (!input) return;
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'Show' : 'Hide';
+      btn.setAttribute('aria-pressed', showing ? 'false' : 'true');
+      btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    });
+  });
+
   // Pre-warm Turnstile the first time the user touches an input.
-  // The widget renders into the active form's pre-reserved 65px slot
-  // and runs its challenge in the background while the user types.
-  // By the time they hit Sign In, the token is cached and submit
-  // skips the "Verifying…" wait entirely.
+  // Invisible mode means the widget runs its challenge entirely in
+  // the background — no UI rendered. By the time the user hits Sign
+  // In, the token is cached in _tsState.lastToken and submit skips
+  // any wait at all.
   let _tsPrewarmed = false;
   function prewarmTurnstile(e) {
     if (_tsPrewarmed) return;
@@ -623,14 +651,7 @@ async function resendVerificationCode() {
     const tag = target.tagName;
     if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'TEXTAREA') return;
     _tsPrewarmed = true;
-    const wrap = document.querySelector('.login-forms');
-    const active = wrap ? (wrap.getAttribute('data-active') || 'signin') : 'signin';
-    const slot = active === 'signup' ? 'ts-signup'
-               : active === 'forgot' ? 'ts-forgot'
-               : 'ts-signin';
-    // Fire-and-forget — the persistent widget will hold its token in
-    // _tsWidgets[slot].lastToken until the submit handler picks it up.
-    getTurnstileToken(slot).catch(function () {});
+    getTurnstileToken().catch(function () {});
   }
   const box = document.querySelector('.login-box');
   if (box) box.addEventListener('focusin', prewarmTurnstile, { passive: true });
