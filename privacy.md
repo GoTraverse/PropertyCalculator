@@ -57,6 +57,10 @@ We do not sell, rent, or trade your personal information. We may share it only i
 - **Legal requirements:** Where required by law, court order, or to protect the rights and safety of our users.
 - **Business transfers:** If we merge or are acquired, your data may transfer to the new owner subject to the same privacy commitments.
 
+### Bot-protection processors
+
+To distinguish humans from bots on our sign-in and sign-up pages we use **Cloudflare Turnstile**. The Turnstile widget runs invisibly in your browser and gathers signals about your browser environment (e.g. user-agent characteristics, simple proof-of-work challenges) to issue a short-lived verification token. Cloudflare may receive your IP address and limited browser metadata as part of this check. Cloudflare's processing is governed by [Cloudflare's Turnstile Privacy Addendum](https://www.cloudflare.com/application-services/products/turnstile-privacy-addendum/). The token is single-use, expires within five minutes, and is never used to track you across sessions.
+
 ## 5. Data storage and security
 
 Your data is stored on servers located in [REGION]. We implement industry-standard security measures including:

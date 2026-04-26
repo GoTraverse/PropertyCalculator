@@ -271,12 +271,50 @@ select.form-input { background: rgba(255,255,255,0.05); }
 }
 .login-link-btn:hover { color: var(--cream); }
 
-/* ── Turnstile slot — pre-reserve height ──
-   Turnstile's "normal" widget is 65px tall. Reserving the height
-   prevents the form from jumping when the iframe finishes loading. */
-.ts-slot {
-  min-height: 65px;
-  margin: 6px 0;
+/* ── Invisible Turnstile host ──
+   Lives outside the form stack and renders no UI. The challenge runs
+   as background JavaScript; we just need a DOM target for
+   turnstile.render() to attach to. Pulled fully off-flow so it can't
+   contribute to layout, scroll, or accidental focus. */
+#turnstile-host {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* ── Password show/hide toggle ──
+   The wrap is `position: relative` so the toggle button can sit on
+   the right edge of the input. The input gets right-padding so
+   typed characters don't run under the button. */
+.form-input-wrap {
+  position: relative;
+}
+.form-input-wrap .form-input {
+  padding-right: 60px;             /* room for the Show/Hide button */
+}
+.form-input-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: rgba(245,240,232,0.65);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 10px;               /* generous mobile hit target */
+  cursor: pointer;
+  border-radius: 3px;
+}
+.form-input-toggle:hover { color: var(--cream); background: rgba(255,255,255,0.05); }
+.form-input-toggle:focus-visible {
+  outline: 2px solid rgba(201,168,76,0.6);
+  outline-offset: 1px;
 }
 
 /* Guest button */
