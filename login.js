@@ -47,16 +47,18 @@ function setActiveForm(target) {
   if (h) {
     h.textContent = target === 'signin' ? 'Welcome back'
                   : target === 'signup' ? 'Create your account'
+                  : target === 'magic'  ? 'Sign in with email'
                   : 'Reset password';
   }
   if (s) {
     s.textContent = target === 'signin' ? 'Sign in to access your property scenarios'
                   : target === 'signup' ? 'Start for free — no credit card required'
+                  : target === 'magic'  ? 'No password needed'
                   : "We'll send a code to your email";
     s.style.color = '';
   }
 
-  ['form-signin', 'form-signup', 'form-forgot'].forEach(function (id) {
+  ['form-signin', 'form-signup', 'form-forgot', 'form-magic'].forEach(function (id) {
     const el = document.getElementById(id);
     if (!el) return;
     const isActive = id.replace('form-', '') === target;
@@ -77,8 +79,8 @@ function setActiveForm(target) {
   const suTab = document.getElementById('tab-signup');
   if (siTab) siTab.addEventListener('click', function () { setActiveForm('signin'); });
   if (suTab) suTab.addEventListener('click', function () { setActiveForm('signup'); });
-  // Inert state for the two inactive forms on first paint.
-  ['form-signup', 'form-forgot'].forEach(function (id) {
+  // Inert state for the inactive forms on first paint.
+  ['form-signup', 'form-forgot', 'form-magic'].forEach(function (id) {
     const el = document.getElementById(id);
     if (el) { el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); }
   });
@@ -122,6 +124,55 @@ function safeNextUrl(raw) {
       location.href = safeNextUrl(params.get('next') || '');
     }
   } catch (e) {}
+})();
+
+// ──────────────────────────────────────────────────────────────────────
+// 3b. Magic-link clickable token — handle ?magic=TOKEN immediately
+// ──────────────────────────────────────────────────────────────────────
+// If the user arrives via a magic-link email, the URL contains
+// ?magic=TOKEN. Verify it before anything else and redirect on success
+// so the user never sees the login form. On failure, fall back to the
+// magic-link form with an explanatory error.
+(function consumeMagicTokenFromUrl() {
+  const token = params.get('magic');
+  if (!token) return;
+  // Hide the form behind the spinner overlay so the user doesn't see
+  // a flash of the unauth form before redirect.
+  document.getElementById('page-spinner').classList.add('show');
+  // Strip the token from the URL immediately so a refresh doesn't
+  // re-trigger this flow with an already-consumed token.
+  try { history.replaceState(null, '', '/login'); } catch (e) {}
+  fetch('/.netlify/functions/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'verifyMagicLink', token: token }),
+  }).then(function (r) { return r.json(); }).then(function (res) {
+    if (res && res.ok) {
+      // Mirror what doSignin() does on success.
+      const session = {
+        id: res.id || res.email,
+        name: res.name || (res.email || '').split('@')[0],
+        email: res.email,
+        plan: res.plan || 'free',
+        role: res.role || 'user',
+      };
+      if (res.canceledAt) session.canceledAt = res.canceledAt;
+      if (res.expiresAt) session.expiresAt = res.expiresAt;
+      if (res.renewsAt) session.renewsAt = res.renewsAt;
+      try { localStorage.setItem('propCalc_session_v1', JSON.stringify(session)); } catch (e) {}
+      location.href = safeNextUrl(params.get('next') || '');
+    } else {
+      document.getElementById('page-spinner').classList.remove('show');
+      setActiveForm('magic');
+      const ml = document.getElementById('ml-error');
+      if (ml) ml.textContent = (res && res.error) || 'Sign-in link is invalid or has expired. Please request a new one.';
+    }
+  }).catch(function () {
+    document.getElementById('page-spinner').classList.remove('show');
+    setActiveForm('magic');
+    const ml = document.getElementById('ml-error');
+    if (ml) ml.textContent = 'Network error — please try again.';
+  });
 })();
 
 // ──────────────────────────────────────────────────────────────────────
@@ -593,6 +644,93 @@ async function resendVerificationCode() {
 }
 
 // ──────────────────────────────────────────────────────────────────────
+// 8b. Magic-link sign-in (passwordless)
+// ──────────────────────────────────────────────────────────────────────
+let _mlEmail = ''; // remembered between request and verify steps
+
+function showMagicLinkRequest() {
+  setActiveForm('magic');
+  document.getElementById('magic-step-request').style.display = '';
+  document.getElementById('magic-step-verify').style.display = 'none';
+  document.getElementById('ml-error').textContent = '';
+  document.getElementById('ml-verify-error').textContent = '';
+  // Pre-fill from the password sign-in form if the user typed an email there.
+  const siEmail = document.getElementById('si-email').value;
+  if (siEmail) document.getElementById('ml-email').value = siEmail;
+}
+
+function showMagicLinkVerify(email) {
+  document.getElementById('magic-step-request').style.display = 'none';
+  document.getElementById('magic-step-verify').style.display = '';
+  document.getElementById('ml-verify-error').textContent = '';
+  const note = document.getElementById('ml-verify-note');
+  if (note) note.textContent = 'We sent a sign-in link and 6-digit code to ' + email + '. Click the link or enter the code below.';
+  setTimeout(function () { document.getElementById('ml-code').focus({ preventScroll: true }); }, 80);
+}
+
+async function requestMagicLink() {
+  const email = document.getElementById('ml-email').value.trim();
+  const errEl = document.getElementById('ml-error');
+  const btn = document.getElementById('ml-send-btn');
+  if (!email) { errEl.textContent = 'Please enter your email'; return; }
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Sending…';
+  let token;
+  try { token = await getTurnstileToken(); }
+  catch (e) {
+    btn.disabled = false; btn.textContent = 'Send sign-in link →';
+    errEl.textContent = 'Security check failed — please reload and try again';
+    return;
+  }
+  const res = await callAuth('sendMagicLink', { email: email, turnstileToken: token });
+  btn.disabled = false; btn.textContent = 'Send sign-in link →';
+  if (res && res.ok) {
+    _mlEmail = email;
+    showMagicLinkVerify(email);
+  } else {
+    errEl.textContent = (res && res.error) || 'Could not send sign-in link — please try again.';
+  }
+}
+
+async function verifyMagicCodeFlow() {
+  const code = document.getElementById('ml-code').value.trim();
+  const errEl = document.getElementById('ml-verify-error');
+  const btn = document.getElementById('ml-verify-btn');
+  const email = _mlEmail || document.getElementById('ml-email').value.trim();
+  if (!code) { errEl.textContent = 'Enter the 6-digit code'; return; }
+  if (!email) { errEl.textContent = 'Please request a new sign-in link'; return; }
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const res = await callAuth('verifyMagicCode', { email: email, code: code });
+  if (res && res.ok) {
+    persistSession(res, { email: email });
+    refreshProfileInBackground(res.id || email);
+    goTo(safeNextUrl(params.get('next') || ''));
+    return;
+  }
+  btn.disabled = false; btn.textContent = 'Verify code →';
+  errEl.textContent = (res && res.error) || 'Sign-in code is invalid or has expired.';
+}
+
+async function resendMagicLink() {
+  const errEl = document.getElementById('ml-verify-error');
+  const btn = document.getElementById('ml-resend-btn');
+  if (!_mlEmail) { errEl.textContent = 'Please enter your email and try again'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  let token;
+  try { token = await getTurnstileToken(); } catch (e) { token = ''; }
+  const res = await callAuth('sendMagicLink', { email: _mlEmail, turnstileToken: token });
+  btn.disabled = false; btn.textContent = 'Resend';
+  if (res && res.ok) {
+    errEl.textContent = 'A fresh sign-in link has been sent.';
+    errEl.style.color = '#5A9E7A';
+    setTimeout(function () { errEl.style.color = ''; errEl.textContent = ''; }, 2000);
+  } else {
+    errEl.textContent = (res && res.error) || 'Could not resend — please try again.';
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
 // 9. Wire submit + helper-button event listeners
 // ──────────────────────────────────────────────────────────────────────
 
@@ -609,6 +747,12 @@ async function resendVerificationCode() {
   on('resend-code-btn', 'click', resendVerificationCode);
   on('forgot-pw-btn', 'click', showForgotPassword);
   on('back-to-signin-btn', 'click', function () { setActiveForm('signin'); });
+  // Magic-link flow buttons
+  on('magic-link-btn', 'click', showMagicLinkRequest);
+  on('ml-send-btn', 'click', requestMagicLink);
+  on('ml-verify-btn', 'click', verifyMagicCodeFlow);
+  on('ml-resend-btn', 'click', resendMagicLink);
+  on('magic-back-btn', 'click', function () { setActiveForm('signin'); });
 
   on('si-email', 'keydown', function (e) { if (e.key === 'Enter') doSignin(); });
   on('si-password', 'keydown', function (e) { if (e.key === 'Enter') doSignin(); });
@@ -620,6 +764,10 @@ async function resendVerificationCode() {
   on('su-password', 'keydown', function (e) { if (e.key === 'Enter') doSignup(); });
   on('su-password', 'input', function () { updatePwStrength(this.value); });
   on('su-verify-code', 'keydown', function (e) { if (e.key === 'Enter') doVerifyEmail(); });
+  on('ml-email', 'keydown', function (e) { if (e.key === 'Enter') requestMagicLink(); });
+  on('ml-code', 'keydown', function (e) { if (e.key === 'Enter') verifyMagicCodeFlow(); });
+  // Strip non-numeric input from the 6-digit code field as the user types.
+  on('ml-code', 'input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 6); });
 
   // ── Password show/hide toggles ──
   // Each .form-input-toggle has a data-toggle-pw attribute pointing to

@@ -99,6 +99,16 @@ const DEFAULT_TEMPLATES = {
     html: '<p>Your password reset code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 30 minutes. If you did not request this, you can ignore this email.</p>',
     variables: ['{{code}}'],
   },
+  magic_link: {
+    subject: 'Your EquitySight sign-in link',
+    // We send BOTH a clickable link and a 6-digit code. Email scanners
+    // (Outlook Safe Links, Mimecast, Proofpoint, …) routinely prefetch
+    // URLs to scan for malware, which can consume single-use magic-link
+    // tokens before the legitimate user clicks them. The 6-digit code
+    // can't be auto-extracted from prose, so it survives prefetch.
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;margin:0 0 12px;">Sign in to EquitySight</h2><p style="font-size:14px;line-height:1.6;">Click the button below to sign in. The link expires in 15 minutes and can only be used once.</p><p style="text-align:center;margin:24px 0;"><a href="{{link}}" style="display:inline-block;padding:14px 32px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:4px;font-size:14px;font-weight:600;">Sign in to EquitySight</a></p><p style="font-size:14px;line-height:1.6;color:#4A4A52;">Or, if your email client blocks the link, enter this 6-digit code on the sign-in page:</p><p style="text-align:center;font-size:28px;font-weight:700;letter-spacing:6px;color:#1C1C1E;margin:8px 0 24px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">{{code}}</p><p style="font-size:12px;color:#9CA3AF;line-height:1.6;">If you did not request this, you can safely ignore this email — your account stays secure.</p></div>',
+    variables: ['{{link}}', '{{code}}'],
+  },
   subscription: {
     subject: 'Your EquitySight plan has been updated',
     html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Plan updated</h2><p>Hi {{firstName}},</p><p>Your plan has been updated to <strong>{{plan}}</strong>.</p><p>You now have access to all features included in your new plan.</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a></div>',
@@ -207,6 +217,20 @@ async function sendPasswordResetEmail(email, code){
     if(!sent) return {sent:false};
     return {sent:true};
   }catch(e){ console.warn('[auth] Reset email error: %s',e.message); return {sent:false}; }
+}
+
+async function sendMagicLinkEmail(email, link, code){
+  if(!RESEND_API_KEY){
+    console.log('[auth] RESEND_API_KEY not configured. Magic link for %s: %s (code %s)', email, link, code);
+    return {sent:false,provider:'log'};
+  }
+  try{
+    const tpl = await getEmailTemplate('magic_link');
+    const html = applyVars(tpl.html, {link, code});
+    const sent = await sendResend(email, tpl.subject, html);
+    if(!sent) return {sent:false};
+    return {sent:true};
+  }catch(e){ console.warn('[auth] Magic-link email error: %s',e.message); return {sent:false}; }
 }
 
 async function redisCmd(...args){
@@ -372,6 +396,25 @@ function makeEmailCode(){
 function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('email-code:'+String(code).toUpperCase()).digest('hex'); }
 // Constant-time string compare — prevents timing attacks on hash comparisons
 function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual(Buffer.from(a,'hex'),Buffer.from(b,'hex')); }catch(e){ return false; } }
+
+// Issue a logged-in session for a magic-link verification (link or code).
+// Mirrors what action='signin' does at success, so the response shape and
+// cookie behaviour are identical from the client's perspective.
+async function issueMagicSession(event, user, normalizedEmail){
+  if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail);
+  user.lastLoginAt=Date.now();
+  user.loginCount=(user.loginCount||0)+1;
+  user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
+  await rSet('user:'+normalizedEmail,user);
+  await logEvent(user.id,'signin_magic',{ip:user.lastLoginIp||''});
+  const token=makeToken();
+  await rSet('token:'+token,{userId:user.id,email:user.email||normalizedEmail,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
+  const result={ok:true,id:user.id,name:user.name,email:user.email||normalizedEmail,plan:user.plan||'free',role:user.role||'user'};
+  if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
+  if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
+  if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
+  return ok(result, buildSessionCookie(token, TOKEN_TTL));
+}
 let H = {};
 // ok() accepts an optional `setCookie` string which is attached as a Set-Cookie
 // response header without mutating the shared H headers object.
@@ -860,6 +903,92 @@ exports.handler = async function(event){
     await logEvent(userData.id,'password_reset',{});
     return ok({ok:true});
   }
+
+  // ── Magic-link sign-in ───────────────────────────────────────────────
+  // Sends an email containing both a clickable magic link AND a 6-digit
+  // OTP code. Either path validates the same Redis-stored token and
+  // produces the same session cookie that ?action=signin does. Always
+  // returns ok:true to prevent account-existence enumeration.
+  if(action==='sendMagicLink'){
+    const {email,turnstileToken}=body;
+    if(!email) return fail('Email required');
+    const mlIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, mlIp)) return fail('Security check failed — please try again', 403);
+    const normalizedEmail=email.toLowerCase().trim();
+    // Per-email rate limit: 5 magic-link requests per hour.
+    const mlEmailKey='magicLinkReq:'+normalizedEmail;
+    if((await rRateInc(mlEmailKey,3600))>5) return ok({ok:true,message:'If an account exists, a sign-in link has been sent.'});
+    // Per-IP rate limit: 10 per hour (catches IP-rotated email-bombing).
+    const mlIpKey='magicLinkReqIp:'+mlIp;
+    if((await rRateInc(mlIpKey,3600))>10) return ok({ok:true,message:'If an account exists, a sign-in link has been sent.'});
+    const userData=await rGet('user:'+normalizedEmail);
+    if(userData && userData.emailVerified !== false){
+      // 256-bit random token for the link, plus a separate 6-digit code
+      // for users whose email scanner pre-fetches and consumes the link.
+      const token=crypto.randomBytes(32).toString('hex');
+      const code=String(crypto.randomInt(100000, 1000000));
+      const expiresAt=Date.now() + 15*60*1000; // 15 minutes
+      // Store under the token (link path) AND under email→token (code path).
+      // Single-use: both keys are deleted when consumed.
+      await rSet('magic:'+token, {
+        email: normalizedEmail,
+        userId: userData.id,
+        codeHash: crypto.createHmac('sha256',SALT).update('magic-code:'+code).digest('hex'),
+        attempts: 0,
+        expiresAt,
+      }, 15*60);
+      await rSet('magicEmail:'+normalizedEmail, token, 15*60);
+      const link='https://equitysight.app/login?magic='+encodeURIComponent(token);
+      await sendMagicLinkEmail(normalizedEmail, link, code);
+    }
+    return ok({ok:true,message:'If an account exists, a sign-in link has been sent.'});
+  }
+
+  // Verify the clickable link path. The user lands on /login?magic=TOKEN
+  // and the page calls this on page-load.
+  if(action==='verifyMagicLink'){
+    const {token}=body;
+    if(!token) return fail('Token required');
+    const data=await rGet('magic:'+token);
+    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('Sign-in link is invalid or has expired. Please request a new one.');
+    const user=await rGet('user:'+data.email);
+    if(!user) return fail('Account not found');
+    // Single-use: delete BOTH keys atomically so a leaked link can't be
+    // re-used and so the email→token reverse index doesn't dangle.
+    await rDel('magic:'+token);
+    await rDel('magicEmail:'+data.email);
+    return await issueMagicSession(event, user, data.email);
+  }
+
+  // Verify the 6-digit code path. User typed the code from the email.
+  if(action==='verifyMagicCode'){
+    const {email,code}=body;
+    if(!email||!code) return fail('Email and code required');
+    const normalizedEmail=email.toLowerCase().trim();
+    const token=await rGet('magicEmail:'+normalizedEmail);
+    if(!token) return fail('Sign-in code is invalid or has expired. Please request a new one.');
+    const data=await rGet('magic:'+token);
+    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('Sign-in code is invalid or has expired. Please request a new one.');
+    const submittedHash=crypto.createHmac('sha256',SALT).update('magic-code:'+String(code).trim()).digest('hex');
+    if(!safeEqual(data.codeHash, submittedHash)){
+      // Burn the token after 5 wrong attempts so an attacker can't keep
+      // brute-forcing the same email.
+      const attempts=(data.attempts||0)+1;
+      if(attempts>=5){
+        await rDel('magic:'+token);
+        await rDel('magicEmail:'+normalizedEmail);
+        return fail('Too many incorrect attempts — request a new sign-in link.');
+      }
+      await rSet('magic:'+token,{...data,attempts},15*60);
+      return fail('Sign-in code is invalid or has expired. Please request a new one.');
+    }
+    const user=await rGet('user:'+normalizedEmail);
+    if(!user) return fail('Account not found');
+    await rDel('magic:'+token);
+    await rDel('magicEmail:'+normalizedEmail);
+    return await issueMagicSession(event, user, normalizedEmail);
+  }
+
 
   if(action==='deleteAccount'){
     const user=await verifyToken(event);
