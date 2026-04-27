@@ -85,8 +85,33 @@
         <div class="form-field"><label class="form-label" for="si-password">Password</label><div class="form-input-wrap"><input class="form-input" id="si-password" type="password" placeholder="••••••••" autocomplete="current-password"><button type="button" class="form-input-toggle" data-toggle-pw="si-password" aria-label="Show password" aria-pressed="false">Show</button></div></div>
         <div class="form-error" id="si-error"></div>
         <button class="form-submit" id="si-btn">Sign In →</button>
+        <div class="login-divider" aria-hidden="true"><span>or</span></div>
+        <button class="form-secondary" id="magic-link-btn" type="button">Email me a sign-in link</button>
         <div style="text-align:center;margin-top:12px;">
           <button id="forgot-pw-btn" class="login-link-btn">Forgot password?</button>
+        </div>
+      </div>
+      <!-- Magic-link sign-in flow: passwordless. Two steps:
+             1. Request — enter email, send link + 6-digit code via email
+             2. Verify — enter the 6-digit code (or click the link in
+                the email; the link path goes through ?magic=TOKEN
+                detection on this same page). -->
+      <div id="form-magic" class="login-form" role="tabpanel">
+        <div id="magic-step-request">
+          <div class="form-note">We'll email you a one-tap sign-in link plus a 6-digit code. No password needed.</div>
+          <div class="form-field"><label class="form-label" for="ml-email">Email</label><input class="form-input" id="ml-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
+          <div class="form-error" id="ml-error"></div>
+          <button class="form-submit" id="ml-send-btn">Send sign-in link →</button>
+        </div>
+        <div id="magic-step-verify" style="display:none;">
+          <div class="form-note" id="ml-verify-note">We sent a sign-in link and 6-digit code to your email. Click the link or enter the code below.</div>
+          <div class="form-field"><label class="form-label" for="ml-code">6-digit code</label><input class="form-input form-input-code" id="ml-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" placeholder="123456"></div>
+          <div class="form-error" id="ml-verify-error"></div>
+          <button class="form-submit" id="ml-verify-btn">Verify code →</button>
+          <button class="form-secondary" id="ml-resend-btn" type="button" style="margin-top:8px;">Resend</button>
+        </div>
+        <div style="text-align:center;margin-top:12px;">
+          <button id="magic-back-btn" class="login-link-btn" type="button">← Back to password sign-in</button>
         </div>
       </div>
       <!-- Forgot Password Flow -->
