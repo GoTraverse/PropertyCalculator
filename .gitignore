@@ -11,6 +11,10 @@ sitemap-blog.xml
 # Build cache (suburb pages persisted between Netlify deploys)
 .cache/
 
+# Node dependencies (installed at build time for og-image generation)
+node_modules/
+package-lock.json
+
 # Fetched/downloaded data caches (regenerate with fetch-abs-*.js / fetch-overpass-amenities.js)
 data/abs-suburbs.json
 data/abs-enhanced.json

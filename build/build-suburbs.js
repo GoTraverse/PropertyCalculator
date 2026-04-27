@@ -9,6 +9,8 @@
 
 const fs = require('fs');
 const path = require('path');
+let Resvg;
+try { Resvg = require('@resvg/resvg-js').Resvg; } catch (_) { /* og-image generation skipped if resvg unavailable */ }
 
 const ROOT = path.join(__dirname, '..');
 const DATA_FILE = path.join(ROOT, 'data', 'suburbs.json');
@@ -2047,8 +2049,52 @@ function generateAggregateRatingJson(state, slug, suburbName) {
   return ',{"@context":"https://schema.org","@type":"AggregateRating","itemReviewed":{"@type":"Place","name":"' + safeName + '"},"ratingValue":"' + avg.toFixed(1) + '","reviewCount":"' + agg.count + '","bestRating":"5","worstRating":"1"}';
 }
 
+// ── OG image generation ──
+
+function generateOgSvg(suburb, state, stateName, postcode) {
+  const safeSuburb = escHtml(suburb);
+  const safeState = escHtml(stateName);
+  const pcLabel = postcode ? ' ' + escHtml(postcode) : '';
+  const fontSize = suburb.length <= 20 ? 64 : suburb.length <= 28 ? 52 : 42;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+<defs>
+<radialGradient id="glowA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#F2C94C" stop-opacity="0.12"/><stop offset="70%" stop-color="#F2C94C" stop-opacity="0"/></radialGradient>
+<radialGradient id="glowB" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#F2C94C" stop-opacity="0.07"/><stop offset="70%" stop-color="#F2C94C" stop-opacity="0"/></radialGradient>
+<pattern id="dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="rgba(255,255,255,0.04)"/></pattern>
+</defs>
+<rect width="1200" height="630" fill="#1A1A1A"/>
+<rect width="1200" height="630" fill="url(#dots)"/>
+<circle cx="1080" cy="100" r="260" fill="url(#glowA)"/>
+<circle cx="120" cy="550" r="200" fill="url(#glowB)"/>
+<g transform="translate(72,64)">
+<g transform="scale(0.4)"><rect x="40.4" y="124.66" width="17.64" height="31.58" rx="5.64" fill="rgba(255,255,255,0.28)"/><rect x="70.14" y="105.71" width="17.64" height="50.53" rx="5.64" fill="rgba(255,255,255,0.52)"/><rect x="99.88" y="82.02" width="17.64" height="74.22" rx="5.64" fill="#F2C94C"/><rect x="103.32" y="27.93" width="18.48" height="29.48" rx="2.77" fill="#FFFFFF"/><path d="M 26.88 77.28 Q 16.8 77.28 24.54 70.83 L 72.24 31.08 Q 84 24.36 95.76 31.08 L 143.46 70.83 Q 151.2 77.28 141.12 77.28 Z" fill="#FFFFFF"/></g>
+<text x="90" y="58" font-family="Arial,Helvetica,sans-serif" font-weight="600" font-size="46" letter-spacing="-1.2" fill="#FFFFFF">Equity</text>
+<text x="226" y="58" font-family="Arial,Helvetica,sans-serif" font-weight="600" font-size="46" letter-spacing="-1.2" fill="#F2C94C">Sight</text>
+</g>
+<g transform="translate(72,260)">
+<text font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="${fontSize}" letter-spacing="-2" fill="#FFFFFF">${safeSuburb}</text>
+<text y="70" font-family="Arial,Helvetica,sans-serif" font-weight="500" font-size="36" fill="#F2C94C">${safeState}${pcLabel}</text>
+<text y="130" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="22" fill="rgba(255,255,255,0.5)">Property Market &amp; Investment Data 2026</text>
+<text y="170" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="20" letter-spacing="0.5" fill="rgba(255,255,255,0.4)">equitysight.app</text>
+</g>
+<g transform="translate(900,320)"><rect x="48" y="150" width="42" height="76" rx="13" fill="rgba(242,201,76,0.15)"/><rect x="120" y="105" width="42" height="121" rx="13" fill="rgba(242,201,76,0.28)"/><rect x="192" y="60" width="42" height="166" rx="13" fill="rgba(242,201,76,0.55)"/><rect x="200" y="-70" width="44" height="72" rx="7" fill="#F2C94C"/><path d="M 22 120 Q 0 120 18 104 L 132 12 Q 160 -4 188 12 L 302 104 Q 320 120 298 120 Z" fill="rgba(255,255,255,0.07)"/></g>
+</svg>`;
+}
+
+function writeOgImage(outDir, suburb, state, stateName, postcode) {
+  if (!Resvg) return false;
+  try {
+    const svg = generateOgSvg(suburb, state, stateName, postcode);
+    const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } });
+    const png = resvg.render().asPng();
+    fs.writeFileSync(path.join(outDir, 'og.png'), png);
+    return true;
+  } catch (_) { return false; }
+}
+
 let suburbCount = 0;
 let noindexCount = 0;
+let ogImageCount = 0;
 const stateIndexStats = {}; // state → { indexed, noindexed, total }
 const stateGroups = {};
 
@@ -2181,6 +2227,14 @@ for (const s of suburbs) {
 
   const outDir = path.join(ROOT, 'suburb', s.state.toLowerCase(), s.slug);
   fs.mkdirSync(outDir, { recursive: true });
+
+  const ogGenerated = !isNoindexed && writeOgImage(outDir, s.suburb, s.state, s.state_name, s.postcode);
+  if (ogGenerated) ogImageCount++;
+  const ogUrl = ogGenerated
+    ? 'https://equitysight.app/suburb/' + s.state.toLowerCase() + '/' + s.slug + '/og.png'
+    : 'https://equitysight.app/images/og-image.png';
+  html = html.replace(/\{\{OG_IMAGE_URL\}\}/g, ogUrl);
+
   fs.writeFileSync(path.join(outDir, 'index.html'), html);
   suburbCount++;
 }
@@ -2479,7 +2533,7 @@ const oldSitemap = path.join(ROOT, 'sitemap-suburbs.xml');
 if (fs.existsSync(oldSitemap)) fs.unlinkSync(oldSitemap);
 
 const indexedCount = suburbCount - noindexCount;
-console.log(`Built ${suburbCount} suburb pages — indexed=${indexedCount} noindexed=${noindexCount} (target 2,000–3,000 indexed)`);
+console.log(`Built ${suburbCount} suburb pages — indexed=${indexedCount} noindexed=${noindexCount} (target 2,000–3,000 indexed)` + (ogImageCount ? ` — ${ogImageCount} og:image PNGs generated` : ' — og:image generation skipped (resvg not available)'));
 console.log(`Built ${cityCount} city pages, ${hubCount} state hub pages`);
 console.log('Per-state indexed / total:');
 Object.keys(stateIndexStats).sort().forEach(st => {
