@@ -560,6 +560,11 @@ window.toggleTheme = function(){
   function initHamburger() {
     var ham = document.getElementById('nav-ham');
     if (!ham) return;
+    // auth-nav-loader.js may have wired the hamburger already (it
+    // does so immediately so mobile users can open the menu before
+    // the heavy script arrives). Skip duplicate binding.
+    if (ham.dataset.wired === '1') return;
+    ham.dataset.wired = '1';
     ham.addEventListener('click', function () {
       var links = document.querySelector('.site-nav-links');
       if (!links) return;
