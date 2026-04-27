@@ -7,7 +7,7 @@
 <script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
 <script src="/site-init.js" defer></script>
 <script src="/app-init.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PropCalc">
@@ -42,7 +42,7 @@
   <p id="maintenance-msg" style="font-size:15px;color:rgba(245,240,232,0.6);max-width:440px;line-height:1.7;margin:0;">We'll be back shortly — upgrading our systems.</p>
 </div>
 
-<header id="main-content">
+<header>
   <!-- Announcement banner (hidden until config loads) -->
   <div id="announce-banner" style="display:none;padding:9px 48px 9px 16px;font-size:13px;text-align:center;position:relative;line-height:1.4;"></div>
   <div class="header-inner">
@@ -448,7 +448,7 @@
     </div>
   </div>
 
-  <main>
+  <main id="main-content">
 
     <!-- TAB 0: PROPERTY DETAILS -->
     <div class="section active" id="property">
