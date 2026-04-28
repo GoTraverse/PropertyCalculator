@@ -5,6 +5,8 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["@resvg/resvg-js"]
+  included_files = ["netlify/functions/fonts/**"]
 
 [[headers]]
   for = "/*"
@@ -555,6 +557,22 @@
   to = "/ads.txt"
   status = 200
   force = false
+
+# ── OG image generation (suburb/city/state cards) ────────────────────────────
+[[redirects]]
+  from = "/og/suburb"
+  to = "/.netlify/functions/og-image"
+  status = 200
+
+[[redirects]]
+  from = "/og/city"
+  to = "/.netlify/functions/og-image"
+  status = 200
+
+[[redirects]]
+  from = "/og/state"
+  to = "/.netlify/functions/og-image"
+  status = 200
 
 # ── Catch-all 404 ────────────────────────────────────────────────────────────
 [[redirects]]

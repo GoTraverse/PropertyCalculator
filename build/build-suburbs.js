@@ -2134,8 +2134,13 @@ for (const s of suburbs) {
   if (isNoindexed) stateIndexStats[s.state].noindexed++;
   else stateIndexStats[s.state].indexed++;
 
+  const ogImageUrl = escHtml('https://equitysight.app/og/suburb?name=' + encodeURIComponent(s.suburb) + '&state=' + encodeURIComponent(s.state) + '&pc=' + encodeURIComponent(pc));
+  const ogImageAlt = escHtml(s.suburb + ', ' + s.state_name + ' — Property Market & Investment Data | EquitySight');
+
   let html = SUBURB_TPL
     .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, ogImageUrl)
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, ogImageAlt)
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
     .replace(/\{\{STATE\}\}/g, escHtml(s.state))
     .replace(/\{\{STATE_LOWER\}\}/g, s.state.toLowerCase())
@@ -2215,7 +2220,12 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
     `      <a href="/suburb/${cStateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
+  const cityOgUrl = escHtml('https://equitysight.app/og/city?name=' + encodeURIComponent(cityName) + '&state=' + encodeURIComponent(state) + '&type=city');
+  const cityOgAlt = escHtml(cityName + ', ' + cStateName + ' — Property Investment Insights | EquitySight');
+
   let cityHtml = CITY_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, cityOgUrl)
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, cityOgAlt)
     .replace(/\{\{CITY\}\}/g, escHtml(cityName))
     .replace(/\{\{CITY_SLUG\}\}/g, cSlug)
     .replace(/\{\{STATE\}\}/g, escHtml(state))
@@ -2288,7 +2298,12 @@ for (const state of allStates) {
     ? `<details class="hub-reference-drawer">\n    <summary>All localities in ${escHtml(stateName)} (${fmt(reference.length)} additional)</summary>\n    <p class="hub-reference-note">Smaller localities without enough data for a full property profile. Links stay available for research.</p>\n    <div class="hub-reference-list">\n${referenceListHTML}\n    </div>\n  </details>`
     : '';
 
+  const hubOgUrl = escHtml('https://equitysight.app/og/state?name=' + encodeURIComponent(stateName) + '&state=' + encodeURIComponent(state) + '&type=state');
+  const hubOgAlt = escHtml(stateName + ' — Property Investment Insights | EquitySight');
+
   let html = HUB_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, hubOgUrl)
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, hubOgAlt)
     .replace(/\{\{STATE\}\}/g, escHtml(state))
     .replace(/\{\{STATE_LOWER\}\}/g, stateLower)
     .replace(/\{\{STATE_NAME\}\}/g, escHtml(stateName))
