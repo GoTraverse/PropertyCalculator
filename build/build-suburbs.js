@@ -32,6 +32,14 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase());
 }
 
+function ogImageUrl(name, state, postcode, type) {
+  const base = 'https://equitysight.app/.netlify/functions/og-image';
+  const params = new URLSearchParams({ suburb: name, state: state });
+  if (postcode) params.set('postcode', postcode);
+  if (type && type !== 'suburb') params.set('type', type);
+  return base + '?' + params.toString();
+}
+
 // ── Locator card (replaces the old Google Maps iframe — see PR shipping
 //    `<div class="suburb-locator">` for context) ───────────────────────────
 const STATE_OUTLINES = require('../data/state-outlines');
@@ -2177,7 +2185,8 @@ for (const s of suburbs) {
     .replace(/\{\{REVIEWS_HTML\}\}/g, isNoindexed ? '' : generateReviewsBlock(s.state, s.slug, s.suburb))
     .replace(/\{\{AGGREGATE_RATING_JSON\}\}/g, isNoindexed ? '' : generateAggregateRatingJson(s.state, s.slug, s.suburb))
     .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, generateRelatedHTML(related, s.state))
-    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state));
+    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state))
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, ogImageUrl(s.suburb, s.state, pc));
 
   const outDir = path.join(ROOT, 'suburb', s.state.toLowerCase(), s.slug);
   fs.mkdirSync(outDir, { recursive: true });
@@ -2232,7 +2241,8 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
     .replace(/\{\{TOP_SUBURBS_HTML\}\}/g, generateTopSuburbsHTML(citySubs, state))
     .replace(/\{\{SUBURB_COUNT\}\}/g, citySubs.length)
     .replace(/\{\{SUBURB_LIST_HTML\}\}/g, citySuburbListHTML)
-    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(state));
+    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(state))
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, ogImageUrl(cityName, state, '', 'city'));
 
   const cityOutDir = path.join(ROOT, 'invest', cStateLower, cSlug);
   fs.mkdirSync(cityOutDir, { recursive: true });
@@ -2297,7 +2307,8 @@ for (const state of allStates) {
     .replace(/\{\{STATE_NAV_HTML\}\}/g, stateNavHTML)
     .replace(/\{\{CITY_NAV_HTML\}\}/g, cityNavHTML)
     .replace(/\{\{SUBURB_LIST_HTML\}\}/g, featuredListHTML)
-    .replace(/\{\{REFERENCE_DRAWER_HTML\}\}/g, referenceDrawerHTML);
+    .replace(/\{\{REFERENCE_DRAWER_HTML\}\}/g, referenceDrawerHTML)
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, ogImageUrl(stateName, state, '', 'state'));
 
   const outDir = path.join(ROOT, 'invest', stateLower);
   fs.mkdirSync(outDir, { recursive: true });
