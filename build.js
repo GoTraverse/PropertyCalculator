@@ -152,5 +152,11 @@ async function buildBlog() {
     await buildSuburbs();
   }
   await buildBlog();
+  // Soft validation — never blocks the deploy. Catches sitemap-core staleness.
+  try {
+    execSync('node build/audit-sitemap.js', { stdio: 'inherit' });
+  } catch (e) {
+    console.warn('[build] Sitemap audit reported issues (non-blocking):', e.message);
+  }
   console.log('[build] Done.');
 })();
