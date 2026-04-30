@@ -71,21 +71,21 @@
     <div class="cost-input-grid">
       <div class="cost-inputs-left">
         <div class="tool-field">
-          <label class="tool-label">Purchase Price</label>
+          <label class="tool-label" for="purchasePrice">Purchase Price</label>
           <input type="number" id="purchasePrice" class="tool-input" value="550000" min="0" step="10000">
         </div>
         <div class="tool-field">
-          <label class="tool-label">Your Deposit %</label>
+          <label class="tool-label" for="depositPct">Your Deposit %</label>
           <input type="number" id="depositPct" class="tool-input" value="10" min="0" max="100" step="0.5">
         </div>
         <div class="tool-field">
-          <label class="tool-label">Loan Amount (auto)</label>
-          <input type="number" id="loanAmount" class="tool-input" value="495000" min="0" step="10000" readonly style="opacity:0.6;">
+          <label class="tool-label" for="loanAmount">Loan Amount (auto)</label>
+          <input type="number" id="loanAmount" class="tool-input" value="495000" min="0" step="10000" readonly aria-readonly="true" style="opacity:0.85;">
         </div>
       </div>
       <div class="cost-inputs-right">
         <div class="tool-field">
-          <label class="tool-label">State</label>
+          <label class="tool-label" for="state">State</label>
           <select id="state" class="tool-select">
             <option value="NSW">New South Wales (NSW)</option>
             <option value="VIC">Victoria (VIC)</option>
@@ -114,11 +114,11 @@
 
     <div id="rentGroup" style="display: none;">
       <div class="tool-field">
-        <label class="tool-label">Weekly Rent</label>
+        <label class="tool-label" for="weeklyRent">Weekly Rent</label>
         <input type="number" id="weeklyRent" class="tool-input" value="500" min="0" step="10">
       </div>
       <div class="tool-field">
-        <label class="tool-label">Lease Break Cost</label>
+        <label class="tool-label" for="leaseBreak">Lease Break Cost</label>
         <input type="number" id="leaseBreak" class="tool-input" value="2000" min="0" step="100">
       </div>
     </div>

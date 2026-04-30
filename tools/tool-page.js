@@ -104,7 +104,7 @@ var ToolPage = (function() {
     root.innerHTML =
       '<div class="tool-cta" id="cta" style="display:none">' +
         '<div class="tool-cta-eye">' + escHtml(cfg.eyebrow || 'Go deeper') + '</div>' +
-        '<h3>' + escHtml(cfg.title) + '</h3>' +
+        '<h2>' + escHtml(cfg.title) + '</h2>' +
         '<p>' + escHtml(cfg.description) + '</p>' +
         '<a href="' + escHtml(cfg.buttonHref || '/login?tab=signup') + '" class="tool-cta-btn">' +
           escHtml(cfg.buttonText || 'Get started free \u2192') +
@@ -115,11 +115,11 @@ var ToolPage = (function() {
   function renderResources(root, cfg) {
     if (!cfg || !cfg.groups) return;
     var html = '<div class="tool-resources">' +
-      '<h3 class="tool-resources-title">\uD83D\uDCDA Government Resources & Further Reading</h3>' +
+      '<h2 class="tool-resources-title">\uD83D\uDCDA Government Resources & Further Reading</h2>' +
       '<div class="tool-resources-grid">';
 
     cfg.groups.forEach(function(group) {
-      html += '<div><h4>' + group.icon + ' ' + escHtml(group.title) + '</h4><ul>';
+      html += '<div><h3>' + group.icon + ' ' + escHtml(group.title) + '</h3><ul>';
       group.links.forEach(function(link) {
         html += '<li><a href="' + escHtml(link.href) + '" target="_blank" rel="noopener">' + escHtml(link.text) + '</a></li>';
       });
@@ -143,7 +143,7 @@ var ToolPage = (function() {
     var liSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>';
     root.innerHTML =
       '<div class="tool-share">' +
-        '<h3>Share This Calculator</h3>' +
+        '<h2>Share This Calculator</h2>' +
         '<div class="tool-share-btns">' +
           '<a href="https://www.facebook.com/sharer/sharer.php?u=' + url + '" target="_blank" rel="noopener" class="tool-share-btn tool-share-facebook">' + fbSvg + ' Facebook</a>' +
           '<a href="https://twitter.com/intent/tweet?url=' + url + '&text=' + text + '" target="_blank" rel="noopener" class="tool-share-btn tool-share-x">' + xSvg + ' Post</a>' +
@@ -205,7 +205,7 @@ var ToolPage = (function() {
 
   function renderRelated(root, links) {
     if (!links || !links.length) return;
-    var html = '<div class="tool-related"><h3>\uD83D\uDD17 Related Calculators</h3><div class="tool-related-grid">';
+    var html = '<div class="tool-related"><h2>\uD83D\uDD17 Related Calculators</h2><div class="tool-related-grid">';
     links.forEach(function(link) {
       html += '<a href="' + escHtml(link.href) + '" class="tool-related-link">' + link.icon + ' ' + escHtml(link.label) + '</a>';
     });
@@ -216,7 +216,7 @@ var ToolPage = (function() {
   function renderExamples(root, cfg) {
     if (!cfg || !cfg.length) return;
     var html = '<div class="tool-examples">' +
-      '<h3>\uD83D\uDCD0 Example Calculations</h3>' +
+      '<h2>\uD83D\uDCD0 Example Calculations</h2>' +
       '<div class="tool-examples-grid">';
     cfg.forEach(function(ex) {
       html += '<div class="tool-example-card">';
@@ -243,7 +243,7 @@ var ToolPage = (function() {
 
   function renderFAQ(root, cfg) {
     if (!cfg || !cfg.length) return;
-    var html = '<div class="tool-faq"><h3>\u2754 Frequently Asked Questions</h3>';
+    var html = '<div class="tool-faq"><h2>\u2754 Frequently Asked Questions</h2>';
     cfg.forEach(function(qa) {
       html += '<details class="tool-faq-item">' +
         '<summary class="tool-faq-q">' + escHtml(qa.q) + '</summary>' +
@@ -274,9 +274,9 @@ var ToolPage = (function() {
       if (!groups[g]) { groups[g] = []; order.push(g); }
       groups[g].push(link);
     });
-    var html = '<div class="tool-useful-links"><h3>\uD83D\uDD17 Useful Links</h3><div class="tool-useful-grid">';
+    var html = '<div class="tool-useful-links"><h2>\uD83D\uDD17 Useful Links</h2><div class="tool-useful-grid">';
     order.forEach(function(g) {
-      html += '<div class="tool-useful-group"><h4>' + escHtml(g) + '</h4><ul>';
+      html += '<div class="tool-useful-group"><h3>' + escHtml(g) + '</h3><ul>';
       groups[g].forEach(function(l) {
         html += '<li><a href="' + escHtml(l.href) + '" class="tool-useful-link">' + (l.icon || '\u2192') + ' ' + escHtml(l.label) + '</a></li>';
       });

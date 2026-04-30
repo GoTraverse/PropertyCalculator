@@ -115,12 +115,12 @@
 
       <div id="contact-form">
         <div class="form-row">
-          <div class="cf-field"><label class="cf-label">First name</label><input class="cf-input" id="cf-fname" type="text" placeholder="Jamie"></div>
-          <div class="cf-field"><label class="cf-label">Last name</label><input class="cf-input" id="cf-lname" type="text" placeholder="Smith"></div>
+          <div class="cf-field"><label class="cf-label" for="cf-fname">First name</label><input class="cf-input" id="cf-fname" type="text" placeholder="Jamie"></div>
+          <div class="cf-field"><label class="cf-label" for="cf-lname">Last name</label><input class="cf-input" id="cf-lname" type="text" placeholder="Smith"></div>
         </div>
-        <div class="cf-field"><label class="cf-label">Email</label><input class="cf-input" id="cf-email" type="email" placeholder="demo@example.com"></div>
+        <div class="cf-field"><label class="cf-label" for="cf-email">Email</label><input class="cf-input" id="cf-email" type="email" placeholder="demo@example.com"></div>
         <div class="cf-field">
-          <label class="cf-label">Subject</label>
+          <label class="cf-label" for="cf-subject">Subject</label>
           <select class="cf-select" id="cf-subject">
             <option value="">Select a topic...</option>
             <option value="general">General question</option>
@@ -131,7 +131,7 @@
             <option value="other">Other</option>
           </select>
         </div>
-        <div class="cf-field"><label class="cf-label">Message</label><textarea class="cf-textarea" id="cf-message" placeholder="Tell us what's on your mind..."></textarea></div>
+        <div class="cf-field"><label class="cf-label" for="cf-message">Message</label><textarea class="cf-textarea" id="cf-message" placeholder="Tell us what's on your mind..."></textarea></div>
         <div style="font-size:12px;color:var(--slate);margin-bottom:16px;line-height:1.5;">By submitting this form you agree to our <a href="/privacy" style="color:var(--gold);">Privacy Policy</a>. We'll only use your email to respond to your enquiry.</div>
         <button class="cf-submit" id="cf-submit">Send Message →</button>
         <div style="font-size:12px;color:#E8956A;margin-top:8px;min-height:18px;font-family:var(--font-mono);" id="cf-error"></div>
