@@ -2279,6 +2279,130 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
   cityCount++;
 }
 
+// ── State-hub content generators ──
+
+const stateMarketSummaries = {
+  QLD: {
+    body: `Queensland's property market is driven by population growth, a positive interstate migration balance, and lifestyle-led demand from Brisbane, the Gold Coast, and the Sunshine Coast. Owner-occupiers benefit from the QLD home concession (saves up to $7,175 in transfer duty) and first home buyers can claim full exemption to $500,000.`,
+    fhbThreshold: '$500,000 (full exemption)',
+    revenueOffice: 'Queensland Revenue Office (QRO)',
+    revenueOfficeUrl: 'https://qro.qld.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  NSW: {
+    body: `New South Wales is Australia's largest property market by capital value, anchored by Sydney's tier-one global-city economy. NSW Revenue applies progressive transfer duty (1.25%–7.0%) with first home buyer exemptions up to $800,000 and concessions to $1,000,000. Foreign buyers pay an additional 8% surcharge.`,
+    fhbThreshold: '$800,000 (full exemption), $1,000,000 (sliding concession)',
+    revenueOffice: 'NSW Revenue',
+    revenueOfficeUrl: 'https://www.revenue.nsw.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  VIC: {
+    body: `Victoria's property market is dominated by Melbourne, Australia's second-largest city, with strong satellite markets in Geelong, Ballarat, and Bendigo. The Victorian SRO charges progressive duty (1.4%–6.5%) and first home buyers are exempt up to $600,000 with concessions to $750,000. Foreign buyers pay 8% in addition.`,
+    fhbThreshold: '$600,000 (full exemption), $750,000 (sliding concession)',
+    revenueOffice: 'State Revenue Office Victoria',
+    revenueOfficeUrl: 'https://www.sro.vic.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  SA: {
+    body: `South Australia's property market is centred on Adelaide, with growing regional centres along the Yorke and Fleurieu peninsulas. SA's RevenueSA charges duty from 1.5%–4.0%. First home buyers pay no stamp duty up to $575,000 with concessions to $650,000.`,
+    fhbThreshold: '$575,000 (full exemption), $650,000 (sliding concession)',
+    revenueOffice: 'RevenueSA',
+    revenueOfficeUrl: 'https://www.revenuesa.sa.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  WA: {
+    body: `Western Australia's property market is anchored by Perth and supported by mining-driven regional centres. WA charges some of the lowest duty rates nationally (1.0%–4.75%). First home buyers are exempt up to $430,000 with concessions to $500,000. The foreign buyer surcharge is 7%, the lowest of any state with one.`,
+    fhbThreshold: '$430,000 (full exemption), $500,000 (sliding concession)',
+    revenueOffice: 'WA Department of Finance',
+    revenueOfficeUrl: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty',
+    foreignSurcharge: '7%'
+  },
+  TAS: {
+    body: `Tasmania's property market is driven by Hobart and Launceston, with lifestyle-led migration from mainland states keeping demand resilient. Tasmania has higher headline duty rates (3.6%–4.75%) but no foreign buyer surcharge — the only Australian state with neither. First home buyers receive a full concession up to $400,000.`,
+    fhbThreshold: '$400,000 (full concession), $500,000 (sliding partial)',
+    revenueOffice: 'State Revenue Office Tasmania',
+    revenueOfficeUrl: 'https://www.sro.tas.gov.au/',
+    foreignSurcharge: '0% (no surcharge)'
+  },
+  ACT: {
+    body: `The Australian Capital Territory has the most generous first home buyer concession in the country — full exemption on properties up to $1,000,000. Standard duty rates (1.25%–3.5%) are also relatively low. The territory's market is dominated by Canberra, supported by stable Commonwealth Government employment.`,
+    fhbThreshold: '$1,000,000 (full exemption)',
+    revenueOffice: 'ACT Revenue Office',
+    revenueOfficeUrl: 'https://www.revenue.act.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  NT: {
+    body: `The Northern Territory has the lowest standard stamp duty rates in Australia (0.75%–2.5%), reflecting its smaller population and government policy to attract residents. First home buyer concessions apply up to $650,000. The market is dominated by Darwin, with regional centres in Alice Springs and Katherine.`,
+    fhbThreshold: '$650,000 (sliding concession)',
+    revenueOffice: 'NT Revenue Office',
+    revenueOfficeUrl: 'https://treasury.nt.gov.au/dtf/territory-revenue-office',
+    foreignSurcharge: '8%'
+  }
+};
+
+function generateStateOverviewHTML(state, stateName, stateSubs) {
+  const summary = stateMarketSummaries[state] || { body: `${stateName} is one of Australia's eight states and territories.` };
+  const totalPop = stateSubs.reduce((a, s) => a + (s.population || 0), 0);
+  const incSubs = stateSubs.filter(s => s.median_household_income);
+  const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
+  const dataSentence = `Across ${fmt(stateSubs.length)} ${stateName} suburbs in our database, the combined usual resident population is approximately ${fmt(totalPop)}${avgInc ? `, and the average median household income across suburbs is $${fmt(avgInc)}/year` : ''}.`;
+  return `<p>${summary.body}</p><p>${dataSentence}</p>`;
+}
+
+function generateStateStatsHTML(state, stateName, stateSubs) {
+  const summary = stateMarketSummaries[state] || {};
+  const totalPop = stateSubs.reduce((a, s) => a + (s.population || 0), 0);
+  const indexable = stateSubs.filter(s => !shouldNoindex(s)).length;
+  const incSubs = stateSubs.filter(s => s.median_household_income);
+  const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
+  const rentSubs = stateSubs.filter(s => s.median_rent_weekly);
+  const medRent = rentSubs.length ? Math.round(rentSubs.reduce((a, s) => a + s.median_rent_weekly, 0) / rentSubs.length) : null;
+  const rows = [
+    ['Total suburbs in database', fmt(stateSubs.length)],
+    ['Featured suburb profiles', fmt(indexable)],
+    ['Combined population', fmt(totalPop)],
+    avgInc ? ['Average median household income', `$${fmt(avgInc)}/year`] : null,
+    medRent ? ['Average median weekly rent', `$${fmt(medRent)}/week`] : null,
+    summary.fhbThreshold ? ['First home buyer concession', summary.fhbThreshold] : null,
+    summary.foreignSurcharge ? ['Foreign buyer surcharge', summary.foreignSurcharge] : null,
+    summary.revenueOffice ? ['Revenue office', `<a href="${summary.revenueOfficeUrl}" target="_blank" rel="noopener">${escHtml(summary.revenueOffice)} →</a>`] : null
+  ].filter(Boolean);
+  return `<table class="state-stats-table" style="width:100%;border-collapse:collapse;margin:8px 0">`
+    + `<tbody>` + rows.map(([k, v]) => `<tr><th style="text-align:left;padding:8px;border-bottom:1px solid currentColor;font-weight:500">${k}</th><td style="text-align:right;padding:8px;border-bottom:1px solid currentColor">${v}</td></tr>`).join('') + `</tbody></table>`;
+}
+
+function generateStateFaqHTML(state, stateName, stateSubs) {
+  const summary = stateMarketSummaries[state] || {};
+  const incSubs = stateSubs.filter(s => s.median_household_income);
+  const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
+  const indexable = stateSubs.filter(s => !shouldNoindex(s)).length;
+  const faqs = [
+    {
+      q: `How many suburbs are profiled for ${stateName}?`,
+      a: `EquitySight publishes ${fmt(indexable)} featured suburb profiles for ${stateName}, drawn from a wider catalogue of ${fmt(stateSubs.length)} localities. Featured profiles include population, household income, dwelling mix, amenity counts, an investment score, a buy-and-hold versus yield versus value-add strategy verdict, comparison against state medians, and a 2026 outlook.`
+    },
+    {
+      q: `What stamp duty applies to ${stateName} property?`,
+      a: `${stateName} stamp duty (transfer duty) is collected by the ${summary.revenueOffice || 'state revenue office'}. The first home buyer concession threshold is ${summary.fhbThreshold || 'set per state'}. Foreign buyer surcharge: ${summary.foreignSurcharge || 'check with the revenue office'}. Use our <a href="/tools/stamp-duty-calculator">all-states stamp duty calculator</a>${state === 'QLD' ? ' or the dedicated <a href="/tools/stamp-duty-calculator-qld">QLD stamp duty calculator</a>' : ''} for an exact figure.`
+    },
+    {
+      q: `What's the average household income across ${stateName} suburbs?`,
+      a: avgInc
+        ? `The average median household income across ${fmt(incSubs.length)} ${stateName} suburbs in our dataset is approximately $${fmt(avgInc)} per year. Income varies significantly by suburb — inner-city and middle-ring suburbs typically run 20–40% above this average, while regional and outer-metro localities run below.`
+        : `Income data is incomplete for ${stateName} in our current dataset. Individual suburb pages show median household income where it has been recorded.`
+    },
+    {
+      q: `Which ${stateName} suburbs are best for property investment?`,
+      a: `"Best" depends on whether you are targeting capital growth, rental yield, or value-add renovation. Each ${stateName} suburb profile on EquitySight scores the suburb 0–100 across six factors (income, distance to CBD, suburb type, transport, amenities, rent) and recommends a primary investment strategy. Browse the featured suburb list above, sorted by population, or use the search box to filter by name or postcode.`
+    },
+    {
+      q: `When was the data on these ${stateName} pages last updated?`,
+      a: `Suburb-level Census data (population, household income, median rent, dwelling type) is sourced from the ABS 2021 Census of Population and Housing — the latest available. Stamp duty rates and FHB thresholds are kept current to the 2025–26 financial year. Live market data integration (Domain API for current sale prices and listings) is rolling out incrementally.`
+    }
+  ];
+  return faqs.map(f => `<details class="suburb-faq-item"><summary>${escHtml(f.q)}</summary><div class="suburb-faq-detail"><p>${f.a}</p></div></details>`).join('\n    ');
+}
+
 // ── Build state hub pages ──
 
 let hubCount = 0;
@@ -2327,6 +2451,10 @@ for (const state of allStates) {
     ? `<details class="hub-reference-drawer">\n    <summary>All localities in ${escHtml(stateName)} (${fmt(reference.length)} additional)</summary>\n    <p class="hub-reference-note">Smaller localities without enough data for a full property profile. Links stay available for research.</p>\n    <div class="hub-reference-list">\n${referenceListHTML}\n    </div>\n  </details>`
     : '';
 
+  const stateOverviewHTML = generateStateOverviewHTML(state, stateName, stateSuburbs);
+  const stateStatsHTML    = generateStateStatsHTML(state, stateName, stateSuburbs);
+  const stateFaqHTML      = generateStateFaqHTML(state, stateName, stateSuburbs);
+
   let html = HUB_TPL
     .replace(/\{\{STATE\}\}/g, escHtml(state))
     .replace(/\{\{STATE_LOWER\}\}/g, stateLower)
@@ -2335,6 +2463,9 @@ for (const state of allStates) {
     .replace(/\{\{TOTAL_SUBURB_COUNT\}\}/g, fmt(stateSuburbs.length))
     .replace(/\{\{STATE_NAV_HTML\}\}/g, stateNavHTML)
     .replace(/\{\{CITY_NAV_HTML\}\}/g, cityNavHTML)
+    .replace(/\{\{STATE_OVERVIEW_HTML\}\}/g, stateOverviewHTML)
+    .replace(/\{\{STATE_STATS_HTML\}\}/g, stateStatsHTML)
+    .replace(/\{\{STATE_FAQ_HTML\}\}/g, stateFaqHTML)
     .replace(/\{\{SUBURB_LIST_HTML\}\}/g, featuredListHTML)
     .replace(/\{\{REFERENCE_DRAWER_HTML\}\}/g, referenceDrawerHTML);
 
