@@ -32,12 +32,12 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase());
 }
 
-// SEO title builder. Target: under 60 chars (Google desktop SERP).
-// Falls back through descriptor variants when the prefix is long.
+// SEO title builder. Target: under 55 chars to fit mobile SERP width
+// (Google desktop SERP cuts at ~60). Falls back through descriptor variants
+// when the prefix is long, then truncates to bare prefix as last resort.
 function buildSuburbTitle(suburb, state, postcode) {
   const prefix = postcode ? `${suburb}, ${state} ${postcode}` : `${suburb}, ${state}`;
   const variants = [
-    ' – Property Data, Median Price & Rental Yield | EquitySight',
     ' – Property Data, Median Price & Rental Yield',
     ' – Property Data, Price & Yield',
     ' – Property Data',
@@ -45,7 +45,7 @@ function buildSuburbTitle(suburb, state, postcode) {
   ];
   for (const v of variants) {
     const t = prefix + v;
-    if (t.length < 60) return t;
+    if (t.length < 55) return t;
   }
   return prefix;
 }
