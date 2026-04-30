@@ -28,6 +28,7 @@
   var SUPPRESS_CONTAINS = [
     '["@context"]',
     "['@context']",
+    'ga-audiences',
   ];
 
   function shouldSuppress(msg) {
