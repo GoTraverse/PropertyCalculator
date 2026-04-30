@@ -266,7 +266,7 @@ function generateOverview(s) {
   }
 
   const incomeDesc = s.median_household_income
-    ? ` The median household income is $${fmt(s.median_household_income)} AUD per year (ABS 2021 Census).`
+    ? ` The median household income is $${fmt(s.median_household_income)} per year.`
     : '';
 
   return `${s.suburb} is ${typeLabel}, Australia, with a population of approximately ${fmt(s.population)}, making it ${popDesc}.${distSentence} ${s.suburb} is a ${s.suburb_type.replace('-', ' ')} area in ${s.state_name}.${incomeDesc}`;
@@ -301,7 +301,7 @@ function generateInsight(s, sm) {
       parts.push(`${s.suburb} is a smaller community of ${fmt(pop)} — about ${Math.round(ratio * 100)}% of the ${s.state_name} suburb median (${fmt(sm.population)}) — so investors should factor in the narrower buyer pool and longer average time-on-market.`);
     }
   } else {
-    parts.push(`${s.suburb} has a usual resident population of approximately ${fmt(pop)} (ABS 2021), which sets the upper bound on both the tenant pool and the frequency of comparable sales.`);
+    parts.push(`${s.suburb} has a usual resident population of approximately ${fmt(pop)}, which sets the upper bound on both the tenant pool and the frequency of comparable sales.`);
   }
 
   // Income vs state median (real delta, suburb-specific)
@@ -335,7 +335,7 @@ function generateInsight(s, sm) {
       parts.push(`Weekly rent of $${fmt(rent)} covers just ${coverage}% of the median $${fmt(mort)}/month mortgage repayment, leaving a $${fmt(gap)}/month gap — investors should only pursue this suburb with a clear capital-growth thesis and sufficient external income to fund the shortfall.`);
     }
   } else if (rent) {
-    parts.push(`The median weekly rent of $${fmt(rent)} (ABS 2021) translates to approximately $${fmt(rent * 52)}/year in gross rental income, setting the upper bound on yield before vacancy, rates, insurance and maintenance.`);
+    parts.push(`The median weekly rent of $${fmt(rent)} translates to approximately $${fmt(rent * 52)}/year in gross rental income, setting the upper bound on yield before vacancy, rates, insurance and maintenance.`);
   }
 
   // Distance to CBD with real km
@@ -387,7 +387,7 @@ function generateFAQ(s, sm) {
   // 1. Investment rating
   faqs.push({
     q: `Is ${s.suburb} a good suburb for investment?`,
-    a: `${name} scores ${scoreN}/100 on our EquitySight investment framework — a ${scoreLabel} rating. That score is driven by a population of ${fmt(pop)}${inc ? `, median household income of $${fmt(inc)}/year` : ''}${rent ? ` and median weekly rent of $${fmt(rent)}` : ''} (ABS 2021 Census). Whether it fits your portfolio depends on whether you are targeting cash flow, capital growth, or a value-add renovation — all three are scored with suburb-specific numbers elsewhere on this page.`,
+    a: `${name} scores ${scoreN}/100 on our EquitySight investment framework — a ${scoreLabel} rating. That score is driven by a population of ${fmt(pop)}${inc ? `, median household income of $${fmt(inc)}/year` : ''}${rent ? ` and median weekly rent of $${fmt(rent)}` : ''}. Whether it fits your portfolio depends on whether you are targeting cash flow, capital growth, or a value-add renovation — all three are scored with suburb-specific numbers elsewhere on this page.`,
   });
 
   // 2. Demand drivers
@@ -405,31 +405,31 @@ function generateFAQ(s, sm) {
   // 3. Population
   faqs.push({
     q: `What is the population of ${s.suburb}?`,
-    a: `The ABS 2021 Census recorded a usual resident population of approximately ${fmt(pop)} for ${name}${sm.population ? `, compared with a ${stateName} suburb median of ${fmt(sm.population)} — placing it in the ${pop > sm.population ? 'upper' : 'lower'} half of the state's suburbs by size` : ''}. Population is the clearest proxy for market depth: more residents mean more transactions and typically a shorter average days-on-market on resale.`,
+    a: `${name} has a usual resident population of approximately ${fmt(pop)}${sm.population ? `, compared with a ${stateName} suburb median of ${fmt(sm.population)} — placing it in the ${pop > sm.population ? 'upper' : 'lower'} half of the state's suburbs by size` : ''}. Population is the clearest proxy for market depth: more residents mean more transactions and typically a shorter average days-on-market on resale.`,
   });
 
   // 4. CBD distance
   faqs.push({
     q: `How far is ${s.suburb} from the ${capital} CBD?`,
     a: dist != null
-      ? `${name} sits ${dist} km straight-line from the ${capital} CBD (calculated from ABS 2021 centroid coordinates). ${dist <= 10 ? 'This is inner-ring territory — pricing competes directly with established ' + capital + ' employment nodes.' : dist <= 25 ? 'This is comfortable commuter territory, with reasonable rail and road access to the city.' : dist <= 50 ? 'This is an outer-metro location; local employment and infrastructure announcements tend to move prices more than CBD connectivity alone.' : 'This is a regional market where CBD distance is only indicative — local industry diversity and commute alternatives matter more.'}`
-      : `ABS 2021 did not capture a reliable centroid for ${name}. Cross-check Google Maps and the state transport authority for current travel times to ${capital}.`,
+      ? `${name} sits ${dist} km straight-line from the ${capital} CBD. ${dist <= 10 ? 'This is inner-ring territory — pricing competes directly with established ' + capital + ' employment nodes.' : dist <= 25 ? 'This is comfortable commuter territory, with reasonable rail and road access to the city.' : dist <= 50 ? 'This is an outer-metro location; local employment and infrastructure announcements tend to move prices more than CBD connectivity alone.' : 'This is a regional market where CBD distance is only indicative — local industry diversity and commute alternatives matter more.'}`
+      : `Centroid coordinates were not captured for ${name}. Cross-check Google Maps and the state transport authority for current travel times to ${capital}.`,
   });
 
   // 5. Median rent
   faqs.push({
     q: `What is the median rent in ${s.suburb}?`,
     a: rent
-      ? `ABS 2021 Census recorded a median weekly rent of $${fmt(rent)} in ${name}, equating to approximately $${fmt(rent * 52)}/year in gross rental income${sm.rent ? ` (state median $${fmt(sm.rent)}/week)` : ''}. Market rents have typically drifted above 2021 figures — verify against current listings on realestate.com.au and Domain before making an offer.`
-      : `ABS 2021 did not capture a clean median rent for ${name}. Benchmark expected weekly rent on realestate.com.au and Domain, or the state rental tribunal's rent dashboard. Most Australian investors target a 4–5% gross yield as a baseline.`,
+      ? `The most recent census recorded a median weekly rent of $${fmt(rent)} in ${name}, equating to approximately $${fmt(rent * 52)}/year in gross rental income${sm.rent ? ` (state median $${fmt(sm.rent)}/week)` : ''}. Market rents have typically drifted above the recorded figure — verify against current listings on realestate.com.au and Domain before making an offer.`
+      : `A reliable median rent was not captured for ${name}. Benchmark expected weekly rent on realestate.com.au and Domain, or the state rental tribunal's rent dashboard. Most Australian investors target a 4–5% gross yield as a baseline.`,
   });
 
   // 6. Mortgage
   faqs.push({
     q: `What is the typical mortgage repayment in ${s.suburb}?`,
     a: mort
-      ? `The median monthly mortgage repayment in ${name} recorded at the ABS 2021 Census was $${fmt(mort)}, or approximately $${fmt(Math.round(mort * 12))}/year${sm.mortgage ? ` (vs $${fmt(sm.mortgage)}/month state median)` : ''}. Stress-test your own borrowing at rates 1–2 percentage points above today's to make sure you can still service the loan through an RBA tightening cycle.`
-      : `ABS 2021 did not capture a clean median mortgage figure for ${name}. Use our <a href="/tools/loan-serviceability-calculator/">loan serviceability calculator</a> to estimate a realistic monthly repayment for your target purchase price and deposit.`,
+      ? `The median monthly mortgage repayment in ${name} is $${fmt(mort)}, or approximately $${fmt(Math.round(mort * 12))}/year${sm.mortgage ? ` (vs $${fmt(sm.mortgage)}/month state median)` : ''}. Stress-test your own borrowing at rates 1–2 percentage points above today's to make sure you can still service the loan through an RBA tightening cycle.`
+      : `A reliable median mortgage figure was not captured for ${name}. Use our <a href="/tools/loan-serviceability-calculator/">loan serviceability calculator</a> to estimate a realistic monthly repayment for your target purchase price and deposit.`,
   });
 
   // 7. Cash-flow math
@@ -439,14 +439,14 @@ function generateFAQ(s, sm) {
     const coverage = Math.round((monthlyRent / mort) * 100);
     faqs.push({
       q: `Is ${s.suburb} cash-flow positive for investors?`,
-      a: `On raw ABS 2021 numbers, a median weekly rent of $${fmt(rent)} works out to $${fmt(monthlyRent)}/month, covering ${coverage}% of the median mortgage repayment of $${fmt(mort)}/month. ${gap > 0
+      a: `A median weekly rent of $${fmt(rent)} works out to $${fmt(monthlyRent)}/month, covering ${coverage}% of the median mortgage repayment of $${fmt(mort)}/month. ${gap > 0
         ? `That leaves a $${fmt(gap)}/month shortfall (around $${fmt(gap * 12)}/year before tax benefits), so a typical owner-occupier-priced property here is negatively geared.`
         : `That means rent exceeds the median repayment by roughly $${fmt(-gap)}/month, so on these numbers ${name} leans cash-flow-positive before accounting for strata, council rates, insurance and maintenance.`} Actual cash flow depends on your deposit, loan terms, ownership costs and marginal tax rate — run the full numbers in our <a href="/tools/rental-yield-calculator/">rental yield calculator</a>.`,
     });
   } else {
     faqs.push({
       q: `Is ${s.suburb} cash-flow positive for investors?`,
-      a: `ABS 2021 data was not complete enough in ${name} to compute a clean rent-to-mortgage coverage. Use current listings to benchmark weekly rent, then plug your expected purchase price into our <a href="/tools/rental-yield-calculator/">rental yield calculator</a> to see whether the investment runs cash-flow positive or negative.`,
+      a: `Census data was not complete enough in ${name} to compute a clean rent-to-mortgage coverage. Use current listings to benchmark weekly rent, then plug your expected purchase price into our <a href="/tools/rental-yield-calculator/">rental yield calculator</a> to see whether the investment runs cash-flow positive or negative.`,
     });
   }
 
@@ -757,7 +757,7 @@ function generateStrategy(s, sm) {
     ryText = `Gross rent of $${fmt(rent)}/week (~$${fmt(rent * 52)}/year) sets the yield ceiling. Cross-check against your purchase price to confirm whether this suburb hits the 4–5% gross yield most Australian investors target.`;
   } else {
     ryIcon = '\u26A0\uFE0F';
-    ryText = `ABS 2021 rental data was not captured for ${s.suburb}. Use current realestate.com.au and Domain listings to triangulate a realistic weekly rent before committing, then feed that number into our rental yield calculator.`;
+    ryText = `Median rental data was not captured for ${s.suburb}. Use current realestate.com.au and Domain listings to triangulate a realistic weekly rent before committing, then feed that number into our rental yield calculator.`;
   }
   strategies.push({ name: 'Rental Yield', icon: ryIcon, text: ryText });
 
@@ -929,7 +929,7 @@ function generateOutlook(s, sm) {
   } else if (rent) {
     parts.push(`Rents sit around $${fmt(rent)}/week, setting the baseline gross rental income at roughly $${fmt(rent * 52)}/year — refine this against current listings before running your numbers.`);
   } else {
-    parts.push(`Rental fundamentals will need to be verified against live listings, as ABS 2021 did not capture a clean median rent for ${s.suburb}.`);
+    parts.push(`Rental fundamentals will need to be verified against live listings, as a clean median rent was not recorded for ${s.suburb}.`);
   }
 
   // Sentiment sentence — pinned to the score
@@ -1013,7 +1013,7 @@ function generateCityOverview(city, state, stateName, subs) {
     : dominantType === 'coastal' ? 'significant coastal lifestyle appeal'
     : 'a diverse regional landscape';
 
-  return `${city} is ${sizeDesc}, home to approximately ${fmt(totalPop)} residents across ${subs.length} suburbs in ${stateName}. The metro area represents ${marketDesc}, with a median household income of $${fmt(avgInc)} per year (ABS 2021 Census). The city features ${typeDesc}, offering varied opportunities for residential property investors.`;
+  return `${city} is ${sizeDesc}, home to approximately ${fmt(totalPop)} residents across ${subs.length} suburbs in ${stateName}. The metro area represents ${marketDesc}, with a median household income of $${fmt(avgInc)} per year. The city features ${typeDesc}, offering varied opportunities for residential property investors.`;
 }
 
 function generateCityScoreHTML(city, state, subs) {
@@ -1544,7 +1544,7 @@ function generateInvestorChecklist(s, sm) {
   if (sm.population) {
     items.push(`<strong>Market depth:</strong> ${fmt(pop)} residents — ${Math.round(pop / sm.population * 100)}% of the ${s.state} suburb median (${fmt(sm.population)}).`);
   } else {
-    items.push(`<strong>Market depth:</strong> ${fmt(pop)} residents (ABS 2021 usual resident population).`);
+    items.push(`<strong>Market depth:</strong> ${fmt(pop)} usual residents.`);
   }
 
   // 2. Income
@@ -1555,7 +1555,7 @@ function generateInvestorChecklist(s, sm) {
   } else if (inc) {
     items.push(`<strong>Purchasing power:</strong> median household income $${fmt(inc)}/year.`);
   } else {
-    items.push(`<strong>Purchasing power:</strong> ABS 2021 household income not captured for this suburb.`);
+    items.push(`<strong>Purchasing power:</strong> household income not captured for this suburb.`);
   }
 
   // 3. Cash-flow coverage
@@ -1566,7 +1566,7 @@ function generateInvestorChecklist(s, sm) {
   } else if (rent) {
     items.push(`<strong>Gross rental income:</strong> $${fmt(rent)}/week, ~$${fmt(rent * 52)}/year.`);
   } else {
-    items.push(`<strong>Gross rental income:</strong> verify via realestate.com.au — ABS 2021 rent data was not captured for this suburb.`);
+    items.push(`<strong>Gross rental income:</strong> verify via realestate.com.au — median rent data was not captured for this suburb.`);
   }
 
   // 4. CBD access
@@ -1583,11 +1583,11 @@ function generateInvestorChecklist(s, sm) {
     const state = sm.housePct != null ? ` (vs ${sm.housePct}% state median)` : '';
     items.push(`<strong>Dwelling mix:</strong> ${housePct}% separate houses — ${label} market${state}.`);
   } else {
-    items.push(`<strong>Dwelling mix:</strong> ABS 2021 dwelling-type split not captured — verify on the ground.`);
+    items.push(`<strong>Home mix:</strong> the housing-type split was not captured — verify on the ground.`);
   }
 
   // 6. Amenities
-  items.push(`<strong>Amenities:</strong> approximately ${schools} school${schools === 1 ? '' : 's'} and ${parks} park${parks === 1 ? '' : 's'} within or near the suburb (ABS 2021 / OpenStreetMap).`);
+  items.push(`<strong>Amenities:</strong> approximately ${schools} school${schools === 1 ? '' : 's'} and ${parks} park${parks === 1 ? '' : 's'} within or near the suburb.`);
 
   // 7. Stress-test buffer
   if (mort) {
@@ -1610,7 +1610,7 @@ function generateInvestorChecklist(s, sm) {
   const lis = items.map(i => `      <li>${i}</li>`).join('\n');
   return `  <section class="suburb-section">
     <h2>Investor Checklist</h2>
-    <p class="suburb-checklist-note">Pre-inspection briefing for ${escHtml(s.suburb)} — every item pulls live from ABS 2021 Census data and can be reconciled against the sources in our <a href="/data-sources">data sources</a> page.</p>
+    <p class="suburb-checklist-note">Pre-inspection briefing for ${escHtml(s.suburb)} — every item is derived from public datasets, with full citations in our <a href="/data-sources">data sources</a> page.</p>
     <ul class="suburb-checklist">
 ${lis}
     </ul>
@@ -2147,12 +2147,12 @@ for (const s of suburbs) {
   const schoolsDetail = schoolNames.length
     ? `<ul class="suburb-amenity-list">${schoolNames.map(n => `<li>${escHtml(n)}</li>`).join('')}</ul>`
       + `<a href="https://www.myschool.edu.au/school-finder?locationSuggestion=${encodeURIComponent(s.suburb + ' ' + s.state)}&radius=10" target="_blank" rel="noopener">View on My School →</a>`
-    : `<p>Estimated ${s.school_count} school${s.school_count !== 1 ? 's' : ''} within or near this suburb based on ABS 2021 data.</p>`
+    : `<p>Estimated ${s.school_count} school${s.school_count !== 1 ? 's' : ''} within or near this suburb.</p>`
       + `<a href="https://www.myschool.edu.au/school-finder?locationSuggestion=${encodeURIComponent(s.suburb + ' ' + s.state)}&radius=10" target="_blank" rel="noopener">Find schools near ${escHtml(s.suburb)} on My School →</a>`;
 
   const parksDetail = parkNames.length
     ? `<ul class="suburb-amenity-list">${parkNames.map(n => `<li>${escHtml(n)}</li>`).join('')}</ul>`
-    : `<p>Estimated ${s.park_count} park${s.park_count !== 1 ? 's' : ''} and green spaces near this suburb. Source: ABS 2021 data.</p>`;
+    : `<p>Estimated ${s.park_count} park${s.park_count !== 1 ? 's' : ''} and green spaces near this suburb.</p>`;
 
   // Data source note for hero
   const dataSourceNote = `ABS 2021 Census · Updated ${BUILD_DATE}`;
@@ -2246,7 +2246,7 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
   if (!cityByState[state]) cityByState[state] = [];
   cityByState[state].push({ name: cityName, slug: cSlug, suburbCount: citySubs.length, population: totalPop });
 
-  const metaDesc = `Property investment insights for ${cityName}, ${cStateName}. ${citySubs.length} suburbs, population ${fmt(totalPop)}, key indicators, investment scores, and 2026 outlook. ABS 2021 Census data.`;
+  const metaDesc = `Property investment insights for ${cityName}, ${cStateName}. ${citySubs.length} suburbs, population ${fmt(totalPop)}, key indicators, investment scores, and 2026 outlook.`;
   const dataSourceNote = `ABS 2021 Census \u00b7 Updated ${BUILD_DATE}`;
 
   // Suburb list cards (reuse state hub pattern)
