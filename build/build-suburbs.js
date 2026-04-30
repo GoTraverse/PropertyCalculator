@@ -32,6 +32,40 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase());
 }
 
+// SEO title builder. Target: under 60 chars (Google desktop SERP).
+// Falls back through descriptor variants when the prefix is long.
+function buildSuburbTitle(suburb, state, postcode) {
+  const prefix = postcode ? `${suburb}, ${state} ${postcode}` : `${suburb}, ${state}`;
+  const variants = [
+    ' – Property Data, Median Price & Rental Yield | EquitySight',
+    ' – Property Data, Median Price & Rental Yield',
+    ' – Property Data, Price & Yield',
+    ' – Property Data',
+    ' Property Profile'
+  ];
+  for (const v of variants) {
+    const t = prefix + v;
+    if (t.length < 60) return t;
+  }
+  return prefix;
+}
+
+// SEO H1 builder.
+function buildSuburbH1(suburb, state, postcode) {
+  return postcode
+    ? `${suburb}, ${state} ${postcode} Property Profile`
+    : `${suburb}, ${state} Property Profile`;
+}
+
+// SEO meta description builder. Target: under 155 chars.
+function buildSuburbMetaDesc(suburb, state) {
+  const full = `See ${suburb} ${state} property data: median house price, rental yield, growth trends and demographics. Free investment analysis tool.`;
+  if (full.length < 155) return full;
+  const trimmed = `See ${suburb} ${state} property data: median price, rental yield, growth trends. Free Australian investment analysis.`;
+  if (trimmed.length < 155) return trimmed;
+  return `${suburb} ${state} property data: median price, rental yield, growth trends.`;
+}
+
 // ── Locator card (replaces the old Google Maps iframe — see PR shipping
 //    `<div class="suburb-locator">` for context) ───────────────────────────
 const STATE_OUTLINES = require('../data/state-outlines');
@@ -2071,8 +2105,11 @@ for (const s of suburbs) {
   const pcKw = pc ? `, ${pc} property` : '';
   const pcDisplay = pc || '—';
 
-  // Meta description — compelling, search-focused
-  const metaDesc = `Explore ${s.suburb}, ${s.state_name} property market data — median house prices, rental yield, capital growth trends and investment insights. Free 2026 suburb profile.`;
+  // SEO title, H1, and meta description — interpolated per-page from data,
+  // built to satisfy Google SERP length budgets (title <60, meta <155).
+  const pageTitle = buildSuburbTitle(s.suburb, s.state, pc);
+  const pageH1    = buildSuburbH1(s.suburb, s.state, pc);
+  const metaDesc  = buildSuburbMetaDesc(s.suburb, s.state);
 
   // Distance display: real km with note, or N/A
   const distDisplay = s.distance_to_cbd != null
@@ -2146,6 +2183,8 @@ for (const s of suburbs) {
     .replace(/\{\{POSTCODE_COMMA\}\}/g, escHtml(pcComma))
     .replace(/\{\{POSTCODE_KW\}\}/g, escHtml(pcKw))
     .replace(/\{\{POSTCODE_DISPLAY\}\}/g, escHtml(pcDisplay))
+    .replace(/\{\{PAGE_TITLE\}\}/g, escHtml(pageTitle))
+    .replace(/\{\{PAGE_H1\}\}/g, escHtml(pageH1))
     .replace(/\{\{META_DESCRIPTION\}\}/g, escHtml(metaDesc))
     .replace(/\{\{OVERVIEW\}\}/g, generateOverview(s))
     .replace(/\{\{POPULATION\}\}/g, fmt(s.population))
