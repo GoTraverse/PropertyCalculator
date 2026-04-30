@@ -260,7 +260,27 @@
 
 [[redirects]]
   from = "/stamp-duty-qld.html"
-  to = "/tools/stamp-duty-calculator"
+  to = "/tools/stamp-duty-calculator-qld"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-qld"
+  to = "/tools/stamp-duty-calculator-qld"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-qld"
+  to = "/tools/stamp-duty-calculator-qld"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-qld.html"
+  to = "/tools/stamp-duty-calculator-qld"
+  status = 301
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator-qld.html"
+  to = "/tools/stamp-duty-calculator-qld"
   status = 301
 
 [[redirects]]

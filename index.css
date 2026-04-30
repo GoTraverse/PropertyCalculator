@@ -687,8 +687,8 @@
 }
 .state-tile-sub {
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: rgba(245,240,232,0.35);
+  font-size: 11px;
+  color: rgba(245,240,232,0.6);
   margin-top: 4px;
   letter-spacing: 0.5px;
 }
@@ -729,7 +729,8 @@
   color: var(--slate);
   margin: 0 0 14px;
 }
-.why-aus-col p a { color: var(--gold); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.why-aus-col p a { color: var(--gold-dark); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+html.dark-mode .why-aus-col p a { color: var(--gold); }
 .why-aus-methodology {
   margin-top: 32px;
   padding-top: 24px;
@@ -738,7 +739,8 @@
   color: var(--slate);
   line-height: 1.7;
 }
-.why-aus-methodology a { color: var(--gold); text-decoration: underline; }
+.why-aus-methodology a { color: var(--gold-dark); text-decoration: underline; }
+html.dark-mode .why-aus-methodology a { color: var(--gold); }
 @media (max-width: 760px) {
   .why-aus-grid { grid-template-columns: 1fr; gap: 28px; }
   .why-aus { padding: 48px 0; }

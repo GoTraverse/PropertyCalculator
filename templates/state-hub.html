@@ -69,6 +69,18 @@
     </div>
   </section>
 
+  <!-- State market overview prose -->
+  <section class="suburb-section">
+    <h2>{{STATE_NAME}} property market overview</h2>
+    {{STATE_OVERVIEW_HTML}}
+  </section>
+
+  <!-- State stats summary -->
+  <section class="suburb-section">
+    <h2>{{STATE_NAME}} at a glance</h2>
+    {{STATE_STATS_HTML}}
+  </section>
+
   <!-- Major Cities -->
   {{CITY_NAV_HTML}}
 
@@ -97,6 +109,12 @@
       <a href="/tools/loan-serviceability-calculator">Loan Serviceability Calculator</a>
       <a href="/tools/mortgage-stress-calculator">Mortgage Stress Test</a>
     </div>
+  </section>
+
+  <!-- State-specific FAQ -->
+  <section class="suburb-section suburb-faq">
+    <h2>{{STATE_NAME}} property FAQ</h2>
+    {{STATE_FAQ_HTML}}
   </section>
 
   <!-- CTA -->

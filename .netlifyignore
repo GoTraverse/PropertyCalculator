@@ -18,6 +18,13 @@ reset-admin-pw.js
 # Dev tooling: Lighthouse CI config
 .lighthouserc.json
 
+# Claude Code on the web — startup hooks, settings, and the auto-installed
+# Lighthouse + Chrome tooling. Never deployed.
+.claude/
+
+# Local dev/audit harness scripts that wrap the Claude tooling
+bin/
+
 # Secrets / VCS / package manifests — defensive blocks (none should be in repo,
 # but publish = "." means anything present on disk gets uploaded by default)
 .env

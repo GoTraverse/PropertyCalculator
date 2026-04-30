@@ -32,6 +32,40 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase());
 }
 
+// SEO title builder. Target: under 55 chars to fit mobile SERP width
+// (Google desktop SERP cuts at ~60). Falls back through descriptor variants
+// when the prefix is long, then truncates to bare prefix as last resort.
+function buildSuburbTitle(suburb, state, postcode) {
+  const prefix = postcode ? `${suburb}, ${state} ${postcode}` : `${suburb}, ${state}`;
+  const variants = [
+    ' – Property Data, Median Price & Rental Yield',
+    ' – Property Data, Price & Yield',
+    ' – Property Data',
+    ' Property Profile'
+  ];
+  for (const v of variants) {
+    const t = prefix + v;
+    if (t.length < 55) return t;
+  }
+  return prefix;
+}
+
+// SEO H1 builder.
+function buildSuburbH1(suburb, state, postcode) {
+  return postcode
+    ? `${suburb}, ${state} ${postcode} Property Profile`
+    : `${suburb}, ${state} Property Profile`;
+}
+
+// SEO meta description builder. Target: under 155 chars.
+function buildSuburbMetaDesc(suburb, state) {
+  const full = `See ${suburb} ${state} property data: median house price, rental yield, growth trends and demographics. Free investment analysis tool.`;
+  if (full.length < 155) return full;
+  const trimmed = `See ${suburb} ${state} property data: median price, rental yield, growth trends. Free Australian investment analysis.`;
+  if (trimmed.length < 155) return trimmed;
+  return `${suburb} ${state} property data: median price, rental yield, growth trends.`;
+}
+
 // ── Locator card (replaces the old Google Maps iframe — see PR shipping
 //    `<div class="suburb-locator">` for context) ───────────────────────────
 const STATE_OUTLINES = require('../data/state-outlines');
@@ -232,7 +266,7 @@ function generateOverview(s) {
   }
 
   const incomeDesc = s.median_household_income
-    ? ` The median household income is $${fmt(s.median_household_income)} AUD per year (ABS 2021 Census).`
+    ? ` The median household income is $${fmt(s.median_household_income)} per year.`
     : '';
 
   return `${s.suburb} is ${typeLabel}, Australia, with a population of approximately ${fmt(s.population)}, making it ${popDesc}.${distSentence} ${s.suburb} is a ${s.suburb_type.replace('-', ' ')} area in ${s.state_name}.${incomeDesc}`;
@@ -267,7 +301,7 @@ function generateInsight(s, sm) {
       parts.push(`${s.suburb} is a smaller community of ${fmt(pop)} — about ${Math.round(ratio * 100)}% of the ${s.state_name} suburb median (${fmt(sm.population)}) — so investors should factor in the narrower buyer pool and longer average time-on-market.`);
     }
   } else {
-    parts.push(`${s.suburb} has a usual resident population of approximately ${fmt(pop)} (ABS 2021), which sets the upper bound on both the tenant pool and the frequency of comparable sales.`);
+    parts.push(`${s.suburb} has a usual resident population of approximately ${fmt(pop)}, which sets the upper bound on both the tenant pool and the frequency of comparable sales.`);
   }
 
   // Income vs state median (real delta, suburb-specific)
@@ -301,7 +335,7 @@ function generateInsight(s, sm) {
       parts.push(`Weekly rent of $${fmt(rent)} covers just ${coverage}% of the median $${fmt(mort)}/month mortgage repayment, leaving a $${fmt(gap)}/month gap — investors should only pursue this suburb with a clear capital-growth thesis and sufficient external income to fund the shortfall.`);
     }
   } else if (rent) {
-    parts.push(`The median weekly rent of $${fmt(rent)} (ABS 2021) translates to approximately $${fmt(rent * 52)}/year in gross rental income, setting the upper bound on yield before vacancy, rates, insurance and maintenance.`);
+    parts.push(`The median weekly rent of $${fmt(rent)} translates to approximately $${fmt(rent * 52)}/year in gross rental income, setting the upper bound on yield before vacancy, rates, insurance and maintenance.`);
   }
 
   // Distance to CBD with real km
@@ -353,7 +387,7 @@ function generateFAQ(s, sm) {
   // 1. Investment rating
   faqs.push({
     q: `Is ${s.suburb} a good suburb for investment?`,
-    a: `${name} scores ${scoreN}/100 on our EquitySight investment framework — a ${scoreLabel} rating. That score is driven by a population of ${fmt(pop)}${inc ? `, median household income of $${fmt(inc)}/year` : ''}${rent ? ` and median weekly rent of $${fmt(rent)}` : ''} (ABS 2021 Census). Whether it fits your portfolio depends on whether you are targeting cash flow, capital growth, or a value-add renovation — all three are scored with suburb-specific numbers elsewhere on this page.`,
+    a: `${name} scores ${scoreN}/100 on our EquitySight investment framework — a ${scoreLabel} rating. That score is driven by a population of ${fmt(pop)}${inc ? `, median household income of $${fmt(inc)}/year` : ''}${rent ? ` and median weekly rent of $${fmt(rent)}` : ''}. Whether it fits your portfolio depends on whether you are targeting cash flow, capital growth, or a value-add renovation — all three are scored with suburb-specific numbers elsewhere on this page.`,
   });
 
   // 2. Demand drivers
@@ -371,31 +405,31 @@ function generateFAQ(s, sm) {
   // 3. Population
   faqs.push({
     q: `What is the population of ${s.suburb}?`,
-    a: `The ABS 2021 Census recorded a usual resident population of approximately ${fmt(pop)} for ${name}${sm.population ? `, compared with a ${stateName} suburb median of ${fmt(sm.population)} — placing it in the ${pop > sm.population ? 'upper' : 'lower'} half of the state's suburbs by size` : ''}. Population is the clearest proxy for market depth: more residents mean more transactions and typically a shorter average days-on-market on resale.`,
+    a: `${name} has a usual resident population of approximately ${fmt(pop)}${sm.population ? `, compared with a ${stateName} suburb median of ${fmt(sm.population)} — placing it in the ${pop > sm.population ? 'upper' : 'lower'} half of the state's suburbs by size` : ''}. Population is the clearest proxy for market depth: more residents mean more transactions and typically a shorter average days-on-market on resale.`,
   });
 
   // 4. CBD distance
   faqs.push({
     q: `How far is ${s.suburb} from the ${capital} CBD?`,
     a: dist != null
-      ? `${name} sits ${dist} km straight-line from the ${capital} CBD (calculated from ABS 2021 centroid coordinates). ${dist <= 10 ? 'This is inner-ring territory — pricing competes directly with established ' + capital + ' employment nodes.' : dist <= 25 ? 'This is comfortable commuter territory, with reasonable rail and road access to the city.' : dist <= 50 ? 'This is an outer-metro location; local employment and infrastructure announcements tend to move prices more than CBD connectivity alone.' : 'This is a regional market where CBD distance is only indicative — local industry diversity and commute alternatives matter more.'}`
-      : `ABS 2021 did not capture a reliable centroid for ${name}. Cross-check Google Maps and the state transport authority for current travel times to ${capital}.`,
+      ? `${name} sits ${dist} km straight-line from the ${capital} CBD. ${dist <= 10 ? 'This is inner-ring territory — pricing competes directly with established ' + capital + ' employment nodes.' : dist <= 25 ? 'This is comfortable commuter territory, with reasonable rail and road access to the city.' : dist <= 50 ? 'This is an outer-metro location; local employment and infrastructure announcements tend to move prices more than CBD connectivity alone.' : 'This is a regional market where CBD distance is only indicative — local industry diversity and commute alternatives matter more.'}`
+      : `Centroid coordinates were not captured for ${name}. Cross-check Google Maps and the state transport authority for current travel times to ${capital}.`,
   });
 
   // 5. Median rent
   faqs.push({
     q: `What is the median rent in ${s.suburb}?`,
     a: rent
-      ? `ABS 2021 Census recorded a median weekly rent of $${fmt(rent)} in ${name}, equating to approximately $${fmt(rent * 52)}/year in gross rental income${sm.rent ? ` (state median $${fmt(sm.rent)}/week)` : ''}. Market rents have typically drifted above 2021 figures — verify against current listings on realestate.com.au and Domain before making an offer.`
-      : `ABS 2021 did not capture a clean median rent for ${name}. Benchmark expected weekly rent on realestate.com.au and Domain, or the state rental tribunal's rent dashboard. Most Australian investors target a 4–5% gross yield as a baseline.`,
+      ? `The most recent census recorded a median weekly rent of $${fmt(rent)} in ${name}, equating to approximately $${fmt(rent * 52)}/year in gross rental income${sm.rent ? ` (state median $${fmt(sm.rent)}/week)` : ''}. Market rents have typically drifted above the recorded figure — verify against current listings on realestate.com.au and Domain before making an offer.`
+      : `A reliable median rent was not captured for ${name}. Benchmark expected weekly rent on realestate.com.au and Domain, or the state rental tribunal's rent dashboard. Most Australian investors target a 4–5% gross yield as a baseline.`,
   });
 
   // 6. Mortgage
   faqs.push({
     q: `What is the typical mortgage repayment in ${s.suburb}?`,
     a: mort
-      ? `The median monthly mortgage repayment in ${name} recorded at the ABS 2021 Census was $${fmt(mort)}, or approximately $${fmt(Math.round(mort * 12))}/year${sm.mortgage ? ` (vs $${fmt(sm.mortgage)}/month state median)` : ''}. Stress-test your own borrowing at rates 1–2 percentage points above today's to make sure you can still service the loan through an RBA tightening cycle.`
-      : `ABS 2021 did not capture a clean median mortgage figure for ${name}. Use our <a href="/tools/loan-serviceability-calculator/">loan serviceability calculator</a> to estimate a realistic monthly repayment for your target purchase price and deposit.`,
+      ? `The median monthly mortgage repayment in ${name} is $${fmt(mort)}, or approximately $${fmt(Math.round(mort * 12))}/year${sm.mortgage ? ` (vs $${fmt(sm.mortgage)}/month state median)` : ''}. Stress-test your own borrowing at rates 1–2 percentage points above today's to make sure you can still service the loan through an RBA tightening cycle.`
+      : `A reliable median mortgage figure was not captured for ${name}. Use our <a href="/tools/loan-serviceability-calculator/">loan serviceability calculator</a> to estimate a realistic monthly repayment for your target purchase price and deposit.`,
   });
 
   // 7. Cash-flow math
@@ -405,14 +439,14 @@ function generateFAQ(s, sm) {
     const coverage = Math.round((monthlyRent / mort) * 100);
     faqs.push({
       q: `Is ${s.suburb} cash-flow positive for investors?`,
-      a: `On raw ABS 2021 numbers, a median weekly rent of $${fmt(rent)} works out to $${fmt(monthlyRent)}/month, covering ${coverage}% of the median mortgage repayment of $${fmt(mort)}/month. ${gap > 0
+      a: `A median weekly rent of $${fmt(rent)} works out to $${fmt(monthlyRent)}/month, covering ${coverage}% of the median mortgage repayment of $${fmt(mort)}/month. ${gap > 0
         ? `That leaves a $${fmt(gap)}/month shortfall (around $${fmt(gap * 12)}/year before tax benefits), so a typical owner-occupier-priced property here is negatively geared.`
         : `That means rent exceeds the median repayment by roughly $${fmt(-gap)}/month, so on these numbers ${name} leans cash-flow-positive before accounting for strata, council rates, insurance and maintenance.`} Actual cash flow depends on your deposit, loan terms, ownership costs and marginal tax rate — run the full numbers in our <a href="/tools/rental-yield-calculator/">rental yield calculator</a>.`,
     });
   } else {
     faqs.push({
       q: `Is ${s.suburb} cash-flow positive for investors?`,
-      a: `ABS 2021 data was not complete enough in ${name} to compute a clean rent-to-mortgage coverage. Use current listings to benchmark weekly rent, then plug your expected purchase price into our <a href="/tools/rental-yield-calculator/">rental yield calculator</a> to see whether the investment runs cash-flow positive or negative.`,
+      a: `Census data was not complete enough in ${name} to compute a clean rent-to-mortgage coverage. Use current listings to benchmark weekly rent, then plug your expected purchase price into our <a href="/tools/rental-yield-calculator/">rental yield calculator</a> to see whether the investment runs cash-flow positive or negative.`,
     });
   }
 
@@ -723,7 +757,7 @@ function generateStrategy(s, sm) {
     ryText = `Gross rent of $${fmt(rent)}/week (~$${fmt(rent * 52)}/year) sets the yield ceiling. Cross-check against your purchase price to confirm whether this suburb hits the 4–5% gross yield most Australian investors target.`;
   } else {
     ryIcon = '\u26A0\uFE0F';
-    ryText = `ABS 2021 rental data was not captured for ${s.suburb}. Use current realestate.com.au and Domain listings to triangulate a realistic weekly rent before committing, then feed that number into our rental yield calculator.`;
+    ryText = `Median rental data was not captured for ${s.suburb}. Use current realestate.com.au and Domain listings to triangulate a realistic weekly rent before committing, then feed that number into our rental yield calculator.`;
   }
   strategies.push({ name: 'Rental Yield', icon: ryIcon, text: ryText });
 
@@ -895,7 +929,7 @@ function generateOutlook(s, sm) {
   } else if (rent) {
     parts.push(`Rents sit around $${fmt(rent)}/week, setting the baseline gross rental income at roughly $${fmt(rent * 52)}/year — refine this against current listings before running your numbers.`);
   } else {
-    parts.push(`Rental fundamentals will need to be verified against live listings, as ABS 2021 did not capture a clean median rent for ${s.suburb}.`);
+    parts.push(`Rental fundamentals will need to be verified against live listings, as a clean median rent was not recorded for ${s.suburb}.`);
   }
 
   // Sentiment sentence — pinned to the score
@@ -979,7 +1013,7 @@ function generateCityOverview(city, state, stateName, subs) {
     : dominantType === 'coastal' ? 'significant coastal lifestyle appeal'
     : 'a diverse regional landscape';
 
-  return `${city} is ${sizeDesc}, home to approximately ${fmt(totalPop)} residents across ${subs.length} suburbs in ${stateName}. The metro area represents ${marketDesc}, with a median household income of $${fmt(avgInc)} per year (ABS 2021 Census). The city features ${typeDesc}, offering varied opportunities for residential property investors.`;
+  return `${city} is ${sizeDesc}, home to approximately ${fmt(totalPop)} residents across ${subs.length} suburbs in ${stateName}. The metro area represents ${marketDesc}, with a median household income of $${fmt(avgInc)} per year. The city features ${typeDesc}, offering varied opportunities for residential property investors.`;
 }
 
 function generateCityScoreHTML(city, state, subs) {
@@ -1510,7 +1544,7 @@ function generateInvestorChecklist(s, sm) {
   if (sm.population) {
     items.push(`<strong>Market depth:</strong> ${fmt(pop)} residents — ${Math.round(pop / sm.population * 100)}% of the ${s.state} suburb median (${fmt(sm.population)}).`);
   } else {
-    items.push(`<strong>Market depth:</strong> ${fmt(pop)} residents (ABS 2021 usual resident population).`);
+    items.push(`<strong>Market depth:</strong> ${fmt(pop)} usual residents.`);
   }
 
   // 2. Income
@@ -1521,7 +1555,7 @@ function generateInvestorChecklist(s, sm) {
   } else if (inc) {
     items.push(`<strong>Purchasing power:</strong> median household income $${fmt(inc)}/year.`);
   } else {
-    items.push(`<strong>Purchasing power:</strong> ABS 2021 household income not captured for this suburb.`);
+    items.push(`<strong>Purchasing power:</strong> household income not captured for this suburb.`);
   }
 
   // 3. Cash-flow coverage
@@ -1532,7 +1566,7 @@ function generateInvestorChecklist(s, sm) {
   } else if (rent) {
     items.push(`<strong>Gross rental income:</strong> $${fmt(rent)}/week, ~$${fmt(rent * 52)}/year.`);
   } else {
-    items.push(`<strong>Gross rental income:</strong> verify via realestate.com.au — ABS 2021 rent data was not captured for this suburb.`);
+    items.push(`<strong>Gross rental income:</strong> verify via realestate.com.au — median rent data was not captured for this suburb.`);
   }
 
   // 4. CBD access
@@ -1549,11 +1583,11 @@ function generateInvestorChecklist(s, sm) {
     const state = sm.housePct != null ? ` (vs ${sm.housePct}% state median)` : '';
     items.push(`<strong>Dwelling mix:</strong> ${housePct}% separate houses — ${label} market${state}.`);
   } else {
-    items.push(`<strong>Dwelling mix:</strong> ABS 2021 dwelling-type split not captured — verify on the ground.`);
+    items.push(`<strong>Home mix:</strong> the housing-type split was not captured — verify on the ground.`);
   }
 
   // 6. Amenities
-  items.push(`<strong>Amenities:</strong> approximately ${schools} school${schools === 1 ? '' : 's'} and ${parks} park${parks === 1 ? '' : 's'} within or near the suburb (ABS 2021 / OpenStreetMap).`);
+  items.push(`<strong>Amenities:</strong> approximately ${schools} school${schools === 1 ? '' : 's'} and ${parks} park${parks === 1 ? '' : 's'} within or near the suburb.`);
 
   // 7. Stress-test buffer
   if (mort) {
@@ -1576,7 +1610,7 @@ function generateInvestorChecklist(s, sm) {
   const lis = items.map(i => `      <li>${i}</li>`).join('\n');
   return `  <section class="suburb-section">
     <h2>Investor Checklist</h2>
-    <p class="suburb-checklist-note">Pre-inspection briefing for ${escHtml(s.suburb)} — every item pulls live from ABS 2021 Census data and can be reconciled against the sources in our <a href="/data-sources">data sources</a> page.</p>
+    <p class="suburb-checklist-note">Pre-inspection briefing for ${escHtml(s.suburb)} — every item is derived from public datasets, with full citations in our <a href="/data-sources">data sources</a> page.</p>
     <ul class="suburb-checklist">
 ${lis}
     </ul>
@@ -2071,8 +2105,11 @@ for (const s of suburbs) {
   const pcKw = pc ? `, ${pc} property` : '';
   const pcDisplay = pc || '—';
 
-  // Meta description — compelling, search-focused
-  const metaDesc = `Explore ${s.suburb}, ${s.state_name} property market data — median house prices, rental yield, capital growth trends and investment insights. Free 2026 suburb profile.`;
+  // SEO title, H1, and meta description — interpolated per-page from data,
+  // built to satisfy Google SERP length budgets (title <60, meta <155).
+  const pageTitle = buildSuburbTitle(s.suburb, s.state, pc);
+  const pageH1    = buildSuburbH1(s.suburb, s.state, pc);
+  const metaDesc  = buildSuburbMetaDesc(s.suburb, s.state);
 
   // Distance display: real km with note, or N/A
   const distDisplay = s.distance_to_cbd != null
@@ -2110,12 +2147,12 @@ for (const s of suburbs) {
   const schoolsDetail = schoolNames.length
     ? `<ul class="suburb-amenity-list">${schoolNames.map(n => `<li>${escHtml(n)}</li>`).join('')}</ul>`
       + `<a href="https://www.myschool.edu.au/school-finder?locationSuggestion=${encodeURIComponent(s.suburb + ' ' + s.state)}&radius=10" target="_blank" rel="noopener">View on My School →</a>`
-    : `<p>Estimated ${s.school_count} school${s.school_count !== 1 ? 's' : ''} within or near this suburb based on ABS 2021 data.</p>`
+    : `<p>Estimated ${s.school_count} school${s.school_count !== 1 ? 's' : ''} within or near this suburb.</p>`
       + `<a href="https://www.myschool.edu.au/school-finder?locationSuggestion=${encodeURIComponent(s.suburb + ' ' + s.state)}&radius=10" target="_blank" rel="noopener">Find schools near ${escHtml(s.suburb)} on My School →</a>`;
 
   const parksDetail = parkNames.length
     ? `<ul class="suburb-amenity-list">${parkNames.map(n => `<li>${escHtml(n)}</li>`).join('')}</ul>`
-    : `<p>Estimated ${s.park_count} park${s.park_count !== 1 ? 's' : ''} and green spaces near this suburb. Source: ABS 2021 data.</p>`;
+    : `<p>Estimated ${s.park_count} park${s.park_count !== 1 ? 's' : ''} and green spaces near this suburb.</p>`;
 
   // Data source note for hero
   const dataSourceNote = `ABS 2021 Census · Updated ${BUILD_DATE}`;
@@ -2146,6 +2183,8 @@ for (const s of suburbs) {
     .replace(/\{\{POSTCODE_COMMA\}\}/g, escHtml(pcComma))
     .replace(/\{\{POSTCODE_KW\}\}/g, escHtml(pcKw))
     .replace(/\{\{POSTCODE_DISPLAY\}\}/g, escHtml(pcDisplay))
+    .replace(/\{\{PAGE_TITLE\}\}/g, escHtml(pageTitle))
+    .replace(/\{\{PAGE_H1\}\}/g, escHtml(pageH1))
     .replace(/\{\{META_DESCRIPTION\}\}/g, escHtml(metaDesc))
     .replace(/\{\{OVERVIEW\}\}/g, generateOverview(s))
     .replace(/\{\{POPULATION\}\}/g, fmt(s.population))
@@ -2207,7 +2246,7 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
   if (!cityByState[state]) cityByState[state] = [];
   cityByState[state].push({ name: cityName, slug: cSlug, suburbCount: citySubs.length, population: totalPop });
 
-  const metaDesc = `Property investment insights for ${cityName}, ${cStateName}. ${citySubs.length} suburbs, population ${fmt(totalPop)}, key indicators, investment scores, and 2026 outlook. ABS 2021 Census data.`;
+  const metaDesc = `Property investment insights for ${cityName}, ${cStateName}. ${citySubs.length} suburbs, population ${fmt(totalPop)}, key indicators, investment scores, and 2026 outlook.`;
   const dataSourceNote = `ABS 2021 Census \u00b7 Updated ${BUILD_DATE}`;
 
   // Suburb list cards (reuse state hub pattern)
@@ -2238,6 +2277,130 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
   fs.mkdirSync(cityOutDir, { recursive: true });
   fs.writeFileSync(path.join(cityOutDir, 'index.html'), cityHtml);
   cityCount++;
+}
+
+// ── State-hub content generators ──
+
+const stateMarketSummaries = {
+  QLD: {
+    body: `Queensland's property market is driven by population growth, a positive interstate migration balance, and lifestyle-led demand from Brisbane, the Gold Coast, and the Sunshine Coast. Owner-occupiers benefit from the QLD home concession (saves up to $7,175 in transfer duty) and first home buyers can claim full exemption to $500,000.`,
+    fhbThreshold: '$500,000 (full exemption)',
+    revenueOffice: 'Queensland Revenue Office (QRO)',
+    revenueOfficeUrl: 'https://qro.qld.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  NSW: {
+    body: `New South Wales is Australia's largest property market by capital value, anchored by Sydney's tier-one global-city economy. NSW Revenue applies progressive transfer duty (1.25%–7.0%) with first home buyer exemptions up to $800,000 and concessions to $1,000,000. Foreign buyers pay an additional 8% surcharge.`,
+    fhbThreshold: '$800,000 (full exemption), $1,000,000 (sliding concession)',
+    revenueOffice: 'NSW Revenue',
+    revenueOfficeUrl: 'https://www.revenue.nsw.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  VIC: {
+    body: `Victoria's property market is dominated by Melbourne, Australia's second-largest city, with strong satellite markets in Geelong, Ballarat, and Bendigo. The Victorian SRO charges progressive duty (1.4%–6.5%) and first home buyers are exempt up to $600,000 with concessions to $750,000. Foreign buyers pay 8% in addition.`,
+    fhbThreshold: '$600,000 (full exemption), $750,000 (sliding concession)',
+    revenueOffice: 'State Revenue Office Victoria',
+    revenueOfficeUrl: 'https://www.sro.vic.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  SA: {
+    body: `South Australia's property market is centred on Adelaide, with growing regional centres along the Yorke and Fleurieu peninsulas. SA's RevenueSA charges duty from 1.5%–4.0%. First home buyers pay no stamp duty up to $575,000 with concessions to $650,000.`,
+    fhbThreshold: '$575,000 (full exemption), $650,000 (sliding concession)',
+    revenueOffice: 'RevenueSA',
+    revenueOfficeUrl: 'https://www.revenuesa.sa.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  WA: {
+    body: `Western Australia's property market is anchored by Perth and supported by mining-driven regional centres. WA charges some of the lowest duty rates nationally (1.0%–4.75%). First home buyers are exempt up to $430,000 with concessions to $500,000. The foreign buyer surcharge is 7%, the lowest of any state with one.`,
+    fhbThreshold: '$430,000 (full exemption), $500,000 (sliding concession)',
+    revenueOffice: 'WA Department of Finance',
+    revenueOfficeUrl: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty',
+    foreignSurcharge: '7%'
+  },
+  TAS: {
+    body: `Tasmania's property market is driven by Hobart and Launceston, with lifestyle-led migration from mainland states keeping demand resilient. Tasmania has higher headline duty rates (3.6%–4.75%) but no foreign buyer surcharge — the only Australian state with neither. First home buyers receive a full concession up to $400,000.`,
+    fhbThreshold: '$400,000 (full concession), $500,000 (sliding partial)',
+    revenueOffice: 'State Revenue Office Tasmania',
+    revenueOfficeUrl: 'https://www.sro.tas.gov.au/',
+    foreignSurcharge: '0% (no surcharge)'
+  },
+  ACT: {
+    body: `The Australian Capital Territory has the most generous first home buyer concession in the country — full exemption on properties up to $1,000,000. Standard duty rates (1.25%–3.5%) are also relatively low. The territory's market is dominated by Canberra, supported by stable Commonwealth Government employment.`,
+    fhbThreshold: '$1,000,000 (full exemption)',
+    revenueOffice: 'ACT Revenue Office',
+    revenueOfficeUrl: 'https://www.revenue.act.gov.au/',
+    foreignSurcharge: '8%'
+  },
+  NT: {
+    body: `The Northern Territory has the lowest standard stamp duty rates in Australia (0.75%–2.5%), reflecting its smaller population and government policy to attract residents. First home buyer concessions apply up to $650,000. The market is dominated by Darwin, with regional centres in Alice Springs and Katherine.`,
+    fhbThreshold: '$650,000 (sliding concession)',
+    revenueOffice: 'NT Revenue Office',
+    revenueOfficeUrl: 'https://treasury.nt.gov.au/dtf/territory-revenue-office',
+    foreignSurcharge: '8%'
+  }
+};
+
+function generateStateOverviewHTML(state, stateName, stateSubs) {
+  const summary = stateMarketSummaries[state] || { body: `${stateName} is one of Australia's eight states and territories.` };
+  const totalPop = stateSubs.reduce((a, s) => a + (s.population || 0), 0);
+  const incSubs = stateSubs.filter(s => s.median_household_income);
+  const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
+  const dataSentence = `Across ${fmt(stateSubs.length)} ${stateName} suburbs in our database, the combined usual resident population is approximately ${fmt(totalPop)}${avgInc ? `, and the average median household income across suburbs is $${fmt(avgInc)}/year` : ''}.`;
+  return `<p>${summary.body}</p><p>${dataSentence}</p>`;
+}
+
+function generateStateStatsHTML(state, stateName, stateSubs) {
+  const summary = stateMarketSummaries[state] || {};
+  const totalPop = stateSubs.reduce((a, s) => a + (s.population || 0), 0);
+  const indexable = stateSubs.filter(s => !shouldNoindex(s)).length;
+  const incSubs = stateSubs.filter(s => s.median_household_income);
+  const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
+  const rentSubs = stateSubs.filter(s => s.median_rent_weekly);
+  const medRent = rentSubs.length ? Math.round(rentSubs.reduce((a, s) => a + s.median_rent_weekly, 0) / rentSubs.length) : null;
+  const rows = [
+    ['Total suburbs in database', fmt(stateSubs.length)],
+    ['Featured suburb profiles', fmt(indexable)],
+    ['Combined population', fmt(totalPop)],
+    avgInc ? ['Average median household income', `$${fmt(avgInc)}/year`] : null,
+    medRent ? ['Average median weekly rent', `$${fmt(medRent)}/week`] : null,
+    summary.fhbThreshold ? ['First home buyer concession', summary.fhbThreshold] : null,
+    summary.foreignSurcharge ? ['Foreign buyer surcharge', summary.foreignSurcharge] : null,
+    summary.revenueOffice ? ['Revenue office', `<a href="${summary.revenueOfficeUrl}" target="_blank" rel="noopener">${escHtml(summary.revenueOffice)} →</a>`] : null
+  ].filter(Boolean);
+  return `<table class="state-stats-table" style="width:100%;border-collapse:collapse;margin:8px 0">`
+    + `<tbody>` + rows.map(([k, v]) => `<tr><th style="text-align:left;padding:8px;border-bottom:1px solid currentColor;font-weight:500">${k}</th><td style="text-align:right;padding:8px;border-bottom:1px solid currentColor">${v}</td></tr>`).join('') + `</tbody></table>`;
+}
+
+function generateStateFaqHTML(state, stateName, stateSubs) {
+  const summary = stateMarketSummaries[state] || {};
+  const incSubs = stateSubs.filter(s => s.median_household_income);
+  const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
+  const indexable = stateSubs.filter(s => !shouldNoindex(s)).length;
+  const faqs = [
+    {
+      q: `How many suburbs are profiled for ${stateName}?`,
+      a: `EquitySight publishes ${fmt(indexable)} featured suburb profiles for ${stateName}, drawn from a wider catalogue of ${fmt(stateSubs.length)} localities. Featured profiles include population, household income, dwelling mix, amenity counts, an investment score, a buy-and-hold versus yield versus value-add strategy verdict, comparison against state medians, and a 2026 outlook.`
+    },
+    {
+      q: `What stamp duty applies to ${stateName} property?`,
+      a: `${stateName} stamp duty (transfer duty) is collected by the ${summary.revenueOffice || 'state revenue office'}. The first home buyer concession threshold is ${summary.fhbThreshold || 'set per state'}. Foreign buyer surcharge: ${summary.foreignSurcharge || 'check with the revenue office'}. Use our <a href="/tools/stamp-duty-calculator">all-states stamp duty calculator</a>${state === 'QLD' ? ' or the dedicated <a href="/tools/stamp-duty-calculator-qld">QLD stamp duty calculator</a>' : ''} for an exact figure.`
+    },
+    {
+      q: `What's the average household income across ${stateName} suburbs?`,
+      a: avgInc
+        ? `The average median household income across ${fmt(incSubs.length)} ${stateName} suburbs in our dataset is approximately $${fmt(avgInc)} per year. Income varies significantly by suburb — inner-city and middle-ring suburbs typically run 20–40% above this average, while regional and outer-metro localities run below.`
+        : `Income data is incomplete for ${stateName} in our current dataset. Individual suburb pages show median household income where it has been recorded.`
+    },
+    {
+      q: `Which ${stateName} suburbs are best for property investment?`,
+      a: `"Best" depends on whether you are targeting capital growth, rental yield, or value-add renovation. Each ${stateName} suburb profile on EquitySight scores the suburb 0–100 across six factors (income, distance to CBD, suburb type, transport, amenities, rent) and recommends a primary investment strategy. Browse the featured suburb list above, sorted by population, or use the search box to filter by name or postcode.`
+    },
+    {
+      q: `When was the data on these ${stateName} pages last updated?`,
+      a: `Suburb-level Census data (population, household income, median rent, dwelling type) is sourced from the ABS 2021 Census of Population and Housing — the latest available. Stamp duty rates and FHB thresholds are kept current to the 2025–26 financial year. Live market data integration (Domain API for current sale prices and listings) is rolling out incrementally.`
+    }
+  ];
+  return faqs.map(f => `<details class="suburb-faq-item"><summary>${escHtml(f.q)}</summary><div class="suburb-faq-detail"><p>${f.a}</p></div></details>`).join('\n    ');
 }
 
 // ── Build state hub pages ──
@@ -2288,6 +2451,10 @@ for (const state of allStates) {
     ? `<details class="hub-reference-drawer">\n    <summary>All localities in ${escHtml(stateName)} (${fmt(reference.length)} additional)</summary>\n    <p class="hub-reference-note">Smaller localities without enough data for a full property profile. Links stay available for research.</p>\n    <div class="hub-reference-list">\n${referenceListHTML}\n    </div>\n  </details>`
     : '';
 
+  const stateOverviewHTML = generateStateOverviewHTML(state, stateName, stateSuburbs);
+  const stateStatsHTML    = generateStateStatsHTML(state, stateName, stateSuburbs);
+  const stateFaqHTML      = generateStateFaqHTML(state, stateName, stateSuburbs);
+
   let html = HUB_TPL
     .replace(/\{\{STATE\}\}/g, escHtml(state))
     .replace(/\{\{STATE_LOWER\}\}/g, stateLower)
@@ -2296,6 +2463,9 @@ for (const state of allStates) {
     .replace(/\{\{TOTAL_SUBURB_COUNT\}\}/g, fmt(stateSuburbs.length))
     .replace(/\{\{STATE_NAV_HTML\}\}/g, stateNavHTML)
     .replace(/\{\{CITY_NAV_HTML\}\}/g, cityNavHTML)
+    .replace(/\{\{STATE_OVERVIEW_HTML\}\}/g, stateOverviewHTML)
+    .replace(/\{\{STATE_STATS_HTML\}\}/g, stateStatsHTML)
+    .replace(/\{\{STATE_FAQ_HTML\}\}/g, stateFaqHTML)
     .replace(/\{\{SUBURB_LIST_HTML\}\}/g, featuredListHTML)
     .replace(/\{\{REFERENCE_DRAWER_HTML\}\}/g, referenceDrawerHTML);
 

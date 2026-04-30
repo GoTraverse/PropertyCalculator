@@ -11,6 +11,10 @@ sitemap-blog.xml
 # Build cache (suburb pages persisted between Netlify deploys)
 .cache/
 
+# Claude Code tooling — Lighthouse + Chrome installed by .claude/hooks/session-start.sh
+# inside Claude Code on the web sessions. Never deployed; never used in local dev.
+.claude/tooling/
+
 # Fetched/downloaded data caches (regenerate with fetch-abs-*.js / fetch-overpass-amenities.js)
 data/abs-suburbs.json
 data/abs-enhanced.json
