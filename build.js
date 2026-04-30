@@ -152,6 +152,14 @@ async function buildBlog() {
     await buildSuburbs();
   }
   await buildBlog();
+  // Pre-render the 6 legal-stack pages so the .md content ships baked-in.
+  // Eliminates CLS 0.640 caused by legal.js client-side injection. Cheap
+  // (~50 ms), runs every deploy.
+  try {
+    execSync('node build/build-legal.js', { stdio: 'inherit' });
+  } catch (e) {
+    console.warn('[build] build-legal failed (non-blocking):', e.message);
+  }
   // Soft validation — never blocks the deploy. Catches sitemap-core staleness.
   try {
     execSync('node build/audit-sitemap.js', { stdio: 'inherit' });

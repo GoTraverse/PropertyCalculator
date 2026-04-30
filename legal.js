@@ -298,7 +298,17 @@
       });
   }
 
-  // Try API for admin-edited content, fall back to .md file
+  // Build-time pre-rendering (build/build-legal.js) writes
+  // data-prerendered="true" onto #legal-content. When present, the page
+  // already shipped with the rendered HTML — skip the .md fetch fallback so
+  // we don't re-render and trigger a layout shift. Admin-override fetch
+  // below still runs and will re-render only if an override exists.
+  var contentEl = document.getElementById('legal-content');
+  var hasPrerender = !!(contentEl && contentEl.dataset && contentEl.dataset.prerendered);
+
+  // Try API for admin-edited content, fall back to .md file (only when no
+  // pre-rendered content is present — pre-rendered pages skip the .md
+  // fallback to keep CLS at zero on first paint).
   fetch('/.netlify/functions/auth', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -308,12 +318,12 @@
     .then(function (d) {
       if (d && d.ok && d.content) {
         render(d.content);
-      } else {
+      } else if (!hasPrerender) {
         loadFromMd();
       }
     })
     .catch(function () {
-      loadFromMd();
+      if (!hasPrerender) loadFromMd();
     });
 
 })();
