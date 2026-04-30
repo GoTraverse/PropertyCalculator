@@ -31,6 +31,7 @@
   --terracotta-light: #E8A882;
   --gold:             #C9A84C;
   --gold-light:       #E8D080;
+  --gold-dark:        #6F5C19; /* WCAG-AA accessible on cream/warm-white bg (5.75:1+) */
   --sky:              #5B8FAB;
   --risk-red:         #C45A5A;
   --reward-green:     #5A9E7B;
@@ -313,8 +314,8 @@ img { max-width: 100%; display: block; }
 .footer-nav a:hover { color: var(--cream); }
 .footer-copy {
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: rgba(245,240,232,0.25);
+  font-size: 11px;
+  color: rgba(245,240,232,0.6);
   letter-spacing: 0.5px;
   white-space: nowrap;
   margin-left: auto;
@@ -326,9 +327,13 @@ img { max-width: 100%; display: block; }
   font-size: 10px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0.8;
+  /* gold-dark gives 5.75:1+ contrast against cream/warm-white backgrounds.
+     Dark-mode override below switches back to lighter --gold for dark bg. */
+  color: var(--gold-dark);
   margin-bottom: 12px;
+}
+html.dark-mode .section-tag {
+  color: var(--gold);
 }
 .section-title {
   font-family: var(--font-display);
