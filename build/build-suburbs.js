@@ -66,6 +66,12 @@ function buildSuburbMetaDesc(suburb, state) {
   return `${suburb} ${state} property data: median price, rental yield, growth trends.`;
 }
 
+function ogImageUrl(title, subtitle, label) {
+  const base = 'https://equitysight.app/.netlify/functions/og-image';
+  const p = new URLSearchParams({ title, subtitle, label });
+  return escHtml(base + '?' + p.toString());
+}
+
 // ── Locator card (replaces the old Google Maps iframe — see PR shipping
 //    `<div class="suburb-locator">` for context) ───────────────────────────
 const STATE_OUTLINES = require('../data/state-outlines');
@@ -2216,7 +2222,9 @@ for (const s of suburbs) {
     .replace(/\{\{REVIEWS_HTML\}\}/g, isNoindexed ? '' : generateReviewsBlock(s.state, s.slug, s.suburb))
     .replace(/\{\{AGGREGATE_RATING_JSON\}\}/g, isNoindexed ? '' : generateAggregateRatingJson(s.state, s.slug, s.suburb))
     .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, generateRelatedHTML(related, s.state))
-    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state));
+    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state))
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, ogImageUrl(s.suburb, s.state_name + (pc ? ' · ' + pc : ''), 'SUBURB INSIGHTS'))
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, escHtml('Property investment insights for ' + s.suburb + ', ' + s.state_name));
 
   const outDir = path.join(ROOT, 'suburb', s.state.toLowerCase(), s.slug);
   fs.mkdirSync(outDir, { recursive: true });
@@ -2271,7 +2279,9 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
     .replace(/\{\{TOP_SUBURBS_HTML\}\}/g, generateTopSuburbsHTML(citySubs, state))
     .replace(/\{\{SUBURB_COUNT\}\}/g, citySubs.length)
     .replace(/\{\{SUBURB_LIST_HTML\}\}/g, citySuburbListHTML)
-    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(state));
+    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(state))
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, ogImageUrl(cityName, cStateName, 'CITY PROFILE'))
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, escHtml('Property investment insights for ' + cityName + ', ' + cStateName));
 
   const cityOutDir = path.join(ROOT, 'invest', cStateLower, cSlug);
   fs.mkdirSync(cityOutDir, { recursive: true });
@@ -2467,7 +2477,9 @@ for (const state of allStates) {
     .replace(/\{\{STATE_STATS_HTML\}\}/g, stateStatsHTML)
     .replace(/\{\{STATE_FAQ_HTML\}\}/g, stateFaqHTML)
     .replace(/\{\{SUBURB_LIST_HTML\}\}/g, featuredListHTML)
-    .replace(/\{\{REFERENCE_DRAWER_HTML\}\}/g, referenceDrawerHTML);
+    .replace(/\{\{REFERENCE_DRAWER_HTML\}\}/g, referenceDrawerHTML)
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, ogImageUrl(stateName, 'Australia', 'STATE HUB'))
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, escHtml('Property investment insights for ' + stateName + ', Australia'));
 
   const outDir = path.join(ROOT, 'invest', stateLower);
   fs.mkdirSync(outDir, { recursive: true });
