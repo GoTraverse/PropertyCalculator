@@ -119,6 +119,14 @@ async function buildSuburbs() {
 
   // Step 2: Build all suburb HTML pages from updated suburbs.json
   require('./build/build-suburbs.js');
+
+  // Step 3: Generate suburb-specific OG images (SVG→PNG via sharp)
+  try {
+    execSync('node build/generate-og-images.js', { stdio: 'inherit', cwd: __dirname });
+  } catch (e) {
+    console.warn('[build] OG image generation failed (non-fatal):', e.message);
+  }
+
   saveToCache();
 }
 
