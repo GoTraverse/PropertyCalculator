@@ -2171,7 +2171,12 @@ for (const s of suburbs) {
   if (isNoindexed) stateIndexStats[s.state].noindexed++;
   else stateIndexStats[s.state].indexed++;
 
+  const ogImageUrl = isNoindexed
+    ? 'https://equitysight.app/images/og-image.png'
+    : `https://equitysight.app/images/suburbs/${s.state.toLowerCase()}/${s.slug}.jpg`;
+
   let html = SUBURB_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, ogImageUrl)
     .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
     .replace(/\{\{STATE\}\}/g, escHtml(s.state))
