@@ -91,6 +91,12 @@ function setActiveForm(target) {
 // ──────────────────────────────────────────────────────────────────────
 
 const params = new URLSearchParams(location.search);
+if (params.get('expired') === '1') {
+  const h = document.getElementById('login-heading');
+  const s = document.getElementById('login-sub');
+  if (h) h.textContent = 'Session expired';
+  if (s) { s.textContent = 'Please sign in again to continue.'; s.style.color = 'var(--gold)'; }
+}
 if (params.get('tab') === 'signup') setActiveForm('signup');
 {
   const planEl = document.getElementById('su-plan');

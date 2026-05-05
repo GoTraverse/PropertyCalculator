@@ -594,12 +594,19 @@ window.toggleTheme = function(){
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'verify' })
       }).then(function(r){ return r.json(); }).then(function(d){
-        if (!d.ok) return;
+        if (!d.ok) {
+          localStorage.removeItem('propCalc_session_v1');
+          if (window.renderSiteNav) window.renderSiteNav();
+          var isProtected = /^\/(app|admin|account)/.test(location.pathname);
+          if (isProtected) {
+            location.href = '/login?expired=1';
+          }
+          return;
+        }
         var changed = d.plan !== sess.plan || d.role !== sess.role;
         if (changed) {
           var updated = Object.assign({}, sess, { plan: d.plan, role: d.role });
           localStorage.setItem('propCalc_session_v1', JSON.stringify(updated));
-          // Re-render nav to reflect new plan/role
           if (window.renderSiteNav) window.renderSiteNav();
         }
       }).catch(function(){});
