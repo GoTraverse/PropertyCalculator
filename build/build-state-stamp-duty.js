@@ -446,6 +446,9 @@ function buildHtml(s) {
 <meta name="keywords" content="stamp duty calculator ${stateLc}, ${stateLc} stamp duty calculator, ${s.stateName.toLowerCase()} stamp duty, ${s.stateName.toLowerCase()} ${s.dutyName.toLowerCase()}, ${stateLc} first home buyer ${s.dutyName.toLowerCase()}, ${s.capital.toLowerCase()} stamp duty calculator, ${s.stateName.toLowerCase()} ${s.dutyName.toLowerCase()} 2026">
 <link rel="canonical" href="${url}">
 <link rel="alternate" hreflang="en-AU" href="${url}">
+<link rel="alternate" hreflang="x-default" href="${url}">
+<meta name="geo.region" content="AU">
+<meta name="geo.placename" content="Australia">
 <meta property="og:type" content="website">
 <meta property="og:title" content="${escAttr(titleSocial)}">
 <meta property="og:description" content="${escAttr(metaDesc)}">
@@ -804,65 +807,44 @@ window.addEventListener('DOMContentLoaded', function() {
 `;
 }
 
-// State-specific bracket calculation. Sourced from the canonical brackets in
-// tools/stamp-duty-calculator.js so the per-state pages produce identical
-// figures to the all-states tool. Each formula returns standard (investor)
-// duty for the dutiable value v.
+// Per-state tier table. Each tier is `[fromValue, rate]` — duty is computed
+// cumulatively (`(spanInTier × rate)` summed across completed tiers, plus
+// the residual span × rate of the tier that contains v). Mirrors exactly
+// the `tiers` arrays in tools/stamp-duty-calculator.js so the dedicated
+// state pages produce identical figures to the all-states tool.
+const STATE_TIERS = {
+  NSW: [[0,0],[14000,0.0125],[30000,0.015],[130000,0.0175],[205000,0.035],[305000,0.04],[405000,0.045],[550000,0.055]],
+  VIC: [[0,0],[25000,0.014],[130000,0.024],[440000,0.055],[870000,0.065]],
+  WA:  [[0,0],[2000,0.01],[4000,0.02],[500000,0.035],[1000000,0.0475]],
+  SA:  [[0,0],[16000,0.015],[19000,0.03],[250000,0.035],[300000,0.04]],
+  TAS: [[0,0],[3000,0.036],[100000,0.041],[150000,0.0425],[250000,0.0475]],
+  ACT: [[0,0],[7500,0.0125],[30000,0.02],[200000,0.035]],
+  NT:  [[0,0],[3000,0.0075],[100000,0.01],[150000,0.015],[250000,0.025]],
+};
+
+// Emits a JS function body that computes cumulative tiered duty. The
+// inlined approach (one `if/else if` chain per state) keeps the generated
+// .js readable when an admin opens DevTools — and avoids needing a shared
+// helper file across the 7 state calculators.
 function stampDutyFormula(state) {
-  switch (state) {
-    case 'NSW':
-      return `if (v <= 14000) return 0;
-  if (v <= 30000) return v * 0.0125;
-  if (v <= 130000) return 200 + (v - 30000) * 0.015;
-  if (v <= 205000) return 1700 + (v - 130000) * 0.0175;
-  if (v <= 305000) return 2631.25 + (v - 205000) * 0.035;
-  if (v <= 405000) return 6131.25 + (v - 305000) * 0.04;
-  if (v <= 550000) return 10131.25 + (v - 405000) * 0.045;
-  return 16256.25 + (v - 550000) * 0.055;`;
-    case 'VIC':
-      return `if (v <= 25000) return 0;
-  if (v <= 130000) return v * 0.014;
-  if (v <= 440000) return 1470 + (v - 130000) * 0.024;
-  if (v <= 870000) return 8910 + (v - 440000) * 0.055;
-  return 43605 + (v - 870000) * 0.065;`;
-    case 'WA':
-      return `if (v <= 2000) return 0;
-  if (v <= 4000) return v * 0.01;
-  if (v <= 500000) return 20 + (v - 4000) * 0.02;
-  if (v <= 1000000) return 9920 + (v - 500000) * 0.035;
-  return 27420 + (v - 1000000) * 0.0475;`;
-    case 'SA':
-      return `if (v <= 16000) return 0;
-  if (v <= 19000) return v * 0.015;
-  if (v <= 250000) return 45 + (v - 19000) * 0.03;
-  if (v <= 300000) return 6915 + (v - 250000) * 0.035;
-  return 8665 + (v - 300000) * 0.04;`;
-    case 'TAS':
-      return `if (v <= 3000) return 0;
-  if (v <= 100000) return 50 + (v - 3000) * 0.0175;
-  if (v <= 200000) return 1747.50 + (v - 100000) * 0.0225;
-  if (v <= 375000) return 3997.50 + (v - 200000) * 0.035;
-  return 10122.50 + (v - 375000) * 0.045;`;
-    case 'ACT':
-      return `if (v <= 260000) return v * 0.0049;
-  if (v <= 300000) return 1274 + (v - 260000) * 0.022;
-  if (v <= 500000) return 2154 + (v - 300000) * 0.034;
-  if (v <= 750000) return 8954 + (v - 500000) * 0.0432;
-  if (v <= 1000000) return 19754 + (v - 750000) * 0.059;
-  if (v <= 1455000) return 34504 + (v - 1000000) * 0.064;
-  return 63624;`;
-    case 'NT':
-      // NT formula: D = 0.06571441 V^2 + 15V (V in thousands) for v <= 525000
-      return `if (v <= 525000) {
-    var V = v / 1000;
-    return 0.06571441 * V * V + 15 * V;
+  const tiers = STATE_TIERS[state];
+  if (!tiers) return 'return 0;';
+  // Walk the tiers and emit one bracket per pair of consecutive thresholds.
+  // We compute the cumulative base at each tier boundary at code-gen time,
+  // so the runtime path is just an `if (v <= NEXT) return BASE + (v - FROM) * RATE`.
+  const lines = [];
+  let base = 0;
+  for (let i = 0; i < tiers.length; i++) {
+    const [from, rate] = tiers[i];
+    const next = (i + 1 < tiers.length) ? tiers[i + 1][0] : null;
+    if (next == null) {
+      lines.push(`return ${base} + (v - ${from}) * ${rate};`);
+    } else {
+      lines.push(`if (v <= ${next}) return ${base} + (v - ${from}) * ${rate};`);
+      base += (next - from) * rate;
+    }
   }
-  if (v <= 3000000) return v * 0.0495;
-  if (v <= 5000000) return v * 0.0575;
-  return v * 0.0595;`;
-    default:
-      return 'return 0;';
-  }
+  return lines.join('\n  ');
 }
 
 // ── Compute worked examples from the calculator's own formulas so the

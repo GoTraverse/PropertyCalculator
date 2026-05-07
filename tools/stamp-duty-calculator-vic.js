@@ -9,11 +9,11 @@ var VIC_FHB_PARTIAL = 750000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcVICStandard(v) {
-  if (v <= 25000) return 0;
-  if (v <= 130000) return v * 0.014;
+  if (v <= 25000) return 0 + (v - 0) * 0;
+  if (v <= 130000) return 0 + (v - 25000) * 0.014;
   if (v <= 440000) return 1470 + (v - 130000) * 0.024;
   if (v <= 870000) return 8910 + (v - 440000) * 0.055;
-  return 43605 + (v - 870000) * 0.065;
+  return 32560 + (v - 870000) * 0.065;
 }
 
 function calcVICDuty(price, ptype, buyer, fhb) {
@@ -202,15 +202,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$52,055"
+        "v": "$41,010"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$52,055"
+        "v": "$41,010"
       },
       {
         "k": "First home buyer duty",
-        "v": "$52,055 (over cap)"
+        "v": "$41,010 (over cap)"
       }
     ]
   }

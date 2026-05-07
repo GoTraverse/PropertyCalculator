@@ -9,11 +9,11 @@ var TAS_FHB_PARTIAL = 750000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcTASStandard(v) {
-  if (v <= 3000) return 0;
-  if (v <= 100000) return 50 + (v - 3000) * 0.0175;
-  if (v <= 200000) return 1747.50 + (v - 100000) * 0.0225;
-  if (v <= 375000) return 3997.50 + (v - 200000) * 0.035;
-  return 10122.50 + (v - 375000) * 0.045;
+  if (v <= 3000) return 0 + (v - 0) * 0;
+  if (v <= 100000) return 0 + (v - 3000) * 0.036;
+  if (v <= 150000) return 3491.9999999999995 + (v - 100000) * 0.041;
+  if (v <= 250000) return 5542 + (v - 150000) * 0.0425;
+  return 9792 + (v - 250000) * 0.0475;
 }
 
 function calcTASDuty(price, ptype, buyer, fhb) {
@@ -148,15 +148,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$20,248"
+        "v": "$26,417"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$20,248"
+        "v": "$26,417"
       },
       {
         "k": "First home buyer duty",
-        "v": "$10,124 (FHB concession)"
+        "v": "$13,209 (FHB concession)"
       }
     ]
   },
@@ -175,15 +175,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$29,248"
+        "v": "$35,917"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$29,248"
+        "v": "$35,917"
       },
       {
         "k": "First home buyer duty",
-        "v": "$29,248 (over cap)"
+        "v": "$35,917 (over cap)"
       }
     ]
   },
@@ -202,15 +202,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$38,248"
+        "v": "$45,417"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$38,248"
+        "v": "$45,417"
       },
       {
         "k": "First home buyer duty",
-        "v": "$38,248 (over cap)"
+        "v": "$45,417 (over cap)"
       }
     ]
   }

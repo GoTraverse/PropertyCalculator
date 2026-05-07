@@ -9,13 +9,11 @@ var NT_FHB_PARTIAL = 650000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcNTStandard(v) {
-  if (v <= 525000) {
-    var V = v / 1000;
-    return 0.06571441 * V * V + 15 * V;
-  }
-  if (v <= 3000000) return v * 0.0495;
-  if (v <= 5000000) return v * 0.0575;
-  return v * 0.0595;
+  if (v <= 3000) return 0 + (v - 0) * 0;
+  if (v <= 100000) return 0 + (v - 3000) * 0.0075;
+  if (v <= 150000) return 727.5 + (v - 100000) * 0.01;
+  if (v <= 250000) return 1227.5 + (v - 150000) * 0.015;
+  return 2727.5 + (v - 250000) * 0.025;
 }
 
 function calcNTDuty(price, ptype, buyer, fhb) {
@@ -150,11 +148,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$25,569"
+        "v": "$9,478"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$25,569"
+        "v": "$9,478"
       },
       {
         "k": "First home buyer duty",
@@ -177,15 +175,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$34,650"
+        "v": "$13,978"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$34,650"
+        "v": "$13,978"
       },
       {
         "k": "First home buyer duty",
-        "v": "$34,650 (established)"
+        "v": "$13,978 (established)"
       }
     ]
   },
@@ -204,15 +202,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$49,500"
+        "v": "$21,478"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$49,500"
+        "v": "$21,478"
       },
       {
         "k": "First home buyer duty",
-        "v": "$49,500 (established)"
+        "v": "$21,478 (established)"
       }
     ]
   }

@@ -9,11 +9,11 @@ var WA_FHB_PARTIAL = 500000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcWAStandard(v) {
-  if (v <= 2000) return 0;
-  if (v <= 4000) return v * 0.01;
+  if (v <= 2000) return 0 + (v - 0) * 0;
+  if (v <= 4000) return 0 + (v - 2000) * 0.01;
   if (v <= 500000) return 20 + (v - 4000) * 0.02;
-  if (v <= 1000000) return 9920 + (v - 500000) * 0.035;
-  return 27420 + (v - 1000000) * 0.0475;
+  if (v <= 1000000) return 9940 + (v - 500000) * 0.035;
+  return 27440 + (v - 1000000) * 0.0475;
 }
 
 function calcWADuty(price, ptype, buyer, fhb) {
@@ -202,15 +202,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$27,420"
+        "v": "$27,440"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$27,420"
+        "v": "$27,440"
       },
       {
         "k": "First home buyer duty",
-        "v": "$27,420 (over cap)"
+        "v": "$27,440 (over cap)"
       }
     ]
   }

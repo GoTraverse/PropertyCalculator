@@ -9,14 +9,14 @@ var NSW_FHB_PARTIAL = 1000000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcNSWStandard(v) {
-  if (v <= 14000) return 0;
-  if (v <= 30000) return v * 0.0125;
+  if (v <= 14000) return 0 + (v - 0) * 0;
+  if (v <= 30000) return 0 + (v - 14000) * 0.0125;
   if (v <= 130000) return 200 + (v - 30000) * 0.015;
   if (v <= 205000) return 1700 + (v - 130000) * 0.0175;
-  if (v <= 305000) return 2631.25 + (v - 205000) * 0.035;
-  if (v <= 405000) return 6131.25 + (v - 305000) * 0.04;
-  if (v <= 550000) return 10131.25 + (v - 405000) * 0.045;
-  return 16256.25 + (v - 550000) * 0.055;
+  if (v <= 305000) return 3012.5 + (v - 205000) * 0.035;
+  if (v <= 405000) return 6512.5 + (v - 305000) * 0.04;
+  if (v <= 550000) return 10512.5 + (v - 405000) * 0.045;
+  return 17037.5 + (v - 550000) * 0.055;
 }
 
 function calcNSWDuty(price, ptype, buyer, fhb) {
@@ -151,11 +151,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$21,206"
+        "v": "$21,988"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$21,206"
+        "v": "$21,988"
       },
       {
         "k": "First home buyer duty",
@@ -178,15 +178,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$35,506"
+        "v": "$36,288"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$35,506"
+        "v": "$36,288"
       },
       {
         "k": "First home buyer duty",
-        "v": "$17,753 (FHB concession)"
+        "v": "$18,144 (FHB concession)"
       }
     ]
   },
@@ -205,15 +205,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$52,006"
+        "v": "$52,788"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$52,006"
+        "v": "$52,788"
       },
       {
         "k": "First home buyer duty",
-        "v": "$52,006 (over cap)"
+        "v": "$52,788 (over cap)"
       }
     ]
   }

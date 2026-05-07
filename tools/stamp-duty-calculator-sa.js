@@ -9,11 +9,11 @@ var SA_FHB_PARTIAL = 700000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcSAStandard(v) {
-  if (v <= 16000) return 0;
-  if (v <= 19000) return v * 0.015;
+  if (v <= 16000) return 0 + (v - 0) * 0;
+  if (v <= 19000) return 0 + (v - 16000) * 0.015;
   if (v <= 250000) return 45 + (v - 19000) * 0.03;
-  if (v <= 300000) return 6915 + (v - 250000) * 0.035;
-  return 8665 + (v - 300000) * 0.04;
+  if (v <= 300000) return 6975 + (v - 250000) * 0.035;
+  return 8725 + (v - 300000) * 0.04;
 }
 
 function calcSADuty(price, ptype, buyer, fhb) {
@@ -148,11 +148,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$17,465"
+        "v": "$17,525"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$17,465"
+        "v": "$17,525"
       },
       {
         "k": "First home buyer duty",
@@ -175,15 +175,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$23,865"
+        "v": "$23,925"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$23,865"
+        "v": "$23,925"
       },
       {
         "k": "First home buyer duty",
-        "v": "$14,319 (FHB concession)"
+        "v": "$14,355 (FHB concession)"
       }
     ]
   },
@@ -202,15 +202,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$36,665"
+        "v": "$36,725"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$36,665"
+        "v": "$36,725"
       },
       {
         "k": "First home buyer duty",
-        "v": "$36,665 (over cap)"
+        "v": "$36,725 (over cap)"
       }
     ]
   }

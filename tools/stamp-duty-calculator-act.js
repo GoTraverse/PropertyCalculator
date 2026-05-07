@@ -9,13 +9,10 @@ var ACT_FHB_PARTIAL = 1000000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcACTStandard(v) {
-  if (v <= 260000) return v * 0.0049;
-  if (v <= 300000) return 1274 + (v - 260000) * 0.022;
-  if (v <= 500000) return 2154 + (v - 300000) * 0.034;
-  if (v <= 750000) return 8954 + (v - 500000) * 0.0432;
-  if (v <= 1000000) return 19754 + (v - 750000) * 0.059;
-  if (v <= 1455000) return 34504 + (v - 1000000) * 0.064;
-  return 63624;
+  if (v <= 7500) return 0 + (v - 0) * 0;
+  if (v <= 30000) return 0 + (v - 7500) * 0.0125;
+  if (v <= 200000) return 281.25 + (v - 30000) * 0.02;
+  return 3681.25 + (v - 200000) * 0.035;
 }
 
 function calcACTDuty(price, ptype, buyer, fhb) {
@@ -150,11 +147,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$22,704"
+        "v": "$24,681"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$22,704"
+        "v": "$24,681"
       },
       {
         "k": "First home buyer duty",
@@ -177,15 +174,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$37,704"
+        "v": "$33,431"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$37,704"
+        "v": "$33,431"
       },
       {
         "k": "First home buyer duty",
-        "v": "$37,704 (over cap)"
+        "v": "$33,431 (over cap)"
       }
     ]
   },
@@ -204,15 +201,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$47,304"
+        "v": "$38,681"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$47,304"
+        "v": "$38,681"
       },
       {
         "k": "First home buyer duty",
-        "v": "$47,304 (over cap)"
+        "v": "$38,681 (over cap)"
       }
     ]
   }
