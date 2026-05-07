@@ -1229,18 +1229,116 @@ exports.handler = async function(event){
       const revenueEstimate=Math.round((proUsers*proNet+adviserUsers*adviserNet)*100)/100;
       // Avg scenario lists per user
       const avgScenariosPerUser=totalUsers>0?Math.round(totalScenarioLists/totalUsers*10)/10:0;
-      // Store today's snapshot (31-day TTL so we keep ~1 month of history)
+      // Store today's snapshot (95-day TTL so the 30-day chart has buffer
+      // and we can backfill earlier dates by extending if needed)
       const today=new Date().toISOString().slice(0,10);
       const snapshot={date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys};
-      await rSet('stats:snapshot:'+today,snapshot,60*60*24*31);
-      // Fetch last 7 days of daily snapshots
+      await rSet('stats:snapshot:'+today,snapshot,60*60*24*95);
+
+      // ── Historical backfill from per-user events ─────────────────────
+      // The dashboard charts were showing $0 revenue for every day before
+      // the snapshot system began running, then a sudden jump on the first
+      // snapshot date — even though paid users had been signed up for
+      // weeks. Root cause: snapshots are point-in-time captures stored
+      // when the admin opens the stats endpoint; days where no admin
+      // visited had no snapshot, and the frontend padded those with 0.
+      //
+      // Fix: when assembling the history range, replay each user's
+      // `events:<userId>` log (signup + plan_upgraded + plan_downgraded)
+      // to determine their plan state on each historical date, and
+      // compute totals/revenue from that. This produces accurate counts
+      // for any historical date whether or not a snapshot exists.
+      //
+      // Existing same-day snapshots still take precedence — they capture
+      // ephemeral fields (activeSessions, dbKeys, scenario counts) that
+      // can't be reconstructed from event logs.
+      const HIST_DAYS = 30;
+      const eventLists = await Promise.all(
+        validUsers.map(u => u && u.id ? rListRange('events:'+u.id, 0, -1) : Promise.resolve([]))
+      );
+      // Pre-parse events per user for the backfill loop
+      const userEvents = validUsers.map((u, i) => {
+        const events = (eventLists[i] || []).map(s => {
+          try { return typeof s === 'string' ? JSON.parse(s) : s; }
+          catch (e) { return null; }
+        }).filter(Boolean).sort((a, b) => (a.at || 0) - (b.at || 0));
+        return { user: u, events };
+      });
+
+      // Compute plan state for a user as of `cutoffMs`. Returns 'free' if
+      // the user had not yet signed up; otherwise the most recent plan
+      // assignment from their event log (or u.plan if no events exist
+      // before cutoff but the user record predates the events:* logging
+      // — older accounts).
+      function planAt(u, events, cutoffMs) {
+        const signupAt = u.createdAt || 0;
+        if (signupAt > cutoffMs) return null; // not signed up yet
+        let plan = 'free';
+        let sawAnyEvent = false;
+        for (const e of events) {
+          if (!e || (e.at || 0) > cutoffMs) break;
+          sawAnyEvent = true;
+          if (e.type === 'plan_upgraded') plan = e.plan || 'pro';
+          else if (e.type === 'plan_downgraded') plan = e.plan || 'free';
+          else if (e.type === 'signup' && e.plan) plan = e.plan;
+        }
+        // Fallback for accounts created before event logging existed: if
+        // the user is currently on a paid plan but has no upgrade event
+        // in their log, assume they were on that plan since signup. This
+        // is conservative — better than reporting them as free for the
+        // whole history.
+        if (!sawAnyEvent && (u.plan === 'pro' || u.plan === 'adviser')) {
+          plan = u.plan;
+        }
+        return plan;
+      }
+
       const history=[];
-      const nullSnap={totalUsers:null,freeUsers:null,proUsers:null,adviserUsers:null,activeSessions:null,totalScenarioLists:null,newUsersLast7:null,revenueEstimate:null,avgScenariosPerUser:null,activeUsers:null,totalScenarios:null,sharedScenarios:null,clientErrors:null,dbKeys:null};
-      for(let i=6;i>=0;i--){
+      for(let i=HIST_DAYS-1;i>=0;i--){
         const d=new Date();d.setDate(d.getDate()-i);
         const dateStr=d.toISOString().slice(0,10);
-        const snap=await rGet('stats:snapshot:'+dateStr);
-        history.push(snap||{date:dateStr,...nullSnap});
+        // End of that day in UTC — events at any time during the day count
+        const cutoffMs=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),23,59,59,999);
+        const existing=await rGet('stats:snapshot:'+dateStr);
+
+        // Replay events to derive plan-state-of-record for that day
+        let bfTotal=0,bfFree=0,bfPro=0,bfAdv=0;
+        for(const {user,events} of userEvents){
+          const plan=planAt(user,events,cutoffMs);
+          if(plan===null) continue; // not signed up yet
+          bfTotal++;
+          if(plan==='pro') bfPro++;
+          else if(plan==='adviser') bfAdv++;
+          else bfFree++;
+        }
+        const bfRevenue=Math.round((bfPro*proNet+bfAdv*adviserNet)*100)/100;
+
+        // Merge: keep snapshot's ephemeral fields (sessions, dbKeys, etc.)
+        // but always use the event-derived counts for total/free/pro/
+        // adviser/revenue. This corrects historical snapshots that captured
+        // wrong values too (e.g. before referral upgrade events were
+        // logged) and fills the gap for dates with no snapshot at all.
+        const eph=existing||{};
+        history.push({
+          date: dateStr,
+          totalUsers: bfTotal,
+          freeUsers: bfFree,
+          proUsers: bfPro,
+          adviserUsers: bfAdv,
+          revenueEstimate: bfRevenue,
+          // Ephemeral fields — these are captured per-day by the snapshot
+          // job and can't be reconstructed retroactively; null is the
+          // honest answer when no snapshot exists for a historical date.
+          activeSessions: eph.activeSessions ?? null,
+          totalScenarioLists: eph.totalScenarioLists ?? null,
+          newUsersLast7: eph.newUsersLast7 ?? null,
+          avgScenariosPerUser: eph.avgScenariosPerUser ?? null,
+          activeUsers: eph.activeUsers ?? null,
+          totalScenarios: eph.totalScenarios ?? null,
+          sharedScenarios: eph.sharedScenarios ?? null,
+          clientErrors: eph.clientErrors ?? null,
+          dbKeys: eph.dbKeys ?? null,
+        });
       }
       return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys},history});
     }catch(e){ return fail('Stats error: '+e.message); }
