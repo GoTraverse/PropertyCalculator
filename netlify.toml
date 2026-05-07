@@ -283,6 +283,186 @@
   to = "/tools/stamp-duty-calculator-qld"
   status = 301
 
+# State-specific stamp duty calculator clean-URL redirects (May 2026)
+# Catches /stamp-duty-{state}.html, /stamp-duty-{state}, and /tools/...html
+# variants for NSW, VIC, WA, SA, TAS, ACT, NT — all 301 to the canonical
+# /tools/stamp-duty-calculator-{state} clean URL.
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator-nsw.html"
+  to = "/tools/stamp-duty-calculator-nsw"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-nsw"
+  to = "/tools/stamp-duty-calculator-nsw"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-nsw.html"
+  to = "/tools/stamp-duty-calculator-nsw"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-nsw"
+  to = "/tools/stamp-duty-calculator-nsw"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-nsw.html"
+  to = "/tools/stamp-duty-calculator-nsw"
+  status = 301
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator-vic.html"
+  to = "/tools/stamp-duty-calculator-vic"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-vic"
+  to = "/tools/stamp-duty-calculator-vic"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-vic.html"
+  to = "/tools/stamp-duty-calculator-vic"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-vic"
+  to = "/tools/stamp-duty-calculator-vic"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-vic.html"
+  to = "/tools/stamp-duty-calculator-vic"
+  status = 301
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator-wa.html"
+  to = "/tools/stamp-duty-calculator-wa"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-wa"
+  to = "/tools/stamp-duty-calculator-wa"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-wa.html"
+  to = "/tools/stamp-duty-calculator-wa"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-wa"
+  to = "/tools/stamp-duty-calculator-wa"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-wa.html"
+  to = "/tools/stamp-duty-calculator-wa"
+  status = 301
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator-sa.html"
+  to = "/tools/stamp-duty-calculator-sa"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-sa"
+  to = "/tools/stamp-duty-calculator-sa"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-sa.html"
+  to = "/tools/stamp-duty-calculator-sa"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-sa"
+  to = "/tools/stamp-duty-calculator-sa"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-sa.html"
+  to = "/tools/stamp-duty-calculator-sa"
+  status = 301
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator-tas.html"
+  to = "/tools/stamp-duty-calculator-tas"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-tas"
+  to = "/tools/stamp-duty-calculator-tas"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-tas.html"
+  to = "/tools/stamp-duty-calculator-tas"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-tas"
+  to = "/tools/stamp-duty-calculator-tas"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-tas.html"
+  to = "/tools/stamp-duty-calculator-tas"
+  status = 301
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator-act.html"
+  to = "/tools/stamp-duty-calculator-act"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-act"
+  to = "/tools/stamp-duty-calculator-act"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-act.html"
+  to = "/tools/stamp-duty-calculator-act"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-act"
+  to = "/tools/stamp-duty-calculator-act"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-act.html"
+  to = "/tools/stamp-duty-calculator-act"
+  status = 301
+
+[[redirects]]
+  from = "/tools/stamp-duty-calculator-nt.html"
+  to = "/tools/stamp-duty-calculator-nt"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-nt"
+  to = "/tools/stamp-duty-calculator-nt"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-calculator-nt.html"
+  to = "/tools/stamp-duty-calculator-nt"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-nt"
+  to = "/tools/stamp-duty-calculator-nt"
+  status = 301
+
+[[redirects]]
+  from = "/stamp-duty-nt.html"
+  to = "/tools/stamp-duty-calculator-nt"
+  status = 301
+
 [[redirects]]
   from = "/mortgage-stress-calculator"
   to = "/tools/mortgage-stress-calculator"

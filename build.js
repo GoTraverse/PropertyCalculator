@@ -32,7 +32,20 @@ const CACHE_REPORT = path.join(CACHE_DIR, 'suburb-index-report.json');
 // Netlify sets INCOMING_HOOK_TITLE when a build hook triggers the deploy
 // Admin "Rebuild Suburbs" button names the hook "Suburb rebuild (admin)"
 const hookTitle = process.env.INCOMING_HOOK_TITLE || '';
-const shouldRebuild = process.env.REBUILD_SUBURBS === 'true' || hookTitle.toLowerCase().includes('suburb');
+const explicitRebuild = process.env.REBUILD_SUBURBS === 'true' || hookTitle.toLowerCase().includes('suburb');
+
+// Files whose changes invalidate the suburb-page cache. When any of these is
+// newer than the cache stamp, we force a rebuild on the next deploy so a
+// template tweak or build-script edit doesn't sit dormant behind the cache
+// for weeks until someone manually pokes REBUILD_SUBURBS=true.
+const SUBURB_CACHE_DEPS = [
+  'build/build-suburbs.js',
+  'build/apply-abs-data.js',
+  'templates/suburb-page.html',
+  'templates/state-hub.html',
+  'templates/city-page.html',
+  'data/suburbs.json',
+];
 
 function getSitemapFiles(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -42,6 +55,33 @@ function getSitemapFiles(dir) {
 function cacheExists() {
   return fs.existsSync(CACHE_SUBURB) && fs.existsSync(CACHE_INVEST) && getSitemapFiles(CACHE_DIR).length > 0;
 }
+
+// Returns true when any tracked dependency has been modified since the cache
+// was last written. Falls back to "stale" (force rebuild) when the stamp is
+// missing or unreadable — safer than serving outdated HTML to users + Google.
+function cacheIsStale() {
+  if (!fs.existsSync(CACHE_STAMP)) return true;
+  let stampTime;
+  try {
+    const stamp = JSON.parse(fs.readFileSync(CACHE_STAMP, 'utf8'));
+    stampTime = stamp.date ? new Date(stamp.date).getTime() : 0;
+  } catch (e) {
+    return true;
+  }
+  if (!stampTime) return true;
+  for (const rel of SUBURB_CACHE_DEPS) {
+    const abs = path.join(ROOT, rel);
+    if (!fs.existsSync(abs)) continue;
+    const mtime = fs.statSync(abs).mtimeMs;
+    if (mtime > stampTime) {
+      console.log('[build] Cache stale: ' + rel + ' modified after last build');
+      return true;
+    }
+  }
+  return false;
+}
+
+const shouldRebuild = explicitRebuild || cacheIsStale();
 
 function copyDir(src, dest) {
   execSync(`cp -a "${src}" "${dest}"`, { stdio: 'inherit' });
@@ -94,6 +134,7 @@ async function buildSuburbs() {
   // Step 1: Fetch enhanced ABS data (income, centroids, rent, mortgage, dwelling types).
   // This runs against the ABS ArcGIS FeatureServer and takes ~60s for all 14,500 suburbs.
   // Skipped if SKIP_ABS_FETCH=true (useful for local dev without internet).
+  let absFetchOk = false;
   if (process.env.SKIP_ABS_FETCH !== 'true') {
     console.log('[build] Fetching enhanced ABS data (income, centroids, rent, mortgage)...');
     try {
@@ -101,15 +142,31 @@ async function buildSuburbs() {
       execSync('node build/fetch-abs-enhanced.js', { stdio: 'inherit', cwd: __dirname });
       console.log('[build] ABS fetch complete. Applying real data to suburbs.json...');
       execSync('node build/apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
+      absFetchOk = true;
     } catch (e) {
-      // Non-fatal: if ABS fetch fails (e.g. network issue), continue with existing data
-      console.warn('[build] Warning: ABS enhanced fetch failed — building with existing data.');
-      console.warn(e.message);
+      // Loud banner — silent ABS-fetch failures were the root cause of all
+      // suburbs.json enrichment fields (median_rent_weekly, distance_to_cbd,
+      // lat/lng, house_percentage) staying null and degrading the suburb-page
+      // SERP snippet. Always log this loudly so it's visible in Netlify logs.
+      console.error('');
+      console.error('═══════════════════════════════════════════════════════════════════');
+      console.error('  [build]  ABS ENHANCED FETCH FAILED — using stale suburbs.json');
+      console.error('═══════════════════════════════════════════════════════════════════');
+      console.error('  Error: ' + e.message);
+      console.error('  Effect: suburb pages will keep null rent / distance / lat/lng');
+      console.error('          fields. Phase-3 SEO meta upgrade depends on these.');
+      console.error('  Likely causes:');
+      console.error('   - ABS ArcGIS endpoint changed schema or URL (most likely)');
+      console.error('   - Netlify build sandbox blocked outbound to services1.arcgis.com');
+      console.error('   - Rate limit / transient outage (retry the deploy)');
+      console.error('  Verify locally: node build/fetch-abs-enhanced.js');
+      console.error('═══════════════════════════════════════════════════════════════════');
+      console.error('');
       // Still run apply-abs-data.js to at least get the logic fixes applied
       try {
         execSync('node build/apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
       } catch (e2) {
-        console.warn('[build] Warning: apply-abs-data.js also failed:', e2.message);
+        console.error('[build] apply-abs-data.js also failed:', e2.message);
       }
     }
   } else {
@@ -120,6 +177,39 @@ async function buildSuburbs() {
   // Step 2: Build all suburb HTML pages from updated suburbs.json
   require('./build/build-suburbs.js');
   saveToCache();
+
+  // Step 3: Data-health audit — count how many suburbs have the enrichment
+  // fields populated. Surfaces silently-broken pipelines on every rebuild
+  // so the next deploy makes any regression obvious in Netlify logs.
+  try {
+    const subs = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'suburbs.json'), 'utf8'));
+    const total = subs.length;
+    const c = {
+      rent:     subs.filter(s => s.median_rent_weekly).length,
+      mortgage: subs.filter(s => s.median_mortgage_monthly).length,
+      distance: subs.filter(s => s.distance_to_cbd != null).length,
+      housePct: subs.filter(s => s.house_percentage != null).length,
+      latLng:   subs.filter(s => s.lat != null).length,
+    };
+    const pct = (n) => total ? Math.round(n / total * 100) + '%' : '0%';
+    console.log('[build] DATA HEALTH (suburbs.json enrichment field coverage):');
+    console.log('         median_rent_weekly      ' + c.rent     + '/' + total + ' (' + pct(c.rent)     + ')');
+    console.log('         median_mortgage_monthly ' + c.mortgage + '/' + total + ' (' + pct(c.mortgage) + ')');
+    console.log('         distance_to_cbd         ' + c.distance + '/' + total + ' (' + pct(c.distance) + ')');
+    console.log('         house_percentage        ' + c.housePct + '/' + total + ' (' + pct(c.housePct) + ')');
+    console.log('         lat / lng               ' + c.latLng   + '/' + total + ' (' + pct(c.latLng)   + ')');
+    if (absFetchOk && c.rent === 0) {
+      console.error('[build] WARNING: ABS fetch reported success but enrichment fields');
+      console.error('        are 100% null. apply-abs-data.js may be failing silently.');
+    }
+    if (c.rent === 0) {
+      console.warn('[build] Phase-3 SEO meta-description will fall back to income-only');
+      console.warn('        variant. Populate the ABS enhanced data to light up the');
+      console.warn('        richer "median rent $X/wk, income $Yk, pop Z" SERP snippet.');
+    }
+  } catch (e) {
+    console.warn('[build] Data-health audit skipped:', e.message);
+  }
 }
 
 async function buildBlog() {
@@ -143,7 +233,11 @@ async function buildBlog() {
 
 (async () => {
   if (shouldRebuild) {
-    console.log('[build] REBUILD_SUBURBS=true — regenerating all suburb pages');
+    if (explicitRebuild) {
+      console.log('[build] Explicit rebuild trigger — regenerating all suburb pages');
+    } else {
+      console.log('[build] Cache stale (template / build script changed) — regenerating');
+    }
     await buildSuburbs();
   } else if (cacheExists()) {
     restoreFromCache();

@@ -42,8 +42,29 @@ function fetch(url) {
       let body = '';
       res.on('data', c => body += c);
       res.on('end', () => {
+        const status = res.statusCode || 0;
+        const contentType = (res.headers && res.headers['content-type']) || '';
+        // Surface HTTP-level failures with the actual status + body snippet
+        // so a "Host not in allowlist" / 502 / rate-limit response shows
+        // the real cause instead of bubbling up as a generic JSON parse error.
+        if (status < 200 || status >= 300) {
+          return reject(new Error(
+            'ABS endpoint HTTP ' + status + ' — body: ' + body.slice(0, 300)
+          ));
+        }
+        if (!contentType.includes('json')) {
+          return reject(new Error(
+            'ABS endpoint returned non-JSON content-type "' + contentType +
+            '" (status ' + status + '). Body snippet: ' + body.slice(0, 300)
+          ));
+        }
         try { resolve(JSON.parse(body)); }
-        catch (e) { reject(new Error('JSON parse error: ' + body.slice(0, 300))); }
+        catch (e) {
+          reject(new Error(
+            'ABS endpoint returned invalid JSON despite content-type "' +
+            contentType + '". Body snippet: ' + body.slice(0, 300)
+          ));
+        }
       });
       res.on('error', reject);
     }).on('error', reject);

@@ -11,6 +11,10 @@
 <meta name="description" content="{{META_DESCRIPTION}}">
 <meta name="keywords" content="{{SUBURB}} Australia property investment, {{SUBURB}} {{POSTCODE_TITLE}}{{STATE}} real estate, {{SUBURB}} {{STATE_NAME}} Australia, {{SUBURB}} suburb profile Australia, {{STATE_NAME}} property market{{POSTCODE_KW}}">
 <link rel="canonical" href="https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}">
+<link rel="alternate" hreflang="x-default" href="https://equitysight.app/suburb/{{STATE_LOWER}}/{{SLUG}}">
+<meta name="geo.region" content="AU">
+<meta name="geo.placename" content="Australia">
 <meta property="og:type" content="article">
 <meta property="og:title" content="{{PAGE_TITLE}}">
 <meta property="og:description" content="{{META_DESCRIPTION}}">
@@ -231,7 +235,7 @@
     <p class="suburb-calc-cta-label">Run the numbers on a {{SUBURB}} property</p>
     <div class="suburb-calc-links">
       <a href="/tools/rental-yield-calculator" class="suburb-calc-link">Rental Yield →</a>
-      <a href="/tools/stamp-duty-calculator" class="suburb-calc-link">Stamp Duty →</a>
+      <a href="/tools/stamp-duty-calculator-{{STATE_LOWER}}" class="suburb-calc-link">{{STATE}} Stamp Duty →</a>
       <a href="/tools/cost-of-purchase-calculator" class="suburb-calc-link">Cost of Purchase →</a>
     </div>
 {{BLOG_LINKS_HTML}}

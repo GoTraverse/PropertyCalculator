@@ -104,12 +104,15 @@ Each strategy card (Buy & Hold, Rental Yield, Renovation/Flip) is assigned **str
 
 Everything in between is labelled **moderate**. The exact thresholds are in `build/build-suburbs.js` in our public repository.
 
-## 9. Data freshness
+## 9. Data freshness and current coverage
 
-- ABS 2021 Census data is used where available (most fields).
+- **Population**, **postcode**, **household income**, **suburb type** — populated for ~100% of suburbs in the current `data/suburbs.json` snapshot. These drive the population display, postcode field, income gate, and the suburb-type points of the investment score.
+- **Median weekly rent**, **median monthly mortgage**, **distance to CBD**, **dwelling-type percentage**, **suburb centroid (lat/lng)** — sourced from the ABS Enhanced fetch (see Data Sources page). When this fetch is fresh, these fields are present and the cash-flow coverage ratio (§4), rate-sensitivity stress test (§6), rental stress threshold (§7), and renovation strategy verdict (§8) all render on the relevant suburb pages. **When the upstream fetch hasn't run since the last data refresh, those derived metrics are simply omitted from the page rather than estimated from a placeholder.** This is intentional: we'd rather show no number than a guessed one.
 - Australia Post postcodes are cross-checked against a community dataset refreshed annually.
-- OpenStreetMap amenity data is refreshed on major site rebuilds.
-- Live rental and sales data is not yet integrated — when it is, this page will be versioned and updated.
+- OpenStreetMap amenity data (school + park names) is refreshed on major site rebuilds.
+- Live rental and sales market data (Domain API, etc.) is not yet integrated — when it is, this page will be versioned and updated.
+
+If a suburb page is missing a section that this methodology describes, the corresponding field was unavailable at build time. The page will pick up the metric automatically on the next deploy after the fetch succeeds.
 
 ## 10. Known limitations
 
@@ -140,6 +143,7 @@ This matches the "pay half the monthly amount every fortnight" offer most Austra
 
 ## 12. Change log
 
+- **May 2026** — Documented current data-coverage explicitly in §9, replacing language that implied richer ABS fields (rent, mortgage, CBD distance, dwelling mix, centroid coordinates) were always populated. Where the upstream Enhanced ABS fetch hasn't refreshed, the suburb pages now omit the corresponding sections rather than display a placeholder. Fixed eight bracket-cliff bugs in the stamp duty calculators (NSW, VIC, SA, WA, TAS, ACT, NT — the QLD calculator was already correct). Calculator output now flows continuously across every bracket transition, with deterministic regression tests guarding each state. See `tests/stamp-duty-test.js`.
 - **April 2026** — First published methodology. Introduced multi-factor noindex gate, deterministic strategy verdicts, comparison tables, and formula-driven prose to replace templated phrase pools. Documented mortgage repayment formulas used by the Purchase Calculator.
 
 ## 13. Questions?

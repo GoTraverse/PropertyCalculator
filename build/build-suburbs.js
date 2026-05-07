@@ -32,22 +32,54 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase());
 }
 
-// SEO title builder. Target: under 55 chars to fit mobile SERP width
-// (Google desktop SERP cuts at ~60). Falls back through descriptor variants
-// when the prefix is long, then truncates to bare prefix as last resort.
-function buildSuburbTitle(suburb, state, postcode) {
-  const prefix = postcode ? `${suburb}, ${state} ${postcode}` : `${suburb}, ${state}`;
-  const variants = [
-    ' – Property Data, Median Price & Rental Yield',
-    ' – Property Data, Price & Yield',
-    ' – Property Data',
-    ' Property Profile'
-  ];
-  for (const v of variants) {
-    const t = prefix + v;
-    if (t.length < 55) return t;
+// SEO title builder. Target: under 60 chars (Google SERP truncates at ~60 on
+// desktop, ~55 on mobile). Builds a fact-first title that injects the most
+// specific numeric data we have for the suburb so the SERP snippet answers
+// the query rather than describing the page. Variants are tried in order
+// of richness; the first one that fits the budget wins.
+//
+// Per-suburb numeric coverage in data/suburbs.json (May 2026): postcode 99.8%,
+// population 100%, median_household_income 100%. Median rent / mortgage /
+// distance-to-CBD are not yet populated — the title gracefully falls back
+// through population + income variants when those richer numbers are absent.
+function buildSuburbTitle(s) {
+  const pc = s.postcode || '';
+  const region = pc ? `${s.state} ${pc}` : s.state;
+  const incomeK = s.median_household_income
+    ? '$' + Math.round(s.median_household_income / 1000) + 'k'
+    : null;
+  const popDisplay = s.population
+    ? (s.population >= 1000
+        ? Math.round(s.population / 1000) + 'k'
+        : String(s.population))
+    : null;
+
+  const variants = [];
+  // Best — has rent (when populated upstream)
+  if (s.median_rent_weekly) {
+    variants.push(`${s.suburb} ${region} Median Rent $${s.median_rent_weekly}/wk Profile`);
+    variants.push(`${s.suburb} ${region} Rent $${s.median_rent_weekly}/wk Suburb Profile`);
   }
-  return prefix;
+  // Income-led variants (current real-data fallback for almost every suburb)
+  if (incomeK) {
+    variants.push(`${s.suburb} ${region} Suburb Profile · Median Income ${incomeK}`);
+    variants.push(`${s.suburb} ${region} Suburb Profile · Income ${incomeK}`);
+    variants.push(`${s.suburb} ${region} Profile · Income ${incomeK}`);
+  }
+  // Population-led
+  if (popDisplay) {
+    variants.push(`${s.suburb} ${region} Suburb Profile · Pop ${popDisplay}`);
+    variants.push(`${s.suburb} ${region} Profile · Pop ${popDisplay}`);
+  }
+  // Generic fallback
+  variants.push(`${s.suburb} ${region} Suburb Profile`);
+  variants.push(`${s.suburb}, ${region} Profile`);
+
+  for (const v of variants) {
+    if (v.length <= 60) return v;
+  }
+  // Hard floor — bare prefix
+  return `${s.suburb} ${region}`;
 }
 
 // SEO H1 builder.
@@ -57,13 +89,72 @@ function buildSuburbH1(suburb, state, postcode) {
     : `${suburb}, ${state} Property Profile`;
 }
 
-// SEO meta description builder. Target: under 155 chars.
-function buildSuburbMetaDesc(suburb, state) {
-  const full = `See ${suburb} ${state} property data: median house price, rental yield, growth trends and demographics. Free investment analysis tool.`;
-  if (full.length < 155) return full;
-  const trimmed = `See ${suburb} ${state} property data: median price, rental yield, growth trends. Free Australian investment analysis.`;
-  if (trimmed.length < 155) return trimmed;
-  return `${suburb} ${state} property data: median price, rental yield, growth trends.`;
+// SEO meta description builder. Target: under 155 chars (Google SERP cap).
+//
+// Per Phase 3 of the May 2026 SEO remediation: lead with concrete numbers
+// (rent, income, population, postcode) so the SERP snippet answers the user's
+// query directly. Falls back through population + postcode + income when the
+// richer rent/distance data isn't populated. Each variant is tried in order
+// and the first one under the 155-char budget wins.
+function buildSuburbMetaDesc(s) {
+  const pc = s.postcode || '';
+  const pop = s.population ? Number(s.population).toLocaleString('en-AU') : '';
+  const inc = s.median_household_income;
+  const incK = inc ? '$' + Math.round(inc / 1000) + 'k' : null;
+  const rent = s.median_rent_weekly;
+  const dist = s.distance_to_cbd;
+  const stateName = s.state_name || s.state;
+  const region = pc ? `${s.state} ${pc}` : s.state;
+
+  const variants = [];
+
+  // Tier 1 — rent + income + population (richest)
+  if (rent && inc && pop) {
+    variants.push(
+      `${s.suburb} ${region} median rent $${rent}/wk, median income ${incK}/yr. Population ${pop}. Free 2026 ${stateName} suburb profile.`
+    );
+    variants.push(
+      `${s.suburb} ${region}: median rent $${rent}/wk, income ${incK}/yr, pop ${pop}. Free 2026 suburb profile & investor data.`
+    );
+  }
+  // Tier 2 — rent + population
+  if (rent && pop) {
+    variants.push(
+      `${s.suburb} ${region} median rent $${rent}/wk. Population ${pop}. Free 2026 suburb profile, demographics & investor insights.`
+    );
+  }
+  // Tier 3 — distance + income + population (when distance is populated)
+  if (dist != null && inc && pop) {
+    variants.push(
+      `${s.suburb} ${region} suburb profile. Population ${pop}, median income ${incK}/yr, ${dist}km from CBD. Free 2026 investor data.`
+    );
+  }
+  // Tier 4 — current default: income + population + postcode
+  // (the user-preferred fallback per SOW Phase 3)
+  if (inc && pop && pc) {
+    variants.push(
+      `${s.suburb} ${region}: median household income ${incK}/yr, population ${pop}. Free 2026 suburb profile & investor insights.`
+    );
+    variants.push(
+      `${s.suburb} ${region} profile. Pop ${pop}, median income ${incK}/yr. Schools, parks & 2026 investor data.`
+    );
+  }
+  // Tier 5 — population + postcode (no income)
+  if (pop && pc) {
+    variants.push(
+      `${s.suburb} ${region} suburb profile. Population ${pop}. Demographics, schools, parks & 2026 investor insights for ${stateName}.`
+    );
+  }
+  // Tier 6 — bare-bones fallback
+  variants.push(
+    `${s.suburb} ${s.state} suburb profile. ${stateName} demographics, investor insights & 2026 outlook.`
+  );
+
+  for (const v of variants) {
+    if (v.length <= 155) return v;
+  }
+  // Hard floor
+  return `${s.suburb} ${s.state} suburb profile — investor data & 2026 outlook.`;
 }
 
 // ── Locator card (replaces the old Google Maps iframe — see PR shipping
@@ -2107,9 +2198,9 @@ for (const s of suburbs) {
 
   // SEO title, H1, and meta description — interpolated per-page from data,
   // built to satisfy Google SERP length budgets (title <60, meta <155).
-  const pageTitle = buildSuburbTitle(s.suburb, s.state, pc);
+  const pageTitle = buildSuburbTitle(s);
   const pageH1    = buildSuburbH1(s.suburb, s.state, pc);
-  const metaDesc  = buildSuburbMetaDesc(s.suburb, s.state);
+  const metaDesc  = buildSuburbMetaDesc(s);
 
   // Distance display: real km with note, or N/A
   const distDisplay = s.distance_to_cbd != null
@@ -2383,7 +2474,7 @@ function generateStateFaqHTML(state, stateName, stateSubs) {
     },
     {
       q: `What stamp duty applies to ${stateName} property?`,
-      a: `${stateName} stamp duty (transfer duty) is collected by the ${summary.revenueOffice || 'state revenue office'}. The first home buyer concession threshold is ${summary.fhbThreshold || 'set per state'}. Foreign buyer surcharge: ${summary.foreignSurcharge || 'check with the revenue office'}. Use our <a href="/tools/stamp-duty-calculator">all-states stamp duty calculator</a>${state === 'QLD' ? ' or the dedicated <a href="/tools/stamp-duty-calculator-qld">QLD stamp duty calculator</a>' : ''} for an exact figure.`
+      a: `${stateName} stamp duty (transfer duty) is collected by the ${summary.revenueOffice || 'state revenue office'}. The first home buyer concession threshold is ${summary.fhbThreshold || 'set per state'}. Foreign buyer surcharge: ${summary.foreignSurcharge || 'check with the revenue office'}. Use our <a href="/tools/stamp-duty-calculator">all-states stamp duty calculator</a> or the dedicated <a href="/tools/stamp-duty-calculator-${state.toLowerCase()}">${state} stamp duty calculator</a> for an exact figure.`
     },
     {
       q: `What's the average household income across ${stateName} suburbs?`,

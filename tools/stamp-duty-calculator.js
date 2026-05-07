@@ -1,105 +1,136 @@
-/* ═══ STATE DATA ═══ */
+/* ═══ STATE DATA ═══
+ *
+ * Each state is defined as a list of tiers `[from, rate]`, evaluated
+ * cumulatively: tier i taxes the portion of dutiable value between
+ * tier[i].from and tier[i+1].from at tier[i].rate. The duty payable at
+ * value v is therefore:
+ *
+ *   sum_over_full_tiers(span × rate) + (v − last_full_tier.from) × last_tier.rate
+ *
+ * `calcDuty()` below implements that. Defining the data this way (instead
+ * of inline `formula: function(v) { return base + (v - bracket_min) * rate }`
+ * with hand-computed `base` constants) eliminates the bracket-discontinuity
+ * bugs that crept into the previous representation — at multiple bracket
+ * boundaries duty payable was dropping by hundreds of dollars going up by
+ * one cent. See PR #223 follow-up commit and tests/stamp-duty-test.js.
+ *
+ * Source of rates: state revenue offices, FY 2025–26 published rates as
+ * at May 2026. Each state revenue office has the canonical reference; URLs
+ * are listed in the `resources` block of each per-state calculator page
+ * (e.g. tools/stamp-duty-calculator-nsw.js).
+ */
 var stateData = {
   nsw: {
     name: 'New South Wales', dutyName: 'Conveyancing Duty', foreignRate: 0.08,
     fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
-    rates: [
-      { min: 0, max: 14000, formula: function() { return 0; } },
-      { min: 14001, max: 30000, formula: function(v) { return v * 0.0125; } },
-      { min: 30001, max: 130000, formula: function(v) { return 200 + (v - 30000) * 0.015; } },
-      { min: 130001, max: 205000, formula: function(v) { return 1700 + (v - 130000) * 0.0175; } },
-      { min: 205001, max: 305000, formula: function(v) { return 2631.25 + (v - 205000) * 0.035; } },
-      { min: 305001, max: 405000, formula: function(v) { return 6131.25 + (v - 305000) * 0.04; } },
-      { min: 405001, max: 550000, formula: function(v) { return 10131.25 + (v - 405000) * 0.045; } },
-      { min: 550001, max: Infinity, formula: function(v) { return 16256.25 + (v - 550000) * 0.055; } }
+    tiers: [
+      { from: 0,       rate: 0       },
+      { from: 14000,   rate: 0.0125  },
+      { from: 30000,   rate: 0.015   },
+      { from: 130000,  rate: 0.0175  },
+      { from: 205000,  rate: 0.035   },
+      { from: 305000,  rate: 0.04    },
+      { from: 405000,  rate: 0.045   },
+      { from: 550000,  rate: 0.055   }
     ]
   },
   vic: {
     name: 'Victoria', dutyName: 'Duty of Transfer', foreignRate: 0.08,
     fhbFull: 600000, fhbPartial: 750000, fhbExemption: 25000,
-    rates: [
-      { min: 0, max: 25000, formula: function() { return 0; } },
-      { min: 25001, max: 130000, formula: function(v) { return v * 0.014; } },
-      { min: 130001, max: 440000, formula: function(v) { return 1470 + (v - 130000) * 0.024; } },
-      { min: 440001, max: 870000, formula: function(v) { return 8910 + (v - 440000) * 0.055; } },
-      { min: 870001, max: Infinity, formula: function(v) { return 43605 + (v - 870000) * 0.065; } }
+    tiers: [
+      { from: 0,       rate: 0      },
+      { from: 25000,   rate: 0.014  },
+      { from: 130000,  rate: 0.024  },
+      { from: 440000,  rate: 0.055  },
+      { from: 870000,  rate: 0.065  }
     ]
   },
   qld: {
     name: 'Queensland', dutyName: 'Transfer Duty', foreignRate: 0.08,
     fhbFull: 500000, fhbPartial: 550000, fhbExemption: Infinity,
     landFhbFull: 250000, landFhbPartial: 400000,
-    rates: [
-      { min: 0, max: 5000, formula: function() { return 0; } },
-      { min: 5001, max: 75000, formula: function(v) { return (v - 5000) * 0.015; } },
-      { min: 75001, max: 540000, formula: function(v) { return 1050 + (v - 75000) * 0.035; } },
-      { min: 540001, max: 1000000, formula: function(v) { return 17325 + (v - 540000) * 0.045; } },
-      { min: 1000001, max: Infinity, formula: function(v) { return 38025 + (v - 1000000) * 0.0575; } }
+    tiers: [
+      { from: 0,        rate: 0      },
+      { from: 5000,     rate: 0.015  },
+      { from: 75000,    rate: 0.035  },
+      { from: 540000,   rate: 0.045  },
+      { from: 1000000,  rate: 0.0575 }
     ]
   },
   sa: {
     name: 'South Australia', dutyName: 'Transfer Duty', foreignRate: 0.08,
     fhbFull: 575000, fhbPartial: 650000, fhbExemption: Infinity,
-    rates: [
-      { min: 0, max: 16000, formula: function() { return 0; } },
-      { min: 16001, max: 19000, formula: function(v) { return v * 0.015; } },
-      { min: 19001, max: 250000, formula: function(v) { return 45 + (v - 19000) * 0.03; } },
-      { min: 250001, max: 300000, formula: function(v) { return 6915 + (v - 250000) * 0.035; } },
-      { min: 300001, max: Infinity, formula: function(v) { return 8665 + (v - 300000) * 0.04; } }
+    tiers: [
+      { from: 0,       rate: 0     },
+      { from: 16000,   rate: 0.015 },
+      { from: 19000,   rate: 0.03  },
+      { from: 250000,  rate: 0.035 },
+      { from: 300000,  rate: 0.04  }
     ]
   },
   wa: {
     name: 'Western Australia', dutyName: 'Stamp Duty', foreignRate: 0.07,
     fhbFull: 430000, fhbPartial: 500000, fhbExemption: Infinity,
-    rates: [
-      { min: 0, max: 2000, formula: function() { return 0; } },
-      { min: 2001, max: 4000, formula: function(v) { return v * 0.01; } },
-      { min: 4001, max: 500000, formula: function(v) { return 20 + (v - 4000) * 0.02; } },
-      { min: 500001, max: 1000000, formula: function(v) { return 9920 + (v - 500000) * 0.035; } },
-      { min: 1000001, max: Infinity, formula: function(v) { return 27420 + (v - 1000000) * 0.0475; } }
+    tiers: [
+      { from: 0,        rate: 0      },
+      { from: 2000,     rate: 0.01   },
+      { from: 4000,     rate: 0.02   },
+      { from: 500000,   rate: 0.035  },
+      { from: 1000000,  rate: 0.0475 }
     ]
   },
   tas: {
     name: 'Tasmania', dutyName: 'Conveyancing Duty', foreignRate: 0,
     fhbFull: 400000, fhbPartial: 500000, fhbExemption: Infinity,
-    rates: [
-      { min: 0, max: 3000, formula: function() { return 0; } },
-      { min: 3001, max: 100000, formula: function(v) { return v * 0.036; } },
-      { min: 100001, max: 150000, formula: function(v) { return 3492 + (v - 100000) * 0.041; } },
-      { min: 150001, max: 250000, formula: function(v) { return 5542 + (v - 150000) * 0.0425; } },
-      { min: 250001, max: Infinity, formula: function(v) { return 9792 + (v - 250000) * 0.0475; } }
+    tiers: [
+      { from: 0,       rate: 0      },
+      { from: 3000,    rate: 0.036  },
+      { from: 100000,  rate: 0.041  },
+      { from: 150000,  rate: 0.0425 },
+      { from: 250000,  rate: 0.0475 }
     ]
   },
   act: {
     name: 'Australian Capital Territory', dutyName: 'Duty', foreignRate: 0.08,
     fhbFull: 1000000, fhbPartial: 1000000, fhbExemption: Infinity,
-    rates: [
-      { min: 0, max: 7500, formula: function() { return 0; } },
-      { min: 7501, max: 30000, formula: function(v) { return v * 0.0125; } },
-      { min: 30001, max: 200000, formula: function(v) { return 281.25 + (v - 30000) * 0.02; } },
-      { min: 200001, max: Infinity, formula: function(v) { return 4681.25 + (v - 200000) * 0.035; } }
+    tiers: [
+      { from: 0,       rate: 0      },
+      { from: 7500,    rate: 0.0125 },
+      { from: 30000,   rate: 0.02   },
+      { from: 200000,  rate: 0.035  }
     ]
   },
   nt: {
     name: 'Northern Territory', dutyName: 'Duty', foreignRate: 0.08,
     fhbFull: 650000, fhbPartial: 650000, fhbExemption: Infinity,
-    rates: [
-      { min: 0, max: 3000, formula: function() { return 0; } },
-      { min: 3001, max: 100000, formula: function(v) { return v * 0.0075; } },
-      { min: 100001, max: 150000, formula: function(v) { return 727.50 + (v - 100000) * 0.01; } },
-      { min: 150001, max: 250000, formula: function(v) { return 1227.50 + (v - 150000) * 0.015; } },
-      { min: 250001, max: Infinity, formula: function(v) { return 2727.50 + (v - 250000) * 0.025; } }
+    tiers: [
+      { from: 0,       rate: 0      },
+      { from: 3000,    rate: 0.0075 },
+      { from: 100000,  rate: 0.01   },
+      { from: 150000,  rate: 0.015  },
+      { from: 250000,  rate: 0.025  }
     ]
   }
 };
 
-function calcDuty(state, val) {
+// Cumulative tiered duty calculation. Given a tiers array and a value v,
+// taxes each completed span (tiers[i+1].from - tiers[i].from) at tiers[i].rate
+// and the residual (v - last_completed.from) at the last applicable rate.
+// Continuous by construction — the bracket-cliff bugs in the previous
+// hand-rolled formulas cannot recur with this implementation.
+function calcDuty(state, v) {
   var data = stateData[state];
-  for (var i = 0; i < data.rates.length; i++) {
-    var bracket = data.rates[i];
-    if (val >= bracket.min && val <= bracket.max) return bracket.formula(val);
+  if (!data || !data.tiers || v <= 0) return 0;
+  var tiers = data.tiers;
+  var duty = 0;
+  for (var i = 0; i < tiers.length; i++) {
+    var from = tiers[i].from;
+    if (v <= from) break;
+    var nextFrom = (i + 1 < tiers.length) ? tiers[i + 1].from : Infinity;
+    var span = Math.min(v, nextFrom) - from;
+    duty += span * tiers[i].rate;
   }
-  return 0;
+  return duty;
 }
 
 function updateState() {
