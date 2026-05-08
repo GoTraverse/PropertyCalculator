@@ -16,6 +16,8 @@ const SUBURB_TPL = fs.readFileSync(path.join(ROOT, 'templates', 'suburb-page.htm
 const HUB_TPL = fs.readFileSync(path.join(ROOT, 'templates', 'state-hub.html'), 'utf8');
 const CITY_TPL = fs.readFileSync(path.join(ROOT, 'templates', 'city-page.html'), 'utf8');
 
+const { generateOgSvg, renderPng } = require('./build-og-images');
+
 const suburbs = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 
 // ── Helpers ──
@@ -2311,6 +2313,22 @@ for (const s of suburbs) {
 
   const outDir = path.join(ROOT, 'suburb', s.state.toLowerCase(), s.slug);
   fs.mkdirSync(outDir, { recursive: true });
+
+  if (!isNoindexed) {
+    try {
+      const ogSvg = generateOgSvg(s);
+      const ogPng = renderPng(ogSvg);
+      fs.writeFileSync(path.join(outDir, 'og.png'), ogPng);
+    } catch (e) {
+      // Non-fatal — suburb page still works with generic og:image fallback
+    }
+  }
+
+  html = html.replace(/\{\{OG_IMAGE_URL\}\}/g,
+    isNoindexed
+      ? 'https://equitysight.app/images/og-image.png'
+      : `https://equitysight.app/suburb/${s.state.toLowerCase()}/${s.slug}/og.png`);
+
   fs.writeFileSync(path.join(outDir, 'index.html'), html);
   suburbCount++;
 }

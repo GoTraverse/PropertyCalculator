@@ -40,6 +40,7 @@ const explicitRebuild = process.env.REBUILD_SUBURBS === 'true' || hookTitle.toLo
 // for weeks until someone manually pokes REBUILD_SUBURBS=true.
 const SUBURB_CACHE_DEPS = [
   'build/build-suburbs.js',
+  'build/build-og-images.js',
   'build/apply-abs-data.js',
   'templates/suburb-page.html',
   'templates/state-hub.html',
