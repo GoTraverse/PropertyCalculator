@@ -40,6 +40,7 @@ const explicitRebuild = process.env.REBUILD_SUBURBS === 'true' || hookTitle.toLo
 // for weeks until someone manually pokes REBUILD_SUBURBS=true.
 const SUBURB_CACHE_DEPS = [
   'build/build-suburbs.js',
+  'build/build-og-images.js',
   'build/apply-abs-data.js',
   'templates/suburb-page.html',
   'templates/state-hub.html',
@@ -176,6 +177,15 @@ async function buildSuburbs() {
 
   // Step 2: Build all suburb HTML pages from updated suburbs.json
   require('./build/build-suburbs.js');
+
+  // Step 2b: Generate suburb-specific Open Graph images for indexed suburbs
+  try {
+    const { generateOgImages } = require('./build/build-og-images.js');
+    generateOgImages();
+  } catch (e) {
+    console.warn('[build] og:image generation failed (non-fatal):', e.message);
+  }
+
   saveToCache();
 
   // Step 3: Data-health audit — count how many suburbs have the enrichment

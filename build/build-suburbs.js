@@ -2307,7 +2307,10 @@ for (const s of suburbs) {
     .replace(/\{\{REVIEWS_HTML\}\}/g, isNoindexed ? '' : generateReviewsBlock(s.state, s.slug, s.suburb))
     .replace(/\{\{AGGREGATE_RATING_JSON\}\}/g, isNoindexed ? '' : generateAggregateRatingJson(s.state, s.slug, s.suburb))
     .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, generateRelatedHTML(related, s.state))
-    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state));
+    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state))
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, isNoindexed
+      ? 'https://equitysight.app/images/og-image.png'
+      : 'https://equitysight.app/suburb/' + s.state.toLowerCase() + '/' + s.slug + '/og.png');
 
   const outDir = path.join(ROOT, 'suburb', s.state.toLowerCase(), s.slug);
   fs.mkdirSync(outDir, { recursive: true });

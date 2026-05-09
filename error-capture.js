@@ -104,7 +104,10 @@
     // browser-injected content (autofill helpers, translation overlays, content blockers). Our own
     // inline scripts, if any, would report a sourceFile on OWN_ORIGIN and still surface here.
     if (e.blockedURI === 'inline' && (!src || src.indexOf(OWN_ORIGIN) !== 0)) return;
-    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + (e.blockedURI || '') + '"';
+    // Google Ads audience tracking hits country-specific domains we can't exhaustively whitelist — suppress
+    var blocked = e.blockedURI || '';
+    if (blocked.indexOf('/ads/ga-audiences') !== -1 || blocked.indexOf('/pagead/') !== -1) return;
+    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + blocked + '"';
     send({
       message:  msg,
       source:   src || e.documentURI || '',
