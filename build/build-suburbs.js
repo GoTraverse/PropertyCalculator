@@ -2265,6 +2265,7 @@ for (const s of suburbs) {
   let html = SUBURB_TPL
     .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
+    .replace(/\{\{SUBURB_ENCODED\}\}/g, encodeURIComponent(s.suburb))
     .replace(/\{\{STATE\}\}/g, escHtml(s.state))
     .replace(/\{\{STATE_LOWER\}\}/g, s.state.toLowerCase())
     .replace(/\{\{STATE_NAME\}\}/g, escHtml(s.state_name))
@@ -2347,6 +2348,7 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
 
   let cityHtml = CITY_TPL
     .replace(/\{\{CITY\}\}/g, escHtml(cityName))
+    .replace(/\{\{CITY_ENCODED\}\}/g, encodeURIComponent(cityName))
     .replace(/\{\{CITY_SLUG\}\}/g, cSlug)
     .replace(/\{\{STATE\}\}/g, escHtml(state))
     .replace(/\{\{STATE_LOWER\}\}/g, cStateLower)
@@ -2550,6 +2552,7 @@ for (const state of allStates) {
     .replace(/\{\{STATE\}\}/g, escHtml(state))
     .replace(/\{\{STATE_LOWER\}\}/g, stateLower)
     .replace(/\{\{STATE_NAME\}\}/g, escHtml(stateName))
+    .replace(/\{\{STATE_NAME_ENCODED\}\}/g, encodeURIComponent(stateName))
     .replace(/\{\{SUBURB_COUNT\}\}/g, fmt(featured.length))
     .replace(/\{\{TOTAL_SUBURB_COUNT\}\}/g, fmt(stateSuburbs.length))
     .replace(/\{\{STATE_NAV_HTML\}\}/g, stateNavHTML)

@@ -104,6 +104,10 @@
     // browser-injected content (autofill helpers, translation overlays, content blockers). Our own
     // inline scripts, if any, would report a sourceFile on OWN_ORIGIN and still surface here.
     if (e.blockedURI === 'inline' && (!src || src.indexOf(OWN_ORIGIN) !== 0)) return;
+    // Drop Google Ads audience tracking on country-specific domains (www.google.com.sg, .lu, etc.)
+    // — non-actionable; Google picks the user's local TLD and there are 100+ variants.
+    var blocked = e.blockedURI || '';
+    if (blocked.indexOf('google.') !== -1 && blocked.indexOf('/ads/ga-audiences') !== -1) return;
     var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + (e.blockedURI || '') + '"';
     send({
       message:  msg,

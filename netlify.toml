@@ -6,6 +6,9 @@
 [functions]
   node_bundler = "esbuild"
 
+[functions."og-image"]
+  included_files = ["netlify/functions/node_modules/@resvg/resvg-wasm/index_bg.wasm"]
+
 [[headers]]
   for = "/*"
   [headers.values]
