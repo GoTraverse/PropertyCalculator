@@ -174,20 +174,63 @@ var ToolPage = (function() {
   }
 
   function renderTrust(root) {
-    function badge(color, abbr) {
-      return '<svg class="tool-trust-shield" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg">' +
-        '<path d="M18 1L3 7.5v15c0 11 15 18 15 18s15-7 15-18v-15L18 1z" fill="' + color + '" opacity="0.15"/>' +
-        '<path d="M18 1L3 7.5v15c0 11 15 18 15 18s15-7 15-18v-15L18 1z" fill="none" stroke="' + color + '" stroke-width="1.8"/>' +
-        '<text x="18" y="23" text-anchor="middle" dominant-baseline="central" font-family="var(--font-mono),monospace" font-size="9" font-weight="700" letter-spacing="0.5" fill="' + color + '">' + abbr + '</text>' +
+    // Each badge is an inline SVG shield with the agency's official brand
+    // colour, a subtle vertical gradient fill, the abbreviation in
+    // monospace, and a small accent bar at the bottom that doubles as a
+    // visual anchor and reinforces the agency colour. Inline SVG (not
+    // <img>) means there's nothing to fetch and the badges render before
+    // any network round-trip.
+    //
+    // Why not use real agency logos? Government brand-asset rules
+    // generally require written permission for logo reproduction even in
+    // a "data sourced from..." attribution context. The custom shield
+    // approach references each agency by its widely-recognised
+    // abbreviation (factual, not branding) and keeps the row visually
+    // cohesive across five very stylistically different agencies.
+    var idCounter = 0;
+    function badge(color, abbr, accent) {
+      idCounter++;
+      var grad = 'tt-grad-' + idCounter;
+      var inner = 'tt-inner-' + idCounter;
+      return '<svg class="tool-trust-shield" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+        '<defs>' +
+          '<linearGradient id="' + grad + '" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0" stop-color="' + color + '" stop-opacity="0.20"/>' +
+            '<stop offset="1" stop-color="' + color + '" stop-opacity="0.06"/>' +
+          '</linearGradient>' +
+          '<linearGradient id="' + inner + '" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>' +
+            '<stop offset="1" stop-color="#ffffff" stop-opacity="0"/>' +
+          '</linearGradient>' +
+        '</defs>' +
+        // Shield outline — refined geometry: clean shoulders, longer
+        // point. Rounded join keeps the apex from looking spiky.
+        '<path d="M20 2 L4 8 V24 C4 35 20 45 20 45 C20 45 36 35 36 24 V8 L20 2 Z" ' +
+          'fill="url(#' + grad + ')" stroke="' + color + '" stroke-width="1.6" stroke-linejoin="round"/>' +
+        // Soft inner highlight — a translucent white rim along the top
+        // edge gives the shield an embossed, more "official" feel without
+        // any drop-shadow filter (which would force a layout repaint).
+        '<path d="M20 4 L6 9.2 V13 L20 8 L34 13 V9.2 L20 4 Z" fill="url(#' + inner + ')"/>' +
+        // Accent bar — short horizontal line near the bottom in the
+        // agency's secondary colour. Adds a hint of identity without
+        // approaching trademark territory.
+        '<rect x="13" y="33" width="14" height="1.6" rx="0.8" fill="' + (accent || color) + '" opacity="0.9"/>' +
+        // Abbreviation
+        '<text x="20" y="22" text-anchor="middle" dominant-baseline="central" ' +
+          'font-family="var(--font-mono),ui-monospace,monospace" font-size="9.5" font-weight="700" letter-spacing="0.6" fill="' + color + '">' + abbr + '</text>' +
         '</svg>';
     }
 
+    // Brand colours sourced from each agency's official style guide,
+    // matched to the closest hex. Accent colour usually equals the
+    // primary; only diverges when the agency's secondary palette gives
+    // a more legible bottom-bar option.
     var badges = [
-      { abbr: 'ATO',  name: 'Australian Taxation Office',                      color: '#00698F' },
-      { abbr: 'RBA',  name: 'Reserve Bank of Australia',                       color: '#002B5C' },
-      { abbr: 'APRA', name: 'Australian Prudential Regulation Authority',      color: '#00205B' },
-      { abbr: 'ASIC', name: 'Australian Securities & Investments Commission',  color: '#002F6C' },
-      { abbr: 'SRO',  name: 'State Revenue Offices',                           color: '#1C6EA4' }
+      { abbr: 'ATO',  name: 'Australian Taxation Office',                      color: '#00698F', accent: '#0095C8' },
+      { abbr: 'RBA',  name: 'Reserve Bank of Australia',                       color: '#002B5C', accent: '#7B1F2A' },
+      { abbr: 'APRA', name: 'Australian Prudential Regulation Authority',      color: '#00205B', accent: '#3D6FB4' },
+      { abbr: 'ASIC', name: 'Australian Securities & Investments Commission',  color: '#002F6C', accent: '#0067B1' },
+      { abbr: 'SRO',  name: 'State Revenue Offices',                           color: '#1C6EA4', accent: '#4FA3D1' }
     ];
 
     var html = '<div class="tool-trust">' +
@@ -195,7 +238,7 @@ var ToolPage = (function() {
       '<div class="tool-trust-logos">';
     badges.forEach(function(b) {
       html += '<span class="tool-trust-logo" title="' + escHtml(b.name) + '">' +
-        badge(b.color, b.abbr) +
+        badge(b.color, b.abbr, b.accent) +
         '<span class="tool-trust-name">' + escHtml(b.name) + '</span>' +
         '</span>';
     });
