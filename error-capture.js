@@ -104,7 +104,13 @@
     // browser-injected content (autofill helpers, translation overlays, content blockers). Our own
     // inline scripts, if any, would report a sourceFile on OWN_ORIGIN and still surface here.
     if (e.blockedURI === 'inline' && (!src || src.indexOf(OWN_ORIGIN) !== 0)) return;
-    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + (e.blockedURI || '') + '"';
+    // Google Ads audience tracking pings regional www.google.{ccTLD} domains;
+    // we can't whitelist every ccTLD so suppress the noise here.
+    var blocked = e.blockedURI || '';
+    if (/^https:\/\/www\.google\.[a-z.]+\/ads\/ga-audiences/.test(blocked)) return;
+    // Browser-extension wasm-eval violations are not actionable
+    if (blocked === 'wasm-eval' && src && src.indexOf('extension') !== -1) return;
+    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + blocked + '"';
     send({
       message:  msg,
       source:   src || e.documentURI || '',

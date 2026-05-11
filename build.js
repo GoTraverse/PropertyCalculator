@@ -176,6 +176,15 @@ async function buildSuburbs() {
 
   // Step 2: Build all suburb HTML pages from updated suburbs.json
   require('./build/build-suburbs.js');
+
+  // Step 2b: Generate og:image PNGs for suburb, city, and state hub pages
+  try {
+    const ogImages = require('./build/build-og-images.js');
+    await ogImages.generateAll();
+  } catch (e) {
+    console.warn('[build] OG image generation failed (non-fatal):', e.message);
+  }
+
   saveToCache();
 
   // Step 3: Data-health audit — count how many suburbs have the enrichment
