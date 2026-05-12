@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-05-12T05:24:55.222Z",
-  "count": 6,
+  "syncedAt": "2026-05-12T05:32:02.272Z",
+  "count": 7,
   "errors": [
+    {
+      "at": 1778563921249,
+      "message": "CSP violation: script-src-elem — blocked \"https://connect.facebook.net/en_US/pcm.js\"",
+      "source": "https://equitysight.app/blog/general/is-redbank-plains-a-good-investment-2026/?utm_source=chatgpt.com",
+      "line": 1,
+      "col": 247,
+      "stack": "",
+      "url": "https://equitysight.app/blog/general/is-redbank-plains-a-good-investment-2026/?utm_source=chatgpt.com",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/560.1.0.45.108;FBBV/964803015;FBDV/iPhone14,5;FBMD/iPhone;FBSN/iOS;FBSV/18.3;FBSS/3;FBCR/;FBID/phone;FBLC/en_US;FBOP/80]",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1778563494163,
       "message": "CSP violation: connect-src — blocked \"https://www.google.com.ph/ads/ga-audiences?v=1&t=sr&slf_rd=1&_r=4&tid=G-TYQXT24670&cid=1232327423.1778563428&gtm=45je6581v9246793855za200zd9246793855&rcb=18&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=0~115938466~115938468~118128923~118463262~118494634&z=1441084596\"",
