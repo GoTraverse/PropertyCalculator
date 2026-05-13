@@ -296,8 +296,17 @@ var ToolPage = (function() {
     html += '</div>';
     root.innerHTML = html;
 
-    // Inject FAQPage JSON-LD so the rendered Q&A matches schema for rich-snippet eligibility.
+    // Inject FAQPage JSON-LD so the rendered Q&A is eligible for rich
+    // snippets — but skip if the static HTML already carries one. 17 of
+    // 23 tool pages ship FAQPage schema baked into the HTML (better for
+    // crawlers + AdSense, which read pre-rendered markup), and the
+    // runtime inject was producing a second copy. GSC reported
+    // "Duplicate field FAQPage" → rich-result eligibility invalidated.
     try {
+      var existingScripts = document.querySelectorAll('script[type="application/ld+json"]');
+      for (var i = 0; i < existingScripts.length; i++) {
+        if ((existingScripts[i].textContent || '').indexOf('"FAQPage"') !== -1) return;
+      }
       var entities = cfg.map(function(qa) {
         return { '@type': 'Question', name: qa.q, acceptedAnswer: { '@type': 'Answer', text: qa.a } };
       });
