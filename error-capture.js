@@ -99,12 +99,20 @@
   document.addEventListener('securitypolicyviolation', function (e) {
     var src = e.sourceFile || '';
     // Drop violations originating from browser extensions (Safari/Chrome content blockers, password managers, etc.)
-    if (src && (src.indexOf('extension://') !== -1 || src.indexOf('extension:') !== -1)) return;
+    if (src && (src.indexOf('extension://') !== -1 || src.indexOf('extension:') !== -1 || src === 'chrome-extension' || src === 'moz-extension')) return;
     // Drop "inline" blocks that don't come from our own origin — these are almost always iOS
     // browser-injected content (autofill helpers, translation overlays, content blockers). Our own
     // inline scripts, if any, would report a sourceFile on OWN_ORIGIN and still surface here.
     if (e.blockedURI === 'inline' && (!src || src.indexOf(OWN_ORIGIN) !== 0)) return;
-    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + (e.blockedURI || '') + '"';
+    var blocked = e.blockedURI || '';
+    // Google Analytics uses country-specific domains (google.com.ph, google.lu, etc.)
+    // for ga-audiences — impossible to allowlist every ccTLD. Not a security issue.
+    if (blocked.indexOf('google.') !== -1 && blocked.indexOf('/ads/ga-audiences') !== -1) return;
+    // Facebook in-app browser injects its own tracking pixel; not our code.
+    if (blocked.indexOf('connect.facebook.net') !== -1) return;
+    // Browser extensions requesting wasm-eval; never from our code.
+    if (blocked === 'wasm-eval') return;
+    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + blocked + '"';
     send({
       message:  msg,
       source:   src || e.documentURI || '',
