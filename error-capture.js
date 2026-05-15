@@ -98,13 +98,20 @@
   // Capture CSP violations (these fire as securitypolicyviolation events, not error events)
   document.addEventListener('securitypolicyviolation', function (e) {
     var src = e.sourceFile || '';
+    var blocked = e.blockedURI || '';
     // Drop violations originating from browser extensions (Safari/Chrome content blockers, password managers, etc.)
-    if (src && (src.indexOf('extension://') !== -1 || src.indexOf('extension:') !== -1)) return;
+    if (src && (src.indexOf('extension://') !== -1 || src.indexOf('extension:') !== -1 || src === 'chrome-extension')) return;
+    // Drop wasm-eval blocks — always caused by browser extensions, never by our code
+    if (blocked === 'wasm-eval') return;
+    // Drop Facebook in-app browser injecting its own scripts (pcm.js, fbevents.js)
+    if (blocked.indexOf('connect.facebook.net') !== -1) return;
+    // Drop Google Ads audience pings from country-specific TLDs we haven't whitelisted
+    if (blocked.indexOf('/ads/ga-audiences') !== -1) return;
     // Drop "inline" blocks that don't come from our own origin — these are almost always iOS
     // browser-injected content (autofill helpers, translation overlays, content blockers). Our own
     // inline scripts, if any, would report a sourceFile on OWN_ORIGIN and still surface here.
-    if (e.blockedURI === 'inline' && (!src || src.indexOf(OWN_ORIGIN) !== 0)) return;
-    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + (e.blockedURI || '') + '"';
+    if (blocked === 'inline' && (!src || src.indexOf(OWN_ORIGIN) !== 0)) return;
+    var msg = 'CSP violation: ' + (e.violatedDirective || e.effectiveDirective || 'unknown') + ' — blocked "' + blocked + '"';
     send({
       message:  msg,
       source:   src || e.documentURI || '',
