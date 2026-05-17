@@ -6,6 +6,9 @@
 [functions]
   node_bundler = "esbuild"
 
+[functions."og-image"]
+  external_node_modules = ["@resvg/resvg-js"]
+
 [[headers]]
   for = "/*"
   [headers.values]
