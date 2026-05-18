@@ -8,6 +8,10 @@ data/suburb-index-report.json
 blog/
 sitemap-blog.xml
 
+# Dependencies (installed during Netlify build)
+node_modules/
+netlify/functions/node_modules/
+
 # Build cache (suburb pages persisted between Netlify deploys)
 .cache/
 
