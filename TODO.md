@@ -10,7 +10,6 @@ Never delete anything above this line.
 
 General - (DO NOT REMOVE THIS LINE)
 -
-26. Add suburb-specific og:image generation (state + suburb name card) to replace favicon fallback
 28. (External SEO audit round 6 — needs user input) Social profile URLs. If you create FB/X/Instagram/LinkedIn/YouTube accounts for EquitySight, paste the URLs and Claude will add them to: (a) `footer.js` social-icon row, (b) `about.html` Organization JSON-LD `sameAs` array. Recommend prioritising LinkedIn + X for fintech audience; skip YouTube/Instagram until you have content.
 29. (External SEO audit round 6 — needs user input) Facebook Pixel ID. Paste a 16-digit Pixel ID and Claude will wire the standard FB Pixel base script into the head of every page (defer-safe, CSP-compliant — will need a CSP `connect-src` update for `connect.facebook.net`).
 30. (External SEO audit round 6 — needs user input) Business address + phone. Decide whether to expose. If yes, Claude will add a `ContactPoint` to the `Organization` JSON-LD (about.html) and a contact block on contact.html. If staying private, mark this item resolved.

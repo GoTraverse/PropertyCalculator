@@ -2262,7 +2262,12 @@ for (const s of suburbs) {
   if (isNoindexed) stateIndexStats[s.state].noindexed++;
   else stateIndexStats[s.state].indexed++;
 
+  const ogSuburbUrl = `https://equitysight.app/.netlify/functions/og-image?t=${encodeURIComponent(s.suburb)}&s=${encodeURIComponent(s.state)}&k=suburb${pc ? '&p=' + encodeURIComponent(pc) : ''}`;
+  const ogSuburbAlt = `${s.suburb}, ${s.state_name} — Property investment insights | EquitySight`;
+
   let html = SUBURB_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, escHtml(ogSuburbUrl))
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, escHtml(ogSuburbAlt))
     .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
     .replace(/\{\{STATE\}\}/g, escHtml(s.state))
@@ -2345,7 +2350,12 @@ for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
     `      <a href="/suburb/${cStateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span><span>$${fmt(s.median_household_income)}/yr</span></div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
+  const ogCityUrl = `https://equitysight.app/.netlify/functions/og-image?t=${encodeURIComponent(cityName)}&s=${encodeURIComponent(state)}&k=city`;
+  const ogCityAlt = `${cityName}, ${cStateName} — City investment insights | EquitySight`;
+
   let cityHtml = CITY_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, escHtml(ogCityUrl))
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, escHtml(ogCityAlt))
     .replace(/\{\{CITY\}\}/g, escHtml(cityName))
     .replace(/\{\{CITY_SLUG\}\}/g, cSlug)
     .replace(/\{\{STATE\}\}/g, escHtml(state))
@@ -2546,7 +2556,12 @@ for (const state of allStates) {
   const stateStatsHTML    = generateStateStatsHTML(state, stateName, stateSuburbs);
   const stateFaqHTML      = generateStateFaqHTML(state, stateName, stateSuburbs);
 
+  const ogHubUrl = `https://equitysight.app/.netlify/functions/og-image?t=${encodeURIComponent(stateName)}&k=state`;
+  const ogHubAlt = `${stateName} — Property investment hub | EquitySight`;
+
   let html = HUB_TPL
+    .replace(/\{\{OG_IMAGE_URL\}\}/g, escHtml(ogHubUrl))
+    .replace(/\{\{OG_IMAGE_ALT\}\}/g, escHtml(ogHubAlt))
     .replace(/\{\{STATE\}\}/g, escHtml(state))
     .replace(/\{\{STATE_LOWER\}\}/g, stateLower)
     .replace(/\{\{STATE_NAME\}\}/g, escHtml(stateName))
