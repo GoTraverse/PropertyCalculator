@@ -64,6 +64,23 @@
   to = "/favicon.svg"
   status = 200
 
+# ── Dynamic og:image generation for suburb / city / state pages ─────────────
+
+[[redirects]]
+  from = "/og/suburb/:state/:slug"
+  to = "/.netlify/functions/og-suburb?type=suburb&state=:state&slug=:slug"
+  status = 200
+
+[[redirects]]
+  from = "/og/city/:state/:slug"
+  to = "/.netlify/functions/og-suburb?type=city&state=:state&slug=:slug"
+  status = 200
+
+[[redirects]]
+  from = "/og/state/:state"
+  to = "/.netlify/functions/og-suburb?type=state&state=:state"
+  status = 200
+
 # ── Block dev/internal files from public access ─────────────────────────────
 # force=true is required so redirects take priority over existing files on disk.
 # Legal .md files (privacy.md, terms.md, cookies.md, disclaimer.md) are
