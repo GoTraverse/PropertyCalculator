@@ -15,6 +15,9 @@ sitemap-blog.xml
 # inside Claude Code on the web sessions. Never deployed; never used in local dev.
 .claude/tooling/
 
+# Dependencies (installed at deploy time from package.json)
+node_modules/
+
 # Fetched/downloaded data caches (regenerate with fetch-abs-*.js / fetch-overpass-amenities.js)
 data/abs-suburbs.json
 data/abs-enhanced.json
