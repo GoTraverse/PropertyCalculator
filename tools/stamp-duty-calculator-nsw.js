@@ -53,6 +53,28 @@ function calculate() {
   var total = duty + foreignAmt;
   var rate = val > 0 ? (total / val * 100) : 0;
 
+  // ── Reg fees + LMI + total upfront ─────────────────────────────────
+  var depPctEl = document.getElementById('deposit-pct');
+  var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
+  var loanAmount = val * (1 - depositPct / 100);
+  var lvr = loanAmount / val;
+  var regMortgage = 185;
+  var regTransfer = 185;
+  var regTotal = regMortgage + regTransfer;
+  var conveyancing = 1800;
+  function lmiRate(lvr) {
+    if (lvr <= 0.80) return 0;
+    if (lvr <= 0.85) return 0.0080;
+    if (lvr <= 0.90) return 0.0190;
+    if (lvr <= 0.95) return 0.0340;
+    return 0.0430;
+  }
+  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = (isFHB && lvr > 0.80)
+    ? '$0 (FHBG eligibility assumed)'
+    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  var upfrontTotal = total + lmi + regTotal + conveyancing;
+
   document.getElementById('r-duty').textContent = fmt(duty);
   var foreignTextEl = document.getElementById('r-foreign');
   if (foreignTextEl) foreignTextEl.textContent = isForeign ? fmt(foreignAmt) : 'N/A';
@@ -61,7 +83,19 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on New South Wales 2025–26 conveyancing duty. Verify with a solicitor before settlement.';
+
+  var lvrEl = document.getElementById('r-lvr');
+  if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
+  var lmiEl = document.getElementById('r-lmi');
+  if (lmiEl) lmiEl.textContent = lmiLabel;
+  var regEl = document.getElementById('r-reg');
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
+  var conveyEl = document.getElementById('r-conveyancing');
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  var upfrontEl = document.getElementById('r-upfront');
+  if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
+
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on New South Wales 2025-26 conveyancing duty. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

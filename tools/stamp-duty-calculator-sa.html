@@ -101,6 +101,11 @@
       <label for="foreign">Foreign buyer (additional 7% surcharge)</label>
     </div>
 
+    <div class="tool-field">
+      <label class="tool-label" for="deposit-pct">Deposit % <span class="tool-label-hint">(for LMI estimate; default 20%)</span></label>
+      <input class="tool-input" type="number" id="deposit-pct" value="20" min="2" max="50" step="1">
+    </div>
+
     <button class="tool-btn" id="stamp-calc-btn">Calculate Stamp Duty</button>
   </div>
 
@@ -129,6 +134,32 @@
       </div>
     </div>
     <div class="tool-disclaimer" id="r-note" style="display:none"></div>
+
+    <h3 class="bp-subheading">Other upfront purchase costs</h3>
+    <p class="bp-sub-desc">Stamp duty is the biggest line — these are the rest most calculators leave out.</p>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">LVR (loan-to-value)</div>
+        <div class="tool-stat-value" id="r-lvr">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Estimated LMI</div>
+        <div class="tool-stat-value" id="r-lmi">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Title office reg fees</div>
+        <div class="tool-stat-value" id="r-reg">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Conveyancing / legal</div>
+        <div class="tool-stat-value" id="r-conveyancing">—</div>
+      </div>
+      <div class="tool-stat highlight full">
+        <div class="tool-stat-label">Estimated total upfront (duty + LMI + fees + legal)</div>
+        <div class="tool-stat-value" id="r-upfront">—</div>
+      </div>
+    </div>
+
     <p class="tool-disclaimer" id="disclaimer"></p>
   </div>
 
