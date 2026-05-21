@@ -643,6 +643,8 @@ ${bracketRows}
   <h2>Owner-occupier vs investor in ${s.STATE}</h2>
   <p>${s.ownerVsInvestor}</p>
 
+<details class="tool-content-more"><summary>Show FHB concessions, foreign-buyer surcharge, worked examples & state comparison</summary>
+
   <h2>${s.stateName} first home buyer concession</h2>
   <p>${s.fhbCopy}</p>
   <p>For full eligibility details and to apply, see <a href="${s.fhbSchemeUrl}" target="_blank" rel="noopener">${s.revenueOffice}: ${s.fhbScheme}</a>.</p>
@@ -666,6 +668,8 @@ ${exampleRows}
 
   <h2>Frequently asked questions</h2>
 ${s.faqs.map(({ q, a }) => `  <h3>${q}</h3>\n  <p>${a}</p>`).join('\n')}
+
+</details>
 </section>
 
 <div id="tool-resources-root"></div>
