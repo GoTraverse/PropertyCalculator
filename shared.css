@@ -36,9 +36,9 @@
   --risk-red:         #C45A5A;
   --reward-green:     #5A9E7B;
 
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-mono:    'DM Mono', 'Courier New', monospace;
-  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-display: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'Geist Mono', ui-monospace, 'SF Mono', 'Courier New', monospace;
+  --font-body:    'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --radius-sm: 3px;
   --radius-md: 6px;

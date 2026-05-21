@@ -36,9 +36,9 @@
 <div id="mobile-overlay"></div>
 
 <!-- Maintenance mode overlay — shown instead of app when maintenanceMode is on -->
-<div id="maintenance-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--charcoal);color:var(--cream);flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:40px 24px;font-family:'DM Sans',sans-serif;">
+<div id="maintenance-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--charcoal);color:var(--cream);flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:40px 24px;font-family:'Geist',sans-serif;">
   <div style="font-size:52px;line-height:1;">🔧</div>
-  <h2 style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;margin:0;">Under Maintenance</h2>
+  <h2 style="font-family:'Geist',sans-serif;font-size:32px;font-weight:700;margin:0;">Under Maintenance</h2>
   <p id="maintenance-msg" style="font-size:15px;color:rgba(245,240,232,0.6);max-width:440px;line-height:1.7;margin:0;">We'll be back shortly — upgrading our systems.</p>
 </div>
 
@@ -50,7 +50,7 @@
       <h1 id="page-title">New Property</h1>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0;">
         <p class="header-sub" id="header-sub-text" style="margin:0;flex:1;">Add property details in the Property tab to get started</p>
-        <div id="unsaved-badge" style="display:none;align-items:center;gap:4px;background:rgba(196,112,74,0.25);border:1px solid rgba(196,112,74,0.5);border-radius:10px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:11px;color:#E8956A;white-space:nowrap;flex-shrink:0;" title="Unsaved changes">● Unsaved</div>
+        <div id="unsaved-badge" style="display:none;align-items:center;gap:4px;background:rgba(196,112,74,0.25);border:1px solid rgba(196,112,74,0.5);border-radius:10px;padding:2px 6px;font-family:'Geist Mono',monospace;font-size:11px;color:#E8956A;white-space:nowrap;flex-shrink:0;" title="Unsaved changes">● Unsaved</div>
       </div>
       <div class="header-actions">
         <button id="mobile-sidebar-btn" title="Open calculator">⚙</button>
@@ -78,7 +78,7 @@
         <input type="file" id="photo-file-input" accept="image/*" style="display:none">
         <div class="upload-inner">
           <div style="font-size:22px;margin-bottom:6px;">📷</div>
-          <div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;color:rgba(245,240,232,0.7);">ADD PHOTO</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:1px;color:rgba(245,240,232,0.7);">ADD PHOTO</div>
           <div style="font-size:12px;color:rgba(245,240,232,0.55);margin-top:3px;">Click or drag & drop</div>
         </div>
       </div>
@@ -94,7 +94,7 @@
            left:50%;transform:translateX(-50%);
            z-index:3500;background:rgba(28,28,30,0.96);color:var(--cream);
            border:1px solid rgba(201,168,76,0.35);
-           border-radius:28px;padding:13px 26px;font-family:'DM Mono',monospace;font-size:12px;
+           border-radius:28px;padding:13px 26px;font-family:'Geist Mono',monospace;font-size:12px;
            letter-spacing:1.5px;gap:10px;align-items:center;
            box-shadow:0 4px 28px rgba(0,0,0,0.6),0 0 0 1px rgba(201,168,76,0.1);
            cursor:pointer;white-space:nowrap;transition:background 0.15s,transform 0.1s;">
@@ -128,7 +128,7 @@
 
   <!-- Scenario feature toggles — moved to top for quick access -->
   <div style="display:flex;flex-direction:column;gap:8px;padding:10px 0 4px;">
-    <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:2px;">Sections</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:2px;">Sections</div>
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div class="s-head" style="margin-bottom:0;font-size:11px;">🔨 Reno Tab</div>
       <div id="reno-toggle" role="switch" aria-checked="true" aria-label="Toggle renovation tab" tabindex="0" style="width:38px;height:20px;background:var(--sage);border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
@@ -171,7 +171,7 @@
   <div class="ig" id="scheme-selector-wrap">
     <div class="il" style="margin-bottom:5px;">Government Scheme</div>
     <select id="scheme-select"
-      style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:10px 8px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;cursor:pointer;">
+      style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:10px 8px;font-family:'Geist Mono',monospace;font-size:13px;color:var(--cream);outline:none;cursor:pointer;">
       <option value="">No scheme (manual entry below)</option>
       <optgroup label="── Federal ──">
         <option value="help-to-buy-existing" data-pct="30" data-max="700000">Help to Buy — Existing (30%)</option>
@@ -221,7 +221,7 @@
   <div class="ig">
     <div class="il" style="font-size:12px;">Est. Settlement Date <span id="lbl-settle-date" style="font-size:11px;color:rgba(201,168,76,0.7);"></span></div>
     <div class="iw" style="position:relative;">
-      <input type="date" id="inp-settle-date" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--cream);outline:none;color-scheme:dark;">
+      <input type="date" id="inp-settle-date" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 10px;font-family:'Geist Mono',monospace;font-size:13px;color:var(--cream);outline:none;color-scheme:dark;">
     </div>
     <div style="font-size:12px;color:rgba(245,240,232,0.5);margin-top:4px;font-style:italic;">Used to show calendar years in projection</div>
   </div>
@@ -230,7 +230,7 @@
   <div class="s-head">State &amp; Buyer Type</div>
   <div class="ig">
     <div class="il" style="margin-bottom:5px;">State or Territory <span style="font-size:11px;color:rgba(201,168,76,0.7);">— auto-calculates stamp duty</span></div>
-    <select id="inp-state" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);outline:none;cursor:pointer;">
+    <select id="inp-state" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:9px 8px;font-family:'Geist Mono',monospace;font-size:12px;color:var(--cream);outline:none;cursor:pointer;">
       <option value="">Select state…</option>
       <option value="nsw">New South Wales (NSW)</option>
       <option value="vic">Victoria (VIC)</option>
@@ -309,15 +309,15 @@
       <!-- Header -->
       <div style="background:var(--charcoal);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;">
         <div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:2px;">SAVED SCENARIOS</div>
-          <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--cream);">Property Library <span id="lib-count" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:400;color:rgba(245,240,232,0.4);margin-left:6px;"></span></div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:2px;">SAVED SCENARIOS</div>
+          <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:var(--cream);">Property Library <span id="lib-count" style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:400;color:rgba(245,240,232,0.4);margin-left:6px;"></span></div>
         </div>
         <button id="close-scenarios-modal-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:var(--cream);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
       </div>
 
       <!-- Filter bar -->
       <div style="background:var(--charcoal-soft);padding:10px 20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.06);overflow-x:auto;">
-        <span style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.4);letter-spacing:1px;margin-right:2px;flex-shrink:0;">FILTER:</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:10px;color:rgba(245,240,232,0.4);letter-spacing:1px;margin-right:2px;flex-shrink:0;">FILTER:</span>
         <button class="lib-filter active" data-filter="all">All</button>
         <button class="lib-filter" data-filter="browsing">👀 Browsing</button>
         <button class="lib-filter" data-filter="for-sale">🏷 For Sale</button>
@@ -332,14 +332,14 @@
       <div id="scenarios-list" style="overflow-y:auto;flex:1;min-height:0;padding:12px 20px;">
         <div id="scenarios-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--slate);">
           <div style="font-size:40px;margin-bottom:10px;">🏠</div>
-          <div style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:6px;">No saved scenarios yet</div>
+          <div style="font-family:'Geist',sans-serif;font-size:17px;margin-bottom:6px;">No saved scenarios yet</div>
           <div style="font-size:13px;line-height:1.6;">Fill in your property details and click <strong>Save</strong> to save your first property.</div>
         </div>
         <div id="scenarios-grid"></div>
 
         <!-- Shared with me section -->
         <div id="shared-section" style="display:none;margin-top:20px;">
-          <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:8px 0 6px;border-bottom:1px solid rgba(201,168,76,0.2);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:8px 0 6px;border-bottom:1px solid rgba(201,168,76,0.2);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
             <span>👥 Shared with me</span>
             <span id="shared-count" style="color:rgba(201,168,76,0.5);font-size:11px;"></span>
           </div>
@@ -348,7 +348,7 @@
 
         <!-- Admin: All users section -->
         <div id="admin-all-section" style="display:none;margin-top:20px;">
-          <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--sky);padding:8px 0 6px;border-bottom:1px solid rgba(91,143,171,0.25);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--sky);padding:8px 0 6px;border-bottom:1px solid rgba(91,143,171,0.25);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
             <span>🔑 All Users' Scenarios</span>
             <span id="admin-all-count" style="color:rgba(91,143,171,0.5);font-size:11px;"></span>
           </div>
@@ -362,25 +362,25 @@
   <div id="share-modal" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.7);">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,92vw);background:var(--warm-white);border-radius:6px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.4);">
       <div style="background:var(--charcoal);padding:16px 20px;">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:3px;">SHARE SCENARIO</div>
-        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:white;">Share with another user</div>
-        <div id="share-scenario-addr" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.5);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+        <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:3px;">SHARE SCENARIO</div>
+        <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:white;">Share with another user</div>
+        <div id="share-scenario-addr" style="font-family:'Geist Mono',monospace;font-size:11px;color:rgba(245,240,232,0.5);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
       </div>
       <div style="padding:20px;">
         <p style="font-size:13px;color:var(--slate);line-height:1.7;margin-bottom:14px;">The person you share with can view and load this scenario. Enter their EquitySight account email.</p>
         <div style="margin-bottom:8px;">
-          <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Their email address</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Their email address</div>
           <input id="share-email-input" type="email" placeholder="user@example.com"
-            style="width:100%;padding:10px 12px;border:1px solid rgba(28,28,30,0.15);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:rgba(28,28,30,0.04);color:var(--charcoal);">
+            style="width:100%;padding:10px 12px;border:1px solid rgba(28,28,30,0.15);border-radius:3px;font-family:'Geist',sans-serif;font-size:14px;outline:none;background:rgba(28,28,30,0.04);color:var(--charcoal);">
         </div>
         <div id="share-also-list" style="display:none;margin-bottom:12px;">
-          <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);margin-bottom:5px;">Currently shared with:</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);margin-bottom:5px;">Currently shared with:</div>
           <div id="share-also-names" style="font-size:12px;color:var(--slate);line-height:1.8;"></div>
         </div>
         <div id="share-status" style="font-size:12px;min-height:18px;margin-bottom:12px;"></div>
         <div style="display:flex;gap:10px;">
-          <button id="share-confirm-btn" style="flex:1;padding:10px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
-          <button id="cancel-share-btn" style="flex:1;padding:10px;background:rgba(28,28,30,0.07);color:var(--slate);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;">Cancel</button>
+          <button id="share-confirm-btn" style="flex:1;padding:10px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
+          <button id="cancel-share-btn" style="flex:1;padding:10px;background:rgba(28,28,30,0.07);color:var(--slate);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;">Cancel</button>
         </div>
       </div>
     </div>
@@ -390,25 +390,25 @@
   <div id="lib-actions-overlay" style="display:none;position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px);">
     <div id="lib-actions-popup" style="position:absolute;bottom:0;left:0;right:0;background:var(--warm-white);border-radius:14px 14px 0 0;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,0.3);max-width:480px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom,0px);">
       <div style="padding:16px 20px 12px;border-bottom:1px solid rgba(28,28,30,0.08);">
-        <div id="lib-actions-addr" style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--charcoal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+        <div id="lib-actions-addr" style="font-family:'Geist',sans-serif;font-size:16px;font-weight:700;color:var(--charcoal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
         <div id="lib-actions-meta" style="font-size:12px;color:var(--slate);margin-top:2px;"></div>
       </div>
       <div style="padding:8px 12px;">
-        <button id="lib-action-load" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;">
+        <button id="lib-action-load" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'Geist',sans-serif;">
           <span style="font-size:20px;">📂</span> Load Scenario
         </button>
-        <button id="lib-action-export" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;">
+        <button id="lib-action-export" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'Geist',sans-serif;">
           <span style="font-size:20px;">📄</span> Export PDF
         </button>
-        <button id="lib-action-share" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;">
+        <button id="lib-action-share" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'Geist',sans-serif;">
           <span style="font-size:20px;">↗</span> Share
         </button>
-        <button id="lib-action-delete" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--risk-red);cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;">
+        <button id="lib-action-delete" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--risk-red);cursor:pointer;border-radius:8px;font-family:'Geist',sans-serif;">
           <span style="font-size:20px;">🗑</span> Delete
         </button>
       </div>
       <div style="padding:4px 12px 12px;">
-        <button id="lib-action-cancel" style="width:100%;padding:12px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.1);border-radius:10px;font-family:'DM Mono',monospace;font-size:12px;color:var(--slate);cursor:pointer;letter-spacing:0.5px;">Cancel</button>
+        <button id="lib-action-cancel" style="width:100%;padding:12px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.1);border-radius:10px;font-family:'Geist Mono',monospace;font-size:12px;color:var(--slate);cursor:pointer;letter-spacing:0.5px;">Cancel</button>
       </div>
     </div>
   </div>
@@ -417,14 +417,14 @@
   <div id="confirm-modal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.7);">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,90vw);background:var(--warm-white);border-radius:6px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.4);">
       <div style="background:var(--terracotta);padding:16px 20px;">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.7);margin-bottom:3px;">CONFIRM LOAD</div>
-        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:white;">Replace current scenario?</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.7);margin-bottom:3px;">CONFIRM LOAD</div>
+        <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:white;">Replace current scenario?</div>
       </div>
       <div style="padding:20px;">
         <p style="font-size:13px;color:var(--slate);line-height:1.7;margin-bottom:16px;">Loading <strong id="confirm-name" style="color:var(--charcoal);">this scenario</strong> will replace all your current values. Any unsaved changes will be lost.</p>
         <div style="display:flex;gap:10px;">
-          <button id="confirm-load-btn" style="flex:1;padding:10px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">✓ Yes, Load It</button>
-          <button id="cancel-confirm-modal-btn" style="flex:1;padding:10px;background:rgba(28,28,30,0.07);color:var(--slate);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;">Cancel</button>
+          <button id="confirm-load-btn" style="flex:1;padding:10px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">✓ Yes, Load It</button>
+          <button id="cancel-confirm-modal-btn" style="flex:1;padding:10px;background:rgba(28,28,30,0.07);color:var(--slate);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;">Cancel</button>
         </div>
       </div>
     </div>
@@ -465,22 +465,22 @@
             <img id="pd-photo-big" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;top:0;left:0;">
             <div id="pd-upload-prompt" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:rgba(245,240,232,0.5);transition:background 0.2s;">
               <div style="font-size:36px;">📷</div>
-              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Upload Photo</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Upload Photo</div>
               <div style="font-size:11px;">Click or drag & drop your property image</div>
               <div style="font-size:12px;opacity:0.6;">JPG, PNG, WEBP supported</div>
             </div>
-            <div id="pd-photo-overlay" style="display:none;position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.7);display:flex;justify-content:space-between;align-items:center;">
+            <div id="pd-photo-overlay" style="display:none;position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.7);display:flex;justify-content:space-between;align-items:center;">
               <span id="pd-photo-label"></span>
-              <button id="clear-prop-photo-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;font-size:11px;padding:3px 8px;border-radius:2px;cursor:pointer;font-family:'DM Mono',monospace;">✕ Remove</button>
+              <button id="clear-prop-photo-btn" style="background:rgba(255,255,255,0.15);border:none;color:white;font-size:11px;padding:3px 8px;border-radius:2px;cursor:pointer;font-family:'Geist Mono',monospace;">✕ Remove</button>
             </div>
           </div>
           <div style="padding:10px 14px 12px;background:var(--warm-white);">
-            <div style="font-size:10px;color:var(--slate);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;">Property Photo</div>
+            <div style="font-size:10px;color:var(--slate);font-family:'Geist Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;">Property Photo</div>
             <div style="display:flex;gap:6px;align-items:center;">
-              <input type="text" id="pd-photo-url" placeholder="Or paste image URL here…" style="flex:1;font-size:11px;padding:5px 8px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;color:var(--charcoal);font-family:'DM Sans',sans-serif;outline:none;">
-              <button id="apply-photo-url-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;white-space:nowrap;">Use URL</button>
+              <input type="text" id="pd-photo-url" placeholder="Or paste image URL here…" style="flex:1;font-size:11px;padding:5px 8px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;color:var(--charcoal);font-family:'Geist',sans-serif;outline:none;">
+              <button id="apply-photo-url-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:5px 10px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;white-space:nowrap;">Use URL</button>
             </div>
-            <button id="map-img-btn" style="margin-top:7px;width:100%;background:rgba(91,143,171,0.1);border:1px solid rgba(91,143,171,0.3);color:var(--sky);border-radius:3px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:6px;" title="Fetches a satellite/map image of this property using the address from the Property tab">
+            <button id="map-img-btn" style="margin-top:7px;width:100%;background:rgba(91,143,171,0.1);border:1px solid rgba(91,143,171,0.3);color:var(--sky);border-radius:3px;padding:6px 10px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:6px;" title="Fetches a satellite/map image of this property using the address from the Property tab">
               🗺️ Get Map Image from Address
             </button>
           </div>
@@ -513,7 +513,7 @@
               <input type="text" id="pd-url" value="" placeholder="https://www.realestate.com.au/...">
             </div>
             <div id="pd-url-link" style="display:none;margin-top:6px;">
-              <a id="pd-url-anchor" href="#" target="_blank" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sky);text-decoration:none;">🔗 Open listing →</a>
+              <a id="pd-url-anchor" href="#" target="_blank" style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--sky);text-decoration:none;">🔗 Open listing →</a>
             </div>
           </div>
 
@@ -578,7 +578,7 @@
         <div class="card">
           <div class="ca" style="background:var(--slate)"></div>
           <h3>Notes</h3>
-          <textarea id="pd-notes" placeholder="Key observations, things to check, deal-breakers, pros/cons..." style="width:100%;height:120px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:3px;padding:10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.6;"></textarea>
+          <textarea id="pd-notes" placeholder="Key observations, things to check, deal-breakers, pros/cons..." style="width:100%;height:120px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:3px;padding:10px;font-family:'Geist',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.6;"></textarea>
         </div>
       </div>
 
@@ -602,7 +602,7 @@
           <div id="status-note-wrap" style="display:none;">
             <div class="pd-field">
               <label class="pd-label">Auction / Offer date</label>
-              <input type="date" id="pd-status-date" style="background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:8px 10px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;"><span id="pd-status-date-display" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate);margin-left:6px;"></span>
+              <input type="date" id="pd-status-date" style="background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:8px 10px;border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;"><span id="pd-status-date-display" style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--slate);margin-left:6px;"></span>
             </div>
           </div>
         </div>
@@ -612,7 +612,7 @@
           <div class="ca" style="background:var(--sky)"></div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <h3 style="margin-bottom:0;">Key Dates</h3>
-            <button id="add-key-date-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:5px 11px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;">＋ Add Event</button>
+            <button id="add-key-date-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:5px 11px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;">＋ Add Event</button>
           </div>
           <div id="key-dates-list" style="display:flex;flex-direction:column;gap:8px;"></div>
           <div id="key-dates-empty" style="font-size:12px;color:var(--slate);font-style:italic;padding:8px 0;">No key dates yet — add inspections, auction dates, settlement, etc.</div>
@@ -642,8 +642,8 @@
               <input type="email" id="ag-email" placeholder="agent@agency.com">
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <a id="ag-call-link" href="#" style="display:none;background:var(--sage);color:white;padding:7px 12px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;line-height:1;align-items:center;">📞 Call</a>
-              <a id="ag-email-link" href="#" style="display:none;background:var(--sky);color:white;padding:7px 12px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;line-height:1;align-items:center;">✉ Email</a>
+              <a id="ag-call-link" href="#" style="display:none;background:var(--sage);color:white;padding:7px 12px;border-radius:3px;font-family:'Geist Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;line-height:1;align-items:center;">📞 Call</a>
+              <a id="ag-email-link" href="#" style="display:none;background:var(--sky);color:white;padding:7px 12px;border-radius:3px;font-family:'Geist Mono',monospace;font-size:10px;text-decoration:none;letter-spacing:0.5px;line-height:1;align-items:center;">✉ Email</a>
             </div>
           </div>
         </div>
@@ -653,7 +653,7 @@
           <div class="ca" style="background:var(--gold)"></div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <h3 style="margin-bottom:0;">Communication Log</h3>
-            <button id="add-comms-entry-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:5px 11px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;">＋ Log Entry</button>
+            <button id="add-comms-entry-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:5px 11px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;">＋ Log Entry</button>
           </div>
           <div id="comms-list" style="display:flex;flex-direction:column;gap:0;max-height:260px;overflow-y:auto;"></div>
           <div id="comms-empty" style="font-size:12px;color:var(--slate);font-style:italic;padding:8px 0;">No communications logged yet.</div>
@@ -674,7 +674,7 @@
 
       <div class="cb">
         <div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:5px">YOUR CASH PICTURE</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:5px">YOUR CASH PICTURE</div>
           <p style="font-size:12px;color:rgba(245,240,232,0.48);line-height:1.6;max-width:280px">Cash after deposit + all fees. Remainder available for renovation or emergency buffer.</p>
         </div>
         <div style="display:flex;gap:18px;flex-wrap:wrap">
@@ -702,8 +702,8 @@
               <circle id="d-bank" cx="58" cy="58" r="42" fill="none" stroke="#5B8FAB" stroke-width="17" stroke-dasharray="0 263.9" stroke-dashoffset="0" transform="rotate(-90 58 58)"/>
               <circle id="d-govt" cx="58" cy="58" r="42" fill="none" stroke="#7B9E87" stroke-width="17" stroke-dasharray="0 263.9" stroke-dashoffset="0" transform="rotate(-90 58 58)"/>
               <circle id="d-you"  cx="58" cy="58" r="42" fill="none" stroke="#C9A84C" stroke-width="17" stroke-dasharray="0 263.9" stroke-dashoffset="0" transform="rotate(-90 58 58)"/>
-              <text id="d-centre" x="58" y="55" text-anchor="middle" font-family="Playfair Display" font-size="11" fill="#1C1C1E" font-weight="700">$650k</text>
-              <text x="58" y="68" text-anchor="middle" font-family="DM Mono" font-size="7" fill="#6B6B72">PURCHASE</text>
+              <text id="d-centre" x="58" y="55" text-anchor="middle" font-family="Geist" font-size="11" fill="#1C1C1E" font-weight="700">$650k</text>
+              <text x="58" y="68" text-anchor="middle" font-family="Geist Mono" font-size="7" fill="#6B6B72">PURCHASE</text>
             </svg>
             <div style="flex:1">
               <div class="li"><div class="ld" style="background:var(--sky)"></div><span>Bank Loan</span><span class="lv" id="leg-bank">$450k</span></div>
@@ -719,7 +719,7 @@
           <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(28,28,30,0.08);">
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
               <span style="font-size:12px;color:var(--slate);">Loan-to-Value Ratio (LVR)</span>
-              <span id="lvr-val" style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;">—</span>
+              <span id="lvr-val" style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:500;">—</span>
             </div>
             <div id="lvr-badge"></div>
           </div>
@@ -743,12 +743,12 @@
           <div class="ca" style="background:var(--sage)"></div>
           <h3>Available Pool</h3>
           <div style="text-align:center;padding:10px 0 4px">
-            <div style="font-size:10px;font-family:'DM Mono',monospace;letter-spacing:2px;color:var(--slate);margin-bottom:2px;">CASH AVAILABLE</div>
-            <div style="font-family:'DM Mono',monospace;font-size:36px;font-weight:500;" id="reno-pool-val">$24k</div>
+            <div style="font-size:10px;font-family:'Geist Mono',monospace;letter-spacing:2px;color:var(--slate);margin-bottom:2px;">CASH AVAILABLE</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:36px;font-weight:500;" id="reno-pool-val">$24k</div>
             <div style="font-size:11px;color:var(--slate);margin-bottom:14px;">After deposit &amp; all upfront costs</div>
             <div style="border-top:1px solid rgba(28,28,30,0.08);padding-top:12px;">
-              <div style="font-size:10px;font-family:'DM Mono',monospace;letter-spacing:2px;color:var(--slate);margin-bottom:2px;">UNSPENT BUDGET</div>
-              <div style="font-family:'DM Mono',monospace;font-size:36px;font-weight:500;color:var(--reward-green);" id="reno-unspent-val">$0k</div>
+              <div style="font-size:10px;font-family:'Geist Mono',monospace;letter-spacing:2px;color:var(--slate);margin-bottom:2px;">UNSPENT BUDGET</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:36px;font-weight:500;color:var(--reward-green);" id="reno-unspent-val">$0k</div>
               <div style="font-size:11px;color:var(--slate);">Remaining after planned reno</div>
             </div>
           </div>
@@ -767,14 +767,14 @@
           </div>
           <!-- Dynamic reno items list -->
           <div id="reno-items-list"></div>
-          <div style="display:flex;justify-content:space-between;padding-top:9px;border-top:2px solid var(--charcoal);margin-top:5px;font-family:'DM Mono',monospace;font-size:12px">
+          <div style="display:flex;justify-content:space-between;padding-top:9px;border-top:2px solid var(--charcoal);margin-top:5px;font-family:'Geist Mono',monospace;font-size:12px">
             <span>Total</span><strong id="reno-total">$0</strong>
           </div>
         </div>
       </div>
       <!-- Add item button -->
       <div style="text-align:center;margin-top:4px;">
-        <button id="add-reno-item-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:9px 22px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Reno Item</button>
+        <button id="add-reno-item-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:9px 22px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Reno Item</button>
       </div>
     </div>
 
@@ -802,9 +802,9 @@
         <div class="ca" style="background:var(--sage)"></div>
         <h3>Total Loan Cost</h3>
         <div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:4px">
-          <div><div style="font-family:'DM Mono',monospace;font-size:24px;color:var(--risk-red)" id="rp-interest">$536k</div><div style="font-size:11px;color:var(--slate);margin-top:2px">Total Interest Paid</div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:24px" id="rp-total-paid">$987k</div><div style="font-size:11px;color:var(--slate);margin-top:2px">Total Amount Paid</div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:24px;color:var(--sage)" id="rp-loan-show">$450k</div><div style="font-size:11px;color:var(--slate);margin-top:2px">Principal</div></div>
+          <div><div style="font-family:'Geist Mono',monospace;font-size:24px;color:var(--risk-red)" id="rp-interest">$536k</div><div style="font-size:11px;color:var(--slate);margin-top:2px">Total Interest Paid</div></div>
+          <div><div style="font-family:'Geist Mono',monospace;font-size:24px" id="rp-total-paid">$987k</div><div style="font-size:11px;color:var(--slate);margin-top:2px">Total Amount Paid</div></div>
+          <div><div style="font-family:'Geist Mono',monospace;font-size:24px;color:var(--sage)" id="rp-loan-show">$450k</div><div style="font-size:11px;color:var(--slate);margin-top:2px">Principal</div></div>
         </div>
       </div>
       <div class="card">
@@ -812,14 +812,14 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <h3 style="margin-bottom:0;">Amortization Schedule</h3>
           <button id="amort-toggle-btn"
-            style="font-family:'DM Mono',monospace;font-size:11px;padding:6px 14px;
+            style="font-family:'Geist Mono',monospace;font-size:11px;padding:6px 14px;
                    background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);
                    border-radius:3px;cursor:pointer;color:var(--charcoal);letter-spacing:0.5px;
                    transition:background 0.15s;">Show Schedule</button>
         </div>
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:0;">Year-by-year breakdown of principal, interest and remaining balance over the full loan term.</p>
         <div id="amort-table-wrap" style="display:none;margin-top:16px;overflow-x:auto;max-width:100%;box-sizing:border-box;">
-          <table id="amort-table" style="width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:12px;"></table>
+          <table id="amort-table" style="width:100%;border-collapse:collapse;font-family:'Geist Mono',monospace;font-size:12px;"></table>
         </div>
       </div>
       <!-- Serviceability quick-check -->
@@ -828,12 +828,12 @@
         <h3>Serviceability Check</h3>
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">Enter your combined household income to see if this loan is within your borrowing capacity.</p>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-          <label style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);letter-spacing:0.5px;">Annual Household Income</label>
+          <label style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--slate);letter-spacing:0.5px;">Annual Household Income</label>
           <div style="display:flex;align-items:center;gap:4px;">
-            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--slate);">$</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:13px;color:var(--slate);">$</span>
             <input type="number" id="inp-income" min="0" max="2000000" step="5000" placeholder="e.g. 120000"
-              style="width:130px;font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
-            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">p.a.</span>
+              style="width:130px;font-family:'Geist Mono',monospace;font-size:14px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--slate);">p.a.</span>
           </div>
         </div>
         <div id="svc-card" style="display:none;"></div>
@@ -845,7 +845,7 @@
       <div class="sl">Rent + Mortgage Overlap Period</div>
 
       <div style="background:var(--charcoal);color:var(--cream);border-radius:4px;padding:18px 22px;margin-bottom:14px;font-size:12px;line-height:1.7;color:rgba(245,240,232,0.65)">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:8px">WHAT IS THIS?</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:8px">WHAT IS THIS?</div>
         After settlement you may continue renting your current place for a few weeks while renovating before you move in. During this period you're paying <strong style="color:var(--cream)">both</strong> rent and your mortgage — this calculator shows the exact cost of that overlap and how it affects your remaining cash buffer.
       </div>
 
@@ -954,7 +954,7 @@
           </div>
           <div class="tli">
             <div class="tld" style="color:var(--terracotta-light)"></div>
-            <div class="tlp" style="color:var(--terracotta-light)">Phase 05 <span id="tl-overlap-badge" style="display:inline-flex;align-items:center;background:rgba(196,112,74,0.18);color:var(--terracotta);font-family:'DM Mono',monospace;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:4px;"></span> <span class="tldr-cal" id="tl-overlap-dur-cal">Weeks 1–4 post-settlement</span></div>
+            <div class="tlp" style="color:var(--terracotta-light)">Phase 05 <span id="tl-overlap-badge" style="display:inline-flex;align-items:center;background:rgba(196,112,74,0.18);color:var(--terracotta);font-family:'Geist Mono',monospace;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:4px;"></span> <span class="tldr-cal" id="tl-overlap-dur-cal">Weeks 1–4 post-settlement</span></div>
             <div class="tlt">Overlap Period</div>
             <div class="tldesc" id="tl-overlap-desc">You continue renting while renovations begin. Both rent and mortgage repayments are active during this window.</div>
             <div class="tldr" id="tl-overlap-dur" style="display:none;"></div>
@@ -979,12 +979,12 @@
     <div class="section" id="risks">
       <div class="sl">Risk & Reward Assessment</div>
       <div class="g2" style="margin-bottom:14px">
-        <div class="card"><div class="ca" style="background:var(--risk-red)"></div><h3>Risk Level</h3><div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--slate);margin-bottom:5px">OVERALL RISK</div><div class="mt"><div class="mf" id="risk-meter" style="background:linear-gradient(to right,var(--gold),var(--terracotta))"></div></div><p style="font-size:11px;color:var(--slate);line-height:1.6" id="risk-desc"></p></div>
-        <div class="card"><div class="ca" style="background:var(--reward-green)"></div><h3>Reward Potential</h3><div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--slate);margin-bottom:5px">UPSIDE SCORE</div><div class="mt"><div class="mf" id="reward-meter" style="background:linear-gradient(to right,var(--sage),var(--reward-green))"></div></div><p style="font-size:11px;color:var(--slate);line-height:1.6" id="reward-desc"></p></div>
+        <div class="card"><div class="ca" style="background:var(--risk-red)"></div><h3>Risk Level</h3><div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--slate);margin-bottom:5px">OVERALL RISK</div><div class="mt"><div class="mf" id="risk-meter" style="background:linear-gradient(to right,var(--gold),var(--terracotta))"></div></div><p style="font-size:11px;color:var(--slate);line-height:1.6" id="risk-desc"></p></div>
+        <div class="card"><div class="ca" style="background:var(--reward-green)"></div><h3>Reward Potential</h3><div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--slate);margin-bottom:5px">UPSIDE SCORE</div><div class="mt"><div class="mf" id="reward-meter" style="background:linear-gradient(to right,var(--sage),var(--reward-green))"></div></div><p style="font-size:11px;color:var(--slate);line-height:1.6" id="reward-desc"></p></div>
       </div>
       <div class="rr-grid">
         <div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--risk-red);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--risk-red)">⚠ Risks</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--risk-red);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--risk-red)">⚠ Risks</div>
           <div class="rri risk"><div class="rric">💸</div><div><div class="rrt">Interest Rate Sensitivity</div><div class="rrb">A 3% rate rise (APRA buffer) would add <strong id="rr-rate-delta">$xxx</strong>/month to repayments.</div></div></div>
           <div class="rri risk"><div class="rric">🏚</div><div><div class="rrt">Hidden Structural Issues</div><div class="rrb">Unforeseen defects can blow the renovation budget. B&P inspection is essential.</div></div></div>
           <div class="rri risk" id="rri-equity"><div class="rric">📉</div><div><div class="rrt">Low Equity Buffer</div><div class="rrb">With <span id="rr-dep-pct">2%</span> personal deposit, any market correction leaves little buffer.</div></div></div>
@@ -993,7 +993,7 @@
           <div class="rri risk" id="rri-overlap"><div class="rric">🏠</div><div><div class="rrt">Dual Housing Costs</div><div class="rrb">Paying <span id="rr-overlap-cost">$4k</span> in combined rent + mortgage during your <span id="rr-overlap-weeks">4</span>-week overlap reduces your reno buffer.</div></div></div>
         </div>
         <div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--reward-green);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--reward-green)">✦ Rewards</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--reward-green);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--reward-green)">✦ Rewards</div>
           <div class="rri reward"><div class="rric">🏠</div><div><div class="rrt">Into the Market Now</div><div class="rrb">With <span id="rr-dep-show">$13k</span> deposit you stop rent leakage and start building equity immediately.</div></div></div>
           <div class="rri reward"><div class="rric">📈</div><div><div class="rrt">Renovation-Driven Equity</div><div class="rrb">A targeted <span id="rr-reno-show">$24k</span> reno on a <span id="rr-price-show">$650k</span> property can unlock $40k–$80k+ in uplift.</div></div></div>
           <div class="rri reward" id="rri-govt-reward"><div class="rric">🤝</div><div><div class="rrt">Government Co-Invests</div><div class="rrb">The scheme absorbs <span id="rr-govt-show">28.7%</span> of the purchase, reducing your LVR and preserving cash.</div></div></div>
@@ -1021,16 +1021,16 @@
       <div class="card proj-controls" style="padding:16px 22px;margin-bottom:14px;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;">
         <div class="ca" style="background:var(--gold)"></div>
         <div>
-          <div style="font-size:11px;color:var(--slate);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Annual Growth Rate</div>
+          <div style="font-size:11px;color:var(--slate);font-family:'Geist Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Annual Growth Rate</div>
           <div style="display:flex;align-items:center;gap:8px;">
             <input type="range" id="proj-growth" min="1" max="12" step="0.5" value="5" style="width:110px;accent-color:var(--gold);">
-            <span id="proj-growth-lbl" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);min-width:38px;">5.0%</span>
+            <span id="proj-growth-lbl" style="font-family:'Geist Mono',monospace;font-size:13px;color:var(--gold);min-width:38px;">5.0%</span>
           </div>
           <div id="suburb-growth-hint" style="font-size:10px;color:var(--slate);margin-top:4px;font-style:italic;max-width:200px;"></div>
         </div>
 <!-- reno uplift removed (item 9) -->
         <div>
-          <button id="fetch-growth-btn" style="background:var(--charcoal);color:var(--gold);border:1px solid rgba(201,168,76,0.4);padding:7px 14px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;">🔍 Look Up Suburb Growth</button>
+          <button id="fetch-growth-btn" style="background:var(--charcoal);color:var(--gold);border:1px solid rgba(201,168,76,0.4);padding:7px 14px;border-radius:3px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;">🔍 Look Up Suburb Growth</button>
           <div style="font-size:10px;color:var(--slate);margin-top:4px;font-style:italic;">Uses suburb from Property tab</div>
         </div>
       </div>
@@ -1059,7 +1059,7 @@
         <div id="proj-svg-wrap" style="overflow:hidden;position:relative;width:100%;aspect-ratio:800/300;">
           <svg id="proj-chart" width="100%" height="100%" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%;cursor:crosshair;"></svg>
           <!-- Click tooltip (item 6) -->
-          <div id="proj-tooltip" style="display:none;position:absolute;background:var(--charcoal);color:var(--cream);border-radius:6px;padding:16px 22px;font-family:'DM Mono',monospace;font-size:13px;min-width:210px;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.35);min-width:210px;z-index:10;"></div>
+          <div id="proj-tooltip" style="display:none;position:absolute;background:var(--charcoal);color:var(--cream);border-radius:6px;padding:16px 22px;font-family:'Geist Mono',monospace;font-size:13px;min-width:210px;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:1px solid rgba(201,168,76,0.35);min-width:210px;z-index:10;"></div>
         </div>
         <!-- Mobile-only slider explorer — values first, slider below -->
         <div id="proj-mobile-slider" style="display:none;margin-top:12px;">
@@ -1098,19 +1098,19 @@
         <p style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.6;">See how much you could save by paying extra each month. The purple dashed line on the chart shows the faster loan paydown.</p>
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Extra Monthly Payment</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Extra Monthly Payment</div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-family:'DM Mono',monospace;font-size:14px;color:var(--slate);">$</span>
+              <span style="font-family:'Geist Mono',monospace;font-size:14px;color:var(--slate);">$</span>
               <input type="number" id="proj-extra-payment" min="0" max="50000" step="50" value="0" placeholder="0"
-                style="width:110px;font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
-              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">/month</span>
+                style="width:110px;font-family:'Geist Mono',monospace;font-size:15px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
+              <span style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--slate);">/month</span>
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;">
-            <button class="proj-extra-preset" data-val="200" style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;">+$200</button>
-            <button class="proj-extra-preset" data-val="500" style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;">+$500</button>
-            <button class="proj-extra-preset" data-val="1000" style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;">+$1,000</button>
-            <button class="proj-extra-preset" data-val="0" style="background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);color:var(--slate);border-radius:3px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;">Clear</button>
+            <button class="proj-extra-preset" data-val="200" style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;">+$200</button>
+            <button class="proj-extra-preset" data-val="500" style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;">+$500</button>
+            <button class="proj-extra-preset" data-val="1000" style="background:rgba(155,127,232,0.1);border:1px solid rgba(155,127,232,0.3);color:#9B7FE8;border-radius:3px;padding:5px 10px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;">+$1,000</button>
+            <button class="proj-extra-preset" data-val="0" style="background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);color:var(--slate);border-radius:3px;padding:5px 10px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;">Clear</button>
           </div>
         </div>
         <div id="early-payoff-result" style="display:none;margin-top:4px;"></div>
@@ -1153,34 +1153,34 @@
         <h3>Investment Scenario — Rental Yield</h3>
         <p style="font-size:12px;color:var(--slate);line-height:1.6;margin-bottom:10px;">If you rent this property out instead of living in it, what does the yield look like?</p>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-          <label style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">Expected Weekly Rent</label>
+          <label style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--slate);">Expected Weekly Rent</label>
           <div style="display:flex;align-items:center;gap:4px;">
-            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--slate);">$</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:13px;color:var(--slate);">$</span>
             <input type="number" id="inp-invest-rent" min="0" max="10000" step="50" placeholder="e.g. 600"
-              style="width:100px;font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
-            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--slate);">/wk</span>
+              style="width:100px;font-family:'Geist Mono',monospace;font-size:14px;padding:7px 10px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.14);border-radius:4px;color:var(--charcoal);outline:none;">
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--slate);">/wk</span>
           </div>
         </div>
         <div id="yield-results" style="display:none;">
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;">
             <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Gross Yield</div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--sage);" id="yield-gross">—</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Gross Yield</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:22px;color:var(--sage);" id="yield-gross">—</div>
             </div>
             <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Net Yield (est.)</div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--sage);" id="yield-net">—</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Net Yield (est.)</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:22px;color:var(--sage);" id="yield-net">—</div>
             </div>
             <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Rent</div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;" id="yield-annual-rent">—</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Rent</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:22px;" id="yield-annual-rent">—</div>
             </div>
             <div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-              <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Cashflow</div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;" id="yield-cashflow">—</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:3px;">Annual Cashflow</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:22px;" id="yield-cashflow">—</div>
             </div>
           </div>
-          <div style="font-family:'DM Mono',monospace;font-size:13px;" id="yield-verdict">—</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:13px;" id="yield-verdict">—</div>
           <div style="font-size:12px;color:var(--slate);margin-top:8px;line-height:1.5;">Net yield deducts ~8% PM fees, $2k rates, $1.5k insurance, 1% maintenance. Cashflow = net rent − mortgage.</div>
         </div>
       </div>
@@ -1245,7 +1245,7 @@
     </div>
   </div>
   <button class="pp-save-btn" id="pp-save-btn">Save Profile</button>
-  <a href="/account" style="display:block;text-align:center;margin:0 22px 10px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.4);letter-spacing:0.5px;text-decoration:none;border:1px solid rgba(255,255,255,0.06);border-radius:3px;">⚙ Full Account Settings →</a>
+  <a href="/account" style="display:block;text-align:center;margin:0 22px 10px;padding:10px;font-family:'Geist Mono',monospace;font-size:11px;color:rgba(245,240,232,0.4);letter-spacing:0.5px;text-decoration:none;border:1px solid rgba(255,255,255,0.06);border-radius:3px;">⚙ Full Account Settings →</a>
 </div>
 
 
@@ -1255,8 +1255,8 @@
     <!-- Header -->
     <div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">EXPORT</div>
-        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#F5F0E8;">Export Options</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">EXPORT</div>
+        <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:#F5F0E8;">Export Options</div>
       </div>
       <button id="pdf-options-close-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
@@ -1265,23 +1265,23 @@
 
       <!-- Export Format -->
       <div style="margin-bottom:20px;">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Export Format</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Export Format</div>
         <div id="export-format-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="export-format-btn active" data-format="pdf" style="padding:9px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:#1C1C1E;color:#C9A84C;font-weight:600;transition:all 0.15s;">PDF</button>
-          <button class="export-format-btn" data-format="csv" style="padding:9px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">CSV</button>
-          <button class="export-format-btn" data-format="html" style="padding:9px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">HTML</button>
-          <button class="export-format-btn" data-format="txt" style="padding:9px 16px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">TXT</button>
+          <button class="export-format-btn active" data-format="pdf" style="padding:9px 16px;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:#1C1C1E;color:#C9A84C;font-weight:600;transition:all 0.15s;">PDF</button>
+          <button class="export-format-btn" data-format="csv" style="padding:9px 16px;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">CSV</button>
+          <button class="export-format-btn" data-format="html" style="padding:9px 16px;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">HTML</button>
+          <button class="export-format-btn" data-format="txt" style="padding:9px 16px;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;border:1px solid rgba(28,28,30,0.15);background:white;color:#1C1C1E;transition:all 0.15s;">TXT</button>
         </div>
         <div id="export-format-hint" style="font-size:12px;color:var(--slate);margin-top:8px;line-height:1.5;">Opens a printable report — use your browser's Print to save as PDF.</div>
       </div>
 
       <!-- Page Size & Orientation (PDF only) -->
       <div id="pdf-layout-section" style="margin-bottom:20px;">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Page Layout</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Page Layout</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Page Size</label>
-            <select id="pdf-opt-size" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
+            <label style="font-family:'Geist Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Page Size</label>
+            <select id="pdf-opt-size" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
               <option value="A4" selected>A4 (210 × 297 mm)</option>
               <option value="A3">A3 (297 × 420 mm)</option>
               <option value="Letter">US Letter (8.5 × 11 in)</option>
@@ -1289,8 +1289,8 @@
             </select>
           </div>
           <div>
-            <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Orientation</label>
-            <select id="pdf-opt-orient" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
+            <label style="font-family:'Geist Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Orientation</label>
+            <select id="pdf-opt-orient" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
               <option value="portrait" selected>Portrait</option>
               <option value="landscape">Landscape</option>
             </select>
@@ -1300,7 +1300,7 @@
 
       <!-- Sections to include (PDF/HTML only) -->
       <div id="pdf-sections-section" style="margin-bottom:20px;">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Sections to Include</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Sections to Include</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-financial" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Financial Snapshot</strong> — price, deposit, govt contribution, cash picture</span></label>
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;"><input type="checkbox" id="pdf-opt-reno" checked style="accent-color:#C9A84C;width:15px;height:15px;"> <span><strong>Renovation Budget</strong> — pool, itemised costs, contingency</span></label>
@@ -1315,18 +1315,18 @@
 
       <!-- Appearance (PDF/HTML only) -->
       <div id="pdf-appearance-section" style="margin-bottom:22px;">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Appearance</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A4A52;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1);">Appearance</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Colour Scheme</label>
-            <select id="pdf-opt-colour" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
+            <label style="font-family:'Geist Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Colour Scheme</label>
+            <select id="pdf-opt-colour" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
               <option value="full" selected>Full Colour</option>
               <option value="mono">Monochrome (ink saving)</option>
             </select>
           </div>
           <div>
-            <label style="font-family:'DM Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Font Size</label>
-            <select id="pdf-opt-fontsize" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
+            <label style="font-family:'Geist Mono',monospace;font-size:10px;color:#4A4A52;display:block;margin-bottom:5px;">Font Size</label>
+            <select id="pdf-opt-fontsize" style="width:100%;padding:9px 10px;border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;background:white;color:#1C1C1E;cursor:pointer;">
               <option value="normal" selected>Normal</option>
               <option value="large">Large (accessibility)</option>
               <option value="compact">Compact (fit more per page)</option>
@@ -1337,8 +1337,8 @@
 
       <!-- Action buttons -->
       <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
-        <button id="pdf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;color:#1C1C1E;">Cancel</button>
-        <button id="pdf-generate-btn" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">⬇ Export</button>
+        <button id="pdf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;color:#1C1C1E;">Cancel</button>
+        <button id="pdf-generate-btn" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">⬇ Export</button>
       </div>
     </div>
   </div>
