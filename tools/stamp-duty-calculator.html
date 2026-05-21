@@ -109,6 +109,11 @@
       <label for="foreign" id="foreign-label">Foreign buyer</label>
     </div>
 
+    <div class="tool-field">
+      <label class="tool-label" for="deposit-pct">Deposit % <span class="tool-label-hint">(for LMI estimate; default 20%)</span></label>
+      <input class="tool-input" type="number" id="deposit-pct" value="20" min="2" max="50" step="1">
+    </div>
+
     <button class="tool-btn" id="stamp-calc-btn">Calculate Stamp Duty</button>
   </div>
 
@@ -137,6 +142,48 @@
       </div>
     </div>
     <div class="tool-disclaimer" id="r-note" style="display:none"></div>
+
+    <h3 class="bp-subheading">Other upfront purchase costs</h3>
+    <p class="bp-sub-desc">Stamp duty is the biggest line item but not the only one. Most calculators leave these out — here's the full picture.</p>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">LVR (loan-to-value)</div>
+        <div class="tool-stat-value" id="r-lvr">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Estimated LMI</div>
+        <div class="tool-stat-value" id="r-lmi">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Title office reg fees</div>
+        <div class="tool-stat-value" id="r-reg">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Conveyancing / legal</div>
+        <div class="tool-stat-value" id="r-conveyancing">—</div>
+      </div>
+      <div class="tool-stat highlight full">
+        <div class="tool-stat-label">Estimated total upfront cost (duty + LMI + fees + legal)</div>
+        <div class="tool-stat-value" id="r-upfront">—</div>
+      </div>
+    </div>
+
+    <h3 class="bp-subheading">Same purchase in every state</h3>
+    <p class="bp-sub-desc">What this exact purchase price would cost in stamp duty across all 8 states (sorted cheapest to most expensive).</p>
+    <div class="bp-breakdown-wrap">
+      <table class="bp-breakdown sd-compare">
+        <thead>
+          <tr>
+            <th>State</th>
+            <th>Standard duty</th>
+            <th class="sd-fhb-col">FHB duty</th>
+            <th class="sd-fhb-col">FHB saving</th>
+          </tr>
+        </thead>
+        <tbody id="sd-compare-body"></tbody>
+      </table>
+    </div>
+
     <p class="tool-disclaimer" id="disclaimer"></p>
   </div>
 

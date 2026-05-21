@@ -406,6 +406,22 @@ const STATES = {
   },
 };
 
+// ── Title-office registration fees (FY 2025-26) ────────────────────────────
+// Mortgage registration + title transfer fees. Mirrors the table in
+// tools/stamp-duty-calculator.js so both the all-states and per-state
+// pages display identical figures. Verify against state title-office
+// fee schedules each financial year.
+const REG_FEES = {
+  nsw: { mortgage: 185, transfer: 185 },
+  vic: { mortgage: 123, transfer: 124 },
+  qld: { mortgage: 232, transfer: 250 },
+  sa:  { mortgage: 200, transfer: 230 },
+  wa:  { mortgage: 190, transfer: 200 },
+  tas: { mortgage: 150, transfer: 250 },
+  act: { mortgage: 200, transfer: 200 },
+  nt:  { mortgage: 200, transfer: 200 },
+};
+
 // ── Templates ──────────────────────────────────────────────────────────────
 
 function escAttr(s) {
@@ -536,6 +552,11 @@ ${s.foreignRate > 0 ? `    <div class="tool-check">
       <label for="foreign">Foreign buyer (additional ${Math.round(s.foreignRate * 100)}% surcharge)</label>
     </div>` : `    <!-- ${s.STATE} does not levy a foreign buyer surcharge -->`}
 
+    <div class="tool-field">
+      <label class="tool-label" for="deposit-pct">Deposit % <span class="tool-label-hint">(for LMI estimate; default 20%)</span></label>
+      <input class="tool-input" type="number" id="deposit-pct" value="20" min="2" max="50" step="1">
+    </div>
+
     <button class="tool-btn" id="stamp-calc-btn">Calculate Stamp Duty</button>
   </div>
 
@@ -564,6 +585,32 @@ ${s.foreignRate > 0 ? `      <div class="tool-stat" id="r-foreign-wrap">
       </div>
     </div>
     <div class="tool-disclaimer" id="r-note" style="display:none"></div>
+
+    <h3 class="bp-subheading">Other upfront purchase costs</h3>
+    <p class="bp-sub-desc">Stamp duty is the biggest line — these are the rest most calculators leave out.</p>
+    <div class="tool-grid">
+      <div class="tool-stat">
+        <div class="tool-stat-label">LVR (loan-to-value)</div>
+        <div class="tool-stat-value" id="r-lvr">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Estimated LMI</div>
+        <div class="tool-stat-value" id="r-lmi">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Title office reg fees</div>
+        <div class="tool-stat-value" id="r-reg">—</div>
+      </div>
+      <div class="tool-stat">
+        <div class="tool-stat-label">Conveyancing / legal</div>
+        <div class="tool-stat-value" id="r-conveyancing">—</div>
+      </div>
+      <div class="tool-stat highlight full">
+        <div class="tool-stat-label">Estimated total upfront (duty + LMI + fees + legal)</div>
+        <div class="tool-stat-value" id="r-upfront">—</div>
+      </div>
+    </div>
+
     <p class="tool-disclaimer" id="disclaimer"></p>
   </div>
 
@@ -685,6 +732,28 @@ function calculate() {
   var total = duty + foreignAmt;
   var rate = val > 0 ? (total / val * 100) : 0;
 
+  // ── Reg fees + LMI + total upfront ─────────────────────────────────
+  var depPctEl = document.getElementById('deposit-pct');
+  var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
+  var loanAmount = val * (1 - depositPct / 100);
+  var lvr = loanAmount / val;
+  var regMortgage = ${(REG_FEES[s.STATE.toLowerCase()] && REG_FEES[s.STATE.toLowerCase()].mortgage) || 200};
+  var regTransfer = ${(REG_FEES[s.STATE.toLowerCase()] && REG_FEES[s.STATE.toLowerCase()].transfer) || 200};
+  var regTotal = regMortgage + regTransfer;
+  var conveyancing = 1800;
+  function lmiRate(lvr) {
+    if (lvr <= 0.80) return 0;
+    if (lvr <= 0.85) return 0.0080;
+    if (lvr <= 0.90) return 0.0190;
+    if (lvr <= 0.95) return 0.0340;
+    return 0.0430;
+  }
+  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = (isFHB && lvr > 0.80)
+    ? '$0 (FHBG eligibility assumed)'
+    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  var upfrontTotal = total + lmi + regTotal + conveyancing;
+
   document.getElementById('r-duty').textContent = fmt(duty);
   var foreignTextEl = document.getElementById('r-foreign');
   if (foreignTextEl) foreignTextEl.textContent = isForeign ? fmt(foreignAmt) : 'N/A';
@@ -693,7 +762,19 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ${s.stateName} 2025–26 ${s.dutyName.toLowerCase()}. Verify with a solicitor before settlement.';
+
+  var lvrEl = document.getElementById('r-lvr');
+  if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
+  var lmiEl = document.getElementById('r-lmi');
+  if (lmiEl) lmiEl.textContent = lmiLabel;
+  var regEl = document.getElementById('r-reg');
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
+  var conveyEl = document.getElementById('r-conveyancing');
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  var upfrontEl = document.getElementById('r-upfront');
+  if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
+
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ${s.stateName} 2025-26 ${s.dutyName.toLowerCase()}. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

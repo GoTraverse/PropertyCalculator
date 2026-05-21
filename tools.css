@@ -232,3 +232,111 @@ html.dark-mode .tool-resources a { color: var(--gold); }
 .dark-mode .tool-useful-links h2 { color: #f2f2f7; }
 .dark-mode .tool-useful-link { color: rgba(245,240,232,0.85); }
 .dark-mode .tool-useful-link:hover { color: var(--gold); }
+
+/* ── Mortgage calculator: extras / callouts / donut / schedule ── */
+/*
+ * Components added by the May 2026 mortgage-repayment best-in-market
+ * rewrite. Donut is inline SVG (no Chart.js, no CSP exception); schedule
+ * is a scrollable table that competitors typically hide behind paywalls.
+ */
+.tool-label-hint { color: var(--slate); font-size: 11px; font-weight: 400; margin-left: 4px; }
+.tool-extras { margin: 18px 0 14px; padding: 12px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.25); border-radius: 8px; }
+.tool-extras summary { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--charcoal); cursor: pointer; font-weight: 600; padding: 4px 0; }
+.tool-extras summary::-webkit-details-marker { display: none; }
+.tool-extras summary::before { content: '+ '; color: var(--gold); font-weight: 700; }
+.tool-extras[open] summary::before { content: '− '; }
+.tool-extras[open] { padding-bottom: 16px; }
+.tool-extras .tool-field { margin-top: 12px; }
+.dark-mode .tool-extras { background: rgba(201,168,76,0.10); border-color: rgba(201,168,76,0.40); }
+.dark-mode .tool-extras summary { color: #f2f2f7; }
+
+.tool-btn-secondary { display: block; width: 100%; margin: 18px 0 6px; padding: 11px 18px; background: transparent; color: var(--charcoal); border: 1px solid rgba(28,28,30,0.20); border-radius: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.tool-btn-secondary:hover { background: rgba(28,28,30,0.04); border-color: rgba(28,28,30,0.40); }
+.dark-mode .tool-btn-secondary { color: rgba(245,240,232,0.9); border-color: rgba(245,240,232,0.2); }
+.dark-mode .tool-btn-secondary:hover { background: rgba(245,240,232,0.06); border-color: rgba(245,240,232,0.40); }
+
+.mort-callout { display: flex; align-items: center; gap: 12px; margin: 14px 0; padding: 12px 16px; background: rgba(15,118,110,0.08); border-left: 3px solid #0f766e; border-radius: 4px; font-size: 13px; line-height: 1.5; color: var(--charcoal); }
+.mort-callout-gold { background: rgba(201,168,76,0.10); border-left-color: var(--gold); }
+.mort-callout-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: #0f766e; white-space: nowrap; }
+.mort-callout-gold .mort-callout-tag { color: #b78712; }
+.mort-callout-text { flex: 1; }
+.dark-mode .mort-callout { background: rgba(15,118,110,0.18); color: rgba(245,240,232,0.92); }
+.dark-mode .mort-callout-gold { background: rgba(201,168,76,0.18); }
+
+.mort-donut-wrap { display: flex; justify-content: center; margin: 22px 0 6px; }
+.mort-donut { width: 180px; height: 180px; max-width: 100%; }
+.mort-legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; font-size: 12px; color: var(--slate); }
+.mort-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.mort-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.dark-mode .mort-legend { color: rgba(245,240,232,0.7); }
+
+.mort-schedule-wrap { margin-top: 8px; }
+.mort-schedule-scroll { overflow-x: auto; max-height: 480px; overflow-y: auto; border: 1px solid rgba(28,28,30,0.10); border-radius: 6px; }
+.mort-schedule { width: 100%; border-collapse: collapse; font-size: 12px; }
+.mort-schedule thead { background: rgba(28,28,30,0.04); position: sticky; top: 0; z-index: 1; }
+.mort-schedule th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; color: var(--charcoal); padding: 9px 10px; text-align: right; border-bottom: 1px solid rgba(28,28,30,0.10); white-space: nowrap; }
+.mort-schedule th:first-child { text-align: left; }
+.mort-schedule td { padding: 8px 10px; text-align: right; color: var(--charcoal-soft); border-bottom: 1px solid rgba(28,28,30,0.05); font-variant-numeric: tabular-nums; }
+.mort-schedule td:first-child { text-align: left; font-weight: 600; color: var(--charcoal); }
+.mort-schedule tbody tr:hover { background: rgba(201,168,76,0.05); }
+.dark-mode .mort-schedule-scroll { border-color: rgba(255,255,255,0.10); }
+.dark-mode .mort-schedule thead { background: rgba(255,255,255,0.04); }
+.dark-mode .mort-schedule th { color: #f2f2f7; border-color: rgba(255,255,255,0.10); }
+.dark-mode .mort-schedule td { color: rgba(245,240,232,0.85); border-color: rgba(255,255,255,0.06); }
+.dark-mode .mort-schedule td:first-child { color: #f2f2f7; }
+.dark-mode .mort-schedule tbody tr:hover { background: rgba(201,168,76,0.10); }
+
+
+/* ── Borrowing power calculator: breakdown table ── */
+.bp-subheading { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin: 22px 0 4px; }
+.bp-sub-desc { font-size: 12px; color: var(--slate); line-height: 1.5; margin-bottom: 10px; }
+.bp-breakdown-wrap { overflow-x: auto; border: 1px solid rgba(28,28,30,0.10); border-radius: 6px; margin-bottom: 14px; }
+.bp-breakdown { width: 100%; border-collapse: collapse; font-size: 13px; }
+.bp-breakdown thead { background: rgba(28,28,30,0.04); }
+.bp-breakdown th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; color: var(--charcoal); padding: 10px 12px; text-align: right; border-bottom: 1px solid rgba(28,28,30,0.10); white-space: nowrap; }
+.bp-breakdown th:first-child { text-align: left; }
+.bp-breakdown td { padding: 9px 12px; text-align: right; color: var(--charcoal-soft); border-bottom: 1px solid rgba(28,28,30,0.05); font-variant-numeric: tabular-nums; }
+.bp-breakdown td:first-child { text-align: left; color: var(--charcoal); }
+.bp-breakdown tr.bp-base td { background: rgba(201,168,76,0.06); font-weight: 600; }
+.bp-breakdown tr.bp-final td { background: rgba(15,118,110,0.08); font-weight: 700; color: var(--charcoal); border-top: 2px solid #0f766e; }
+.bp-breakdown td.bp-pos { color: #0f766e; font-weight: 600; }
+.bp-breakdown td.bp-neg { color: #b91c1c; font-weight: 600; }
+.dark-mode .bp-breakdown-wrap { border-color: rgba(255,255,255,0.10); }
+.dark-mode .bp-breakdown thead { background: rgba(255,255,255,0.04); }
+.dark-mode .bp-breakdown th { color: #f2f2f7; border-color: rgba(255,255,255,0.10); }
+.dark-mode .bp-breakdown td { color: rgba(245,240,232,0.85); border-color: rgba(255,255,255,0.06); }
+.dark-mode .bp-breakdown td:first-child { color: #f2f2f7; }
+.dark-mode .bp-breakdown tr.bp-base td { background: rgba(201,168,76,0.12); }
+.dark-mode .bp-breakdown tr.bp-final td { background: rgba(15,118,110,0.18); color: #f2f2f7; }
+.dark-mode .bp-subheading { color: #f2f2f7; }
+
+
+/* ── FHB Grants calculator: hero + sections ── */
+.fhb-hero { background: linear-gradient(135deg, rgba(15,118,110,0.10), rgba(201,168,76,0.10)); border: 1px solid rgba(15,118,110,0.20); border-radius: 8px; padding: 22px 20px; margin-bottom: 16px; text-align: center; }
+.fhb-hero-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--slate); margin-bottom: 6px; }
+.fhb-hero-value { font-family: var(--font-display); font-size: 36px; font-weight: 700; color: #0f766e; line-height: 1.1; }
+.fhb-hero-note { font-size: 12px; color: var(--slate); margin-top: 4px; }
+.fhb-section { background: var(--warm-white); border: 1px solid rgba(28,28,30,0.08); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+.fhb-section-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--charcoal); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(28,28,30,0.06); }
+.fhb-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; color: var(--charcoal-soft); gap: 12px; }
+.fhb-row-val { font-weight: 600; color: var(--charcoal); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fhb-row-save { color: #0f766e; font-weight: 600; }
+.fhb-row-save .fhb-row-val { color: #0f766e; }
+.fhb-row-na { color: var(--slate); }
+.fhb-row-note { font-size: 11px; color: var(--slate); line-height: 1.5; margin-top: 6px; padding-left: 4px; border-left: 2px solid rgba(28,28,30,0.10); padding-left: 8px; }
+.dark-mode .fhb-hero { background: linear-gradient(135deg, rgba(15,118,110,0.20), rgba(201,168,76,0.18)); border-color: rgba(15,118,110,0.35); }
+.dark-mode .fhb-hero-value { color: #5eead4; }
+.dark-mode .fhb-section { background: #1c1c1e; border-color: rgba(255,255,255,0.08); }
+.dark-mode .fhb-section-title { color: #f2f2f7; border-color: rgba(255,255,255,0.06); }
+.dark-mode .fhb-row { color: rgba(245,240,232,0.85); }
+.dark-mode .fhb-row-val { color: #f2f2f7; }
+.dark-mode .fhb-row-save, .dark-mode .fhb-row-save .fhb-row-val { color: #5eead4; }
+.dark-mode .fhb-row-note { color: rgba(245,240,232,0.6); border-color: rgba(255,255,255,0.15); }
+
+
+/* ── Stamp duty cross-state comparison ── */
+.sd-compare tr.sd-current td { background: rgba(201,168,76,0.10); font-weight: 600; }
+.sd-compare td.sd-save { color: #0f766e; font-weight: 600; }
+.dark-mode .sd-compare tr.sd-current td { background: rgba(201,168,76,0.16); }
+.dark-mode .sd-compare td.sd-save { color: #5eead4; }
+

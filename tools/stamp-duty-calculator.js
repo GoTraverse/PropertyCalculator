@@ -133,6 +133,47 @@ function calcDuty(state, v) {
   return duty;
 }
 
+// ── Standard reference (FY 2025-26) ───────────────────────────────────────
+// Mortgage registration fees + title transfer fees by state. These are
+// nominal in dollar terms ($150-600 typically) but every legitimate
+// upfront-cost calculator includes them. Values from state title office
+// fee schedules; verify before settlement.
+var REG_FEES = {
+  nsw: { mortgage: 185, transfer: 185 },
+  vic: { mortgage: 123, transfer: 124 },
+  qld: { mortgage: 232, transfer: 250 },
+  sa:  { mortgage: 200, transfer: 230 },
+  wa:  { mortgage: 190, transfer: 200 },
+  tas: { mortgage: 150, transfer: 250 },
+  act: { mortgage: 200, transfer: 200 },
+  nt:  { mortgage: 200, transfer: 200 }
+};
+
+// LMI tier table (industry-average; see mortgage-repayment-calculator.js
+// for the same table). Real LMI varies by lender + insurer + borrower.
+function estimateLmiTier(lvr) {
+  if (lvr <= 0.80) return { rate: 0, label: 'No LMI (LVR ≤ 80%)' };
+  if (lvr <= 0.85) return { rate: 0.0080, label: '~0.8% of loan' };
+  if (lvr <= 0.90) return { rate: 0.0190, label: '~1.9% of loan' };
+  if (lvr <= 0.95) return { rate: 0.0340, label: '~3.4% of loan' };
+  return { rate: 0.0430, label: '~4.3% of loan (>95% LVR)' };
+}
+
+// Apply FHB exemption / partial concession given a state's policy
+function applyFhbConcession(state, val, baseDuty) {
+  var data = stateData[state];
+  if (!data) return { duty: baseDuty, note: '' };
+  if (val <= data.fhbFull) {
+    var ex = Math.min(data.fhbExemption || Infinity, baseDuty);
+    return { duty: Math.max(0, baseDuty - ex), note: 'First home buyer exemption applied.' };
+  }
+  if (val <= data.fhbPartial && data.fhbPartial > data.fhbFull) {
+    var slide = (data.fhbPartial - val) / (data.fhbPartial - data.fhbFull);
+    return { duty: Math.max(0, baseDuty * (1 - slide)), note: 'First home buyer partial concession applied.' };
+  }
+  return { duty: baseDuty, note: '' };
+}
+
 function updateState() {
   var state = document.getElementById('state').value;
   var data = stateData[state];
@@ -157,27 +198,36 @@ function calculate() {
   var isFHB = document.getElementById('fhb').checked;
   var isForeign = document.getElementById('foreign').checked;
   var isLand = document.getElementById('ptype').value === 'land';
-  var duty = calcDuty(state, val);
-  var note = '';
+  var depositPctEl = document.getElementById('deposit-pct');
+  var depositPct = depositPctEl ? (parseFloat(depositPctEl.value) || 20) : 20;
+  var loanAmount = val * (1 - depositPct / 100);
+  var lvr = loanAmount / val;
 
-  if (isFHB && !isLand) {
-    var fullLimit = data.fhbFull;
-    var partialLimit = data.fhbPartial;
-    if (val <= fullLimit) {
-      var exemption = Math.min(data.fhbExemption, duty);
-      duty = Math.max(0, duty - exemption);
-      note = 'First home buyer exemption applied.';
-    } else if (val <= partialLimit) {
-      var concession = duty * (partialLimit - val) / (partialLimit - fullLimit);
-      duty = Math.max(0, duty - concession);
-      note = 'First home buyer partial exemption applied.';
-    }
-  }
+  var baseDuty = calcDuty(state, val);
+  var dutyResult = isFHB && !isLand ? applyFhbConcession(state, val, baseDuty) : { duty: baseDuty, note: '' };
+  var duty = dutyResult.duty;
+  var note = dutyResult.note;
 
   var foreignAmt = isForeign ? val * data.foreignRate : 0;
   var total = duty + foreignAmt;
   var rate = val > 0 ? (total / val * 100) : 0;
 
+  // \u2500\u2500 Reg fees + LMI \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
+  var regTotal = reg.mortgage + reg.transfer;
+  // Conveyancing / legal: industry-typical $1,500-$2,500 \u2014 use mid-point
+  var conveyancing = 1800;
+  var lmiTier = estimateLmiTier(lvr);
+  // FHBG eligibility shortcut: if FHB + LVR > 80%, assume FHBG removes LMI
+  // (full eligibility check is in the FHB grants calculator)
+  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiTier.rate);
+  var lmiLabel = (isFHB && lvr > 0.80)
+    ? '$0 (FHBG eligibility assumed \u2014 check FHB grants calc)'
+    : lmi > 0 ? (fmt(lmi) + ' \u00b7 ' + lmiTier.label) : '$0 (no LMI)';
+
+  var upfrontTotal = total + lmi + regTotal + conveyancing;
+
+  // \u2500\u2500 Render core stats \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   document.getElementById('r-duty').textContent = fmt(duty);
   document.getElementById('r-foreign').textContent = isForeign ? fmt(foreignAmt) : 'N/A';
   document.getElementById('r-total').textContent = fmt(total);
@@ -185,7 +235,47 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2025\u201326 thresholds. Verify with a solicitor before settlement.';
+
+  // \u2500\u2500 New: LMI + reg fees + upfront total \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  var lvrEl = document.getElementById('r-lvr');
+  if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
+  var lmiEl = document.getElementById('r-lmi');
+  if (lmiEl) lmiEl.textContent = lmiLabel;
+  var regEl = document.getElementById('r-reg');
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')';
+  var conveyEl = document.getElementById('r-conveyancing');
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500\u2013$2,500)';
+  var upfrontEl = document.getElementById('r-upfront');
+  if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
+
+  // \u2500\u2500 Cross-state comparison \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // Show what the SAME purchase would cost in each state \u2014 useful for
+  // buyers considering a relocation or comparing interstate investment.
+  var cmpBody = document.getElementById('sd-compare-body');
+  if (cmpBody) {
+    var rows = [];
+    Object.keys(stateData).forEach(function(s) {
+      var d = stateData[s];
+      var base = calcDuty(s, val);
+      var fhbAdj = isFHB && !isLand ? applyFhbConcession(s, val, base) : { duty: base };
+      rows.push({ code: s.toUpperCase(), name: d.name, dutyName: d.dutyName, std: base, fhb: fhbAdj.duty, current: s === state });
+    });
+    rows.sort(function(a, b) { return (isFHB ? a.fhb - b.fhb : a.std - b.std); });
+    var html = '';
+    rows.forEach(function(r) {
+      var saving = r.std - r.fhb;
+      html += '<tr class="' + (r.current ? 'sd-current' : '') + '">' +
+        '<td>' + escHtml(r.code) + ' \u2014 ' + escHtml(r.name) + '</td>' +
+        '<td>' + fmt(r.std) + '</td>' +
+        (isFHB ? '<td>' + fmt(r.fhb) + '</td><td class="' + (saving > 0 ? 'sd-save' : '') + '">' + (saving > 0 ? fmt(saving) : '\u2014') + '</td>' : '') +
+        '</tr>';
+    });
+    cmpBody.innerHTML = html;
+    var fhbCols = document.querySelectorAll('.sd-fhb-col');
+    fhbCols.forEach(function(el) { el.style.display = isFHB ? '' : 'none'; });
+  }
+
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2025-26 thresholds. LMI is an industry-average estimate \u2014 get a formal quote. Verify all figures with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -343,8 +433,18 @@ window.addEventListener('DOMContentLoaded', function() {
   var stateEl = document.getElementById('state');
   var priceEl = document.getElementById('price');
   var calcBtn = document.getElementById('stamp-calc-btn');
-  if(stateEl) stateEl.addEventListener('change', updateState);
-  if(priceEl) priceEl.addEventListener('input', function(){ fmtInput(this); });
+  if(stateEl) stateEl.addEventListener('change', function(){ updateState(); calculate(); });
+  if(priceEl) priceEl.addEventListener('input', function(){ fmtInput(this); calculate(); });
+  // Recompute on every input change so the comparison table stays in sync
+  ['ptype','deposit-pct'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', calculate);
+    if (el) el.addEventListener('change', calculate);
+  });
+  ['fhb','foreign'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', calculate);
+  });
   if(calcBtn) calcBtn.addEventListener('click', function(){
     if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'stamp-duty'});
     calculate();
