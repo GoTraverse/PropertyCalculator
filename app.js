@@ -413,7 +413,7 @@
           '<div style="display:flex;align-items:center;gap:2px;min-width:90px;">',
             '<span style="font-size:14px;color:var(--slate);">$</span>',
             '<input type="number" value="'+(amount||0)+'" min="0" max="2000000" step="100" id="reno-amt-'+id+'" ',
-              'style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:\"DM Mono\",monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" ',
+              'style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:\"Geist Mono\",monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" ',
               'data-field="amount">',
           '</div>',
           '<button class="kd-del" title="Remove" style="flex-shrink:0;" data-action="del-reno">✕</button>',
@@ -495,7 +495,7 @@
           <input type="text" value="${escHtml(r.name||'')}" placeholder="Item name" style="flex:1;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:3px 4px;font-size:13px;font-weight:500;color:var(--charcoal);outline:none;" data-field="name">
           <div class="rbt" style="max-width:60px;"><div class="rbf" style="width:${pct}%"></div></div>
           <div style="display:flex;align-items:center;gap:2px;min-width:90px;">
-            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" max="2000000" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'DM Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" data-field="amount">
+            <span style="font-size:14px;color:var(--slate);">$</span><input type="number" value="${r.amount||0}" min="0" max="2000000" step="100" style="width:90px;background:none;border:none;border-bottom:1px solid rgba(28,28,30,0.1);padding:4px 2px;font-family:'Geist Mono',monospace;font-size:16px;color:var(--charcoal);outline:none;text-align:right;font-weight:500;" data-field="amount">
           </div>
           <button class="kd-del" title="Remove" style="flex-shrink:0;" data-action="del-reno">✕</button>
         </div>
@@ -671,7 +671,7 @@
         html+=`<div class="cr"><span class="nm">${_escBanner(c.name||'Item')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
       });
       if(moveoutCosts.length>0){
-        html+=`<div class="cr" style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--terracotta-light);text-transform:uppercase;border-bottom:1px solid rgba(28,28,30,0.05);padding-top:8px;padding-bottom:2px;"><span class="nm">Move-Out Costs</span><span class="am"></span></div>`;
+        html+=`<div class="cr" style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--terracotta-light);text-transform:uppercase;border-bottom:1px solid rgba(28,28,30,0.05);padding-top:8px;padding-bottom:2px;"><span class="nm">Move-Out Costs</span><span class="am"></span></div>`;
         moveoutCosts.forEach(c=>{
           html+=`<div class="cr"><span class="nm" style="color:var(--terracotta)">${_escBanner(c.name||'Item')}</span><span class="am">${fmt(parseFloat(c.amount)||0)}</span></div>`;
         });
@@ -841,7 +841,7 @@
     const stEl=document.getElementById('stress-table');
     if(stEl){
       const rates=[rate,rate+0.5,rate+1,rate+2,rate+3];
-      let html=`<div style="font-family:'DM Mono',monospace;font-size:11px"><div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;margin-bottom:6px;color:var(--slate);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1)"><span>Rate</span><span>Monthly</span><span>Annual</span><span>Change</span></div>`;
+      let html=`<div style="font-family:'Geist Mono',monospace;font-size:11px"><div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;margin-bottom:6px;color:var(--slate);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1)"><span>Rate</span><span>Monthly</span><span>Annual</span><span>Change</span></div>`;
       rates.forEach((r,i)=>{
         const m=calcMonthly(loanAmt,r,term),d=m-monthly,cur=i===0;
         html+=`<div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;padding:6px 0;border-top:1px solid rgba(28,28,30,0.06)${cur?';background:rgba(201,168,76,0.06);border-radius:2px':''}"><span style="color:${cur?'var(--gold)':'var(--slate)'}">${r.toFixed(1)}%${cur?' ←':''}</span><span>${fmt(m)}</span><span>${fmt(m*12)}</span><span style="color:${i===0?'var(--slate)':d>600?'var(--risk-red)':'var(--terracotta)'}">${i===0?'current':'+'+fmt(d)+'/mo'}</span></div>`;
@@ -866,17 +866,17 @@
         const feasible = loanAmt <= maxLoan;
         let svcHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">`;
         svcHtml += `<div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:4px;">Max Borrowing</div>
-          <div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--sky);">${fmtK(maxLoan)}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:4px;">Max Borrowing</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:18px;color:var(--sky);">${fmtK(maxLoan)}</div>
           <div style="font-size:10px;color:var(--slate);margin-top:2px;">@ ${assessRate.toFixed(1)}% assessment rate</div>
         </div>`;
         svcHtml += `<div style="background:rgba(28,28,30,0.04);border-radius:4px;padding:10px 12px;">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:4px;">Your Loan</div>
-          <div style="font-family:'DM Mono',monospace;font-size:18px;color:${feasible?'var(--sage)':'var(--risk-red)'};">${fmtK(loanAmt)}</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--slate);text-transform:uppercase;margin-bottom:4px;">Your Loan</div>
+          <div style="font-family:'Geist Mono',monospace;font-size:18px;color:${feasible?'var(--sage)':'var(--risk-red)'};">${fmtK(loanAmt)}</div>
           <div style="font-size:10px;color:var(--slate);margin-top:2px;">${feasible ? '✓ within capacity' : '⚠ exceeds capacity'}</div>
         </div>`;
         svcHtml += `</div>`;
-        svcHtml += `<div style="display:flex;gap:18px;flex-wrap:wrap;font-family:'DM Mono',monospace;font-size:11px;margin-bottom:10px;">`;
+        svcHtml += `<div style="display:flex;gap:18px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:11px;margin-bottom:10px;">`;
         svcHtml += `<span>Repayment/Income: <strong style="color:${repayToIncome>35?'var(--risk-red)':repayToIncome>28?'var(--terracotta)':'var(--sage)'}">${repayToIncome.toFixed(1)}%</strong></span>`;
         svcHtml += `<span>Debt-to-Income: <strong style="color:${dti>6?'var(--risk-red)':dti>4.5?'var(--terracotta)':'var(--sage)'}">${dti.toFixed(1)}×</strong></span>`;
         if (!feasible) svcHtml += `<span style="color:var(--risk-red);">Shortfall: ${fmtK(Math.abs(gap))}</span>`;
@@ -950,7 +950,7 @@
     const scEl=document.getElementById('overlap-scenarios');
     if(scEl){
       const scenWeeks=[0,2,4,6,8,12];
-      let html=`<div style="font-family:'DM Mono',monospace;font-size:11px"><div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;margin-bottom:6px;color:var(--slate);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1)"><span>Weeks</span><span>Overlap Cost</span><span>Reno Budget Left</span><span>Status</span></div>`;
+      let html=`<div style="font-family:'Geist Mono',monospace;font-size:11px"><div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:8px;margin-bottom:6px;color:var(--slate);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid rgba(28,28,30,0.1)"><span>Weeks</span><span>Overlap Cost</span><span>Reno Budget Left</span><span>Status</span></div>`;
       scenWeeks.forEach(w=>{
         const cost=combinedWeekly*w;
         const left=remaining-cost;
@@ -1417,7 +1417,7 @@
     const STATUS_BADGE_COLORS = {'browsing':'#5B8FAB','auction':'#C4704A','for-sale':'#C9A84C','offered':'#7B9E87','under-offer':'#E8A882','unconditional':'#5A9E7B','sold':'#C45A5A'};
     const STATUS_BADGE_LABELS = {'browsing':'👀 Browsing','auction':'🔨 Auction','for-sale':'🏷 For Sale','offered':'📝 Offer Sent','under-offer':'⏳ Under Offer','unconditional':'✅ Unconditional','sold':'🔴 Sold'};
     let statusBadge = document.getElementById('header-status-badge');
-    if(!statusBadge){ statusBadge = document.createElement('div'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:2px 10px;border-radius:10px;font-family:\u0027DM Mono\u0027,monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;white-space:nowrap;width:auto;max-width:none;align-self:flex-start;margin-top:4px;'; const h1=document.getElementById('page-title'); if(h1&&h1.parentNode) h1.parentNode.insertBefore(statusBadge, h1.nextSibling); }
+    if(!statusBadge){ statusBadge = document.createElement('div'); statusBadge.id='header-status-badge'; statusBadge.style.cssText='display:inline-block;padding:2px 10px;border-radius:10px;font-family:\u0027Geist Mono\u0027,monospace;font-size:10px;letter-spacing:0.5px;font-weight:500;white-space:nowrap;width:auto;max-width:none;align-self:flex-start;margin-top:4px;'; const h1=document.getElementById('page-title'); if(h1&&h1.parentNode) h1.parentNode.insertBefore(statusBadge, h1.nextSibling); }
     statusBadge.textContent = STATUS_BADGE_LABELS[statusVal] || statusVal;
     statusBadge.style.background = (STATUS_BADGE_COLORS[statusVal]||'#888') + '33';
     statusBadge.style.color = STATUS_BADGE_COLORS[statusVal] || '#888';
@@ -1454,7 +1454,7 @@
       if(land) chips.push(`📐 ${escHtml(land)}m²`);
       if(house)chips.push(`🏗 ${escHtml(house)}m² house`);
       if(year) chips.push(`📅 Built ${escHtml(year)}`);
-      statsEl.innerHTML = chips.map(c=>`<span class="pd-stat-chip">${c}</span>`).join('') || '<span style="font-size:11px;color:rgba(245,240,232,0.3);font-family:\u0027DM Mono\u0027,monospace;">Fill in details above to see preview</span>';
+      statsEl.innerHTML = chips.map(c=>`<span class="pd-stat-chip">${c}</span>`).join('') || '<span style="font-size:11px;color:rgba(245,240,232,0.3);font-family:\u0027Geist Mono\u0027,monospace;">Fill in details above to see preview</span>';
     }
 
     recalc();
@@ -1791,7 +1791,7 @@
   async function renderScenariosList(){
     const grid = document.getElementById('scenarios-grid');
     if(!grid) return;
-    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\u0027DM Mono\u0027,monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
+    grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--slate);font-family:\u0027Geist Mono\u0027,monospace;font-size:12px;"><div class="spinner"></div>Loading properties…</div>';
     _scenariosCache = await getAllScenarios();
     _renderScenariosToDOM(_scenariosCache);
     loadSharedWithMe(); // load shared-with-me in parallel
@@ -2340,7 +2340,7 @@
     if(!banner){
       banner = document.createElement('div');
       banner.id = 'readonly-banner';
-      banner.style.cssText = 'position:fixed;top:var(--hdr-h-desktop,56px);left:0;right:0;z-index:200;background:var(--sky);color:white;font-family:"DM Mono",monospace;font-size:11px;text-align:center;padding:6px 12px;letter-spacing:0.5px;';
+      banner.style.cssText = 'position:fixed;top:var(--hdr-h-desktop,56px);left:0;right:0;z-index:200;background:var(--sky);color:white;font-family:"Geist Mono",monospace;font-size:11px;text-align:center;padding:6px 12px;letter-spacing:0.5px;';
       banner.innerHTML = '🔒 READ-ONLY — Viewing another user\'s scenario <button id="exit-readonly-btn" style="margin-left:12px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:3px 10px;border-radius:3px;cursor:pointer;font-family:inherit;font-size:10px;">Exit</button>';
       document.body.appendChild(banner);
       document.getElementById('exit-readonly-btn').addEventListener('click', disableReadOnlyMode);
@@ -2481,7 +2481,7 @@
 
   function showToast(msg, duration){
     const t = document.createElement('div');
-    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--charcoal);color:var(--gold);font-family:"DM Mono",monospace;font-size:11px;padding:10px 16px;border-radius:3px;border:1px solid rgba(201,168,76,0.3);z-index:9999;letter-spacing:0.5px;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.8s;';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--charcoal);color:var(--gold);font-family:"Geist Mono",monospace;font-size:11px;padding:10px 16px;border-radius:3px;border:1px solid rgba(201,168,76,0.3);z-index:9999;letter-spacing:0.5px;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.8s;';
     // Use innerHTML so callers can embed anchor links (all toast messages are hardcoded, not user data)
     t.innerHTML = msg;
     document.body.appendChild(t);
@@ -2670,12 +2670,12 @@
         epResult.innerHTML = `
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div style="background:rgba(90,158,123,0.08);border:1px solid rgba(90,158,123,0.2);border-radius:6px;padding:12px 14px;">
-              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Time Saved</div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--reward-green);">${timeStr}</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Time Saved</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:600;color:var(--reward-green);">${timeStr}</div>
             </div>
             <div style="background:rgba(90,158,123,0.08);border:1px solid rgba(90,158,123,0.2);border-radius:6px;padding:12px 14px;">
-              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Interest Saved</div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--reward-green);">${fmtK(interestSaved)}</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Interest Saved</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:600;color:var(--reward-green);">${fmtK(interestSaved)}</div>
             </div>
           </div>`;
         epResult.style.display = 'block';
@@ -2700,12 +2700,12 @@
         offsetResult.innerHTML = `
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
             <div style="background:rgba(91,143,171,0.08);border:1px solid rgba(91,143,171,0.2);border-radius:6px;padding:12px 14px;">
-              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Loan Paid Off Sooner</div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--sky);">${oTimeStr}</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Loan Paid Off Sooner</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:600;color:var(--sky);">${oTimeStr}</div>
             </div>
             <div style="background:rgba(91,143,171,0.08);border:1px solid rgba(91,143,171,0.2);border-radius:6px;padding:12px 14px;">
-              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Interest Saved</div>
-              <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--sky);">${fmtK(offsetInterestSaved)}</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Interest Saved</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:600;color:var(--sky);">${fmtK(offsetInterestSaved)}</div>
             </div>
           </div>`;
         offsetResult.style.display = 'block';
@@ -2812,11 +2812,11 @@
     for(let p = 0; p <= 4; p++){
       const val = maxVal * p / 4, y = scaleY(val);
       html += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(28,28,30,0.07)" stroke-width="1"/>`;
-      html += `<text x="${padL-6}" y="${y+4}" text-anchor="end" font-family="DM Mono" font-size="9" fill="#999">${fmtK(val)}</text>`;
+      html += `<text x="${padL-6}" y="${y+4}" text-anchor="end" font-family="Geist Mono" font-size="9" fill="#999">${fmtK(val)}</text>`;
     }
     // X axis labels (years)
     [0,5,10,15,20,25,30].forEach(yr => {
-      html += `<text x="${scaleX(yr)}" y="${H-padB+16}" text-anchor="middle" font-family="DM Mono" font-size="9" fill="#999">${yrLabel(yr)}</text>`;
+      html += `<text x="${scaleX(yr)}" y="${H-padB+16}" text-anchor="middle" font-family="Geist Mono" font-size="9" fill="#999">${yrLabel(yr)}</text>`;
     });
 
     // Shaded equity area
@@ -2839,10 +2839,10 @@
     if(offsetBal > 0 && projDataOffset.length) html += mkPath(projDataOffset, 'loanBal', '#5B8FAB', '3 2', 2.0);
 
     // Milestone markers
-    if(payoffQ != null && payoffQ <= totalQ){ const d=projData[payoffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5A9E7B" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5A9E7B">PAID OFF</text>`; }
-    if(buyoutQ != null && buyoutQ <= totalQ){ const d=projData[buyoutQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.baseVal)}" r="5" fill="#7B9E87" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.baseVal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#7B9E87">BUY OUT</text>`; }
-    if(extraPayment > 0 && extraPaidOffQ != null){ const d=projDataExtra[extraPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#9B7FE8" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#9B7FE8">EARLY 🚀</text>`; }
-    if(offsetBal > 0 && offsetPaidOffQ != null && projDataOffset[offsetPaidOffQ]){ const d=projDataOffset[offsetPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5B8FAB" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="DM Mono" font-size="8" fill="#5B8FAB">OFFSET OFF</text>`; }
+    if(payoffQ != null && payoffQ <= totalQ){ const d=projData[payoffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5A9E7B" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="Geist Mono" font-size="8" fill="#5A9E7B">PAID OFF</text>`; }
+    if(buyoutQ != null && buyoutQ <= totalQ){ const d=projData[buyoutQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.baseVal)}" r="5" fill="#7B9E87" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.baseVal)-9}" text-anchor="middle" font-family="Geist Mono" font-size="8" fill="#7B9E87">BUY OUT</text>`; }
+    if(extraPayment > 0 && extraPaidOffQ != null){ const d=projDataExtra[extraPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#9B7FE8" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="Geist Mono" font-size="8" fill="#9B7FE8">EARLY 🚀</text>`; }
+    if(offsetBal > 0 && offsetPaidOffQ != null && projDataOffset[offsetPaidOffQ]){ const d=projDataOffset[offsetPaidOffQ]; html+=`<circle cx="${scaleX(d.yr)}" cy="${scaleY(d.loanBal)}" r="5" fill="#5B8FAB" stroke="white" stroke-width="2"/><text x="${scaleX(d.yr)}" y="${scaleY(d.loanBal)-9}" text-anchor="middle" font-family="Geist Mono" font-size="8" fill="#5B8FAB">OFFSET OFF</text>`; }
 
     // Hit overlay — passes totalQ so hover snaps to quarters
     html += `<rect id="proj-hit" x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="transparent" style="cursor:crosshair;"/>`;
@@ -2874,7 +2874,7 @@
         const qNum     = (qi % 4) || 4; // 1-based quarter within year
         const calLabel = settleYr ? `${settleYr + wholeYr} Q${qNum}` : `Yr ${wholeYr} Q${qNum}`;
         const label    = labelOverride || calLabel;
-        return `<div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'DM Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
+        return `<div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding:7px 0;border-top:1px solid rgba(28,28,30,0.06);font-size:10px;font-family:'Geist Mono',monospace;${isMilestone?'background:rgba(201,168,76,0.06);border-radius:2px;':''}">`
           +`<span style="color:var(--gold);white-space:nowrap;">${label}${isMilestone?' ★':''}</span>`
           +`<span>${fmtK(d.baseVal)}</span>`
           +`<span style="color:var(--sky)">${fmtK(d.loanBal)}${extraLoanStr}${offsetLoanStr}</span>`
@@ -2887,7 +2887,7 @@
         for(let qn = 1; qn <= 4; qn++) rows.push(mkRow(y * 4 - (4 - qn)));
       }
       [5,7,10,15,20,25,30].forEach(y => rows.push(mkRow(y * 4)));
-      tblEl.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Q':'Quarter'}</span><span>Value</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
+      tblEl.innerHTML=`<div style="font-family:'Geist Mono',monospace;font-size:10px;"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(28,28,30,0.1);color:var(--slate);font-size:9px;letter-spacing:1px;text-transform:uppercase;"><span>${settleYr?'Cal. Q':'Quarter'}</span><span>Value</span><span>Loan Bal</span><span>Govt Owed</span><span>Your Equity</span></div>${rows.join('')}</div>`;
     }
 
     // Reset mobile slider to start and update display boxes
@@ -3552,12 +3552,12 @@
 <html><head>
 <meta charset="UTF-8">
 <title>${_escBanner(snap.addr)} — Finance Scenario</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@300..700&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
   /* Base font size — normal=12px, large=16px, compact=9px */
-  body{background:#fff;font-family:'DM Sans',sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
+  body{background:#fff;font-family:'Geist',sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
   @page{margin:10mm 12mm;size:${pageSize} ${pageOrient};}
   @media print{
     body{font-size:${fontSize==='large'?'15px':fontSize==='compact'?'8px':'11px'}!important;}
@@ -3572,12 +3572,12 @@
   `:''}
   header{background:#1C1C1E;color:#F5F0E8;padding:0;display:flex;margin-bottom:20px;border-radius:4px;overflow:hidden;}
   .htext{flex:1;padding:20px 24px;}
-  .htag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:4px;}
-  h1{font-family:'Playfair Display',serif;font-size:${fontSize==='large'?'30px':fontSize==='compact'?'20px':'26px'};font-weight:900;margin-bottom:3px;}
+  .htag{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:4px;}
+  h1{font-family:'Geist',sans-serif;font-size:${fontSize==='large'?'30px':fontSize==='compact'?'20px':'26px'};font-weight:900;margin-bottom:3px;}
   .hsub{font-size:11px;color:rgba(245,240,232,0.45);margin-bottom:12px;}
-  .hstamp{font-family:'DM Mono',monospace;font-size:10px;color:rgba(245,240,232,0.3);}
+  .hstamp{font-family:'Geist Mono',monospace;font-size:10px;color:rgba(245,240,232,0.3);}
   .hphoto{width:200px;flex-shrink:0;}
-  .section-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#888;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
+  .section-title{font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#888;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
   .section-title::after{content:'';flex:1;height:1px;background:#eee;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
   .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
@@ -3588,21 +3588,21 @@
   .kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'9px':'11px'};}
   .kv:last-child{border-bottom:none;}
   .kv .lbl{color:#666;}
-  .kv .val{font-family:'DM Mono',monospace;font-weight:500;}
+  .kv .val{font-family:'Geist Mono',monospace;font-weight:500;}
   .tile{background:#1C1C1E;color:#F5F0E8;border-radius:3px;padding:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
-  .tile-val{font-family:'DM Mono',monospace;font-size:${fontSize==='large'?'28px':fontSize==='compact'?'16px':'22px'};margin-bottom:2px;}
+  .tile-val{font-family:'Geist Mono',monospace;font-size:${fontSize==='large'?'28px':fontSize==='compact'?'16px':'22px'};margin-bottom:2px;}
   .tile-lbl{font-size:${fontSize==='large'?'11px':fontSize==='compact'?'8px':'9px'};color:rgba(245,240,232,0.5);letter-spacing:1px;text-transform:uppercase;}
-  .big-num{font-family:'DM Mono',monospace;font-size:${fontSize==='large'?'34px':fontSize==='compact'?'20px':'28px'};font-weight:500;}
+  .big-num{font-family:'Geist Mono',monospace;font-size:${fontSize==='large'?'34px':fontSize==='compact'?'20px':'28px'};font-weight:500;}
   .meter-wrap{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin:6px 0 4px;}
   .meter-fill{height:100%;border-radius:4px;}
   table{width:100%;border-collapse:collapse;font-size:${fontSize==='large'?'13px':fontSize==='compact'?'9px':'11px'};}
-  th{background:#F5F0E8;padding:7px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;}
+  th{background:#F5F0E8;padding:7px 10px;text-align:left;font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;}
   th:last-child,td:last-child{text-align:right;}
   /* Print / Save PDF button — bigger on mobile */
-  .print-btn{position:fixed;bottom:max(20px,env(safe-area-inset-bottom,20px));left:50%;transform:translateX(-50%);background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:14px 28px;border-radius:28px;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;z-index:100;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);letter-spacing:0.5px;}
+  .print-btn{position:fixed;bottom:max(20px,env(safe-area-inset-bottom,20px));left:50%;transform:translateX(-50%);background:#1C1C1E;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:14px 28px;border-radius:28px;font-family:'Geist Mono',monospace;font-size:13px;cursor:pointer;z-index:100;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);letter-spacing:0.5px;}
   .print-btn:hover{background:#2C2C2E;}
   /* Share button (mobile only) */
-  .share-btn{position:fixed;bottom:max(80px,calc(env(safe-area-inset-bottom,20px) + 64px));left:50%;transform:translateX(-50%);background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:12px 24px;border-radius:28px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;z-index:100;white-space:nowrap;display:none;letter-spacing:0.5px;}
+  .share-btn{position:fixed;bottom:max(80px,calc(env(safe-area-inset-bottom,20px) + 64px));left:50%;transform:translateX(-50%);background:rgba(201,168,76,0.15);color:#C9A84C;border:1px solid rgba(201,168,76,0.4);padding:12px 24px;border-radius:28px;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;z-index:100;white-space:nowrap;display:none;letter-spacing:0.5px;}
   @media(max-width:600px){.share-btn{display:block;}}
   @media(min-width:601px){.print-btn{top:16px;bottom:auto;right:16px;left:auto;transform:none;border-radius:4px;padding:10px 20px;font-size:12px;box-shadow:none;}}
   @media print{.print-btn,.share-btn{display:none!important;}#account-panel-overlay,#account-panel{display:none!important;}}
@@ -3655,13 +3655,13 @@
   </div>
   <div class="grid2">
     <div class="card card-rel"><div class="card-accent" style="background:#C9A84C;position:absolute;"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:#C9A84C;margin-bottom:8px;padding-left:10px;">CASH PICTURE</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;color:#C9A84C;margin-bottom:8px;padding-left:10px;">CASH PICTURE</div>
       <div class="kv" style="padding-left:10px;"><span class="lbl">Your Savings</span><span class="val">${snap.savings}</span></div>
       <div class="kv" style="padding-left:10px;"><span class="lbl">Total Out-of-Pocket</span><span class="val" style="color:#C4704A;">${snap.outOfPocket}</span></div>
       <div class="kv" style="padding-left:10px;"><span class="lbl">Remaining Cash</span><span class="val" style="color:#7B9E87;">${snap.cashLeft}</span></div>
     </div>
     <div class="card card-rel"><div class="card-accent" style="background:#5B8FAB;position:absolute;"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:#5B8FAB;margin-bottom:8px;padding-left:10px;">UPFRONT COSTS</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;color:#5B8FAB;margin-bottom:8px;padding-left:10px;">UPFRONT COSTS</div>
       <div class="kv" style="padding-left:10px;"><span class="lbl">Deposit</span><span class="val">${snap.crDeposit}</span></div>
       ${snap.costRows.replace(/<div class="cr">/g,'<div class="kv" style="padding-left:10px;">').replace(/<span class="nm">/g,'<span class="lbl">').replace(/<span class="am">/g,'<span class="val">').replace(/<\/div>/g,'</div>')}
       <div class="kv" style="padding-left:10px;border-top:2px solid #1C1C1E;padding-top:7px;margin-top:5px;"><span class="lbl" style="font-weight:600;">Total Required</span><span class="val" style="font-weight:600;">${snap.crTotal}</span></div>
@@ -3672,11 +3672,11 @@
   <div class="section-title">02 · Renovation Budget</div>
   <div class="grid2" style="margin-bottom:12px;">
     <div class="card" style="text-align:center;">
-      <div style="font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">POOL</div>
+      <div style="font-size:9px;font-family:'Geist Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">POOL</div>
       <div class="big-num" style="color:#7B9E87;">${snap.poolVal}</div>
       <div style="font-size:10px;color:#888;margin-top:2px;">Available for reno</div>
       <div style="border-top:1px solid #eee;margin-top:12px;padding-top:12px;">
-      <div style="font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">UNSPENT</div>
+      <div style="font-size:9px;font-family:'Geist Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">UNSPENT</div>
       <div class="big-num" style="color:${snap.unspentColor};">${snap.unspent}</div>
       <div style="font-size:10px;color:#888;margin-top:2px;">After planned reno</div>
       </div>
@@ -3748,7 +3748,7 @@
     ].map(p=>`
     <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
       <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:${p.color};border:2px solid white;box-shadow:0 0 0 2px ${p.color};"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:${p.color};margin-bottom:3px;">Phase ${p.phase} · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">${p.dur}</span></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:${p.color};margin-bottom:3px;">Phase ${p.phase} · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">${p.dur}</span></div>
       <div style="font-size:12px;font-weight:600;margin-bottom:2px;">${p.title}</div>
       <div style="font-size:10px;color:#666;line-height:1.5;">${p.desc}</div>
     </div>`).join('')}
@@ -3756,8 +3756,8 @@
 
 <!-- PDF Action Buttons -->
 <div style="padding:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;border-top:1px solid #eee;margin-top:20px;">
-  <button id="pdf-preview-print-btn" style="padding:12px 20px;background:#1C1C1E;border:none;border-radius:4px;color:#C9A84C;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">🖨 Print</button>
-  <button id="pdf-preview-share-btn" style="padding:12px 20px;background:#7B9E87;border:none;border-radius:4px;color:white;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
+  <button id="pdf-preview-print-btn" style="padding:12px 20px;background:#1C1C1E;border:none;border-radius:4px;color:#C9A84C;font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">🖨 Print</button>
+  <button id="pdf-preview-share-btn" style="padding:12px 20px;background:#7B9E87;border:none;border-radius:4px;color:white;font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
 </div>
 </div>
 <script>
@@ -3972,19 +3972,19 @@
     formDiv.id = 'comms-add-form';
     formDiv.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-        <div><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Date</div>
-          <input type="date" id="cf-date" value="${today}" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:7px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;color:var(--charcoal);"></div>
-        <div><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Type</div>
-          <select id="cf-type" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:7px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;color:var(--charcoal);">
+        <div><div style="font-size:10px;font-family:'Geist Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Date</div>
+          <input type="date" id="cf-date" value="${today}" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:7px;border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--charcoal);"></div>
+        <div><div style="font-size:10px;font-family:'Geist Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Type</div>
+          <select id="cf-type" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);padding:7px;border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--charcoal);">
             <option>📞 Phone call</option><option>✉ Email</option><option>💬 Text / SMS</option>
             <option>🤝 In person</option><option>📋 Inspection note</option><option>📝 Other</option>
           </select></div>
       </div>
-      <div style="margin-bottom:8px;"><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Note</div>
-        <textarea id="cf-text" rows="3" placeholder="What was discussed? Any key info from the agent?" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;padding:8px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.5;"></textarea></div>
+      <div style="margin-bottom:8px;"><div style="font-size:10px;font-family:'Geist Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Note</div>
+        <textarea id="cf-text" rows="3" placeholder="What was discussed? Any key info from the agent?" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;padding:8px;font-family:'Geist',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.5;"></textarea></div>
       <div style="display:flex;gap:8px;">
-        <button id="cf-submit-entry" style="flex:1;background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:8px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Entry</button>
-        <button id="cf-cancel-entry" style="padding:8px 14px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:var(--slate);">Cancel</button>
+        <button id="cf-submit-entry" style="flex:1;background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:8px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Entry</button>
+        <button id="cf-cancel-entry" style="padding:8px 14px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;color:var(--slate);">Cancel</button>
       </div>`;
     if(list) list.insertBefore(formDiv, list.firstChild);
     var cfSubmit = document.getElementById('cf-submit-entry');

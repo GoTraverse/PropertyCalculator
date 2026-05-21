@@ -694,7 +694,7 @@ html.dark-mode .partner-entry-row {
 .mod-card-dot { opacity: 0.5; }
 .mod-card-date { opacity: 0.75; }
 .mod-card-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: var(--charcoal);

@@ -497,7 +497,7 @@ html.dark-mode .suburb-methodology p { color: rgba(245,240,232,0.55); }
   font-size: 26px;
   font-weight: 700;
   color: var(--ink);
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
 }
 .suburb-reviews-count { font-size: 13px; color: var(--slate); }
 
@@ -520,7 +520,7 @@ html.dark-mode .suburb-methodology p { color: rgba(245,240,232,0.55); }
   color: var(--gold);
 }
 .suburb-review-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 17px;
   margin: 0;
   color: var(--ink);

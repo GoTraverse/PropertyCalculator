@@ -432,7 +432,7 @@ Every page that needs the nav and footer follows this pattern:
 <!-- In <head> -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@300..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 
 <!-- Nav placeholder — auth-nav.js fills .site-nav-actions with login/profile buttons -->
@@ -589,8 +589,9 @@ All colours and fonts are CSS custom properties on `:root`. Google Fonts are loa
 --gold                         accent / CTA colour
 --sage, --terracotta, --sky    semantic colours
 --risk-red, --reward-green     risk indicator colours
---font-mono                    'DM Mono' — used for labels, numbers, badges
---font-display                 'Playfair Display' — used for headings
+--font-mono                    'Geist Mono' — used for labels, numbers, badges
+--font-display                 'Geist' (700/800 weight) — used for headings
+--font-body                    'Geist' — used for body text
 --radius-sm, --radius-md, --radius-lg   border radii
 ```
 
