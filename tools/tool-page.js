@@ -432,6 +432,12 @@ var ToolPage = (function() {
   /* ── Init ── */
 
   function _fetchPartners(slug) {
+    // Partner-promo block is intentionally suppressed (May 2026) — we don't
+    // currently have active referral partners and the "Recommended Partners"
+    // section reads as filler. The fetch + render path is preserved below
+    // for when partner deals are reactivated; set
+    // window.EQUITYSIGHT_SHOW_PARTNERS = true on a page to re-enable.
+    if (!window.EQUITYSIGHT_SHOW_PARTNERS) return;
     var partnersRoot = document.getElementById('tool-partners-root');
     var disclosureRoot = document.getElementById('tool-disclosure-root');
     if (!partnersRoot && !disclosureRoot) return;

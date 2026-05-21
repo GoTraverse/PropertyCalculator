@@ -70,16 +70,69 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-cta-btn { display: inline-block; padding: 12px 26px; background: var(--gold); color: var(--charcoal); font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; text-decoration: none; border-radius: 5px; transition: opacity 0.15s; }
 .tool-cta-btn:hover { opacity: 0.88; }
 
-/* ── SEO content ── */
-.tool-content { max-width: 640px; margin: 0 auto 56px; padding: 0 16px; }
-.tool-content h2 { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--charcoal); margin: 28px 0 10px; }
-.tool-content h2:first-child { margin-top: 0; }
-.tool-content p, .tool-content li { font-size: 14px; color: var(--slate); line-height: 1.7; margin-bottom: 10px; }
-.tool-content ul { padding-left: 20px; margin-bottom: 10px; }
-.tool-content table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 14px 0 20px; }
-.tool-content th { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); padding: 8px 10px; text-align: left; background: var(--warm-white); border: 1px solid rgba(28,28,30,0.09); }
-.tool-content td { padding: 7px 10px; border: 1px solid rgba(28,28,30,0.07); color: var(--charcoal); font-size: 13px; }
+/* ── SEO content ──
+ * Reader-style longform. Tuned (May 2026) for the bulk-upgrade pages
+ * (mortgage repayment, borrowing power, FHB grants, stamp duty) that
+ * each ship 1,500-2,500 words of explanatory content. Previous version
+ * stacked h2 sections at 28px margin which read as "bunched". This
+ * version uses bigger headings, more vertical rhythm, and a faint
+ * separator between sections so the page reads like a long article
+ * rather than a wall of text. */
+.tool-content { max-width: 660px; margin: 0 auto 64px; padding: 0 18px; }
+.tool-content h2 { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--charcoal); margin: 56px 0 14px; line-height: 1.25; letter-spacing: -0.005em; }
+.tool-content h2:first-child { margin-top: 28px; }
+.tool-content h2 + p { margin-top: 4px; }
+.tool-content h3 { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--charcoal); margin: 32px 0 8px; letter-spacing: -0.003em; }
+.tool-content p, .tool-content li { font-size: 15px; color: var(--charcoal-soft); line-height: 1.75; margin-bottom: 14px; }
+.tool-content ul, .tool-content ol { padding-left: 22px; margin-bottom: 16px; }
+.tool-content li { margin-bottom: 6px; }
+.tool-content strong { color: var(--charcoal); font-weight: 600; }
+.tool-content code { font-family: var(--font-mono); font-size: 13px; background: rgba(28,28,30,0.05); padding: 2px 6px; border-radius: 3px; }
+.tool-content table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 18px 0 24px; }
+.tool-content th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--slate); padding: 10px 12px; text-align: left; background: var(--warm-white); border: 1px solid rgba(28,28,30,0.09); }
+.tool-content td { padding: 9px 12px; border: 1px solid rgba(28,28,30,0.07); color: var(--charcoal); font-size: 13px; }
 .tool-content tr:nth-child(even) td { background: rgba(0,0,0,0.018); }
+/* Soft section separator — sits above each h2 except the first, giving the
+ * page a "magazine article with chapter breaks" feel instead of a stack. */
+.tool-content h2:not(:first-child)::before {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 1px;
+  background: rgba(201,168,76,0.40);
+  margin: 0 0 24px;
+}
+.dark-mode .tool-content p, .dark-mode .tool-content li { color: rgba(245,240,232,0.78); }
+.dark-mode .tool-content strong { color: #f2f2f7; }
+.dark-mode .tool-content h2, .dark-mode .tool-content h3 { color: #f2f2f7; }
+.dark-mode .tool-content code { background: rgba(255,255,255,0.06); color: rgba(245,240,232,0.9); }
+.dark-mode .tool-content h2:not(:first-child)::before { background: rgba(201,168,76,0.50); }
+
+/* Collapsible-longform helper: wrap sections beyond the first 2-3 in
+ * <details class="tool-content-more"><summary>Show full guide</summary>…</details>
+ * to reduce visual density while keeping content indexable. */
+details.tool-content-more {
+  border-top: 1px solid rgba(28,28,30,0.08);
+  margin-top: 32px;
+  padding-top: 8px;
+}
+details.tool-content-more > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--gold);
+  text-align: center;
+}
+details.tool-content-more > summary::-webkit-details-marker { display: none; }
+details.tool-content-more > summary::after { content: ' ▾'; opacity: 0.7; }
+details.tool-content-more[open] > summary::after { content: ' ▴'; }
+details.tool-content-more[open] > summary { color: var(--slate); }
+.dark-mode details.tool-content-more { border-color: rgba(255,255,255,0.10); }
 
 /* ── Resources ── */
 .tool-resources { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 24px; margin-bottom: 14px; }
@@ -339,4 +392,16 @@ html.dark-mode .tool-resources a { color: var(--gold); }
 .sd-compare td.sd-save { color: #0f766e; font-weight: 600; }
 .dark-mode .sd-compare tr.sd-current td { background: rgba(201,168,76,0.16); }
 .dark-mode .sd-compare td.sd-save { color: #5eead4; }
+
+
+/* ── Ad + partner placeholders (May 2026: hidden until ads/partners go live) ──
+ * adsense.js is gated on window.EQUITYSIGHT_ADS_ENABLED — when off, the
+ * .ad-slot DOM elements remain but stay empty. tool-page.js renderPartners
+ * is gated on window.EQUITYSIGHT_SHOW_PARTNERS. These rules ensure no
+ * visible empty space when the gates are off; both selectors auto-restore
+ * once their respective JS injects content (which adds child nodes — the
+ * `:empty` pseudo-class drops the hide). */
+.ad-slot:empty { display: none; }
+.tool-partners:empty,
+#tool-partners-root:empty { display: none; }
 
