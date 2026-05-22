@@ -6,6 +6,9 @@
 [functions]
   node_bundler = "esbuild"
 
+[functions."og-image"]
+  node_bundler = "nft"
+
 [[headers]]
   for = "/*"
   [headers.values]
