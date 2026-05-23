@@ -5,6 +5,7 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["@resvg/resvg-js", "satori"]
 
 [[headers]]
   for = "/*"
@@ -748,6 +749,12 @@
   to = "/error-capture.js"
   status = 200
   force = true
+
+# ── Dynamic og:image generation ────────────────────────────────────────────────
+[[redirects]]
+  from = "/og/*"
+  to = "/.netlify/functions/og-image?path=:splat"
+  status = 200
 
 # ── Allow ads.txt through (must come before catch-all) ───────────────────────
 [[redirects]]

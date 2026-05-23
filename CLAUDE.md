@@ -5,7 +5,7 @@
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**~32 core HTML pages** (17 root + 14 free calculators + `/tools` landing) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **13 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics`) + `_log.js` structured-log helper | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
+**~32 core HTML pages** (17 root + 14 free calculators + `/tools` landing) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (~3,022 indexed post-prune) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **14 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics`, `og-image`) + `_log.js` structured-log helper | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
@@ -229,6 +229,10 @@ Files intentionally NOT blocked (needed at runtime):
 - Submit sitemap.xml: https://search.google.com/search-console
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
+
+## Recent Changes (May 2026 — Dynamic OG Images)
+
+- ✅ **Dynamic og:image generation** — new `netlify/functions/og-image.js` generates suburb-specific, city-specific, and state-specific 1200×630 PNG social cards on the fly via `satori` (text→SVG paths) + `@resvg/resvg-js` (SVG→PNG). URL pattern: `/og/suburb/{state}/{slug}.png`, `/og/city/{state}/{slug}.png`, `/og/state/{state}.png`. Redirect in `netlify.toml` maps `/og/*` to the function. Cards show EquitySight branding (dark #1A1A1A bg, gold #F2C94C accent bar), suburb/city/state name, subtitle, and type label. Inter font fetched from Google Fonts on cold start and cached in module scope. Graceful fallback: any error returns 302 to generic `/images/og-image.png`. CDN-cached for 30 days (`s-maxage=2592000`). Templates updated: `suburb-page.html`, `city-page.html`, `state-hub.html` — both `og:image` and `twitter:image` now point to dynamic URLs using existing `{{STATE_LOWER}}`/`{{SLUG}}`/`{{CITY_SLUG}}` placeholders.
 
 ## Recent Changes (May 2026 — Calculator Bulk Upgrade, Round 1)
 
