@@ -11,6 +11,9 @@ sitemap-blog.xml
 # Build cache (suburb pages persisted between Netlify deploys)
 .cache/
 
+# Netlify Functions dependencies (installed during deploy)
+netlify/functions/node_modules/
+
 # Claude Code tooling — Lighthouse + Chrome installed by .claude/hooks/session-start.sh
 # inside Claude Code on the web sessions. Never deployed; never used in local dev.
 .claude/tooling/
