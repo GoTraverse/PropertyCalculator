@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-05-24T03:25:53.673Z",
-  "count": 1,
+  "syncedAt": "2026-05-24T04:11:38.643Z",
+  "count": 2,
   "errors": [
+    {
+      "at": 1779595897620,
+      "message": "Script error.",
+      "source": "",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/",
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; HUAWEI P30 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.105 Mobile Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1779593152653,
       "message": "CSP violation: script-src-elem — blocked \"inline\"",
