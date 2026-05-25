@@ -2172,6 +2172,31 @@ function generateAggregateRatingJson(state, slug, suburbName) {
   return ',{"@context":"https://schema.org","@type":"AggregateRating","itemReviewed":{"@type":"Place","name":"' + safeName + '"},"ratingValue":"' + avg.toFixed(1) + '","reviewCount":"' + agg.count + '","bestRating":"5","worstRating":"1"}';
 }
 
+// ── OG image SVG generator ──────────────────────────────────────────────
+function generateOgSvg(suburb, state, stateName, postcode) {
+  const name = escHtml(suburb);
+  const region = postcode ? `${escHtml(stateName)} ${escHtml(postcode)}` : escHtml(stateName);
+  // Shrink font if suburb name is long
+  const nameLen = suburb.length;
+  const fontSize = nameLen > 24 ? 52 : nameLen > 18 ? 60 : 72;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+<defs>
+<radialGradient id="gA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#F2C94C" stop-opacity="0.12"/><stop offset="70%" stop-color="#F2C94C" stop-opacity="0"/></radialGradient>
+<pattern id="d" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="rgba(255,255,255,0.04)"/></pattern>
+</defs>
+<rect width="1200" height="630" fill="#1A1A1A"/>
+<rect width="1200" height="630" fill="url(#d)"/>
+<circle cx="1080" cy="100" r="260" fill="url(#gA)"/>
+<text x="72" y="120" font-family="Sora,Helvetica Neue,Arial,sans-serif" font-weight="600" font-size="28" letter-spacing="-0.5" fill="#fff">Equity</text>
+<text x="162" y="120" font-family="Sora,Helvetica Neue,Arial,sans-serif" font-weight="600" font-size="28" letter-spacing="-0.5" fill="#F2C94C">Sight</text>
+<line x1="72" y1="160" x2="340" y2="160" stroke="#F2C94C" stroke-width="2" stroke-opacity="0.5"/>
+<text x="72" y="200" font-family="DM Sans,Helvetica Neue,Arial,sans-serif" font-weight="400" font-size="20" letter-spacing="3" fill="rgba(255,255,255,0.4)" text-transform="uppercase">SUBURB PROFILE</text>
+<text x="72" y="340" font-family="Sora,Helvetica Neue,Arial,sans-serif" font-weight="700" font-size="${fontSize}" letter-spacing="-2" fill="#fff">${name}</text>
+<text x="72" y="400" font-family="DM Sans,Helvetica Neue,Arial,sans-serif" font-weight="400" font-size="32" fill="#F2C94C">${region}</text>
+<text x="72" y="560" font-family="DM Sans,Helvetica Neue,Arial,sans-serif" font-weight="400" font-size="20" letter-spacing="0.5" fill="rgba(255,255,255,0.35)">equitysight.app</text>
+</svg>`;
+}
+
 let suburbCount = 0;
 let noindexCount = 0;
 const stateIndexStats = {}; // state → { indexed, noindexed, total }
@@ -2312,6 +2337,9 @@ for (const s of suburbs) {
   const outDir = path.join(ROOT, 'suburb', s.state.toLowerCase(), s.slug);
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, 'index.html'), html);
+  if (!isNoindexed) {
+    fs.writeFileSync(path.join(outDir, 'og.svg'), generateOgSvg(s.suburb, s.state, s.state_name, pc));
+  }
   suburbCount++;
 }
 
