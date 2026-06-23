@@ -1,0 +1,7 @@
+# Service-account key — NEVER commit. The whole point of the secret is that
+# it stays out of version control.
+key.json
+*.json.key
+*-key.json
+credentials.json
+node_modules/

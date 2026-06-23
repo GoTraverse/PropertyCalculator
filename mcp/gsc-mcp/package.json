@@ -1,0 +1,15 @@
+{
+  "name": "equitysight-gsc-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Model Context Protocol server exposing Google Search Console data for equitysight.app to Claude Code / Claude Desktop.",
+  "type": "module",
+  "bin": { "equitysight-gsc-mcp": "server.js" },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "engines": { "node": ">=18" }
+}

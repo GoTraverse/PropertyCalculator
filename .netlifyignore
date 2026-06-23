@@ -25,6 +25,10 @@ reset-admin-pw.js
 # Local dev/audit harness scripts that wrap the Claude tooling
 bin/
 
+# GSC MCP server — local dev tooling only, never served from the CDN.
+# Also keeps any service-account key.json well clear of the public site.
+mcp/
+
 # Secrets / VCS / package manifests — defensive blocks (none should be in repo,
 # but publish = "." means anything present on disk gets uploaded by default)
 .env

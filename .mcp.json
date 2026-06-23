@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "gsc": {
+      "command": "node",
+      "args": ["./mcp/gsc-mcp/server.js"],
+      "description": "Read-only Google Search Console access for equitysight.app. Requires GOOGLE_APPLICATION_CREDENTIALS or GSC_SA_EMAIL+GSC_SA_PRIVATE_KEY env vars (see mcp/gsc-mcp/README.md). Tools: gsc_summary, gsc_top_pages, gsc_top_queries, gsc_country_breakdown, gsc_device_breakdown, gsc_timeseries, gsc_page_detail, gsc_compare, gsc_list_sitemaps."
+    }
+  }
+}
