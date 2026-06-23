@@ -100,6 +100,21 @@ const refParam = (params.get('ref') || '').trim().toUpperCase().slice(0, 16);
 if (refParam) {
   try { localStorage.setItem('equitySight_pendingRef', refParam); } catch (e) {}
 }
+// Surface a friendly notice when admin.js / auth-nav.js bounced the user
+// here after detecting a stale localStorage session (no HttpOnly cookie).
+// Reason codes:
+//   session-expired — token cookie missing or expired; need to sign back in.
+// The notice slot is the existing #form-error element on the active form.
+{
+  const reason = params.get('reason');
+  if (reason === 'session-expired') {
+    const errEl = document.querySelector('.login-form:not([hidden]) .form-error, #form-signin .form-error');
+    if (errEl) {
+      errEl.textContent = 'Your session expired. Please sign in again to continue.';
+      errEl.style.color = '#E8D080';
+    }
+  }
+}
 
 // ──────────────────────────────────────────────────────────────────────
 // 3. Already-logged-in redirect
