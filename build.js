@@ -32,7 +32,25 @@ const CACHE_REPORT = path.join(CACHE_DIR, 'suburb-index-report.json');
 // Netlify sets INCOMING_HOOK_TITLE when a build hook triggers the deploy
 // Admin "Rebuild Suburbs" button names the hook "Suburb rebuild (admin)"
 const hookTitle = process.env.INCOMING_HOOK_TITLE || '';
-const explicitRebuild = process.env.REBUILD_SUBURBS === 'true' || hookTitle.toLowerCase().includes('suburb');
+const FORCE_SENTINEL = path.join(ROOT, '.force-rebuild');
+const sentinelPresent = fs.existsSync(FORCE_SENTINEL);
+const explicitRebuild = process.env.REBUILD_SUBURBS === 'true'
+  || hookTitle.toLowerCase().includes('suburb')
+  || sentinelPresent;
+
+if (sentinelPresent) {
+  // Sentinel-triggered rebuild: log loudly so it's obvious in Netlify
+  // deploy output. Delete the sentinel immediately so the NEXT deploy
+  // doesn't keep rebuilding — this is a one-shot mechanism. The file
+  // is committed empty to the repo whenever we need a guaranteed
+  // refresh; the build erases it so we never accidentally rebuild
+  // the 14,512-page set on every subsequent commit.
+  console.log('═══════════════════════════════════════════════════════════════════');
+  console.log('  [build]  .force-rebuild sentinel detected — full suburb rebuild');
+  console.log('═══════════════════════════════════════════════════════════════════');
+  try { fs.unlinkSync(FORCE_SENTINEL); console.log('[build] Sentinel deleted — next deploy will use cache as normal.'); }
+  catch (e) { console.warn('[build] Could not delete sentinel:', e.message); }
+}
 
 // Files whose changes invalidate the suburb-page cache. When any of these is
 // newer than the cache stamp, we force a rebuild on the next deploy so a
