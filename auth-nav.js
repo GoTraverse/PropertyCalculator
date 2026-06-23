@@ -594,7 +594,25 @@ window.toggleTheme = function(){
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'verify' })
       }).then(function(r){ return r.json(); }).then(function(d){
-        if (!d.ok) return;
+        if (!d.ok) {
+          // Stale-session recovery: when verify reports the cookie is
+          // missing / token expired / account deleted, the localStorage
+          // session shell is misleading (the user appears signed in but
+          // every server call fails). Clear it so the nav reflects
+          // reality and downstream pages don't show "signed in" UI for
+          // a session that no longer exists.
+          var err = String(d.error || '').toLowerCase();
+          if (/token required|invalid or expired|account has been deleted/.test(err)) {
+            try {
+              localStorage.removeItem('propCalc_session_v1');
+              Object.keys(localStorage).forEach(function(k){
+                if (k.indexOf('propCalc_profile_v1_') === 0) localStorage.removeItem(k);
+              });
+            } catch(e) {}
+            if (window.renderSiteNav) window.renderSiteNav();
+          }
+          return;
+        }
         var changed = d.plan !== sess.plan || d.role !== sess.role;
         if (changed) {
           var updated = Object.assign({}, sess, { plan: d.plan, role: d.role });

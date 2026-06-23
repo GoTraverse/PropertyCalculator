@@ -128,6 +128,36 @@ async function init(){
   }
 
   if(!d.ok){
+    // Common stale-session paths:
+    //   • "Token required"           — HttpOnly cookie missing (pre-Phase-6 user,
+    //                                  cleared cookies, or signed in on a different
+    //                                  device). localStorage still holds the old
+    //                                  session shell which makes the auth-nav menu
+    //                                  show the user as signed in.
+    //   • "Invalid or expired session" — cookie present but the matching token
+    //                                  record has been pruned (>30-day TTL) or the
+    //                                  signout endpoint cleared it.
+    //   • "User account has been deleted" — admin removed this account.
+    // In every one of these, the right recovery is to flush the stale
+    // localStorage session and bounce to /login. Without the flush the
+    // header keeps showing the user as signed in and the next page would
+    // just hit the same wall.
+    const recoverable = /token required|invalid or expired|account has been deleted/i.test(d.error || '');
+    if (recoverable) {
+      try {
+        localStorage.removeItem(SESSION_KEY);
+        // Also nuke the optional profile cache so the next sign-in starts clean.
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('propCalc_profile_v1_') || k === 'propCalc_session_v1') {
+            localStorage.removeItem(k);
+          }
+        });
+      } catch(e) { /* localStorage disabled — fall through */ }
+      const next = encodeURIComponent(location.pathname + location.search);
+      showAccessDenied('Your session has expired. Redirecting to sign in…');
+      setTimeout(() => { location.href = '/login?reason=session-expired&next=' + next; }, 1200);
+      return;
+    }
     showAccessDenied(d.error || 'Could not verify your session — please sign in again.');
     return;
   }
