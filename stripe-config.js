@@ -20,6 +20,15 @@
 window.STRIPE_PUBLISHABLE_KEY = 'pk_live_51T5NUPHtPo8iuYxgJGxUfWFWX1AiLCylPcJDG4I5KXf85xXabgzWbemRg2irrpxeVBPd5mnRFWCprTQxPwbWB9KN00bshOyNDQ';
 
 window.STRIPE_PRICES = {
-  pro_monthly: 'price_1T9AdDHtPo8iuYxg6DJzXa8r',
-  pro_annual:  'price_1T9AdDHtPo8iuYxgFajx5SQW',
+  // Post-launch prices (created 24 Jun 2026) — replace the original launch
+  // prices ($2.99/mo, $29.99/yr) once the launch window closed.
+  //   pro_monthly_post_launch  → A$8.99/month  (lookup key: pro_monthly_post_launch)
+  //   pro_yearly_post_launch   → A$89.99/year (lookup key: pro_yearly_post_launch)
+  // Old launch IDs left in comments for reference / rollback:
+  //   pro_monthly (launch): price_1T9AdDHtPo8iuYxg6DJzXa8r  → $2.99/mo
+  //   pro_annual  (launch): price_1T9AdDHtPo8iuYxgFajx5SQW  → $29.99/yr
+  // Existing $2.99 subscribers stay on the launch price (grandfathered) —
+  // Stripe doesn't migrate subscriptions when the lookup ID changes.
+  pro_monthly: 'price_1TlqgFHtPo8iuYxgBwZj1f2u',
+  pro_annual:  'price_1TlqhtHtPo8iuYxg0ankxUYf',
 };
