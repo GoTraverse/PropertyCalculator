@@ -1172,6 +1172,20 @@ exports.handler = async function(event){
   if(action==='adminGetStats'){
     const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    // Short-lived cache — the 30-day historical backfill is the slow path
+    // (N users × M events per user, sequential per day). Repeat loads
+    // (tab switch, second admin viewing) hit the cache and return in
+    // <50 ms instead of 3–5 s. The Refresh Stats button passes
+    // forceRefresh:true to bypass the cache when a fresh snapshot is
+    // actually wanted.
+    const STATS_CACHE_KEY = 'stats:dashboard:cache:v1';
+    const STATS_CACHE_TTL = 5 * 60;
+    if(!body.forceRefresh){
+      try{
+        const cached = await rGet(STATS_CACHE_KEY);
+        if(cached) return ok(Object.assign({}, cached, {cached:true}));
+      }catch(e){ /* fall through to recompute */ }
+    }
     try{
       // Parallelise the five scans — previously sequential, accounting for
       // ~70% of admin dashboard load time. Each scanAll is multiple round-
@@ -1345,7 +1359,9 @@ exports.handler = async function(event){
           dbKeys: eph.dbKeys ?? null,
         });
       }
-      return ok({ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys},history});
+      const resp={ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys},history};
+      try{ await rSet(STATS_CACHE_KEY, resp, STATS_CACHE_TTL); }catch(e){ /* cache write best-effort */ }
+      return ok(resp);
     }catch(e){ return fail('Stats error: '+e.message); }
   }
 

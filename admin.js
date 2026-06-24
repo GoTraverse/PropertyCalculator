@@ -434,17 +434,10 @@ document.addEventListener('DOMContentLoaded', function(){
     const btn = e.target.closest('[data-action]');
     if(btn){
       const action = btn.dataset.action;
-      // Cog toggle — open/close the action menu. Must fire BEFORE the
-      // close-on-document-click handler below, hence stopPropagation. The
-      // CSP-driven onclick removal (April 2026 audit) dropped the inline
-      // `onclick="toggleUserCog(event,this)"` from the cog button and
-      // converted it to data-action="toggle-cog" — but forgot to add the
-      // case here. Result: clicking the cog did nothing, which in turn
-      // meant none of the menu items below could ever be reached.
-      if(action === 'toggle-cog'){
-        toggleUserCog(e, btn);
-        return;
-      }
+      // toggle-cog is handled by the dedicated delegated listener in
+      // admin-events.js. Don't handle it here — it would fire twice and
+      // the menu would open then immediately close itself.
+      if(action === 'toggle-cog') return;
       // Close the cog menu before running the action
       document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
       const email  = btn.dataset.email;
@@ -1170,11 +1163,12 @@ function exportConfigJson(){
 async function refreshStats(){
   const btn = document.getElementById('stats-refresh-btn');
   if(btn){ btn.disabled = true; btn.textContent = '↻ Refreshing…'; }
-  await loadStats();
+  // Force a fresh compute — bypass the 5-min cache on the server.
+  await loadStats(true);
   if(btn){ btn.disabled = false; btn.textContent = '↻ Refresh Stats'; }
 }
 
-async function loadStats(){
+async function loadStats(forceRefresh){
   // Show loading state immediately
   const spinner = '<div class="stat-spinner"></div>';
   const chartLoad = '<div class="stat-chart-loading"></div>';
@@ -1183,7 +1177,7 @@ async function loadStats(){
   statIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=spinner; });
   chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=chartLoad; });
 
-  const d = await callAuth('adminGetStats');
+  const d = await callAuth('adminGetStats', forceRefresh ? {forceRefresh:true} : null);
   if(!d.ok){
     statIds.forEach(id => { const e=document.getElementById(id); if(e) e.textContent='—'; });
     chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=''; });
