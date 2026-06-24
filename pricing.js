@@ -46,7 +46,20 @@ async function startCheckout(){
 (function(){
   try{
     var cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}');
-    var proMonthly = cfg.proMonthlyPrice || 2.99;
+
+    // ── Launch-pricing cutoff ──
+    // The "$2.99 launch price" ran until 1 June 2026. After that the Pro
+    // plan reverts to its full price. The actual Stripe-billed amount is
+    // controlled by the Stripe Price ID in stripe-config.js — update there
+    // (or in the Stripe dashboard) when you bump the price. This code only
+    // affects what the marketing page displays.
+    var LAUNCH_CUTOFF = new Date('2026-06-01T00:00:00+10:00');  // AEST
+    var POST_LAUNCH_PRO_PRICE = cfg.proMonthlyPriceFull || 9;   // full price
+    var launchActive = Date.now() < LAUNCH_CUTOFF.getTime();
+
+    var proMonthly = launchActive
+      ? (cfg.proMonthlyPrice || 2.99)
+      : POST_LAUNCH_PRO_PRICE;
     var proAnnual = cfg.proAnnualPrice || 86;
     var adviserMonthly = cfg.adviserMonthlyPrice || 29;
     var freeScenarioLimit = cfg.freeScenarioLimit || 1;
@@ -56,16 +69,24 @@ async function startCheckout(){
       trackPageEvent('pricing_page_view', {
         'free_scenario_limit': freeScenarioLimit,
         'pro_monthly': proMonthly,
-        'pro_annual': proAnnual
+        'pro_annual': proAnnual,
+        'launch_active': launchActive
       });
     }
 
     var proAmtEl = document.getElementById('pro-amt');
     if(proAmtEl) proAmtEl.textContent = 'A$' + proMonthly.toFixed(2);
     var proOrigEl = document.getElementById('pro-orig');
-    if(proOrigEl) proOrigEl.textContent = 'A$9';
+    if(proOrigEl) proOrigEl.textContent = 'A$' + POST_LAUNCH_PRO_PRICE.toFixed(0);
     var tblProEl = document.getElementById('tbl-pro');
-    if(tblProEl) tblProEl.innerHTML = '<span style="text-decoration:line-through;opacity:0.45;">$9</span> $' + proMonthly.toFixed(2) + '/mo';
+    if(tblProEl) {
+      tblProEl.innerHTML = launchActive
+        ? '<span style="text-decoration:line-through;opacity:0.45;">$' + POST_LAUNCH_PRO_PRICE.toFixed(0) + '</span> $' + proMonthly.toFixed(2) + '/mo'
+        : '$' + proMonthly.toFixed(2) + '/mo';
+    }
+    // Hide the "$2.99 until June 1st 2026" promo strip once the launch window closes
+    var proPromoEl = document.getElementById('pro-promo');
+    if(proPromoEl && !launchActive) proPromoEl.style.display = 'none';
 
     var advAmtEl = document.getElementById('adv-amt');
     if(advAmtEl) advAmtEl.textContent = 'A$' + adviserMonthly.toFixed(2);

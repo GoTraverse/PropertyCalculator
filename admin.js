@@ -433,10 +433,20 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('users-tbody').addEventListener('click', function(e){
     const btn = e.target.closest('[data-action]');
     if(btn){
-      // Close the cog menu
-      document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
-      // Action button clicked — handle action, don't open detail modal
       const action = btn.dataset.action;
+      // Cog toggle — open/close the action menu. Must fire BEFORE the
+      // close-on-document-click handler below, hence stopPropagation. The
+      // CSP-driven onclick removal (April 2026 audit) dropped the inline
+      // `onclick="toggleUserCog(event,this)"` from the cog button and
+      // converted it to data-action="toggle-cog" — but forgot to add the
+      // case here. Result: clicking the cog did nothing, which in turn
+      // meant none of the menu items below could ever be reached.
+      if(action === 'toggle-cog'){
+        toggleUserCog(e, btn);
+        return;
+      }
+      // Close the cog menu before running the action
+      document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
       const email  = btn.dataset.email;
       if(action === 'reset-pw')    openResetPw(email);
       if(action === 'set-plan')    setPlan(email, btn.dataset.plan);
@@ -446,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if(action === 'view-history') openUserHistory(btn.dataset.userid, email);
       return;
     }
-    // Cog button — handled by onclick, stop propagation handled there
+    // Cog button without data-action — defensive (older render paths) — skip row-click
     if(e.target.closest('.user-cog-btn')) return;
     // Row click (not on a button) — open user detail modal
     const tr = e.target.closest('tr[data-email]');
@@ -808,6 +818,21 @@ function showAdminTab(tab, btn){
     btn.scrollIntoView({behavior:'instant', block:'nearest', inline:'center'});
     window.scrollTo({ top: savedY, behavior: 'instant' });
   }, 30);
+  // Auto-fetch on first view of data-heavy tabs. Previously these tabs were
+  // empty until the user clicked the in-tab "Refresh" button — leading to
+  // "scenarios aren't loading" reports. Track per-tab to avoid re-fetching
+  // every tab switch; the Refresh button still works for manual reloads.
+  if (!showAdminTab._loaded) showAdminTab._loaded = {};
+  if (!showAdminTab._loaded[tab]) {
+    showAdminTab._loaded[tab] = true;
+    if (tab === 'scenarios'  && typeof loadAllScenarios === 'function') loadAllScenarios();
+    if (tab === 'errors'     && typeof loadClientErrors === 'function') loadClientErrors();
+    if (tab === 'schemes'    && typeof loadSchemes      === 'function') loadSchemes();
+    if (tab === 'growth'     && typeof loadGrowthData   === 'function') loadGrowthData();
+    if (tab === 'blog'       && typeof loadBlogPosts    === 'function') loadBlogPosts();
+    if (tab === 'moderation' && typeof modLoadReviews   === 'function') modLoadReviews();
+    if (tab === 'suburbs'    && typeof loadSuburbsTab   === 'function') loadSuburbsTab();
+  }
 }
 
 function getV(id, fallback){ const el=document.getElementById(id); return el?(el.type==='checkbox'?el.checked:el.value):fallback; }
