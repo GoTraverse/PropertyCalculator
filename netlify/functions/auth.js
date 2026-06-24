@@ -1173,10 +1173,18 @@ exports.handler = async function(event){
     const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     try{
-      const userKeys=await scanAll('user:*');
-      const tokenKeys=await scanAll('token:*');
-      const scenarioKeys=await scanAll('scenarios:*:index');
-      // Get plan breakdown from user records
+      // Parallelise the five scans — previously sequential, accounting for
+      // ~70% of admin dashboard load time. Each scanAll is multiple round-
+      // trips to Upstash (SCAN cursor loop), so running them concurrently
+      // turns ~5×latency into ~1×latency.
+      const [userKeys,tokenKeys,scenarioKeys,scenarioStateKeys,shareKeys]=await Promise.all([
+        scanAll('user:*'),
+        scanAll('token:*'),
+        scanAll('scenarios:*:index'),
+        scanAll('scenarios:*:state:*'),
+        scanAll('share:*'),
+      ]);
+      // Get plan breakdown from user records — fan-out reads still in parallel
       const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
       const validUsers=users.filter(Boolean);
       const totalUsers=validUsers.length;
@@ -1197,11 +1205,8 @@ exports.handler = async function(event){
       }
       const activeUsers=activeUserIds.size;
       const totalScenarioLists=scenarioKeys?scenarioKeys.length:0;
-      // Total individual scenarios (count state keys)
-      const scenarioStateKeys=await scanAll('scenarios:*:state:*');
       const totalScenarios=scenarioStateKeys?scenarioStateKeys.length:0;
       // Shared scenarios count
-      const shareKeys=await scanAll('share:*');
       let sharedScenarios=0;
       if(shareKeys&&shareKeys.length){
         const shareLists=await Promise.all(shareKeys.map(k=>rGet(k)));
