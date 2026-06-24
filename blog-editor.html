@@ -143,11 +143,14 @@
               <label class="config-label be-label">Cover / hero image (shown at top of post + blog cards)</label>
               <div style="display:flex;gap:8px;align-items:flex-start;">
                 <input type="text" class="config-input" id="blog-edit-cover" placeholder="https://… paste an image URL" style="flex:1;min-width:0;">
+                <button type="button" class="btn-admin-outline" id="be-cover-upload-btn" style="font-size:10px;padding:6px 10px;white-space:nowrap;flex-shrink:0;" title="Upload an image from your computer">📤 Upload</button>
+                <input type="file" id="be-cover-file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" style="display:none;">
                 <div id="be-cover-preview" style="width:72px;height:46px;border-radius:4px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.1);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
                   <img id="be-cover-thumb" style="width:100%;height:100%;object-fit:cover;display:none;" alt="Cover preview">
                   <span id="be-cover-placeholder" style="font-size:18px;opacity:0.3;">🖼</span>
                 </div>
               </div>
+              <div id="be-cover-upload-status" style="font-size:10px;color:var(--slate);margin-top:4px;font-family:var(--font-mono);"></div>
             </div>
             <div class="be-meta-extra-full">
               <label class="config-label be-label">Author bio (shown under the article)</label>
@@ -177,9 +180,14 @@
             </div>
             <!-- Inline image insert panel -->
             <div id="be-insert-image-panel" style="display:none;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:4px;padding:8px 10px;margin-bottom:6px;flex-shrink:0;">
+              <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+                <button type="button" class="btn-admin btn-admin-primary" id="be-img-pick-btn" style="font-size:11px;padding:6px 12px;white-space:nowrap;">📤 Upload from computer</button>
+                <input type="file" id="be-img-file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" style="display:none;">
+                <span id="be-img-upload-status" style="font-size:11px;color:var(--slate);font-family:var(--font-mono);"></span>
+              </div>
               <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:6px;align-items:center;">
                 <div>
-                  <label class="be-label" style="margin-bottom:3px;">Image URL</label>
+                  <label class="be-label" style="margin-bottom:3px;">Image URL (paste, or auto-filled after upload)</label>
                   <input type="text" class="config-input" id="be-img-url" placeholder="https://… paste image URL" style="font-size:12px;">
                 </div>
                 <div>
@@ -191,7 +199,7 @@
                   <button type="button" class="btn-admin-outline" id="be-img-cancel-btn" style="font-size:10px;padding:6px 8px;">✕</button>
                 </div>
               </div>
-              <div style="font-size:10px;color:var(--slate);margin-top:5px;font-family:var(--font-mono);">Inserts <code style="background:rgba(28,28,30,0.07);padding:1px 4px;border-radius:2px;">![alt](url)</code> at the cursor position in the body.</div>
+              <div style="font-size:10px;color:var(--slate);margin-top:5px;font-family:var(--font-mono);">Uploads commit to <code style="background:rgba(28,28,30,0.07);padding:1px 4px;border-radius:2px;">/assets/blog/</code> in the repo (max 3 MB, JPEG/PNG/WebP/GIF/SVG). Inserts <code style="background:rgba(28,28,30,0.07);padding:1px 4px;border-radius:2px;">![alt](url)</code> at the cursor.</div>
             </div>
             <textarea id="blog-edit-body" class="config-input" placeholder="## Introduction&#10;&#10;Write 1,500+ words here using Markdown…"></textarea>
             <div id="blog-edit-preview"></div>

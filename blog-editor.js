@@ -737,6 +737,57 @@ document.addEventListener('DOMContentLoaded', function () {
     thumb.onerror = function () { thumb.style.display = 'none'; placeholder.style.display = ''; };
   });
 
+  // Cover image: upload from computer (mirrors the body image-insert flow)
+  var coverUploadBtn = document.getElementById('be-cover-upload-btn');
+  var coverFileInput = document.getElementById('be-cover-file');
+  if (coverUploadBtn && coverFileInput) {
+    coverUploadBtn.addEventListener('click', function () { coverFileInput.click(); });
+    coverFileInput.addEventListener('change', async function () {
+      var file = coverFileInput.files && coverFileInput.files[0];
+      if (!file) return;
+      var statusEl = document.getElementById('be-cover-upload-status');
+      if (file.size > 3 * 1024 * 1024) {
+        if (statusEl) { statusEl.textContent = 'Too large (max 3 MB)'; statusEl.style.color = '#c62828'; }
+        coverFileInput.value = '';
+        return;
+      }
+      if (statusEl) { statusEl.textContent = 'Uploading…'; statusEl.style.color = ''; }
+      coverUploadBtn.disabled = true;
+      try {
+        var dataBase64 = await new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            var s = String(reader.result || '');
+            var i = s.indexOf('base64,');
+            resolve(i >= 0 ? s.slice(i + 7) : s);
+          };
+          reader.onerror = function () { reject(new Error('read failed')); };
+          reader.readAsDataURL(file);
+        });
+        var res = await callBlog('adminUploadImage', {
+          filename: file.name,
+          contentType: file.type,
+          dataBase64: dataBase64,
+        });
+        if (res && res.ok && res.url) {
+          var coverInput = document.getElementById('blog-edit-cover');
+          if (coverInput) {
+            coverInput.value = res.url;
+            coverInput.dispatchEvent(new Event('input')); // refresh thumbnail
+          }
+          if (statusEl) { statusEl.textContent = '✓ Uploaded — saves on next Save draft / Publish'; statusEl.style.color = '#2e7d32'; }
+        } else {
+          if (statusEl) { statusEl.textContent = (res && res.error) || 'Upload failed'; statusEl.style.color = '#c62828'; }
+        }
+      } catch (e) {
+        if (statusEl) { statusEl.textContent = 'Upload error: ' + e.message; statusEl.style.color = '#c62828'; }
+      } finally {
+        coverUploadBtn.disabled = false;
+        coverFileInput.value = '';
+      }
+    });
+  }
+
   // Inline image insert panel toggle
   var insertImageBtn = document.getElementById('blog-insert-image-btn');
   var insertImagePanel = document.getElementById('be-insert-image-panel');
@@ -781,6 +832,62 @@ document.addEventListener('DOMContentLoaded', function () {
   if (imgCancelBtn) imgCancelBtn.addEventListener('click', function () {
     if (insertImagePanel) insertImagePanel.style.display = 'none';
   });
+
+  // ── Upload from computer ────────────────────────────────────────────
+  // File picker uploads to /assets/blog/ via the blog function's
+  // adminUploadImage action (which commits via the GitHub API). The
+  // returned URL is auto-filled in the URL field — the author still
+  // clicks Insert to drop the markdown at the cursor. NOTE: the image
+  // won't load in Preview until Netlify finishes the auto-deploy
+  // triggered by the GitHub commit (~1–2 min).
+  var imgPickBtn = document.getElementById('be-img-pick-btn');
+  var imgFileInput = document.getElementById('be-img-file');
+  if (imgPickBtn && imgFileInput) {
+    imgPickBtn.addEventListener('click', function () { imgFileInput.click(); });
+    imgFileInput.addEventListener('change', async function () {
+      var file = imgFileInput.files && imgFileInput.files[0];
+      if (!file) return;
+      var statusEl = document.getElementById('be-img-upload-status');
+      var urlInput = document.getElementById('be-img-url');
+      var altInput = document.getElementById('be-img-alt');
+      if (file.size > 3 * 1024 * 1024) {
+        if (statusEl) { statusEl.textContent = 'Too large (max 3 MB)'; statusEl.style.color = '#c62828'; }
+        imgFileInput.value = '';
+        return;
+      }
+      if (statusEl) { statusEl.textContent = 'Uploading…'; statusEl.style.color = ''; }
+      imgPickBtn.disabled = true;
+      try {
+        var dataBase64 = await new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            var s = String(reader.result || '');
+            var i = s.indexOf('base64,');
+            resolve(i >= 0 ? s.slice(i + 7) : s);
+          };
+          reader.onerror = function () { reject(new Error('read failed')); };
+          reader.readAsDataURL(file);
+        });
+        var res = await callBlog('adminUploadImage', {
+          filename: file.name,
+          contentType: file.type,
+          dataBase64: dataBase64,
+        });
+        if (res && res.ok && res.url) {
+          if (urlInput) urlInput.value = res.url;
+          if (altInput && !altInput.value) altInput.value = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+          if (statusEl) { statusEl.textContent = '✓ Uploaded — click Insert'; statusEl.style.color = '#2e7d32'; }
+        } else {
+          if (statusEl) { statusEl.textContent = (res && res.error) || 'Upload failed'; statusEl.style.color = '#c62828'; }
+        }
+      } catch (e) {
+        if (statusEl) { statusEl.textContent = 'Upload error: ' + e.message; statusEl.style.color = '#c62828'; }
+      } finally {
+        imgPickBtn.disabled = false;
+        imgFileInput.value = '';
+      }
+    });
+  }
 
   // Meta desc counter
   var metaEl = document.getElementById('blog-edit-meta-desc');

@@ -475,6 +475,44 @@ exports.handler = async function (event) {
       } catch (e) { return fail('delete failed: ' + e.message, 500); }
     }
 
+    // Upload a blog image to the repo (committed to /assets/blog/)
+    if (action === 'adminUploadImage') {
+      if (!GH_HEADERS) return fail('GITHUB_TOKEN not configured — image upload disabled');
+      const { filename, contentType, dataBase64 } = body;
+      if (!filename || !dataBase64) return fail('filename and dataBase64 required');
+      // Validate MIME — only common web image types
+      const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
+      if (!allowed.includes(String(contentType || '').toLowerCase())) {
+        return fail('Unsupported image type. Use JPEG, PNG, WebP, GIF, or SVG.');
+      }
+      // Size cap — 4 MB after base64 expansion is ~3 MB binary
+      if (dataBase64.length > 4 * 1024 * 1024) return fail('Image too large (max 3 MB)');
+      // Sanitise filename — keep extension, slugify the rest
+      const m = String(filename).match(/^(.+?)(\.[a-zA-Z0-9]+)?$/);
+      const base = makeSlug(m ? m[1] : filename) || 'image';
+      const extFromType = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/svg+xml': '.svg' }[contentType.toLowerCase()] || '';
+      const ext = (m && m[2]) ? m[2].toLowerCase() : extFromType;
+      const ts = Date.now().toString(36);
+      const finalName = base + '-' + ts + ext;
+      const repoPath = 'assets/blog/' + finalName;
+      const putBody = {
+        message: 'Add blog image: ' + finalName,
+        content: dataBase64,
+        branch: GH_BRANCH,
+      };
+      try {
+        const r = await fetch(GH_API + '/repos/' + GH_REPO + '/contents/' + repoPath, {
+          method: 'PUT', headers: GH_HEADERS, body: JSON.stringify(putBody),
+        });
+        if (!r.ok) {
+          const errText = await r.text();
+          return fail('GitHub upload failed: ' + (r.status + ' ' + errText.slice(0, 200)));
+        }
+        // Public URL — same origin (publish="." means repo root is served)
+        return ok({ ok: true, url: '/' + repoPath, filename: finalName });
+      } catch (e) { return fail('Upload error: ' + e.message); }
+    }
+
     // Sync all published posts to GitHub (migration helper)
     if (action === 'adminSyncAllToGitHub') {
       if (!GH_HEADERS) return fail('GITHUB_TOKEN not configured');
