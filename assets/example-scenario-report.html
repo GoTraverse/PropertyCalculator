@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Example Scenario Report — EquitySight.app</title>
+<meta name="description" content="Example of an EquitySight scenario report — what you can export for any property analysis you save.">
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="https://equitysight.app/assets/example-scenario-report.html">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@300..700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+  body{background:#f6f4ef;font-family:'Geist',sans-serif;color:#1C1C1E;font-size:12px;}
+  @page{margin:10mm 12mm;size:A4 portrait;}
+  @media print{body{font-size:11px!important;background:#fff;}@page{size:A4 portrait;margin:10mm 12mm;}}
+  .demo-banner{background:#1C1C1E;color:#C9A84C;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;padding:14px 20px;text-align:center;border-bottom:1px solid rgba(201,168,76,0.3);}
+  .demo-banner a{color:#F5F0E8;text-decoration:none;border-bottom:1px solid rgba(245,240,232,0.4);margin-left:14px;}
+  .demo-banner a:hover{border-color:#C9A84C;color:#C9A84C;}
+  @media print{.demo-banner{display:none;}}
+  .page{max-width:780px;margin:0 auto;padding:20px 24px;}
+  header{background:#1C1C1E;color:#F5F0E8;padding:0;display:flex;margin-bottom:20px;border-radius:4px;overflow:hidden;}
+  .htext{flex:1;padding:20px 24px;}
+  .htag{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:4px;}
+  h1{font-family:'Geist',sans-serif;font-size:26px;font-weight:900;margin-bottom:3px;}
+  .hsub{font-size:11px;color:rgba(245,240,232,0.6);margin-bottom:12px;}
+  .hstamp{font-family:'Geist Mono',monospace;font-size:10px;color:rgba(245,240,232,0.4);}
+  .hphoto{width:200px;flex-shrink:0;background:#2C2C2E;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:48px;}
+  .section-title{font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#888;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;}
+  .section-title::after{content:'';flex:1;height:1px;background:#eee;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .card{background:#FAF7F2;border-radius:4px;padding:14px 16px;border:1px solid #eee;}
+  .card-rel{position:relative;}
+  .card-accent{width:4px;height:100%;position:absolute;top:0;left:0;border-radius:4px 0 0 4px;}
+  .kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:11px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .lbl{color:#666;}
+  .kv .val{font-family:'Geist Mono',monospace;font-weight:500;}
+  .tile{background:#1C1C1E;color:#F5F0E8;border-radius:3px;padding:12px;}
+  .tile-val{font-family:'Geist Mono',monospace;font-size:22px;margin-bottom:2px;}
+  .tile-lbl{font-size:9px;color:rgba(245,240,232,0.55);letter-spacing:1px;text-transform:uppercase;}
+  .big-num{font-family:'Geist Mono',monospace;font-size:28px;font-weight:500;}
+  .meter-wrap{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin:6px 0 4px;}
+  .meter-fill{height:100%;border-radius:4px;}
+  table{width:100%;border-collapse:collapse;font-size:11px;}
+  th{background:#F5F0E8;padding:7px 10px;text-align:left;font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;}
+  th:last-child,td:last-child{text-align:right;}
+  .card,.tile,.section-title,.grid2,.grid3,.grid4,.kv{page-break-inside:avoid;break-inside:avoid;}
+  .section-title{page-break-after:avoid;break-after:avoid;}
+  header{page-break-inside:avoid;break-inside:avoid;page-break-after:avoid;break-after:avoid;}
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  EXAMPLE REPORT · PRO USERS EXPORT THIS FOR ANY SAVED SCENARIO
+  <a href="/login?tab=signup">Create a free account →</a>
+</div>
+
+<div class="page">
+
+  <header>
+    <div class="htext">
+      <div class="htag">Property Finance Calculator</div>
+      <h1>12 Hamilton Street, Holland Park, QLD</h1>
+      <div class="hsub">3-bed Queenslander · 405 m² · Renovator · Owner-occupier</div>
+      <div class="hstamp">Exported 24/06/2026  ·  A4 Portrait</div>
+      <div style="margin-top:10px;font-size:11px;color:rgba(245,240,232,0.55);font-style:italic;max-width:360px;">"Good bones, original kitchen + bathroom. Five-min walk to the train. Need to act before the next reno-flipper does."</div>
+    </div>
+    <div class="hphoto">🏠</div>
+  </header>
+
+  <div class="section-title">01 · Financial Snapshot</div>
+  <div class="grid3">
+    <div class="tile"><div class="tile-val">$785,000</div><div class="tile-lbl">Purchase Price</div></div>
+    <div class="tile"><div class="tile-val">$157,000</div><div class="tile-lbl">Your Deposit</div></div>
+    <div class="tile"><div class="tile-val" style="color:#A8C4B0;">$23,800</div><div class="tile-lbl">Remaining Cash</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card card-rel"><div class="card-accent" style="background:#C9A84C;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;color:#C9A84C;margin-bottom:8px;padding-left:10px;">CASH PICTURE</div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Your Savings</span><span class="val">$205,000</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Total Out-of-Pocket</span><span class="val" style="color:#C4704A;">$181,200</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Remaining Cash</span><span class="val" style="color:#7B9E87;">$23,800</span></div>
+    </div>
+    <div class="card card-rel"><div class="card-accent" style="background:#5B8FAB;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:2px;color:#5B8FAB;margin-bottom:8px;padding-left:10px;">UPFRONT COSTS</div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Deposit (20%)</span><span class="val">$157,000</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Stamp Duty (QLD)</span><span class="val">$19,600</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Transfer + Mortgage Reg</span><span class="val">$2,250</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Building &amp; Pest</span><span class="val">$550</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Conveyancing</span><span class="val">$1,300</span></div>
+      <div class="kv" style="padding-left:10px;"><span class="lbl">Loan Application</span><span class="val">$500</span></div>
+      <div class="kv" style="padding-left:10px;border-top:2px solid #1C1C1E;padding-top:7px;margin-top:5px;"><span class="lbl" style="font-weight:600;">Total Required</span><span class="val" style="font-weight:600;">$181,200</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">02 · Renovation Budget</div>
+  <div class="grid2" style="margin-bottom:12px;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:9px;font-family:'Geist Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">POOL</div>
+      <div class="big-num" style="color:#7B9E87;">$23,800</div>
+      <div style="font-size:10px;color:#888;margin-top:2px;">Available for reno</div>
+      <div style="border-top:1px solid #eee;margin-top:12px;padding-top:12px;">
+        <div style="font-size:9px;font-family:'Geist Mono',monospace;letter-spacing:2px;color:#888;margin-bottom:4px;">UNSPENT</div>
+        <div class="big-num" style="color:#5A9E7B;">$3,300</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">After planned reno</div>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <tr><th>Item</th><th>Cost</th><th style="text-align:left;">Note</th></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">🎨 Paint (interior)</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">$3,800</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;text-align:left;">3 quotes, mid-tier</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">🛁 Bathroom refresh</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">$6,500</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;text-align:left;">Vanity, tap, retile shower</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">🍳 Kitchen tap + benchtop</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">$4,200</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;text-align:left;">Laminate to stone</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">🌿 Landscaping (front)</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">$2,400</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;text-align:left;">Mulch, instant turf, hedge</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">💡 Lighting + fittings</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">$1,800</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;text-align:left;">All LED, handles, taps</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid #eee;">⚠️ Contingency (10%)</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-family:monospace;">$1,800</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:10px;color:#666;text-align:left;">Always set aside</td></tr>
+        <tr><td style="padding:7px 10px;font-weight:700;">Total</td><td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700;">$20,500</td><td></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-title">03 · Loan Repayments</div>
+  <div class="grid2">
+    <div class="card">
+      <div style="display:flex;gap:16px;">
+        <div style="text-align:center;flex:1;"><div class="big-num">$3,929</div><div style="font-size:10px;color:#888;margin-top:2px;">Monthly</div><div style="font-size:9px;color:#aaa;">@ 6.39% p.a.</div></div>
+        <div style="text-align:center;flex:1;"><div class="big-num">$1,813</div><div style="font-size:10px;color:#888;margin-top:2px;">Fortnightly</div><div style="font-size:9px;color:#aaa;">26&times; per year</div></div>
+        <div style="text-align:center;flex:1;"><div class="big-num">$47,148</div><div style="font-size:10px;color:#888;margin-top:2px;">Annual</div><div style="font-size:9px;color:#aaa;">$628k over 30 yr</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kv"><span class="lbl">Total Interest Paid (30 yr)</span><span class="val" style="color:#C45A5A;">$786,440</span></div>
+      <div class="kv"><span class="lbl">Total Amount Paid</span><span class="val">$1,414,440</span></div>
+      <div class="kv"><span class="lbl">Fortnightly Savings</span><span class="val" style="color:#5A9E7B;">$28,420 + 3.4 yr off</span></div>
+      <div class="kv"><span class="lbl">LVR at Settlement</span><span class="val">80.0%</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">04 · Rent Overlap</div>
+  <div class="grid2" style="margin-bottom:0;">
+    <div class="card">
+      <div class="kv"><span class="lbl">Weekly Combined Cost</span><span class="val">$1,466</span></div>
+      <div class="kv"><span class="lbl">Total Overlap Cost (4 wks)</span><span class="val" style="color:#C4704A;">$5,864</span></div>
+      <div class="kv"><span class="lbl">Cash Left After Overlap</span><span class="val" style="color:#5A9E7B;">$17,936</span></div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;justify-content:center;">
+      <div style="font-size:11px;color:#888;font-style:italic;text-align:center;">Reno overlap: 4 weeks paying current rent ($560/wk) plus the new mortgage ($906/wk equivalent).</div>
+    </div>
+  </div>
+
+  <div class="section-title">05 · Risk &amp; Reward</div>
+  <div class="grid2">
+    <div class="card">
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><strong>Risk Level</strong><span style="font-family:monospace;">42%</span></div>
+        <div class="meter-wrap"><div class="meter-fill" style="width:42%;background:linear-gradient(to right,#C9A84C,#C4704A);"></div></div>
+        <div style="font-size:11px;color:#666;margin-top:4px;">Moderate. 80% LVR keeps you out of LMI territory; $24k cash buffer covers ~6 months of repayments.</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;"><strong>Reward Potential</strong><span style="font-family:monospace;">68%</span></div>
+        <div class="meter-wrap"><div class="meter-fill" style="width:68%;background:linear-gradient(to right,#7B9E87,#5A9E7B);"></div></div>
+        <div style="font-size:11px;color:#666;margin-top:4px;">Strong. Holland Park 5-yr growth: 7.8% p.a. Cosmetic reno typically returns $1.50–$2.20 per $1 spent.</div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;align-items:center;justify-content:center;">
+      <div style="font-size:11px;color:#888;font-style:italic;text-align:center;">Risk &amp; reward scores are calculated from loan-to-value ratio, cash buffer, government scheme contribution, and suburb-level growth + yield data.</div>
+    </div>
+  </div>
+
+  <div class="section-title">06 · Purchase Timeline</div>
+  <div class="card" style="padding-left:32px;position:relative;">
+    <div style="position:absolute;left:16px;top:20px;bottom:20px;width:2px;background:linear-gradient(to bottom,#C9A84C,#7B9E87);border-radius:2px;"></div>
+    <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:#C9A84C;border:2px solid white;box-shadow:0 0 0 2px #C9A84C;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#C9A84C;margin-bottom:3px;">Phase 01 · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">Week 1–2</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">Offer Accepted &amp; Contracts Exchanged</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">Sign contracts, pay deposit. QLD 5 business-day cooling-off applies.</div>
+    </div>
+    <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:#C4704A;border:2px solid white;box-shadow:0 0 0 2px #C4704A;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#C4704A;margin-bottom:3px;">Phase 02 · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">Week 1–3</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">Building &amp; Pest Inspection</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">Book a licensed inspector in week 1. Results within 24–48 hours.</div>
+    </div>
+    <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:#5B8FAB;border:2px solid white;box-shadow:0 0 0 2px #5B8FAB;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#5B8FAB;margin-bottom:3px;">Phase 03 · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">Week 2–5</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">Finance &amp; Loan Finalisation</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">Bank formally approves the loan. Valuation typically lands within 5 business days of submission.</div>
+    </div>
+    <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:#7B9E87;border:2px solid white;box-shadow:0 0 0 2px #7B9E87;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#7B9E87;margin-bottom:3px;">Phase 04 · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">Week 4–12</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">Settlement Day 🔑</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">Title transfers to your name. Keys handed over. You are now a homeowner.</div>
+    </div>
+    <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:#E8A882;border:2px solid white;box-shadow:0 0 0 2px #E8A882;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#E8A882;margin-bottom:3px;">Phase 05 · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">Weeks 1–4 post-settlement</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">Reno Overlap Period</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">4 weeks of double housing cost while tradies finish. Modelled above in section 04.</div>
+    </div>
+    <div style="position:relative;padding:10px 0 10px;border-bottom:1px solid #f0ede8;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:#E8A882;border:2px solid white;box-shadow:0 0 0 2px #E8A882;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#E8A882;margin-bottom:3px;">Phase 06 · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">Month 3–5</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">Renovations Complete</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">Tradies finish, final inspections done. Property ready to move in.</div>
+    </div>
+    <div style="position:relative;padding:10px 0 10px;">
+      <div style="position:absolute;left:-24px;top:14px;width:10px;height:10px;border-radius:50%;background:#5A9E7B;border:2px solid white;box-shadow:0 0 0 2px #5A9E7B;"></div>
+      <div style="font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#5A9E7B;margin-bottom:3px;">Phase 07 · <span style="background:rgba(0,0,0,0.06);padding:1px 6px;border-radius:8px;color:#666;">Month 4–6</span></div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px;">Move In &amp; Rent Ends 🎉</div>
+      <div style="font-size:10px;color:#666;line-height:1.5;">You move in and your rent obligation ends.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;padding:18px 22px;background:#1C1C1E;color:rgba(245,240,232,0.65);border-radius:4px;font-size:11px;line-height:1.7;">
+    <div style="font-family:'Geist Mono',monospace;color:#C9A84C;font-size:9px;letter-spacing:2px;margin-bottom:6px;">DISCLAIMER</div>
+    Figures shown are educational estimates only and not financial advice. Always confirm with your lender, conveyancer and accountant before committing. Stamp duty, LMI, and concession amounts vary by state — EquitySight uses the current FY 2025–26 schedules. Past suburb growth does not guarantee future performance.
+  </div>
+
+</div>
+
+</body>
+</html>
