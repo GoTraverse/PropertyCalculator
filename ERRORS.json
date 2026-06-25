@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-06-08T22:24:08.131Z",
-  "count": 1,
+  "syncedAt": "2026-06-25T02:51:35.143Z",
+  "count": 2,
   "errors": [
+    {
+      "at": 1782355894130,
+      "message": "Cannot read properties of undefined (reading 'x')",
+      "source": "promise",
+      "line": null,
+      "col": null,
+      "stack": "TypeError: Cannot read properties of undefined (reading 'x')\n    at renderSparkline (https://equitysight.app/admin.js?v=6:237:29)\n    at loadStats (https://equitysight.app/admin.js?v=6:1156:3)",
+      "url": "https://equitysight.app/admin",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+      "userId": "mmnfvx6acd5ec504",
+      "userName": "Jacoby Yarrow",
+      "userEmail": "jacoby@gotraverse.com.au",
+      "severity": "error"
+    },
     {
       "at": 1780957447080,
       "message": "Script error.",
