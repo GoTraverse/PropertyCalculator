@@ -501,7 +501,24 @@ exports.handler = async function (event) {
 
   // ── createCheckout: start Stripe Checkout for plan upgrade ───────────────
   if (body.action === 'createCheckout') {
-    const { priceId } = body;
+    let { priceId, plan } = body;
+
+    // Post-launch Stripe Price IDs — server-side source of truth so stale
+    // client caches of stripe-config.js (still pointing at the launch
+    // $2.99 / $29.99 IDs) get upgraded before we hand off to Stripe.
+    // Old launch IDs: price_1T9AdDHtPo8iuYxg6DJzXa8r ($2.99/mo),
+    //                 price_1T9AdDHtPo8iuYxgFajx5SQW ($29.99/yr).
+    const LAUNCH_PRO_MONTHLY = 'price_1T9AdDHtPo8iuYxg6DJzXa8r';
+    const LAUNCH_PRO_ANNUAL  = 'price_1T9AdDHtPo8iuYxgFajx5SQW';
+    const POST_PRO_MONTHLY   = 'price_1TlqgFHtPo8iuYxgBwZj1f2u';
+    const POST_PRO_ANNUAL    = 'price_1TlqhtHtPo8iuYxg0ankxUYf';
+    if (priceId === LAUNCH_PRO_MONTHLY) priceId = POST_PRO_MONTHLY;
+    if (priceId === LAUNCH_PRO_ANNUAL)  priceId = POST_PRO_ANNUAL;
+    // If no priceId at all, infer from plan field (legacy clients)
+    if (!priceId) {
+      if (plan === 'pro_annual') priceId = POST_PRO_ANNUAL;
+      else if (plan === 'pro' || plan === 'pro_monthly') priceId = POST_PRO_MONTHLY;
+    }
     if (!priceId) return fail('priceId required');
 
     // Fetch site config for URLs and to derive plan from priceId server-side
@@ -516,6 +533,9 @@ exports.handler = async function (event) {
       if (cfg.stripeProAnnual)  priceMap[cfg.stripeProAnnual]  = 'pro';
       if (cfg.stripeAdviserMonthly) priceMap[cfg.stripeAdviserMonthly] = 'adviser';
       if (cfg.stripeAdviserAnnual)  priceMap[cfg.stripeAdviserAnnual]  = 'adviser';
+      // Known post-launch IDs always map to pro
+      priceMap[POST_PRO_MONTHLY] = 'pro';
+      priceMap[POST_PRO_ANNUAL]  = 'pro';
       resolvedPlan = priceMap[priceId] || null;
     } catch (e) {}
 
