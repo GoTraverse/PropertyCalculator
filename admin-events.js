@@ -352,14 +352,9 @@ if(emailPreviewOverlay) emailPreviewOverlay.addEventListener('click', function(e
   }
 })();
 
-// ── Users table cog button delegation (#users-tbody) ─────────────────────────
-var usersTbody = document.getElementById('users-tbody');
-if(usersTbody){
-  usersTbody.addEventListener('click', function(e){
-    var btn = e.target.closest('[data-action="toggle-cog"]');
-    if(btn) toggleUserCog(e, btn);
-  });
-}
+// Cog button delegation lives in admin.js's #users-tbody handler — keeping
+// it there means we don't depend on this file's freshness (admin.js has a
+// cache-bust query, this one used not to).
 
 // ── All-scenarios view delegation (#scenarios-list-wrap) ─────────────────────
 var scenariosListWrap = document.getElementById('scenarios-list-wrap');
