@@ -42,37 +42,21 @@ async function startCheckout(){
   }
 }
 
-// Load pricing from config. The $2.99 launch promo ended on 1 June 2026.
-// Pro is $8.99/mo; the live Stripe price IDs in stripe-config.js point at
-// the post-launch products. Existing $2.99 subscribers stay grandfathered
-// on their original Stripe price — Stripe doesn't migrate active
-// subscriptions when the lookup ID changes.
+// Pro / Adviser prices are hardcoded in pricing.html — do NOT overwrite
+// them from localStorage. Older admin sessions still carry
+// proMonthlyPrice=2.99 from the launch promo in their cached config and
+// would clobber the post-launch $8.99 on every page load.
+// Free scenario limit and tracking event remain config-driven.
 (function(){
   try{
     var cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}');
-
-    var proMonthly        = cfg.proMonthlyPrice     || 8.99;
-    var proAnnual         = cfg.proAnnualPrice      || 89.99;
-    var adviserMonthly    = cfg.adviserMonthlyPrice || 29;
-    var freeScenarioLimit = cfg.freeScenarioLimit   || 1;
+    var freeScenarioLimit = cfg.freeScenarioLimit || 1;
 
     if(window.trackPageEvent) {
       trackPageEvent('pricing_page_view', {
         'free_scenario_limit': freeScenarioLimit,
-        'pro_monthly': proMonthly,
-        'pro_annual': proAnnual,
       });
     }
-
-    var proAmtEl = document.getElementById('pro-amt');
-    if(proAmtEl) proAmtEl.textContent = 'A$' + proMonthly.toFixed(2);
-    var tblProEl = document.getElementById('tbl-pro');
-    if(tblProEl) tblProEl.textContent = '$' + proMonthly.toFixed(2) + '/mo';
-
-    var advAmtEl = document.getElementById('adv-amt');
-    if(advAmtEl) advAmtEl.textContent = 'A$' + adviserMonthly.toFixed(2);
-    var tblAdvEl = document.getElementById('tbl-adv');
-    if(tblAdvEl) tblAdvEl.textContent = 'A$' + adviserMonthly.toFixed(2) + '/mo';
 
     var freeLimitText = freeScenarioLimit + ' saved scenario' + (freeScenarioLimit > 1 ? 's' : '');
     var freeLimitEl = document.getElementById('free-saved-limit');

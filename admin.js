@@ -434,10 +434,10 @@ document.addEventListener('DOMContentLoaded', function(){
     const btn = e.target.closest('[data-action]');
     if(btn){
       const action = btn.dataset.action;
-      // toggle-cog is handled by the dedicated delegated listener in
-      // admin-events.js. Don't handle it here — it would fire twice and
-      // the menu would open then immediately close itself.
-      if(action === 'toggle-cog') return;
+      if(action === 'toggle-cog'){
+        toggleUserCog(e, btn);
+        return;
+      }
       // Close the cog menu before running the action
       document.querySelectorAll('.user-cog-menu.open').forEach(m => m.classList.remove('open'));
       const email  = btn.dataset.email;
@@ -1169,52 +1169,64 @@ async function refreshStats(){
 }
 
 async function loadStats(forceRefresh){
-  // Show loading state immediately
-  const spinner = '<div class="stat-spinner"></div>';
-  const chartLoad = '<div class="stat-chart-loading"></div>';
+  const el = id => document.getElementById(id);
   const statIds = ['stat-total','stat-free','stat-pro','stat-adviser','stat-revenue','stat-avg-scenarios','stat-total-scenarios','stat-shared','stat-errors','stat-db-keys'];
   const chartIds = ['stat-chart-total','stat-chart-free','stat-chart-pro','stat-chart-adviser','stat-chart-revenue','stat-chart-avg','stat-chart-total-scenarios','stat-chart-shared','stat-chart-errors','stat-chart-db-keys'];
-  statIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=spinner; });
-  chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=chartLoad; });
 
-  const el = id => document.getElementById(id);
+  // First load: show skeletons (no existing data). Refresh: keep the
+  // existing tile values + sparklines visible so the dashboard never goes
+  // momentarily blank — they're replaced once the new data arrives.
+  const hasExistingData = el('stat-total') && el('stat-total').textContent && el('stat-total').textContent !== '—' && !el('stat-total').querySelector('.stat-spinner');
+  if(!hasExistingData){
+    const spinner = '<div class="stat-spinner"></div>';
+    const chartLoad = '<div class="stat-chart-loading"></div>';
+    statIds.forEach(id => { const e=el(id); if(e) e.innerHTML=spinner; });
+    chartIds.forEach(id => { const e=el(id); if(e) e.innerHTML=chartLoad; });
+  }
+
   const payload = forceRefresh ? {forceRefresh:true} : null;
 
   // Fire snapshot + history in parallel. Snapshot is fast (~few hundred
   // ms even cold); history replays per-user events for 30 days and can
   // take 2–4 s on a cold cache. Tile values paint as soon as snapshot
   // returns — the user no longer waits on the history compute to see
-  // their dashboard.
-  const statsPromise   = callAuth('adminGetStats',        payload);
-  const historyPromise = callAuth('adminGetStatsHistory', payload);
+  // their dashboard. Each promise wrapped so one failing doesn't strand
+  // the other half of the UI.
+  const wrap = p => p.then(r => ({ok:true,r})).catch(e => ({ok:false,e}));
+  const statsPromise   = wrap(callAuth('adminGetStats',        payload));
+  const historyPromise = wrap(callAuth('adminGetStatsHistory', payload));
 
   // Stat tiles first
-  const d = await statsPromise;
-  if(!d.ok){
+  const sw = await statsPromise;
+  if(!sw.ok || !sw.r || !sw.r.ok){
     statIds.forEach(id => { const e=el(id); if(e) e.textContent='—'; });
-    chartIds.forEach(id => { const e=el(id); if(e) e.innerHTML=''; });
-    return;
+  } else {
+    const s = sw.r.stats || {};
+    if(el('stat-total'))         el('stat-total').textContent         = s.totalUsers         ?? '—';
+    if(el('stat-free'))          el('stat-free').textContent          = s.freeUsers          ?? '—';
+    if(el('stat-pro'))           el('stat-pro').textContent           = s.proUsers           ?? '—';
+    if(el('stat-adviser'))       el('stat-adviser').textContent       = s.adviserUsers       ?? '—';
+    if(el('stat-revenue'))       el('stat-revenue').textContent       = s.revenueEstimate !== undefined ? '$' + s.revenueEstimate : '—';
+    if(el('stat-avg-scenarios')) el('stat-avg-scenarios').textContent = s.avgScenariosPerUser ?? '—';
+    if(el('stat-total-scenarios'))el('stat-total-scenarios').textContent= s.totalScenarios    ?? '—';
+    if(el('stat-shared'))         el('stat-shared').textContent         = s.sharedScenarios   ?? '—';
+    if(el('stat-errors'))         el('stat-errors').textContent         = s.clientErrors      ?? '—';
+    if(el('stat-db-keys'))        el('stat-db-keys').textContent        = s.dbKeys            ?? '—';
   }
-  const s = d.stats || {};
-  if(el('stat-total'))         el('stat-total').textContent         = s.totalUsers         ?? '—';
-  if(el('stat-free'))          el('stat-free').textContent          = s.freeUsers          ?? '—';
-  if(el('stat-pro'))           el('stat-pro').textContent           = s.proUsers           ?? '—';
-  if(el('stat-adviser'))       el('stat-adviser').textContent       = s.adviserUsers       ?? '—';
-  if(el('stat-revenue'))       el('stat-revenue').textContent       = s.revenueEstimate !== undefined ? '$' + s.revenueEstimate : '—';
-  if(el('stat-avg-scenarios')) el('stat-avg-scenarios').textContent = s.avgScenariosPerUser ?? '—';
-  if(el('stat-total-scenarios'))el('stat-total-scenarios').textContent= s.totalScenarios    ?? '—';
-  if(el('stat-shared'))         el('stat-shared').textContent         = s.sharedScenarios   ?? '—';
-  if(el('stat-errors'))         el('stat-errors').textContent         = s.clientErrors      ?? '—';
-  if(el('stat-db-keys'))        el('stat-db-keys').textContent        = s.dbKeys            ?? '—';
 
-  // Charts as history arrives
-  const h = await historyPromise;
-  const history = (h && h.ok && h.history) ? h.history : [];
-  _statPopupAllHistory = history;
-  if(!history.length){
-    chartIds.forEach(id => { const e=el(id); if(e) e.innerHTML=''; });
+  // Charts as history arrives — never leave skeletons hanging
+  const hw = await historyPromise;
+  if(!hw.ok || !hw.r || !hw.r.ok || !Array.isArray(hw.r.history) || !hw.r.history.length){
+    // On refresh, keep the old sparklines instead of blanking them. On
+    // first load there were never any, so clearing the skeleton to "—"
+    // is appropriate.
+    if(!hasExistingData){
+      chartIds.forEach(id => { const e=el(id); if(e) e.innerHTML='<div style="font-family:var(--font-mono);font-size:9px;color:var(--slate);opacity:0.5;text-align:center;padding:8px;">—</div>'; });
+    }
     return;
   }
+  const history = hw.r.history;
+  _statPopupAllHistory = history;
   const mk = (key) => history.map(h => ({ date: h.date, value: h[key] }));
   renderSparkline('stat-chart-total',     mk('totalUsers'),         'rgba(74,74,82,0.9)',        'rgba(74,74,82,0.5)');
   renderSparkline('stat-chart-free',      mk('freeUsers'),          'rgba(100,100,110,0.8)',     'rgba(100,100,110,0.4)');
