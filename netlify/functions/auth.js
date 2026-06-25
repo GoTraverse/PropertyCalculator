@@ -1254,115 +1254,106 @@ exports.handler = async function(event){
       const snapshot={date:today,totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys};
       await rSet('stats:snapshot:'+today,snapshot,60*60*24*95);
 
-      // ── Historical backfill from per-user events ─────────────────────
-      // The dashboard charts were showing $0 revenue for every day before
-      // the snapshot system began running, then a sudden jump on the first
-      // snapshot date — even though paid users had been signed up for
-      // weeks. Root cause: snapshots are point-in-time captures stored
-      // when the admin opens the stats endpoint; days where no admin
-      // visited had no snapshot, and the frontend padded those with 0.
-      //
-      // Fix: when assembling the history range, replay each user's
-      // `events:<userId>` log (signup + plan_upgraded + plan_downgraded)
-      // to determine their plan state on each historical date, and
-      // compute totals/revenue from that. This produces accurate counts
-      // for any historical date whether or not a snapshot exists.
-      //
-      // Existing same-day snapshots still take precedence — they capture
-      // ephemeral fields (activeSessions, dbKeys, scenario counts) that
-      // can't be reconstructed from event logs.
-      const HIST_DAYS = 30;
-      const eventLists = await Promise.all(
-        validUsers.map(u => u && u.id ? rListRange('events:'+u.id, 0, -1) : Promise.resolve([]))
-      );
-      // Pre-parse events per user for the backfill loop
-      const userEvents = validUsers.map((u, i) => {
-        const events = (eventLists[i] || []).map(s => {
-          try { return typeof s === 'string' ? JSON.parse(s) : s; }
-          catch (e) { return null; }
-        }).filter(Boolean).sort((a, b) => (a.at || 0) - (b.at || 0));
-        return { user: u, events };
-      });
+      // Snapshot only — the 30-day historical backfill (N users × M events
+      // per user, per day) now lives in adminGetStatsHistory so the
+      // dashboard tiles paint immediately. Charts populate in a second
+      // parallel call.
+      const resp={ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys}};
+      try{ await rSet(STATS_CACHE_KEY, resp, STATS_CACHE_TTL); }catch(e){ /* cache write best-effort */ }
+      return ok(resp);
+    }catch(e){ return fail('Stats error: '+e.message); }
+  }
 
-      // Compute plan state for a user as of `cutoffMs`. Returns 'free' if
-      // the user had not yet signed up; otherwise the most recent plan
-      // assignment from their event log (or u.plan if no events exist
-      // before cutoff but the user record predates the events:* logging
-      // — older accounts).
-      function planAt(u, events, cutoffMs) {
-        const signupAt = u.createdAt || 0;
-        if (signupAt > cutoffMs) return null; // not signed up yet
-        let plan = 'free';
-        let sawAnyEvent = false;
-        for (const e of events) {
-          if (!e || (e.at || 0) > cutoffMs) break;
-          sawAnyEvent = true;
-          if (e.type === 'plan_upgraded') plan = e.plan || 'pro';
-          else if (e.type === 'plan_downgraded') plan = e.plan || 'free';
-          else if (e.type === 'signup' && e.plan) plan = e.plan;
+  if(action==='adminGetStatsHistory'){
+    const user=await verifyToken(event);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    // 30-day history derived by replaying per-user event logs. Heavy: N
+    // user reads + N event-list reads + 30-day inner loop. Cached for
+    // 10 minutes (longer than stats since the history changes much more
+    // slowly than the current snapshot does — past days don't move).
+    const HIST_CACHE_KEY='stats:history:cache:v1';
+    const HIST_CACHE_TTL=10*60;
+    if(!body.forceRefresh){
+      try{
+        const cached=await rGet(HIST_CACHE_KEY);
+        if(cached) return ok(Object.assign({},cached,{cached:true}));
+      }catch(e){}
+    }
+    try{
+      const userKeys=await scanAll('user:*');
+      const users=await Promise.all((userKeys||[]).map(k=>rGet(k)));
+      const validUsers=users.filter(Boolean);
+      const siteCfgStats=await rGet('config:site')||{};
+      const proPrice=parseFloat(siteCfgStats.proMonthlyPrice)||8.99;
+      const adviserPrice=parseFloat(siteCfgStats.adviserMonthlyPrice)||29;
+      const stripeFee=(p)=>p*0.0175+0.30;
+      const proNet=Math.max(0,proPrice-stripeFee(proPrice));
+      const adviserNet=Math.max(0,adviserPrice-stripeFee(adviserPrice));
+      const HIST_DAYS=30;
+      const eventLists=await Promise.all(
+        validUsers.map(u=>u&&u.id?rListRange('events:'+u.id,0,-1):Promise.resolve([]))
+      );
+      const userEvents=validUsers.map((u,i)=>{
+        const events=(eventLists[i]||[]).map(s=>{
+          try{return typeof s==='string'?JSON.parse(s):s;}catch(e){return null;}
+        }).filter(Boolean).sort((a,b)=>(a.at||0)-(b.at||0));
+        return {user:u,events};
+      });
+      function planAt(u,events,cutoffMs){
+        const signupAt=u.createdAt||0;
+        if(signupAt>cutoffMs) return null;
+        let plan='free';
+        let sawAnyEvent=false;
+        for(const e of events){
+          if(!e||(e.at||0)>cutoffMs) break;
+          sawAnyEvent=true;
+          if(e.type==='plan_upgraded') plan=e.plan||'pro';
+          else if(e.type==='plan_downgraded') plan=e.plan||'free';
+          else if(e.type==='signup'&&e.plan) plan=e.plan;
         }
-        // Fallback for accounts created before event logging existed: if
-        // the user is currently on a paid plan but has no upgrade event
-        // in their log, assume they were on that plan since signup. This
-        // is conservative — better than reporting them as free for the
-        // whole history.
-        if (!sawAnyEvent && (u.plan === 'pro' || u.plan === 'adviser')) {
-          plan = u.plan;
-        }
+        if(!sawAnyEvent&&(u.plan==='pro'||u.plan==='adviser')) plan=u.plan;
         return plan;
       }
-
-      const history=[];
+      // Pre-fetch all snapshots in one batch instead of 30 serial GETs
+      const dateStrs=[];
+      const cutoffsMs=[];
       for(let i=HIST_DAYS-1;i>=0;i--){
         const d=new Date();d.setDate(d.getDate()-i);
-        const dateStr=d.toISOString().slice(0,10);
-        // End of that day in UTC — events at any time during the day count
-        const cutoffMs=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),23,59,59,999);
-        const existing=await rGet('stats:snapshot:'+dateStr);
-
-        // Replay events to derive plan-state-of-record for that day
+        dateStrs.push(d.toISOString().slice(0,10));
+        cutoffsMs.push(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),23,59,59,999));
+      }
+      const snapshots=await Promise.all(dateStrs.map(ds=>rGet('stats:snapshot:'+ds)));
+      const history=dateStrs.map((dateStr,idx)=>{
+        const cutoffMs=cutoffsMs[idx];
         let bfTotal=0,bfFree=0,bfPro=0,bfAdv=0;
         for(const {user,events} of userEvents){
           const plan=planAt(user,events,cutoffMs);
-          if(plan===null) continue; // not signed up yet
+          if(plan===null) continue;
           bfTotal++;
           if(plan==='pro') bfPro++;
           else if(plan==='adviser') bfAdv++;
           else bfFree++;
         }
         const bfRevenue=Math.round((bfPro*proNet+bfAdv*adviserNet)*100)/100;
-
-        // Merge: keep snapshot's ephemeral fields (sessions, dbKeys, etc.)
-        // but always use the event-derived counts for total/free/pro/
-        // adviser/revenue. This corrects historical snapshots that captured
-        // wrong values too (e.g. before referral upgrade events were
-        // logged) and fills the gap for dates with no snapshot at all.
-        const eph=existing||{};
-        history.push({
-          date: dateStr,
-          totalUsers: bfTotal,
-          freeUsers: bfFree,
-          proUsers: bfPro,
-          adviserUsers: bfAdv,
-          revenueEstimate: bfRevenue,
-          // Ephemeral fields — these are captured per-day by the snapshot
-          // job and can't be reconstructed retroactively; null is the
-          // honest answer when no snapshot exists for a historical date.
-          activeSessions: eph.activeSessions ?? null,
-          totalScenarioLists: eph.totalScenarioLists ?? null,
-          newUsersLast7: eph.newUsersLast7 ?? null,
-          avgScenariosPerUser: eph.avgScenariosPerUser ?? null,
-          activeUsers: eph.activeUsers ?? null,
-          totalScenarios: eph.totalScenarios ?? null,
-          sharedScenarios: eph.sharedScenarios ?? null,
-          clientErrors: eph.clientErrors ?? null,
-          dbKeys: eph.dbKeys ?? null,
-        });
-      }
-      const resp={ok:true,stats:{totalUsers,freeUsers,proUsers,adviserUsers,activeSessions,totalScenarioLists,newUsersLast7,revenueEstimate,avgScenariosPerUser,activeUsers,totalScenarios,sharedScenarios,clientErrors,dbKeys},history};
-      try{ await rSet(STATS_CACHE_KEY, resp, STATS_CACHE_TTL); }catch(e){ /* cache write best-effort */ }
+        const eph=snapshots[idx]||{};
+        return {
+          date:dateStr,
+          totalUsers:bfTotal,freeUsers:bfFree,proUsers:bfPro,adviserUsers:bfAdv,revenueEstimate:bfRevenue,
+          activeSessions:eph.activeSessions??null,
+          totalScenarioLists:eph.totalScenarioLists??null,
+          newUsersLast7:eph.newUsersLast7??null,
+          avgScenariosPerUser:eph.avgScenariosPerUser??null,
+          activeUsers:eph.activeUsers??null,
+          totalScenarios:eph.totalScenarios??null,
+          sharedScenarios:eph.sharedScenarios??null,
+          clientErrors:eph.clientErrors??null,
+          dbKeys:eph.dbKeys??null,
+        };
+      });
+      const resp={ok:true,history};
+      try{ await rSet(HIST_CACHE_KEY,resp,HIST_CACHE_TTL); }catch(e){}
       return ok(resp);
-    }catch(e){ return fail('Stats error: '+e.message); }
+    }catch(e){ return fail('History error: '+e.message); }
   }
 
   if(action==='adminPurgeExpiredSessions'){

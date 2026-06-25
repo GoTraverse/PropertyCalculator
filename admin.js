@@ -1177,18 +1177,25 @@ async function loadStats(forceRefresh){
   statIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=spinner; });
   chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=chartLoad; });
 
-  const d = await callAuth('adminGetStats', forceRefresh ? {forceRefresh:true} : null);
+  const el = id => document.getElementById(id);
+  const payload = forceRefresh ? {forceRefresh:true} : null;
+
+  // Fire snapshot + history in parallel. Snapshot is fast (~few hundred
+  // ms even cold); history replays per-user events for 30 days and can
+  // take 2–4 s on a cold cache. Tile values paint as soon as snapshot
+  // returns — the user no longer waits on the history compute to see
+  // their dashboard.
+  const statsPromise   = callAuth('adminGetStats',        payload);
+  const historyPromise = callAuth('adminGetStatsHistory', payload);
+
+  // Stat tiles first
+  const d = await statsPromise;
   if(!d.ok){
-    statIds.forEach(id => { const e=document.getElementById(id); if(e) e.textContent='—'; });
-    chartIds.forEach(id => { const e=document.getElementById(id); if(e) e.innerHTML=''; });
+    statIds.forEach(id => { const e=el(id); if(e) e.textContent='—'; });
+    chartIds.forEach(id => { const e=el(id); if(e) e.innerHTML=''; });
     return;
   }
   const s = d.stats || {};
-  const history = d.history || [];
-  _statPopupAllHistory = history; // store for popup use
-  const el = id => document.getElementById(id);
-
-  // Update all stat card values from authoritative backend data
   if(el('stat-total'))         el('stat-total').textContent         = s.totalUsers         ?? '—';
   if(el('stat-free'))          el('stat-free').textContent          = s.freeUsers          ?? '—';
   if(el('stat-pro'))           el('stat-pro').textContent           = s.proUsers           ?? '—';
@@ -1200,7 +1207,14 @@ async function loadStats(forceRefresh){
   if(el('stat-errors'))         el('stat-errors').textContent         = s.clientErrors      ?? '—';
   if(el('stat-db-keys'))        el('stat-db-keys').textContent        = s.dbKeys            ?? '—';
 
-  // Render 7-day sparklines for every stat card
+  // Charts as history arrives
+  const h = await historyPromise;
+  const history = (h && h.ok && h.history) ? h.history : [];
+  _statPopupAllHistory = history;
+  if(!history.length){
+    chartIds.forEach(id => { const e=el(id); if(e) e.innerHTML=''; });
+    return;
+  }
   const mk = (key) => history.map(h => ({ date: h.date, value: h[key] }));
   renderSparkline('stat-chart-total',     mk('totalUsers'),         'rgba(74,74,82,0.9)',        'rgba(74,74,82,0.5)');
   renderSparkline('stat-chart-free',      mk('freeUsers'),          'rgba(100,100,110,0.8)',     'rgba(100,100,110,0.4)');

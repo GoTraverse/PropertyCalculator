@@ -215,7 +215,11 @@
       <div class="admin-card-head">
         <h3>All Accounts</h3>
         <div class="filter-bar">
-          <input class="filter-input" id="user-search" name="admin_user_search_q" type="search" placeholder="Search email or name…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true">
+          <!-- Honeypot decoy — Chrome and most password managers prefer to fill
+               the first email/password-shaped input on the page; this hidden
+               one soaks up the autofill so the real search field stays blank. -->
+          <input type="email" name="email" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;" autocomplete="username">
+          <input class="filter-input" id="user-search" name="q_zz_no_autofill_8273" type="search" placeholder="Search email or name…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true">
           <select class="filter-select" id="plan-filter">
             <option value="">All plans</option>
             <option value="free">Free</option>
