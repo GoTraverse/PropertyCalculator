@@ -87,7 +87,23 @@ if(modRefreshBtn) modRefreshBtn.addEventListener('click', modLoadReviews);
 
 // ── User list filters ─────────────────────────────────────────────────────────
 var userSearch = document.getElementById('user-search');
-if(userSearch) userSearch.addEventListener('input', filterUsers);
+if(userSearch){
+  userSearch.addEventListener('input', filterUsers);
+  // Chrome ignores autocomplete="off" on visible inputs and aggressively
+  // restores the email from saved-login state. The honeypot decoy in
+  // admin.html absorbs most of it; the timers below catch what slips
+  // through (Chrome fills async, sometimes after multiple frames) so the
+  // user list isn't pre-filtered down to one row on page load.
+  var clearSearch = function(){
+    if(userSearch.value && !userSearch.matches(':focus')){
+      userSearch.value = '';
+      filterUsers();
+    }
+  };
+  setTimeout(clearSearch, 50);
+  setTimeout(clearSearch, 300);
+  setTimeout(clearSearch, 1000);
+}
 ['plan-filter','login-filter','sort-filter'].forEach(function(id){
   var el = document.getElementById(id);
   if(el) el.addEventListener('change', filterUsers);
