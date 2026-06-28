@@ -178,6 +178,19 @@ window.trackPageEvent = function(eventName, eventData) {
   gtag('event', eventName, eventData || {});
 };
 
+// ── Guest funnel tracking ──────────────────────────────────────────────────
+// Fires GA4 events for NOT-logged-in visitors. Unlike app.js trackUsage() (which
+// is server-side and early-returns when there's no logged-in session id), this
+// uses client-side gtag with no session gate, so guest-funnel events actually
+// land in GA4. No-ops safely if gtag was blocked so analytics never breaks the app.
+window.trackGuest = function(event, params) {
+  try {
+    if (typeof window.gtag !== 'function') return;
+    var payload = Object.assign({ guest: true, event_category: 'guest' }, params || {});
+    window.gtag('event', event, payload);
+  } catch (e) {}
+};
+
 // ── Scroll Depth Tracking ────────────────────────────────────────────────
 (function() {
   var scrollDepths = {25: false, 50: false, 75: false, 100: false};

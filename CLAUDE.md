@@ -230,6 +230,37 @@ Files intentionally NOT blocked (needed at runtime):
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
 
+## Recent Changes (Jun 2026 — Guest mode on /app, PR A)
+
+Removes the `/app` login wall (the #1 signup leak per `APP_AUDIT.md`) so logged-out
+visitors use the full calculator as **guests**, with signup prompts at the value moment.
+PR A = guest core; **PR B (scenario templates, HANDOFF.md item 6) is still TODO**.
+
+- **Login wall removed** — `app-init.js` no longer redirects logged-out visitors to
+  `/login`. It now only *clears* a genuinely corrupt / identity-less session blob and
+  falls through to guest mode. `/account` + admin keep their own guards; server still
+  enforces cookie auth on protected actions.
+- **Guest gate helper** — new `requireAccount(actionLabel)` in `app.js` (mirrors
+  `requirePro`), reuses the existing `appConfirm()` modal. Wired into `saveScenario()`
+  (the activation moment, after the address check) and both Export entry points
+  (`app-events.js` header button + the `_libExportAfterLoad` library path). Logged-in
+  free users still get `requirePro` (Export stays Pro-gated); guests get "Create a free
+  account" first. `window.isLoggedIn` / `window.requireAccount` now exported.
+- **Guest→account migration** — on accept, `_goToSignup()` flushes the scenario to the
+  draft, sets `propCalc_pendingSave`, and sends them to `/login?tab=signup&next=/app`.
+  `login.js postVerificationRedirect` honours `next=/app` when `pendingSave` is set (so
+  the email-signup funnel lands on /app, not /account) and clears the flag on other
+  paths. On return, an init hook auto-saves the restored draft into the new account
+  **once** (flag cleared first), gated on `saveScenario` returning a real persist.
+- **"Saved locally" badge** — new `#saved-local-badge` shown to guests whenever a draft
+  exists (guests see this instead of the "Unsaved" nag; logged-in UX unchanged).
+- **Soft signup banner** — dismissible nudge after 45s or several real edits.
+- **Guest analytics** — new `window.trackGuest(event,params)` in `analytics.js` (GA4,
+  no session gate, unlike server-side `trackUsage`). Emits guest_session, returning_user,
+  fields_edited (throttled, real-interaction-gated), signup_prompt_shown/_accepted,
+  save_attempt, export_attempt, signup_completed, guest_migration. No CSP change (gtag
+  already allowed). Verified in a real browser (no redirect, modal, badge, funnel).
+
 ## Recent Changes (May 2026 — Calculator Bulk Upgrade, Round 1)
 
 Best-in-market rewrite of four headline calculator categories. All FY 2025-26 rate constants in code today are preserved; what's added is depth + features competitors don't offer.
