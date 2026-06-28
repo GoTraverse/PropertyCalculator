@@ -512,6 +512,20 @@
   // ── MAIN RECALC ──
   const DRAFT_KEY = 'propCalc_draft_v1';
   let _draftTimer = null;
+  // Guest engagement: throttled fields_edited event (max 1/30s) + escalate the
+  // soft signup banner once a guest has made several edits.
+  var _guestEditTs = 0, _guestEditCount = 0, _userInteracted = false;
+  function _trackGuestFieldsEdited(){
+    // Ignore the programmatic init/restore autosave — only real edits count.
+    if(!_userInteracted) return;
+    _guestEditCount++;
+    var now = Date.now();
+    if(now - _guestEditTs > 30000){
+      _guestEditTs = now;
+      if(window.trackGuest) trackGuest('fields_edited', {count: _guestEditCount});
+    }
+    if(_guestEditCount >= 8 && typeof maybeShowGuestBanner === 'function') maybeShowGuestBanner();
+  }
   function autosaveDraft(){
     if(_restoringDraft) return;
     clearTimeout(_draftTimer);
@@ -519,6 +533,7 @@
       try{
         const state = collectCurrentState();
         lsSet(DRAFT_KEY, JSON.stringify({state, photo: propPhotoDataUrl||'', thumb: propThumbDataUrl||'', savedId: _lastSavedAddr||''}));
+        if(!isLoggedIn() && window.trackGuest) _trackGuestFieldsEdited();
         // Only mark dirty if content has actually changed from last save.
         // This prevents "Unsaved" showing after loading a saved property
         // or after page load restoring a draft.
@@ -1651,11 +1666,20 @@
       const addrEl = document.getElementById('pd-address');
       if(addrEl){ addrEl.focus(); addrEl.style.borderColor='var(--terracotta)'; setTimeout(()=>addrEl.style.borderColor='',2500); }
       showTab('property', document.querySelector('.tab'));
-      return;
+      return false;
     }
     const suburb   = state.values['pd-suburb']  || '';
     const stateV   = state.values['pd-state']   || '';
     const fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ') || 'Unnamed Property';
+    // Guest gate: Save is the activation moment. A logged-out guest is prompted to
+    // create a free account here (the scenario is already address-valid). The draft
+    // + pending-save flag carry it across signup so it lands in their new account.
+    // Quiet/auto-save calls never nag — the draft already persists via autosaveDraft.
+    if(!isLoggedIn()){
+      if(window.trackGuest) trackGuest('save_attempt', {guest:true});
+      if(!quiet) requireAccount('save this scenario');
+      return false;
+    }
     // Plan gate: check scenario limit from config
     if(!isPro()){
       let freeLimit = 1; // default
@@ -1673,7 +1697,7 @@
         if(!isUpdate){
           const plural = freeLimit > 1 ? 's' : '';
           showToast(`🔒 Free plan allows ${freeLimit} saved scenario${plural}. <a href="/pricing" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>`, 6000);
-          return;
+          return false;
         }
       }
     }
@@ -1732,6 +1756,7 @@
       }
     }
     updateSavedCount();
+    return usedCloud; // true only when persisted to the account/cloud (used by the guest-migration hook)
   }
 
   async function updateSavedCount(){
@@ -1990,7 +2015,10 @@
     // If triggered from library Export action, open export dialog after load
     if(_libExportAfterLoad){
       _libExportAfterLoad = false;
-      setTimeout(function(){ if(window.isPro()) window.showPDFOptionsPopup(); else window.requirePro('Export'); }, 400);
+      setTimeout(function(){
+        if(!isLoggedIn()){ if(window.trackGuest) trackGuest('export_attempt', {guest:true}); requireAccount('export to PDF'); return; }
+        if(window.isPro()) window.showPDFOptionsPopup(); else window.requirePro('Export');
+      }, 400);
     }
     // Keep _restoringDraft=true past the 800ms autosaveDraft timer (prevents dirty)
     setTimeout(function(){
@@ -2465,16 +2493,33 @@
 
   function updateUnsavedBadge(){
     const badge = document.getElementById('unsaved-badge');
-    if(!badge) return;
+    const savedBadge = document.getElementById('saved-local-badge');
     const price = v('inp-price');
     const addr  = document.getElementById('pd-address')?.value?.trim() || '';
     const hasContent = price > 0 || addr.length > 0;
-    if(hasContent && _isDirty){
-      badge.style.display = 'inline-flex';
-      badge.title = 'You have unsaved changes — click Save to preserve them';
-    } else {
-      badge.style.display = 'none';
+    let hasDraft = false; try{ hasDraft = !!lsGet(DRAFT_KEY); }catch(e){}
+    const guest = (typeof isLoggedIn === 'function') && !isLoggedIn();
+
+    // Guests have no cloud library to be "unsaved" against — their work lives in the
+    // local draft. Reassure with "Saved locally" instead of nagging "Unsaved"
+    // (APP_AUDIT.md item 7). The signup nudge comes from the Save/Export prompts + banner.
+    if(guest){
+      if(badge) badge.style.display = 'none';
+      if(savedBadge) savedBadge.style.display = (hasContent && hasDraft) ? 'inline-flex' : 'none';
+      return;
     }
+
+    // Logged-in users: existing library dirty/clean behaviour (unchanged).
+    const dirty = hasContent && _isDirty;
+    if(badge){
+      if(dirty){
+        badge.style.display = 'inline-flex';
+        badge.title = 'You have unsaved changes — click Save to preserve them';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    if(savedBadge) savedBadge.style.display = 'none';
   }
 
   // beforeunload dialog removed — saving is automatic
@@ -4298,6 +4343,28 @@
   // Load session early so updateSavedCount has auth for the cloud fetch
   try{ var _earlySession = lsGet(SESSION_KEY); if(_earlySession) _currentUser = JSON.parse(_earlySession); }catch(e){}
   const _hadDraft = restoreDraft();
+
+  // Guest→account migration: a guest who chose "Create a free account" to save/export
+  // returns here logged in with propCalc_pendingSave set. Push their restored draft
+  // into the new account exactly once. Clear the flag FIRST (synchronously) so a quick
+  // reload can't double-save. Only fires when there's a real, address-valid scenario.
+  try{
+    if(isLoggedIn() && localStorage.getItem('propCalc_pendingSave')){
+      localStorage.removeItem('propCalc_pendingSave');
+      var _migAddr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
+      var _willMigrate = !!(_hadDraft && _migAddr);
+      if(window.trackGuest) trackGuest('signup_completed', {migrated: _willMigrate});
+      if(_willMigrate){
+        // saveScenario resolves with usedCloud (true only when actually persisted to
+        // the account). Only celebrate on a real save — otherwise the free-plan limit
+        // or a cloud failure would silently drop the scenario behind a success toast.
+        saveScenario(true).then(function(ok){
+          if(window.trackGuest) trackGuest('guest_migration', {ok: !!ok});
+          if(ok) showToast('✓ Saved to your new account');
+        }).catch(function(){ if(window.trackGuest) trackGuest('guest_migration', {ok:false}); });
+      }
+    }
+  }catch(e){}
   try { recalc(); } catch(e) { console.error('recalc init error:', e); }
   try { updatePropertyDetails(); } catch(e) { console.error('updatePropertyDetails init error:', e); }
   updateSavedCount();
@@ -4309,7 +4376,8 @@
   drawProjection();
   loadProfile();
 
-  // Auth guard handled in <head> script — redirects to login.html if not signed in
+  // Guest mode (Jun 2026): app-init.js no longer redirects logged-out visitors —
+  // they use /app as guests. See app-init.js + APP_AUDIT.md.
 
   if(_hadDraft){
     // Re-fetch suburb growth rate for restored draft
@@ -4328,6 +4396,26 @@
   } else {
     setTimeout(function(){ showToast('👋 Fill in your property details to get started'); }, 900);
   }
+
+  // Mark genuine user interaction so the init/restore autosave isn't counted as an edit.
+  ['pointerdown','keydown'].forEach(function(ev){
+    document.addEventListener(ev, function(){ _userInteracted = true; }, true);
+  });
+
+  // Guest funnel: record a guest_session per load (+ returning_user if seen before),
+  // and surface the soft signup banner after 45s of guest engagement.
+  try{
+    if(!isLoggedIn()){
+      let _guestSeen = false;
+      try{ _guestSeen = !!localStorage.getItem('propCalc_guest_seen'); }catch(e){}
+      if(window.trackGuest){
+        trackGuest('guest_session', {returning: _guestSeen, had_draft: _hadDraft});
+        if(_guestSeen) trackGuest('returning_user', {});
+      }
+      try{ localStorage.setItem('propCalc_guest_seen','1'); }catch(e){}
+      setTimeout(function(){ maybeShowGuestBanner(); }, 45000);
+    }
+  }catch(e){}
 
 
   // ══════════════════════════════════════════════
@@ -4648,6 +4736,64 @@
     return false;
   }
   window.requirePro = requirePro;
+  window.isLoggedIn = isLoggedIn;
+
+  // ── Guest mode: account gate + signup funnel ──────────────────────────────
+  // Stash the current scenario as the draft, flag a pending migration, and send
+  // the guest to the signup tab. On return to /app the draft auto-saves into the
+  // new account (see the migration hook in init). Shared by the modal + banner.
+  function _goToSignup(actionLabel, source){
+    if(window.trackGuest) trackGuest('signup_prompt_accepted', {action: actionLabel||'save', source: source||'modal'});
+    try{ lsSet(DRAFT_KEY, JSON.stringify({state: collectCurrentState(), photo: propPhotoDataUrl||'', thumb: propThumbDataUrl||'', savedId: _lastSavedAddr||''})); }catch(e){}
+    try{ localStorage.setItem('propCalc_pendingSave','1'); }catch(e){}
+    location.href = '/login?tab=signup&next=/app';
+  }
+
+  // The account analogue of requirePro(): prompts a logged-out guest to create a
+  // free account at a high-intent moment (Save / Export). Returns true when already
+  // logged in. Reuses the existing appConfirm() modal (backdrop + Esc + focus trap).
+  async function requireAccount(actionLabel){
+    if(isLoggedIn()) return true;
+    if(window.trackGuest) trackGuest('signup_prompt_shown', {action: actionLabel||'save', source: 'modal'});
+    var ok = await appConfirm(
+      'Create a free account',
+      'Create a free EquitySight account to ' + escHtml(actionLabel || 'save your scenario') +
+      '.<br><span style="opacity:0.7;">Your scenario stays on this device and moves into your account automatically.</span>',
+      {icon:'🔒', confirmLabel:'Create free account'}
+    );
+    if(ok) _goToSignup(actionLabel || 'save', 'modal');
+    return false;
+  }
+  window.requireAccount = requireAccount;
+
+  // Soft, dismissible signup nudge shown to guests after meaningful engagement
+  // (a 45s timer or several edits, whichever first). Dismissal is remembered.
+  var _guestBannerShown = false;
+  function maybeShowGuestBanner(){
+    if(_guestBannerShown || isLoggedIn()) return;
+    try{ if(localStorage.getItem('propCalc_guest_banner_dismissed')) return; }catch(e){}
+    if(!document.body) return;
+    _guestBannerShown = true;
+    var bar = document.createElement('div');
+    bar.id = 'guest-signup-banner';
+    bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:8500;display:flex;align-items:center;gap:12px;max-width:min(560px,calc(100vw - 24px));background:var(--charcoal,#1C1C1E);color:var(--cream,#F5F0E8);border:1px solid rgba(201,168,76,0.4);border-radius:8px;padding:10px 12px;box-shadow:0 8px 30px rgba(0,0,0,0.35);font-size:13px;line-height:1.35;';
+    var msg = document.createElement('span');
+    msg.style.flex = '1';
+    msg.textContent = '💡 Create a free account to save this scenario and pick up where you left off.';
+    var cta = document.createElement('button');
+    cta.textContent = 'Create free account';
+    cta.style.cssText = 'flex-shrink:0;background:var(--gold,#C9A84C);color:var(--charcoal,#1C1C1E);border:none;border-radius:5px;padding:7px 12px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;';
+    cta.addEventListener('click', function(){ _goToSignup('save your work', 'banner'); });
+    var x = document.createElement('button');
+    x.setAttribute('aria-label','Dismiss');
+    x.textContent = '✕';
+    x.style.cssText = 'flex-shrink:0;background:transparent;border:none;color:inherit;opacity:0.6;font-size:15px;cursor:pointer;padding:2px 4px;';
+    x.addEventListener('click', function(){ bar.remove(); try{ localStorage.setItem('propCalc_guest_banner_dismissed','1'); }catch(e){} });
+    bar.appendChild(msg); bar.appendChild(cta); bar.appendChild(x);
+    document.body.appendChild(bar);
+    if(window.trackGuest) trackGuest('signup_prompt_shown', {source: 'banner'});
+  }
+  window.maybeShowGuestBanner = maybeShowGuestBanner;
 
   // Returns current user ID for body-fallback auth (works even without token)
   function getUserId(){

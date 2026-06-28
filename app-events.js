@@ -59,6 +59,12 @@ var openSavedBtn = document.getElementById('open-saved-btn');
 if(openSavedBtn) openSavedBtn.addEventListener('click', openScenariosModal);
 var hdrPdfBtn = document.getElementById('hdr-pdf-btn');
 if(hdrPdfBtn) hdrPdfBtn.addEventListener('click', function(){
+  // Guest → prompt signup first; logged-in free → Pro upsell; Pro → export.
+  if(window.isLoggedIn && !window.isLoggedIn()){
+    if(window.trackGuest) window.trackGuest('export_attempt', {guest:true});
+    if(window.requireAccount) window.requireAccount('export to PDF');
+    return;
+  }
   if(window.isPro()) window.showPDFOptionsPopup(); else window.requirePro('Export');
 });
 

@@ -532,8 +532,18 @@ function showVerificationStep(data) {
 
 function postVerificationRedirect(plan) {
   const next = safeNextUrl(params.get('next') || '');
-  if (plan === 'pro') goTo('/account?checkout=1&panel=subscription');
-  else if (next !== '/app') goTo(next);
+  // Guest-mode migration: a guest who clicked "Create a free account" to save their
+  // scenario must land back on /app so the pending draft auto-migrates into the new
+  // account. Without this, a free email signup with next=/app would be sent to
+  // /account and the migration hook (in app.js init) would never run.
+  let pendingSave = false;
+  try { pendingSave = !!localStorage.getItem('propCalc_pendingSave'); } catch (e) {}
+  // The migration hook only runs on /app. If we're routing elsewhere, clear the flag
+  // so it can't get stuck and fire a stale migration on a later /app visit.
+  const clearPending = function(){ try { localStorage.removeItem('propCalc_pendingSave'); } catch (e) {} };
+  if (plan === 'pro') { clearPending(); goTo('/account?checkout=1&panel=subscription'); }
+  else if (next !== '/app') { clearPending(); goTo(next); }
+  else if (pendingSave) goTo('/app');
   else goTo('/account?panel=subscription');
 }
 
