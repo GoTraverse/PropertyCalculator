@@ -3533,10 +3533,14 @@
     // far the largest field and can blow the server's snapshot cap. If the
     // payload is too big, drop the photo so the link still generates — the
     // numbers matter far more than the picture. Flag it so the UI can note it.
+    // 800 KB ceiling: the Redis REST request that stores the share has an
+    // effective per-value limit around 1 MB, and an oversized photo silently
+    // fails the write — so drop it here rather than ship a dead link. The
+    // server also reads-back-and-retries without the photo as a safety net.
     snap._photoDropped = false;
     if(snap.photo){
       try{
-        if(JSON.stringify(snap).length > 1400000){
+        if(JSON.stringify(snap).length > 800000){
           snap.photo = '';
           snap._photoDropped = true;
         }
