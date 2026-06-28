@@ -7,10 +7,15 @@ CLAUDE.md
 README.md
 CODEBASE.md
 TODO.md
+ROADMAP.md
+ARCHITECTURE.md
 LINK_AUDIT_REPORT.md
 TRACKING_GUIDE.md
 BROKEN_LINKS_QUICK_REFERENCE.txt
 EQUITYSIGHT_NOTION_BUNDLE.md
+
+# Platform DB migrations (server-side only, never served)
+db/
 
 # Dev/admin utility script — uses REDIS_TOKEN directly, never runs in prod
 reset-admin-pw.js
