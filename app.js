@@ -3446,6 +3446,180 @@
     } catch(e) {}
   }
 
+  // ── Public share-link snapshot ───────────────────────────────────────
+  // Captures the COMPUTED display values currently on screen (not raw
+  // inputs) so the public viewer (share-view.js) renders exactly what the
+  // sharer saw, with zero recompute. When includeAddress is false we drop
+  // the street address + photo for privacy (suburb/state is kept for
+  // context + the social card). Values are raw text — share-view.js escapes.
+  function gatherShareSnapshot(includeAddress){
+    var txt = function(id){ var e=document.getElementById(id); return e ? (e.textContent||'').trim() : ''; };
+    var val = function(id){ var e=document.getElementById(id); return e ? (e.value||'').trim() : ''; };
+
+    var addr   = val('pd-address');
+    var suburb = val('pd-suburb');
+    var stateV = val('pd-state');
+    var fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ');
+    var suburbState = [suburb, stateV].filter(Boolean).join(', ');
+
+    // Cost breakdown rows → [{name, amt}] from the rendered .cr/.nm/.am DOM.
+    var costRows = [];
+    var crWrap = document.getElementById('cost-rows-display');
+    if(crWrap){
+      crWrap.querySelectorAll('.cr').forEach(function(row){
+        var nm = row.querySelector('.nm'); var am = row.querySelector('.am');
+        var name = nm ? (nm.textContent||'').trim() : '';
+        var amt  = am ? (am.textContent||'').trim() : '';
+        if(name && amt) costRows.push({ name:name, amt:amt });
+      });
+    }
+
+    var rewardMeter = document.getElementById('reward-meter');
+    var riskMeter   = document.getElementById('risk-meter');
+
+    var snap = {
+      addr: includeAddress ? fullAddr : '',
+      suburbState: suburbState || 'Property scenario',
+      sub: txt('header-sub-text'),
+      photo: (includeAddress && typeof propPhotoDataUrl !== 'undefined' && propPhotoDataUrl) ? propPhotoDataUrl : '',
+
+      price: txt('t-price'),
+      deposit: txt('t-deposit'),
+      govt: txt('t-govt'),
+      hasGovt: (parseFloat(val('inp-govt')) || 0) > 0,
+      remaining: txt('t-remaining'),
+      remainingColor: (document.getElementById('t-remaining')||{}).style ? document.getElementById('t-remaining').style.color : '',
+
+      savings: txt('cb-savings'),
+      outOfPocket: txt('cb-out'),
+      cashLeft: txt('cb-remaining'),
+
+      monthly: txt('rp-monthly'),
+      weekly: txt('rp-weekly'),
+      annual: txt('rp-annual'),
+      rateLabel: txt('rp-rate-lbl'),
+      termLabel: txt('rp-term-lbl'),
+      loanLabel: txt('rp-loan-lbl'),
+      totalInterest: txt('rp-interest'),
+      totalPaid: txt('rp-total-paid'),
+      lvr: txt('lvr-val'),
+
+      renoOn: (typeof renoEnabled !== 'undefined') ? !!renoEnabled : false,
+      poolVal: txt('reno-pool-val'),
+      unspent: txt('reno-unspent-val'),
+      unspentColor: (document.getElementById('reno-unspent-val')||{}).style ? document.getElementById('reno-unspent-val').style.color : '',
+      renoTotal: txt('reno-total'),
+      renoItems: (typeof renoItems !== 'undefined' && Array.isArray(renoItems)) ? renoItems.map(function(r){
+        return { name: ((r.emoji?r.emoji+' ':'')+(r.name||'')).trim(), amt: (typeof fmt==='function'?fmt(r.amount||0):String(r.amount||0)), note: r.note||'' };
+      }) : [],
+      contingency: (typeof getRenoTotal==='function' && typeof v==='function' && typeof fmt==='function')
+        ? fmt(getRenoTotal()*((v('inp-cont')||0)/100)) : '',
+
+      rentOn: (document.getElementById('rent-sidebar-section')||{}).style ? document.getElementById('rent-sidebar-section').style.display !== 'none' : false,
+      overlapWeekly: txt('ov-weekly-total'),
+      overlapTotal: txt('ov-total-cost'),
+      overlapAfter: txt('ov-remaining-after'),
+
+      riskScore: riskMeter && riskMeter.style.width ? riskMeter.style.width : '',
+      rewardScore: rewardMeter && rewardMeter.style.width ? rewardMeter.style.width : '',
+      riskDesc: txt('risk-desc'),
+      rewardDesc: txt('reward-desc'),
+
+      costRows: costRows,
+      crDeposit: txt('cr-deposit'),
+      crTotal: txt('cr-total'),
+    };
+    return snap;
+  }
+
+  // Create a public share link for the current scenario and surface the
+  // copy/share UI. Requires sign-in (the snapshot is written server-side).
+  // The address toggle is read live from the checkbox so the link always
+  // matches the user's current privacy choice.
+  function _linkShareIncludeAddr_(){
+    var t = document.getElementById('linkshare-addr-toggle');
+    return t ? !!t.checked : true;
+  }
+  async function generateShareLink(){
+    var statusEl = document.getElementById('linkshare-status');
+    var urlWrap  = document.getElementById('linkshare-url-wrap');
+    var genBtn   = document.getElementById('linkshare-generate-btn');
+    var includeAddr = _linkShareIncludeAddr_();
+    if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+      if(statusEl){ statusEl.style.color = 'var(--terracotta, #C4704A)'; statusEl.textContent = 'Please sign in to create a share link.'; }
+      return;
+    }
+    if(genBtn){ genBtn.disabled = true; genBtn.textContent = 'Generating…'; }
+    if(statusEl){ statusEl.style.color = 'var(--slate)'; statusEl.textContent = ''; }
+    try{
+      var snapshot = gatherShareSnapshot(includeAddr);
+      var r = await fetch('/.netlify/functions/scenarios', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'createPublicShare', snapshot: snapshot, includeAddress: includeAddr })
+      });
+      var d = await r.json();
+      if(d && d.ok && d.url){
+        var input = document.getElementById('linkshare-url');
+        if(input) input.value = d.url;
+        if(urlWrap) urlWrap.style.display = '';
+        if(statusEl){ statusEl.style.color = 'var(--sage, #5A7D63)'; statusEl.textContent = '✓ Link ready — anyone with it can view this scenario.'; }
+        if(typeof trackUsage==='function') trackUsage('share_link_created');
+      } else {
+        if(statusEl){ statusEl.style.color = 'var(--terracotta, #C4704A)'; statusEl.textContent = (d && d.error) || 'Could not create link. Please try again.'; }
+      }
+    }catch(e){
+      if(statusEl){ statusEl.style.color = 'var(--terracotta, #C4704A)'; statusEl.textContent = 'Network error. Please try again.'; }
+    }finally{
+      if(genBtn){ genBtn.disabled = false; genBtn.textContent = 'Generate link'; }
+    }
+  }
+
+  function openLinkShareModal(){
+    var m = document.getElementById('linkshare-modal');
+    if(!m) return;
+    var toggle = document.getElementById('linkshare-addr-toggle');
+    if(toggle) toggle.checked = true;
+    var urlWrap = document.getElementById('linkshare-url-wrap');
+    if(urlWrap) urlWrap.style.display = 'none';
+    var statusEl = document.getElementById('linkshare-status');
+    if(statusEl) statusEl.textContent = '';
+    var input = document.getElementById('linkshare-url');
+    if(input) input.value = '';
+    m.style.display = 'block';
+  }
+  function closeLinkShareModal(){
+    var m = document.getElementById('linkshare-modal');
+    if(m) m.style.display = 'none';
+  }
+  async function copyShareLink(){
+    var input = document.getElementById('linkshare-url');
+    var btn = document.getElementById('linkshare-copy-btn');
+    if(!input || !input.value) return;
+    try{
+      await navigator.clipboard.writeText(input.value);
+      if(btn){ var t=btn.textContent; btn.textContent='✓ Copied'; setTimeout(function(){ btn.textContent=t; },1600); }
+    }catch(e){
+      input.select(); document.execCommand('copy');
+      if(btn){ var t2=btn.textContent; btn.textContent='✓ Copied'; setTimeout(function(){ btn.textContent=t2; },1600); }
+    }
+  }
+  async function nativeShareLink(){
+    var input = document.getElementById('linkshare-url');
+    if(!input || !input.value) return;
+    var addr = gatherShareSnapshot(_linkShareIncludeAddr_()).suburbState;
+    if(navigator.share){
+      try{ await navigator.share({ title:'EquitySight property scenario', text:'Check out this property scenario'+(addr?' — '+addr:''), url: input.value }); }catch(e){}
+    } else {
+      copyShareLink();
+    }
+  }
+  // Expose for inline/event wiring
+  window.openLinkShareModal = openLinkShareModal;
+  window.closeLinkShareModal = closeLinkShareModal;
+  window.generateShareLink = generateShareLink;
+  window.copyShareLink = copyShareLink;
+  window.nativeShareLink = nativeShareLink;
+
   function exportPDF(opts){
     trackUsage('pdf_export');
     // Track PDF export

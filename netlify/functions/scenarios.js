@@ -440,6 +440,81 @@ exports.handler = async function(event){
       return ok({ok:true});
     }
 
+    // ── Public share links ───────────────────────────────────────────────
+    // Distinct from the user-to-user `share` action above. A public share is
+    // an unguessable-token, link-only, read-only snapshot anyone can view
+    // WITHOUT an account — the growth/virality path (Reddit, socials, SMS).
+    // We snapshot the already-computed display values the sharer is looking
+    // at (not raw inputs), so the viewer renders byte-for-byte what they saw
+    // with zero recompute risk. Rendered + escaped by share-view.js.
+    if(action==='createPublicShare'){
+      const ownerData = await verifyToken(event);
+      if(!ownerData || ownerData.userId !== uid) return fail('Auth error', 401);
+      const { snapshot, includeAddress } = body;
+      if(!snapshot || typeof snapshot !== 'object') return fail('snapshot required');
+      const snapStr = JSON.stringify(snapshot);
+      if(snapStr.length > 300000) return fail('Snapshot too large');
+
+      // Rate limit — mirror the user-to-user share caps. Prevents a single
+      // account minting thousands of public URLs.
+      try {
+        const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
+        const userDayKey = 'pubshare:count:' + uid + ':' + today;
+        const userCount = parseInt(await redisCmd('INCR', userDayKey), 10);
+        if (userCount === 1) await redisCmd('EXPIRE', userDayKey, '86400');
+        if (userCount > 50) return fail('Daily share-link limit reached (50/day)', 429);
+        const clientIp = (event.headers['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
+        const ipKey = 'ratelimit:pubshare:' + clientIp;
+        const ipCount = parseInt(await redisCmd('INCR', ipKey), 10);
+        if (ipCount === 1) await redisCmd('EXPIRE', ipKey, '3600');
+        if (ipCount > 60) return fail('Too many share links — please try again later', 429);
+      } catch(e) { console.warn('[scenarios] pubshare rate-limit error:', e.message); }
+
+      // URL-safe random token (16 bytes ≈ 22 chars). Unguessable.
+      const token = require('crypto').randomBytes(16).toString('base64')
+        .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      const rec = {
+        v: 1,
+        ownerId: uid,
+        createdAt: Date.now(),
+        includeAddress: !!includeAddress,
+        snapshot,
+      };
+      // 1-year TTL — long enough to stay live on an old Reddit thread,
+      // bounded so abandoned links eventually expire from Redis.
+      await redisCmd('SET', 'pubshare:'+token, JSON.stringify(rec), 'EX', String(60*60*24*365));
+      // Owner index for management / revoke.
+      const listKey = 'pubshares:'+uid;
+      const list = (await rGet(listKey)) || [];
+      list.unshift({
+        token,
+        label: includeAddress ? (snapshot.addr || snapshot.suburbState || 'Scenario')
+                              : (snapshot.suburbState || 'Scenario'),
+        createdAt: Date.now(),
+      });
+      await rSet(listKey, list.slice(0,200));
+      logEvent(uid,'public_share_created',{addr: snapshot.suburbState||''}).catch(()=>{});
+      return ok({ ok:true, token, url: 'https://equitysight.app/s/'+token });
+    }
+
+    if(action==='listPublicShares'){
+      const list = (await rGet('pubshares:'+uid)) || [];
+      return ok({ ok:true, shares:list });
+    }
+
+    if(action==='revokePublicShare'){
+      const { token } = body;
+      if(!token) return fail('token required');
+      // Only the owner can revoke — verify the stored record's ownerId.
+      const rec = await rGet('pubshare:'+token);
+      if(rec && rec.ownerId && rec.ownerId !== uid) return fail('Not your share', 403);
+      await redisCmd('DEL', 'pubshare:'+token);
+      const listKey = 'pubshares:'+uid;
+      const list = ((await rGet(listKey))||[]).filter(s=>s.token!==token);
+      await rSet(listKey, list);
+      return ok({ ok:true });
+    }
+
     return fail('Unknown action');
   }
 

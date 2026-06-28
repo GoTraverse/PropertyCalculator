@@ -433,6 +433,7 @@
     #hdr-pdf-btn{display:none!important;} /* Export moved to library actions popup on mobile */
     .hdr-overflow-wrap{display:none!important;}
     .hdr-save-label{display:inline!important;}  /* Show "Save" label on mobile */
+    .hdr-sharelink-label{display:none!important;} /* Share button is icon-only on mobile to save header space */
     #profile-btn{width:28px!important;height:28px!important;font-size:11px!important;}
     #mobile-sidebar-btn{display:none!important;}
     .header-badge{font-size:12px!important;padding:4px 8px!important;}

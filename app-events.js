@@ -156,6 +156,27 @@ if(shareConfirmBtn) shareConfirmBtn.addEventListener('click', confirmShare);
 var cancelShareBtn = document.getElementById('cancel-share-btn');
 if(cancelShareBtn) cancelShareBtn.addEventListener('click', closeShareModal);
 
+// ── Public share-link modal ─────────────────────────────────────────────────────
+var hdrShareLinkBtn = document.getElementById('hdr-sharelink-btn');
+if(hdrShareLinkBtn) hdrShareLinkBtn.addEventListener('click', function(){ if(window.openLinkShareModal) openLinkShareModal(); });
+var linkshareModal = document.getElementById('linkshare-modal');
+if(linkshareModal) linkshareModal.addEventListener('click', function(e){ if(e.target === this && window.closeLinkShareModal) closeLinkShareModal(); });
+var linkshareGenBtn = document.getElementById('linkshare-generate-btn');
+if(linkshareGenBtn) linkshareGenBtn.addEventListener('click', function(){ if(window.generateShareLink) generateShareLink(); });
+var linkshareAddrToggle = document.getElementById('linkshare-addr-toggle');
+if(linkshareAddrToggle) linkshareAddrToggle.addEventListener('change', function(){
+  // Toggling the address invalidates any already-generated link; hide the stale
+  // URL so the user re-generates with the new privacy choice.
+  var wrap = document.getElementById('linkshare-url-wrap'); if(wrap) wrap.style.display = 'none';
+  var st = document.getElementById('linkshare-status'); if(st) st.textContent = '';
+});
+var linkshareCopyBtn = document.getElementById('linkshare-copy-btn');
+if(linkshareCopyBtn) linkshareCopyBtn.addEventListener('click', function(){ if(window.copyShareLink) copyShareLink(); });
+var linkshareNativeBtn = document.getElementById('linkshare-native-btn');
+if(linkshareNativeBtn) linkshareNativeBtn.addEventListener('click', function(){ if(window.nativeShareLink) nativeShareLink(); });
+var linkshareCloseBtn = document.getElementById('linkshare-close-btn');
+if(linkshareCloseBtn) linkshareCloseBtn.addEventListener('click', function(){ if(window.closeLinkShareModal) closeLinkShareModal(); });
+
 // ── Confirm load modal ────────────────────────────────────────────────────────
 var confirmLoadBtn = document.getElementById('confirm-load-btn');
 if(confirmLoadBtn) confirmLoadBtn.addEventListener('click', function(){ if(_pendingAdminScenario) confirmLoadAdminScenario(); else if(_pendingShared) confirmLoadShared(); else confirmLoad(); });
