@@ -77,8 +77,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model the tax impact across your entire portfolio',
     description: 'See CGT, depreciation, negative gearing, and net after-tax returns on every property — free in EquitySight.',
-    buttonText: 'Get started free →',
-    buttonHref: '/login?tab=signup'
+    buttonText: 'Try it free — no signup →',
+    buttonHref: '/app'
   },
   resources: {
     groups: [

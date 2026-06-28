@@ -804,8 +804,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model the full ${s.stateName} investment',
     description: 'Add rental income, body corporate fees, council rates, and 30-year growth projections — all in EquitySight.',
-    buttonText: 'Get started free →',
-    buttonHref: '/login?tab=signup'
+    buttonText: 'Try it free — no signup →',
+    buttonHref: '/app'
   },
   resources: {
     groups: [

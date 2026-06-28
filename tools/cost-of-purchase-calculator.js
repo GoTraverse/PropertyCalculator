@@ -120,8 +120,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Ready to buy?',
     description: 'Now that you know the upfront costs, use EquitySight to model your entire investment — including ongoing costs, rental income, and 30-year projections.',
-    buttonText: 'Get started free \u2192',
-    buttonHref: '/login?tab=signup'
+    buttonText: 'Try it free \u2014 no signup \u2192',
+    buttonHref: '/app'
   },
   resources: {
     groups: [

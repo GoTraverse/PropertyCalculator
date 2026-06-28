@@ -84,8 +84,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Does the renovation make financial sense?',
     description: 'Model whether your renovation will add more value than it costs \u2014 and compare before vs after scenarios in EquitySight.',
-    buttonText: 'Analyse the numbers free \u2192',
-    buttonHref: '/login?tab=signup'
+    buttonText: 'Try it free \u2014 no signup \u2192',
+    buttonHref: '/app'
   },
   resources: {
     groups: [

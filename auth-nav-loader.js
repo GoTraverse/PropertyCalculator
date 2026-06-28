@@ -17,9 +17,9 @@
   if (actions && !actions.firstChild) {
     actions.innerHTML =
       '<a href="/login" class="btn-ghost">Sign in</a>' +
-      '<a href="/login?tab=signup" class="btn-gold">' +
-        '<span class="nav-btn-full">Get started free</span>' +
-        '<span class="nav-btn-short">Start free</span>' +
+      '<a href="/app" class="btn-gold">' +
+        '<span class="nav-btn-full">Try it free</span>' +
+        '<span class="nav-btn-short">Try free</span>' +
       '</a>';
   }
 

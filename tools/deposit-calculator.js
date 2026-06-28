@@ -82,8 +82,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model the full purchase — deposit, loan & 30-year projection',
     description: 'Stack grants, stamp duty, LMI, and long-term equity growth into one view — free in EquitySight.',
-    buttonText: 'Get started free →',
-    buttonHref: '/login?tab=signup'
+    buttonText: 'Try it free — no signup →',
+    buttonHref: '/app'
   },
   resources: {
     groups: [

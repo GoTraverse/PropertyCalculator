@@ -69,8 +69,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model the full buy\u2013hold\u2013sell strategy',
     description: 'Track equity, rental yield during hold, tax implications, and compare against a buy-and-hold strategy \u2014 in EquitySight.',
-    buttonText: 'Get started free \u2192',
-    buttonHref: '/login?tab=signup'
+    buttonText: 'Try it free \u2014 no signup \u2192',
+    buttonHref: '/app'
   },
   resources: {
     groups: [
