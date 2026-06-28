@@ -245,6 +245,15 @@ function renderSparkline(chartId, rawData, strokeColor, fillColor){
   const el = document.getElementById(chartId);
   if(!el) return;
 
+  // No history yet (empty/missing data) → render a flat baseline instead of
+  // dereferencing pts[0].x on an empty array (was: TypeError reading 'x',
+  // crashing loadStats — see ERRORS.json). Keeps the rest of the stats rendering.
+  if(!Array.isArray(rawData) || rawData.length === 0){
+    el.innerHTML = '<svg viewBox="0 0 100 36" preserveAspectRatio="none" height="36" aria-hidden="true">' +
+      '<line x1="0" y1="35" x2="100" y2="35" stroke="var(--slate)" stroke-width="1" opacity="0.3"/></svg>';
+    return;
+  }
+
   // Forward-fill nulls so gaps in history show flat lines
   let last = 0;
   const data = rawData.map(d => {
