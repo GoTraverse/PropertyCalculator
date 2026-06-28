@@ -2603,7 +2603,7 @@ const dirIndexHTML = `<!DOCTYPE html>
     <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="/login?tab=signup" class="tool-header-link">Free full calculator →</a>
+  <a href="/app" class="tool-header-link">Try the full calculator free →</a>
 </header>
 <script src="/auth-nav.js"></script>
 <script src="/error-capture.js"></script>
@@ -2649,7 +2649,7 @@ ${links}
     <div class="tool-cta-eye">Full Property Analysis</div>
     <h3>Analyse any Australian property</h3>
     <p>30-year projections, scenario comparison, cash flow analysis, and PDF export.</p>
-    <a href="/login?tab=signup" class="tool-cta-btn">Get started free →</a>
+    <a href="/app" class="tool-cta-btn">Try it free — no signup →</a>
   </section>
 
 </div>

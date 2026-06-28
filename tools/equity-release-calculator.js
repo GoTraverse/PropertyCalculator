@@ -41,8 +41,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Plan your renovation or investment',
     description: 'Use EquitySight to model how equity release affects your loan, plan renovations, and project rental returns.',
-    buttonText: 'Get started free \u2192',
-    buttonHref: '/login?tab=signup'
+    buttonText: 'Try it free \u2014 no signup \u2192',
+    buttonHref: '/app'
   },
   resources: {
     groups: [

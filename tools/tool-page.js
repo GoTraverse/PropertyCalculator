@@ -106,8 +106,8 @@ var ToolPage = (function() {
         '<div class="tool-cta-eye">' + escHtml(cfg.eyebrow || 'Go deeper') + '</div>' +
         '<h2>' + escHtml(cfg.title) + '</h2>' +
         '<p>' + escHtml(cfg.description) + '</p>' +
-        '<a href="' + escHtml(cfg.buttonHref || '/login?tab=signup') + '" class="tool-cta-btn">' +
-          escHtml(cfg.buttonText || 'Get started free \u2192') +
+        '<a href="' + escHtml(cfg.buttonHref || '/app') + '" class="tool-cta-btn">' +
+          escHtml(cfg.buttonText || 'Try the full calculator free \u2192') +
         '</a>' +
       '</div>';
   }
@@ -368,7 +368,7 @@ var ToolPage = (function() {
     el.innerHTML =
       '<div class="tool-save-prompt-text">' +
         '<strong>Save these results</strong>' +
-        '<span>Free account \u2014 save scenarios, compare properties, export PDF.</span>' +
+        '<span>The calculator is free to use \u2014 create a free account to save scenarios &amp; sync across devices.</span>' +
       '</div>' +
       '<div class="tool-save-prompt-actions">' +
         '<a href="' + escHtml(signupHref || '/login?tab=signup') + '" class="tool-save-prompt-btn">Create free account \u2192</a>' +
@@ -511,7 +511,10 @@ var ToolPage = (function() {
     el = document.getElementById('tool-cta-root');
     if (el) renderCTA(el, config.cta);
 
-    _watchForResult(config.cta && config.cta.buttonHref);
+    // The "go deeper" CTA now points to the free app (config.cta.buttonHref = /app),
+    // but the save-results prompt must keep driving signup (you create an account to SAVE).
+    // Decoupled so the two can differ — always send the save prompt to the signup tab.
+    _watchForResult('/login?tab=signup');
 
     el = document.getElementById('tool-share-root');
     if (el) renderShare(el, config.share);
