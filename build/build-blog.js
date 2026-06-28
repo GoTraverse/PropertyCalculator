@@ -290,6 +290,11 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
 
   const robotsMeta = isBelowWordGate(post) ? 'noindex, follow' : 'index, follow';
 
+  // Section slug for canonical/og:url/JSON-LD — MUST match the served path
+  // (/blog/<section>/<slug>/) and the sitemap, or Google sees a canonical
+  // mismatch and parks the post under "crawled, currently not indexed".
+  const sectionSlug = (post.section || post.category || 'general').replace(/[^a-z0-9-]/g, '') || 'general';
+
   return replaceAll(template, {
     ROBOTS_META: robotsMeta,
     TITLE: escHtml(post.title),
@@ -297,6 +302,7 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
     META_DESCRIPTION: escHtml(metaDescription),
     META_DESCRIPTION_JSON: escJsonString(metaDescription),
     KEYWORDS: escHtml(keywords),
+    SECTION: sectionSlug,
     SLUG: escHtml(post.slug),
     AUTHOR: escHtml(post.author || 'EquitySight Team'),
     AUTHOR_JSON: escJsonString(post.author || 'EquitySight Team'),
