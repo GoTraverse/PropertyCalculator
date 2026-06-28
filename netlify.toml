@@ -64,6 +64,14 @@
   to = "/favicon.svg"
   status = 200
 
+# Public shared-scenario links. /s/<token> is server-rendered by the
+# share-view function so social scrapers get per-scenario Open Graph tags
+# (they don't run JS). status=200 = rewrite (URL stays /s/<token>).
+[[redirects]]
+  from = "/s/*"
+  to = "/.netlify/functions/share-view?t=:splat"
+  status = 200
+
 # ── Block dev/internal files from public access ─────────────────────────────
 # force=true is required so redirects take priority over existing files on disk.
 # Legal .md files (privacy.md, terms.md, cookies.md, disclaimer.md) are

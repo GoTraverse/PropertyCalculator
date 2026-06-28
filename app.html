@@ -58,6 +58,10 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           <span class="hdr-save-label">Save</span>
         </button>
+        <button class="export-btn hdr-sharelink-btn" id="hdr-sharelink-btn" title="Create a shareable link to this scenario">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span class="hdr-sharelink-label">Share link</span>
+        </button>
         <!-- Desktop-only action buttons -->
         <button class="export-btn hdr-desktop-btn" id="hdr-new-btn" title="Start fresh new scenario" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">
           ＋ New
@@ -382,6 +386,38 @@
           <button id="share-confirm-btn" style="flex:1;padding:10px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">↗ Share</button>
           <button id="cancel-share-btn" style="flex:1;padding:10px;background:rgba(28,28,30,0.07);color:var(--slate);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;">Cancel</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PUBLIC SHARE-LINK MODAL ══ -->
+  <div id="linkshare-modal" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.7);">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100% - 32px);max-width:440px;background:var(--warm-white);border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div style="background:var(--charcoal);padding:18px 22px;">
+        <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:white;">🔗 Share a public link</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:11px;color:rgba(245,240,232,0.5);margin-top:4px;">Anyone with the link can view this scenario — no account needed.</div>
+      </div>
+      <div style="padding:20px 22px;">
+        <p style="font-size:13px;color:var(--slate);line-height:1.7;margin-bottom:16px;">Generate a read-only link to this scenario you can post anywhere — Reddit, forums, SMS, email. Viewers see the full breakdown and can build their own.</p>
+
+        <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--charcoal);cursor:pointer;margin-bottom:16px;padding:10px 12px;background:rgba(28,28,30,0.04);border-radius:6px;">
+          <input type="checkbox" id="linkshare-addr-toggle" checked style="width:16px;height:16px;accent-color:#C9A84C;flex-shrink:0;">
+          <span>Include the street address &amp; photo <span style="color:var(--slate);">— uncheck to share suburb &amp; numbers only</span></span>
+        </label>
+
+        <button id="linkshare-generate-btn" style="width:100%;padding:12px;background:var(--gold,#C9A84C);color:var(--charcoal);border:none;border-radius:5px;font-family:'Geist Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">Generate link</button>
+
+        <div id="linkshare-url-wrap" style="display:none;margin-top:14px;">
+          <div style="display:flex;gap:8px;">
+            <input id="linkshare-url" type="text" readonly style="flex:1;min-width:0;padding:10px;font-family:'Geist Mono',monospace;font-size:12px;color:var(--charcoal);background:white;border:1px solid rgba(28,28,30,0.18);border-radius:5px;">
+            <button id="linkshare-copy-btn" style="flex-shrink:0;padding:10px 14px;background:var(--charcoal);color:var(--cream);border:none;border-radius:5px;font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;">Copy</button>
+          </div>
+          <button id="linkshare-native-btn" style="width:100%;margin-top:8px;padding:10px;background:rgba(28,28,30,0.06);color:var(--charcoal);border:1px solid rgba(28,28,30,0.12);border-radius:5px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;">↗ Share via…</button>
+        </div>
+
+        <div id="linkshare-status" style="font-size:12px;min-height:18px;margin-top:12px;"></div>
+
+        <button id="linkshare-close-btn" style="width:100%;margin-top:6px;padding:10px;background:none;color:var(--slate);border:1px solid rgba(28,28,30,0.12);border-radius:5px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;">Close</button>
       </div>
     </div>
   </div>
