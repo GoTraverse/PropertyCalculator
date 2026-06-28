@@ -453,7 +453,11 @@ exports.handler = async function(event){
       const { snapshot, includeAddress } = body;
       if(!snapshot || typeof snapshot !== 'object') return fail('snapshot required');
       const snapStr = JSON.stringify(snapshot);
-      if(snapStr.length > 300000) return fail('Snapshot too large');
+      // Cap sized to comfortably hold an embedded property/map photo. Photos
+      // are validated at ≤1.1 MB at upload; base64 + the other fields land
+      // well under 1.6 MB. The client also drops an oversized photo before
+      // sending (graceful degradation) so this is a backstop, not the gate.
+      if(snapStr.length > 1600000) return fail('Snapshot too large');
 
       // Rate limit — mirror the user-to-user share caps. Prevents a single
       // account minting thousands of public URLs.

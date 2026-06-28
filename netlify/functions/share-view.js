@@ -240,6 +240,13 @@ exports.handler = async (event) => {
   const shareUrl = SITE + '/s/' + token;
   const ogImage = SITE + '/images/og-image.png';
 
+  // UTM-tag the conversion CTAs so a viewer who clicks through from a shared
+  // scenario is attributed to social/share traffic in GA4 (otherwise these
+  // land in "Direct" and the channel is invisible — same dark-social problem
+  // the Reddit links have). The destination is unchanged.
+  const appCta = SITE + '/app?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario';
+  const homeCta = SITE + '/?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario';
+
   const html = `<!DOCTYPE html>
 <html lang="en-AU">
 <head>
@@ -339,8 +346,8 @@ exports.handler = async (event) => {
 </head>
 <body>
 <div class="topbar"><div class="topbar-in">
-  <a href="${SITE}/" class="brand">EquitySight<span>.app</span></a>
-  <a href="${SITE}/app" class="topcta">Build your own free →</a>
+  <a href="${homeCta}" class="brand">EquitySight<span>.app</span></a>
+  <a href="${appCta}" class="topcta">Build your own free →</a>
 </div></div>
 
 <div class="wrap">
@@ -362,13 +369,13 @@ exports.handler = async (event) => {
   <div class="cta">
     <h2>Model your own purchase in 60 seconds</h2>
     <p>This scenario was built with EquitySight — Australia's smartest property finance calculator. Stamp duty, repayments, renovation budget, risk &amp; reward, all free.</p>
-    <a href="${SITE}/app">Build your own scenario →</a>
+    <a href="${appCta}">Build your own scenario →</a>
   </div>
 
   <div class="disc">
     Figures are estimates shared by an EquitySight user for general information only — not financial advice. Always confirm with your lender, conveyancer and accountant before committing.
   </div>
-  <div class="foot"><a href="${SITE}/">EquitySight.app</a> · <a href="${SITE}/tools">Free calculators</a> · <a href="${SITE}/pricing">Pricing</a></div>
+  <div class="foot"><a href="${homeCta}">EquitySight.app</a> · <a href="${SITE}/tools?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario">Free calculators</a> · <a href="${SITE}/pricing?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario">Pricing</a></div>
 </div>
 </body>
 </html>`;

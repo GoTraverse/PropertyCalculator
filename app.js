@@ -3529,6 +3529,19 @@
       crDeposit: txt('cr-deposit'),
       crTotal: txt('cr-total'),
     };
+    // The embedded photo (an uploaded image or a generated map tile) is by
+    // far the largest field and can blow the server's snapshot cap. If the
+    // payload is too big, drop the photo so the link still generates — the
+    // numbers matter far more than the picture. Flag it so the UI can note it.
+    snap._photoDropped = false;
+    if(snap.photo){
+      try{
+        if(JSON.stringify(snap).length > 1400000){
+          snap.photo = '';
+          snap._photoDropped = true;
+        }
+      }catch(e){ snap.photo = ''; snap._photoDropped = true; }
+    }
     return snap;
   }
 
@@ -3562,7 +3575,12 @@
         var input = document.getElementById('linkshare-url');
         if(input) input.value = d.url;
         if(urlWrap) urlWrap.style.display = '';
-        if(statusEl){ statusEl.style.color = 'var(--sage, #5A7D63)'; statusEl.textContent = '✓ Link ready — anyone with it can view this scenario.'; }
+        if(statusEl){
+          statusEl.style.color = 'var(--sage, #5A7D63)';
+          statusEl.textContent = snapshot._photoDropped
+            ? '✓ Link ready — the photo was too large to include, but all the numbers are there.'
+            : '✓ Link ready — anyone with it can view this scenario.';
+        }
         if(typeof trackUsage==='function') trackUsage('share_link_created');
       } else {
         if(statusEl){ statusEl.style.color = 'var(--terracotta, #C4704A)'; statusEl.textContent = (d && d.error) || 'Could not create link. Please try again.'; }
