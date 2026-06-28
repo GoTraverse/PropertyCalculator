@@ -69,7 +69,7 @@
 # (they don't run JS). status=200 = rewrite (URL stays /s/<token>).
 [[redirects]]
   from = "/s/*"
-  to = "/.netlify/functions/share-view?t=:splat"
+  to = "/.netlify/functions/share-view/:splat"
   status = 200
 
 # ── Block dev/internal files from public access ─────────────────────────────

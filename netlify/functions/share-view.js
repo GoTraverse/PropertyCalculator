@@ -214,7 +214,17 @@ function renderReport(snap, includeAddress) {
 }
 
 exports.handler = async (event) => {
-  const token = (event.queryStringParameters && event.queryStringParameters.t) || '';
+  // Resolve the token robustly. Netlify's query-string splat rewrite to a
+  // function is unreliable, so we accept the token from any of:
+  //   1. ?t=<token>           (query rewrite)
+  //   2. the path tail        (/s/<token> or /.netlify/functions/share-view/<token>)
+  //   3. rawUrl as a backstop
+  let token = (event.queryStringParameters && event.queryStringParameters.t) || '';
+  if (!token) {
+    const src = event.path || event.rawUrl || '';
+    const m = src.match(/(?:\/s\/|share-view\/)([A-Za-z0-9_-]{16,64})/);
+    if (m) token = m[1];
+  }
   // Tokens are base64url; reject anything else fast (no Redis hit).
   if (!token || !/^[A-Za-z0-9_-]{16,64}$/.test(token)) return notFoundPage();
 
