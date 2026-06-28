@@ -484,9 +484,28 @@ exports.handler = async function(event){
         includeAddress: !!includeAddress,
         snapshot,
       };
-      // 1-year TTL — long enough to stay live on an old Reddit thread,
-      // bounded so abandoned links eventually expire from Redis.
-      await redisCmd('SET', 'pubshare:'+token, JSON.stringify(rec), 'EX', String(60*60*24*365));
+      // Store with a 1-year TTL using SETEX (the proven TTL-write pattern
+      // used elsewhere in this codebase). Then READ IT BACK: if the write
+      // didn't land — almost always because the embedded photo made the
+      // value too large for the Redis REST request — drop the photo and
+      // retry. We only return ok once the record is confirmed stored, so a
+      // generated /s/ link can never 404. (Numbers matter more than the pic.)
+      const TTL = String(60 * 60 * 24 * 365);
+      const shareKey = 'pubshare:' + token;
+      async function storeAndVerify(record){
+        try {
+          await redisCmd('SETEX', shareKey, TTL, JSON.stringify(record));
+          const back = await redisCmd('GET', shareKey);
+          return !!back;
+        } catch (e) { return false; }
+      }
+      let stored = await storeAndVerify(rec);
+      if(!stored && rec.snapshot && rec.snapshot.photo){
+        rec.snapshot.photo = '';
+        rec.snapshot._photoDropped = true;
+        stored = await storeAndVerify(rec);
+      }
+      if(!stored) return fail('Could not save the share link — please try again.');
       // Owner index for management / revoke.
       const listKey = 'pubshares:'+uid;
       const list = (await rGet(listKey)) || [];
