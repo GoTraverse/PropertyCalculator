@@ -1462,11 +1462,20 @@ const BUILD_DATE = new Date().toLocaleDateString('en-AU', {
 // reachable (noindex, follow) so internal link equity survives, but exclude
 // them from the sitemap and the state-hub featured list.
 //
-// Gate: must have a postcode, at least 2,000 residents, and a known median
-// household income. Against the current data/suburbs.json this yields ~3,022
-// featured suburbs (ACT 95, NSW 962, NT 44, QLD 648, SA 293, TAS 84, VIC 555,
-// WA 341) — inside the target 2,000–3,000 window.
-const MIN_POPULATION_FOR_INDEX = 2000;
+// Gate: must have a postcode, at least 10,000 residents, and a known median
+// household income. Against the current data/suburbs.json this yields ~641
+// featured suburbs (NSW 217, VIC 209, QLD 126, WA 62, SA 21, TAS 4, ACT 2;
+// NT has none at this threshold).
+//
+// Raised from 2,000 (~3,022 indexed) to 10,000 in Jun 2026 as an aggressive
+// index-bloat cut: GSC showed the high-value calculator pages stuck at
+// "Crawled - currently not indexed" while ~3k thin templated suburb pages
+// (last crawled months earlier, ~0 clicks, ranking only for junk address
+// queries) diluted site quality and ate crawl budget. Trimming to the ~641
+// largest suburbs concentrates crawl budget + quality signal on the money
+// pages. Cut suburbs remain reachable as noindex,follow (link equity to the
+// calculators survives); they're just out of the sitemap + state-hub features.
+const MIN_POPULATION_FOR_INDEX = 10000;
 
 function shouldNoindex(s) {
   if (s.tiny) return true;
