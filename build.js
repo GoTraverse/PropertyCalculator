@@ -2,18 +2,26 @@
 /**
  * build.js — Netlify build entry point.
  *
- * Suburb pages are only rebuilt when REBUILD_SUBURBS=true env var is set.
- * Otherwise, cached suburb pages from previous builds are restored.
- * This lets you deploy CSS/JS/config changes without regenerating 14,512 suburb pages.
+ * Suburb pages auto-rebuild ONLY when the *content* of a suburb dependency
+ * (templates, build-suburbs.js, apply-abs-data.js, data/suburbs.json) changes —
+ * detected via a content hash stored in the cache stamp. Otherwise the cached
+ * pages from the previous build are restored, so CSS/JS/config-only deploys are
+ * instant and don't regenerate the 14,512-page set.
  *
- * To trigger a suburb rebuild:
- *   - Set REBUILD_SUBURBS=true in Netlify env vars, then deploy
- *   - Or use the Admin → Suburbs tab "Rebuild Pages" button (triggers deploy hook)
- *   - The env var is automatically cleared after the build
+ * Why content hash, not mtime: git does not preserve file mtimes across Netlify's
+ * fresh checkouts, so an mtime comparison saw every file as "modified" and rebuilt
+ * every deploy (which is why a committed .force-rebuild sentinel used to mask it).
+ *
+ * To force a rebuild manually:
+ *   - Set REBUILD_SUBURBS=true in Netlify env vars, then deploy, or
+ *   - Use the Admin → Suburbs "Rebuild Pages" button (POSTs a build hook whose
+ *     INCOMING_HOOK_TITLE contains "suburb"), or
+ *   - Commit an empty .force-rebuild file (one-shot; the build deletes it).
  */
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { execSync } = require('child_process');
 
 const ROOT = __dirname;
@@ -52,10 +60,11 @@ if (sentinelPresent) {
   catch (e) { console.warn('[build] Could not delete sentinel:', e.message); }
 }
 
-// Files whose changes invalidate the suburb-page cache. When any of these is
-// newer than the cache stamp, we force a rebuild on the next deploy so a
-// template tweak or build-script edit doesn't sit dormant behind the cache
-// for weeks until someone manually pokes REBUILD_SUBURBS=true.
+// Files whose CONTENT invalidates the suburb-page cache. When the hash of any of
+// these differs from the hash stored in the last build's cache stamp, we rebuild
+// on the next deploy so a template tweak or build-script edit goes live without a
+// manual poke. Content hash (not mtime) because git doesn't preserve mtimes across
+// Netlify checkouts.
 const SUBURB_CACHE_DEPS = [
   'build/build-suburbs.js',
   'build/apply-abs-data.js',
@@ -64,6 +73,26 @@ const SUBURB_CACHE_DEPS = [
   'templates/city-page.html',
   'data/suburbs.json',
 ];
+
+// Hash the dependency file contents (path + bytes, in fixed order). Missing files
+// hash to a stable marker so add/remove is detected too.
+function computeDepsHash() {
+  const h = crypto.createHash('sha256');
+  for (const rel of SUBURB_CACHE_DEPS) {
+    h.update(rel + '\n');
+    const abs = path.join(ROOT, rel);
+    if (fs.existsSync(abs)) h.update(fs.readFileSync(abs));
+    else h.update('<missing>');
+    h.update('\0');
+  }
+  return h.digest('hex');
+}
+
+// IMPORTANT: compute this ONCE, now, at the as-checked-out state — BEFORE the build
+// mutates data/suburbs.json (apply-abs-data.js enriches it in place). Both the
+// staleness check and the stamp we write must use this checkout-time hash, or the
+// post-enrichment hash would never match the next checkout and we'd rebuild forever.
+const DEPS_HASH = computeDepsHash();
 
 function getSitemapFiles(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -74,27 +103,22 @@ function cacheExists() {
   return fs.existsSync(CACHE_SUBURB) && fs.existsSync(CACHE_INVEST) && getSitemapFiles(CACHE_DIR).length > 0;
 }
 
-// Returns true when any tracked dependency has been modified since the cache
-// was last written. Falls back to "stale" (force rebuild) when the stamp is
-// missing or unreadable — safer than serving outdated HTML to users + Google.
+// Stale when the cache stamp is missing/unreadable, predates content-hashing
+// (no depsHash field — forces one transitional rebuild after this change ships),
+// or when the current dependency hash differs from the cached one. Falling back to
+// "stale" on any doubt is safer than serving outdated HTML to users + Google.
 function cacheIsStale() {
   if (!fs.existsSync(CACHE_STAMP)) return true;
-  let stampTime;
+  let stamp;
   try {
-    const stamp = JSON.parse(fs.readFileSync(CACHE_STAMP, 'utf8'));
-    stampTime = stamp.date ? new Date(stamp.date).getTime() : 0;
+    stamp = JSON.parse(fs.readFileSync(CACHE_STAMP, 'utf8'));
   } catch (e) {
     return true;
   }
-  if (!stampTime) return true;
-  for (const rel of SUBURB_CACHE_DEPS) {
-    const abs = path.join(ROOT, rel);
-    if (!fs.existsSync(abs)) continue;
-    const mtime = fs.statSync(abs).mtimeMs;
-    if (mtime > stampTime) {
-      console.log('[build] Cache stale: ' + rel + ' modified after last build');
-      return true;
-    }
+  if (!stamp || !stamp.depsHash) return true; // pre-hash cache → rebuild once
+  if (stamp.depsHash !== DEPS_HASH) {
+    console.log('[build] Cache stale: suburb template/data/build-script content changed');
+    return true;
   }
   return false;
 }
@@ -142,7 +166,8 @@ function saveToCache() {
   const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'suburbs.json'), 'utf8'));
   fs.writeFileSync(CACHE_STAMP, JSON.stringify({
     date: new Date().toISOString(),
-    count: data.length
+    count: data.length,
+    depsHash: DEPS_HASH // checkout-time hash, so the next build can compare apples-to-apples
   }));
 }
 
