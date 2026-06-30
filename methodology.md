@@ -27,7 +27,7 @@ Two fields on each suburb profile are sourced from published, official datasets:
 
 Everything else currently shown on a suburb profile is an **estimate or a placeholder**, not a measured value:
 
-- **Median household income** — currently a pseudo-random figure derived from the suburb name. It is **not** an ABS Census income figure and should not be read as one. We are withdrawing this figure pending a verified ABS source.
+- **Median household income** — currently a pseudo-random figure derived from the suburb name. It is **not** an ABS Census income figure and should not be read as one. We intend to replace or remove it once we have a verified source, and in the meantime the suburb pages are kept out of search (see below).
 - **Transport score** and **amenity score** — currently pseudo-random placeholders. They are **not** derived from OpenStreetMap, transit data, or any external amenity dataset.
 - **School count** and **park count** — currently rough population-ratio estimates (roughly one school per ~4,000 residents, one park per ~2,500 residents). They are **not** counts of real, named facilities and are **not** sourced from OpenStreetMap.
 - **Investment Score** — because it is computed partly from the estimated fields above, the score should be treated as illustrative only, not as a measured assessment.
