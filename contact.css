@@ -47,3 +47,19 @@
 .faq-item.open .faq-ans{display:block;}
 
 @media(max-width:860px){.contact-inner{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+
+/* ── Dark mode ── */
+html.dark-mode .contact-body{background:#111113;}
+html.dark-mode .faq-section{background:#0d0d0f;}
+html.dark-mode .support-card{background:#1C1C1E;border-color:rgba(255,255,255,0.08);}
+html.dark-mode .support-card-text h3{color:var(--cream);}
+html.dark-mode .support-card-text p{color:rgba(245,240,232,0.55);}
+html.dark-mode .contact-form-wrap{background:#1C1C1E;border-color:rgba(255,255,255,0.08);}
+html.dark-mode .contact-form-wrap h2{color:var(--cream);}
+html.dark-mode .contact-form-wrap p{color:rgba(245,240,232,0.55);}
+html.dark-mode .cf-label{color:rgba(245,240,232,0.5);}
+html.dark-mode .cf-input,html.dark-mode .cf-select,html.dark-mode .cf-textarea{background:#111113;border-color:rgba(255,255,255,0.12);color:var(--cream);}
+html.dark-mode .cf-input:focus,html.dark-mode .cf-select:focus,html.dark-mode .cf-textarea:focus{background:#0d0d0f;}
+html.dark-mode .faq-item{border-color:rgba(255,255,255,0.1);}
+html.dark-mode .faq-q{color:var(--cream);}
+html.dark-mode .faq-ans{color:rgba(245,240,232,0.6);}

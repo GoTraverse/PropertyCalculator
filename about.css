@@ -38,3 +38,16 @@
 
 @media(max-width:900px){.about-hero-inner{grid-template-columns:1fr;gap:40px;}.values-grid,.team-grid{grid-template-columns:1fr 1fr;}.about-stat-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:600px){.values-grid,.team-grid{grid-template-columns:1fr;}}
+
+/* ── Dark mode ── */
+html.dark-mode .about-story{background:#111113;}
+html.dark-mode .about-values{background:#0d0d0f;}
+html.dark-mode .about-team{background:#111113;}
+html.dark-mode .about-story-inner h2,
+html.dark-mode .value-card h3,
+html.dark-mode .team-name{color:var(--cream);}
+html.dark-mode .about-story-inner p,
+html.dark-mode .value-card p,
+html.dark-mode .team-bio{color:rgba(245,240,232,0.6);}
+html.dark-mode .value-card{background:#1C1C1E;border-color:rgba(255,255,255,0.08);}
+html.dark-mode .team-card{background:#1C1C1E;}

@@ -75,3 +75,26 @@
 .faq-item.open .faq-ans{display:block;}
 
 @media(max-width:900px){.cards-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto 60px;}.cmp-table th,.cmp-table td{padding:10px 8px;font-size:11px;}}
+
+/* ── Dark mode ── */
+html.dark-mode .cards-section,
+html.dark-mode .cmp-section{background:#111113;}
+html.dark-mode .faq-section{background:#0d0d0f;}
+html.dark-mode .pcard{background:#1C1C1E;border-color:rgba(255,255,255,0.1);}
+html.dark-mode .pcard-top{border-color:rgba(255,255,255,0.07);}
+html.dark-mode .pcard-name,html.dark-mode .pcard-amt{color:var(--cream);}
+html.dark-mode .pcard-desc,html.dark-mode .pcard-per{color:rgba(245,240,232,0.45);}
+html.dark-mode .pcard-feats li{color:rgba(245,240,232,0.6);border-color:rgba(255,255,255,0.06);}
+html.dark-mode .ck-n{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.2);}
+html.dark-mode .pb-outline{border-color:rgba(255,255,255,0.25);color:var(--cream);}
+html.dark-mode .pb-outline:hover{background:var(--cream);color:var(--charcoal);}
+html.dark-mode .cmp-table th{background:rgba(255,255,255,0.05);color:rgba(245,240,232,0.5);}
+html.dark-mode .cmp-table th,html.dark-mode .cmp-table td{border-color:rgba(255,255,255,0.07);}
+html.dark-mode .cmp-table td{color:rgba(245,240,232,0.6);}
+html.dark-mode .cmp-table td.fname{color:var(--cream);}
+html.dark-mode .cmp-table tr:hover td{background:rgba(255,255,255,0.04);}
+html.dark-mode .sec-row td{background:rgba(255,255,255,0.05)!important;color:rgba(245,240,232,0.4);}
+html.dark-mode .tn{color:rgba(245,240,232,0.25);}
+html.dark-mode .faq-item{border-color:rgba(255,255,255,0.1);}
+html.dark-mode .faq-q{color:var(--cream);}
+html.dark-mode .faq-ans{color:rgba(245,240,232,0.6);}
