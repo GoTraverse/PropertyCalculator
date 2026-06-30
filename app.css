@@ -434,7 +434,7 @@
     .hdr-overflow-wrap{display:none!important;}
     .hdr-save-label{display:inline!important;}  /* Show "Save" label on mobile */
     .hdr-sharelink-label{display:none!important;} /* Share button is icon-only on mobile to save header space */
-    #profile-btn{width:28px!important;height:28px!important;font-size:11px!important;}
+    #profile-btn{width:40px!important;height:40px!important;font-size:13px!important;}
     #mobile-sidebar-btn{display:none!important;}
     .header-badge{font-size:12px!important;padding:4px 8px!important;}
     .header-photo-wrap{display:none!important;}
@@ -728,7 +728,9 @@ html.dark-mode .lib-row{background:#1C1C1E!important;border-color:rgba(255,255,2
 html.dark-mode .lib-row:hover{background:#2C2C2E!important;}
 html.dark-mode .lib-row-sub{color:rgba(245,240,232,0.70)!important;}
 html.dark-mode .addr-suggestions{background:#2C2C2E!important;border-color:rgba(255,255,255,0.12)!important;}
-html.dark-mode .addr-sug-item:hover{background:rgba(255,255,255,0.06)!important;}
+html.dark-mode .addr-suggestion, html.dark-mode .addr-suggestion strong{color:#F5F0E8!important;}
+html.dark-mode .addr-suggestion span{color:rgba(245,240,232,0.6)!important;}
+html.dark-mode .addr-suggestion:hover{background:rgba(255,255,255,0.06)!important;}
 html.dark-mode .reno-note{background:rgba(255,255,255,0.04)!important;border-color:rgba(255,255,255,0.1)!important;color:rgba(245,240,232,0.75)!important;}
 html.dark-mode .scenario-header{color:rgba(245,240,232,0.6)!important;}
 html.dark-mode .app-dialog-overlay{background:rgba(0,0,0,0.75)!important;}
@@ -826,7 +828,7 @@ html.dark-mode #lib-action-delete{color:var(--risk-red)!important;}
 html.dark-mode #lib-action-cancel{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.12)!important;color:rgba(245,240,232,0.6)!important;}
 
 /* Address suggestions separator */
-html.dark-mode .addr-sug-item{border-bottom-color:rgba(255,255,255,0.06)!important;color:#F5F0E8!important;}
+html.dark-mode .addr-suggestion{border-bottom-color:rgba(255,255,255,0.06)!important;color:#F5F0E8!important;}
 
 /* Key dates & comms */
 html.dark-mode .kd-row{border-bottom-color:rgba(255,255,255,0.06)!important;}
