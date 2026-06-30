@@ -3194,10 +3194,10 @@
       const key = suburb.toLowerCase().trim();
       const tableRate = qldGrowthTable[key];
       if(tableRate){
-        setCachedGrowth(suburb, state, tableRate, 'historical estimate');
+        setCachedGrowth(suburb, state, tableRate, 'indicative estimate');
         document.getElementById('proj-growth').value = tableRate;
         document.getElementById('proj-growth-lbl').textContent = tableRate.toFixed(1)+'%';
-        if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${tableRate}% p.a. avg (historical estimate)`;
+        if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${tableRate}% p.a. (indicative estimate — adjust to your own)`;
         drawProjection();
       } else {
         // No data found — let the user know so they can use the manual "Look Up" button
@@ -3243,10 +3243,10 @@
     const rate = qldGrowthTable[key];
 
     if(rate){
-      setCachedGrowth(suburb, state, rate, 'historical estimate');
+      setCachedGrowth(suburb, state, rate, 'indicative estimate');
       document.getElementById('proj-growth').value = rate;
       document.getElementById('proj-growth-lbl').textContent = rate.toFixed(1)+'%';
-      if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${rate}% p.a. avg (historical estimate)`;
+      if(hint) hint.textContent = `📍 ${suburb} ${state}: ~${rate}% p.a. (indicative estimate — adjust to your own)`;
       drawProjection();
       showToast(`📈 Set growth to ${rate}% for ${_escBanner(suburb)}`);
     } else {
