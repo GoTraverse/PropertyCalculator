@@ -185,11 +185,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$21,988"
+        "v": "$23,213"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$21,988"
+        "v": "$23,213"
       },
       {
         "k": "First home buyer duty",
@@ -212,15 +212,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$36,288"
+        "v": "$34,913"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$36,288"
+        "v": "$34,913"
       },
       {
         "k": "First home buyer duty",
-        "v": "$18,144 (FHB concession)"
+        "v": "$17,456 (FHB concession)"
       }
     ]
   },
@@ -239,15 +239,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$52,788"
+        "v": "$48,413"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$52,788"
+        "v": "$48,413"
       },
       {
         "k": "First home buyer duty",
-        "v": "$52,788 (over cap)"
+        "v": "$48,413 (over cap)"
       }
     ]
   }
@@ -255,7 +255,7 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in NSW?",
-    "a": "NSW transfer duty (still commonly called stamp duty) is charged by Revenue NSW on the dutiable value of any property purchase. The duty steps up across brackets from nil under $14,000 to 5.5% on the portion above $550,000. There is no owner-occupier \"home concession\" in NSW — owner-occupiers and investors pay the same standard rates. The main relief is the First Home Buyers Assistance Scheme."
+    "a": "NSW transfer duty (still commonly called stamp duty) is charged by Revenue NSW on the dutiable value of any property purchase. The duty steps up across brackets: 1.25% up to $17,000, 1.5% to $37,000, 1.75% to $99,000, 3.5% to $372,000, 4.5% to $1.24 million, 5.5% to $3.721 million, and 7% on the portion above $3.721 million. There is no owner-occupier \"home concession\" in NSW — owner-occupiers and investors pay the same standard rates. The main relief is the First Home Buyers Assistance Scheme."
   },
   {
     "q": "Do first home buyers pay stamp duty in NSW?",

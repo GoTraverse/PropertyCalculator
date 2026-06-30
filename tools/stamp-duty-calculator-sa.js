@@ -267,7 +267,7 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in South Australia?",
-    "a": "SA stamp duty on conveyances is charged by RevenueSA on the dutiable value of any property purchase. Rates step up across five brackets, from nil under $16,000 to 5.5% on the portion above $500,000. Owner-occupiers and investors pay the same standard rates on established dwellings."
+    "a": "SA stamp duty on conveyances is charged by RevenueSA on the dutiable value of any property purchase. Rates step up across nine brackets: 1% up to $12,000, 2% to $30,000, 3% to $50,000, 3.5% to $100,000, 4% to $200,000, 4.25% to $250,000, 4.75% to $300,000, 5% to $500,000, and 5.5% on the portion above $500,000. Owner-occupiers and investors pay the same standard rates on established dwellings."
   },
   {
     "q": "Do first home buyers pay stamp duty in SA?",

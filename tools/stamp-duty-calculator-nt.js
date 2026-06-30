@@ -184,15 +184,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$9,478"
+        "v": "$25,569"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$9,478"
+        "v": "$25,569"
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "v": "$25,569 (no value-based concession on established homes)"
       }
     ]
   },
@@ -211,15 +211,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$13,978"
+        "v": "$34,650"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$13,978"
+        "v": "$34,650"
       },
       {
         "k": "First home buyer duty",
-        "v": "$13,978 (established)"
+        "v": "$34,650 (established)"
       }
     ]
   },
@@ -238,15 +238,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$21,478"
+        "v": "$49,500"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$21,478"
+        "v": "$49,500"
       },
       {
         "k": "First home buyer duty",
-        "v": "$21,478 (established)"
+        "v": "$49,500 (established)"
       }
     ]
   }
@@ -254,7 +254,7 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in the Northern Territory?",
-    "a": "NT stamp duty on conveyances is charged by the Territory Revenue Office on the dutiable value of any property purchase. The NT uses a single graduated formula rather than discrete brackets — rates rise smoothly with the dutiable value, capping out at 5.95% above $5 million. Owner-occupiers and investors pay the same standard rates on established dwellings."
+    "a": "NT stamp duty on conveyances is charged by the Territory Revenue Office on the dutiable value of any property purchase. For values under $525,000 the NT uses a graduated formula rather than discrete brackets, so duty rises smoothly with the price. From $525,000 to $3 million duty is a flat 4.95% of the whole price; from $3 million to $5 million it is 5.75%; and above $5 million it is 5.95%. Owner-occupiers and investors pay the same standard rates on established dwellings."
   },
   {
     "q": "Do first home buyers pay stamp duty in the NT?",
@@ -270,7 +270,7 @@ ToolPage.init({
   },
   {
     "q": "Why does the NT use a formula instead of brackets?",
-    "a": "The NT formula (D = 0.06571441 × V² + 15V for purchases under $525,000) produces a smooth graduated curve rather than the bracket-based steps used in other states. The practical effect is similar to a tiered system, but the duty changes by cents (not dollars) as the price changes — eliminating the small jumps at bracket boundaries that other states have."
+    "a": "For purchases under $525,000 the NT formula (D = 0.06571441 × V² + 15V, where V is the dutiable value in thousands of dollars) produces a smooth graduated curve rather than the bracket-based steps used in other states. The practical effect is similar to a tiered system, but below $525,000 the duty changes by cents (not dollars) as the price changes — eliminating the small jumps at bracket boundaries that other states have. At $525,000 and above the NT switches to flat percentage rates (4.95% up to $3 million, then 5.75% and 5.95%)."
   },
   {
     "q": "Is NT stamp duty tax deductible?",
