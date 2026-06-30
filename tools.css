@@ -50,7 +50,9 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .dark-mode .tool-validation-msg { background: rgba(224,138,138,0.14); border-color: rgba(224,138,138,0.4); color: var(--risk-red-bright); }
 
 /* ── Result card ── */
-.tool-result { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 22px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.09); margin-bottom: 14px; }
+.tool-result { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 22px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.09); margin-bottom: 14px; animation: toolResultIn 0.32s cubic-bezier(0.22,0.61,0.36,1) both; }
+@keyframes toolResultIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tool-result { animation: none; } }
 .tool-result-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--slate); margin-bottom: 14px; }
 .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 @media (max-width: 400px) { .tool-grid { grid-template-columns: 1fr; } }
