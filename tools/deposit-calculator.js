@@ -76,11 +76,13 @@ function stampDutyEstimate(price, state, fhb) {
 
 function lmiEstimate(loanAmount, lvr) {
   // Rough LMI scale — varies by lender and LVR band. This is indicative only.
+  // Canonical LMI tiers (shared with mortgage-repayment + stamp-duty tools),
+  // indicative of Helia/QBE rates per ASIC MoneySmart. LVR as a percentage.
   if (lvr <= 80) return 0;
-  if (lvr <= 85) return loanAmount * 0.009;
-  if (lvr <= 90) return loanAmount * 0.018;
-  if (lvr <= 95) return loanAmount * 0.035;
-  return loanAmount * 0.045;
+  if (lvr <= 85) return loanAmount * 0.0080;
+  if (lvr <= 90) return loanAmount * 0.0190;
+  if (lvr <= 95) return loanAmount * 0.0340;
+  return loanAmount * 0.0430;
 }
 
 function calc() {
