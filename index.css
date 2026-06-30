@@ -798,7 +798,8 @@ html.dark-mode .why-aus-methodology a { color: var(--gold); }
   line-height: 1.7;
   color: var(--slate);
 }
-.landing-faq-item p a { color: var(--gold); text-decoration: underline; }
+.landing-faq-item p a { color: var(--gold-dark); text-decoration: underline; }
+.data-methodology p a { color: var(--gold-dark); text-decoration: underline; }
 
 /* Data + methodology callout (outbound authority links) */
 .data-methodology {
@@ -857,6 +858,7 @@ html.dark-mode .landing-faq { background: #0d0d0f; }
 html.dark-mode .landing-faq-item { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
 html.dark-mode .landing-faq-item summary { color: var(--cream); }
 html.dark-mode .landing-faq-item p { color: rgba(245,240,232,0.6); }
+html.dark-mode .landing-faq-item p a, html.dark-mode .data-methodology p a { color: var(--gold); }
 html.dark-mode .data-methodology { border-color: rgba(255,255,255,0.07); }
 html.dark-mode .data-methodology p { color: rgba(245,240,232,0.6); }
 html.dark-mode .data-methodology-sources a { background: #1C1C1E; border-color: rgba(255,255,255,0.12); color: rgba(245,240,232,0.75); }
