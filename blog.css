@@ -701,7 +701,7 @@
   text-align: right;
   margin-top: 2px;
 }
-.blog-comment-counter.is-ok { color: #2e7d32; }
+.blog-comment-counter.is-ok { color: var(--reward-green); }
 
 .blog-comment-form-actions {
   display: flex;
@@ -735,13 +735,13 @@
 .blog-comment-result.is-success {
   display: block;
   background: rgba(46, 125, 50, 0.1);
-  color: #2e7d32;
+  color: var(--reward-green);
   border: 1px solid rgba(46, 125, 50, 0.2);
 }
 .blog-comment-result.is-error {
   display: block;
   background: rgba(198, 40, 40, 0.08);
-  color: #c62828;
+  color: var(--risk-red);
   border: 1px solid rgba(198, 40, 40, 0.2);
 }
 
