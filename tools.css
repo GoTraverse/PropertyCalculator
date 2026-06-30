@@ -308,12 +308,12 @@ html.dark-mode .tool-resources a { color: var(--gold); }
 .dark-mode .tool-btn-secondary { color: rgba(245,240,232,0.9); border-color: rgba(245,240,232,0.2); }
 .dark-mode .tool-btn-secondary:hover { background: rgba(245,240,232,0.06); border-color: rgba(245,240,232,0.40); }
 
-.mort-callout { display: flex; align-items: center; gap: 12px; margin: 14px 0; padding: 12px 16px; background: rgba(15,118,110,0.08); border-left: 3px solid #0f766e; border-radius: 4px; font-size: 13px; line-height: 1.5; color: var(--charcoal); }
+.mort-callout { display: flex; align-items: center; gap: 12px; margin: 14px 0; padding: 12px 16px; background: rgba(90,158,123,0.08); border-left: 3px solid var(--reward-green); border-radius: 4px; font-size: 13px; line-height: 1.5; color: var(--charcoal); }
 .mort-callout-gold { background: rgba(201,168,76,0.10); border-left-color: var(--gold); }
-.mort-callout-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: #0f766e; white-space: nowrap; }
+.mort-callout-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--reward-green); white-space: nowrap; }
 .mort-callout-gold .mort-callout-tag { color: #b78712; }
 .mort-callout-text { flex: 1; }
-.dark-mode .mort-callout { background: rgba(15,118,110,0.18); color: rgba(245,240,232,0.92); }
+.dark-mode .mort-callout { background: rgba(90,158,123,0.18); color: rgba(245,240,232,0.92); }
 .dark-mode .mort-callout-gold { background: rgba(201,168,76,0.18); }
 
 .mort-donut-wrap { display: flex; justify-content: center; margin: 22px 0 6px; }
@@ -351,8 +351,8 @@ html.dark-mode .tool-resources a { color: var(--gold); }
 .bp-breakdown td { padding: 9px 12px; text-align: right; color: var(--charcoal-soft); border-bottom: 1px solid rgba(28,28,30,0.05); font-variant-numeric: tabular-nums; }
 .bp-breakdown td:first-child { text-align: left; color: var(--charcoal); }
 .bp-breakdown tr.bp-base td { background: rgba(201,168,76,0.06); font-weight: 600; }
-.bp-breakdown tr.bp-final td { background: rgba(15,118,110,0.08); font-weight: 700; color: var(--charcoal); border-top: 2px solid #0f766e; }
-.bp-breakdown td.bp-pos { color: #0f766e; font-weight: 600; }
+.bp-breakdown tr.bp-final td { background: rgba(90,158,123,0.08); font-weight: 700; color: var(--charcoal); border-top: 2px solid var(--reward-green); }
+.bp-breakdown td.bp-pos { color: var(--reward-green); font-weight: 600; }
 .bp-breakdown td.bp-neg { color: #b91c1c; font-weight: 600; }
 .dark-mode .bp-breakdown-wrap { border-color: rgba(255,255,255,0.10); }
 .dark-mode .bp-breakdown thead { background: rgba(255,255,255,0.04); }
@@ -360,38 +360,38 @@ html.dark-mode .tool-resources a { color: var(--gold); }
 .dark-mode .bp-breakdown td { color: rgba(245,240,232,0.85); border-color: rgba(255,255,255,0.06); }
 .dark-mode .bp-breakdown td:first-child { color: #f2f2f7; }
 .dark-mode .bp-breakdown tr.bp-base td { background: rgba(201,168,76,0.12); }
-.dark-mode .bp-breakdown tr.bp-final td { background: rgba(15,118,110,0.18); color: #f2f2f7; }
+.dark-mode .bp-breakdown tr.bp-final td { background: rgba(90,158,123,0.18); color: #f2f2f7; }
 .dark-mode .bp-subheading { color: #f2f2f7; }
 
 
 /* ── FHB Grants calculator: hero + sections ── */
-.fhb-hero { background: linear-gradient(135deg, rgba(15,118,110,0.10), rgba(201,168,76,0.10)); border: 1px solid rgba(15,118,110,0.20); border-radius: 8px; padding: 22px 20px; margin-bottom: 16px; text-align: center; }
+.fhb-hero { background: linear-gradient(135deg, rgba(90,158,123,0.10), rgba(201,168,76,0.10)); border: 1px solid rgba(90,158,123,0.20); border-radius: 8px; padding: 22px 20px; margin-bottom: 16px; text-align: center; }
 .fhb-hero-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--slate); margin-bottom: 6px; }
-.fhb-hero-value { font-family: var(--font-display); font-size: 36px; font-weight: 700; color: #0f766e; line-height: 1.1; }
+.fhb-hero-value { font-family: var(--font-display); font-size: 36px; font-weight: 700; color: var(--reward-green); line-height: 1.1; }
 .fhb-hero-note { font-size: 12px; color: var(--slate); margin-top: 4px; }
 .fhb-section { background: var(--warm-white); border: 1px solid rgba(28,28,30,0.08); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
 .fhb-section-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--charcoal); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(28,28,30,0.06); }
 .fhb-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; color: var(--charcoal-soft); gap: 12px; }
 .fhb-row-val { font-weight: 600; color: var(--charcoal); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.fhb-row-save { color: #0f766e; font-weight: 600; }
-.fhb-row-save .fhb-row-val { color: #0f766e; }
+.fhb-row-save { color: var(--reward-green); font-weight: 600; }
+.fhb-row-save .fhb-row-val { color: var(--reward-green); }
 .fhb-row-na { color: var(--slate); }
 .fhb-row-note { font-size: 11px; color: var(--slate); line-height: 1.5; margin-top: 6px; padding-left: 4px; border-left: 2px solid rgba(28,28,30,0.10); padding-left: 8px; }
-.dark-mode .fhb-hero { background: linear-gradient(135deg, rgba(15,118,110,0.20), rgba(201,168,76,0.18)); border-color: rgba(15,118,110,0.35); }
-.dark-mode .fhb-hero-value { color: #5eead4; }
+.dark-mode .fhb-hero { background: linear-gradient(135deg, rgba(90,158,123,0.20), rgba(201,168,76,0.18)); border-color: rgba(90,158,123,0.35); }
+.dark-mode .fhb-hero-value { color: var(--reward-green-bright); }
 .dark-mode .fhb-section { background: #1c1c1e; border-color: rgba(255,255,255,0.08); }
 .dark-mode .fhb-section-title { color: #f2f2f7; border-color: rgba(255,255,255,0.06); }
 .dark-mode .fhb-row { color: rgba(245,240,232,0.85); }
 .dark-mode .fhb-row-val { color: #f2f2f7; }
-.dark-mode .fhb-row-save, .dark-mode .fhb-row-save .fhb-row-val { color: #5eead4; }
+.dark-mode .fhb-row-save, .dark-mode .fhb-row-save .fhb-row-val { color: var(--reward-green-bright); }
 .dark-mode .fhb-row-note { color: rgba(245,240,232,0.6); border-color: rgba(255,255,255,0.15); }
 
 
 /* ── Stamp duty cross-state comparison ── */
 .sd-compare tr.sd-current td { background: rgba(201,168,76,0.10); font-weight: 600; }
-.sd-compare td.sd-save { color: #0f766e; font-weight: 600; }
+.sd-compare td.sd-save { color: var(--reward-green); font-weight: 600; }
 .dark-mode .sd-compare tr.sd-current td { background: rgba(201,168,76,0.16); }
-.dark-mode .sd-compare td.sd-save { color: #5eead4; }
+.dark-mode .sd-compare td.sd-save { color: var(--reward-green-bright); }
 
 
 /* ── Ad placeholder (May 2026: hidden until ads go live) ──
