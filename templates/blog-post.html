@@ -34,7 +34,7 @@
 <meta name="twitter:image" content="{{COVER_IMAGE_ABS}}">
 <script type="application/ld+json">
 [
-  {"@context":"https://schema.org","@type":"BlogPosting","headline":"{{TITLE_JSON}}","description":"{{META_DESCRIPTION_JSON}}","image":"{{COVER_IMAGE_ABS}}","datePublished":"{{PUBLISHED_AT_ISO}}","dateModified":"{{UPDATED_AT_ISO}}","wordCount":{{WORD_COUNT}},"author":{"@type":"Person","name":"{{AUTHOR_JSON}}","description":"{{AUTHOR_BIO_JSON}}"},"publisher":{"@type":"Organization","name":"EquitySight","logo":{"@type":"ImageObject","url":"https://equitysight.app/images/logo-dark.svg"}},"mainEntityOfPage":"https://equitysight.app/blog/{{SECTION}}/{{SLUG}}/"},
+  {"@context":"https://schema.org","@type":"BlogPosting","headline":"{{TITLE_JSON}}","description":"{{META_DESCRIPTION_JSON}}","image":"{{COVER_IMAGE_ABS}}","datePublished":"{{PUBLISHED_AT_ISO}}","dateModified":"{{UPDATED_AT_ISO}}","wordCount":{{WORD_COUNT}},"author":{{AUTHOR_JSON_LD}},"publisher":{"@type":"Organization","name":"EquitySight","logo":{"@type":"ImageObject","url":"https://equitysight.app/images/logo-dark.svg"}},"mainEntityOfPage":"https://equitysight.app/blog/{{SECTION}}/{{SLUG}}/"},
   {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://equitysight.app/blog/"},{"@type":"ListItem","position":3,"name":"{{TITLE_JSON}}","item":"https://equitysight.app/blog/{{SECTION}}/{{SLUG}}/"}]}
 ]
 </script>
@@ -87,11 +87,7 @@
       {{BODY_HTML}}
     </div>
     <div class="ad-slot" data-ad-type="blog"></div>
-    <div class="blog-author-card">
-      <div class="blog-author-head">About the author</div>
-      <div class="blog-author-name">{{AUTHOR}}</div>
-      <div class="blog-author-bio">{{AUTHOR_BIO}}</div>
-    </div>
+    {{AUTHOR_CARD_HTML}}
     <div class="blog-tags">
       {{TAGS_HTML}}
     </div>

@@ -230,6 +230,46 @@ Files intentionally NOT blocked (needed at runtime):
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
 
+## Recent Changes (Jun 2026 — Honesty / E-E-A-T remediation)
+
+A site-wide pass to remove fabricated/misleading content that Google's helpful-content
++ E-E-A-T systems penalise (it was the real cause of the calculators being "Crawled –
+currently not indexed" and the AdSense "Low value content" rejection).
+
+- **Fabricated identities removed.** `about.html`'s invented three-person "team" (Alex
+  Chen / Sarah Williams / James Patel, fake degrees, a fake "Certified Practising
+  Valuer", fake @equitysight.app emails) is gone — replaced with an honest solo-founder
+  section (Jacoby; real first-home-buyer origin story; no invented credentials). The same
+  fake personas were also bylined on blog posts with `Person` JSON-LD: all blog posts +
+  `data/blog-fixture.json` now attribute to the **EquitySight Organization**, and
+  `build/build-blog.js` + `templates/blog-post.html` emit an Organization node (no `Person`
+  bio) unless a genuine bio exists. `blog-editor.html` placeholder hints de-faked.
+- **Fabricated suburb data no longer presented as ABS fact.** `data/suburbs.json`'s
+  `median_household_income` is a name-seeded placeholder (not ABS); transport/amenity
+  scores are pseudo-random; school/park counts are population ratios; rent/mortgage/
+  distance/lat-lng are unpopulated. Fixes: `shouldNoindex()` now noindexes **every** suburb
+  page (placeholder data must not be indexed); the income figure is shown as `N/A`; the
+  per-page "How we built this profile" block now states plainly that only population +
+  postcode are real and the rest are estimates. State medians use a population threshold
+  directly (decoupled from the now-always-true gate).
+- **Provenance pages rewritten honestly.** `methodology.md` + `data-sources.md` no longer
+  claim "every number from the ABS … no estimation" / "no AI writes our prose" / OSM
+  amenity sourcing. They now state which fields are real (population, postcode, RBA cash
+  rate) vs estimate/placeholder, disclose that the written calculator guides are
+  AI-assisted + human-reviewed, and drop the public change-log + noindex-strategy sections.
+  `build/build-legal.js` duplicate-render bug (each legal page rendered twice) fixed.
+- **Marketing overclaims fixed.** Dropped the "Australia's smartest …" superlative (meta +
+  JSON-LD across index/about/showcase + emails/export), removed pricing's unsupported "Most
+  popular" badge, and corrected inflated "14,512 suburb profiles / for every suburb /
+  amenity scores / Real ABS Census data for every suburb" coverage claims.
+- **Calculator content depth.** The 11 thinnest calculator pages were expanded from
+  ~95–535 words to ~1,000+ words of unique, Australian-specific content (formula + worked
+  example + FAQ + scope note), drafted with AI and then **adversarially fact-checked**
+  (formulas/arithmetic recomputed; time-sensitive figures framed as illustrative; a couple
+  of figures corrected, e.g. a deposit-page LMI overstatement + QLD FHB stamp-duty example).
+- **Net:** suburb pages are intentionally noindexed pending real ABS data; the indexable,
+  honest surface is now the calculators + homepage + (de-faked) blog.
+
 ## Recent Changes (Jun 2026 — Guest mode on /app, PR A)
 
 Removes the `/app` login wall (the #1 signup leak per `APP_AUDIT.md`) so logged-out

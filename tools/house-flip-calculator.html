@@ -182,26 +182,66 @@
 </div>
 
 <section class="tool-content">
-  <h2>What makes a good house flip in Australia?</h2>
-  <p>A profitable flip typically targets a gross profit margin of at least 15–20% of the purchase price — enough to cover costs and provide a reasonable return. Tight margins get eaten up by unexpected expenses.</p>
+  <h2>Understanding the economics of a house flip</h2>
+  <p>"Flipping" a property means buying a home, improving it through renovation, and selling it again within a relatively short window — typically anywhere from a few months to a year. The strategy sounds simple: buy low, add value, sell high. In practice, the profit you keep is whatever survives after a long list of costs has been deducted from the sale price. Many first-time flippers focus only on the gap between the purchase price and the expected sale price, then are surprised when most of that gap disappears into stamp duty, renovation overruns, holding costs and tax.</p>
+  <p>This calculator brings all of those costs into one view so you can see your net position before you commit capital. It separates the money going <strong>in</strong> (purchase price, acquisition costs, renovation, holding costs and selling costs) from the money coming <strong>out</strong> (the sale price less agent commission and conveyancing), then reports your net profit, return on investment (ROI) and an annualised return. Looking at the annualised figure matters because a flip that returns 12% over four months is performing very differently from one that returns 12% over eighteen months.</p>
 
-  <h2>The 70% rule explained</h2>
-  <p>A widely used rule in property flipping: don't pay more than <strong>70% of the After-Repair Value (ARV)</strong> minus renovation costs.</p>
-  <p><em>Maximum purchase price = (ARV × 0.70) − renovation costs</em></p>
-  <p>This leaves room for holding costs, selling costs, and profit margin.</p>
-
-  <h2>Common costs that kill flip margins</h2>
+  <h2>How the calculation works</h2>
+  <p>The tool works through four cost stages and one sale stage. In plain words:</p>
   <ul>
-    <li><strong>Stamp duty:</strong> 3–6%+ of purchase price depending on state</li>
-    <li><strong>Agent commission:</strong> Typically 1.5–3% of sale price in Australia</li>
-    <li><strong>Renovation blowouts:</strong> Budget 15–20% contingency on top of quotes</li>
-    <li><strong>Holding costs:</strong> Mortgage, council rates, insurance for every month you hold</li>
-    <li><strong>Capital Gains Tax:</strong> If held under 12 months, the full profit is taxable as income</li>
-    <li><strong>GST:</strong> May apply if you're classified as a developer — seek advice</li>
+    <li><strong>Total cost (in)</strong> = purchase price + stamp duty + buying conveyancing + inspections + renovation budget + renovation contingency + (monthly holding cost × number of months).</li>
+    <li><strong>Net proceeds (out)</strong> = expected sale price − agent commission − selling conveyancing − styling/staging. Agent commission is calculated as sale price × commission rate.</li>
+    <li><strong>Net profit (pre-tax)</strong> = net proceeds − total cost.</li>
+    <li><strong>ROI</strong> = net profit ÷ total cost, expressed as a percentage. This tells you how hard every dollar you put in worked.</li>
+    <li><strong>Annualised return</strong> rescales the ROI to a yearly basis using the hold period: roughly ROI × (12 ÷ months held). It lets you compare flips of different durations on equal footing.</li>
+  </ul>
+  <p>The contingency field automatically adds a 15% buffer on top of your renovation budget. This is deliberate — building and trade work in Australia routinely runs over quote once walls are opened up and hidden problems (wiring, plumbing, asbestos, termite damage) appear. The result the tool shows is a <strong>pre-tax</strong> figure. Capital gains tax, income tax on profit, and GST for those classified as developers are not deducted automatically, because the right treatment depends on your circumstances. We explain the tax side below.</p>
+
+  <h2>A worked example</h2>
+  <p>Assume the following, which mirror the calculator's default-style inputs:</p>
+  <ul>
+    <li>Purchase price: <strong>$520,000</strong></li>
+    <li>Stamp duty: <strong>$18,000</strong> (varies by state and whether concessions apply)</li>
+    <li>Buying conveyancing and inspections: <strong>$2,300</strong> combined</li>
+    <li>Renovation budget: <strong>$85,000</strong>, plus a 15% contingency of <strong>$12,750</strong></li>
+    <li>Holding period: <strong>8 months</strong> at <strong>$3,200</strong> per month = <strong>$25,600</strong> (loan interest, council rates, insurance, utilities)</li>
+    <li>Expected sale price: <strong>$750,000</strong></li>
+    <li>Agent commission: <strong>2.2%</strong> = $16,500; selling conveyancing $1,500; styling $3,000</li>
+  </ul>
+  <p>Total cost in is roughly $520,000 + $18,000 + $2,300 + $85,000 + $12,750 + $25,600 = <strong>$663,650</strong>. Net proceeds out are $750,000 − $16,500 − $1,500 − $3,000 = <strong>$729,000</strong>. Net profit (pre-tax) is about <strong>$65,350</strong>, an ROI of roughly <strong>9.8%</strong>, which annualises to around <strong>14.8%</strong> over the eight-month hold. That looks healthy — but remember the figure is before tax. Because the property was held under 12 months, the entire gain would be added to your taxable income, and at a 37% marginal rate the after-tax profit could fall to around $41,000. A single renovation blowout or a softer-than-hoped sale price can turn that margin negative quickly.</p>
+
+  <h2>Capital gains tax and the 12-month rule</h2>
+  <p>Tax is the factor most likely to surprise a new flipper. Under Australian Taxation Office (ATO) rules, profit on an investment property is generally a capital gain. If you hold the asset for <strong>less than 12 months</strong>, the whole gain is added to your assessable income and taxed at your marginal rate — there is no discount. If you hold it for <strong>more than 12 months</strong>, individuals are generally entitled to the <strong>50% CGT discount</strong>, which halves the taxable gain. Because most flips are deliberately fast, they usually miss the discount entirely, and that timing decision can be worth tens of thousands of dollars.</p>
+  <p>There is a further wrinkle. If the ATO considers that you are carrying on a property-flipping <em>business</em> or undertaking a profit-making scheme, your profit may be treated as <strong>ordinary income</strong> rather than a capital gain, in which case the CGT discount does not apply at all and GST may also be in play on the sale. The line between an investor and a trader is a matter of fact and intention. The main-residence CGT exemption can apply if you genuinely live in the property, but living in a home purely to game the exemption while running it as a business is exactly the kind of arrangement the ATO scrutinises. For the current rules and rates, check <a href="https://www.ato.gov.au" rel="noopener" target="_blank">ato.gov.au</a>, and read general consumer guidance at <a href="https://moneysmart.gov.au" rel="noopener" target="_blank">moneysmart.gov.au</a>.</p>
+
+  <h2>The 70% rule and buying with a margin of safety</h2>
+  <p>A widely used screening rule from the flipping world is the <strong>70% rule</strong>: don't pay more than 70% of the After-Repair Value (ARV) minus renovation costs. In words, <em>maximum purchase price = (ARV × 0.70) − renovation costs</em>. Using the example above, with a $750,000 ARV and $85,000 of works, the rule suggests a maximum purchase of about $440,000 — well below the $520,000 assumed. That gap illustrates why the worked example's margin is only modest: the deal was bought without much safety buffer. The 70% rule is a rough heuristic, not a law, and Australian stamp duty and agent fees are higher than in some markets, so many local investors tighten it further. Treat it as a starting filter, then run the full numbers here.</p>
+
+  <h2>Practical tips and common mistakes</h2>
+  <ul>
+    <li><strong>Get fixed quotes before you exchange.</strong> Estimating renovation cost from a "feel" is the single biggest source of blowouts. Walk the property with a licensed builder during the cooling-off or due-diligence period.</li>
+    <li><strong>Respect holding costs.</strong> Every extra month of delay adds loan interest, rates and insurance with no offsetting income. Renovation projects almost always run longer than planned, so model a realistic — even pessimistic — timeline.</li>
+    <li><strong>Don't over-capitalise.</strong> Spending $120,000 to add $90,000 of value is a common trap. Renovate to the ceiling of what the street and suburb support, not to your personal taste.</li>
+    <li><strong>Mind serviceability and finance.</strong> Lenders assess flip and renovation loans cautiously, and the Australian Prudential Regulation Authority (APRA) requires banks to test repayments with a serviceability buffer (around 3 percentage points above the loan rate). Interest-only periods can ease cash flow during a hold but raise total cost.</li>
+    <li><strong>Confirm stamp duty before you budget.</strong> Duty is set by each state and territory revenue office, varies by price bracket and buyer type, and investors rarely qualify for first-home concessions. Check your state revenue office for the exact figure rather than guessing.</li>
+    <li><strong>Sell into the right market.</strong> Your exit price assumption is a forecast, not a fact. A cooling market between purchase and sale can erase the whole margin.</li>
   </ul>
 
-  <h2>CGT and the 12-month rule</h2>
-  <p>In Australia, if you sell within 12 months of purchase, the full capital gain is added to your income and taxed at your marginal rate. Holding for more than 12 months halves the taxable gain (50% CGT discount). This can dramatically affect net profit on flips.</p>
+  <h2>What this calculator does and doesn't cover</h2>
+  <p>This tool estimates the <strong>pre-tax</strong> economics of a single flip from the inputs you enter. It does not calculate capital gains tax or income tax for you, does not account for GST that may apply to developers, and does not model finance in detail beyond the monthly holding cost you provide — so loan establishment fees, lenders mortgage insurance (LMI, which typically applies above 80% LVR), break costs or capitalised interest should be folded into your inputs if relevant. It assumes a single buy-and-sell cycle and does not handle subdivision, multi-dwelling development, or rental income earned during the hold. The output is a planning estimate to help you decide whether a deal is worth pursuing, not a substitute for figures from your accountant, mortgage broker and conveyancer.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>How much profit margin should a house flip aim for in Australia?</h3>
+  <p>Because Australian transaction costs and tax are high, many investors look for a gross margin well above 15–20% of the purchase price so there is room to absorb overruns and still profit after tax. The right target depends on the deal's risk, the hold period and your tax position. A thin margin leaves no buffer for the surprises that flips routinely produce.</p>
+
+  <h3>Do I have to pay CGT on a house flip?</h3>
+  <p>Generally yes, unless the property qualified as your main residence. Hold the property under 12 months and the full gain is taxed at your marginal rate; hold it over 12 months and individuals usually get the 50% CGT discount. If the ATO treats your activity as a business, the profit may instead be taxed as ordinary income with no discount. Confirm your situation with a registered tax agent and at <a href="https://www.ato.gov.au" rel="noopener" target="_blank">ato.gov.au</a>.</p>
+
+  <h3>Why does the annualised return matter more than ROI?</h3>
+  <p>ROI tells you the total return on the cash you committed, but it ignores time. Annualised return rescales that figure to a yearly basis so you can compare a quick six-month flip against a slower twelve-month one. Two flips with the same ROI can have very different annualised returns, and the faster one ties up your capital for less time.</p>
+
+  <h3>Is house flipping a reliable way to make money?</h3>
+  <p>It can be profitable, but it is an active, capital-intensive strategy exposed to renovation risk, interest-rate movements monitored by the Reserve Bank of Australia (RBA), and shifts in the property market between purchase and sale. Profit relies on buying with a genuine margin, controlling renovation cost and timing the sale. This page is general information only and not personal financial advice — speak to a licensed professional before acting.</p>
 </section>
 
 <div id="tool-resources-root"></div>

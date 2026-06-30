@@ -148,48 +148,66 @@
 </div>
 
 <section class="tool-content">
-  <h2>How mortgage serviceability works in Australia</h2>
-  <p>Australian banks assess serviceability — your ability to repay the loan — using strict lending criteria. They typically use a 3% interest rate buffer when assessing your ability to repay, regardless of the actual rate.</p>
+  <h2>What loan serviceability means in Australia</h2>
+  <p>Serviceability is a lender's assessment of whether you can comfortably afford the repayments on a home loan — not just today, but if interest rates rise. It is the single biggest factor that decides how much you can borrow, and it is often far more restrictive than the size of your deposit. Two households with identical incomes can be approved for very different amounts depending on their expenses, existing debts, dependents and the type of work they do.</p>
+  <p>Australian lenders do not simply lend a fixed multiple of your salary. Instead they build a monthly budget for your household, strip out tax, living costs and existing commitments, and then test whether the money left over — your "net surplus" — can cover the new mortgage at a stressed interest rate. This approach is shaped by responsible-lending obligations enforced by ASIC and by prudential standards set by APRA (the Australian Prudential Regulation Authority). Understanding how that budget is built lets you see exactly where your borrowing power is won or lost.</p>
 
-  <h2>Key serviceability metrics</h2>
+  <h2>How lenders calculate serviceability</h2>
+  <p>The core logic behind this calculator mirrors the way most Australian banks work through a serviceability assessment, step by step:</p>
   <ul>
-    <li><strong>Debt-to-income ratio:</strong> Banks typically limit total debt repayments to 40–50% of gross income.</li>
-    <li><strong>Living expense allowances:</strong> Banks apply minimum living expense guidelines ($2,600–$3,500/month for individuals) to ensure you can meet other obligations.</li>
-    <li><strong>Interest rate buffer:</strong> Most banks assume a 3% buffer above the current rate for repayment capacity.</li>
-    <li><strong>Loan-to-value (LVR):</strong> Typically limited to 80–90% depending on loan type and circumstances.</li>
+    <li><strong>Step 1 — Assessable income.</strong> Start with gross (pre-tax) income, then apply "haircuts" to less certain income. Base salary is usually taken at 100%, but lenders commonly count only 70–80% of overtime, bonuses, commissions and rental income because those streams are variable. Government benefits and some allowances may be counted in full, partially, or not at all.</li>
+    <li><strong>Step 2 — Tax.</strong> Income tax and the Medicare levy are deducted to arrive at net income, since you repay a loan out of after-tax dollars.</li>
+    <li><strong>Step 3 — Living expenses.</strong> The lender takes the higher of your declared living expenses or the Household Expenditure Measure (HEM) benchmark for a household of your size and income.</li>
+    <li><strong>Step 4 — Existing commitments.</strong> Repayments on car loans, personal loans, buy-now-pay-later and HECS/HELP are subtracted, along with a notional repayment on the full limit of any credit cards — even cards you never use.</li>
+    <li><strong>Step 5 — The buffer.</strong> The proposed repayment is calculated not at the advertised rate but at a stressed "assessment rate" that adds APRA's serviceability buffer of around 3 percentage points.</li>
+  </ul>
+  <p>In words, the formula is: <strong>Net surplus = (assessable income − tax) − living expenses (HEM floor) − existing debt repayments − new loan repayment at the buffered rate.</strong> If that surplus is positive, the loan is serviceable; the maximum loan is the largest amount where the surplus stays at or above zero. Lenders also apply a debt-to-income (DTI) sanity check, and many treat a total DTI above roughly 6 times gross income as higher risk requiring extra scrutiny.</p>
+
+  <h2>The APRA serviceability buffer — why 3%?</h2>
+  <p>In October 2021 APRA increased the minimum serviceability buffer banks must use from 2.5% to 3 percentage points above the loan's interest rate. The idea is to make sure borrowers can still cope if rates climb after they sign up. If your actual rate is 6.0%, the bank tests your repayments at around 9.0%. Because the buffer is applied to the whole loan, it has an outsized effect: a borrower might comfortably afford repayments at today's rate yet be declined because the stressed repayment pushes their budget into the red. The buffer is a guideline rather than a hard ceiling, and lenders may apply a higher floor rate, but you should expect roughly a 3% buffer at almost every mainstream lender.</p>
+
+  <h2>HEM — the living-expense benchmark</h2>
+  <p>The <strong>Household Expenditure Measure (HEM)</strong> is a benchmark of what a household of a given size and income typically spends on essentials and modest discretionary items. It is published quarterly by the Melbourne Institute and used across the industry as a minimum living-expense floor. If you declare expenses below the HEM figure for your circumstances, the lender substitutes HEM instead — so claiming unrealistically low spending will not boost your borrowing power. HEM scales with income and household size, which is why adding a partner or a dependent child changes your result. It is a floor, not a cap: if your genuine, verified spending is higher than HEM, the lender uses your higher figure.</p>
+
+  <h2>Worked example</h2>
+  <p>Assume a couple applying together. Partner A earns <strong>$120,000</strong> gross salary; Partner B earns <strong>$85,000</strong> gross salary; there is no other income. They have a car loan costing <strong>$650/month</strong> and a credit card with a <strong>$10,000</strong> limit. Their declared living expenses are <strong>$4,200/month</strong>, the lender's HEM figure for their household is <strong>$4,000/month</strong>, and the advertised rate is <strong>6.0%</strong> over a 30-year principal-and-interest term.</p>
+  <ul>
+    <li><strong>Income:</strong> combined gross of $205,000. After income tax and the Medicare levy, net income is roughly $13,400/month (illustrative — actual tax depends on the individual returns).</li>
+    <li><strong>Living expenses:</strong> declared $4,200 is higher than HEM $4,000, so the lender uses $4,200.</li>
+    <li><strong>Existing commitments:</strong> $650 car loan, plus a notional credit-card repayment of about 3% of the $10,000 limit, or roughly $300/month — even though the card is paid off in full each month.</li>
+    <li><strong>Assessment rate:</strong> 6.0% advertised plus a 3% buffer equals a 9.0% test rate.</li>
+    <li><strong>Result:</strong> after expenses and commitments the couple has a surplus that can support a buffered repayment of around $7,900/month, which at 9.0% over 30 years corresponds to a loan of roughly <strong>$980,000</strong>. At the actual 6.0% rate, that same loan would cost about $5,900/month — comfortably affordable, which is exactly the safety margin the buffer is designed to create.</li>
+  </ul>
+  <p>Every figure here is an assumption for illustration. Change the rate, the expenses or the credit-card limit and the answer moves significantly — which is the whole point of running the numbers yourself.</p>
+
+  <h2>Practical tips and common mistakes</h2>
+  <ul>
+    <li><strong>Cancel or reduce unused credit cards.</strong> Lenders assess the full limit, not the balance. Dropping a $20,000 limit to $5,000 can add tens of thousands to your capacity.</li>
+    <li><strong>Clear short-term debt first.</strong> A car loan or personal loan with a high monthly repayment eats into surplus far more than its balance suggests.</li>
+    <li><strong>Don't understate expenses.</strong> Lenders verify spending against bank statements and apply the HEM floor, so lowballing rarely works and can delay approval.</li>
+    <li><strong>Understand income haircuts.</strong> If a large share of your pay is bonus, commission or overtime, expect only part of it to count. Self-employed applicants are usually assessed on two years of tax returns.</li>
+    <li><strong>Watch the DTI.</strong> Even with strong surplus, a very high debt-to-income ratio can trigger tighter scrutiny or a smaller loan.</li>
+    <li><strong>Interest-only and shorter terms reduce capacity.</strong> Interest-only periods are often assessed on the higher principal-and-interest repayment that applies once the IO period ends.</li>
   </ul>
 
-  <h2>What can affect your borrowing capacity?</h2>
-  <ul>
-    <li>Income stability and type (employment vs. self-employed)</li>
-    <li>Credit history and existing debts</li>
-    <li>Deposit size and LVR</li>
-    <li>Interest rate environment</li>
-    <li>Employment in key sectors (some lenders restrict mining, defence, etc.)</li>
-    <li>Age of applicants</li>
-  </ul>
+  <h2>What this calculator does and doesn't cover</h2>
+  <p>This tool gives a quick, transparent estimate of borrowing capacity using the same building blocks lenders use: assessable income, a HEM-style expense floor, existing commitments and a buffered assessment rate. It is designed to show you how each input moves the result so you can plan before you apply.</p>
+  <p>It does <strong>not</strong> replicate any single lender's exact servicing model. It does not run a full Australian income-tax calculation for your specific situation, apply lender-specific income haircuts, factor in dependants individually, model lenders mortgage insurance, account for loan-to-value limits, or include stamp duty and other purchase costs. Different banks use different HEM tables, floor rates and policies, so two lenders can return materially different numbers for the same applicant. Treat the output as a planning estimate, not a pre-approval.</p>
 
-  <h2>APRA Serviceability Buffer — Why 3%?</h2>
-  <p>In October 2021, APRA directed Australian lenders to assess loan serviceability at the loan rate plus a 3% buffer. This replaced the previous 2.5% buffer to manage risk as rates were expected to rise. So if your actual rate is 6.5%, the bank assesses your ability to repay at 9.5%. This buffer is the biggest constraint on borrowing capacity for most Australians.</p>
+  <h2>Frequently asked questions</h2>
+  <h3>How much income do I need to borrow $1 million?</h3>
+  <p>As a rough guide, a household income in the order of $150,000–$200,000 is often needed to service a $1 million loan, but this depends heavily on your expenses, dependents, existing debts and the assessment rate. Because lenders test at the rate plus a buffer, real capacity is always tighter than the advertised rate implies. Use the calculator with your own figures rather than relying on a single income threshold.</p>
 
-  <h2>HEM — Household Expenditure Measure</h2>
-  <p>When you apply for a loan, Australian banks apply the <strong>Household Expenditure Measure (HEM)</strong> — a minimum living expense benchmark published quarterly by the Melbourne Institute. If your declared expenses are lower than HEM, the bank uses HEM instead. This prevents borrowers from understating expenses to borrow more. HEM varies by household size and income level.</p>
+  <h3>Why does my credit card limit reduce my borrowing power if I pay it off?</h3>
+  <p>Lenders assume you could draw the full limit at any time, so they include a notional monthly repayment based on the limit regardless of your current balance. Reducing or closing cards you don't need is one of the fastest ways to lift capacity.</p>
 
-  <h2>Borrowing Capacity by Income (Approximate)</h2>
-  <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;">
-    <thead><tr style="border-bottom:2px solid var(--border)"><th style="text-align:left;padding:8px 4px">Gross Income</th><th style="text-align:right;padding:8px 4px">Approx. Max Borrowing (Single)</th><th style="text-align:right;padding:8px 4px">Approx. Max Borrowing (Couple)</th></tr></thead>
-    <tbody>
-      <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 4px">$60,000/yr</td><td style="text-align:right;padding:8px 4px">~$300,000</td><td style="text-align:right;padding:8px 4px">—</td></tr>
-      <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 4px">$80,000/yr</td><td style="text-align:right;padding:8px 4px">~$420,000</td><td style="text-align:right;padding:8px 4px">—</td></tr>
-      <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 4px">$100,000/yr</td><td style="text-align:right;padding:8px 4px">~$550,000</td><td style="text-align:right;padding:8px 4px">—</td></tr>
-      <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 4px">$120,000/yr each</td><td style="text-align:right;padding:8px 4px">—</td><td style="text-align:right;padding:8px 4px">~$1,200,000</td></tr>
-      <tr><td style="padding:8px 4px">$150,000/yr each</td><td style="text-align:right;padding:8px 4px">—</td><td style="text-align:right;padding:8px 4px">~$1,600,000</td></tr>
-    </tbody>
-  </table>
-  <p><em>Estimates assume no existing debts, standard HEM expenses, and a 30-year P&I loan at ~6.5% (assessed at ~9.5% with buffer). Actual lender limits will vary.</em></p>
+  <h3>Does the 3% buffer ever change?</h3>
+  <p>Yes. APRA sets the minimum buffer and reviews it over time — it was 2.5% before October 2021 and has been around 3% since. Individual lenders may also apply a minimum floor rate that is higher than rate-plus-buffer. Check current settings on the APRA website (apra.gov.au) and the consumer guidance at Moneysmart (moneysmart.gov.au).</p>
 
-  <h2>Next steps</h2>
-  <p>Use this estimate to understand your rough borrowing capacity, then get pre-approved by a lender for an exact amount. Mortgage brokers can shop multiple lenders and often get better rates.</p>
+  <h3>Is this the same as getting pre-approved?</h3>
+  <p>No. Pre-approval involves a lender verifying your documents and credit file and is specific to one institution's policy. This calculator is a general estimate to help you understand the levers; always confirm an exact figure with a lender or mortgage broker before house-hunting.</p>
+
+  <p>This page is general information only and is not personal financial advice. For independent, government-backed guidance on borrowing power and home loans, see ASIC's Moneysmart service at moneysmart.gov.au, and for the prudential rules behind serviceability buffers see the Australian Prudential Regulation Authority at apra.gov.au.</p>
 </section>
 
 <div id="tool-resources-root"></div>
