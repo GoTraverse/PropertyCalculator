@@ -44,6 +44,6 @@ Our website may contain links to third-party websites. We do not endorse, contro
 
 ## Limitation of liability
 
-To the fullest extent permitted by applicable law, EquitySight (operated by Jacoby Evan Yarrow) and its service providers shall not be liable for any loss or damage (including financial loss, property loss, or consequential loss) arising directly or indirectly from reliance on any information, calculation, or estimate produced by equitysight.app.
+To the fullest extent permitted by applicable law, EquitySight (operated by Jacoby Yarrow) and its service providers shall not be liable for any loss or damage (including financial loss, property loss, or consequential loss) arising directly or indirectly from reliance on any information, calculation, or estimate produced by equitysight.app.
 
 See our [Terms of Service](/terms) for the full limitation of liability provisions.

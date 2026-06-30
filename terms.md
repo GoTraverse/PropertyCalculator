@@ -8,7 +8,7 @@ tag: Legal
 
 ## 1. Acceptance of terms
 
-These Terms of Service ("Terms") govern your access to and use of the equitysight.app website and calculator service. EquitySight is operated by Jacoby Evan Yarrow, a sole trader based in Queensland, Australia ("we", "us", or "our").
+These Terms of Service ("Terms") govern your access to and use of the equitysight.app website and calculator service. EquitySight is operated by Jacoby Yarrow, a sole trader based in Queensland, Australia ("we", "us", or "our").
 
 By accessing or using the Service, you confirm that you are at least 18 years of age, have read and understood these Terms, and agree to be bound by them.
 
