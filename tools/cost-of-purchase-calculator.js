@@ -135,10 +135,13 @@ function calc() {
   var lmi = 0;
   if (depositPct < 20) {
     var lvr = (calculatedLoan / purchasePrice) * 100;
-    if (lvr >= 95) lmi = calculatedLoan * 0.018;
-    else if (lvr >= 90) lmi = calculatedLoan * 0.012;
-    else if (lvr >= 85) lmi = calculatedLoan * 0.008;
-    else if (lvr >= 80) lmi = calculatedLoan * 0.005;
+    // Canonical LMI tiers (shared with deposit / mortgage-repayment / stamp-duty),
+    // indicative of Helia/QBE rates per ASIC MoneySmart. Ascending <= bands so the
+    // boundary handling matches the other tools (e.g. exactly 90% LVR -> 1.90%).
+    if (lvr <= 85) lmi = calculatedLoan * 0.0080;
+    else if (lvr <= 90) lmi = calculatedLoan * 0.0190;
+    else if (lvr <= 95) lmi = calculatedLoan * 0.0340;
+    else lmi = calculatedLoan * 0.0430;
   }
 
   var buildingIns = purchasePrice * 0.004;
