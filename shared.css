@@ -36,6 +36,7 @@
   --risk-red:         #C45A5A;
   --reward-green:     #5A9E7B;
   --reward-green-bright: #84C7A4;  /* lighter reward-green for dark backgrounds */
+  --risk-red-bright:  #E08A8A;     /* lighter risk-red for dark backgrounds */
 
   --font-display: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono:    'Geist Mono', ui-monospace, 'SF Mono', 'Courier New', monospace;
