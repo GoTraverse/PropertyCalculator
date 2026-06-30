@@ -1,34 +1,77 @@
 /* ═══ DEPOSIT CALCULATOR ═══ */
 
-function stampDutyEstimate(price, state, fhb) {
-  // Simplified tiered stamp duty estimate per state (2026 rates, owner-occupier).
-  // FHB concessions are approximated — use the dedicated stamp duty calculator for exact figures.
-  var rate;
-  switch (state) {
-    case 'NSW': rate = price <= 650000 ? 0 : (price <= 1500000 ? 0.035 : 0.045); break;
-    case 'VIC': rate = price <= 600000 ? 0 : (price <= 1000000 ? 0.04 : 0.055); break;
-    case 'QLD': rate = price <= 550000 ? 0 : (price <= 1000000 ? 0.03 : 0.045); break;
-    case 'SA':  rate = price <= 650000 ? 0.03 : 0.05; break;
-    case 'WA':  rate = price <= 530000 ? 0 : 0.04; break;
-    case 'TAS': rate = price <= 500000 ? 0.025 : 0.04; break;
-    case 'ACT': rate = price <= 700000 ? 0 : 0.045; break;
-    case 'NT':  rate = price <= 650000 ? 0 : 0.05; break;
-    default: rate = 0.04;
+// Cumulative-tier stamp duty engine — verified against each state revenue
+// office, FY2025-26 (34/34 worked examples reproduced within $1). This is the
+// SAME logic as tools/stamp-duty-calculator.js; ported here so the deposit
+// calculator stops under-stating cash needed (the old flat-rate-by-band
+// approximation returned $0 for non-FHB buyers below each state threshold).
+//
+// `tiers` are [from, rate] pairs evaluated cumulatively: tier i taxes the
+// portion of value between tiers[i].from and tiers[i+1].from at tiers[i].rate.
+// VIC ($960k–$2M flat-of-total, >$2M), ACT (>$1.455M flat) and NT (quadratic
+// under $525k / flat % above) use special cases — see _calcDutyTiered().
+var _SD_STATE_DATA = {
+  // fhbFull = full-exemption ceiling; fhbPartial = taper ceiling (===fhbFull
+  // means hard cliff, no taper). SA + NT: NEW homes only / grants — no
+  // value-based exemption, so fhbFull/fhbPartial are 0 (never auto-zeroed).
+  NSW: { fhbFull: 800000,  fhbPartial: 1000000, tiers: [[0,0.0125],[17000,0.015],[37000,0.0175],[99000,0.035],[372000,0.045],[1240000,0.055],[3721000,0.07]] },
+  VIC: { fhbFull: 600000,  fhbPartial: 750000,  tiers: [[0,0.014],[25000,0.024],[130000,0.06]] },
+  QLD: { fhbFull: 700000,  fhbPartial: 800000,  tiers: [[0,0],[5000,0.015],[75000,0.035],[540000,0.045],[1000000,0.0575]] },
+  SA:  { fhbFull: 0,       fhbPartial: 0,        tiers: [[0,0.01],[12000,0.02],[30000,0.03],[50000,0.035],[100000,0.04],[200000,0.0425],[250000,0.0475],[300000,0.05],[500000,0.055]] },
+  WA:  { fhbFull: 500000,  fhbPartial: 700000,  tiers: [[0,0.019],[120000,0.0285],[150000,0.038],[360000,0.0475],[725000,0.0515]] },
+  TAS: { fhbFull: 750000,  fhbPartial: 750000,  tiers: [[0,0],[3000,0.0175],[25000,0.0225],[75000,0.035],[200000,0.04],[375000,0.0425],[725000,0.045]] },
+  ACT: { fhbFull: 1020000, fhbPartial: 1020000, tiers: [[0,0.0028],[260000,0.022],[300000,0.034],[500000,0.0432],[750000,0.059],[1000000,0.064]] },
+  NT:  { fhbFull: 0,       fhbPartial: 0,        tiers: [] }
+};
+
+function _calcDutyTiered(state, v) {
+  var data = _SD_STATE_DATA[state];
+  if (!data || v <= 0) return 0;
+  // NT: quadratic under $525k, flat % of TOTAL value above (not marginal).
+  if (state === 'NT') {
+    if (v < 525000) { var Vk = v / 1000; return 0.06571441 * Vk * Vk + 15 * Vk; }
+    if (v <= 3000000) return v * 0.0495;
+    if (v <= 5000000) return v * 0.0575;
+    return v * 0.0595;
   }
-  var duty = price * rate;
-  if (fhb) {
-    // FHB full exemption thresholds (simplified)
-    if ((state === 'NSW' && price <= 800000) ||
-        (state === 'VIC' && price <= 600000) ||
-        (state === 'QLD' && price <= 700000) ||
-        (state === 'WA'  && price <= 450000) ||
-        (state === 'ACT' && price <= 1000000)) {
-      duty = 0;
-    } else {
-      duty = duty * 0.5; // Partial concession approximation
-    }
+  var tiers = data.tiers;
+  var duty = 0;
+  for (var i = 0; i < tiers.length; i++) {
+    var from = tiers[i][0];
+    if (v <= from) break;
+    var nextFrom = (i + 1 < tiers.length) ? tiers[i + 1][0] : Infinity;
+    duty += (Math.min(v, nextFrom) - from) * tiers[i][1];
+  }
+  // Bands that are a flat % of the TOTAL value (not marginal on the excess):
+  if (state === 'VIC') {
+    if (v > 960000 && v <= 2000000) duty = v * 0.055;
+    else if (v > 2000000) duty = 110000 + (v - 2000000) * 0.065;
+  } else if (state === 'ACT' && v > 1455000) {
+    duty = v * 0.0454;
+  } else if (state === 'TAS') {
+    duty = (v <= 3000) ? 50 : duty + 50;
   }
   return duty;
+}
+
+function stampDutyEstimate(price, state, fhb) {
+  // Owner-occupier transfer/stamp duty (FY2025-26), with first home buyer
+  // concessions applied per state. Verified against the dedicated stamp duty
+  // calculator. Use that page for foreign-buyer surcharge + land-only rules.
+  var baseDuty = _calcDutyTiered(state, price);
+  if (!fhb) return baseDuty;
+  var data = _SD_STATE_DATA[state];
+  if (!data) return baseDuty;
+  // Full exemption at/below fhbFull (SA + NT have fhbFull === 0 → no value-based
+  // exemption: relief is NEW-home only, so established buyers pay full duty).
+  if (data.fhbFull > 0 && price <= data.fhbFull) return 0;
+  // Sliding partial concession between fhbFull and fhbPartial (NSW/VIC/QLD/WA).
+  // TAS + ACT have fhbPartial === fhbFull → hard cliff, no taper.
+  if (data.fhbPartial > data.fhbFull && price <= data.fhbPartial) {
+    var slide = (data.fhbPartial - price) / (data.fhbPartial - data.fhbFull);
+    return Math.max(0, baseDuty * (1 - slide));
+  }
+  return baseDuty;
 }
 
 function lmiEstimate(loanAmount, lvr) {

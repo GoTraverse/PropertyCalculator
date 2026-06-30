@@ -163,8 +163,8 @@ const STATES = {
     revenueUrl: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty',
     foreignRate: 0.07,
     foreignLabel: '7% foreign buyers duty',
-    fhbFull: 430000,
-    fhbPartial: 500000,
+    fhbFull: 500000,
+    fhbPartial: 700000,
     fhbScheme: 'First Home Owner Rate of Duty',
     fhbSchemeUrl: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/first-home-owner-rate-duty',
     fhbCopy: 'Western Australia offers a <strong>First Home Owner Rate of Duty (FHOR)</strong> that fully exempts eligible first home buyers from transfer duty on residential property purchases up to $430,000, with a sliding partial concession from $430,000 to $530,000. For vacant land the thresholds are $300,000 (full exemption) to $400,000 (partial). To qualify you must be eligible for the First Home Owner Grant (citizenship + first-time-buyer + occupation as principal residence) and lodge the FHOR claim through your settlement agent.',
@@ -213,8 +213,8 @@ const STATES = {
     revenueUrl: 'https://www.revenuesa.sa.gov.au/stampduty',
     foreignRate: 0.07,
     foreignLabel: '7% foreign ownership surcharge',
-    fhbFull: 650000,
-    fhbPartial: 700000,
+    fhbFull: 0,
+    fhbPartial: 0,
     fhbScheme: 'First Home Owner Stamp Duty Relief (new builds)',
     fhbSchemeUrl: 'https://www.revenuesa.sa.gov.au/grants-and-concessions/first-home-owners',
     fhbCopy: 'South Australia abolished stamp duty for eligible first home buyers purchasing <strong>new homes</strong> with a market value up to $650,000 (full exemption) and partial concession to $700,000. The same thresholds apply to vacant land where a new home will be built. <strong>Established homes</strong> do not currently qualify for the SA first home buyer stamp duty exemption — only new builds. To qualify you must intend to occupy the home as your principal place of residence for at least 12 months starting within 12 months of settlement.',
@@ -313,8 +313,8 @@ const STATES = {
     revenueUrl: 'https://www.revenue.act.gov.au/duties/conveyance-duty',
     foreignRate: 0.075,
     foreignLabel: '0.75% per quarter foreign owner land tax surcharge',
-    fhbFull: 1000000,
-    fhbPartial: 1000000,
+    fhbFull: 1020000,
+    fhbPartial: 1020000,
     fhbScheme: 'Home Buyer Concession Scheme (HBCS)',
     fhbSchemeUrl: 'https://www.revenue.act.gov.au/home-buyer-assistance/home-buyer-concession-scheme',
     fhbCopy: 'The ACT operates the <strong>Home Buyer Concession Scheme (HBCS)</strong>, which provides full duty exemption for eligible buyers (not just first home buyers) on properties up to $1,000,000. The scheme has income thresholds — household income must be below $250,000 (with adjustments for dependants) — but no asset test on prior home ownership. This makes the ACT one of the most generous jurisdictions for owner-occupier duty relief in Australia. Buyers must occupy the property as their principal place of residence for at least 12 months continuously starting within 12 months of settlement.',
@@ -365,8 +365,8 @@ const STATES = {
     revenueUrl: 'https://nt.gov.au/property/buying-and-selling-a-home/settle-the-sale/stamp-duty-buying-or-selling-a-home',
     foreignRate: 0,
     foreignLabel: 'no foreign buyer surcharge applies',
-    fhbFull: 650000,
-    fhbPartial: 650000,
+    fhbFull: 0,
+    fhbPartial: 0,
     fhbScheme: 'House and Land Package Stamp Duty Discount',
     fhbSchemeUrl: 'https://nt.gov.au/property/buying-and-selling-a-home/settle-the-sale/stamp-duty-buying-or-selling-a-home',
     fhbCopy: 'The Northern Territory currently offers a <strong>stamp duty discount of up to $50,000 for first home buyers</strong> purchasing a new home, a house and land package, or vacant land where a new home will be built. There is no full exemption — the discount reduces the duty payable by up to $50,000 (capped at the actual duty liability). For established homes there is no first home buyer concession; first home buyers pay full standard rates. To qualify you must be eligible for the First Home Owner Grant and lodge the discount claim through your conveyancer.',
@@ -706,7 +706,7 @@ function calc${s.STATE}Duty(price, ptype, buyer, fhb) {
   var standard = calc${s.STATE}Standard(v);
 
   if (fhb && v <= ${s.STATE}_FHB_FULL) {
-    ${s.STATE === 'TAS' ? 'return { duty: standard * 0.5, note: \'First home buyer concession applied (50% reduction).\' };' : 'return { duty: 0, note: \'First home buyer exemption applied.\' };'}
+    return { duty: 0, note: 'First home buyer exemption applied.' };
   }
   if (fhb && v <= ${s.STATE}_FHB_PARTIAL && ${s.STATE}_FHB_PARTIAL > ${s.STATE}_FHB_FULL) {
     var slide = (${s.STATE}_FHB_PARTIAL - v) / (${s.STATE}_FHB_PARTIAL - ${s.STATE}_FHB_FULL);
@@ -896,13 +896,14 @@ window.addEventListener('DOMContentLoaded', function() {
 // the `tiers` arrays in tools/stamp-duty-calculator.js so the dedicated
 // state pages produce identical figures to the all-states tool.
 const STATE_TIERS = {
-  NSW: [[0,0],[14000,0.0125],[30000,0.015],[130000,0.0175],[205000,0.035],[305000,0.04],[405000,0.045],[550000,0.055]],
-  VIC: [[0,0],[25000,0.014],[130000,0.024],[440000,0.055],[870000,0.065]],
-  WA:  [[0,0],[2000,0.01],[4000,0.02],[500000,0.035],[1000000,0.0475]],
-  SA:  [[0,0],[16000,0.015],[19000,0.03],[250000,0.035],[300000,0.04]],
-  TAS: [[0,0],[3000,0.036],[100000,0.041],[150000,0.0425],[250000,0.0475]],
-  ACT: [[0,0],[7500,0.0125],[30000,0.02],[200000,0.035]],
-  NT:  [[0,0],[3000,0.0075],[100000,0.01],[150000,0.015],[250000,0.025]],
+  NSW: [[0,0.0125],[17000,0.015],[37000,0.0175],[99000,0.035],[372000,0.045],[1240000,0.055],[3721000,0.07]],
+  VIC: [[0,0.014],[25000,0.024],[130000,0.06]],
+  QLD: [[0,0],[5000,0.015],[75000,0.035],[540000,0.045],[1000000,0.0575]],
+  SA:  [[0,0.01],[12000,0.02],[30000,0.03],[50000,0.035],[100000,0.04],[200000,0.0425],[250000,0.0475],[300000,0.05],[500000,0.055]],
+  WA:  [[0,0.019],[120000,0.0285],[150000,0.038],[360000,0.0475],[725000,0.0515]],
+  TAS: [[0,0],[3000,0.0175],[25000,0.0225],[75000,0.035],[200000,0.04],[375000,0.0425],[725000,0.045]],
+  ACT: [[0,0.0028],[260000,0.022],[300000,0.034],[500000,0.0432],[750000,0.059],[1000000,0.064]],
+  NT:  [],
 };
 
 // Emits a JS function body that computes cumulative tiered duty. The
@@ -910,24 +911,64 @@ const STATE_TIERS = {
 // .js readable when an admin opens DevTools — and avoids needing a shared
 // helper file across the 7 state calculators.
 function stampDutyFormula(state) {
+  // NT is not a marginal-tier schedule: quadratic under $525k, then flat % of
+  // the TOTAL value above. Mirrors calcDuty('nt', …) in tools/stamp-duty-calculator.js.
+  if (state === 'NT') {
+    return [
+      'if (v <= 0) return 0;',
+      'if (v < 525000) { var Vk = v / 1000; return 0.06571441 * Vk * Vk + 15 * Vk; }',
+      'if (v <= 3000000) return v * 0.0495;',
+      'if (v <= 5000000) return v * 0.0575;',
+      'return v * 0.0595;'
+    ].join('\n  ');
+  }
+
   const tiers = STATE_TIERS[state];
-  if (!tiers) return 'return 0;';
+  if (!tiers || !tiers.length) return 'return 0;';
+
   // Walk the tiers and emit one bracket per pair of consecutive thresholds.
-  // We compute the cumulative base at each tier boundary at code-gen time,
-  // so the runtime path is just an `if (v <= NEXT) return BASE + (v - FROM) * RATE`.
-  const lines = [];
+  // We compute the cumulative base at each tier boundary at code-gen time, so
+  // the runtime path is a chain of `if (v <= NEXT) d = BASE + (v - FROM) * RATE`.
+  // Result is accumulated into `d` (not returned inline) so the special-band
+  // overrides below (VIC / ACT / TAS) can replace it before returning.
+  const lines = ['if (v <= 0) return 0;', 'var d;'];
   let base = 0;
   for (let i = 0; i < tiers.length; i++) {
     const [from, rate] = tiers[i];
     const next = (i + 1 < tiers.length) ? tiers[i + 1][0] : null;
     if (next == null) {
-      lines.push(`return ${base} + (v - ${from}) * ${rate};`);
+      lines.push(`d = ${base} + (v - ${from}) * ${rate};`);
     } else {
-      lines.push(`if (v <= ${next}) return ${base} + (v - ${from}) * ${rate};`);
+      lines.push(`if (v <= ${next}) d = ${base} + (v - ${from}) * ${rate};`);
+      // Use `else` chaining via the cumulative base — each branch is mutually
+      // exclusive because thresholds increase, so the first matching `if` wins.
       base += (next - from) * rate;
     }
   }
-  return lines.join('\n  ');
+  // Wrap the per-tier assignments so only the first matching band runs.
+  const tierChain = lines.slice(2).join('\n  else ');
+
+  // Special-band overrides (flat % of TOTAL value, not marginal on the excess):
+  let override = '';
+  if (state === 'VIC') {
+    override = [
+      'if (v > 960000 && v <= 2000000) d = v * 0.055;',
+      'else if (v > 2000000) d = 110000 + (v - 2000000) * 0.065;'
+    ].join('\n  ');
+  } else if (state === 'ACT') {
+    override = 'if (v > 1455000) d = v * 0.0454;';
+  } else if (state === 'TAS') {
+    // $50 base carries up through every band; it is also the floor at <=$3,000.
+    override = 'd = (v <= 3000) ? 50 : d + 50;';
+  }
+
+  return [
+    'if (v <= 0) return 0;',
+    'var d;',
+    tierChain,
+    override,
+    'return d;'
+  ].filter(Boolean).join('\n  ');
 }
 
 // ── Compute worked examples from the calculator's own formulas so the
@@ -942,7 +983,9 @@ function dutyAt(state, v) {
 function fhbDuty(s, v) {
   const std = dutyAt(s.STATE, v);
   if (v <= s.fhbFull) {
-    return s.STATE === 'TAS' ? std * 0.5 : 0;
+    // FULL exemption at/under the threshold for every state with a value-based
+    // FHB concession (TAS is a hard cliff at $750k, no 50% halfway step).
+    return 0;
   }
   if (v <= s.fhbPartial && s.fhbPartial > s.fhbFull) {
     const slide = (s.fhbPartial - v) / (s.fhbPartial - s.fhbFull);

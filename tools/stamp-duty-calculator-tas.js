@@ -9,11 +9,16 @@ var TAS_FHB_PARTIAL = 750000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcTASStandard(v) {
-  if (v <= 3000) return 0 + (v - 0) * 0;
-  if (v <= 100000) return 0 + (v - 3000) * 0.036;
-  if (v <= 150000) return 3491.9999999999995 + (v - 100000) * 0.041;
-  if (v <= 250000) return 5542 + (v - 150000) * 0.0425;
-  return 9792 + (v - 250000) * 0.0475;
+  if (v <= 0) return 0;
+  if (v <= 3000) return 50;
+  var d;
+  if (v <= 25000) d = (v - 3000) * 0.0175;
+  else if (v <= 75000) d = 385 + (v - 25000) * 0.0225;
+  else if (v <= 200000) d = 1510 + (v - 75000) * 0.035;
+  else if (v <= 375000) d = 5885 + (v - 200000) * 0.04;
+  else if (v <= 725000) d = 12885 + (v - 375000) * 0.0425;
+  else d = 27760 + (v - 725000) * 0.045;
+  return d + 50;
 }
 
 function calcTASDuty(price, ptype, buyer, fhb) {
@@ -22,7 +27,9 @@ function calcTASDuty(price, ptype, buyer, fhb) {
   var standard = calcTASStandard(v);
 
   if (fhb && v <= TAS_FHB_FULL) {
-    return { duty: standard * 0.5, note: 'First home buyer concession applied (50% reduction).' };
+    // Full duty exemption for first-home buyers of established homes <= $750k
+    // (to 30 Jun 2026). Hard cliff — no taper above the threshold.
+    return { duty: 0, note: 'First home buyer exemption applied (established home up to $750,000).' };
   }
   if (fhb && v <= TAS_FHB_PARTIAL && TAS_FHB_PARTIAL > TAS_FHB_FULL) {
     var slide = (TAS_FHB_PARTIAL - v) / (TAS_FHB_PARTIAL - TAS_FHB_FULL);

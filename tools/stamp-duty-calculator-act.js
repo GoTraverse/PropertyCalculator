@@ -4,15 +4,19 @@
  * state-locked version of the tool without a state selector. */
 
 var ACT_FOREIGN_RATE = 0.075;
-var ACT_FHB_FULL = 1000000;
-var ACT_FHB_PARTIAL = 1000000;
+var ACT_FHB_FULL = 1020000;
+var ACT_FHB_PARTIAL = 1020000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcACTStandard(v) {
-  if (v <= 7500) return 0 + (v - 0) * 0;
-  if (v <= 30000) return 0 + (v - 7500) * 0.0125;
-  if (v <= 200000) return 281.25 + (v - 30000) * 0.02;
-  return 3681.25 + (v - 200000) * 0.035;
+  if (v <= 0) return 0;
+  if (v > 1455000) return v * 0.0454;
+  if (v <= 260000) return v * 0.0028;
+  if (v <= 300000) return 728 + (v - 260000) * 0.022;
+  if (v <= 500000) return 1608 + (v - 300000) * 0.034;
+  if (v <= 750000) return 8408 + (v - 500000) * 0.0432;
+  if (v <= 1000000) return 19208 + (v - 750000) * 0.059;
+  return 33958 + (v - 1000000) * 0.064;
 }
 
 function calcACTDuty(price, ptype, buyer, fhb) {

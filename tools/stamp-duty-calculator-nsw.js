@@ -9,14 +9,14 @@ var NSW_FHB_PARTIAL = 1000000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcNSWStandard(v) {
-  if (v <= 14000) return 0 + (v - 0) * 0;
-  if (v <= 30000) return 0 + (v - 14000) * 0.0125;
-  if (v <= 130000) return 200 + (v - 30000) * 0.015;
-  if (v <= 205000) return 1700 + (v - 130000) * 0.0175;
-  if (v <= 305000) return 3012.5 + (v - 205000) * 0.035;
-  if (v <= 405000) return 6512.5 + (v - 305000) * 0.04;
-  if (v <= 550000) return 10512.5 + (v - 405000) * 0.045;
-  return 17037.5 + (v - 550000) * 0.055;
+  if (v <= 0) return 0;
+  if (v <= 17000) return v * 0.0125;
+  if (v <= 37000) return 212.5 + (v - 17000) * 0.015;
+  if (v <= 99000) return 512.5 + (v - 37000) * 0.0175;
+  if (v <= 372000) return 1597.5 + (v - 99000) * 0.035;
+  if (v <= 1240000) return 11152.5 + (v - 372000) * 0.045;
+  if (v <= 3721000) return 50212.5 + (v - 1240000) * 0.055;
+  return 186667.5 + (v - 3721000) * 0.07;
 }
 
 function calcNSWDuty(price, ptype, buyer, fhb) {

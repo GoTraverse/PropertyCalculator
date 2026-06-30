@@ -27,13 +27,14 @@ function calcQldHome(v) {
   return 10150 + (v - 540000) * 0.045;
 }
 
-// First home concession (residential dwelling). Full exemption up to
-// $500,000, sliding partial concession to $550,000, then home concession.
+// First home concession (residential dwelling). From 1 May 2025 the QLD first
+// home concession gives full exemption up to $700,000, with a sliding partial
+// concession to $800,000, then the standard home concession.
 function calcQldFhbHome(v) {
-  if (v <= 500000) return 0;
-  if (v <= 550000) {
+  if (v <= 700000) return 0;
+  if (v <= 800000) {
     var home = calcQldHome(v);
-    var slide = (550000 - v) / 50000; // 1.0 at $500k, 0 at $550k
+    var slide = (800000 - v) / 100000; // 1.0 at $700k, 0 at $800k
     return Math.max(0, home * (1 - slide));
   }
   return calcQldHome(v);
@@ -58,8 +59,8 @@ function calcQldDuty(price, ptype, buyer, fhb) {
     return { duty: calcQldFhbLand(v), note: 'First home vacant land concession applied.' };
   }
   if (fhb && ptype === 'home') {
-    if (v <= 500000) return { duty: 0, note: 'First home concession — full exemption.' };
-    if (v <= 550000) return { duty: calcQldFhbHome(v), note: 'First home concession — partial.' };
+    if (v <= 700000) return { duty: 0, note: 'First home concession — full exemption.' };
+    if (v <= 800000) return { duty: calcQldFhbHome(v), note: 'First home concession — partial.' };
     return { duty: calcQldFhbHome(v), note: 'Home concession applied (over first home threshold).' };
   }
   if (buyer === 'owner' && ptype === 'home') {
@@ -209,11 +210,11 @@ ToolPage.init({
   ],
   faq: [
     { q: 'How does stamp duty work in Queensland?',
-      a: 'Queensland calls stamp duty "transfer duty". It is charged by the Queensland Revenue Office (QRO) on the dutiable value of the property at settlement. Rates step up across price brackets — nil under $5,000 to 5.75% above $1 million. Owner-occupiers can apply for a home concession (saves up to $7,175) and first home buyers get a separate concession that fully exempts purchases up to $500,000.' },
+      a: 'Queensland calls stamp duty "transfer duty". It is charged by the Queensland Revenue Office (QRO) on the dutiable value of the property at settlement. Rates step up across price brackets — nil under $5,000 to 5.75% above $1 million. Owner-occupiers can apply for a home concession (saves up to $7,175) and first home buyers get a separate concession that fully exempts purchases up to $700,000.' },
     { q: 'What is the QLD home concession?',
       a: 'The home concession is a reduced transfer duty rate available to anyone buying a home as their principal place of residence — including non-first-home-buyers. It saves up to $7,175 compared to the investor rate. To qualify you must move in within 12 months of settlement and live there for at least 12 months.' },
     { q: 'What is the QLD first home buyer concession?',
-      a: 'Eligible first home buyers pay no transfer duty on residential purchases up to $500,000. A sliding partial concession applies between $500,000 and $550,000. For vacant land, the first home concession provides full exemption up to $250,000 with a partial concession to $400,000. You must intend to live in the home as your principal place of residence within 12 months of settlement.' },
+      a: 'Eligible first home buyers pay no transfer duty on residential purchases up to $700,000 (thresholds lifted from 1 May 2025). A sliding partial concession applies between $700,000 and $800,000. For vacant land, the first home concession provides full exemption up to $250,000 with a partial concession to $400,000. You must intend to live in the home as your principal place of residence within 12 months of settlement.' },
     { q: 'When is stamp duty due in QLD?',
       a: 'Transfer duty is payable within 30 days of the dutiable transaction — usually 30 days after contract date or settlement. Most buyers pay duty at settlement through their solicitor or conveyancer.' },
     { q: 'What is the difference between stamp duty and transfer duty?',
