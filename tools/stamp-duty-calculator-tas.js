@@ -134,7 +134,7 @@ ToolPage.init({
         icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Office Tasmania',
         links: [
           { text: 'TAS Property Transfer Duty', href: 'https://www.sro.tas.gov.au/property-transfer-duties' },
-          { text: 'First Home Buyer Duty Concession (50% reduction)', href: 'https://www.sro.tas.gov.au/property-transfer-duties/first-home-buyer-duty-concession' }
+          { text: 'First Home Buyer Duty Exemption (established homes up to $750k)', href: 'https://www.sro.tas.gov.au/property-transfer-duties/first-home-buyer-duty-concession' }
         ]
       },
       {
@@ -189,15 +189,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$26,417"
+        "v": "$22,498"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$26,417"
+        "v": "$22,498"
       },
       {
         "k": "First home buyer duty",
-        "v": "$13,209 (FHB concession)"
+        "v": "$0 (full FHB exemption)"
       }
     ]
   },
@@ -216,15 +216,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$35,917"
+        "v": "$31,185"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$35,917"
+        "v": "$31,185"
       },
       {
         "k": "First home buyer duty",
-        "v": "$35,917 (over cap)"
+        "v": "$31,185 (over $750k cap)"
       }
     ]
   },
@@ -243,15 +243,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$45,417"
+        "v": "$40,185"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$45,417"
+        "v": "$40,185"
       },
       {
         "k": "First home buyer duty",
-        "v": "$45,417 (over cap)"
+        "v": "$40,185 (over $750k cap)"
       }
     ]
   }
@@ -259,11 +259,11 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in Tasmania?",
-    "a": "Tasmanian property transfer duty is charged by the State Revenue Office Tasmania (SRO Tas) on the dutiable value of any property purchase. Rates step up across five brackets, from nil under $3,000 to 4.75% on the portion above $250,000 — the lowest top-bracket rate in Australia. Owner-occupiers and investors pay the same standard rates."
+    "a": "Tasmanian property transfer duty is charged by the State Revenue Office Tasmania (SRO Tas) on the dutiable value of any property purchase. It is calculated as a flat $50 up to $3,000, then a tiered set of marginal rates on the value above $3,000: 1.75% to $25,000, 2.25% to $75,000, 3.5% to $200,000, 4% to $375,000, 4.25% to $725,000, and 4.5% on the portion above $725,000 (with the $50 base carried through). Owner-occupiers and investors pay the same standard rates."
   },
   {
     "q": "Do first home buyers pay stamp duty in Tasmania?",
-    "a": "Eligible first home buyers receive a 50% concession on duty payable for established homes up to $750,000. There is no full exemption — first home buyers still pay duty, but at half the standard rate. Above $750,000 standard rates apply with no concession."
+    "a": "Eligible first home buyers receive a FULL exemption from property transfer duty on established homes valued up to $750,000 (a temporary measure currently legislated to 30 June 2026). It is a hard cliff: at $750,000 or below an eligible first home buyer pays $0 duty, but at $750,001 or above the full standard duty applies with no concession or taper."
   },
   {
     "q": "When is stamp duty due in Tasmania?",
@@ -275,7 +275,7 @@ ToolPage.init({
   },
   {
     "q": "Why is Tasmanian stamp duty cheaper than other states?",
-    "a": "Tasmania has the lowest top-bracket transfer duty rate in Australia (4.75% above $375,000) and no foreign buyer surcharge. Combined with lower median property prices, the absolute dollar amount of duty is significantly less than in mainland states. The first home buyer concession (50% reduction up to $750,000) further reduces the burden for owner-occupier first-time buyers."
+    "a": "Tasmania's top transfer duty rate is 4.5% (on the value above $725,000) and it levies no foreign buyer surcharge. Combined with lower median property prices, the absolute dollar amount of duty is generally less than in the larger mainland states. The first home buyer exemption (full $0 duty on established homes up to $750,000) removes duty entirely for eligible owner-occupier first-time buyers under that cap."
   },
   {
     "q": "Is Tasmanian stamp duty tax deductible?",

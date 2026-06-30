@@ -3,7 +3,9 @@
  * for ACT; this file exists so the ACT-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
 
-var ACT_FOREIGN_RATE = 0.075;
+// The ACT does NOT levy a one-off foreign-buyer stamp-duty surcharge (foreign
+// owners pay a separate annual land-tax surcharge instead) — so no surcharge here.
+var ACT_FOREIGN_RATE = 0;
 var ACT_FHB_FULL = 1020000;
 var ACT_FHB_PARTIAL = 1020000;
 
@@ -185,11 +187,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$24,681"
+        "v": "$22,158"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$24,681"
+        "v": "$22,158"
       },
       {
         "k": "First home buyer duty",
@@ -212,15 +214,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$33,431"
+        "v": "$37,158"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$33,431"
+        "v": "$37,158"
       },
       {
         "k": "First home buyer duty",
-        "v": "$33,431 (over cap)"
+        "v": "$37,158 (over cap)"
       }
     ]
   },
@@ -239,15 +241,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$38,681"
+        "v": "$46,758"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$38,681"
+        "v": "$46,758"
       },
       {
         "k": "First home buyer duty",
-        "v": "$38,681 (over cap)"
+        "v": "$46,758 (over cap)"
       }
     ]
   }
@@ -255,15 +257,15 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in the ACT?",
-    "a": "ACT conveyance duty is charged by the ACT Revenue Office on the dutiable value of any property purchase. Rates step up across multiple brackets, with a flat $63,624 above $1,455,000. Eligible owner-occupiers (subject to income tests) can claim full duty exemption under the Home Buyer Concession Scheme on properties up to $1,000,000."
+    "a": "ACT conveyance duty is charged by the ACT Revenue Office on the dutiable value of any property purchase. Rates step up across multiple brackets: 0.28% up to $260,000, 2.2% to $300,000, 3.4% to $500,000, 4.32% to $750,000, 5.9% to $1,000,000, and 6.4% to $1,455,000. Above $1,455,000 a flat rate of 4.54% applies to the whole purchase price. Eligible owner-occupiers (subject to income tests) can claim full duty exemption under the Home Buyer Concession Scheme on properties up to $1,020,000."
   },
   {
     "q": "Do first home buyers pay stamp duty in the ACT?",
-    "a": "The ACT Home Buyer Concession Scheme (HBCS) is more generous than other states — it covers all eligible buyers (not just first home buyers) on properties up to $1,000,000, subject to a household income test (typically below $250,000 with adjustments for dependants). Most first home buyers within these thresholds pay no conveyance duty in the ACT."
+    "a": "The ACT Home Buyer Concession Scheme (HBCS) is more generous than other states — it covers all eligible buyers (not just first home buyers) on properties up to $1,020,000, subject to a household income test (with adjustments for dependants). Most first home buyers within these thresholds pay no conveyance duty in the ACT."
   },
   {
     "q": "What is the ACT Home Buyer Concession Scheme?",
-    "a": "The HBCS provides full duty exemption for eligible owner-occupiers (not just first home buyers) on properties valued up to $1,000,000, subject to a household income test. The scheme replaced the previous First Home Owner Grant + duty concession in 2019 and is materially more generous. To qualify you must occupy the property as your principal residence for at least 12 months continuously starting within 12 months of settlement."
+    "a": "The HBCS provides full duty exemption for eligible owner-occupiers (not just first home buyers) on properties valued up to $1,020,000, subject to a household income test. The scheme replaced the previous First Home Owner Grant + duty concession in 2019 and is materially more generous. To qualify you must occupy the property as your principal residence for at least 12 months continuously starting within 12 months of settlement."
   },
   {
     "q": "When is stamp duty due in the ACT?",

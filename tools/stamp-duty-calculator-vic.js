@@ -185,11 +185,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$11,110"
+        "v": "$23,870"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$11,110"
+        "v": "$23,870"
       },
       {
         "k": "First home buyer duty",
@@ -212,15 +212,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$22,110"
+        "v": "$35,870"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$22,110"
+        "v": "$35,870"
       },
       {
         "k": "First home buyer duty",
-        "v": "$11,792 (FHB concession)"
+        "v": "$19,131 (FHB concession)"
       }
     ]
   },
@@ -239,15 +239,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$41,010"
+        "v": "$55,000"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$41,010"
+        "v": "$55,000"
       },
       {
         "k": "First home buyer duty",
-        "v": "$41,010 (over cap)"
+        "v": "$55,000 (over cap)"
       }
     ]
   }
@@ -255,7 +255,7 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in Victoria?",
-    "a": "Victorian stamp duty (officially \"land transfer duty\") is charged by the State Revenue Office Victoria (SRO) on the dutiable value of any property purchase. Rates step up across five brackets, from nil under $25,000 to 6.5% on the portion above $870,000 — the highest top-bracket rate in any Australian state."
+    "a": "Victorian stamp duty (officially \"land transfer duty\") is charged by the State Revenue Office Victoria (SRO) on the dutiable value of any property purchase. Duty is 1.4% up to $25,000, 2.4% on the portion from $25,000 to $130,000, and 6% on the portion from $130,000 to $960,000. From $960,000 to $2 million duty is a flat 5.5% of the whole price, and above $2 million it is $110,000 plus 6.5% of the amount over $2 million."
   },
   {
     "q": "Do first home buyers pay stamp duty in Victoria?",
@@ -263,7 +263,7 @@ ToolPage.init({
   },
   {
     "q": "What is the Victorian PPR concession?",
-    "a": "The principal place of residence (PPR) concession provides a partial duty reduction for owner-occupiers buying a home valued up to $550,000. It is available to anyone using the property as their principal residence — not just first home buyers. The PPR concession does not stack with the FHB exemption — buyers receive the most favourable single concession."
+    "a": "The State Revenue Office offers a principal place of residence (PPR) concession for some owner-occupiers buying a home as their principal residence, separate from the first home buyer exemption. This calculator does not model the PPR concession — its owner-occupier figure uses the standard land transfer duty rates, so treat the owner-occupier result as the duty before any PPR concession you may separately qualify for. Confirm your eligibility and the current value limits with the SRO."
   },
   {
     "q": "When is stamp duty due in Victoria?",

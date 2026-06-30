@@ -183,11 +183,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$6,740"
+        "v": "$10,355"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$6,740"
+        "v": "$10,355"
       },
       {
         "k": "First home buyer duty",
@@ -210,15 +210,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$9,340"
+        "v": "$16,340"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$9,340"
+        "v": "$16,340"
       },
       {
         "k": "First home buyer duty",
-        "v": "$5,337 (FHB concession)"
+        "v": "$0 (FHB exemption)"
       }
     ]
   },
@@ -237,15 +237,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$27,440"
+        "v": "$42,615"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$27,440"
+        "v": "$42,615"
       },
       {
         "k": "First home buyer duty",
-        "v": "$27,440 (over cap)"
+        "v": "$42,615 (over cap)"
       }
     ]
   }
@@ -253,11 +253,11 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in Western Australia?",
-    "a": "WA transfer duty is charged by RevenueWA on the dutiable value of any property purchase. Rates step up across five brackets, from nil under $2,000 to 4.75% on the portion above $1,000,000. Owner-occupiers buying a property up to $200,000 may qualify for a concessional residential rate; otherwise owner-occupiers and investors pay the same general rate."
+    "a": "WA transfer duty is charged by RevenueWA on the dutiable value of any property purchase. Under the general (residential) rate, duty steps up across five brackets: 1.9% up to $120,000, 2.85% on the portion to $150,000, 3.8% to $360,000, 4.75% to $725,000, and 5.15% on any portion above $725,000. Owner-occupiers and investors pay the same general rate; there is no separate owner-occupier concession in WA outside the first home buyer scheme."
   },
   {
     "q": "Do first home buyers pay stamp duty in WA?",
-    "a": "Eligible first home buyers pay no transfer duty under the First Home Owner Rate of Duty (FHOR) on residential properties up to $430,000, with a sliding partial concession from $430,000 to $530,000. For vacant land the thresholds are $300,000 (full) to $400,000 (partial). Above the partial limit the standard rates apply."
+    "a": "Eligible first home buyers pay no transfer duty under the First Home Owner Rate of Duty (FHOR) on residential properties up to $500,000, with a sliding partial concession from $500,000 to $700,000. Above the $700,000 partial limit the standard general rates apply."
   },
   {
     "q": "When is WA transfer duty due?",
