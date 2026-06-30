@@ -266,11 +266,11 @@ ToolPage.init({
         { k: 'First home buyer', v: 'Yes' }
       ],
       outputs: [
-        { k: 'Stamp duty', v: '~$2,900 (concession)' },
+        { k: 'Stamp duty', v: '$0 (FHB exempt, under $700k)' },
         { k: 'Legal + conveyancing', v: '~$1,800' },
         { k: 'Building + pest inspection', v: '~$650' },
         { k: 'LMI (if applicable)', v: '~$11,400' },
-        { k: 'Total upfront costs', v: '~$16,750' }
+        { k: 'Total upfront costs', v: '~$13,850' }
       ]
     },
     {

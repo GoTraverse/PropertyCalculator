@@ -130,7 +130,7 @@ ToolPage.init({
       outputs: [
         { k: 'Gross gain', v: '$255,000' },
         { k: 'Discounted gain', v: '$127,500' },
-        { k: 'CGT payable', v: '~$47,000' }
+        { k: 'CGT payable', v: '~$50,300' }
       ]
     },
     {
