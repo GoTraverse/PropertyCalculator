@@ -847,3 +847,17 @@ html.dark-mode .why-aus-methodology a { color: var(--gold); }
   transition: border-color 0.15s;
 }
 .data-methodology-sources a:hover { border-color: var(--gold); }
+
+/* ── Dark mode: lower homepage sections ── */
+html.dark-mode .testimonials { background: #111113; }
+html.dark-mode .testimonial-card { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
+html.dark-mode .testimonial-text { color: rgba(245,240,232,0.6); }
+html.dark-mode .testimonial-meta { color: rgba(245,240,232,0.45); }
+html.dark-mode .landing-faq { background: #0d0d0f; }
+html.dark-mode .landing-faq-item { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
+html.dark-mode .landing-faq-item summary { color: var(--cream); }
+html.dark-mode .landing-faq-item p { color: rgba(245,240,232,0.6); }
+html.dark-mode .data-methodology { border-color: rgba(255,255,255,0.07); }
+html.dark-mode .data-methodology p { color: rgba(245,240,232,0.6); }
+html.dark-mode .data-methodology-sources a { background: #1C1C1E; border-color: rgba(255,255,255,0.12); color: rgba(245,240,232,0.75); }
+html.dark-mode .tg-desc { color: rgba(245,240,232,0.5); }
