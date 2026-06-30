@@ -190,7 +190,7 @@ html.dark-mode .tool-resources a { color: var(--gold); }
 .tool-related h2 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--charcoal); }
 .tool-related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .tool-related-link { padding: 12px; background: var(--warm-white); border-radius: 6px; border: 1px solid rgba(28,28,30,0.08); text-decoration: none; color: var(--charcoal); font-size: 13px; font-weight: 600; transition: all 0.15s; }
-.tool-related-link:hover { background: white; border-color: var(--gold); color: var(--gold); }
+.tool-related-link:hover { background: white; border-color: var(--gold); color: var(--gold-dark); }
 
 
 /* ── Cost Breakdown (for detailed cost breakdowns) ── */

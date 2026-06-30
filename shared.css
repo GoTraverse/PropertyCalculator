@@ -519,7 +519,8 @@ html.dark-mode .section-tag {
 .tools-grid .tg-icon { font-size: 32px; margin-bottom: 14px; }
 .tools-grid .tg-name { font-family: var(--font-display); font-size: 17px; font-weight: 700; margin-bottom: 8px; }
 .tools-grid .tg-desc { font-size: 13px; color: var(--slate); line-height: 1.6; margin-bottom: 16px; flex: 1; }
-.tools-grid .tg-link { color: var(--gold); font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; margin-top: auto; }
+.tools-grid .tg-link { color: var(--gold-dark); font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; margin-top: auto; }
+html.dark-mode .tools-grid .tg-link { color: var(--gold); }
 html.dark-mode .tools-grid .tg-card { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
 html.dark-mode .tools-grid .tg-card:hover { border-color: rgba(201,168,76,0.4); }
 html.dark-mode .tools-grid .tg-name { color: #F5F0E8; }
