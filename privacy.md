@@ -8,7 +8,7 @@ tag: Legal
 
 ## 1. Who we are
 
-EquitySight is operated by Jacoby Evan Yarrow, a sole trader based in Queensland, Australia ("EquitySight", "we", "us", or "our"). We operate the website equitysight.app and related services.
+EquitySight is operated by Jacoby Yarrow, a sole trader based in Queensland, Australia ("EquitySight", "we", "us", or "our"). We operate the website equitysight.app and related services.
 
 This Privacy Policy explains how we collect, use, disclose, and protect your personal information when you use our property finance calculator and related services ("Service").
 
