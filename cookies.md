@@ -4,11 +4,11 @@ date: 2026-04-18
 tag: Legal
 ---
 
-> equitysight.app uses minimal storage technologies. We do not use advertising cookies or cross-site tracking. This page explains exactly what we store and why.
+> equitysight.app uses a small number of storage technologies. This page explains what we store and why. We use an essential cookie to keep you signed in, and Google Analytics, which sets its own cookies. Advertising is currently disabled, so we do not set advertising cookies at this time.
 
 ## Cookies we set
 
-We use one **essential cookie** to keep you signed in:
+We use an **essential cookie** to keep you signed in:
 
 | Cookie | Purpose | Type | Attributes | Expires |
 |--------|---------|------|------------|---------|
@@ -16,7 +16,7 @@ We use one **essential cookie** to keep you signed in:
 
 This cookie is **HttpOnly**, which means it cannot be read by JavaScript running in your browser. It is only sent to our servers over encrypted (HTTPS) connections. It contains a random session identifier — not your email, name, or any personal information.
 
-We do not set any cookies for tracking, advertising, or cross-site purposes.
+In addition, **Google Analytics** sets its own cookies (such as `_ga`) to measure aggregate usage. These are described in the **Analytics** section below.
 
 ## Browser localStorage
 
@@ -36,11 +36,13 @@ Our hosting infrastructure (Netlify) may set technical cookies required for CDN 
 
 ## Analytics
 
-We may use privacy-focused analytics tools to understand aggregate usage patterns (e.g. which features are most used). These tools are configured to:
+We use **Google Analytics 4** to understand aggregate usage patterns (e.g. which features are most used). Google Analytics sets first-party cookies (for example `_ga`) in your browser to distinguish visitors and sessions. If you are signed in, we may pass your account identifier to Google Analytics so usage can be measured across your devices.
 
-- Not track individuals across sites.
-- Anonymise or hash IP addresses.
-- Not share data with advertising networks.
+Google Analytics is provided by Google and processes data under Google's own terms. For more detail on how Google uses this information, see [Google's Privacy Policy](https://policies.google.com/privacy).
+
+## Advertising
+
+Advertising is **currently disabled** on this site, so no advertising cookies are set at this time. We have a Google AdSense account and may turn ads on in the future. If we do, Google AdSense (and related Google services such as DoubleClick) may set advertising cookies in your browser. We will update this page when advertising is enabled.
 
 ## Managing storage
 

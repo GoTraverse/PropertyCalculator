@@ -41,7 +41,7 @@ Our plan is to either replace each of these with a properly attributed source or
 
 - **Used for:** the current cash rate that powers our calculator pages (Purchase Calculator, Mortgage Repayment, Loan Serviceability, Mortgage Stress Test) via the `window.MarketRate` module.
 - **Source:** [rba.gov.au/statistics/cash-rate](https://www.rba.gov.au/statistics/cash-rate/)
-- **Refreshed:** read at page load via our `market-rate` Netlify function, which fetches the RBA public feed.
+- **Refreshed:** read at page load via our `market-rate` module, which queries the RBA public feed.
 - **Attribution:** Reserve Bank of Australia. Figures are used descriptively and are not represented as RBA forecasts.
 
 The cash rate is a genuine, live figure. When you open a calculator that models repayments, the current RBA cash rate is used as the baseline for variable-rate scenarios, and we add a typical bank margin on top to estimate an effective borrowing rate.
@@ -52,14 +52,14 @@ The long-form guides attached to each calculator are **drafted with AI assistanc
 
 ## 6. What we do NOT do
 
-- **No paid agent data.** We do not buy feeds from Domain, realestate.com.au, CoreLogic, or PriceFinder. We have no listing data integrated at all.
-- **No sponsored content.** No developer, agent, buyer's agent, or mortgage broker can pay us to feature a suburb, move its score, or change a verdict. Our revenue comes from subscriptions and advertising — never from data manipulation.
+- **No third-party listing or market-price data on suburb pages.** The figures on a suburb page are not drawn from Domain, realestate.com.au, CoreLogic, PriceFinder, or any other listing feed. (Our code includes an optional Domain integration, but no live listing or market-price data is currently displayed.)
+- **No sponsored content.** No developer, agent, buyer's agent, or mortgage broker can pay us to feature a suburb, move its score, or change a verdict.
 - **No scraped listings.** We do not scrape property listing websites.
 - **No personal data.** We do not collect, store, or infer anything about individual homeowners or tenants.
 
 ## 7. Independence and conflicts of interest
 
-EquitySight is run by a single solo operator. It is not owned by, licensed to, or commercially affiliated with any real-estate agency, developer, mortgage broker, buyer's agent, or data reseller. Our only revenue streams are paid subscriptions from end users and contextual advertising served by Google. No advertiser has editorial access to a suburb page, and no advertiser can pay to influence a score, a strategy verdict, or a risk factor.
+EquitySight is run by a single solo operator. It is not owned by, licensed to, or commercially affiliated with any real-estate agency, developer, mortgage broker, buyer's agent, or data reseller. The site is supported by paid subscriptions, and may also carry contextual advertising. No advertiser has editorial access to a suburb page, and no advertiser can pay to influence a score, a strategy verdict, or a risk factor.
 
 If this ever changes — for example if we accept investment from a party with an interest in specific suburbs — we will disclose it at the top of this page before the relationship begins.
 

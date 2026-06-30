@@ -14,7 +14,7 @@ equitysight.app does not hold an Australian Financial Services Licence (AFSL) or
 
 ## Accuracy of calculations
 
-While we take reasonable care to ensure our calculator produces accurate estimates, we make no representation or warranty about the accuracy, completeness, or suitability of any calculation for your specific circumstances. Figures produced by the calculator:
+While we take reasonable care with our calculator, we make no representation or warranty about the accuracy, completeness, or suitability of any calculation for your specific circumstances. Figures produced by the calculator:
 
 - Are estimates only and may differ from actual costs, repayments, or outcomes.
 - Are based on inputs you provide, which may contain errors or omissions.

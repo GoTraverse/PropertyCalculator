@@ -53,7 +53,7 @@ We will not use your information for purposes materially different from those de
 
 We do not sell, rent, or trade your personal information. We may share it only in these limited circumstances:
 
-- **Service providers:** Hosting, database, and payment processing providers who process data on our behalf under strict confidentiality obligations.
+- **Service providers:** Hosting, database, payment processing, and analytics providers who process data on our behalf under their own privacy terms.
 - **Legal requirements:** Where required by law, court order, or to protect the rights and safety of our users.
 - **Business transfers:** If we merge or are acquired, your data may transfer to the new owner subject to the same privacy commitments.
 
@@ -63,12 +63,11 @@ To distinguish humans from bots on our sign-in and sign-up pages we use **Cloudf
 
 ## 5. Data storage and security
 
-Your data is stored on servers located in [REGION]. We implement industry-standard security measures including:
+Your data is stored on servers operated by our hosting and database providers, located in [REGION]. We use measures including:
 
 - TLS/HTTPS encryption for all data in transit.
-- Salted hashing of passwords using [ALGORITHM].
-- Access controls limiting who can access your data internally.
-- Regular security reviews.
+- Salted hashing of passwords using HMAC-SHA256 — we never store your plain-text password.
+- Access to stored data limited to the operator of the Service and the service providers we rely on.
 
 No method of transmission over the Internet or electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your data, we cannot guarantee absolute security.
 
@@ -78,7 +77,7 @@ We use one essential **HttpOnly Secure cookie** (`es_session`) to authenticate y
 
 We also use browser **localStorage** to store non-sensitive application preferences (display name, plan type, cached scenarios) on your device. This data stays on your device and is not transmitted to third-party tracking services. Your authentication token is **not** stored in localStorage.
 
-We do not use advertising cookies or cross-site tracking. We may use minimal analytics tools to understand aggregate usage patterns, configured to minimise personal data collection. See our [Cookie Policy](cookies.html) for full details.
+We use **Google Analytics** to understand how the Service is used (for example, which calculators and features are most used). Google Analytics sets its own cookies and may receive your IP address, device and usage data, and — when you are signed in — an account identifier and email address, so that we can analyse usage across your sessions. Google processes this data under [Google's Privacy Policy](https://policies.google.com/privacy). See our [Cookie Policy](cookies.html) for full details.
 
 ## 7. Your rights
 
@@ -90,7 +89,7 @@ Depending on your jurisdiction, you may have the following rights regarding your
 - **Portability:** Request your data in a portable format.
 - **Objection:** Object to certain processing activities.
 
-To exercise any of these rights, please contact us at [privacy@equitysight.app](mailto:privacy@equitysight.app). We will respond within 30 days.
+To exercise any of these rights, please contact us at [privacy@equitysight.app](mailto:privacy@equitysight.app). We aim to respond within the timeframes required by applicable law.
 
 ## 8. Data retention
 
