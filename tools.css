@@ -95,7 +95,7 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-content li { margin-bottom: 6px; }
 .tool-content strong { color: var(--charcoal); font-weight: 600; }
 .tool-content code { font-family: var(--font-mono); font-size: 13px; background: rgba(28,28,30,0.05); padding: 2px 6px; border-radius: 3px; }
-.tool-content table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 18px 0 24px; }
+.tool-content table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 18px 0 24px; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .tool-content th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--slate); padding: 10px 12px; text-align: left; background: var(--warm-white); border: 1px solid rgba(28,28,30,0.09); }
 .tool-content td { padding: 9px 12px; border: 1px solid rgba(28,28,30,0.07); color: var(--charcoal); font-size: 13px; }
 .tool-content tr:nth-child(even) td { background: rgba(0,0,0,0.018); }
