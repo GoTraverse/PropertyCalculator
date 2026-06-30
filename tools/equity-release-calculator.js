@@ -1,11 +1,15 @@
 function calculate() {
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   var propVal = parseVal('propval');
   var mortgage = parseVal('mortgage');
   var lvr = parseFloat(document.getElementById('lvr').value) / 100;
 
-  if (!propVal || propVal <= 0) { if (!_isInit) alert('Please enter the property value.'); return; }
-  if (!mortgage || mortgage < 0) { if (!_isInit) alert('Please enter the outstanding mortgage.'); return; }
-  if (mortgage > propVal) { if (!_isInit) alert('Mortgage cannot exceed property value.'); return; }
+  if (!propVal || propVal <= 0) { if (!_isInit) _showErr('Please enter the property value.'); return; }
+  if (!mortgage || mortgage < 0) { if (!_isInit) _showErr('Please enter the outstanding mortgage.'); return; }
+  if (mortgage > propVal) { if (!_isInit) _showErr('Mortgage cannot exceed property value.'); return; }
 
   var equity = propVal - mortgage;
   var currentLvr = mortgage / propVal;

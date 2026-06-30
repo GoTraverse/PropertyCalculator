@@ -5,7 +5,11 @@ function calculate() {
   var expenses = parseVal('expenses');
   var debt = parseVal('debt');
 
-  if (!salary && !partner && !other) { if (!_isInit) alert('Please enter at least one income source.'); return; }
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
+  if (!salary && !partner && !other) { if (!_isInit) _showErr('Please enter at least one income source.'); return; }
 
   var gross = salary + partner + (other * 0.7);
   var monthlyIncome = gross / 12;

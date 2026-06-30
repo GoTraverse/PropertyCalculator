@@ -42,8 +42,12 @@ function calcTASDuty(price, ptype, buyer, fhb) {
 }
 
 function calculate() {
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   var val = parseVal('price');
-  if (!val || val <= 0) { if (!_isInit) alert('Please enter the purchase price.'); return; }
+  if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
   var buyer = document.getElementById('buyer').value;
