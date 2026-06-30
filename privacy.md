@@ -8,7 +8,7 @@ tag: Legal
 
 ## 1. Who we are
 
-[COMPANY LEGAL NAME] ("EquitySight", "we", "us", or "our") operates the website equitysight.app and related services. We are a [JURISDICTION] company.
+EquitySight is operated by Jacoby Evan Yarrow, a sole trader based in Queensland, Australia ("EquitySight", "we", "us", or "our"). We operate the website equitysight.app and related services.
 
 This Privacy Policy explains how we collect, use, disclose, and protect your personal information when you use our property finance calculator and related services ("Service").
 
@@ -63,7 +63,7 @@ To distinguish humans from bots on our sign-in and sign-up pages we use **Cloudf
 
 ## 5. Data storage and security
 
-Your data is stored on servers operated by our hosting and database providers, located in [REGION]. We use measures including:
+Your data is stored on servers operated by our hosting and database providers (such as Netlify and Upstash), which may be located in Australia or overseas. We use measures including:
 
 - TLS/HTTPS encryption for all data in transit.
 - Salted hashing of passwords using HMAC-SHA256 — we never store your plain-text password.
@@ -107,8 +107,8 @@ We may update this Privacy Policy from time to time. We will notify you of signi
 
 > **Privacy enquiries**
 >
-> For privacy-related questions or to exercise your rights, contact our privacy team.
+> For privacy-related questions or to exercise your rights, contact us.
 >
 > Email: [support@equitysight.app](mailto:support@equitysight.app)
 >
-> Post: [MAILING ADDRESS], [CITY, STATE, POSTCODE], [COUNTRY]
+> A postal address is available on request.
