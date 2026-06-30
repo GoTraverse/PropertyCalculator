@@ -236,8 +236,12 @@ function calculate() {
   const isCouple = document.getElementById('couple').value === 'couple';
   const isCapitalCity = document.getElementById('location').value === 'capital';
 
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   if (!price || price <= 0) {
-    if (!_isInit) alert('Please enter the property price.');
+    if (!_isInit) _showErr('Please enter the property price.');
     return;
   }
 

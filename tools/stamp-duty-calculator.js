@@ -215,10 +215,14 @@ function updateState() {
 }
 
 function calculate() {
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   var state = document.getElementById('state').value;
   var data = stateData[state];
   var val = parseVal('price');
-  if (!val || val <= 0) { if (!_isInit) alert('Please enter the purchase price.'); return; }
+  if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
 
   var isFHB = document.getElementById('fhb').checked;
   var isForeign = document.getElementById('foreign').checked;

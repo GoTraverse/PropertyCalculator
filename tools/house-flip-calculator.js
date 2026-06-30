@@ -5,9 +5,13 @@ function updateContingency() {
 }
 
 function calculate() {
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   var purchase = parseVal('purchase');
   var sale = parseVal('saleprice');
-  if (!purchase || !sale) { if (!_isInit) alert('Please enter purchase price and expected sale price.'); return; }
+  if (!purchase || !sale) { if (!_isInit) _showErr('Please enter purchase price and expected sale price.'); return; }
 
   var stamp = parseVal('stamp');
   var buyconvey = parseVal('buyconvey');

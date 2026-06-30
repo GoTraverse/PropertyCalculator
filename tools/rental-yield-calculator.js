@@ -1,7 +1,10 @@
 function calculate() {
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
   var propVal = parseVal('propval');
   var weekly = parseVal('weekly');
-  if (!propVal || !weekly) { if (!_isInit) alert('Please enter property value and weekly rent.'); return; }
+  if (!propVal || !weekly) { if (!_isInit) _showErr('Please enter property value and weekly rent.'); return; }
 
   var vacancy = parseFloat(document.getElementById('vacancy').value) || 0;
   var mgmtPct = parseFloat(document.getElementById('mgmt').value) || 0;

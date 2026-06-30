@@ -7,7 +7,11 @@ function calculate() {
   var otherDebt = parseVal('expenses');
   var bufferPct = parseFloat(document.getElementById('buffer').value) || 3;
 
-  if (!loan || !rate || !income) { if (!_isInit) alert('Please enter loan amount, interest rate, and monthly income.'); return; }
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
+  if (!loan || !rate || !income) { if (!_isInit) _showErr('Please enter loan amount, interest rate, and monthly income.'); return; }
 
   var repay = monthlyRepayment(loan, rate, term, io);
   var stressed = monthlyRepayment(loan, rate + bufferPct, term, io);

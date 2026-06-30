@@ -10,6 +10,9 @@ var KITCHEN_FULL    = { budget: [12000, 20000], mid: [20000, 45000], premium: [4
 var LANDSCAPE = { budget: [8000, 15000], mid: [15000, 30000], premium: [30000, 60000] };
 
 function calculate() {
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
   var area = parseFloat(document.getElementById('area').value) || 0;
   var scope = document.getElementById('scope').value;
   var finish = document.getElementById('finish').value;
@@ -18,7 +21,7 @@ function calculate() {
   var landscape = document.getElementById('landscaping').checked;
   var addCont = document.getElementById('contingency').checked;
 
-  if (!area || area < 10) { if (!_isInit) alert('Please enter a floor area.'); return; }
+  if (!area || area < 10) { if (!_isInit) _showErr('Please enter a floor area.'); return; }
 
   var r = RATES[scope][finish];
   var baseLow = area * r[0];
