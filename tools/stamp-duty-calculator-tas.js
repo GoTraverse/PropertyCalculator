@@ -113,7 +113,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-tas',
+  slug: 'stamp-duty-tas',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full Tasmania investment',

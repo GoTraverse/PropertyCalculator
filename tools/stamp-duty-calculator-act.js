@@ -112,7 +112,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-act',
+  slug: 'stamp-duty-act',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full Australian Capital Territory investment',

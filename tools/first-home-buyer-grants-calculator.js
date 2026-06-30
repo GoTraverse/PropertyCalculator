@@ -344,7 +344,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'first-home-buyer',
+  slug: 'first-home-buyer',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Plan your purchase and investment',

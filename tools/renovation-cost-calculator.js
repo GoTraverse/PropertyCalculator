@@ -79,7 +79,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'renovation-cost',
+  slug: 'renovation-cost',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Does the renovation make financial sense?',

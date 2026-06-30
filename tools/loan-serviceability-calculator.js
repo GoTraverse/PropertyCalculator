@@ -77,7 +77,7 @@ if (typeof MarketRate !== 'undefined') {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'loan-serviceability',
+  slug: 'loan-serviceability',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full investment',

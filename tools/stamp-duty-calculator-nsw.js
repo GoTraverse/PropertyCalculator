@@ -116,7 +116,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-nsw',
+  slug: 'stamp-duty-nsw',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full New South Wales investment',

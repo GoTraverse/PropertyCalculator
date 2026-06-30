@@ -77,7 +77,7 @@ function calc() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'deposit',
+  slug: 'deposit',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full purchase — deposit, loan & 30-year projection',

@@ -85,7 +85,7 @@ if (typeof MarketRate !== 'undefined') {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'mortgage-stress',
+  slug: 'mortgage-stress',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Plan the full property purchase',

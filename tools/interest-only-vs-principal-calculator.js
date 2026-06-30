@@ -48,7 +48,7 @@ function calc() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'io-vs-pi',
+  slug: 'io-vs-pi',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model tax, cash-flow and equity growth on IO vs P&I',

@@ -297,7 +297,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty',
+  slug: 'stamp-duty',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full property investment',
