@@ -2697,17 +2697,11 @@ function sitemapUrl(loc, changefreq, priority) {
 const stateUrls = {};
 for (const state of allStates) {
   stateUrls[state] = [];
-  // State hub page
-  stateUrls[state].push(sitemapUrl(`https://equitysight.app/invest/${state.toLowerCase()}/`, 'weekly', '0.8'));
 }
 
-// City pages → into their state bucket
-for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
-  const cSlug = citySlug(cityName);
-  const st = cityDef.state;
-  if (!stateUrls[st]) stateUrls[st] = [];
-  stateUrls[st].push(sitemapUrl(`https://equitysight.app/invest/${st.toLowerCase()}/${cSlug}/`, 'weekly', '0.75'));
-}
+// NOTE: /invest/ state-hub + city pages are now noindex,follow — their aggregate
+// investment scores rest on placeholder data, so they're intentionally excluded
+// from the sitemap (same policy as suburb pages) until backed by verified data.
 
 // Suburb pages → into their state bucket (exclude noindex pages from sitemap)
 let sitemapExcluded = 0;
