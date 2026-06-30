@@ -11,7 +11,9 @@ function calculate() {
 
   if (!salary && !partner && !other) { if (!_isInit) _showErr('Please enter at least one income source.'); return; }
 
-  var gross = salary + partner + (other * 0.7);
+  // Rental / other income counted at 75% (standard big-four shading; matches the
+  // borrowing-power calculator) to allow for vacancy and ongoing costs.
+  var gross = salary + partner + (other * 0.75);
   var monthlyIncome = gross / 12;
   var monthlyCommitments = expenses + debt;
   var monthlyDisposable = monthlyIncome - monthlyCommitments;
@@ -167,7 +169,7 @@ ToolPage.init({
       label: 'Investor with rental income',
       inputs: [
         { k: 'Gross income', v: '$130,000' },
-        { k: 'Rental income (80%)', v: '$24,000' },
+        { k: 'Rental income (75%)', v: '$22,500' },
         { k: 'Monthly living costs', v: '$3,000' },
         { k: 'Interest rate', v: '6.75%' }
       ],
@@ -185,7 +187,7 @@ ToolPage.init({
     { q: 'Why do banks use a stress-test rate?',
       a: 'APRA requires lenders to assess loans at the current rate plus a 3% buffer. This ensures you can keep servicing the loan if rates rise \u2014 a real-world risk most Australian borrowers have faced in recent years.' },
     { q: 'Does rental income count?',
-      a: 'Yes, but lenders usually discount it by 20\u201330% to account for vacancy and ongoing costs. A property expected to earn $500/week might be counted as ~$350/week for serviceability.' },
+      a: 'Yes, but lenders usually discount it by 20\u201330% to account for vacancy and ongoing costs. A property expected to earn $500/week might be counted as ~$375/week (75%) for serviceability.' },
     { q: 'How can I improve my borrowing power?',
       a: 'Reduce credit-card limits (even unused limits reduce capacity), pay down personal loans, increase declared income (bonus/overtime history helps), and reduce declared expenses by closing subscriptions you don\u2019t use.' }
   ],
