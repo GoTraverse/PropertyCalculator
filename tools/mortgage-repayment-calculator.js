@@ -74,6 +74,7 @@ function simulateAmortisation({ principal, annualRate, years, repayMonthly, extr
   const ioMonths = Math.max(0, Math.min(years, ioYears || 0)) * 12;
   let balance = principal;
   let cumInterest = 0;
+  let postIoPayment = null; // P&I recomputed once IO ends (over the remaining term)
   const schedule = []; // one entry per year
   let yearOpenBal = balance;
   let yearInterest = 0;
@@ -92,9 +93,17 @@ function simulateAmortisation({ principal, annualRate, years, repayMonthly, extr
     if (m <= ioMonths) {
       payment = balance * r; // raw interest, ignoring offset for IO calc
       principalPaid = 0;
-      // Recompute P&I from end-of-IO so the post-IO monthly is correct.
-      // This is what most AU lenders do — IO ends → full P&I over remaining term.
     } else {
+      // When the IO period ends, AU lenders revert the loan to full P&I over the
+      // REMAINING term. Recompute that payment once (the passed-in repayMonthly is
+      // the full-term P&I, which would under-repay and never amortise in time).
+      if (ioMonths > 0 && postIoPayment === null) {
+        const remMonths = Math.max(1, totalMonths - ioMonths);
+        postIoPayment = r > 0
+          ? (balance * r) / (1 - Math.pow(1 + r, -remMonths))
+          : balance / remMonths;
+      }
+      if (postIoPayment !== null) payment = postIoPayment + (extraMonthly || 0);
       principalPaid = payment - interest;
       // Don't overpay: cap principalPaid at remaining balance
       if (principalPaid > balance) {

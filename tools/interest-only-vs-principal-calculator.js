@@ -7,16 +7,15 @@ function calc() {
   var ioYears = parseInt(document.getElementById('io-years').value) || 0;
   var term = parseInt(document.getElementById('term').value) || 30;
 
-  if (!amount || term <= 0 || ioYears >= term) {
-    setText('r-io-monthly', '—');
-    setText('r-pi-monthly', '—');
-    setText('r-io-revert', '—');
-    setText('r-saving', '—');
-    setText('r-io-total', '—');
-    setText('r-pi-total', '—');
-    setText('r-extra', '—');
-    return;
+  var msgEl = document.getElementById('calc-msg');
+  function showMsg(text) {
+    ['r-io-monthly','r-pi-monthly','r-io-revert','r-saving','r-io-total','r-pi-total','r-extra'].forEach(function (id) { setText(id, '—'); });
+    if (msgEl) { msgEl.textContent = text; msgEl.hidden = false; }
   }
+  if (!amount || amount <= 0) { showMsg('Enter a loan amount to compare.'); return; }
+  if (term <= 0) { showMsg('Enter a loan term (in years).'); return; }
+  if (ioYears >= term) { showMsg('The interest-only period must be shorter than the loan term.'); return; }
+  if (msgEl) msgEl.hidden = true;
 
   // P&I path — full term amortisation
   var piMonthly = monthlyRepayment(amount, ratePI, term, false);
