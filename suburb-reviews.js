@@ -233,14 +233,14 @@
             var d = new Date(rv.created_at);
             if (!isNaN(d)) date = d.toLocaleDateString('en-AU', { year: 'numeric', month: 'short' });
           }
-          // rv.title and rv.body are HTML-escaped at submit-time in the function,
-          // so they are safe to insert. Newlines → <br>.
-          var bodyHtml = String(rv.body || '').replace(/\n/g, '<br>');
+          // Fields are escaped server-side at submit time; we also escape here as
+          // defense-in-depth before this public-page DOM sink. Newlines → <br>.
+          var bodyHtml = escHtml(String(rv.body || '')).replace(/\n/g, '<br>');
           article.innerHTML =
             '<header class="suburb-review-head">' +
               '<div class="suburb-review-stars" aria-label="' + rv.rating + ' out of 5 stars">' + starOn + starOff + '</div>' +
-              '<h3 class="suburb-review-title">' + (rv.title || '') + '</h3>' +
-              '<div class="suburb-review-meta"><span>' + (rv.userName || 'Anonymous') + '</span>' + (date ? ' <span>·</span> <span>' + date + '</span>' : '') + '</div>' +
+              '<h3 class="suburb-review-title">' + escHtml(rv.title || '') + '</h3>' +
+              '<div class="suburb-review-meta"><span>' + escHtml(rv.userName || 'Anonymous') + '</span>' + (date ? ' <span>·</span> <span>' + date + '</span>' : '') + '</div>' +
             '</header>' +
             '<p class="suburb-review-body">' + bodyHtml + '</p>';
           list.appendChild(article);

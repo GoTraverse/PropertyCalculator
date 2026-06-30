@@ -189,9 +189,9 @@
             var d = new Date(c.created_at);
             if (!isNaN(d)) date = d.toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' });
           }
-          // body is HTML-escaped server-side at submit time — safe to insert;
-          // only transform newlines to <br> for display.
-          var bodyHtml = String(c.body || '').replace(/\n/g, '<br>');
+          // Body is escaped server-side at submit time; we also escape here as
+          // defense-in-depth before insertion, then transform newlines to <br>.
+          var bodyHtml = escHtml(String(c.body || '')).replace(/\n/g, '<br>');
           article.innerHTML =
             '<header class="blog-comment-head">' +
               '<span class="blog-comment-user">' + escHtml(name) + '</span>' +
