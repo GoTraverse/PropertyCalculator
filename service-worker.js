@@ -6,9 +6,10 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v4';
+const CACHE_NAME = 'equitysight-v5';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
+  '/offline.html',
   '/shared.css',
   '/app.css',
   '/tools.css',
@@ -139,8 +140,10 @@ self.addEventListener('fetch', function(event) {
         }
         return response;
       }).catch(function() {
+        // Network failed (offline). Serve the cached page if we have it,
+        // otherwise the branded offline fallback (pre-cached on install).
         return caches.match(event.request).then(function(cached) {
-          return cached || caches.match('/404.html');
+          return cached || caches.match('/offline.html');
         });
       })
     );
