@@ -3,7 +3,9 @@
  * for TAS; this file exists so the TAS-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
 
-var TAS_FOREIGN_RATE = 0;
+// Tasmania levies an 8% Foreign Investor Duty Surcharge (FIDS) on residential
+// property acquired by foreign persons (since 1 April 2020).
+var TAS_FOREIGN_RATE = 0.08;
 var TAS_FHB_FULL = 750000;
 var TAS_FHB_PARTIAL = 750000;
 
@@ -271,11 +273,11 @@ ToolPage.init({
   },
   {
     "q": "Does Tasmania charge a foreign buyer surcharge?",
-    "a": "No. Tasmania is one of the few Australian jurisdictions that does not currently levy a foreign buyer surcharge on residential property purchases. Foreign buyers pay only the standard transfer duty rates with no additional surcharge. This makes Tasmania notably cheaper for foreign investors than NSW, VIC, QLD, SA, WA, ACT, or NT."
+    "a": "Yes. Tasmania levies a Foreign Investor Duty Surcharge (FIDS) of 8% of the dutiable value on residential property acquired by a foreign person (in force since 1 April 2020). It is charged on top of the standard transfer duty and collected by the State Revenue Office Tasmania. Australian citizens and permanent residents are not foreign persons for this surcharge."
   },
   {
     "q": "Why is Tasmanian stamp duty cheaper than other states?",
-    "a": "Tasmania's top transfer duty rate is 4.5% (on the value above $725,000) and it levies no foreign buyer surcharge. Combined with lower median property prices, the absolute dollar amount of duty is generally less than in the larger mainland states. The first home buyer exemption (full $0 duty on established homes up to $750,000) removes duty entirely for eligible owner-occupier first-time buyers under that cap."
+    "a": "Tasmania's top transfer duty rate is 4.5% (on the value above $725,000). Combined with lower median property prices, the absolute dollar amount of duty for ordinary buyers is generally less than in the larger mainland states. The first home buyer exemption (full $0 duty on established homes up to $750,000) removes duty entirely for eligible owner-occupier first-time buyers under that cap. (Foreign buyers do pay an additional 8% Foreign Investor Duty Surcharge.)"
   },
   {
     "q": "Is Tasmanian stamp duty tax deductible?",
