@@ -3,7 +3,7 @@
  * for NSW; this file exists so the NSW-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
 
-var NSW_FOREIGN_RATE = 0.08;
+var NSW_FOREIGN_RATE = 0.09;
 var NSW_FHB_FULL = 800000;
 var NSW_FHB_PARTIAL = 1000000;
 
@@ -267,7 +267,7 @@ ToolPage.init({
   },
   {
     "q": "What is the NSW foreign buyer surcharge?",
-    "a": "Foreign buyers (non-Australian citizens or permanent residents) pay an additional 8% surcharge purchaser duty on top of standard transfer duty. The surcharge applies to residential property purchases and is collected by Revenue NSW at the same time as the standard duty. New Zealand citizens with a Special Category Visa are treated as foreign for this surcharge unless they are also Australian permanent residents."
+    "a": "Foreign buyers (non-Australian citizens or permanent residents) pay an additional 9% surcharge purchaser duty on top of standard transfer duty. The surcharge applies to residential property purchases and is collected by Revenue NSW at the same time as the standard duty. New Zealand citizens with a Special Category Visa are treated as foreign for this surcharge unless they are also Australian permanent residents."
   },
   {
     "q": "Is stamp duty tax deductible for NSW investors?",

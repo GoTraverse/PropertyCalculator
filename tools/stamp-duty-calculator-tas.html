@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"TAS Stamp Duty Calculator","url":"https://equitysight.app/tools/stamp-duty-calculator-tas","description":"Free Tasmania property transfer duty calculator. Calculate duty for owner-occupiers, investors, and first home buyers using current State Revenue Office Tasmania rates.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"},"areaServed":{"@type":"State","name":"Tasmania"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"TAS Stamp Duty Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does stamp duty work in Tasmania?","acceptedAnswer":{"@type":"Answer","text":"Tasmanian property transfer duty is charged by the State Revenue Office Tasmania (SRO Tas) on the dutiable value of any property purchase. It is a flat $50 up to $3,000, then a tiered set of marginal rates on the value above $3,000: 1.75% to $25,000, 2.25% to $75,000, 3.5% to $200,000, 4% to $375,000, 4.25% to $725,000, and 4.5% on the portion above $725,000 (with the $50 base carried through). Owner-occupiers and investors pay the same standard rates."}},{"@type":"Question","name":"Do first home buyers pay stamp duty in Tasmania?","acceptedAnswer":{"@type":"Answer","text":"Eligible first home buyers receive a FULL exemption from property transfer duty on established homes valued up to $750,000 (a temporary measure currently legislated to 30 June 2026). It is a hard cliff: at $750,000 or below an eligible first home buyer pays $0 duty, but at $750,001 or above the full standard duty applies with no concession or taper."}},{"@type":"Question","name":"When is stamp duty due in Tasmania?","acceptedAnswer":{"@type":"Answer","text":"Tasmanian property transfer duty is payable within three months of the dutiable transaction. Your conveyancer normally pays SRO Tas at settlement using funds from your loan and deposit. Late payment attracts interest at the rate published by SRO Tas."}},{"@type":"Question","name":"Does Tasmania charge a foreign buyer surcharge?","acceptedAnswer":{"@type":"Answer","text":"No. Tasmania is one of the few Australian jurisdictions that does not currently levy a foreign buyer surcharge on residential property purchases. Foreign buyers pay only the standard transfer duty rates with no additional surcharge. This makes Tasmania notably cheaper for foreign investors than NSW, VIC, QLD, SA, WA, ACT, or NT."}},{"@type":"Question","name":"Why is Tasmanian stamp duty cheaper than other states?","acceptedAnswer":{"@type":"Answer","text":"Tasmania's top transfer duty rate is 4.5% (on the value above $725,000) and it levies no foreign buyer surcharge. Combined with lower median property prices, the absolute dollar amount of duty is generally less than in the larger mainland states. The first home buyer exemption (full $0 duty on established homes up to $750,000) removes duty entirely for eligible owner-occupier first-time buyers under that cap."}},{"@type":"Question","name":"Is Tasmanian stamp duty tax deductible?","acceptedAnswer":{"@type":"Answer","text":"No. Stamp duty paid on an investment property in Tasmania is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"TAS Stamp Duty Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does stamp duty work in Tasmania?","acceptedAnswer":{"@type":"Answer","text":"Tasmanian property transfer duty is charged by the State Revenue Office Tasmania (SRO Tas) on the dutiable value of any property purchase. It is a flat $50 up to $3,000, then a tiered set of marginal rates on the value above $3,000: 1.75% to $25,000, 2.25% to $75,000, 3.5% to $200,000, 4% to $375,000, 4.25% to $725,000, and 4.5% on the portion above $725,000 (with the $50 base carried through). Owner-occupiers and investors pay the same standard rates."}},{"@type":"Question","name":"Do first home buyers pay stamp duty in Tasmania?","acceptedAnswer":{"@type":"Answer","text":"Eligible first home buyers receive a FULL exemption from property transfer duty on established homes valued up to $750,000 (a temporary measure currently legislated to 30 June 2026). It is a hard cliff: at $750,000 or below an eligible first home buyer pays $0 duty, but at $750,001 or above the full standard duty applies with no concession or taper."}},{"@type":"Question","name":"When is stamp duty due in Tasmania?","acceptedAnswer":{"@type":"Answer","text":"Tasmanian property transfer duty is payable within three months of the dutiable transaction. Your conveyancer normally pays SRO Tas at settlement using funds from your loan and deposit. Late payment attracts interest at the rate published by SRO Tas."}},{"@type":"Question","name":"Does Tasmania charge a foreign buyer surcharge?","acceptedAnswer":{"@type":"Answer","text":"Yes. Tasmania levies a Foreign Investor Duty Surcharge (FIDS) of 8% of the dutiable value on residential property acquired by a foreign person (in force since 1 April 2020). It is charged on top of the standard transfer duty and collected by the State Revenue Office Tasmania. Australian citizens and permanent residents are not foreign persons for this surcharge."}},{"@type":"Question","name":"Why is Tasmanian stamp duty cheaper than other states?","acceptedAnswer":{"@type":"Answer","text":"Tasmania's top transfer duty rate is 4.5% (on the value above $725,000). Combined with lower median property prices, the absolute dollar amount of duty for ordinary buyers is generally less than in the larger mainland states. The first home buyer exemption (full $0 duty on established homes up to $750,000) removes duty entirely for eligible owner-occupier first-time buyers under that cap. (Foreign buyers do pay an additional 8% Foreign Investor Duty Surcharge.)"}},{"@type":"Question","name":"Is Tasmanian stamp duty tax deductible?","acceptedAnswer":{"@type":"Answer","text":"No. Stamp duty paid on an investment property in Tasmania is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."}}]}]}
 </script>
 </head>
 <body>
@@ -96,7 +96,10 @@
       <input type="checkbox" id="fhb">
       <label for="fhb">First home buyer (eligible for concession)</label>
     </div>
-    <!-- TAS does not levy a foreign buyer surcharge -->
+    <div class="tool-check">
+      <input type="checkbox" id="foreign">
+      <label for="foreign">Foreign buyer (additional 8% FIDS surcharge)</label>
+    </div>
 
     <div class="tool-field">
       <label class="tool-label" for="deposit-pct">Deposit % <span class="tool-label-hint">(for LMI estimate; default 20%)</span></label>
@@ -112,6 +115,10 @@
       <div class="tool-stat">
         <div class="tool-stat-label">Property Transfer Duty</div>
         <div class="tool-stat-value" id="r-duty">—</div>
+      </div>
+      <div class="tool-stat" id="r-foreign-wrap">
+        <div class="tool-stat-label">Foreign Surcharge (8%)</div>
+        <div class="tool-stat-value" id="r-foreign">—</div>
       </div>
 
       <div class="tool-stat highlight">
@@ -188,7 +195,7 @@
   </table>
 
   <h2>Owner-occupier vs investor in TAS</h2>
-  <p>Tasmania does not offer a separate owner-occupier "home concession" — owner-occupiers (other than first home buyers) and investors pay the same standard rates. Tasmania is also unusual in not levying a foreign buyer surcharge, making it one of the few Australian jurisdictions where overseas buyers pay only the standard duty.</p>
+  <p>Tasmania does not offer a separate owner-occupier "home concession" — owner-occupiers (other than first home buyers) and investors pay the same standard rates. Foreign buyers, however, pay an additional 8% Foreign Investor Duty Surcharge on top of the standard duty.</p>
 
 <details class="tool-content-more"><summary>Show FHB concessions, foreign-buyer surcharge, worked examples & state comparison</summary>
 
@@ -197,7 +204,7 @@
   <p>For full eligibility details and to apply, see <a href="https://www.sro.tas.gov.au/property-transfer-duties/first-home-buyer-duty-concession" target="_blank" rel="noopener">State Revenue Office Tasmania: First Home Buyer Duty Exemption (established homes up to $750k)</a>.</p>
 
   <h2>Foreign buyer surcharge</h2>
-  <p>Tasmania does not currently levy a foreign buyer surcharge on residential property purchases. Foreign buyers pay only the standard property transfer duty rates with no additional surcharge — making Tasmania one of the few Australian jurisdictions where overseas buyers pay no extra duty.</p>
+  <p>Tasmania levies a Foreign Investor Duty Surcharge (FIDS) of 8% of the dutiable value when a foreign person acquires residential property, in force since 1 April 2020. It is charged in addition to the standard property transfer duty and collected by the State Revenue Office Tasmania. Australian citizens and permanent residents are not foreign persons for the purposes of this surcharge.</p>
 
   <h2>Worked examples</h2>
   <table class="tool-table" style="width:100%;border-collapse:collapse;margin:16px 0">
@@ -228,7 +235,7 @@
   <p class="tool-disclaimer">Estimates use State Revenue Office Tasmania 2025–26 property transfer duty rates. Always confirm the exact figure with your solicitor or conveyancer before settlement — these calculations do not account for off-the-plan concessions, pensioner concessions, or other state-specific reliefs that may apply to your situation.</p>
 
   <h2>Compare with other Australian states</h2>
-  <p>Need to calculate stamp duty for another state? Use our <a href="/tools/stamp-duty-calculator">all-states stamp duty calculator</a>, which covers NSW, VIC, QLD, SA, WA, TAS, ACT, and NT in a single tool. Each state has different rates, thresholds, and concessions — Tasmania is one of the few jurisdictions without a foreign buyer surcharge.</p>
+  <p>Need to calculate stamp duty for another state? Use our <a href="/tools/stamp-duty-calculator">all-states stamp duty calculator</a>, which covers NSW, VIC, QLD, SA, WA, TAS, ACT, and NT in a single tool. Each state has different rates, thresholds, and concessions — Tasmania applies an 8% foreign investor duty surcharge to overseas buyers.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>How does stamp duty work in Tasmania?</h3>
@@ -238,9 +245,9 @@
   <h3>When is stamp duty due in Tasmania?</h3>
   <p>Tasmanian property transfer duty is payable within three months of the dutiable transaction. Your conveyancer normally pays SRO Tas at settlement using funds from your loan and deposit. Late payment attracts interest at the rate published by SRO Tas.</p>
   <h3>Does Tasmania charge a foreign buyer surcharge?</h3>
-  <p>No. Tasmania is one of the few Australian jurisdictions that does not currently levy a foreign buyer surcharge on residential property purchases. Foreign buyers pay only the standard transfer duty rates with no additional surcharge. This makes Tasmania notably cheaper for foreign investors than NSW, VIC, QLD, SA, WA, ACT, or NT.</p>
+  <p>Yes. Tasmania levies a Foreign Investor Duty Surcharge (FIDS) of 8% of the dutiable value on residential property acquired by a foreign person (in force since 1 April 2020). It is charged on top of the standard transfer duty and collected by the State Revenue Office Tasmania. Australian citizens and permanent residents are not foreign persons for this surcharge.</p>
   <h3>Why is Tasmanian stamp duty cheaper than other states?</h3>
-  <p>Tasmania's top transfer duty rate is 4.5% (on the value above $725,000) and it levies no foreign buyer surcharge. Combined with lower median property prices, the absolute dollar amount of duty is generally less than in the larger mainland states. The first home buyer exemption (full $0 duty on established homes up to $750,000) removes duty entirely for eligible owner-occupier first-time buyers under that cap.</p>
+  <p>Tasmania's top transfer duty rate is 4.5% (on the value above $725,000). Combined with lower median property prices, the absolute dollar amount of duty for ordinary buyers is generally less than in the larger mainland states. The first home buyer exemption (full $0 duty on established homes up to $750,000) removes duty entirely for eligible owner-occupier first-time buyers under that cap. (Foreign buyers do pay an additional 8% Foreign Investor Duty Surcharge.)</p>
   <h3>Is Tasmanian stamp duty tax deductible?</h3>
   <p>No. Stamp duty paid on an investment property in Tasmania is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all.</p>
 
