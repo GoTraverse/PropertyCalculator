@@ -152,27 +152,6 @@ var ToolPage = (function() {
       '</div>';
   }
 
-  function renderPartners(root, links) {
-    if (!links || !links.length) return;
-    var html = '<div class="tool-partners">' +
-      '<div class="tool-partners-eye">\uD83E\uDD1D Recommended Partners</div>' +
-      '<div class="tool-partners-grid">';
-    links.forEach(function(p) {
-      html += '<div class="tool-partner-tile">';
-      if (p.badge) html += '<span class="tool-partner-badge">' + escHtml(p.badge) + '</span>';
-      html += '<div class="tool-partner-name">' + escHtml(p.name) + '</div>' +
-        '<div class="tool-partner-tagline">' + escHtml(p.tagline || '') + '</div>' +
-        '<a href="' + escHtml(p.url) + '" target="_blank" rel="noopener sponsored" class="tool-partner-btn">Learn more \u2192</a>' +
-        '</div>';
-    });
-    html += '</div></div>';
-    root.innerHTML = html;
-  }
-
-  function renderDisclosure(root) {
-    root.innerHTML = '<p class="tool-disclosure">Disclosure: Some links on this page are referral links. We may earn a small fee at no extra cost to you.</p>';
-  }
-
   function renderTrust(root) {
     // Each badge is an inline SVG shield with the agency's official brand
     // colour, a subtle vertical gradient fill, the abbreviation in
@@ -431,40 +410,6 @@ var ToolPage = (function() {
 
   /* ── Init ── */
 
-  function _fetchPartners(slug) {
-    // Partner-promo block is intentionally suppressed (May 2026) — we don't
-    // currently have active referral partners and the "Recommended Partners"
-    // section reads as filler. The fetch + render path is preserved below
-    // for when partner deals are reactivated; set
-    // window.EQUITYSIGHT_SHOW_PARTNERS = true on a page to re-enable.
-    if (!window.EQUITYSIGHT_SHOW_PARTNERS) return;
-    var partnersRoot = document.getElementById('tool-partners-root');
-    var disclosureRoot = document.getElementById('tool-disclosure-root');
-    if (!partnersRoot && !disclosureRoot) return;
-    fetch('/.netlify/functions/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getPublicConfig' })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data) {
-      var all = (data && data.config && data.config.partnerLinks) || {};
-      var global = all['global'] || [];
-      var specific = slug ? (all[slug] || []) : [];
-      // Merge global + specific, dedupe by url
-      var seen = {};
-      var links = global.concat(specific).filter(function(p) {
-        if (!p || !p.url || seen[p.url]) return false;
-        seen[p.url] = true;
-        return true;
-      });
-      if (!links.length) return;
-      if (partnersRoot) renderPartners(partnersRoot, links);
-      if (disclosureRoot) renderDisclosure(disclosureRoot);
-    })
-    .catch(function(){});
-  }
-
   /* ── Persist tool inputs to localStorage so refreshing doesn't lose work ── */
   function _installInputPersistence(slug) {
     if (!slug) return;
@@ -505,7 +450,7 @@ var ToolPage = (function() {
   function init(config) {
     var el;
 
-    _installInputPersistence(config.partnerSlug);
+    _installInputPersistence(config.slug);
     _installScrollToResult();
 
     el = document.getElementById('tool-cta-root');
@@ -540,7 +485,6 @@ var ToolPage = (function() {
     el = document.getElementById('tool-footer-root');
     if (el) renderFooter(el, config.footer);
 
-    _fetchPartners(config.partnerSlug || '');
   }
 
   /* ── Public API ── */

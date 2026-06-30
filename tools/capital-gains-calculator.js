@@ -72,7 +72,7 @@ function calc() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'capital-gains',
+  slug: 'capital-gains',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the tax impact across your entire portfolio',

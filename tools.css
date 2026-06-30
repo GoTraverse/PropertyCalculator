@@ -394,14 +394,11 @@ html.dark-mode .tool-resources a { color: var(--gold); }
 .dark-mode .sd-compare td.sd-save { color: #5eead4; }
 
 
-/* ── Ad + partner placeholders (May 2026: hidden until ads/partners go live) ──
+/* ── Ad placeholder (May 2026: hidden until ads go live) ──
  * adsense.js is gated on window.EQUITYSIGHT_ADS_ENABLED — when off, the
- * .ad-slot DOM elements remain but stay empty. tool-page.js renderPartners
- * is gated on window.EQUITYSIGHT_SHOW_PARTNERS. These rules ensure no
- * visible empty space when the gates are off; both selectors auto-restore
- * once their respective JS injects content (which adds child nodes — the
- * `:empty` pseudo-class drops the hide). */
+ * .ad-slot DOM elements remain but stay empty. This rule ensures no visible
+ * empty space when the gate is off; the selector auto-restores once adsense.js
+ * injects content (which adds child nodes — the `:empty` pseudo-class drops the
+ * hide). */
 .ad-slot:empty { display: none; }
-.tool-partners:empty,
-#tool-partners-root:empty { display: none; }
 

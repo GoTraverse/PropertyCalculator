@@ -115,7 +115,7 @@ function dCalc() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'cost-of-purchase',
+  slug: 'cost-of-purchase',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Ready to buy?',

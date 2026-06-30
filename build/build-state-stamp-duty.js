@@ -616,8 +616,6 @@ ${s.foreignRate > 0 ? `      <div class="tool-stat" id="r-foreign-wrap">
 
   <div class="ad-slot" data-ad-type="calculator"></div>
 
-  <div id="tool-partners-root"></div>
-  <div id="tool-disclosure-root"></div>
   <div id="tool-cta-root"></div>
   <div id="tool-share-root"></div>
   <div id="tool-related-root"></div>
@@ -799,7 +797,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-${stateLc}',
+  slug: 'stamp-duty-${stateLc}',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full ${s.stateName} investment',

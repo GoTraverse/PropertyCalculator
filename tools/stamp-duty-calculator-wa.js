@@ -113,7 +113,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-wa',
+  slug: 'stamp-duty-wa',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full Western Australia investment',

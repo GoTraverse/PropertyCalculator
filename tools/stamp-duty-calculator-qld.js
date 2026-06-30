@@ -113,7 +113,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-qld',
+  slug: 'stamp-duty-qld',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full Queensland investment',

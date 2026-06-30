@@ -36,7 +36,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'equity-release',
+  slug: 'equity-release',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Plan your renovation or investment',

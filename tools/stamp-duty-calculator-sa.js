@@ -113,7 +113,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-sa',
+  slug: 'stamp-duty-sa',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full South Australia investment',

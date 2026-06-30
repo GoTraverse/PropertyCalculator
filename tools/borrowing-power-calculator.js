@@ -286,7 +286,7 @@ function piMonthly(P, annualRate, years) {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'borrowing-power',
+  slug: 'borrowing-power',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Compare multiple purchase scenarios side-by-side',

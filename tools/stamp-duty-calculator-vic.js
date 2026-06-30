@@ -113,7 +113,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-vic',
+  slug: 'stamp-duty-vic',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full Victoria investment',

@@ -1118,7 +1118,6 @@ exports.handler = async function(event){
       bannerText:cfg.bannerText||'',
       bannerType:cfg.bannerType||'info',
       bannerExpiry:cfg.bannerExpiry||null,
-      partnerLinks:cfg.partnerLinks||{},
     }});
   }
 
@@ -1146,8 +1145,7 @@ exports.handler = async function(event){
       'stripePubKey','stripeProMonthly','stripeProAnnual','stripeAdviserMonthly','stripeAdviserAnnual','stripePortal',
       'suburbDeployHook','suburbLastBuild',
       'googleClientId',
-      'logoImage','logoMark','logoName','logoTld','brandColor','colorTheme',
-      'partnerLinks'];
+      'logoImage','logoMark','logoName','logoTld','brandColor','colorTheme'];
     const sanitised={};
     for(const k of allowed) if(k in config) sanitised[k]=config[k];
     await rSet('config:site',sanitised);

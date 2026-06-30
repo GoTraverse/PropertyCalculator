@@ -335,7 +335,7 @@ function calc() {
 
 // ── ToolPage config ───────────────────────────────────────────────────────
 ToolPage.init({
-  partnerSlug: 'mortgage-repayment',
+  slug: 'mortgage-repayment',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full property investment',

@@ -113,7 +113,7 @@ function calculate() {
 
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
-  partnerSlug: 'stamp-duty-nt',
+  slug: 'stamp-duty-nt',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full Northern Territory investment',
