@@ -20,35 +20,35 @@
  * (e.g. tools/stamp-duty-calculator-nsw.js).
  */
 var stateData = {
+  // Rates verified against each state revenue office, FY2025-26 (as at Jun 2026).
+  // NOTE: VIC ($960k-$2M), ACT (>$1.455M) and NT use flat-of-total or quadratic
+  // bands that the simple cumulative-tier model can't express — see calcDuty().
   nsw: {
-    name: 'New South Wales', dutyName: 'Conveyancing Duty', foreignRate: 0.08,
+    name: 'New South Wales', dutyName: 'Transfer Duty', foreignRate: 0.09,
     fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
     tiers: [
-      { from: 0,       rate: 0       },
-      { from: 14000,   rate: 0.0125  },
-      { from: 30000,   rate: 0.015   },
-      { from: 130000,  rate: 0.0175  },
-      { from: 205000,  rate: 0.035   },
-      { from: 305000,  rate: 0.04    },
-      { from: 405000,  rate: 0.045   },
-      { from: 550000,  rate: 0.055   }
+      { from: 0,       rate: 0.0125 },
+      { from: 17000,   rate: 0.015  },
+      { from: 37000,   rate: 0.0175 },
+      { from: 99000,   rate: 0.035  },
+      { from: 372000,  rate: 0.045  },
+      { from: 1240000, rate: 0.055  },
+      { from: 3721000, rate: 0.07   }
     ]
   },
   vic: {
-    name: 'Victoria', dutyName: 'Duty of Transfer', foreignRate: 0.08,
-    fhbFull: 600000, fhbPartial: 750000, fhbExemption: 25000,
+    name: 'Victoria', dutyName: 'Land Transfer Duty', foreignRate: 0.08,
+    fhbFull: 600000, fhbPartial: 750000, fhbExemption: Infinity,
     tiers: [
-      { from: 0,       rate: 0      },
-      { from: 25000,   rate: 0.014  },
-      { from: 130000,  rate: 0.024  },
-      { from: 440000,  rate: 0.055  },
-      { from: 870000,  rate: 0.065  }
+      { from: 0,       rate: 0.014 },
+      { from: 25000,   rate: 0.024 },
+      { from: 130000,  rate: 0.06  }
     ]
   },
   qld: {
     name: 'Queensland', dutyName: 'Transfer Duty', foreignRate: 0.08,
-    fhbFull: 500000, fhbPartial: 550000, fhbExemption: Infinity,
-    landFhbFull: 250000, landFhbPartial: 400000,
+    fhbFull: 700000, fhbPartial: 800000, fhbExemption: Infinity,
+    landFhbFull: 350000, landFhbPartial: 500000,
     tiers: [
       { from: 0,        rate: 0      },
       { from: 5000,     rate: 0.015  },
@@ -58,58 +58,66 @@ var stateData = {
     ]
   },
   sa: {
-    name: 'South Australia', dutyName: 'Transfer Duty', foreignRate: 0.08,
-    fhbFull: 575000, fhbPartial: 650000, fhbExemption: Infinity,
+    name: 'South Australia', dutyName: 'Stamp Duty', foreignRate: 0.07,
+    // SA first-home relief is for NEW homes / vacant land only (no value taper),
+    // so no automatic value-based FHB exemption is applied here.
+    fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
     tiers: [
-      { from: 0,       rate: 0     },
-      { from: 16000,   rate: 0.015 },
-      { from: 19000,   rate: 0.03  },
-      { from: 250000,  rate: 0.035 },
-      { from: 300000,  rate: 0.04  }
+      { from: 0,       rate: 0.01   },
+      { from: 12000,   rate: 0.02   },
+      { from: 30000,   rate: 0.03   },
+      { from: 50000,   rate: 0.035  },
+      { from: 100000,  rate: 0.04   },
+      { from: 200000,  rate: 0.0425 },
+      { from: 250000,  rate: 0.0475 },
+      { from: 300000,  rate: 0.05   },
+      { from: 500000,  rate: 0.055  }
     ]
   },
   wa: {
-    name: 'Western Australia', dutyName: 'Stamp Duty', foreignRate: 0.07,
-    fhbFull: 430000, fhbPartial: 500000, fhbExemption: Infinity,
+    name: 'Western Australia', dutyName: 'Transfer Duty', foreignRate: 0.07,
+    fhbFull: 500000, fhbPartial: 700000, fhbExemption: Infinity,
     tiers: [
-      { from: 0,        rate: 0      },
-      { from: 2000,     rate: 0.01   },
-      { from: 4000,     rate: 0.02   },
-      { from: 500000,   rate: 0.035  },
-      { from: 1000000,  rate: 0.0475 }
+      { from: 0,       rate: 0.019  },
+      { from: 120000,  rate: 0.0285 },
+      { from: 150000,  rate: 0.038  },
+      { from: 360000,  rate: 0.0475 },
+      { from: 725000,  rate: 0.0515 }
     ]
   },
   tas: {
-    name: 'Tasmania', dutyName: 'Conveyancing Duty', foreignRate: 0,
-    fhbFull: 400000, fhbPartial: 500000, fhbExemption: Infinity,
+    name: 'Tasmania', dutyName: 'Property Transfer Duty', foreignRate: 0.08,
+    // FHB: full exemption on established homes <= $750k (to 30 Jun 2026) — hard cliff.
+    fhbFull: 750000, fhbPartial: 750000, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0      },
-      { from: 3000,    rate: 0.036  },
-      { from: 100000,  rate: 0.041  },
-      { from: 150000,  rate: 0.0425 },
-      { from: 250000,  rate: 0.0475 }
+      { from: 3000,    rate: 0.0175 },
+      { from: 25000,   rate: 0.0225 },
+      { from: 75000,   rate: 0.035  },
+      { from: 200000,  rate: 0.04   },
+      { from: 375000,  rate: 0.0425 },
+      { from: 725000,  rate: 0.045  }
     ]
   },
   act: {
-    name: 'Australian Capital Territory', dutyName: 'Duty', foreignRate: 0.08,
-    fhbFull: 1000000, fhbPartial: 1000000, fhbExemption: Infinity,
+    name: 'Australian Capital Territory', dutyName: 'Conveyance Duty', foreignRate: 0,
+    // Home Buyer Concession Scheme: full exemption up to $1.02M (income-tested).
+    fhbFull: 1020000, fhbPartial: 1020000, fhbExemption: Infinity,
     tiers: [
-      { from: 0,       rate: 0      },
-      { from: 7500,    rate: 0.0125 },
-      { from: 30000,   rate: 0.02   },
-      { from: 200000,  rate: 0.035  }
+      { from: 0,       rate: 0.0028 },
+      { from: 260000,  rate: 0.022  },
+      { from: 300000,  rate: 0.034  },
+      { from: 500000,  rate: 0.0432 },
+      { from: 750000,  rate: 0.059  },
+      { from: 1000000, rate: 0.064  }
     ]
   },
   nt: {
-    name: 'Northern Territory', dutyName: 'Duty', foreignRate: 0.08,
-    fhbFull: 650000, fhbPartial: 650000, fhbExemption: Infinity,
-    tiers: [
-      { from: 0,       rate: 0      },
-      { from: 3000,    rate: 0.0075 },
-      { from: 100000,  rate: 0.01   },
-      { from: 150000,  rate: 0.015  },
-      { from: 250000,  rate: 0.025  }
-    ]
+    name: 'Northern Territory', dutyName: 'Stamp Duty', foreignRate: 0,
+    // NT has no value-based FHB duty concession (relief is new-build exemption / grants).
+    // Duty is a quadratic under $525k and a flat % of total above — see calcDuty().
+    fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
+    tiers: []
   }
 };
 
@@ -120,15 +128,32 @@ var stateData = {
 // hand-rolled formulas cannot recur with this implementation.
 function calcDuty(state, v) {
   var data = stateData[state];
-  if (!data || !data.tiers || v <= 0) return 0;
+  if (!data || v <= 0) return 0;
+  // NT: quadratic under $525k, flat % of TOTAL value above (not marginal).
+  if (state === 'nt') {
+    if (v < 525000) { var Vk = v / 1000; return 0.06571441 * Vk * Vk + 15 * Vk; }
+    if (v <= 3000000) return v * 0.0495;
+    if (v <= 5000000) return v * 0.0575;
+    return v * 0.0595;
+  }
+  // Standard cumulative-marginal tiers.
   var tiers = data.tiers;
   var duty = 0;
   for (var i = 0; i < tiers.length; i++) {
     var from = tiers[i].from;
     if (v <= from) break;
     var nextFrom = (i + 1 < tiers.length) ? tiers[i + 1].from : Infinity;
-    var span = Math.min(v, nextFrom) - from;
-    duty += span * tiers[i].rate;
+    duty += (Math.min(v, nextFrom) - from) * tiers[i].rate;
+  }
+  // Bands that are a flat % of the TOTAL value (not marginal on the excess):
+  if (state === 'vic') {
+    if (v > 960000 && v <= 2000000) duty = v * 0.055;
+    else if (v > 2000000) duty = 110000 + (v - 2000000) * 0.065;
+  } else if (state === 'act' && v > 1455000) {
+    duty = v * 0.0454;
+  } else if (state === 'tas') {
+    // $50 minimum is also the base at $3,000 that carries up through every band.
+    duty = (v <= 3000) ? 50 : duty + 50;
   }
   return duty;
 }
