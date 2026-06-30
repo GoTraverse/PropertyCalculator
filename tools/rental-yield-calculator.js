@@ -80,7 +80,7 @@ ToolPage.init({
       {
         icon: '\uD83D\uDCCB', title: 'Landlord & Tenant Law',
         links: [
-          { text: 'Fair Work Ombudsman', href: 'https://www.fairwork.gov.au/' },
+          { text: 'NSW Fair Trading: Renting', href: 'https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live' },
           { text: 'Consumer Affairs: Rental Law', href: 'https://www.consumer.vic.gov.au/housing' },
           { text: 'Tenants Union of Australia', href: 'https://www.tenants.org.au/' }
         ]
