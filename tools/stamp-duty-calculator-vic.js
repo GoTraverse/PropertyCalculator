@@ -9,11 +9,14 @@ var VIC_FHB_PARTIAL = 750000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcVICStandard(v) {
-  if (v <= 25000) return 0 + (v - 0) * 0;
-  if (v <= 130000) return 0 + (v - 25000) * 0.014;
-  if (v <= 440000) return 1470 + (v - 130000) * 0.024;
-  if (v <= 870000) return 8910 + (v - 440000) * 0.055;
-  return 32560 + (v - 870000) * 0.065;
+  if (v <= 0) return 0;
+  var d;
+  if (v <= 25000) d = v * 0.014;
+  else if (v <= 130000) d = 350 + (v - 25000) * 0.024;
+  else d = 2870 + (v - 130000) * 0.06;
+  if (v > 960000 && v <= 2000000) d = v * 0.055;
+  else if (v > 2000000) d = 110000 + (v - 2000000) * 0.065;
+  return d;
 }
 
 function calcVICDuty(price, ptype, buyer, fhb) {

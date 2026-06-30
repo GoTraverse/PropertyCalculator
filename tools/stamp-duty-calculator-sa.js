@@ -4,16 +4,26 @@
  * state-locked version of the tool without a state selector. */
 
 var SA_FOREIGN_RATE = 0.07;
-var SA_FHB_FULL = 650000;
-var SA_FHB_PARTIAL = 700000;
+// SA first-home stamp-duty relief is for NEW homes / vacant land to build only
+// (no value-based taper, and established homes do not qualify). This page cannot
+// distinguish a new build from an established dwelling, so we apply NO automatic
+// value-based exemption — FHBs are quoted full standard duty, matching the
+// verified all-states calculator (which sets SA fhbFull/fhbPartial to 0).
+var SA_FHB_FULL = 0;
+var SA_FHB_PARTIAL = 0;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcSAStandard(v) {
-  if (v <= 16000) return 0 + (v - 0) * 0;
-  if (v <= 19000) return 0 + (v - 16000) * 0.015;
-  if (v <= 250000) return 45 + (v - 19000) * 0.03;
-  if (v <= 300000) return 6975 + (v - 250000) * 0.035;
-  return 8725 + (v - 300000) * 0.04;
+  if (v <= 0) return 0;
+  if (v <= 12000) return v * 0.01;
+  if (v <= 30000) return 120 + (v - 12000) * 0.02;
+  if (v <= 50000) return 480 + (v - 30000) * 0.03;
+  if (v <= 100000) return 1080 + (v - 50000) * 0.035;
+  if (v <= 200000) return 2830 + (v - 100000) * 0.04;
+  if (v <= 250000) return 6830 + (v - 200000) * 0.0425;
+  if (v <= 300000) return 8955 + (v - 250000) * 0.0475;
+  if (v <= 500000) return 11330 + (v - 300000) * 0.05;
+  return 21330 + (v - 500000) * 0.055;
 }
 
 function calcSADuty(price, ptype, buyer, fhb) {
@@ -21,12 +31,17 @@ function calcSADuty(price, ptype, buyer, fhb) {
   var v = price;
   var standard = calcSAStandard(v);
 
-  if (fhb && v <= SA_FHB_FULL) {
+  // SA first-home relief is NEW-build / vacant-land only with no value taper, and
+  // established homes do not qualify. We do not auto-zero duty for FHBs here.
+  if (fhb && SA_FHB_FULL > 0 && v <= SA_FHB_FULL) {
     return { duty: 0, note: 'First home buyer exemption applied.' };
   }
-  if (fhb && v <= SA_FHB_PARTIAL && SA_FHB_PARTIAL > SA_FHB_FULL) {
+  if (fhb && SA_FHB_PARTIAL > SA_FHB_FULL && v <= SA_FHB_PARTIAL) {
     var slide = (SA_FHB_PARTIAL - v) / (SA_FHB_PARTIAL - SA_FHB_FULL);
     return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
+  }
+  if (fhb) {
+    return { duty: standard, note: 'SA first-home stamp-duty relief applies to new homes and vacant land only — established homes pay full duty.' };
   }
 
   return { duty: standard, note: '' };
@@ -182,15 +197,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$17,525"
+        "v": "$22,430"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$17,525"
+        "v": "$22,430"
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "v": "$22,430 (established home — no relief)"
       }
     ]
   },
@@ -209,15 +224,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$23,925"
+        "v": "$31,230"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$23,925"
+        "v": "$31,230"
       },
       {
         "k": "First home buyer duty",
-        "v": "$14,355 (FHB concession)"
+        "v": "$31,230 (established home — no relief)"
       }
     ]
   },
@@ -236,15 +251,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$36,725"
+        "v": "$48,830"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$36,725"
+        "v": "$48,830"
       },
       {
         "k": "First home buyer duty",
-        "v": "$36,725 (over cap)"
+        "v": "$48,830 (established home — no relief)"
       }
     ]
   }
@@ -256,7 +271,7 @@ ToolPage.init({
   },
   {
     "q": "Do first home buyers pay stamp duty in SA?",
-    "a": "Eligible first home buyers pay no stamp duty on new homes up to $650,000 (full exemption) with a partial concession to $700,000. The same thresholds apply to vacant land used to build a new home. Established homes do not qualify for the SA first home buyer stamp duty exemption — only new builds."
+    "a": "SA first home buyer stamp duty relief is limited to new homes and vacant land used to build a new home — there is no value-based exemption and established (existing) homes do not qualify. Because this calculator cannot tell a new build from an established dwelling, it quotes full standard duty for first home buyers; if you are buying or building a new home, check RevenueSA for the current new-build relief."
   },
   {
     "q": "When is stamp duty due in SA?",

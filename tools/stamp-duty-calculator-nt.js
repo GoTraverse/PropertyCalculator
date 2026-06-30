@@ -4,16 +4,19 @@
  * state-locked version of the tool without a state selector. */
 
 var NT_FOREIGN_RATE = 0;
-var NT_FHB_FULL = 650000;
-var NT_FHB_PARTIAL = 650000;
+// NT first-home relief is new-build / house-and-land only (a duty discount of
+// up to $50k), not a value-based exemption on established homes. Established-home
+// FHBs pay full standard duty, so there is no value threshold that zeroes duty.
+var NT_FHB_FULL = 0;
+var NT_FHB_PARTIAL = 0;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcNTStandard(v) {
-  if (v <= 3000) return 0 + (v - 0) * 0;
-  if (v <= 100000) return 0 + (v - 3000) * 0.0075;
-  if (v <= 150000) return 727.5 + (v - 100000) * 0.01;
-  if (v <= 250000) return 1227.5 + (v - 150000) * 0.015;
-  return 2727.5 + (v - 250000) * 0.025;
+  if (v <= 0) return 0;
+  if (v < 525000) { var Vk = v / 1000; return 0.06571441 * Vk * Vk + 15 * Vk; }
+  if (v <= 3000000) return v * 0.0495;
+  if (v <= 5000000) return v * 0.0575;
+  return v * 0.0595;
 }
 
 function calcNTDuty(price, ptype, buyer, fhb) {
@@ -21,12 +24,11 @@ function calcNTDuty(price, ptype, buyer, fhb) {
   var v = price;
   var standard = calcNTStandard(v);
 
-  if (fhb && v <= NT_FHB_FULL) {
-    return { duty: 0, note: 'First home buyer exemption applied.' };
-  }
-  if (fhb && v <= NT_FHB_PARTIAL && NT_FHB_PARTIAL > NT_FHB_FULL) {
-    var slide = (NT_FHB_PARTIAL - v) / (NT_FHB_PARTIAL - NT_FHB_FULL);
-    return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
+  // NT has no value-based FHB exemption/concession on established homes — the
+  // first-home relief is a new-build-only duty discount handled elsewhere. So we
+  // never auto-zero duty here; established-home FHBs pay the full standard duty.
+  if (fhb) {
+    return { duty: standard, note: 'NT has no first home buyer concession on established homes — full duty applies. New-build/house-and-land buyers may claim a separate duty discount.' };
   }
 
   return { duty: standard, note: '' };

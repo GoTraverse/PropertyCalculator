@@ -35,10 +35,14 @@
 //   fhbgCapCapital  — Federal First Home Guarantee property cap in this state's capital
 //   fhbgCapOther    — Federal FHBG cap in regional / other areas
 //   revenueOffice   — name + URL
+// Tiers/specials verified against each state revenue office, FY2025-26 (as at
+// Jun 2026) — identical logic to tools/stamp-duty-calculator.js. NOTE: VIC
+// ($960k-$2M), ACT (>$1.455M), NT (quadratic/flat) and TAS ($50 base) use
+// bands the plain cumulative-tier model can't express — handled in calcDuty().
 const STATES = {
   nsw: {
     name: 'New South Wales',
-    tiers: [[0,0],[14000,0.0125],[30000,0.015],[130000,0.0175],[205000,0.035],[305000,0.04],[405000,0.045],[550000,0.055]],
+    tiers: [[0,0.0125],[17000,0.015],[37000,0.0175],[99000,0.035],[372000,0.045],[1240000,0.055],[3721000,0.07]],
     fhbFull: 800000, fhbPartial: 1000000, fhbAppliesNewOnly: false,
     fhog: { amount: 10000, propertyCap: 600000, newBuildOnly: true, note: 'New homes only, ≤$600k' },
     fhbgCapCapital: 900000, fhbgCapOther: 750000,
@@ -47,7 +51,7 @@ const STATES = {
   },
   vic: {
     name: 'Victoria',
-    tiers: [[0,0],[25000,0.014],[130000,0.024],[440000,0.055],[870000,0.065]],
+    tiers: [[0,0.014],[25000,0.024],[130000,0.06]],
     fhbFull: 600000, fhbPartial: 750000, fhbAppliesNewOnly: false,
     fhog: { amount: 10000, propertyCap: 750000, newBuildOnly: true, note: 'New homes only, ≤$750k' },
     fhbgCapCapital: 800000, fhbgCapOther: 650000,
@@ -57,7 +61,7 @@ const STATES = {
   qld: {
     name: 'Queensland',
     tiers: [[0,0],[5000,0.015],[75000,0.035],[540000,0.045],[1000000,0.0575]],
-    fhbFull: 500000, fhbPartial: 550000, fhbAppliesNewOnly: false,
+    fhbFull: 700000, fhbPartial: 800000, fhbAppliesNewOnly: false,
     fhog: { amount: 30000, propertyCap: 750000, newBuildOnly: true, note: 'New homes only, ≤$750k (raised May 2024)' },
     fhbgCapCapital: 700000, fhbgCapOther: 550000,
     revenueOffice: 'Queensland Revenue Office',
@@ -65,8 +69,10 @@ const STATES = {
   },
   sa: {
     name: 'South Australia',
-    tiers: [[0,0],[16000,0.015],[19000,0.03],[250000,0.035],[300000,0.04]],
-    fhbFull: 650000, fhbPartial: 700000, fhbAppliesNewOnly: true,
+    // SA first-home relief is for NEW homes / vacant land only (no value taper),
+    // so no automatic value-based FHB exemption is applied (fhbAppliesNewOnly).
+    tiers: [[0,0.01],[12000,0.02],[30000,0.03],[50000,0.035],[100000,0.04],[200000,0.0425],[250000,0.0475],[300000,0.05],[500000,0.055]],
+    fhbFull: 0, fhbPartial: 0, fhbAppliesNewOnly: true,
     fhog: { amount: 15000, propertyCap: 650000, newBuildOnly: true, note: 'New homes only, no price cap (FHOG)' },
     fhbgCapCapital: 600000, fhbgCapOther: 500000,
     revenueOffice: 'RevenueSA',
@@ -74,8 +80,8 @@ const STATES = {
   },
   wa: {
     name: 'Western Australia',
-    tiers: [[0,0],[2000,0.01],[4000,0.02],[500000,0.035],[1000000,0.0475]],
-    fhbFull: 430000, fhbPartial: 530000, fhbAppliesNewOnly: false,
+    tiers: [[0,0.019],[120000,0.0285],[150000,0.038],[360000,0.0475],[725000,0.0515]],
+    fhbFull: 500000, fhbPartial: 700000, fhbAppliesNewOnly: false,
     fhog: { amount: 10000, propertyCap: 750000, newBuildOnly: true, note: 'New homes only, ≤$750k (south of 26th parallel)' },
     fhbgCapCapital: 600000, fhbgCapOther: 450000,
     revenueOffice: 'RevenueWA',
@@ -83,8 +89,9 @@ const STATES = {
   },
   tas: {
     name: 'Tasmania',
-    tiers: [[0,0],[3000,0.036],[100000,0.041],[150000,0.0425],[250000,0.0475]],
-    fhbFull: 750000, fhbPartial: 750000, fhbAppliesNewOnly: false, fhbConcessionRate: 0.50, // 50% reduction not full exemption
+    // FHB: full exemption on homes <= $750k (to 30 Jun 2026) — hard cliff, no taper.
+    tiers: [[0,0],[3000,0.0175],[25000,0.0225],[75000,0.035],[200000,0.04],[375000,0.0425],[725000,0.045]],
+    fhbFull: 750000, fhbPartial: 750000, fhbAppliesNewOnly: false,
     fhog: { amount: 10000, propertyCap: 0, newBuildOnly: true, note: 'New homes only' },
     fhbgCapCapital: 600000, fhbgCapOther: 450000,
     revenueOffice: 'State Revenue Office Tasmania',
@@ -92,8 +99,9 @@ const STATES = {
   },
   act: {
     name: 'Australian Capital Territory',
-    tiers: [[0,0],[7500,0.0125],[30000,0.02],[200000,0.035]],
-    fhbFull: 1000000, fhbPartial: 1000000, fhbAppliesNewOnly: false,
+    // Home Buyer Concession Scheme: full exemption up to $1.02M (income-tested).
+    tiers: [[0,0.0028],[260000,0.022],[300000,0.034],[500000,0.0432],[750000,0.059],[1000000,0.064]],
+    fhbFull: 1020000, fhbPartial: 1020000, fhbAppliesNewOnly: false,
     fhog: { amount: 0, propertyCap: 0, newBuildOnly: false, note: 'ACT does not have an FHOG; HBCS replaces it' },
     fhbgCapCapital: 750000, fhbgCapOther: 750000,
     revenueOffice: 'ACT Revenue Office',
@@ -101,8 +109,11 @@ const STATES = {
   },
   nt: {
     name: 'Northern Territory',
-    tiers: [[0,0],[3000,0.0075],[100000,0.01],[150000,0.015],[250000,0.025]],
-    fhbFull: 650000, fhbPartial: 650000, fhbAppliesNewOnly: false, fhbDiscountMax: 50000, // discount capped at $50k
+    // NT has no value-based FHB duty concession (relief is new-build exemption /
+    // grants). Duty is a quadratic under $525k and a flat % of total above —
+    // handled directly in calcDuty(); tiers left empty.
+    tiers: [],
+    fhbFull: 0, fhbPartial: 0, fhbAppliesNewOnly: false,
     fhog: { amount: 10000, propertyCap: 0, newBuildOnly: true, note: 'New homes only, no price cap (FHOG)' },
     fhbgCapCapital: 600000, fhbgCapOther: 600000,
     revenueOffice: 'Territory Revenue Office',
@@ -133,21 +144,45 @@ function dutyAt(tiers, v) {
   return duty;
 }
 
+// State-aware standard duty. Mirrors stamp-duty-calculator.js calcDuty():
+// most states are plain cumulative-marginal tiers, but VIC/ACT/NT/TAS have
+// flat-of-total, quadratic or fixed-base bands the tier model can't express.
+function calcDuty(stateCode, v) {
+  const data = STATES[stateCode];
+  if (!data || v <= 0) return 0;
+  // NT: quadratic under $525k, flat % of TOTAL value above (not marginal).
+  if (stateCode === 'nt') {
+    if (v < 525000) { const Vk = v / 1000; return 0.06571441 * Vk * Vk + 15 * Vk; }
+    if (v <= 3000000) return v * 0.0495;
+    if (v <= 5000000) return v * 0.0575;
+    return v * 0.0595;
+  }
+  let duty = dutyAt(data.tiers, v);
+  // Bands that are a flat % of the TOTAL value (not marginal on the excess):
+  if (stateCode === 'vic') {
+    if (v > 960000 && v <= 2000000) duty = v * 0.055;
+    else if (v > 2000000) duty = 110000 + (v - 2000000) * 0.065;
+  } else if (stateCode === 'act' && v > 1455000) {
+    duty = v * 0.0454;
+  } else if (stateCode === 'tas') {
+    // $50 minimum is also the base at $3,000 that carries up through every band.
+    duty = (v <= 3000) ? 50 : duty + 50;
+  }
+  return duty;
+}
+
 // FHB stamp-duty payable (after concession), state-specific
-function fhbDuty(stateData, price, isNewBuild) {
-  const stdDuty = dutyAt(stateData.tiers, price);
+function fhbDuty(stateData, stateCode, price, isNewBuild) {
+  const stdDuty = calcDuty(stateCode, price);
   if (stateData.fhbAppliesNewOnly && !isNewBuild) return stdDuty; // SA: only new builds get FHB SD exemption
+  if (stateData.fhbFull <= 0) return stdDuty; // SA/NT: no value-based FHB exemption (relief is grants/new-build)
   if (price <= stateData.fhbFull) {
-    if (stateData.fhbConcessionRate) return stdDuty * stateData.fhbConcessionRate; // TAS: 50% reduction
-    if (stateData.fhbDiscountMax) return Math.max(0, stdDuty - stateData.fhbDiscountMax); // NT: cap discount
     return 0; // full exemption
   }
+  // Taper between fhbFull and fhbPartial (NSW/VIC/QLD/WA). TAS sets
+  // fhbPartial == fhbFull, so this branch is skipped — a hard cliff.
   if (price <= stateData.fhbPartial && stateData.fhbPartial > stateData.fhbFull) {
     const slide = (stateData.fhbPartial - price) / (stateData.fhbPartial - stateData.fhbFull);
-    if (stateData.fhbConcessionRate) {
-      const fullConcession = stdDuty * stateData.fhbConcessionRate;
-      return fullConcession + (stdDuty - fullConcession) * (1 - slide);
-    }
     return Math.max(0, stdDuty * (1 - slide));
   }
   return stdDuty;
@@ -209,8 +244,8 @@ function calculate() {
   const isNewBuild = ptype === 'new' || ptype === 'offplan';
 
   // ── Stamp duty (without FHB) vs with FHB ───────────────────────────────
-  const stdDuty = dutyAt(data.tiers, price);
-  const fhbDutyPayable = fhbDuty(data, price, isNewBuild);
+  const stdDuty = calcDuty(stateCode, price);
+  const fhbDutyPayable = fhbDuty(data, stateCode, price, isNewBuild);
   const sdSaving = stdDuty - fhbDutyPayable;
 
   // ── FHOG ──────────────────────────────────────────────────────────────

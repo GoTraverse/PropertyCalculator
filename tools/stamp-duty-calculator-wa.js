@@ -4,16 +4,17 @@
  * state-locked version of the tool without a state selector. */
 
 var WA_FOREIGN_RATE = 0.07;
-var WA_FHB_FULL = 430000;
-var WA_FHB_PARTIAL = 500000;
+var WA_FHB_FULL = 500000;
+var WA_FHB_PARTIAL = 700000;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcWAStandard(v) {
-  if (v <= 2000) return 0 + (v - 0) * 0;
-  if (v <= 4000) return 0 + (v - 2000) * 0.01;
-  if (v <= 500000) return 20 + (v - 4000) * 0.02;
-  if (v <= 1000000) return 9940 + (v - 500000) * 0.035;
-  return 27440 + (v - 1000000) * 0.0475;
+  if (v <= 0) return 0;
+  if (v <= 120000) return v * 0.019;
+  if (v <= 150000) return 2280 + (v - 120000) * 0.0285;
+  if (v <= 360000) return 3135 + (v - 150000) * 0.038;
+  if (v <= 725000) return 11115 + (v - 360000) * 0.0475;
+  return 28452.5 + (v - 725000) * 0.0515;
 }
 
 function calcWADuty(price, ptype, buyer, fhb) {

@@ -1,14 +1,98 @@
-/* ═══ STATE COSTS ═══ */
+/* ═══ STATE COSTS ═══
+ *
+ * Conveyancing band kept as-is. Stamp duty is now computed by the verified
+ * cumulative-tier engine below (the same FY2025-26 schedules used in
+ * tools/stamp-duty-calculator.js + app.js, reproduced against 34/34 state
+ * revenue office worked examples) rather than the old flat 2-4%-of-price
+ * approximation, which was materially wrong (e.g. VIC $600k real duty ~$31k
+ * vs flat 4% = $24k). State codes here are UPPERCASE; the tier data uses the
+ * stamp-duty file's lowercase keys, bridged via STATE_KEY.
+ */
 var stateCosts = {
-  NSW: { conveyancing: { min: 800, max: 1500 }, stampDutyRate: 0.04, fhbThreshold: 800000 },
-  VIC: { conveyancing: { min: 1000, max: 1800 }, stampDutyRate: 0.04, fhbThreshold: 600000 },
-  QLD: { conveyancing: { min: 600, max: 1200 }, stampDutyRate: 0.035, fhbThreshold: 500000 },
-  SA:  { conveyancing: { min: 700, max: 1400 }, stampDutyRate: 0.032, fhbThreshold: 575000 },
-  WA:  { conveyancing: { min: 900, max: 1600 }, stampDutyRate: 0.035, fhbThreshold: 430000 },
-  TAS: { conveyancing: { min: 600, max: 1200 }, stampDutyRate: 0.035, fhbThreshold: 400000 },
-  ACT: { conveyancing: { min: 800, max: 1500 }, stampDutyRate: 0.03, fhbThreshold: 1000000 },
-  NT:  { conveyancing: { min: 700, max: 1300 }, stampDutyRate: 0.02, fhbThreshold: 650000 }
+  NSW: { conveyancing: { min: 800, max: 1500 } },
+  VIC: { conveyancing: { min: 1000, max: 1800 } },
+  QLD: { conveyancing: { min: 600, max: 1200 } },
+  SA:  { conveyancing: { min: 700, max: 1400 } },
+  WA:  { conveyancing: { min: 900, max: 1600 } },
+  TAS: { conveyancing: { min: 600, max: 1200 } },
+  ACT: { conveyancing: { min: 800, max: 1500 } },
+  NT:  { conveyancing: { min: 700, max: 1300 } }
 };
+
+/* ═══ VERIFIED STAMP-DUTY TIER ENGINE (FY2025-26) ═══
+ * Lifted verbatim from tools/stamp-duty-calculator.js. Cumulative-marginal
+ * tiers `[from, rate]`; continuous by construction (no bracket-cliff bugs).
+ * FHB: full exemption below fhbFull, linear taper to fhbPartial. NEW-home-only
+ * reliefs (SA) are intentionally NOT auto-applied — established-home FHBs pay
+ * full duty there. Foreign-buyer surcharge per state.
+ */
+var stateData = {
+  nsw: { name: 'New South Wales', foreignRate: 0.09, fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
+    tiers: [ { from: 0, rate: 0.0125 }, { from: 17000, rate: 0.015 }, { from: 37000, rate: 0.0175 },
+             { from: 99000, rate: 0.035 }, { from: 372000, rate: 0.045 }, { from: 1240000, rate: 0.055 }, { from: 3721000, rate: 0.07 } ] },
+  vic: { name: 'Victoria', foreignRate: 0.08, fhbFull: 600000, fhbPartial: 750000, fhbExemption: Infinity,
+    tiers: [ { from: 0, rate: 0.014 }, { from: 25000, rate: 0.024 }, { from: 130000, rate: 0.06 } ] },
+  qld: { name: 'Queensland', foreignRate: 0.08, fhbFull: 700000, fhbPartial: 800000, fhbExemption: Infinity,
+    tiers: [ { from: 0, rate: 0 }, { from: 5000, rate: 0.015 }, { from: 75000, rate: 0.035 }, { from: 540000, rate: 0.045 }, { from: 1000000, rate: 0.0575 } ] },
+  sa: { name: 'South Australia', foreignRate: 0.07, fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
+    tiers: [ { from: 0, rate: 0.01 }, { from: 12000, rate: 0.02 }, { from: 30000, rate: 0.03 }, { from: 50000, rate: 0.035 },
+             { from: 100000, rate: 0.04 }, { from: 200000, rate: 0.0425 }, { from: 250000, rate: 0.0475 }, { from: 300000, rate: 0.05 }, { from: 500000, rate: 0.055 } ] },
+  wa: { name: 'Western Australia', foreignRate: 0.07, fhbFull: 500000, fhbPartial: 700000, fhbExemption: Infinity,
+    tiers: [ { from: 0, rate: 0.019 }, { from: 120000, rate: 0.0285 }, { from: 150000, rate: 0.038 }, { from: 360000, rate: 0.0475 }, { from: 725000, rate: 0.0515 } ] },
+  tas: { name: 'Tasmania', foreignRate: 0.08, fhbFull: 750000, fhbPartial: 750000, fhbExemption: Infinity,
+    tiers: [ { from: 0, rate: 0 }, { from: 3000, rate: 0.0175 }, { from: 25000, rate: 0.0225 }, { from: 75000, rate: 0.035 },
+             { from: 200000, rate: 0.04 }, { from: 375000, rate: 0.0425 }, { from: 725000, rate: 0.045 } ] },
+  act: { name: 'Australian Capital Territory', foreignRate: 0, fhbFull: 1020000, fhbPartial: 1020000, fhbExemption: Infinity,
+    tiers: [ { from: 0, rate: 0.0028 }, { from: 260000, rate: 0.022 }, { from: 300000, rate: 0.034 }, { from: 500000, rate: 0.0432 }, { from: 750000, rate: 0.059 }, { from: 1000000, rate: 0.064 } ] },
+  nt: { name: 'Northern Territory', foreignRate: 0, fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity, tiers: [] }
+};
+
+// Bridge: UPPERCASE select values -> lowercase stateData keys
+var STATE_KEY = { NSW: 'nsw', VIC: 'vic', QLD: 'qld', SA: 'sa', WA: 'wa', TAS: 'tas', ACT: 'act', NT: 'nt' };
+
+function calcDuty(state, v) {
+  var data = stateData[state];
+  if (!data || v <= 0) return 0;
+  // NT: quadratic under $525k, flat % of TOTAL value above (not marginal).
+  if (state === 'nt') {
+    if (v < 525000) { var Vk = v / 1000; return 0.06571441 * Vk * Vk + 15 * Vk; }
+    if (v <= 3000000) return v * 0.0495;
+    if (v <= 5000000) return v * 0.0575;
+    return v * 0.0595;
+  }
+  var tiers = data.tiers, duty = 0;
+  for (var i = 0; i < tiers.length; i++) {
+    var from = tiers[i].from;
+    if (v <= from) break;
+    var nextFrom = (i + 1 < tiers.length) ? tiers[i + 1].from : Infinity;
+    duty += (Math.min(v, nextFrom) - from) * tiers[i].rate;
+  }
+  // Bands that are a flat % of the TOTAL value (not marginal on the excess):
+  if (state === 'vic') {
+    if (v > 960000 && v <= 2000000) duty = v * 0.055;
+    else if (v > 2000000) duty = 110000 + (v - 2000000) * 0.065;
+  } else if (state === 'act' && v > 1455000) {
+    duty = v * 0.0454;
+  } else if (state === 'tas') {
+    duty = (v <= 3000) ? 50 : duty + 50;
+  }
+  return duty;
+}
+
+// FHB exemption / linear partial concession given a state's policy.
+function applyFhbConcession(state, val, baseDuty) {
+  var data = stateData[state];
+  if (!data) return baseDuty;
+  if (val <= data.fhbFull) {
+    var ex = Math.min(data.fhbExemption || Infinity, baseDuty);
+    return Math.max(0, baseDuty - ex);
+  }
+  if (val <= data.fhbPartial && data.fhbPartial > data.fhbFull) {
+    var slide = (data.fhbPartial - val) / (data.fhbPartial - data.fhbFull);
+    return Math.max(0, baseDuty * (1 - slide));
+  }
+  return baseDuty;
+}
 
 function getNumVal(id) {
   return parseFloat(document.getElementById(id).value) || 0;
@@ -35,11 +119,11 @@ function calc() {
 
   var stampDuty = 0;
   var costs = stateCosts[state];
-  if (costs) {
-    var baseRate = costs.stampDutyRate;
-    stampDuty = purchasePrice * baseRate;
-    if (isFhb && purchasePrice <= costs.fhbThreshold) stampDuty = stampDuty * 0.5;
-    if (isForeignBuyer) stampDuty = stampDuty * 1.08;
+  var sKey = STATE_KEY[state];
+  if (sKey) {
+    var baseDuty = calcDuty(sKey, purchasePrice);
+    stampDuty = isFhb ? applyFhbConcession(sKey, purchasePrice, baseDuty) : baseDuty;
+    if (isForeignBuyer) stampDuty += purchasePrice * (stateData[sKey].foreignRate || 0);
   }
 
   var bankValuation = Math.max(300, Math.min(700, purchasePrice / 1000));
