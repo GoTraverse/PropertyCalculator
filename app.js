@@ -3462,7 +3462,7 @@
       lines.push('  ' + s.notes.replace(/\n/g, '\n  '));
     }
     lines.push('', '═══════════════════════════════════════════');
-    lines.push('  EquitySight.app — Australia\'s smartest property calculator');
+    lines.push('  EquitySight.app — Free Australian property finance calculators');
     lines.push('═══════════════════════════════════════════');
     _downloadFile(safeName + '.txt', lines.join('\n'), 'text/plain;charset=utf-8');
     showToast('TXT exported');

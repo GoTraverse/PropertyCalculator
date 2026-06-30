@@ -1,33 +1,57 @@
 ---
 title: EquitySight Methodology
-date: April 2026
+date: June 2026
 tag: Transparency
 ---
 
 ## 1. Why we publish our methodology
 
-Every number on an EquitySight suburb profile — investment score, strategy verdict, risk factor, outlook, comparison table — is **computed deterministically** from published government data. Nothing is guessed, estimated, or hand-written per suburb. This page documents the exact formulas so any reader can reproduce our output from the raw inputs.
+This page documents how EquitySight produces the numbers you see on the site — and, just as importantly, which of those numbers are real measured data and which are estimates. We think you deserve to know the difference before you rely on anything here.
 
 We publish the methodology because:
 
-- Investors should never rely on opaque "scores" without understanding what they measure.
+- Investors should never rely on opaque "scores" without understanding what they measure and where the inputs come from.
 - Australia's property industry has a long history of undisclosed conflicts and paid placements — we want ours out in the open.
-- Formulas change when better data becomes available. Public documentation forces us to version and announce those changes rather than quietly re-tune them.
+- Being upfront about what is estimated is more useful than a confident-sounding number with no honest basis.
 
-## 2. The EquitySight Investment Score (0–100)
+EquitySight is built and maintained by one person — Jacoby, a solo operator. There is no in-house valuation team and no certified valuer on staff. We do not collect any paid data from agents or developers, and we do not accept sponsored content.
 
-The investment score is the weighted sum of six factors:
+## 2. What is real data vs. an estimate
 
-| Factor | Weight | Source field |
-|--------|--------|--------------|
-| Median household income (linear scale: $55k → 0, $115k → 25) | up to 25 pts | ABS 2021 Census — `median_household_income` |
-| Straight-line distance to CBD | up to 20 pts | ABS 2021 SAL centroid + capital coordinates |
+Two fields on each suburb profile are sourced from published, official datasets:
+
+| Field | Source | Status |
+|-------|--------|--------|
+| Usual-resident population | ABS 2021 Census (SAL geography) | **Real** |
+| Postcode | Australia Post | **Real** |
+
+Everything else currently shown on a suburb profile is an **estimate or a placeholder**, not a measured value:
+
+- **Median household income** — currently a pseudo-random figure derived from the suburb name. It is **not** an ABS Census income figure and should not be read as one. We are withdrawing this figure pending a verified ABS source.
+- **Transport score** and **amenity score** — currently pseudo-random placeholders. They are **not** derived from OpenStreetMap, transit data, or any external amenity dataset.
+- **School count** and **park count** — currently rough population-ratio estimates (roughly one school per ~4,000 residents, one park per ~2,500 residents). They are **not** counts of real, named facilities and are **not** sourced from OpenStreetMap.
+- **Investment Score** — because it is computed partly from the estimated fields above, the score should be treated as illustrative only, not as a measured assessment.
+
+Fields that are **not populated at all** in production today: median weekly rent, median monthly mortgage, dwelling-type percentages, distance to CBD, and suburb centroid coordinates (lat/lng). Live rental and sales market data (Domain or similar listing feeds) and OpenStreetMap amenity data are **not** integrated.
+
+Because of all this, suburb profile pages are currently **not indexed for search** while we upgrade the underlying data. We would rather hold these pages back than have them rank on numbers we cannot stand behind.
+
+## 3. The EquitySight Investment Score (0–100)
+
+The investment score is a weighted combination of several factors. We are documenting it here for transparency, but please read it alongside section 2: several of its inputs are estimates, so the score itself is **illustrative, not measured**.
+
+The factors and their weights are:
+
+| Factor | Weight | Input |
+|--------|--------|-------|
+| Median household income (linear scale: $55k → 0, $115k → 25) | up to 25 pts | **Estimated** (name-seeded placeholder — not ABS) |
+| Straight-line distance to CBD | up to 20 pts | Not currently populated |
 | Suburb type (inner-city / middle-ring / coastal / outer-metro / regional) | up to 20 pts | Derived from postcode range + population |
-| Transport score | up to 15 pts | Composite from amenity proximity |
-| Amenity score | up to 10 pts | OpenStreetMap POI density |
-| Median weekly rent | up to 10 pts | ABS 2021 Census — `median_rent_weekly` |
+| Transport score | up to 15 pts | **Estimated** (placeholder) |
+| Amenity score | up to 10 pts | **Estimated** (placeholder) |
+| Median weekly rent | up to 10 pts | Not currently populated |
 
-The sum is capped at 100. Distance-to-CBD points decay in fixed bands: ≤5 km → 20, ≤15 km → 16, ≤30 km → 12, ≤50 km → 8, otherwise 4. Suburb-type points are lookup values: inner-city 18, middle-ring 16, coastal 14, outer-metro 12, regional 8.
+The sum is capped at 100. Suburb-type points are lookup values: inner-city 18, middle-ring 16, coastal 14, outer-metro 12, regional 8.
 
 Scores fall into four labels:
 
@@ -36,92 +60,22 @@ Scores fall into four labels:
 - **Moderate** — 41 to 60
 - **Weak** — 0 to 40
 
-> The score is descriptive, not predictive. It describes what the ABS 2021 numbers say about current conditions — it does not forecast returns. Past performance is not a guarantee of future performance.
+> The score is descriptive, not predictive, and it currently rests partly on estimated inputs. It does not forecast returns. Past performance is not a guarantee of future performance. Treat it as a rough starting point, not advice.
 
-## 3. The noindex gate (thin-content prune)
+## 4. Suburb prose and strategy text
 
-To protect the overall quality of the site we do not serve a full indexed profile for every one of the 14,512 Australian suburbs in the ABS SAL dataset. A suburb is `noindex, follow` (reachable but excluded from Google) unless it meets **all four** of these conditions:
+The strategy verdicts, risk factors, and outlook text on suburb pages are generated by rule-based logic over the available fields, with deterministic phrasing. Where that logic depends on the estimated fields described in section 2, the resulting text inherits the same caveat: it reflects estimates, not measured market conditions. We are reworking this content as verified data becomes available.
 
-- Has a valid Australia Post postcode
-- Has at least 2,000 usual residents at the 2021 Census
-- Has a median household income recorded in the ABS 2021 dataset
-- Is not flagged `tiny` in our source data
+## 5. Known limitations
 
-Against the current `data/suburbs.json` this leaves approximately 3,022 suburbs indexed. Noindexed suburbs stay linked from the "All localities" drawer on each state hub page so internal link equity is preserved.
-
-## 4. Cash-flow coverage ratio
-
-Where both a median weekly rent and a median monthly mortgage repayment are available, we convert the rent to a monthly equivalent:
-
-```
-monthly_rent   = round(weekly_rent × 52 ÷ 12)
-coverage_pct   = round(monthly_rent ÷ monthly_mortgage × 100)
-monthly_gap    = monthly_mortgage − monthly_rent
-```
-
-These three numbers drive every strategy verdict and FAQ answer about cash flow. A coverage percentage of 90%+ is labelled "strong" in strategy text, 70–89% "moderate", and below 70% "weak". The same thresholds apply across every suburb so investors can compare directly.
-
-## 5. Comparison-to-state deltas
-
-The comparison table on each suburb page shows the suburb's values alongside the **median of every indexed suburb in the same state**. The deltas are:
-
-```
-pct_delta       = round((suburb_value − state_median) ÷ state_median × 100)
-```
-
-The house-percentage row uses percentage points (pp) rather than percent because it is already a percentage. Positive deltas render green, negative deltas render red. State medians are computed once per build, not per page.
-
-## 6. Rate sensitivity
-
-The rate stress-test in the investor checklist and risk factors approximates the impact of a 1-percentage-point RBA cash-rate rise on a 30-year mortgage as:
-
-```
-extra_monthly  = round(median_monthly_mortgage × 0.10)
-```
-
-This is a rule-of-thumb approximation (a 30-year mortgage at 6% paying 1% more costs approximately 10% more per month). Real-world repricing depends on the original loan rate, loan term, and the degree to which the borrower is on fixed vs variable rates. Use our [loan serviceability calculator](/tools/loan-serviceability-calculator/) for a precise figure.
-
-## 7. Rental stress threshold
-
-We flag rental stress when:
-
-```
-rent_burden_pct = round(median_weekly_rent × 52 ÷ median_household_income × 100)
-```
-
-exceeds 30%. This is the long-standing definition used by the Productivity Commission and state housing authorities.
-
-## 8. Investment-strategy verdict logic
-
-Each strategy card (Buy & Hold, Rental Yield, Renovation/Flip) is assigned **strong / moderate / limited** by a rule set that consumes only computed ratios — no per-suburb hand-tuning:
-
-- **Buy & Hold — strong** when income-vs-state ≥ 1.15 AND (distance ≤ 25 km OR population ≥ 10,000)
-- **Buy & Hold — limited** when income-vs-state < 0.8 OR population < 3,000
-- **Rental Yield — strong** when coverage ≥ 85%
-- **Rental Yield — weak** when coverage < 65%
-- **Renovation — strong** when house % ≥ state median + 10pp AND population ≥ 5,000
-- **Renovation — weak** when house % ≤ state median − 10pp
-
-Everything in between is labelled **moderate**. The exact thresholds are in `build/build-suburbs.js` in our public repository.
-
-## 9. Data freshness and current coverage
-
-- **Population**, **postcode**, **household income**, **suburb type** — populated for ~100% of suburbs in the current `data/suburbs.json` snapshot. These drive the population display, postcode field, income gate, and the suburb-type points of the investment score.
-- **Median weekly rent**, **median monthly mortgage**, **distance to CBD**, **dwelling-type percentage**, **suburb centroid (lat/lng)** — sourced from the ABS Enhanced fetch (see Data Sources page). When this fetch is fresh, these fields are present and the cash-flow coverage ratio (§4), rate-sensitivity stress test (§6), rental stress threshold (§7), and renovation strategy verdict (§8) all render on the relevant suburb pages. **When the upstream fetch hasn't run since the last data refresh, those derived metrics are simply omitted from the page rather than estimated from a placeholder.** This is intentional: we'd rather show no number than a guessed one.
-- Australia Post postcodes are cross-checked against a community dataset refreshed annually.
-- OpenStreetMap amenity data (school + park names) is refreshed on major site rebuilds.
-- Live rental and sales market data (Domain API, etc.) is not yet integrated — when it is, this page will be versioned and updated.
-
-If a suburb page is missing a section that this methodology describes, the corresponding field was unavailable at build time. The page will pick up the metric automatically on the next deploy after the fetch succeeds.
-
-## 10. Known limitations
-
-- ABS 2021 is four years old at time of writing. Census 2026 data will be incorporated as soon as the ABS releases it.
-- Straight-line CBD distance is *not* driving time. Use Google Maps for commute checks.
+- The most important limitation is the one in section 2: most suburb figures are estimates or placeholders, and several richer fields are not populated at all. We are working to replace these with verified sources before re-indexing the pages.
+- ABS 2021 Census data (the population field) is four years old at time of writing. Census 2026 data will be incorporated as soon as the ABS releases it.
 - We do not collect any paid data from agents or developers, and we do not accept sponsored content.
-- The investment score does not factor live sales prices, so it cannot be used as a gross-yield estimate in isolation.
+- EquitySight is run by a solo, non-credentialed operator. Nothing on the site is personal financial advice. Always seek licensed, independent advice before making a property decision.
 
-## 11. Mortgage repayment formulas (main calculator)
+## 6. Mortgage repayment formulas (main calculator)
+
+The calculators are where our methodology is on the firmest ground: they apply standard, published formulas to the numbers you enter, and the RBA cash rate they reference is real.
 
 The Purchase Calculator (`/app`) uses the standard monthly amortisation formula:
 
@@ -141,11 +95,10 @@ The "switching to fortnightly saves X years and $Y in interest" number is comput
 
 This matches the "pay half the monthly amount every fortnight" offer most Australian lenders advertise. It is **not** the same as paying `annual / 26` every fortnight (which would just be monthly repayments relabelled and would save nothing).
 
-## 12. Change log
+### A note on the written guides
 
-- **May 2026** — Documented current data-coverage explicitly in §9, replacing language that implied richer ABS fields (rent, mortgage, CBD distance, dwelling mix, centroid coordinates) were always populated. Where the upstream Enhanced ABS fetch hasn't refreshed, the suburb pages now omit the corresponding sections rather than display a placeholder. Fixed eight bracket-cliff bugs in the stamp duty calculators (NSW, VIC, SA, WA, TAS, ACT, NT — the QLD calculator was already correct). Calculator output now flows continuously across every bracket transition, with deterministic regression tests guarding each state. See `tests/stamp-duty-test.js`.
-- **April 2026** — First published methodology. Introduced multi-factor noindex gate, deterministic strategy verdicts, comparison tables, and formula-driven prose to replace templated phrase pools. Documented mortgage repayment formulas used by the Purchase Calculator.
+The explanatory guides that accompany our calculators are drafted with AI assistance and then reviewed and edited by a human for accuracy before publishing. We mention this so the AI-assistance is disclosed rather than implied to be otherwise.
 
-## 13. Questions?
+## 7. Questions?
 
-If anything on this page is unclear, or you find a calculation error, email us at [support@equitysight.app](mailto:support@equitysight.app). Corrections are logged in the change log above.
+If anything on this page is unclear, or you find a calculation error, email us at [support@equitysight.app](mailto:support@equitysight.app). We would genuinely rather hear about it.

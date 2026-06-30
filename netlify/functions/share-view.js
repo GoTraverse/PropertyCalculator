@@ -378,7 +378,7 @@ exports.handler = async (event) => {
 
   <div class="cta">
     <h2>Model your own purchase in 60 seconds</h2>
-    <p>This scenario was built with EquitySight — Australia's smartest property finance calculator. Stamp duty, repayments, renovation budget, risk &amp; reward, all free.</p>
+    <p>This scenario was built with EquitySight — free Australian property finance calculators for all 8 states. Stamp duty, repayments, renovation budget, risk &amp; reward, all free.</p>
     <a href="${appCta}">Build your own scenario →</a>
   </div>
 

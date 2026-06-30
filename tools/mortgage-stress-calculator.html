@@ -173,15 +173,34 @@
 
 <section class="tool-content">
   <h2>What is mortgage stress?</h2>
-  <p>You're considered to be in <strong>mortgage stress</strong> when your mortgage repayments exceed 30% of your gross household income. At this level, there's limited room to cover other living expenses or absorb unexpected costs.</p>
-  <p>Severe mortgage stress is typically defined as repayments exceeding 50% of gross income.</p>
+  <p>In Australia, a household is generally said to be in <strong>mortgage stress</strong> when its home-loan repayments consume more than 30% of gross (before-tax) household income. The "30% rule" is a long-standing rule of thumb used by housing researchers, community organisations and the Reserve Bank of Australia (RBA) to flag households with little breathing room left for food, utilities, transport, childcare and the inevitable surprise bill. <strong>Severe</strong> mortgage stress is usually defined as repayments above 50% of gross income — at that point even a modest income shock can force missed payments.</p>
+  <p>The 30% figure is deliberately blunt. It says nothing about how much you actually earn: a household on $250,000 spending 35% on a mortgage may still have ample surplus, while a household on $80,000 spending 28% can be squeezed hard because a larger share of a smaller income is already locked into non-negotiable essentials. That is why this calculator also reports your <strong>monthly surplus</strong> in dollars and a <strong>total debt-servicing ratio</strong> that folds in your other debts, rather than relying on the headline percentage alone.</p>
+  <p>Why does this matter so much in Australia? Most Australian mortgages are <strong>variable rate</strong>, so repayments move almost immediately when the RBA changes the cash rate. Between 2022 and 2023 the cash rate rose sharply over a short period, and many borrowers who comfortably serviced a loan at very low rates suddenly faced repayments hundreds of dollars higher each month. A household that was "fine" at 2% can be in genuine stress at 6% — which is exactly what a stress test is meant to expose <em>before</em> it happens.</p>
 
-  <h2>APRA's 3% serviceability buffer</h2>
-  <p>The Australian Prudential Regulation Authority (APRA) requires banks to assess your ability to service a loan at your actual rate <strong>plus 3%</strong>. This buffer is designed to protect borrowers from rate rises and was introduced (and later raised from 2.5%) to cool the property market.</p>
-  <p>Even if rates don't rise by 3%, you should be able to comfortably meet the stressed repayment.</p>
+  <h2>How the calculation works</h2>
+  <p>This tool runs three connected calculations.</p>
+  <p><strong>1. The repayment.</strong> For a principal-and-interest (P&amp;I) loan, the monthly repayment uses the standard amortisation formula: <strong>Repayment = P × r × (1 + r)<sup>n</sup> ÷ ((1 + r)<sup>n</sup> − 1)</strong>, where <strong>P</strong> is the loan amount, <strong>r</strong> is the monthly interest rate (annual rate ÷ 12), and <strong>n</strong> is the number of monthly payments (years × 12). For an interest-only (IO) loan, the repayment is simply <strong>P × r</strong> — you pay the interest but the balance doesn't fall.</p>
+  <p><strong>2. The stress test.</strong> The calculator repeats the repayment formula using your interest rate <strong>plus the chosen buffer</strong> (the default is +3%, which matches the buffer the Australian Prudential Regulation Authority, APRA, expects lenders to use). This "stressed repayment" shows what you would pay if rates climbed to that higher level.</p>
+  <p><strong>3. The stress ratios.</strong> Each repayment is divided by your gross monthly income to give a <strong>repayment-to-income ratio</strong>. Anything above 30% lands in the stress zone. The <strong>total debt-servicing ratio (DSR)</strong> adds your other monthly debt commitments — car loans, personal loans, credit-card minimums, HECS-HELP, buy-now-pay-later — on top of the mortgage, because lenders assess your <em>whole</em> debt picture, not the home loan in isolation. Finally, <strong>monthly surplus</strong> is your gross income minus the stressed repayment and other debts, giving a dollar figure for the cushion you'd have left if rates rose.</p>
+
+  <h2>Worked example</h2>
+  <p>Assume a household with a <strong>$580,000</strong> loan over a <strong>30-year</strong> term on a P&amp;I basis, a current variable rate of <strong>6.25%</strong>, gross monthly household income of <strong>$12,500</strong>, and <strong>$800</strong> of other monthly debt (a car loan). We'll apply the standard <strong>+3% APRA buffer</strong> for the stress test.</p>
+  <ul>
+    <li><strong>Current repayment:</strong> at 6.25% over 30 years the repayment is roughly <strong>$3,571 a month</strong>.</li>
+    <li><strong>Repayment-to-income:</strong> $3,571 ÷ $12,500 ≈ <strong>29%</strong> — just under the 30% stress threshold.</li>
+    <li><strong>Stressed repayment:</strong> at 9.25% (6.25% + 3%) the repayment jumps to about <strong>$4,772 a month</strong>.</li>
+    <li><strong>Stressed repayment-to-income:</strong> $4,772 ÷ $12,500 ≈ <strong>38%</strong> — comfortably into the stress zone.</li>
+    <li><strong>Total DSR (stressed):</strong> ($4,772 + $800) ÷ $12,500 ≈ <strong>45%</strong>.</li>
+    <li><strong>Monthly surplus (stressed):</strong> $12,500 − $4,772 − $800 = <strong>$6,928</strong> before tax and living costs.</li>
+  </ul>
+  <p>The takeaway: this household looks fine today but would feel real pressure if rates rose by 3%. Note the surplus is calculated on <em>gross</em> income — once income tax and ordinary living expenses are deducted, the genuine buffer is far smaller. These figures are illustrative; your own result depends on the inputs you enter.</p>
+
+  <h2>APRA's serviceability buffer and the RBA cash rate</h2>
+  <p>APRA requires authorised deposit-taking institutions (banks, credit unions and building societies) to assess whether you could still afford a loan at an interest rate above the rate you're actually offered. Since late 2021 the expected buffer has been <strong>3 percentage points</strong> (raised from 2.5%). So if a bank quotes you 6%, it tests your budget at 9%. This is why your borrowing capacity can feel lower than you expect — and why running your own +3% stress test mirrors what the lender already does behind the scenes.</p>
+  <p>The buffer exists because Australian repayments track the RBA cash rate so closely. When the RBA's monthly board meeting moves the cash rate, variable-rate borrowers usually see the change passed through within weeks. Stress testing at +3% (or even +4% if you want to be conservative) is simply acknowledging that the rate on your loan today is not guaranteed for the life of a 25- or 30-year mortgage.</p>
 
   <h2>Debt-to-income ratio</h2>
-  <p>Banks also consider your <strong>Debt-to-Income (DTI) ratio</strong> — total debt divided by gross annual income. Most Australian lenders are cautious above a DTI of 6×, and APRA monitors banks' exposures to high-DTI loans.</p>
+  <p>Separate from the repayment ratios above, lenders watch your <strong>debt-to-income (DTI) ratio</strong> — total debt divided by gross annual income. APRA monitors banks' exposure to high-DTI lending, and most lenders apply extra scrutiny above 6×.</p>
   <table>
     <tr><th>DTI ratio</th><th>Risk level</th></tr>
     <tr><td>Below 4×</td><td>Low risk — comfortable serviceability</td></tr>
@@ -189,14 +208,40 @@
     <tr><td>Above 6×</td><td>High — scrutinised by lenders and APRA</td></tr>
   </table>
 
-  <h2>How to reduce mortgage stress risk</h2>
+  <h2>Building a repayment buffer</h2>
+  <p>The single most effective defence against mortgage stress is a cash buffer you control. Practical ways to build one:</p>
   <ul>
-    <li>Keep repayments below 25–30% of gross income</li>
-    <li>Build a cash buffer of 3–6 months repayments in an offset or savings account</li>
-    <li>Lock in a fixed rate if you're concerned about rate rises</li>
-    <li>Reduce other debts before taking on a mortgage</li>
-    <li>Pay down principal aggressively in early years while rates are manageable</li>
+    <li><strong>Save the difference now.</strong> If rates are currently low, set up an automatic transfer for the gap between your real repayment and your stressed repayment. You get used to living on the higher figure before you're forced to.</li>
+    <li><strong>Use an offset account.</strong> Cash in a 100% offset account reduces the interest charged on your loan while staying fully accessible — a more flexible buffer than locking money into the loan via redraw.</li>
+    <li><strong>Aim for 3–6 months of repayments</strong> set aside in offset or savings, so a job loss or illness doesn't immediately threaten the roof over your head.</li>
+    <li><strong>Pay down principal early.</strong> Extra repayments in the first years cut the balance the most, lowering future interest and shrinking the loan that any rate rise applies to.</li>
   </ul>
+
+  <h2>What to do if you're already in mortgage stress</h2>
+  <ul>
+    <li><strong>Talk to your lender early.</strong> Australian banks have financial-hardship obligations and can offer temporary repayment reductions, payment pauses or loan restructures. Contacting them before you miss a payment keeps more options open.</li>
+    <li><strong>Refinance or negotiate your rate.</strong> A lower rate, or extending the loan term, reduces the monthly repayment (though a longer term means more total interest).</li>
+    <li><strong>Review the whole budget.</strong> Refinancing other debts or trimming discretionary spending can free up cash flow faster than changing the mortgage itself.</li>
+    <li><strong>Get free help.</strong> The National Debt Helpline (1800 007 007) offers free, independent financial counselling, and ASIC's Moneysmart service (<a href="https://moneysmart.gov.au" rel="nofollow">moneysmart.gov.au</a>) has free budgeting and mortgage tools.</li>
+  </ul>
+
+  <h2>What this calculator does and doesn't cover</h2>
+  <p>This tool gives a quick, indicative read on repayment affordability and rate-rise resilience. It estimates repayments from the loan amount, rate, term and loan type, then tests them against a buffer and your income. It <strong>does not</strong> account for income tax (it works in gross income), nor for the detailed living-expense benchmarks lenders apply, such as the Household Expenditure Measure (HEM). It doesn't include lenders mortgage insurance, fees, redraw or offset balances, fixed-rate splits, or how your income might change over time. Treat the result as a starting point for a conversation, not a lending decision.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What percentage of income is mortgage stress in Australia?</h3>
+  <p>The widely used threshold is repayments above <strong>30% of gross household income</strong>, with severe stress above 50%. It's a rule of thumb rather than a legal definition, so use it alongside your actual dollar surplus and your total debt commitments.</p>
+
+  <h3>Should I stress test with gross or net income?</h3>
+  <p>This calculator uses <strong>gross</strong> (before-tax) income because that's the basis for the traditional 30% rule and how lenders frame serviceability. For your own household budgeting it's wise to also check the repayment against your <strong>net</strong> (take-home) pay, since that's the money actually available — the stress will look more pronounced.</p>
+
+  <h3>Why test at the current rate plus 3%?</h3>
+  <p>Because APRA expects lenders to assess loans at roughly 3 percentage points above the offered rate, and because most Australian mortgages are variable and move with the RBA cash rate. A +3% test shows whether you could still cope if rates rose to levels seen in recent cycles.</p>
+
+  <h3>Does fixing my rate remove mortgage stress?</h3>
+  <p>A fixed rate gives certainty for the fixed period (commonly one to five years), which can be valuable if you're worried about rises. But fixed loans often limit extra repayments and offset features, and you face the prevailing rate when the fixed term ends — so it manages risk for a window rather than removing it.</p>
+
+  <p>This page is general information only and is not personal financial advice. Figures such as the APRA buffer and prevailing rates can change — confirm current details with the RBA, APRA or ASIC's Moneysmart, and seek advice from a licensed mortgage broker or financial adviser before making decisions.</p>
 </section>
 
 <div id="tool-resources-root"></div>

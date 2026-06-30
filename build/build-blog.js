@@ -269,6 +269,24 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
   const keywords = (post.tags || []).concat(['Australian property', 'EquitySight']).join(', ');
   const commentsHtml = renderCommentsBlock(post.slug, commentsData || { items: [], totalCount: 0 });
 
+  // Author identity. We only emit a schema.org Person — and a visible "About the
+  // author" bio card — when there is a genuine, non-empty author bio to back it
+  // up. Otherwise the post is attributed to the EquitySight Organization (no
+  // invented person, degree, credential, or email anywhere in the output).
+  const authorName = post.author || 'EquitySight';
+  const authorBio = (post.author_bio || '').trim();
+  const hasRealBio = authorBio.length > 0;
+  const authorJsonLd = hasRealBio
+    ? '{"@type":"Person","name":"' + escJsonString(authorName) + '","description":"' + escJsonString(authorBio) + '"}'
+    : '{"@type":"Organization","name":"EquitySight","url":"' + SITE_URL + '/"}';
+  const authorCardHtml = hasRealBio
+    ? '<div class="blog-author-card">' +
+        '<div class="blog-author-head">About the author</div>' +
+        '<div class="blog-author-name">' + escHtml(authorName) + '</div>' +
+        '<div class="blog-author-bio">' + escHtml(authorBio) + '</div>' +
+      '</div>'
+    : '';
+
   // Prev / Next (chronological — newest-first array, so prev=next index, next=prev index)
   const prev = neighbours && neighbours.prev;
   const next = neighbours && neighbours.next;
@@ -304,10 +322,10 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
     KEYWORDS: escHtml(keywords),
     SECTION: sectionSlug,
     SLUG: escHtml(post.slug),
-    AUTHOR: escHtml(post.author || 'EquitySight Team'),
-    AUTHOR_JSON: escJsonString(post.author || 'EquitySight Team'),
-    AUTHOR_BIO: escHtml(post.author_bio || ''),
-    AUTHOR_BIO_JSON: escJsonString(post.author_bio || ''),
+    AUTHOR: escHtml(authorName),
+    AUTHOR_JSON: escJsonString(authorName),
+    AUTHOR_JSON_LD: authorJsonLd,
+    AUTHOR_CARD_HTML: authorCardHtml,
     PUBLISHED_AT_ISO: isoDate(post.published_at || post.created_at),
     PUBLISHED_AT_HUMAN: humanDate(post.published_at || post.created_at),
     UPDATED_AT_ISO: isoDate(post.updated_at || post.published_at || post.created_at),

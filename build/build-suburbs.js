@@ -1478,11 +1478,20 @@ const BUILD_DATE = new Date().toLocaleDateString('en-AU', {
 const MIN_POPULATION_FOR_INDEX = 10000;
 
 function shouldNoindex(s) {
+  // Honesty hold (Jun 2026): suburb pages currently display ESTIMATED / placeholder
+  // figures (median income, transport/amenity/investment scores, school/park counts)
+  // that are NOT verified ABS or OpenStreetMap data. Until real data is sourced, every
+  // suburb page is noindex,follow — still reachable, but excluded from the sitemap and
+  // Google — so placeholder numbers are never presented to search users as fact.
+  // To restore selective indexing once real data lands, re-enable the gate below.
+  return true;
+  /* original population/postcode/income gate — retained for when real data is in:
   if (s.tiny) return true;
   if (!s.postcode) return true;
   if ((s.population || 0) < MIN_POPULATION_FOR_INDEX) return true;
   if (!s.median_household_income) return true;
   return false;
+  */
 }
 
 // Quality score 0–100 for reporting / future sorting. Not used as the noindex
@@ -1526,7 +1535,9 @@ function computeStateMedians(all) {
   // profile of the real investor-relevant market, not the long tail of tiny
   // rural localities that drag the population median toward ~200.
   for (const s of all) {
-    if (shouldNoindex(s)) continue;
+    // Use a population threshold directly (not shouldNoindex, which now excludes
+    // every suburb) so state medians still reflect substantial suburbs.
+    if (!s.postcode || (s.population || 0) < MIN_POPULATION_FOR_INDEX) continue;
     const b = buckets[s.state] || (buckets[s.state] = {
       incomes: [], rents: [], mortgages: [], pops: [],
       schools: [], parks: [], dists: [], housePcts: [],
@@ -2094,7 +2105,7 @@ ${links}
 function generateMethodologyBlock(s) {
   return `  <section class="suburb-section suburb-methodology">
     <h2>How we built this ${escHtml(s.suburb)} profile</h2>
-    <p>Every number on this page comes from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census of Population and Housing</a>, Australia Post postcode reference data, and OpenStreetMap amenity tiles. The investment score, strategy verdicts, and comparison table are computed deterministically from those inputs — no opinion, no estimation. See our <a href="/methodology">full methodology</a> and the <a href="/data-sources">data sources and licences</a> for the formulas we use.</p>
+    <p>The population count and postcode on this page are real, sourced from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census</a> and Australia Post. The other figures here — including any income, amenity, school/park, and "investment score" values — are <strong>early estimates, not verified ABS or OpenStreetMap data</strong>. We're rebuilding these profiles on real, sourced data before featuring them, which is why this page isn't currently indexed. See our <a href="/methodology">methodology</a> and <a href="/data-sources">data sources</a> for exactly what's real and what's estimated.</p>
   </section>`;
 }
 
@@ -2221,10 +2232,10 @@ for (const s of suburbs) {
     ? `$${fmt(s.median_rent_weekly)}/wk`
     : 'N/A';
 
-  // Income display
-  const incomeDisplay = s.median_household_income
-    ? `$${fmt(s.median_household_income)}/yr`
-    : 'N/A';
+  // Income display — the upstream income field is a name-seeded placeholder, not
+  // verified ABS data, so we do NOT publish a figure. Shown as N/A until a real
+  // ABS income source is integrated. (Honesty hold, Jun 2026.)
+  const incomeDisplay = 'N/A';
 
   // Mortgage display
   const mortgageDisplay = s.median_mortgage_monthly
