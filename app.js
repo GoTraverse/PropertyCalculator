@@ -99,86 +99,66 @@
   // Returns estimated stamp duty for all 8 Australian states (2026 thresholds)
   function calcStampDutyAmt(price, state, isFHB, isNew) {
     if (!price || !state) return 0;
-    // brackets: [threshold, baseDuty, marginalRate] — iterate largest-first
-    function bracket(v, tiers) {
-      for (var i = tiers.length - 1; i >= 0; i--) {
-        if (v > tiers[i][0]) return tiers[i][1] + (v - tiers[i][0]) * tiers[i][2];
+    // FY2025-26 cumulative-marginal tiers [from, rate], verified against each state
+    // revenue office (same schedules as tools/stamp-duty-calculator.js).
+    var TIERS = {
+      nsw: [[0,0.0125],[17000,0.015],[37000,0.0175],[99000,0.035],[372000,0.045],[1240000,0.055],[3721000,0.07]],
+      vic: [[0,0.014],[25000,0.024],[130000,0.06]],
+      qld: [[0,0],[5000,0.015],[75000,0.035],[540000,0.045],[1000000,0.0575]],
+      sa:  [[0,0.01],[12000,0.02],[30000,0.03],[50000,0.035],[100000,0.04],[200000,0.0425],[250000,0.0475],[300000,0.05],[500000,0.055]],
+      wa:  [[0,0.019],[120000,0.0285],[150000,0.038],[360000,0.0475],[725000,0.0515]],
+      tas: [[0,0],[3000,0.0175],[25000,0.0225],[75000,0.035],[200000,0.04],[375000,0.0425],[725000,0.045]],
+      act: [[0,0.0028],[260000,0.022],[300000,0.034],[500000,0.0432],[750000,0.059],[1000000,0.064]]
+    };
+    function marginal(v, tiers) {
+      var duty = 0;
+      for (var i = 0; i < tiers.length; i++) {
+        if (v <= tiers[i][0]) break;
+        var nx = (i + 1 < tiers.length) ? tiers[i + 1][0] : Infinity;
+        duty += (Math.min(v, nx) - tiers[i][0]) * tiers[i][1];
       }
-      return 0;
+      return duty;
     }
-    var duty = 0;
-    if (state === 'nsw') {
-      duty = bracket(price, [
-        [0, 0, 0], [14000, 0, 0.0125], [30000, 200, 0.015],
-        [130000, 1700, 0.0175], [205000, 2631.25, 0.035],
-        [305000, 6131.25, 0.04], [405000, 10131.25, 0.045],
-        [550000, 16256.25, 0.055]
-      ]);
-      if (isFHB) {
+    var duty;
+    if (state === 'nt') {
+      // Quadratic under $525k, then flat % of TOTAL value.
+      if (price < 525000) { var Vk = price / 1000; duty = 0.06571441 * Vk * Vk + 15 * Vk; }
+      else if (price <= 3000000) duty = price * 0.0495;
+      else if (price <= 5000000) duty = price * 0.0575;
+      else duty = price * 0.0595;
+    } else {
+      duty = marginal(price, TIERS[state] || []);
+      if (state === 'vic') {
+        if (price > 960000 && price <= 2000000) duty = price * 0.055;     // flat of total
+        else if (price > 2000000) duty = 110000 + (price - 2000000) * 0.065;
+      } else if (state === 'act' && price > 1455000) {
+        duty = price * 0.0454;                                            // flat of total
+      } else if (state === 'tas') {
+        duty = (price <= 3000) ? 50 : duty + 50;                          // $50 base/minimum
+      }
+    }
+    // First-home-buyer concessions (FY2025-26).
+    if (isFHB) {
+      if (state === 'qld') {
+        if (isNew) duty = 0;                                              // new-home full exemption
+        else if (price <= 700000) duty = 0;
+        else if (price < 800000) duty *= (price - 700000) / 100000;
+      } else if (state === 'nsw') {
         if (price <= 800000) duty = 0;
-        else if (price <= 1000000) duty *= (price - 800000) / 200000;
-      }
-    } else if (state === 'vic') {
-      duty = bracket(price, [
-        [0, 0, 0], [25000, 0, 0.014], [130000, 1470, 0.024],
-        [440000, 8910, 0.055], [870000, 43605, 0.065]
-      ]);
-      if (isFHB) {
+        else if (price < 1000000) duty *= (price - 800000) / 200000;
+      } else if (state === 'vic') {
         if (price <= 600000) duty = 0;
-        else if (price <= 750000) duty *= (price - 600000) / 150000;
+        else if (price < 750000) duty *= (price - 600000) / 150000;
+      } else if (state === 'wa') {
+        if (price <= 500000) duty = 0;
+        else if (price < 700000) duty *= (price - 500000) / 200000;
+      } else if (state === 'tas') {
+        if (price <= 750000) duty = 0;                                    // established-home cliff
+      } else if (state === 'act') {
+        if (price <= 1020000) duty = 0;                                   // HBCS (income-tested)
+      } else if ((state === 'sa' || state === 'nt') && isNew) {
+        duty = 0;                                                         // new-build relief only
       }
-    } else if (state === 'qld') {
-      // QLD First Home Concession schedule effective 9 May 2025 (QRO).
-      // New home (any price) — no duty. Existing home — full concession to
-      // $700k, linear phase-out to $800k, no concession at/above $800k.
-      if (isFHB && isNew) {
-        duty = 0;
-      } else {
-        duty = bracket(price, [
-          [0, 0, 0], [5000, 0, 0.015], [75000, 1050, 0.035],
-          [540000, 17325, 0.045], [1000000, 38025, 0.0575]
-        ]);
-        if (isFHB) {
-          if (price <= 700000) duty = 0;
-          else if (price < 800000) duty *= (price - 700000) / 100000;
-          // price >= 800000: no FHB concession — full duty applies
-        }
-      }
-    } else if (state === 'sa') {
-      duty = bracket(price, [
-        [0, 0, 0], [16000, 0, 0.015], [19000, 45, 0.03],
-        [250000, 6915, 0.035], [300000, 8665, 0.04]
-      ]);
-      if (isFHB && isNew && price <= 650000) duty = 0;
-    } else if (state === 'wa') {
-      duty = bracket(price, [
-        [0, 0, 0], [2000, 0, 0.01], [4000, 20, 0.02],
-        [500000, 9920, 0.035], [1000000, 27420, 0.0475]
-      ]);
-      if (isFHB) {
-        if (price <= 430000) duty = 0;
-        else if (price <= 530000) duty *= (price - 430000) / 100000;
-      }
-    } else if (state === 'tas') {
-      duty = bracket(price, [
-        [0, 0, 0], [3000, 0, 0.036], [100000, 3492, 0.041],
-        [150000, 5542, 0.0425], [250000, 9792, 0.0475]
-      ]);
-      if (isFHB && price <= 750000) duty *= 0.5; // 50% concession (to June 2026)
-    } else if (state === 'act') {
-      duty = bracket(price, [
-        [0, 0, 0], [7500, 0, 0.0068], [100000, 640, 0.023],
-        [200000, 2940, 0.031], [300000, 6040, 0.035],
-        [500000, 13040, 0.0505], [750000, 25665, 0.066],
-        [1000000, 42165, 0.0717]
-      ]);
-      if (isFHB && price <= 1020000) duty = 0;
-    } else if (state === 'nt') {
-      duty = bracket(price, [
-        [0, 0, 0], [3000, 0, 0.0075], [100000, 727.5, 0.01],
-        [150000, 1227.5, 0.015], [250000, 2727.5, 0.025]
-      ]);
-      if (isFHB && price <= 650000) duty = Math.max(0, duty * (price - 400000) / 250000);
     }
     return Math.max(0, Math.round(duty));
   }
