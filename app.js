@@ -2522,6 +2522,16 @@
     applyRenoToggle();
     recalc();
   }
+  // Resequence the VISIBLE tab numbers (00, 01, 02 …) so turning a section off
+  // (Reno / Rent Overlap / Risk) doesn't leave gaps like "00 01 03 05 …".
+  function renumberTabs(){
+    let n = 0;
+    document.querySelectorAll('.tab[data-tab]').forEach(function(t){
+      if (getComputedStyle(t).display === 'none') return;
+      t.innerHTML = t.innerHTML.replace(/^\s*\d+\s*·\s*/, String(n).padStart(2,'0') + ' · ');
+      n++;
+    });
+  }
   function applyRenoToggle(){
     const knob = document.getElementById('reno-toggle-knob');
     const track = document.getElementById('reno-toggle');
@@ -2538,6 +2548,7 @@
       if(section) section.style.display = 'none';
       if(tab){ tab.style.display = 'none'; showTab('costs', document.querySelector('.tab[data-tab="costs"]')); }
     }
+    renumberTabs();
   }
 
   // ── RENT OVERLAP TOGGLE (item 12) ──
@@ -2552,6 +2563,7 @@
     if(knob) knob.style.left = riskEnabled ? '20px' : '2px';
     if(tabBtn) tabBtn.style.display = riskEnabled ? '' : 'none';
     if(!riskEnabled){ const active = document.querySelector('.tab.active'); if(active && active.id==='tab-risks-btn') showTab('property', document.querySelector('.tab')); }
+    renumberTabs();
   }
   function toggleRent(){
     rentEnabled = !rentEnabled;
@@ -2578,6 +2590,7 @@
       const active = document.querySelector('.tab.active');
       if(active && active.dataset.tab === 'overlap') showTab('costs', document.querySelector('.tab[data-tab="costs"]'));
     }
+    renumberTabs();
   }
 
   // ── SETTLEMENT DATE ──
