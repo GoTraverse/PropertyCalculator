@@ -205,7 +205,7 @@ exports.handler = async function(event){
         const index = await readIndex(adminTargetId);
         return ok(index);
       }catch(e){
-        return fail('Failed to load scenarios: '+e.message, 500);
+        return fail('Failed to load scenarios. Please try again.', 500);
       }
     }
 
@@ -216,7 +216,7 @@ exports.handler = async function(event){
       return ok(index);
     }catch(e){
       console.error('[scenarios] GET error:', e.message);
-      return fail('Failed to load library: '+e.message, 500);
+      return fail('Failed to load library. Please try again.', 500);
     }
   }
 
@@ -250,7 +250,7 @@ exports.handler = async function(event){
           groups.push({userId:uid,userEmail:u.email,userName:u.name,scenarios:idx});
         }));
         return ok({ok:true,groups});
-      }catch(e){ return fail('Error: '+e.message); }
+      }catch(e){ return fail('Error. Please try again.'); }
     }
 
     // Admin: get another user's scenario state
@@ -263,7 +263,7 @@ exports.handler = async function(event){
         const state=await rGet(stateKey(targetUid,id));
         const photo=await rGet(photoKey(targetUid,id));
         return ok({ok:true,state,photo:photo||null});
-      }catch(e){ return fail('Error: '+e.message); }
+      }catch(e){ return fail('Error. Please try again.'); }
     }
 
     const uid = await resolveUser(event, body);
