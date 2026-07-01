@@ -6,7 +6,7 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v7';
+const CACHE_NAME = 'equitysight-v8';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/offline.html',
@@ -28,6 +28,7 @@ const STATIC_ASSETS = [
   '/app.js',
   '/app-init.js',
   '/app-events.js',
+  '/onboarding.js',
   // Calculator landing + all 14 tool HTML pages — enables first-visit offline
   // access so a user can open any calculator without a prior online visit. The
   // HTMLs stay small (~30 KB each); install cost ~400 KB. Individual tool JS
