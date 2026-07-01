@@ -27,6 +27,9 @@ const BLOG_DIR = path.join(ROOT, 'blog');
 const TEMPLATE_POST = path.join(ROOT, 'templates', 'blog-post.html');
 const TEMPLATE_INDEX = path.join(ROOT, 'templates', 'blog-index.html');
 const SITE_URL = 'https://equitysight.app';
+// Slugify a tag the SAME way tag directories are written, so tag-pill hrefs and the
+// sitemap URLs match the on-disk /blog/tag/<slug>/ path (was raw/encoded -> 404s).
+function tagToSlug(t){ return String(t).toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,''); }
 
 const REDIS_URL = (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^["']|["']$/g, '').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g, '').trim();
@@ -237,7 +240,7 @@ function renderPost(post, allPosts, template, commentsData, neighbours) {
     ? post.meta_description
     : excerpt).replace(/\s+/g, ' ').slice(0, 200);
   const tagsHtml = (post.tags || []).map(t =>
-    '<a class="blog-tag-pill" href="/blog/tag/' + encodeURIComponent(t) + '/">' + escHtml(t) + '</a>'
+    '<a class="blog-tag-pill" href="/blog/tag/' + tagToSlug(t) + '/">' + escHtml(t) + '</a>'
   ).join(' ');
   const primaryTag = (post.tags && post.tags[0]) ? post.tags[0] : 'Insights';
   const coverImageAbs = post.cover_image
@@ -407,12 +410,30 @@ function renderIndex(posts, page, totalPages, template, opts) {
     paginationHtml = '<div class="blog-pagination">' + parts.join('') + '</div>';
   }
 
-  return replaceAll(template, {
+  let out = replaceAll(template, {
     POSTS_GRID: cardsHtml,
     PAGINATION_HTML: paginationHtml,
     FEATURED_HTML: featuredHtml,
     CATEGORY_NAV_HTML: catNavHtml,
   });
+  // Self-canonicalise + retitle every variant that ISN'T the main /blog/ page 1, so
+  // section, tag and paginated index pages no longer all canonicalise to /blog/ (which
+  // de-indexes them) or share a single <title>. Exact-string replacements on head tags
+  // only — a non-match is a no-op (never ships a literal placeholder).
+  const isMainFirst = (baseHref === '/blog/' && page === 1);
+  if (!isMainFirst) {
+    const canonUrl = SITE_URL + ((page > 1) ? (baseHref + 'page/' + page + '/') : baseHref);
+    const title = opts.pageTitle || ('EquitySight Blog — Page ' + page);
+    out = out
+      .replace('<link rel="canonical" href="https://equitysight.app/blog/">', '<link rel="canonical" href="' + canonUrl + '">')
+      .replace('<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/blog/">', '<link rel="alternate" hreflang="en-AU" href="' + canonUrl + '">')
+      .replace('<link rel="alternate" hreflang="x-default" href="https://equitysight.app/blog/">', '<link rel="alternate" hreflang="x-default" href="' + canonUrl + '">')
+      .replace('<meta property="og:url" content="https://equitysight.app/blog/">', '<meta property="og:url" content="' + canonUrl + '">')
+      .replace('<title>EquitySight Blog — Australian Property Investment Insights</title>', '<title>' + escHtml(title) + '</title>')
+      .replace('<meta property="og:title" content="EquitySight Blog — Australian Property Investment Insights">', '<meta property="og:title" content="' + escHtml(title) + '">')
+      .replace('<meta name="twitter:title" content="EquitySight Blog — Australian Property Investment Insights">', '<meta name="twitter:title" content="' + escHtml(title) + '">');
+  }
+  return out;
 }
 
 // ── RSS feed ──────────────────────────────────────────────────────────
@@ -542,6 +563,7 @@ async function main() {
     fs.mkdirSync(outDir, { recursive: true });
     const opts = {
       baseHref: '/blog/' + sec + '/',
+      pageTitle: sec.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) + ' — EquitySight Blog',
       featured: null,
       categoryNav: buildSectionNav('/blog/' + sec + '/'),
     };
@@ -557,6 +579,7 @@ async function main() {
     fs.mkdirSync(outDir, { recursive: true });
     const opts = {
       baseHref: '/blog/tag/' + tagSlug + '/',
+      pageTitle: 'Posts tagged “' + tag + '” — EquitySight Blog',
       featured: null,
       categoryNav: buildSectionNav(''),
     };
@@ -570,7 +593,7 @@ async function main() {
   // ── Sitemap supplement (indexable posts only) ──────────────────────
   const urls = [SITE_URL + '/blog/']
     .concat(indexablePosts.map(p => SITE_URL + postUrlRaw(p)))
-    .concat(Object.keys(byTag).map(t => SITE_URL + '/blog/tag/' + t + '/'))
+    .concat(Object.keys(byTag).map(t => SITE_URL + '/blog/tag/' + tagToSlug(t) + '/'))
     .concat(Object.keys(bySection).map(sec => SITE_URL + '/blog/' + sec + '/'));
   const sitemapBlog = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
