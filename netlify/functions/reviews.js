@@ -185,7 +185,7 @@ exports.handler = async function(event) {
         return ok({ ok: true, items, page, pageSize, totalCount: count, avg });
       } catch (e) {
         console.error('[reviews] list error:', e.message);
-        return fail('Failed to load reviews: ' + e.message, 500);
+        return fail('Failed to load reviews. Please try again.', 500);
       }
     }
 
@@ -212,7 +212,7 @@ exports.handler = async function(event) {
           sum: parseInt(agg.sum, 10) || 0,
         }});
       } catch (e) {
-        return fail('buildFetch error: ' + e.message, 500);
+        return fail('buildFetch error. Please try again.', 500);
       }
     }
 
@@ -281,7 +281,7 @@ exports.handler = async function(event) {
       return ok({ ok: true, id: review.id, status: 'pending',
                   message: 'Thanks — your review is pending moderation.' });
     } catch (e) {
-      return fail('Failed to save review: ' + e.message, 500);
+      return fail('Failed to save review. Please try again.', 500);
     }
   }
 
@@ -303,7 +303,7 @@ exports.handler = async function(event) {
       }
       const totalRaw = await redisCmd('LLEN', 'reviews:queue');
       return ok({ ok: true, items, page, pageSize, total: parseInt(totalRaw, 10) || 0 });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminListAll') {
@@ -320,7 +320,7 @@ exports.handler = async function(event) {
       }
       const totalRaw = await redisCmd('LLEN', 'reviews:all');
       return ok({ ok: true, items, page, pageSize, total: parseInt(totalRaw, 10) || 0 });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminApprove') {
@@ -346,7 +346,7 @@ exports.handler = async function(event) {
         await rHIncrBy(aggKey(r.state, r.suburbSlug), 'sum', r.rating);
       }
       return ok({ ok: true, already: wasApproved });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminReject') {
@@ -370,7 +370,7 @@ exports.handler = async function(event) {
       if (!r.rejected_at) r.rejected_at = Date.now();
       await rSet('review:' + id, r);
       return ok({ ok: true, already: !wasApproved && r.status === 'rejected' });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminDeleteReview') {
@@ -392,7 +392,7 @@ exports.handler = async function(event) {
       await rListRemove('reviews:all', id);
       await redisCmd('DEL', 'review:' + id);
       return ok({ ok: true });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminGet') {

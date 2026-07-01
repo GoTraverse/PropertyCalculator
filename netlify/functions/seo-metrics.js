@@ -352,6 +352,6 @@ exports.handler = async (event) => {
     return { statusCode: status, headers, body: JSON.stringify(result) };
   } catch (e) {
     log.error('seo.handler_error', { action, err: e.message });
-    return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: e.message }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: 'Internal error' }) };
   }
 };

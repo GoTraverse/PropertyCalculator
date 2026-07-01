@@ -167,7 +167,7 @@ exports.handler = async function(event) {
         return ok({ ok: true, items, page, pageSize, totalCount });
       } catch (e) {
         console.error('[comments] list error:', e.message);
-        return fail('Failed to load comments: ' + e.message, 500);
+        return fail('Failed to load comments. Please try again.', 500);
       }
     }
 
@@ -188,7 +188,7 @@ exports.handler = async function(event) {
         const totalCount = await rLen(postListKey(slug));
         return ok({ ok: true, items, totalCount });
       } catch (e) {
-        return fail('buildFetch error: ' + e.message, 500);
+        return fail('buildFetch error. Please try again.', 500);
       }
     }
 
@@ -247,7 +247,7 @@ exports.handler = async function(event) {
       return ok({ ok: true, id: comment.id, status: 'pending',
                   message: 'Thanks — your comment is pending moderation.' });
     } catch (e) {
-      return fail('Failed to save comment: ' + e.message, 500);
+      return fail('Failed to save comment. Please try again.', 500);
     }
   }
 
@@ -269,7 +269,7 @@ exports.handler = async function(event) {
       }
       const total = await rLen('comments:queue');
       return ok({ ok: true, items, page, pageSize, total });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminListAll') {
@@ -286,7 +286,7 @@ exports.handler = async function(event) {
       }
       const total = await rLen('comments:all');
       return ok({ ok: true, items, page, pageSize, total });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminApprove') {
@@ -307,7 +307,7 @@ exports.handler = async function(event) {
       await rListRemove(postListKey(c.postSlug), id);
       await rListPrepend(postListKey(c.postSlug), id);
       return ok({ ok: true, already });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminReject') {
@@ -325,7 +325,7 @@ exports.handler = async function(event) {
       await rListRemove('comments:queue', id);
       await rListRemove(postListKey(c.postSlug), id);
       return ok({ ok: true, already });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminDeleteComment') {
@@ -340,7 +340,7 @@ exports.handler = async function(event) {
       await rListRemove('comments:all', id);
       await redisCmd('DEL', 'comment:' + id);
       return ok({ ok: true });
-    } catch (e) { return fail('Error: ' + e.message, 500); }
+    } catch (e) { return fail('Error. Please try again.', 500); }
   }
 
   if (action === 'adminGet') {
