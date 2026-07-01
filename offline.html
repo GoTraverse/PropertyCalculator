@@ -2,6 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="UTF-8">
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Offline — EquitySight</title>
@@ -38,12 +39,12 @@
   }
   .hint { font-size: 12px; color: var(--slate); margin-top: 18px; }
   @media (max-width: 460px) { .links { grid-template-columns: 1fr; } }
-  @media (prefers-color-scheme: dark) {
-    body { background: #161618; color: var(--cream); }
-    p, .hint { color: rgba(245,240,232,0.72); }
-    .links a { background: #1f1f22; border-color: rgba(255,255,255,0.1); color: var(--cream); }
-    .retry { background: var(--gold); color: var(--charcoal); }
-  }
+  /* Follows the user's chosen theme (html.dark-mode set by the inline script above),
+     matching the rest of the site rather than the OS preference. */
+  html.dark-mode body { background: #161618; color: var(--cream); }
+  html.dark-mode p, html.dark-mode .hint { color: rgba(245,240,232,0.72); }
+  html.dark-mode .links a { background: #1f1f22; border-color: rgba(255,255,255,0.1); color: var(--cream); }
+  html.dark-mode .retry { background: var(--gold); color: var(--charcoal); }
 </style>
 </head>
 <body>
