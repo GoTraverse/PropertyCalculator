@@ -169,11 +169,13 @@
     if (!price || price <= 0 || !loanAmt) return 0;
     const lvr = loanAmt / price * 100;
     if (lvr <= 80) return 0;
+    // Canonical LMI tiers shared with the free calculators (deposit / cost-of-purchase /
+    // mortgage-repayment / stamp-duty), indicative of Helia/QBE rates per ASIC MoneySmart.
     var rate = 0;
-    if (lvr <= 85) rate = 0.0065;
-    else if (lvr <= 90) rate = 0.0146;
-    else if (lvr <= 95) rate = 0.0244;
-    else rate = 0.030;
+    if (lvr <= 85) rate = 0.0080;
+    else if (lvr <= 90) rate = 0.0190;
+    else if (lvr <= 95) rate = 0.0340;
+    else rate = 0.0430;
     return Math.round(loanAmt * rate);
   }
 
