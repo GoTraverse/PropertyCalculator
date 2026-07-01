@@ -396,6 +396,22 @@ function makeEmailCode(){
 function hashEmailCode(code){ return crypto.createHmac('sha256',SALT).update('email-code:'+String(code).toUpperCase()).digest('hex'); }
 // Constant-time string compare — prevents timing attacks on hash comparisons
 function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual(Buffer.from(a,'hex'),Buffer.from(b,'hex')); }catch(e){ return false; } }
+// Password hashing. New/changed passwords use scrypt (memory-hard) with a per-user
+// random salt, stored as "scrypt$<saltHex>$<hashHex>". Legacy HMAC-SHA256 hashes
+// (bare 64-hex, keyed by AUTH_SALT) still verify via verifyPw() and are transparently
+// re-hashed to scrypt on the next successful sign-in — so existing users are never
+// locked out and the store migrates itself over time.
+function hashPwScrypt(pw){ const salt=crypto.randomBytes(16); const dk=crypto.scryptSync(String(pw),salt,64); return 'scrypt$'+salt.toString('hex')+'$'+dk.toString('hex'); }
+function isLegacyHash(stored){ return typeof stored==='string' && !stored.startsWith('scrypt$'); }
+function verifyPw(pw,stored){
+  if(!stored) return false;
+  if(typeof stored==='string' && stored.startsWith('scrypt$')){
+    const p=stored.split('$'); if(p.length!==3||!p[1]||!p[2]) return false;
+    let dk; try{ dk=crypto.scryptSync(String(pw),Buffer.from(p[1],'hex'),64); }catch(e){ return false; }
+    const want=Buffer.from(p[2],'hex'); return want.length===dk.length && crypto.timingSafeEqual(want,dk);
+  }
+  return safeEqual(stored,hashPw(pw)); // legacy HMAC path (equivalent to the previous compare)
+}
 
 // Issue a logged-in session for a magic-link verification (link or code).
 // Mirrors what action='signin' does at success, so the response shape and
@@ -480,12 +496,12 @@ exports.handler = async function(event){
     if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
     const pwMin=parseInt(siteCfgSu.minPasswordLength)||8;
     if(password.length<pwMin) return fail('Password must be at least '+pwMin+' characters');
+    const normalizedEmail=email.toLowerCase().trim();
     if(siteCfgSu.requireEmailDomain){
       const domain=siteCfgSu.requireEmailDomain.toLowerCase().replace(/^@/,'');
       const emailDomain=normalizedEmail.split('@').pop();
       if(emailDomain!==domain) return fail('Signups are restricted to @'+domain+' email addresses');
     }
-    const normalizedEmail=email.toLowerCase().trim();
     const ekey='user:'+normalizedEmail;
     if(await rGet(ekey)) return fail('An account with this email already exists');
     const userId=Date.now().toString(36)+crypto.randomBytes(4).toString('hex');
@@ -493,9 +509,9 @@ exports.handler = async function(event){
     const refCode=(userId.slice(0,8)).toUpperCase();
     const user={
       name:(name||normalizedEmail.split('@')[0]).trim(),
-      hash:hashPw(password),
+      hash:hashPwScrypt(password),
       id:userId,
-      plan:plan||'free',
+      plan:'free', // paid tiers are granted ONLY via the Stripe webhook / adminSetPlan — never trusted from the signup request
       email:normalizedEmail,
       createdAt:Date.now(),
       emailVerified:false,
@@ -546,13 +562,15 @@ exports.handler = async function(event){
     if(ipFailCount>=30) return fail('Too many failed sign-in attempts from your network. Please wait 15 minutes.');
     const user=await rGet('user:'+normalizedEmail);
     if(!user){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
-    if(!safeEqual(user.hash,hashPw(password))){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
+    if(!verifyPw(password,user.hash)){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
     await rDel(failKey); // clear per-email counter on success (IP counter keeps
                         // its window — legitimate users rarely exceed 30/15min)
     if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
     if(user.emailVerified===false){
       return ok({ok:false,error:'Please verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
     }
+    // Upgrade a legacy HMAC hash to scrypt now that we have the plaintext (persisted by the rSet below).
+    if(isLegacyHash(user.hash)) user.hash=hashPwScrypt(password);
     user.lastLoginAt=Date.now();
     user.loginCount=(user.loginCount||0)+1;
     user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
@@ -595,7 +613,7 @@ exports.handler = async function(event){
     if(user.emailVerified){
       const token=makeToken();
       await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-      return ok({ok:true,token,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user',alreadyVerified:true}, buildSessionCookie(token, TOKEN_TTL));
+      return ok({ok:true,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user',alreadyVerified:true}, buildSessionCookie(token, TOKEN_TTL));
     }
     if(!user.emailVerificationCodeHash||!user.emailVerificationExpiresAt||Date.now()>user.emailVerificationExpiresAt){
       return fail('Verification code expired. Please request a new code.');
@@ -845,8 +863,8 @@ exports.handler = async function(event){
     if(newPassword.length<8) return fail('New password must be at least 8 characters');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
-    if(!safeEqual(userData.hash,hashPw(currentPassword))) return fail('Current password is incorrect');
-    userData.hash=hashPw(newPassword);
+    if(!verifyPw(currentPassword,userData.hash)) return fail('Current password is incorrect');
+    userData.hash=hashPwScrypt(newPassword);
     await rSet('user:'+user.email,userData);
     await logEvent(userData.id,'password_changed',{});
     return ok({ok:true});
@@ -897,7 +915,7 @@ exports.handler = async function(event){
     }
     const userData=await rGet('user:'+normalizedEmail);
     if(!userData) return fail('Account not found');
-    userData.hash=hashPw(newPassword);
+    userData.hash=hashPwScrypt(newPassword);
     await rSet('user:'+normalizedEmail,userData);
     await rDel('pwreset:'+normalizedEmail);
     await logEvent(userData.id,'password_reset',{});
@@ -997,7 +1015,7 @@ exports.handler = async function(event){
     if(!password) return fail('Password required to confirm deletion');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
-    if(!safeEqual(userData.hash,hashPw(password))) return fail('Incorrect password');
+    if(!verifyPw(password,userData.hash)) return fail('Incorrect password');
     // deleteUserKeys() now revokes every token for this user, so we just need
     // to clear the cookie on the browser.
     await deleteUserKeys(userData, {deleteReason: (deleteReason||'').slice(0,500), deletedBy:'self'});
@@ -1027,7 +1045,7 @@ exports.handler = async function(event){
     if(!targetEmail||!newPassword) return fail('targetEmail and newPassword required');
     const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
     if(!userData) return fail('User not found');
-    userData.hash=hashPw(newPassword);
+    userData.hash=hashPwScrypt(newPassword);
     await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
     await logEvent(userData.id,'admin_password_reset',{by:user.email});
     return ok({ok:true});
@@ -1089,7 +1107,13 @@ exports.handler = async function(event){
     // Bootstrap: first user can claim admin — only works if NO admin exists yet
     const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
-    // Check if any admin exists
+    // Atomic claim (SET NX) so two concurrent requests can't both pass the
+    // "no admin exists" check and both become admin (TOCTOU guard). The claim
+    // key persists, so once bootstrap has happened no further self-admin is possible.
+    const claimed=await redisCmd('SET','admin:bootstrap',user.email,'NX');
+    if(!claimed) return fail('An admin already exists. Contact the existing admin.');
+    // Belt-and-braces: also reject if an admin already exists (e.g. one created
+    // before this guard, or via a manual Redis edit).
     const keys=await scanAll('user:*');
     if(keys&&keys.length){
       const users=await Promise.all(keys.map(async k=>rGet(k)));
