@@ -25,7 +25,12 @@ function calc() {
   var held = document.getElementById('held').value === 'yes';
   var ppor = document.getElementById('ppor').checked;
 
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   if (!sale || !purchase) {
+    _showErr('Please enter both the sale price and the purchase price.');
     setText('r-cgt', '—');
     setText('r-gross', '—');
     setText('r-costbase', '—');

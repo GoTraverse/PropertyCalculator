@@ -168,7 +168,12 @@ function calc() {
   var lvr = parseFloat(document.getElementById('lvr').value) || 80;
   document.getElementById('lvr-display').textContent = lvr + '%';
 
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   if (!income1 && !income2) {
+    _showErr('Please enter at least one income.');
     ['r-loan','r-price','r-assess','r-actual','r-buffer','r-net','r-deposit','r-warning'].forEach(function(id){ setText(id, '—'); });
     return;
   }
