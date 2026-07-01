@@ -33,6 +33,7 @@
     '      <nav class="footer-nav">',
     '        <a href="/pricing">Pricing</a>',
     '        <a href="/blog">Blog</a>',
+    '        <a href="/showcase">Gallery</a>',
     '        <a href="/about">About</a>',
     '        <a href="/methodology">Methodology</a>',
     '        <a href="/data-sources">Data Sources</a>',
