@@ -2933,8 +2933,12 @@
         const mgmtFee = annualRent * 0.08;
         const netAnnualRent = annualRent - mgmtFee - 2000 - 1500 - price * 0.01;
         const netYield = Math.max(0, netAnnualRent / price * 100);
-        const annualMortgage = monthly * 12;
-        const cashflow = netAnnualRent - annualMortgage;
+        // "Geared" is a tax concept: rental income vs deductible holding costs
+        // (interest), NOT principal repayments, which build equity rather than being
+        // an expense. Using the full P&I repayment here wrongly flipped genuinely
+        // interest-positive properties to "negatively geared". Use first-year interest.
+        const annualInterest = loanAmt * (rate / 100);
+        const cashflow = netAnnualRent - annualInterest;
         const cashflowLabel = cashflow >= 0 ? '✓ Positively geared' : '⚠ Negatively geared';
         const cashflowColor = cashflow >= 0 ? 'var(--reward-green)' : 'var(--terracotta)';
         const verdictDesc = grossYield >= 6 ? 'Strong yield' : grossYield >= 4.5 ? 'Average yield' : grossYield >= 3 ? 'Below average' : 'Low yield';
