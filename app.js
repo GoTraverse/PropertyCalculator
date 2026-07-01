@@ -1643,6 +1643,19 @@
 
     const state    = collectCurrentState();
     const addr     = state.values['pd-address'] || '';
+    // Guest gate FIRST: Save is the activation moment. A logged-out guest can't save
+    // regardless of address, so prompt them to create a free account before any
+    // address nag — a wizard-onboarded guest may not have entered an address yet, and
+    // demanding one before telling them they need an account is a dead-end. The draft
+    // + pending-save flag carry the scenario across signup; the migration auto-save
+    // only fires once an address exists. Quiet/auto-save calls never nag — the draft
+    // already persists via autosaveDraft.
+    if(!isLoggedIn()){
+      if(window.trackGuest) trackGuest('save_attempt', {guest:true});
+      if(!quiet) requireAccount('save this scenario');
+      return false;
+    }
+    // Address is required for a real (logged-in) save — scenarios are titled/keyed by it.
     if(!addr.trim()){
       showToast('⚠️ Please enter a property address before saving');
       const addrEl = document.getElementById('pd-address');
@@ -1653,15 +1666,6 @@
     const suburb   = state.values['pd-suburb']  || '';
     const stateV   = state.values['pd-state']   || '';
     const fullAddr = [addr, suburb, stateV].filter(Boolean).join(', ') || 'Unnamed Property';
-    // Guest gate: Save is the activation moment. A logged-out guest is prompted to
-    // create a free account here (the scenario is already address-valid). The draft
-    // + pending-save flag carry it across signup so it lands in their new account.
-    // Quiet/auto-save calls never nag — the draft already persists via autosaveDraft.
-    if(!isLoggedIn()){
-      if(window.trackGuest) trackGuest('save_attempt', {guest:true});
-      if(!quiet) requireAccount('save this scenario');
-      return false;
-    }
     // Plan gate: check scenario limit from config
     if(!isPro()){
       let freeLimit = 1; // default
@@ -4615,6 +4619,10 @@
           if(msg) msg.textContent = cfg.maintenanceMessage || "We'll be back shortly — upgrading our systems.";
           maintOverlay.style.display = 'flex';
         }
+        // Tear down any first-run surface (config resolves after the wizard builds
+        // at +120ms) so it can't stay interactive behind the maintenance overlay.
+        var _obMaint = document.getElementById('ob-overlay'); if(_obMaint) _obMaint.remove();
+        var _spMaint = document.getElementById('welcome-splash'); if(_spMaint) _spMaint.style.display = 'none';
         return; // Stop applying other flags — page is in maintenance
       }
     } else {
@@ -5085,6 +5093,11 @@
 
   // ── WELCOME SPLASH ──
   function showWelcomeSplash(){
+    // Re-check the flag at fire time: this is scheduled at +300ms, but the
+    // onboarding wizard (which supersedes the splash) may have set the flag or
+    // removed the element in the meantime. Closes every splash-vs-wizard timing
+    // order — see onboarding.js start().
+    try{ if(localStorage.getItem('propCalc_splash_seen')) return; }catch(e){}
     var splash = document.getElementById('welcome-splash');
     if(splash){ splash.style.display = 'flex'; }
   }
