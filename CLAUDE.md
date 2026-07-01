@@ -5,7 +5,7 @@
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**~32 core HTML pages** (17 root + 14 free calculators + `/tools` landing) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (~641 indexed post-prune; pop ≥ 10,000) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **13 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics`) + `_log.js` structured-log helper | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
+**~32 core HTML pages** (17 root + 14 free calculators + `/tools` landing) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (~641 indexed post-prune; pop ≥ 10,000) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **14 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics` [MCP-facing, not web-app], `share-view`) + `_log.js` structured-log helper (plus a leftover `db-health.js` Phase-0 spike with no caller) | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
@@ -56,7 +56,7 @@ See **`README.md`** for feature overview and quick start guide.
 |------|---------|
 | `stripe-config.js` | Exports `STRIPE_PUBLISHABLE_KEY` and `STRIPE_PRICES` for client use |
 | `legal.js` | Markdown → HTML parser for legal pages (frontmatter, TOC, safe links) |
-| `shared-calcs.js` | Common calc utilities: `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()` |
+| `tools/tool-page.js` | Shared calculator engine (init, input persistence, scroll-to-result) + the calc utilities (`fmtNum()`, `parseNum()`, `monthlyRepayment()`, etc.) that the tool pages actually load. (The old `shared-calcs.js` was unused and was deleted.) |
 | `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` for calculators |
 | `index-init.js` / `index-events.js` | Landing page init and event wiring |
 | `login.js` | Login/signup page logic |
@@ -88,7 +88,7 @@ See **`README.md`** for feature overview and quick start guide.
 - **Re-render Nav**: Call `window.renderSiteNav()` after session changes
 
 ### Feature Gating
-- **Pro Check**: `isPro()` (defined in `app.js:4442`) — returns true if `plan === 'pro' || plan === 'adviser'`. `adviser` is a superset of `pro`.
+- **Pro Check**: `isPro()` (in `app.js`) — returns true if `plan === 'pro' || plan === 'adviser'`. `adviser` is a superset of `pro`.
 - **Admin Check**: `session.role === 'admin'` for admin.html access
 - **Plan Types**: `free` | `pro` | `adviser` (stored in session + Redis user record)
 
@@ -102,7 +102,7 @@ See **`README.md`** for feature overview and quick start guide.
 - **14 free calculators** in `/tools/` plus `/tools/index.html` landing page that groups them (Buying / Borrowing / Investment). All share identical HTML/CSS structure via `tools.css` (no duplication).
 - **Template pattern**: `<nav class="site-nav">` (full site nav) → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (aria-live polite) → `.tool-cta` → `.tool-resources` → footer div
 - **Currency inputs** use `type="text" inputmode="decimal"` with `fmtInput()` thousands-separator formatting. Pure numeric inputs (rate, term) use `type="number"`.
-- **Shared utilities**: `shared-calcs.js` contains `fmtNum()`, `fmt()`, `parseNum()`, `fmtPercent()`, `monthlyRepayment()`, `compoundGrowth()`, etc.
+- **Shared utilities**: `tools/tool-page.js` provides the shared calc helpers (`fmtNum()`, `parseNum()`, `monthlyRepayment()`, etc.) loaded by every tool page (`shared-calcs.js` was removed — it was dead code).
 - **Live market data**: `market-rate.js` provides `window.MarketRate` (RBA cash rate, ABS state medians) — included in calculators that need current rates
 - **Input persistence**: `tool-page.js _installInputPersistence()` snapshots every input/select to `localStorage['tool_inputs_v1:<slug>']` on change (250ms debounce) and restores on load — refresh doesn't lose work.
 - **Scroll-to-result**: `tool-page.js _installScrollToResult()` smooth-scrolls the result container into view 60ms after a Calculate click. Respects `prefers-reduced-motion`.
