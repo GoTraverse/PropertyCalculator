@@ -69,6 +69,12 @@ natural trigger for "create a free account to keep this." Outcome-based CTA copy
 than generic ones. ([sleeknote], [outgrow])
 
 ### 🟠 3. No "aha" on first run — blank inputs, no guidance
+**✅ RESOLVED (Jul 2026, PR #308).** Shipped a first-run guided onboarding wizard
+(`onboarding.js`) instead of the sample-scenario approach: a short blurred-backdrop
+stepper collects the user's own numbers, then drops them onto the Costs tab with a
+personalised result. Runs for guests + freshly signed-in users; original finding kept
+below for context.
+
 A new first-home-buyer lands on an empty calculator and has to know what to do.
 Best practice: minimise steps to value, pre-fill a realistic **sample scenario**
 they can edit, and use *in-context* nudges rather than an upfront tour (which

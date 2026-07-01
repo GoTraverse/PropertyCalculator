@@ -54,6 +54,7 @@ Browser (static files)
 |------|------|---------|
 | `app.html` + `app.css` + `app.js` | — | **Main calculator app** (authenticated) — 30-year projections, cost breakdown, reno items, loan amortization, LVR/LMI/FHOG, suburb growth, scenario save/load, PDF export, PWA capable |
 | `app-init.js` + `app-events.js` | — | App page initialization and event wiring (split from app.js for clarity) |
+| `onboarding.js` | — | First-run guided setup wizard for `/app` — blurred-backdrop stepper (state, FHB, price, savings, income, loan) that populates the calculator inputs, sizes the deposit to the user's savings, and lands them on the Costs tab with a personalised result. Gated to genuine first-run; supersedes the legacy welcome splash. Shows for guests + freshly signed-in users. |
 | `admin.html` + `admin.css` + `admin.js` | — | **Admin dashboard** (role=admin only) — 16 tabs: Users, Scenarios, Gov Schemes, Growth Data, Database, Error Log, Settings, Features, Integrations, Branding, Email Templates, About Page, Legal Pages, Suburbs, Blog, Moderation |
 | `admin-events.js` | — | Admin dashboard event listener wiring |
 | `account.html` + `account.js` | — | User account & subscription management panel |

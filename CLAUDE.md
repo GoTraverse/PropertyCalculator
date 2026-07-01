@@ -35,6 +35,7 @@ See **`README.md`** for feature overview and quick start guide.
 | `app.js` | 5007 | `recalc()` = master calculation function; `dRecalc()` = debounced wrapper; `showTab(id, btn)` = tab switcher; `exportPDF()` = snapshot export |
 | `app-init.js` | — | App page initialization (auth guard, session restore, draft loading) |
 | `app-events.js` | — | App page event listener wiring (inputs, buttons, tab switches, WAI-ARIA arrow-key tab nav) |
+| `onboarding.js` | — | First-run guided setup wizard for `/app` — `shouldShow()` gate, `build()`/`render()` stepper, `finish()` populates `#inp-*` + `deriveDeposit()` sizes deposit to savings → Costs tab. Supersedes the welcome splash; runs for guests + freshly signed-in users. Fires `onboarding_shown/_step/_skipped/_completed` via `trackGuest`. |
 | `admin.js` | 3816 | `loadUsers()`, `openUserDetails(email)`, `showAdminTab()`, `callAuth(action, payload)`, admin dashboard logic |
 | `admin-events.js` | — | Admin page event listener wiring + WAI-ARIA arrow-key tab nav |
 | `auth-nav.js` | 606 | Source of truth for the site nav link set (`SITE_NAV_LINKS`) — renders `<ul class="site-nav-links">` on every page + profile dropdown + help modal. `window.renderSiteNav()` re-renders after profile changes. |
@@ -229,6 +230,40 @@ Files intentionally NOT blocked (needed at runtime):
 - Submit sitemap.xml: https://search.google.com/search-console
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
+
+## Recent Changes (Jul 2026 — First-run onboarding wizard + first-view fixes, PR #308)
+
+Follows guest-mode PR A. A new first-run experience for `/app` plus a review of the
+guest vs signed-in first-view (live walkthrough + multi-agent code-path audit).
+
+- **Guided onboarding wizard** — new `onboarding.js` (+ `#ob-overlay` styles in `app.css`,
+  script tag in `app.html`). A blurred-backdrop stepper (welcome → state → first-home-buyer →
+  price → savings → income → loan) that replaces the old blank `$0` form. On finish it
+  populates the `#inp-*` fields by dispatching the same input/change events the UI fires
+  (so `recalc()` runs identically), sizes the **deposit %** to the user's savings
+  (`deriveDeposit()`: deposit = savings − upfront costs, read back from the app's own
+  `cr-deposit`/`cb-remaining` so it respects state/FHB/scheme), then reveals the Costs tab
+  with a coherent, personalised result. `shouldShow()` gates to genuine first-run (skips if
+  onboarded before, splash already seen, a draft/scenario in progress, or a price loaded).
+  **Runs for guests AND freshly signed-in users** (no login gate — owner decision).
+- **Splash/wizard collision fixed (was HIGH).** The legacy welcome splash (z-index 8000)
+  rendered on top of the wizard (was 4000) on every first run. `onboarding.js` now removes
+  `#welcome-splash` outright on first run (so `showWelcomeSplash()` no-ops), `#ob-overlay`
+  z-index → 9000, and `showWelcomeSplash()` re-checks `propCalc_splash_seen` at fire time.
+- **Guest Save funnel fixed (was HIGH).** `saveScenario()` now runs the guest gate
+  (`requireAccount`) BEFORE the address guard, so a wizard-onboarded guest (no address yet)
+  gets the "create a free account" prompt instead of being bounced to the Property tab. The
+  migration auto-save already guards on address, so an address-free scenario just won't
+  auto-save post-signup (no bounce).
+- **Wizard analytics** — `onboarding_shown/_step/_skipped/_completed` via `window.trackGuest`
+  (the first-run funnel was previously invisible). **Value-moment CTA** — a guest gets the
+  soft signup banner (`maybeShowGuestBanner`) at the Costs payoff (self-gated, so signed-in
+  users never see it).
+- **Hardening** — `deriveDeposit()` is event-driven (polls `cb-savings` until recalc has
+  applied the inputs) instead of a fixed 280ms sleep; maintenance mode tears down any
+  first-run surface. `service-worker.js` → v8 (pre-caches `/onboarding.js`).
+- Verified CORRECT during the audit (no change): guest mode, auth guards, guest-only
+  badge/banner suppression for signed-in users, and the signup-migration plumbing.
 
 ## Recent Changes (Jun 2026 — Honesty / E-E-A-T remediation)
 

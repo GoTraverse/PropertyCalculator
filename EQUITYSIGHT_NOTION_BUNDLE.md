@@ -79,6 +79,7 @@ See **`README.md`** for feature overview and quick start guide.
 | `app.js` | 5007 | `recalc()` = master calculation function; `dRecalc()` = debounced wrapper; `showTab(id, btn)` = tab switcher; `exportPDF()` = snapshot export |
 | `app-init.js` | — | App page initialization (auth guard, session restore, draft loading) |
 | `app-events.js` | — | App page event listener wiring (inputs, buttons, tab switches, WAI-ARIA arrow-key tab nav) |
+| `onboarding.js` | — | First-run guided setup wizard for `/app` (stepper → populates inputs → Costs result). Supersedes the welcome splash; runs for guests + freshly signed-in users. |
 | `admin.js` | 3816 | `loadUsers()`, `openUserDetails(email)`, `showAdminTab()`, `callAuth(action, payload)`, admin dashboard logic |
 | `admin-events.js` | — | Admin page event listener wiring + WAI-ARIA arrow-key tab nav |
 | `auth-nav.js` | 606 | Source of truth for the site nav link set (`SITE_NAV_LINKS`) — renders `<ul class="site-nav-links">` on every page + profile dropdown + help modal. `window.renderSiteNav()` re-renders after profile changes. |

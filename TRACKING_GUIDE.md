@@ -38,6 +38,10 @@ Comprehensive GA4 tracking implementation covering all critical business metrics
 | `pdf_export` | PDF snapshot export | app.js |
 | `pro_feature_used` | Uses pro-only feature | app.js |
 | `feature_gated` | Free user hits pro barrier | app.js |
+| `onboarding_shown` | First-run wizard shown | onboarding.js |
+| `onboarding_step` | Advances a wizard step (`step`, `index`) | onboarding.js |
+| `onboarding_skipped` | Skips the wizard (`step`, `index`) | onboarding.js |
+| `onboarding_completed` | Finishes the wizard (`fields`) | onboarding.js |
 
 ### **Suburb Pages**
 | Event | Tracks | Location |
