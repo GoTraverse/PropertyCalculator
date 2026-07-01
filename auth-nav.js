@@ -358,7 +358,6 @@ window.toggleTheme = function(){
   var SITE_NAV_LINKS = [
     { href: '/tools',     label: 'Calculators', match: ['/tools'] },
     { href: '/blog',      label: 'Blog',        match: ['/blog'] },
-    { href: '/showcase',  label: 'Gallery',     match: ['/showcase'] },
     { href: '/pricing',   label: 'Pricing',     match: ['/pricing'] },
     { href: '/about',     label: 'About',       match: ['/about'] },
     { href: '/contact',   label: 'Support',     match: ['/contact'] },
@@ -571,7 +570,7 @@ window.toggleTheme = function(){
       if (links.style.display === 'flex') {
         links.style.cssText = '';
       } else {
-        links.style.cssText = 'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
+        links.style.cssText = 'display:flex;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
       }
     });
   }
