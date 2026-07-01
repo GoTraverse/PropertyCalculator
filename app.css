@@ -898,7 +898,9 @@ html.dark-mode #mobile-overlay{background:rgba(0,0,0,0.7)!important;}
 
 /* ── First-run onboarding wizard (onboarding.js) ───────────────────────── */
 #ob-overlay {
-  position: fixed; inset: 0; z-index: 4000;
+  /* Above the legacy welcome splash (z-index 8000) as belt-and-suspenders —
+     onboarding.js also removes that splash element on first run. */
+  position: fixed; inset: 0; z-index: 9000;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 24px; gap: 14px;
   background: rgba(12,12,14,0.72);

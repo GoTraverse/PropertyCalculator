@@ -44,6 +44,11 @@
   var answers = {}; // key -> value ('inp-fhb' stored as boolean)
   var idx = 0;
 
+  // Funnel instrumentation. window.trackGuest (analytics.js) is a GA4 event with
+  // no session gate, so it works for guests and signed-in first-runs alike.
+  function track(ev, params){ try { if (typeof window.trackGuest === 'function') window.trackGuest(ev, params || {}); } catch (e) {} }
+  function stepKey(){ return (STEPS[idx] && (STEPS[idx].key || 'welcome')) || 'welcome'; }
+
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
   function fieldHtml(f){
@@ -129,7 +134,7 @@
     var card = document.getElementById('ob-card');
     var next = document.getElementById('ob-next');
     var back = document.getElementById('ob-back');
-    if (next) next.onclick = function(){ collectStep(); if (idx < STEPS.length - 1) { idx++; render(); } else { finish(); } };
+    if (next) next.onclick = function(){ collectStep(); if (idx < STEPS.length - 1) { track('onboarding_step', { step: stepKey(), index: idx }); idx++; render(); } else { finish(); } };
     if (back) back.onclick = function(){ collectStep(); idx--; render(); };
     card.querySelectorAll('.ob-choice').forEach(function(b){
       b.onclick = function(){ card.querySelectorAll('.ob-choice').forEach(function(x){ x.classList.remove('on'); }); b.classList.add('on'); };
@@ -157,17 +162,28 @@
   // recovered from the invariant remaining = savings − deposit − costs, which
   // holds regardless of the current deposit %, so this needs no assumptions
   // about state, first-home status or scheme — the recalc already applied them.
-  function deriveDeposit(){
+  function deriveDeposit(done){
     var price = parseFloat((document.getElementById('inp-price') || {}).value) || 0;
     var savings = parseFloat((document.getElementById('inp-savings') || {}).value) || 0;
-    if (price <= 0 || savings <= 0) return;
-    var depNow = toNum((document.getElementById('cr-deposit') || {}).textContent);
-    var remNow = toNum((document.getElementById('cb-remaining') || {}).textContent);
-    var costs = savings - depNow - remNow;                 // stable upfront costs
-    var pct = (savings - costs) / price * 100;
-    pct = Math.floor(pct * 2) / 2;                          // floor to 0.5% → remaining stays ≥ 0
-    pct = Math.max(2, Math.min(20, pct));                  // app input bounds
-    setField('inp-depp', String(pct));
+    if (price <= 0 || savings <= 0) { if (done) done(); return; }
+    var tries = 0;
+    (function poll(){
+      // Wait for the debounced recalc to render our numbers before reading them:
+      // cb-savings mirrors the savings input once recalc has run. Polling this
+      // avoids reading stale placeholder text on a slow device (previously a
+      // fixed 280ms guess).
+      var shown = toNum((document.getElementById('cb-savings') || {}).textContent);
+      if (Math.abs(shown - savings) < 1 || tries >= 15) {
+        var depNow = toNum((document.getElementById('cr-deposit') || {}).textContent);
+        var remNow = toNum((document.getElementById('cb-remaining') || {}).textContent);
+        var costs = savings - depNow - remNow;               // stable upfront costs
+        var pct = (savings - costs) / price * 100;
+        pct = Math.floor(pct * 2) / 2;                        // floor to 0.5% → remaining stays ≥ 0
+        pct = Math.max(2, Math.min(20, pct));                // app input bounds
+        setField('inp-depp', String(pct));
+        if (done) setTimeout(done, 140);                      // let the deposit change recalc
+      } else { tries++; setTimeout(poll, 60); }
+    })();
   }
 
   function gotoCosts(){
@@ -176,6 +192,7 @@
   }
 
   function finish(){
+    track('onboarding_completed', { fields: Object.keys(answers).length });
     // Apply collected answers to the calculator inputs.
     Object.keys(answers).forEach(function(id){
       if (id === 'inp-fhb') setField(id, answers[id], true);
@@ -186,9 +203,13 @@
     var term = document.getElementById('inp-term'); if (term && !parseFloat(term.value)) setField('inp-term', '30');
     try { localStorage.setItem(FLAG, '1'); } catch (e) {}
     close();
-    // Let the debounced recalc settle, size the deposit to their savings, then
-    // reveal the Costs tab so a coherent, personalised result is the payoff.
-    setTimeout(function(){ deriveDeposit(); setTimeout(gotoCosts, 140); }, 280);
+    // Once recalc has applied the numbers, size the deposit to their savings and
+    // reveal the Costs tab so a coherent, personalised result is the payoff — then,
+    // for a guest, surface the soft signup nudge at this high-intent value moment.
+    deriveDeposit(function(){
+      gotoCosts();
+      setTimeout(function(){ try { if (typeof window.maybeShowGuestBanner === 'function') window.maybeShowGuestBanner(); } catch (e) {} }, 650);
+    });
   }
 
   function close(){
@@ -203,13 +224,19 @@
     if (ov) { ov.classList.add('ob-hide'); setTimeout(function(){ if (ov.parentNode) ov.parentNode.removeChild(ov); }, 300); }
   }
 
+  function skip(){
+    track('onboarding_skipped', { step: stepKey(), index: idx });
+    close();
+  }
+
   function build(){
     var ov = document.createElement('div');
     ov.id = 'ob-overlay';
     ov.innerHTML = '<div class="ob-card" id="ob-card"></div>' +
       '<button type="button" class="ob-skip" id="ob-skip">Skip — I’ll fill it in myself</button>';
     document.body.appendChild(ov);
-    document.getElementById('ob-skip').onclick = close;
+    document.getElementById('ob-skip').onclick = skip;
+    track('onboarding_shown', {});
     render();
   }
 
@@ -228,8 +255,11 @@
 
   function start(){
     if (!shouldShow()) return;
-    // Our overlay sits above the legacy splash (z-index); close() hides the
-    // splash for good. Build promptly so nothing flashes underneath.
+    // Remove the legacy welcome splash outright on first run. It renders at a
+    // higher z-index than us and would otherwise sit on top of the wizard (or
+    // ghost through our translucent backdrop). Removing the element makes
+    // app.js's deferred showWelcomeSplash() a harmless no-op.
+    try { var sp = document.getElementById('welcome-splash'); if (sp && sp.parentNode) sp.parentNode.removeChild(sp); } catch (e) {}
     setTimeout(build, 120);
   }
 
