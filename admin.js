@@ -2983,7 +2983,6 @@ async function reloadLegalFromFile(){
   try {
     const timestamp = Date.now();
     const url = `/${page}.md?t=${timestamp}`;
-    console.log(`Fetching legal page from: ${url}`);
 
     const r = await fetch(url);
     if(!r.ok) throw new Error(`HTTP ${r.status}: Could not fetch ${page}.md from server`);
@@ -2997,7 +2996,6 @@ async function reloadLegalFromFile(){
     st.textContent = `✓ Loaded ${page}.md (${Math.round(content.length / 1024)}KB). Click "Save & Update" to import into Redis.`;
     st.className = 'admin-status success';
     setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 4000);
-    console.log(`Successfully loaded ${page}.md: ${content.length} bytes`);
   } catch(e) {
     console.error(`Error loading ${page}.md:`, e);
     st.textContent = `Error: ${e.message} — Check console for details. Make sure ${page}.md exists in the root directory.`;
