@@ -1,3 +1,5 @@
+:root{--ink:var(--charcoal);}
+html.dark-mode{--ink:#F5F0E8;}
 /* ═══════════════════════════════════════
    EquitySight.app — Suburb Insights
    ═══════════════════════════════════════ */
@@ -776,3 +778,5 @@ html.dark-mode .suburb-tip h2 { color: #E6C870; }
   transition: background 0.15s;
 }
 .suburb-blog-link:hover { background: rgba(255,255,255,0.15); }
+
+html.dark-mode .suburb-calc-link{background:rgba(255,255,255,0.06);color:#F5F0E8;border-color:rgba(201,168,76,0.4);}
