@@ -243,7 +243,12 @@ function calc() {
   const offset = parseVal('offset') || 0;
   const annualRate = rate / 100;
 
+  const _msg = document.getElementById('calc-msg');
+  const _showErr = (t) => { if (_msg) { _msg.textContent = t; _msg.hidden = false; } };
+  if (_msg) _msg.hidden = true;
+
   if (!amount || term <= 0) {
+    _showErr('Please enter a loan amount and a loan term.');
     ['r-monthly','r-fortnightly','r-weekly','r-interest','r-total','r-ftn-saving','r-payoff','r-lmi','r-lvr'].forEach(id => setText(id, '—'));
     return;
   }

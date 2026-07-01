@@ -91,7 +91,12 @@ function calc() {
   var state = document.getElementById('state').value;
   var fhb = document.getElementById('fhb').checked;
 
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   if (!price) {
+    _showErr('Please enter a property price.');
     setText('r-total', '—');
     setText('r-deposit', '—');
     setText('r-stamp', '—');

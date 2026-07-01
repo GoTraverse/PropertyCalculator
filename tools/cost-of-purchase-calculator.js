@@ -113,6 +113,11 @@ function calc() {
   var weeklyRent = getNumVal('weeklyRent');
   var leaseBreak = getNumVal('leaseBreak');
 
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+  if (!purchasePrice || purchasePrice <= 0) { _showErr('Please enter a purchase price.'); return; }
+
   var deposit = purchasePrice * (depositPct / 100);
   var calculatedLoan = purchasePrice - deposit;
   document.getElementById('loanAmount').value = Math.round(calculatedLoan);
