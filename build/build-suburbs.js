@@ -2050,6 +2050,7 @@ let blogPostsIndex = [];
         blogPostsIndex.push({
           slug: p.slug,
           title: p.title,
+          section: (p.section || 'general').replace(/[^a-z0-9-]/g, '') || 'general',
           tags: Array.isArray(p.tags) ? p.tags.map(t => String(t).toLowerCase()) : [],
           published_at: p.published_at || p.updated_at || 0,
         });
@@ -2092,7 +2093,7 @@ function generateBlogLinks(s) {
     : [blogPostsIndex[0]];
 
   const links = picks.map(p =>
-    `      <a href="/blog/${escHtml(p.slug)}/" class="suburb-blog-link">📖 ${escHtml(p.title)}</a>`
+    `      <a href="/blog/${p.section || 'general'}/${escHtml(p.slug)}/" class="suburb-blog-link">📖 ${escHtml(p.title)}</a>`
   ).join('\n');
 
   return `    <div class="suburb-blog-links">
@@ -2116,16 +2117,23 @@ function generateMethodologyBlock(s) {
 // never deploys silently.
 let reviewsByKey = {};
 (function prefetchReviews() {
-  const { execSync } = require('child_process');
-  const out = execSync('node ' + path.join(__dirname, 'fetch-reviews.js'), {
-    encoding: 'utf8',
-    timeout: 90_000,
-    env: process.env,
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  reviewsByKey = out && out.trim() ? JSON.parse(out) : {};
-  const n = Object.keys(reviewsByKey).length;
-  if (n) console.log('[build-suburbs] Prefetched reviews for ' + n + ' suburb(s)');
+  try {
+    const { execSync } = require('child_process');
+    const out = execSync('node ' + path.join(__dirname, 'fetch-reviews.js'), {
+      encoding: 'utf8',
+      timeout: 90_000,
+      env: process.env,
+      stdio: ['ignore', 'pipe', 'inherit'],
+    });
+    reviewsByKey = out && out.trim() ? JSON.parse(out) : {};
+    const n = Object.keys(reviewsByKey).length;
+    if (n) console.log('[build-suburbs] Prefetched reviews for ' + n + ' suburb(s)');
+  } catch (e) {
+    // Non-fatal: reviews are additive enrichment, so a transient Redis/network error
+    // (or a >90s timeout) builds without them rather than aborting the entire deploy.
+    console.warn('[build-suburbs] Review prefetch failed (non-fatal) — building without reviews:', e.message);
+    reviewsByKey = {};
+  }
 })();
 
 function formatReviewDate(ts) {
