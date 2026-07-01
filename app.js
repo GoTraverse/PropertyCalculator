@@ -4619,6 +4619,10 @@
           if(msg) msg.textContent = cfg.maintenanceMessage || "We'll be back shortly — upgrading our systems.";
           maintOverlay.style.display = 'flex';
         }
+        // Tear down any first-run surface (config resolves after the wizard builds
+        // at +120ms) so it can't stay interactive behind the maintenance overlay.
+        var _obMaint = document.getElementById('ob-overlay'); if(_obMaint) _obMaint.remove();
+        var _spMaint = document.getElementById('welcome-splash'); if(_spMaint) _spMaint.style.display = 'none';
         return; // Stop applying other flags — page is in maintenance
       }
     } else {
