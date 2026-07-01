@@ -156,6 +156,7 @@ gtag-init.js            # Google Analytics initialization
 ### Page-specific Scripts
 ```
 app-init.js / app-events.js         # Main calculator init + event wiring
+onboarding.js                       # First-run guided setup wizard for /app
 admin-events.js                     # Admin dashboard event wiring
 index-init.js / index-events.js     # Landing page init + events
 login.js                            # Login/signup page

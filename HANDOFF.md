@@ -38,6 +38,10 @@ value before asking for an account. Persona = **first home buyers**.
 6. **Scenario templates instead of auto-fill** for the empty first run — cards:
    🏠 First Home Buyer (Brisbane, $650k, 10% deposit) · 🏘 Investment Property ·
    🏡 Upgrade Home. Clicking loads realistic example data.
+   → **✅ Addressed differently (Jul 2026, PR #308):** shipped a first-run guided
+   onboarding wizard (`onboarding.js`) that collects the user's *own* numbers rather
+   than loading a template, then lands them on a personalised Costs result. Item
+   considered done unless we also want prebuilt example cards.
 7. **"Saved locally" indicator** so guests trust their progress is kept.
 8. **Analytics events:** guest_session, template_selected, fields_edited,
    signup_prompt_shown, signup_completed, guest_migration, save_attempt,
