@@ -1043,6 +1043,19 @@ function examplePrices(s) {
 
 // ── Generate ──────────────────────────────────────────────────────────────
 
+// ⚠ SAFETY GUARD. The committed tools/stamp-duty-calculator-*.{html,js} were
+// hand-corrected to the verified FY2025-26 schedules, foreign-surcharge rates and
+// FHB rules, and are now the SOURCE OF TRUTH. The STATES config in this file has
+// since drifted from them (e.g. NSW foreign 8% vs 9%, TAS foreign 0% vs 8% and its
+// FHB "50% concession" vs the real full $0 exemption, ACT foreign rate + $1.0M vs
+// $1.02M cap). Running this generator as-is would OVERWRITE those pages with wrong
+// YMYL figures. It therefore refuses to run unless you deliberately opt in — and
+// you must re-sync STATES to the committed pages first.
+if (process.env.ALLOW_STAMP_DUTY_REGEN !== 'yes') {
+  console.error('[build-state-stamp-duty] Disabled: the committed state stamp-duty pages are hand-maintained and this generator\'s STATES config is stale. Re-sync STATES to the committed pages, then re-run with ALLOW_STAMP_DUTY_REGEN=yes.');
+  process.exit(1);
+}
+
 const TOOLS_DIR = path.join(ROOT, 'tools');
 let count = 0;
 for (const [code, s] of Object.entries(STATES)) {
