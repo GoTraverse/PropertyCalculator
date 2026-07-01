@@ -2666,10 +2666,10 @@ async function sendTestEmail(){
 const ABOUT_PAGE_KEY = 'propCalc_aboutPage_v1';
 
 const DEFAULT_ABOUT = {
-  heroH1: 'Built by buyers,<br>for buyers.',
-  heroLead: 'We got frustrated trying to understand the Shared Equity Scheme using government PDFs and a spreadsheet. So we built the tool we wished existed.',
+  heroH1: 'Built by a buyer,<br>for buyers.',
+  heroLead: 'In early 2026, my partner and I went looking for our first home — and I got tired of jumping between a dozen separate calculators just to understand the full picture. So I built the one tool I always wished for.',
   storyH2: 'The spreadsheet that became an app.',
-  storyP1: 'In 2023, trying to figure out whether the Queensland Shared Equity Scheme actually made sense for our budget, we built a spreadsheet. It had 14 tabs, nested formulas, and still couldn\u0027t tell us what we owed the government in year 10.'
+  storyP1: 'In January 2026 we started house-hunting, and I ran straight into a wall of scattered numbers: a stamp duty calculator on one site, an LMI estimate on another, the Queensland shared-equity scheme somewhere else, and 30 years of repayments nowhere obvious. I built a spreadsheet to stitch it together. It grew a dozen tabs and still would not tell me the one thing I actually wanted — the full cost, end to end, and what it would look like over the long run.'
 };
 
 async function loadAboutPage(){

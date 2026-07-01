@@ -1,9 +1,5 @@
 // contact.js — Contact page logic
 
-function showChatNotice(){
-  alert('Live chat is available to Pro subscribers during business hours (AEST Mon\u2013Fri). Upgrade to Pro or send us an email and we\u2019ll get back to you within 24 hours.');
-}
-
 async function submitForm(){
   const fname = document.getElementById('cf-fname').value.trim();
   const lname = (document.getElementById('cf-lname')||{}).value||'';
@@ -33,9 +29,17 @@ async function submitForm(){
 // Support cards
 (function(){
   const cards = document.querySelectorAll('.support-card');
+  // [0] Email support · [1] How it works (uses its own inline links) · [2] Report a bug
   if(cards[0]) cards[0].addEventListener('click', function(){ location.href='mailto:support@EquitySight.app'; });
-  if(cards[1]) cards[1].addEventListener('click', showChatNotice);
-  if(cards[2]) cards[2].addEventListener('click', function(){ location.href='/pricing#comparison'; });
+  if(cards[2]){
+    cards[2].style.cursor = 'pointer';
+    cards[2].addEventListener('click', function(){
+      var s = document.getElementById('cf-subject'); if(s) s.value = 'bug';
+      var m = document.getElementById('cf-message');
+      (m || document.getElementById('cf-submit')).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if(m) m.focus();
+    });
+  }
 })();
 
 // Form submit button
