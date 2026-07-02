@@ -33,7 +33,7 @@ const STATIC_ASSETS = [
   // access so a user can open any calculator without a prior online visit. The
   // HTMLs stay small (~30 KB each); install cost ~400 KB. Individual tool JS
   // files are cached on-demand by the static-asset pattern below.
-  '/tools',
+  '/tools/',
   '/tools/stamp-duty-calculator',
   '/tools/cost-of-purchase-calculator',
   '/tools/deposit-calculator',
