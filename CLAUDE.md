@@ -201,6 +201,7 @@ See **`README.md`** for feature overview and quick start guide.
 - ❌ Changing `@media` breakpoint without checking mobile layout → layout breaks on PWA
 - ❌ Adding external API without CSP update → network requests blocked by browser
 - ❌ Adding a new dev/internal file without updating `.netlifyignore` → file is publicly accessible on production (see Deployment Security below)
+- ❌ "Normalising" the `/tools/` canonical to the no-slash `/tools` → canonical→301→canonical loop, GSC "Redirect error", hub deindexed. `/tools` is a **directory index** (Netlify 301s `/tools` → `/tools/`), unlike `/pricing` etc. which are files. Canonical, hreflang, og:url, JSON-LD url and the `sitemap-core.xml` entry must ALL use `/tools/` **with** the trailing slash. Already regressed once (fixed #264 → broken #297 → re-fixed #310) — see the warning comment in `tools/index.html`.
 
 ### Deployment Security
 `publish = "."` means Netlify serves the **entire repo root**. Every file in the repo is a potential public URL unless explicitly blocked.

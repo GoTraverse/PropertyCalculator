@@ -10,9 +10,18 @@
 <title>Free Australian Property Calculators | EquitySight</title>
 <meta name="description" content="14 free Australian property calculators — stamp duty, mortgage repayment, borrowing power, rental yield, capital gains, deposit, FHB grants, equity release, house flip and more. No signup, all states.">
 <meta name="keywords" content="Australian property calculator, free mortgage calculator, stamp duty calculator Australia, rental yield calculator, FHB grants, deposit calculator, capital gains tax calculator">
+<!-- ⚠️ CANONICAL MUST BE /tools/ WITH TRAILING SLASH. This page is a DIRECTORY
+     index: Netlify 301s /tools → /tools/. A no-slash canonical creates a
+     canonical→301→canonical loop and GSC marks the page "Redirect error"
+     (deindexing the hub that links all 14 calculators). This has regressed
+     once already: fixed in PR #264, broken by PR #297, re-fixed in PR #310.
+     Root pages like /pricing are FILES (pricing.html) served at 200 without a
+     slash — their no-slash canonicals are correct. Do not "normalise" this one
+     to match them. Keep canonical, hreflang, og:url, JSON-LD url and the
+     sitemap-core.xml entry all on /tools/ (with slash). -->
 <link rel="canonical" href="https://equitysight.app/tools/">
-<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools">
-<link rel="alternate" hreflang="x-default" href="https://equitysight.app/tools">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/">
+<link rel="alternate" hreflang="x-default" href="https://equitysight.app/tools/">
 <meta name="geo.region" content="AU">
 <meta name="geo.placename" content="Australia">
 <meta name="robots" content="index, follow">
