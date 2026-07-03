@@ -22,7 +22,8 @@
 .pcard.feat{background:var(--charcoal);border-color:var(--gold);box-shadow:0 8px 40px rgba(201,168,76,0.15);}
 .pcard-top{padding:30px 28px 22px;border-bottom:1px solid rgba(28,28,30,0.07);}
 .pcard.feat .pcard-top{border-color:rgba(255,255,255,0.07);}
-.pcard-badge{font-family:var(--font-mono);font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.pcard-badge{font-family:var(--font-body);font-size:9px;letter-spacing: 0.4px;text-transform: none;
+  font-variant-caps: all-small-caps;color:var(--gold);margin-bottom:10px;}
 .pcard-name{font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:6px;}
 .pcard.feat .pcard-name{color:var(--cream);}
 .pcard-desc{font-size:13px;color:var(--slate);line-height:1.5;margin-bottom:16px;}
@@ -52,13 +53,15 @@
 .cmp-inner{max-width:1000px;margin:0 auto;padding:0 24px;}
 .cmp-table{width:100%;border-collapse:collapse;}
 .cmp-table th,.cmp-table td{padding:13px 16px;border-bottom:1px solid rgba(28,28,30,0.07);text-align:left;}
-.cmp-table th{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(28,28,30,0.4);background:rgba(245,240,232,0.5);}
+.cmp-table th{font-family:var(--font-body);font-size:10px;letter-spacing: 0.4px;text-transform: none;
+  font-variant-caps: all-small-caps;color:rgba(28,28,30,0.4);background:rgba(245,240,232,0.5);}
 .cmp-table th.tc{text-align:center;}
 .cmp-table td{font-size:13px;color:var(--slate);}
 .cmp-table td.fname{color:var(--charcoal);font-weight:500;}
 .cmp-table td.tv{text-align:center;font-family:var(--font-mono);font-size:12px;}
 .cmp-table tr:hover td{background:rgba(245,240,232,0.3);}
-.sec-row td{background:rgba(28,28,30,0.04)!important;font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(28,28,30,0.4);padding:10px 16px!important;}
+.sec-row td{background:rgba(28,28,30,0.04)!important;font-family:var(--font-body);font-size:9px;letter-spacing: 0.4px;text-transform: none;
+  font-variant-caps: all-small-caps;color:rgba(28,28,30,0.4);padding:10px 16px!important;}
 .tg{color:var(--gold);font-weight:700;}
 .ty{color:var(--reward-green);}
 .tn{color:rgba(28,28,30,0.2);}

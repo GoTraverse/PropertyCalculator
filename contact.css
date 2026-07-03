@@ -17,7 +17,8 @@
 .support-icon{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 .support-card-text h3{font-size:15px;font-weight:600;margin-bottom:4px;color:var(--charcoal);}
 .support-card-text p{font-size:13px;color:var(--slate);line-height:1.5;}
-.support-card-text .rt{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-top:6px;}
+.support-card-text .rt{font-family:var(--font-body);font-size:9px;letter-spacing: 0.4px;text-transform: none;
+  font-variant-caps: all-small-caps;color:var(--gold);margin-top:6px;}
 
 /* Contact form */
 .contact-form-wrap{background:white;border-radius:10px;padding:36px;border:1px solid rgba(28,28,30,0.07);}
@@ -25,7 +26,8 @@
 .contact-form-wrap p{font-size:14px;color:var(--slate);margin-bottom:24px;line-height:1.5;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .cf-field{margin-bottom:16px;}
-.cf-label{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(28,28,30,0.45);margin-bottom:6px;display:block;}
+.cf-label{font-family:var(--font-body);font-size:9px;letter-spacing: 0.4px;text-transform: none;
+  font-variant-caps: all-small-caps;color:rgba(28,28,30,0.45);margin-bottom:6px;display:block;}
 .cf-input,.cf-select,.cf-textarea{width:100%;background:var(--warm-white);border:1px solid rgba(28,28,30,0.12);border-radius:4px;padding:12px 14px;font-family:var(--font-body);font-size:14px;color:var(--charcoal);outline:none;transition:border-color 0.15s;box-sizing:border-box;}
 .cf-input:focus,.cf-select:focus,.cf-textarea:focus{border-color:rgba(201,168,76,0.6);background:white;}
 .cf-textarea{resize:vertical;min-height:120px;}

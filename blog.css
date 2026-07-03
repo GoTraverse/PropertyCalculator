@@ -90,10 +90,11 @@
   margin-top: 40px;
 }
 .blog-author-head {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 6px;
 }
@@ -122,10 +123,11 @@
   background: rgba(201, 168, 76, 0.1);
   border: 1px solid rgba(201, 168, 76, 0.25);
   border-radius: 999px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--charcoal);
   text-decoration: none;
 }
@@ -133,10 +135,11 @@
 /* Related reading */
 .blog-related { margin-top: 40px; }
 .blog-related h3 {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--slate, #6b6b70);
   margin-bottom: 14px;
 }
@@ -199,10 +202,11 @@
 }
 .blog-card-body { padding: 18px 20px; }
 .blog-card-tag {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 8px;
 }
@@ -230,10 +234,11 @@
 /* Featured hero (main index, page 1 only) */
 .blog-featured { margin: 0 auto 36px; }
 .blog-featured-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 12px;
 }
@@ -283,10 +288,11 @@
   padding: 7px 14px;
   border: 1px solid rgba(28, 28, 30, 0.12);
   border-radius: 999px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   text-decoration: none;
   color: rgba(28, 28, 30, 0.7);
   transition: border-color 0.15s, background 0.15s, color 0.15s;
@@ -325,10 +331,11 @@
 .blog-adj-card:hover { border-color: var(--gold); }
 .blog-adj-empty { border: 1px dashed rgba(28, 28, 30, 0.08); background: transparent; cursor: default; }
 .blog-adj-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 6px;
 }
@@ -351,10 +358,11 @@
   background: linear-gradient(135deg, rgba(201, 168, 76, 0.06), rgba(28, 28, 30, 0.02));
 }
 .blog-newsletter-eyebrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 10px;
 }
@@ -379,10 +387,11 @@
   color: var(--cream);
   text-decoration: none;
   border-radius: 999px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   transition: background 0.15s;
 }
 .blog-newsletter-cta:hover { background: #000; }
@@ -577,11 +586,12 @@
   background: transparent;
   border: 1px solid rgba(28, 28, 30, 0.16);
   border-radius: 999px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: rgba(28, 28, 30, 0.72);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -654,11 +664,12 @@
   position: relative;
 }
 .blog-comment-field > span {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: rgba(28, 28, 30, 0.55);
 }
 .blog-comment-field > span small {

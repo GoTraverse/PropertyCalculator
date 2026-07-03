@@ -77,10 +77,11 @@ body {
 }
 .be-back-btn:hover { color: #F5F0E8; border-color: rgba(245,240,232,0.35); }
 .be-brand-title {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
 }
 .be-topbar-status {
@@ -325,10 +326,11 @@ body {
   margin-bottom: 8px;
 }
 .be-body-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--slate);
   flex: 1;
 }
@@ -464,10 +466,11 @@ body {
 /* ── Label helper ────────────────────────────────────────────────────── */
 .be-label {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--slate);
   margin-bottom: 4px;
 }

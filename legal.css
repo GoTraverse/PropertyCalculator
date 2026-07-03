@@ -15,10 +15,11 @@ body { background: var(--warm-white); }
 }
 
 .legal-tag {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 14px;
 }
@@ -52,10 +53,11 @@ body { background: var(--warm-white); }
   margin-bottom: 48px;
 }
 .legal-toc h3 {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 14px;
 }
@@ -118,10 +120,11 @@ body { background: var(--warm-white); }
   color: var(--cream);
   padding: 10px 14px;
   text-align: left;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   white-space: nowrap;
 }
 .legal-table td {
