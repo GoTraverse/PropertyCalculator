@@ -12,6 +12,17 @@ Disallow: /login
 Disallow: /login.html
 Disallow: /.netlify/
 
+# ── Suburb & invest pages: intentionally noindexed (placeholder data). They are
+# NOT ready to rank, and there are ~14,500 of them. Leaving them crawlable was
+# burning the crawl budget of a young, low-authority domain — GSC showed ~5,200
+# excluded-by-noindex + thousands more crawled-not-indexed, i.e. Google spending
+# almost all of its crawl on pages we never want indexed. Disallow so crawl
+# focuses on the ~35 real pages. They're already deindexed via noindex, so
+# blocking now costs no index presence. Re-open these paths once the pages carry
+# verified data and should rank. (See project-seo-posture memory + CLAUDE.md.)
+Disallow: /suburb/
+Disallow: /invest/
+
 # ── Google AdSense crawler — explicit allow required for AdSense review ───────
 User-agent: Mediapartners-Google
 Allow: /

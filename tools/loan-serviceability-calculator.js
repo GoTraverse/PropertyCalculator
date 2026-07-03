@@ -134,7 +134,7 @@ ToolPage.init({
   footer: [
     { href: '/', text: 'EquitySight.app' },
     { href: '/tools/rental-yield-calculator', text: 'Rental Yield' },
-    { href: '/tools/equity-release-calculator', text: 'Equity Release' },
+    { href: '/tools/equity-release-calculator', text: 'Home Equity' },
     { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
     { href: '/privacy', text: 'Privacy' }
   ],
