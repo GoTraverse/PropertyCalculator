@@ -78,7 +78,7 @@
   letter-spacing: -1.5px;
   margin-bottom: 22px;
 }
-.hero-h1 em { font-style: italic; color: var(--gold); }
+.hero-h1 em { font-family: var(--font-body); font-style: italic; color: var(--gold); }
 .hero-h1-kicker {
   display: block;
   font-family: var(--font-body);
