@@ -26,10 +26,11 @@
     color: var(--charcoal);
   }
   .admin-badge {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 9px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-transform: none;
+  font-variant-caps: all-small-caps;
     background: var(--charcoal);
     color: var(--gold);
     padding: 4px 10px;
@@ -60,9 +61,10 @@
   .stat-label {
     font-size: 11px;
     color: var(--slate);
-    font-family: var(--font-mono);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    font-family: var(--font-body);
+    letter-spacing: 0.4px;
+    text-transform: none;
+  font-variant-caps: all-small-caps;
   }
 
   /* Tabs */
@@ -116,19 +118,21 @@
     gap: 10px;
   }
   .admin-card-head h3 {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-transform: none;
+  font-variant-caps: all-small-caps;
     color: var(--slate);
   }
   .user-table { width: 100%; border-collapse: collapse; }
   .user-table th {
     text-align: left;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 9px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-transform: none;
+  font-variant-caps: all-small-caps;
     color: var(--slate);
     padding: 10px 16px;
     border-bottom: 1px solid rgba(28,28,30,0.06);
@@ -146,10 +150,11 @@
   .user-table tr:hover td { background: rgba(28,28,30,0.02); }
   .user-email { font-family: var(--font-mono); font-size: 11px; color: var(--slate); }
   .plan-badge {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 9px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-transform: none;
+  font-variant-caps: all-small-caps;
     padding: 3px 8px;
     border-radius: 20px;
   }
@@ -184,7 +189,8 @@
   /* Stripe / config section */
   .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .config-field { display: flex; flex-direction: column; gap: 6px; }
-  .config-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+  .config-label { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); }
   .config-input {
     background: rgba(28,28,30,0.04);
     border: 1px solid rgba(28,28,30,0.12);
@@ -394,7 +400,8 @@
   .stat-popup-stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(28,28,30,0.07); }
   .stat-popup-mini { text-align: center; }
   .stat-popup-mini-val { font-family: var(--font-mono); font-size: 20px; font-weight: 500; color: var(--charcoal); }
-  .stat-popup-mini-lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); margin-top: 3px; }
+  .stat-popup-mini-lbl { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); margin-top: 3px; }
   .stat-spinner { display:inline-block;width:22px;height:22px;border:2.5px solid rgba(28,28,30,0.1);border-top-color:rgba(28,28,30,0.4);border-radius:50%;animation:spin 0.75s linear infinite;vertical-align:middle; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .stat-chart-loading { height:36px;background:linear-gradient(90deg,rgba(28,28,30,0.05) 0%,rgba(28,28,30,0.1) 50%,rgba(28,28,30,0.05) 100%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:3px;margin-top:12px; }
@@ -410,7 +417,8 @@
   .scheme-panel-body { display: none; padding: 0 16px 16px; }
   .scheme-panel.open .scheme-panel-body { display: block; }
   .scheme-type-badge {
-    font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+    font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps;
     padding: 2px 8px; border-radius: 20px; white-space: nowrap;
   }
   .type-shared-equity { background: rgba(91,143,171,0.12); color: var(--sky); }
@@ -426,7 +434,8 @@
   .row-del-btn:hover { background: var(--risk-red); color: white; }
   .add-row-btn { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(201,168,76,0.08); border: 1px dashed rgba(201,168,76,0.3); border-radius: 3px; font-family: var(--font-mono); font-size: 10px; color: var(--gold); cursor: pointer; transition: all 0.15s; }
   .add-row-btn:hover { background: rgba(201,168,76,0.18); }
-  .scheme-section-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); margin: 14px 0 8px; padding-bottom: 4px; border-bottom: 1px solid rgba(28,28,30,0.07); }
+  .scheme-section-label { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); margin: 14px 0 8px; padding-bottom: 4px; border-bottom: 1px solid rgba(28,28,30,0.07); }
 
   /* Cog icon action menu for user rows */
   .user-cog-wrap { position: relative; display: inline-block; }

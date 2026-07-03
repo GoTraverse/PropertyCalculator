@@ -19,7 +19,7 @@
 <title>Property Finance Calculator — EquitySight.app</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@300..700&display=swap">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
 <script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="app.css">
@@ -36,9 +36,9 @@
 <div id="mobile-overlay"></div>
 
 <!-- Maintenance mode overlay — shown instead of app when maintenanceMode is on -->
-<div id="maintenance-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--charcoal);color:var(--cream);flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:40px 24px;font-family:'Geist',sans-serif;">
+<div id="maintenance-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--charcoal);color:var(--cream);flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:40px 24px;font-family:var(--font-body);">
   <div style="font-size:52px;line-height:1;">🔧</div>
-  <h2 style="font-family:'Geist',sans-serif;font-size:32px;font-weight:700;margin:0;">Under Maintenance</h2>
+  <h2 style="font-family:var(--font-body);font-size:32px;font-weight:700;margin:0;">Under Maintenance</h2>
   <p id="maintenance-msg" style="font-size:15px;color:rgba(245,240,232,0.6);max-width:440px;line-height:1.7;margin:0;">We'll be back shortly — upgrading our systems.</p>
 </div>
 
@@ -315,7 +315,7 @@
       <div style="background:var(--charcoal);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;">
         <div>
           <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:2px;">SAVED SCENARIOS</div>
-          <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:var(--cream);">Property Library <span id="lib-count" style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:400;color:rgba(245,240,232,0.4);margin-left:6px;"></span></div>
+          <div style="font-family:var(--font-body);font-size:17px;font-weight:700;color:var(--cream);">Property Library <span id="lib-count" style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:400;color:rgba(245,240,232,0.4);margin-left:6px;"></span></div>
         </div>
         <button id="close-scenarios-modal-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:var(--cream);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
       </div>
@@ -337,7 +337,7 @@
       <div id="scenarios-list" style="overflow-y:auto;flex:1;min-height:0;padding:12px 20px;">
         <div id="scenarios-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--slate);">
           <div style="font-size:40px;margin-bottom:10px;">🏠</div>
-          <div style="font-family:'Geist',sans-serif;font-size:17px;margin-bottom:6px;">No saved scenarios yet</div>
+          <div style="font-family:var(--font-body);font-size:17px;margin-bottom:6px;">No saved scenarios yet</div>
           <div style="font-size:13px;line-height:1.6;">Fill in your property details and click <strong>Save</strong> to save your first property.</div>
         </div>
         <div id="scenarios-grid"></div>
@@ -368,7 +368,7 @@
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,92vw);background:var(--warm-white);border-radius:6px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.4);">
       <div style="background:var(--charcoal);padding:16px 20px;">
         <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:3px;">SHARE SCENARIO</div>
-        <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:white;">Share with another user</div>
+        <div style="font-family:var(--font-body);font-size:17px;font-weight:700;color:white;">Share with another user</div>
         <div id="share-scenario-addr" style="font-family:'Geist Mono',monospace;font-size:11px;color:rgba(245,240,232,0.5);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
       </div>
       <div style="padding:20px;">
@@ -376,7 +376,7 @@
         <div style="margin-bottom:8px;">
           <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--slate);margin-bottom:5px;">Their email address</div>
           <input id="share-email-input" type="email" placeholder="user@example.com"
-            style="width:100%;padding:10px 12px;border:1px solid rgba(28,28,30,0.15);border-radius:3px;font-family:'Geist',sans-serif;font-size:14px;outline:none;background:rgba(28,28,30,0.04);color:var(--charcoal);">
+            style="width:100%;padding:10px 12px;border:1px solid rgba(28,28,30,0.15);border-radius:3px;font-family:var(--font-body);font-size:14px;outline:none;background:rgba(28,28,30,0.04);color:var(--charcoal);">
         </div>
         <div id="share-also-list" style="display:none;margin-bottom:12px;">
           <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--slate);margin-bottom:5px;">Currently shared with:</div>
@@ -395,7 +395,7 @@
   <div id="linkshare-modal" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.7);">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100% - 32px);max-width:440px;background:var(--warm-white);border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
       <div style="background:var(--charcoal);padding:18px 22px;">
-        <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:white;">🔗 Share a public link</div>
+        <div style="font-family:var(--font-body);font-size:17px;font-weight:700;color:white;">🔗 Share a public link</div>
         <div style="font-family:'Geist Mono',monospace;font-size:11px;color:rgba(245,240,232,0.5);margin-top:4px;">Anyone with the link can view this scenario — no account needed.</div>
       </div>
       <div style="padding:20px 22px;">
@@ -427,20 +427,20 @@
   <div id="lib-actions-overlay" style="display:none;position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px);">
     <div id="lib-actions-popup" style="position:absolute;bottom:0;left:0;right:0;background:var(--warm-white);border-radius:14px 14px 0 0;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,0.3);max-width:480px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom,0px);">
       <div style="padding:16px 20px 12px;border-bottom:1px solid rgba(28,28,30,0.08);">
-        <div id="lib-actions-addr" style="font-family:'Geist',sans-serif;font-size:16px;font-weight:700;color:var(--charcoal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+        <div id="lib-actions-addr" style="font-family:var(--font-body);font-size:16px;font-weight:700;color:var(--charcoal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
         <div id="lib-actions-meta" style="font-size:12px;color:var(--slate);margin-top:2px;"></div>
       </div>
       <div style="padding:8px 12px;">
-        <button id="lib-action-load" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'Geist',sans-serif;">
+        <button id="lib-action-load" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:var(--font-body);">
           <span style="font-size:20px;">📂</span> Load Scenario
         </button>
-        <button id="lib-action-export" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'Geist',sans-serif;">
+        <button id="lib-action-export" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:var(--font-body);">
           <span style="font-size:20px;">📄</span> Export PDF
         </button>
-        <button id="lib-action-share" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:'Geist',sans-serif;">
+        <button id="lib-action-share" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--charcoal);cursor:pointer;border-radius:8px;font-family:var(--font-body);">
           <span style="font-size:20px;">↗</span> Share
         </button>
-        <button id="lib-action-delete" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--risk-red);cursor:pointer;border-radius:8px;font-family:'Geist',sans-serif;">
+        <button id="lib-action-delete" class="lib-action-btn" style="width:100%;padding:14px 16px;background:none;border:none;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--risk-red);cursor:pointer;border-radius:8px;font-family:var(--font-body);">
           <span style="font-size:20px;">🗑</span> Delete
         </button>
       </div>
@@ -455,7 +455,7 @@
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,90vw);background:var(--warm-white);border-radius:6px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,0.4);">
       <div style="background:var(--terracotta);padding:16px 20px;">
         <div style="font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.7);margin-bottom:3px;">CONFIRM LOAD</div>
-        <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:white;">Replace current scenario?</div>
+        <div style="font-family:var(--font-body);font-size:17px;font-weight:700;color:white;">Replace current scenario?</div>
       </div>
       <div style="padding:20px;">
         <p style="font-size:13px;color:var(--slate);line-height:1.7;margin-bottom:16px;">Loading <strong id="confirm-name" style="color:var(--charcoal);">this scenario</strong> will replace all your current values. Any unsaved changes will be lost.</p>
@@ -514,7 +514,7 @@
           <div style="padding:10px 14px 12px;background:var(--warm-white);">
             <div style="font-size:10px;color:var(--slate);font-family:'Geist Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;">Property Photo</div>
             <div style="display:flex;gap:6px;align-items:center;">
-              <input type="text" id="pd-photo-url" placeholder="Or paste image URL here…" style="flex:1;font-size:11px;padding:5px 8px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;color:var(--charcoal);font-family:'Geist',sans-serif;outline:none;">
+              <input type="text" id="pd-photo-url" placeholder="Or paste image URL here…" style="flex:1;font-size:11px;padding:5px 8px;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;color:var(--charcoal);font-family:var(--font-body);outline:none;">
               <button id="apply-photo-url-btn" style="background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:5px 10px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;white-space:nowrap;">Use URL</button>
             </div>
             <button id="map-img-btn" style="margin-top:7px;width:100%;background:rgba(91,143,171,0.1);border:1px solid rgba(91,143,171,0.3);color:var(--sky);border-radius:3px;padding:6px 10px;font-family:'Geist Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:6px;" title="Fetches a satellite/map image of this property using the address from the Property tab">
@@ -615,7 +615,7 @@
         <div class="card">
           <div class="ca" style="background:var(--slate)"></div>
           <h3>Notes</h3>
-          <textarea id="pd-notes" placeholder="Key observations, things to check, deal-breakers, pros/cons..." style="width:100%;height:120px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:3px;padding:10px;font-family:'Geist',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.6;"></textarea>
+          <textarea id="pd-notes" placeholder="Key observations, things to check, deal-breakers, pros/cons..." style="width:100%;height:120px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.1);border-radius:3px;padding:10px;font-family:var(--font-body);font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.6;"></textarea>
         </div>
       </div>
 
@@ -739,7 +739,7 @@
               <circle id="d-bank" cx="58" cy="58" r="42" fill="none" stroke="#5B8FAB" stroke-width="17" stroke-dasharray="0 263.9" stroke-dashoffset="0" transform="rotate(-90 58 58)"/>
               <circle id="d-govt" cx="58" cy="58" r="42" fill="none" stroke="#7B9E87" stroke-width="17" stroke-dasharray="0 263.9" stroke-dashoffset="0" transform="rotate(-90 58 58)"/>
               <circle id="d-you"  cx="58" cy="58" r="42" fill="none" stroke="#C9A84C" stroke-width="17" stroke-dasharray="0 263.9" stroke-dashoffset="0" transform="rotate(-90 58 58)"/>
-              <text id="d-centre" x="58" y="55" text-anchor="middle" font-family="Geist" font-size="11" fill="#1C1C1E" font-weight="700">$650k</text>
+              <text id="d-centre" x="58" y="55" text-anchor="middle" font-family="Hanken Grotesk" font-size="11" fill="#1C1C1E" font-weight="700">$650k</text>
               <text x="58" y="68" text-anchor="middle" font-family="Geist Mono" font-size="7" fill="#6B6B72">PURCHASE</text>
             </svg>
             <div style="flex:1">
@@ -1293,7 +1293,7 @@
     <div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">EXPORT</div>
-        <div style="font-family:'Geist',sans-serif;font-size:17px;font-weight:700;color:#F5F0E8;">Export Options</div>
+        <div style="font-family:var(--font-body);font-size:17px;font-weight:700;color:#F5F0E8;">Export Options</div>
       </div>
       <button id="pdf-options-close-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>

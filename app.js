@@ -3796,12 +3796,12 @@
 <html><head>
 <meta charset="UTF-8">
 <title>${_escBanner(snap.addr)} — Finance Scenario</title>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@300..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
   /* Base font size — normal=12px, large=16px, compact=9px */
-  body{background:#fff;font-family:'Geist',sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
+  body{background:#fff;font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;color:#1C1C1E;font-size:${fontSize==='large'?'16px':fontSize==='compact'?'9px':'12px'};}
   @page{margin:10mm 12mm;size:${pageSize} ${pageOrient};}
   @media print{
     body{font-size:${fontSize==='large'?'15px':fontSize==='compact'?'8px':'11px'}!important;}
@@ -3817,7 +3817,7 @@
   header{background:#1C1C1E;color:#F5F0E8;padding:0;display:flex;margin-bottom:20px;border-radius:4px;overflow:hidden;}
   .htext{flex:1;padding:20px 24px;}
   .htag{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:4px;}
-  h1{font-family:'Geist',sans-serif;font-size:${fontSize==='large'?'30px':fontSize==='compact'?'20px':'26px'};font-weight:900;margin-bottom:3px;}
+  h1{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;font-size:${fontSize==='large'?'30px':fontSize==='compact'?'20px':'26px'};font-weight:900;margin-bottom:3px;}
   .hsub{font-size:11px;color:rgba(245,240,232,0.45);margin-bottom:12px;}
   .hstamp{font-family:'Geist Mono',monospace;font-size:10px;color:rgba(245,240,232,0.3);}
   .hphoto{width:200px;flex-shrink:0;}
@@ -4225,7 +4225,7 @@
           </select></div>
       </div>
       <div style="margin-bottom:8px;"><div style="font-size:10px;font-family:'Geist Mono',monospace;color:var(--slate);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Note</div>
-        <textarea id="cf-text" rows="3" placeholder="What was discussed? Any key info from the agent?" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;padding:8px;font-family:'Geist',sans-serif;font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.5;"></textarea></div>
+        <textarea id="cf-text" rows="3" placeholder="What was discussed? Any key info from the agent?" style="width:100%;background:rgba(28,28,30,0.05);border:1px solid rgba(28,28,30,0.12);border-radius:3px;padding:8px;font-family:var(--font-body);font-size:12px;color:var(--charcoal);resize:vertical;outline:none;line-height:1.5;"></textarea></div>
       <div style="display:flex;gap:8px;">
         <button id="cf-submit-entry" style="flex:1;background:var(--charcoal);color:var(--gold);border:none;border-radius:3px;padding:8px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.5px;">＋ Add Entry</button>
         <button id="cf-cancel-entry" style="padding:8px 14px;background:rgba(28,28,30,0.06);border:1px solid rgba(28,28,30,0.12);border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;color:var(--slate);">Cancel</button>

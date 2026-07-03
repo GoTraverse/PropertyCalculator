@@ -62,10 +62,11 @@
   50% { opacity: 0.5; transform: scale(0.8); }
 }
 .hero-eyebrow span {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
 }
 .hero-h1 {
@@ -77,14 +78,15 @@
   letter-spacing: -1.5px;
   margin-bottom: 22px;
 }
-.hero-h1 em { font-style: italic; color: var(--gold); }
+.hero-h1 em { font-family: var(--font-body); font-style: italic; color: var(--gold); }
 .hero-h1-kicker {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: clamp(11px, 1.2vw, 14px);
   font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 18px;
   opacity: 0.85;
@@ -180,14 +182,17 @@
 .preview-url { margin-left: 10px; flex: 1; background: rgba(255,255,255,0.04); border-radius: 4px; height: 20px; display: flex; align-items: center; padding: 0 10px; font-family: var(--font-mono); font-size: 9px; color: rgba(245,240,232,0.3); }
 .preview-body { padding: 16px; display: grid; grid-template-columns: 120px 1fr; gap: 10px; height: calc(100% - 40px); }
 .preview-sidebar { background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-.preview-sb-title { font-family: var(--font-mono); font-size: 7px; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.preview-sb-title { font-family: var(--font-body); font-size: 7px; color: var(--gold); letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; margin-bottom: 4px; }
 .preview-slider { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; position: relative; }
 .preview-slider-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; background: var(--gold); }
-.preview-label { font-family: var(--font-mono); font-size: 6px; color: rgba(245,240,232,0.35); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+.preview-label { font-family: var(--font-body); font-size: 6px; color: rgba(245,240,232,0.35); letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; margin-bottom: 3px; }
 .preview-val { font-family: var(--font-mono); font-size: 9px; color: var(--cream); margin-bottom: 8px; }
 .preview-content { display: flex; flex-direction: column; gap: 8px; }
 .preview-tile { background: rgba(0,0,0,0.25); border-radius: 5px; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
-.preview-tile-lbl { font-family: var(--font-mono); font-size: 7px; color: rgba(245,240,232,0.4); letter-spacing: 1px; text-transform: uppercase; }
+.preview-tile-lbl { font-family: var(--font-body); font-size: 7px; color: rgba(245,240,232,0.4); letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; }
 .preview-tile-val { font-family: var(--font-mono); font-size: 13px; color: var(--gold); font-weight: 500; }
 .preview-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .preview-chart { background: rgba(0,0,0,0.2); border-radius: 5px; flex: 1; padding: 10px; position: relative; overflow: hidden; min-height: 60px; }
@@ -196,7 +201,8 @@
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 .badge-top-right { top: -18px; right: -20px; animation-delay: 0.5s; }
 .badge-bottom-left { bottom: -18px; left: -20px; animation-delay: 1.5s; }
-.badge-label { font-family: var(--font-mono); font-size: 9px; color: rgba(245,240,232,0.4); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+.badge-label { font-family: var(--font-body); font-size: 9px; color: rgba(245,240,232,0.4); letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; margin-bottom: 3px; }
 .badge-val { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
 .badge-gold { color: var(--gold); }
 .badge-green { color: var(--reward-green); }
@@ -204,7 +210,8 @@
 /* ── Logos/Trust bar ── */
 .trust-bar { background: var(--charcoal-soft); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 20px 24px; overflow: hidden; position: relative; z-index: 1; }
 .trust-bar-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 40px; flex-wrap: wrap; justify-content: center; }
-.trust-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(245,240,232,0.25); white-space: nowrap; }
+.trust-label { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: rgba(245,240,232,0.25); white-space: nowrap; }
 .trust-items { display: flex; gap: 32px; flex-wrap: wrap; align-items: center; justify-content: center; }
 .trust-item { font-family: var(--font-mono); font-size: 11px; color: rgba(245,240,232,0.3); letter-spacing: 0.5px; display: flex; align-items: center; gap: 7px; }
 .trust-item span { font-size: 14px; }
@@ -233,7 +240,8 @@
 .pricing-card.featured:hover { transform: scale(1.03) translateY(-4px); }
 .pricing-card-header { padding: 28px 28px 20px; border-bottom: 1px solid rgba(28,28,30,0.07); }
 .pricing-card.featured .pricing-card-header { border-color: rgba(255,255,255,0.07); }
-.pricing-tier-badge { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+.pricing-tier-badge { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--gold); margin-bottom: 12px; }
 .pricing-tier-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
 .pricing-price { display: flex; align-items: baseline; gap: 4px; margin-top: 14px; }
 .pricing-amount { font-family: var(--font-mono); font-size: 36px; font-weight: 500; line-height: 1; }
@@ -588,10 +596,11 @@
 }
 .sc-section-dark .sc-figure figcaption { color: rgba(245,240,232,0.5); }
 .sc-figure-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
   margin-bottom: 10px;
   text-align: center;

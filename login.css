@@ -167,10 +167,11 @@ body {
 /* ── Form fields ── */
 .form-field { margin-bottom: 16px; }
 .form-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 9px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: rgba(245,240,232,0.55);
   margin-bottom: 6px;
   display: block;
@@ -301,10 +302,11 @@ select.form-input { background: rgba(255,255,255,0.05); }
   gap: 10px;
   margin: 16px 0 12px;
   color: rgba(245,240,232,0.45);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
 }
 .login-divider::before,
 .login-divider::after {
@@ -324,11 +326,12 @@ select.form-input { background: rgba(255,255,255,0.05); }
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: 3px;
   padding: 12px 14px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s;
 }
@@ -380,10 +383,11 @@ select.form-input { background: rgba(255,255,255,0.05); }
   background: transparent;
   border: none;
   color: rgba(245,240,232,0.65);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   padding: 8px 10px;               /* generous mobile hit target */
   cursor: pointer;
   border-radius: 3px;

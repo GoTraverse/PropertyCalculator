@@ -38,9 +38,9 @@
   --reward-green-bright: #84C7A4;  /* lighter reward-green for dark backgrounds */
   --risk-red-bright:  #E08A8A;     /* lighter risk-red for dark backgrounds */
 
-  --font-display: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono:    'Geist Mono', ui-monospace, 'SF Mono', 'Courier New', monospace;
-  --font-body:    'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body:    'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --radius-sm: 3px;
   --radius-md: 6px;
@@ -212,11 +212,12 @@ html.dark-mode :where(a, button, input, select, textarea, summary, [role="button
   letter-spacing: -0.3px;
 }
 .site-logo-tld {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 11px;
   color: var(--gold);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
 }
 .site-nav-links {
   display: flex;
@@ -339,10 +340,11 @@ html.dark-mode :where(a, button, input, select, textarea, summary, [role="button
 
 /* ── Section helpers ── */
 .section-tag {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   /* gold-dark gives 5.75:1+ contrast against cream/warm-white backgrounds.
      Dark-mode override below switches back to lighter --gold for dark bg. */
   color: var(--gold-dark);

@@ -83,10 +83,11 @@ html.dark-mode{--ink:#F5F0E8;}
   line-height: 1.15;
 }
 .suburb-locator-state {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-variant-caps: all-small-caps;
   color: var(--gold);
 }
 .suburb-locator-cbd {
@@ -203,7 +204,8 @@ html.dark-mode .suburb-locator-approx {
   opacity: 0.6;
 }
 .suburb-stat[open] > summary::after { transform: translateY(-50%) rotate(270deg); opacity: 1; }
-.suburb-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
+.suburb-stat-label { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); margin-bottom: 4px; }
 .suburb-stat-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--charcoal); }
 .suburb-stat-value.suburb-score span { font-size: 13px; color: var(--slate); font-weight: 400; }
 .suburb-stat-detail {
@@ -245,7 +247,8 @@ html.dark-mode .suburb-amenity-list li {
 @media (max-width: 480px) { .suburb-grid { grid-template-columns: 1fr; } }
 
 /* ── Live market data section ── */
-.suburb-live-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.12); padding: 2px 7px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
+.suburb-live-tag { display: inline-block; font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--gold); background: rgba(201,168,76,0.12); padding: 2px 7px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
 .suburb-live-note { font-family: var(--font-mono); font-size: 10px; color: var(--slate); letter-spacing: 0.3px; margin-top: 12px; margin-bottom: 0; }
 .suburb-stat-sub { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.5px; color: var(--slate); margin-top: 3px; }
 .suburb-stat-value--green { color: var(--reward-green); }
@@ -256,7 +259,8 @@ html.dark-mode .suburb-amenity-list li {
 
 /* ── Mid-page calculator CTA ── */
 .suburb-calc-cta { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
-.suburb-calc-cta-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 12px; }
+.suburb-calc-cta-label { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); margin-bottom: 12px; }
 .suburb-calc-links { display: flex; flex-wrap: wrap; gap: 8px; }
 .suburb-calc-link { display: inline-block; padding: 8px 16px; background: white; border: 1px solid rgba(201,168,76,0.4); border-radius: 5px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.5px; color: var(--charcoal); text-decoration: none; transition: border-color 0.15s, box-shadow 0.15s; }
 .suburb-calc-link:hover { border-color: var(--gold); box-shadow: 0 2px 8px rgba(201,168,76,0.2); }
@@ -283,7 +287,8 @@ html.dark-mode .suburb-amenity-list li {
 .suburb-related a { display: block; background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-decoration: none; color: var(--charcoal); transition: border-color 0.15s, box-shadow 0.15s; border: 1px solid transparent; }
 .suburb-related a:hover { border-color: rgba(201,168,76,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
 .suburb-related .sr-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-.suburb-related .sr-type { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); }
+.suburb-related .sr-type { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); }
 
 /* ── Resources ── */
 .suburb-resources a { display: block; font-size: 13px; color: var(--gold); text-decoration: none; padding: 6px 0; border-bottom: 1px solid rgba(28,28,30,0.06); font-family: var(--font-mono); letter-spacing: 0.3px; }
@@ -302,7 +307,8 @@ html.dark-mode .suburb-amenity-list li {
 .hub-suburb-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--charcoal); margin-bottom: 6px; }
 .hub-suburb-pc { font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--slate); letter-spacing: 0.5px; }
 .hub-suburb-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; color: var(--slate); display: flex; gap: 14px; flex-wrap: wrap; }
-.hub-suburb-tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.1); padding: 2px 8px; border-radius: 3px; margin-top: 8px; }
+.hub-suburb-tag { display: inline-block; font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--gold); background: rgba(201,168,76,0.1); padding: 2px 8px; border-radius: 3px; margin-top: 8px; }
 
 /* ── Hub search & pagination ── */
 .hub-list-intro { font-family: var(--font-body); font-size: 13px; color: var(--slate); margin: -4px 0 14px; line-height: 1.55; }
@@ -314,7 +320,8 @@ html.dark-mode .suburb-amenity-list li {
 
 /* ── Hub reference drawer (noindexed localities) ── */
 .hub-reference-drawer { margin-top: 32px; border-top: 1px solid rgba(28,28,30,0.08); padding-top: 20px; }
-.hub-reference-drawer summary { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); cursor: pointer; padding: 8px 0; list-style: none; }
+.hub-reference-drawer summary { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); cursor: pointer; padding: 8px 0; list-style: none; }
 .hub-reference-drawer summary::-webkit-details-marker { display: none; }
 .hub-reference-drawer summary::before { content: '▸ '; display: inline-block; transition: transform 0.15s; }
 .hub-reference-drawer[open] summary::before { transform: rotate(90deg); }
@@ -356,7 +363,8 @@ html.dark-mode .hub-list-intro { color: rgba(245,240,232,0.55); }
 .suburb-score-badge { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 12px; }
 .suburb-score-value { font-family: var(--font-display); font-size: 42px; font-weight: 900; color: var(--charcoal); line-height: 1; }
 .suburb-score-max { font-family: var(--font-mono); font-size: 14px; color: var(--slate); }
-.suburb-score-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; margin-left: 4px; }
+.suburb-score-label { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; padding: 3px 10px; border-radius: 4px; margin-left: 4px; }
 .suburb-score--strong { background: rgba(90,158,123,0.12); color: var(--reward-green); }
 .suburb-score--good { background: rgba(201,168,76,0.15); color: #b8960c; }
 .suburb-score--moderate { background: rgba(245,124,0,0.12); color: #e65100; }
@@ -378,7 +386,8 @@ html.dark-mode .hub-list-intro { color: rgba(245,240,232,0.55); }
 /* ── City page stats ── */
 .city-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .city-stat { background: var(--warm-white); border-radius: 6px; padding: 14px 16px; text-align: center; }
-.city-stat-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
+.city-stat-label { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); margin-bottom: 4px; }
 .city-stat-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--charcoal); }
 @media (max-width: 480px) { .city-stats-grid { grid-template-columns: 1fr 1fr; } }
 
@@ -409,7 +418,8 @@ html.dark-mode .city-card-name { color: #F5F0E8; }
 
 /* ── 2026 Outlook ── */
 .suburb-outlook-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.suburb-outlook-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: var(--warm-white); color: var(--slate); border: 1px solid rgba(28,28,30,0.08); }
+.suburb-outlook-tag { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; padding: 4px 10px; border-radius: 4px; background: var(--warm-white); color: var(--slate); border: 1px solid rgba(28,28,30,0.08); }
 .suburb-outlook-tag--strong { background: rgba(90,158,123,0.1); color: var(--reward-green); border-color: rgba(90,158,123,0.2); }
 .suburb-outlook-tag--moderate { background: rgba(245,124,0,0.1); color: #e65100; border-color: rgba(245,124,0,0.2); }
 .suburb-outlook-tag--low { background: rgba(196,90,90,0.08); color: var(--risk-red); border-color: rgba(196,90,90,0.15); }
@@ -436,7 +446,8 @@ html.dark-mode .suburb-outlook-tag--low { background: rgba(196,90,90,0.12); colo
 .suburb-compare-note { font-family: var(--font-mono); font-size: 12px; color: var(--slate); margin: 4px 0 14px; line-height: 1.55; }
 .suburb-compare-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid rgba(201,168,76,0.15); }
 .suburb-compare { width: 100%; border-collapse: collapse; font-size: 14px; }
-.suburb-compare thead th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--slate); font-weight: 500; text-align: left; padding: 10px 14px; background: var(--warm-white); border-bottom: 1px solid rgba(201,168,76,0.2); }
+.suburb-compare thead th { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.4px; text-transform: none;
+  font-variant-caps: all-small-caps; color: var(--slate); font-weight: 500; text-align: left; padding: 10px 14px; background: var(--warm-white); border-bottom: 1px solid rgba(201,168,76,0.2); }
 .suburb-compare thead th:not(:first-child) { text-align: right; }
 .suburb-compare tbody th { font-family: var(--font-sans); font-weight: 500; color: var(--charcoal); text-align: left; padding: 12px 14px; border-bottom: 1px solid rgba(28,28,30,0.05); }
 .suburb-compare tbody td { font-family: var(--font-mono); font-size: 13px; color: var(--charcoal); text-align: right; padding: 12px 14px; border-bottom: 1px solid rgba(28,28,30,0.05); }

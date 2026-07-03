@@ -52,7 +52,7 @@
     '.ap2-label{font-family:"Geist Mono",monospace;font-size:9px;letter-spacing:1.5px;',
       'text-transform:uppercase;color:var(--slate,#4A4A52);display:block;margin-bottom:5px;}',
     '.ap2-input{width:100%;background:var(--warm-white,#F5F3EE);border:1px solid rgba(28,28,30,0.12);',
-      'border-radius:4px;padding:9px 12px;font-family:"Geist",sans-serif;font-size:14px;',
+      'border-radius:4px;padding:9px 12px;font-family:var(--font-body);font-size:14px;',
       'color:var(--charcoal,#1C1C1E);outline:none;box-sizing:border-box;}',
     '.ap2-input:focus{border-color:rgba(201,168,76,0.6);background:white;}',
     '.ap2-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}',
