@@ -356,7 +356,7 @@ window.toggleTheme = function(){
   // `match` is a list of pathname prefixes (or exact strings) used to highlight
   // the active link.
   var SITE_NAV_LINKS = [
-    { href: '/tools',     label: 'Calculators', match: ['/tools'] },
+    { href: '/tools/',     label: 'Calculators', match: ['/tools'] },
     { href: '/blog',      label: 'Blog',        match: ['/blog'] },
     { href: '/pricing',   label: 'Pricing',     match: ['/pricing'] },
     { href: '/about',     label: 'About',       match: ['/about'] },
