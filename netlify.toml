@@ -285,6 +285,7 @@
   from = "/rental-yield-calculator.html"
   to = "/tools/rental-yield-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-calculator"
@@ -295,11 +296,13 @@
   from = "/stamp-duty-calculator.html"
   to = "/tools/stamp-duty-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-qld.html"
   to = "/tools/stamp-duty-calculator-qld"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-qld"
@@ -315,11 +318,13 @@
   from = "/stamp-duty-calculator-qld.html"
   to = "/tools/stamp-duty-calculator-qld"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/stamp-duty-calculator-qld.html"
   to = "/tools/stamp-duty-calculator-qld"
   status = 301
+  force = true
 
 # State-specific stamp duty calculator clean-URL redirects (May 2026)
 # Catches /stamp-duty-{state}.html, /stamp-duty-{state}, and /tools/...html
@@ -330,6 +335,7 @@
   from = "/tools/stamp-duty-calculator-nsw.html"
   to = "/tools/stamp-duty-calculator-nsw"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-calculator-nsw"
@@ -340,6 +346,7 @@
   from = "/stamp-duty-calculator-nsw.html"
   to = "/tools/stamp-duty-calculator-nsw"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-nsw"
@@ -350,11 +357,13 @@
   from = "/stamp-duty-nsw.html"
   to = "/tools/stamp-duty-calculator-nsw"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/stamp-duty-calculator-vic.html"
   to = "/tools/stamp-duty-calculator-vic"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-calculator-vic"
@@ -365,6 +374,7 @@
   from = "/stamp-duty-calculator-vic.html"
   to = "/tools/stamp-duty-calculator-vic"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-vic"
@@ -375,11 +385,13 @@
   from = "/stamp-duty-vic.html"
   to = "/tools/stamp-duty-calculator-vic"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/stamp-duty-calculator-wa.html"
   to = "/tools/stamp-duty-calculator-wa"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-calculator-wa"
@@ -390,6 +402,7 @@
   from = "/stamp-duty-calculator-wa.html"
   to = "/tools/stamp-duty-calculator-wa"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-wa"
@@ -400,11 +413,13 @@
   from = "/stamp-duty-wa.html"
   to = "/tools/stamp-duty-calculator-wa"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/stamp-duty-calculator-sa.html"
   to = "/tools/stamp-duty-calculator-sa"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-calculator-sa"
@@ -415,6 +430,7 @@
   from = "/stamp-duty-calculator-sa.html"
   to = "/tools/stamp-duty-calculator-sa"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-sa"
@@ -425,11 +441,13 @@
   from = "/stamp-duty-sa.html"
   to = "/tools/stamp-duty-calculator-sa"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/stamp-duty-calculator-tas.html"
   to = "/tools/stamp-duty-calculator-tas"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-calculator-tas"
@@ -440,6 +458,7 @@
   from = "/stamp-duty-calculator-tas.html"
   to = "/tools/stamp-duty-calculator-tas"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-tas"
@@ -450,11 +469,13 @@
   from = "/stamp-duty-tas.html"
   to = "/tools/stamp-duty-calculator-tas"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/stamp-duty-calculator-act.html"
   to = "/tools/stamp-duty-calculator-act"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-calculator-act"
@@ -465,6 +486,7 @@
   from = "/stamp-duty-calculator-act.html"
   to = "/tools/stamp-duty-calculator-act"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-act"
@@ -475,11 +497,13 @@
   from = "/stamp-duty-act.html"
   to = "/tools/stamp-duty-calculator-act"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/stamp-duty-calculator-nt.html"
   to = "/tools/stamp-duty-calculator-nt"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-calculator-nt"
@@ -490,6 +514,7 @@
   from = "/stamp-duty-calculator-nt.html"
   to = "/tools/stamp-duty-calculator-nt"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/stamp-duty-nt"
@@ -500,6 +525,7 @@
   from = "/stamp-duty-nt.html"
   to = "/tools/stamp-duty-calculator-nt"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/mortgage-stress-calculator"
@@ -510,6 +536,7 @@
   from = "/mortgage-stress-calculator.html"
   to = "/tools/mortgage-stress-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/house-flip-calculator"
@@ -520,6 +547,7 @@
   from = "/house-flip-calculator.html"
   to = "/tools/house-flip-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/cost-of-purchase-calculator"
@@ -530,6 +558,7 @@
   from = "/cost-of-purchase-calculator.html"
   to = "/tools/cost-of-purchase-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/loan-serviceability-calculator"
@@ -540,6 +569,7 @@
   from = "/loan-serviceability-calculator.html"
   to = "/tools/loan-serviceability-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/renovation-cost-calculator"
@@ -550,6 +580,7 @@
   from = "/renovation-cost-calculator.html"
   to = "/tools/renovation-cost-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/equity-release-calculator"
@@ -560,6 +591,7 @@
   from = "/equity-release-calculator.html"
   to = "/tools/equity-release-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/first-home-buyer-grants-calculator"
@@ -570,6 +602,7 @@
   from = "/first-home-buyer-grants-calculator.html"
   to = "/tools/first-home-buyer-grants-calculator"
   status = 301
+  force = true
 
 # ── Canonicalise .html → clean URLs (301 redirect for SEO) ──────────────────
 # Netlify pretty-URLs serves foo.html at /foo. These redirects ensure
@@ -579,46 +612,55 @@
   from = "/tools/stamp-duty-calculator.html"
   to = "/tools/stamp-duty-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/rental-yield-calculator.html"
   to = "/tools/rental-yield-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/mortgage-stress-calculator.html"
   to = "/tools/mortgage-stress-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/cost-of-purchase-calculator.html"
   to = "/tools/cost-of-purchase-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/loan-serviceability-calculator.html"
   to = "/tools/loan-serviceability-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/equity-release-calculator.html"
   to = "/tools/equity-release-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/first-home-buyer-grants-calculator.html"
   to = "/tools/first-home-buyer-grants-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/house-flip-calculator.html"
   to = "/tools/house-flip-calculator"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools/renovation-cost-calculator.html"
   to = "/tools/renovation-cost-calculator"
   status = 301
+  force = true
 
 # ── Canonicalise core page .html → clean URLs ────────────────────────────────
 # Redirects old .html links to clean URLs for consistency and SEO.
@@ -627,76 +669,85 @@
   from = "/pricing.html"
   to = "/pricing"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/about.html"
   to = "/about"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/contact.html"
   to = "/contact"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/login.html"
   to = "/login"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/app.html"
   to = "/app"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/account.html"
   to = "/account"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/admin.html"
   to = "/admin"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/showcase.html"
   to = "/showcase"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/privacy.html"
   to = "/privacy"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/terms.html"
   to = "/terms"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/cookies.html"
   to = "/cookies"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/disclaimer.html"
   to = "/disclaimer"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/index.html"
   to = "/"
   status = 301
+  force = true
 
 [[redirects]]
   from = "/tools.html"
-  to = "/tools"
+  to = "/tools/"
   status = 301
-
-[[redirects]]
-  from = "/tools/"
-  to = "/tools"
-  status = 301
+  force = true
 
 # ── Fix relative-path asset requests from cached suburb/invest pages ─────────
 # Older cached builds used relative paths (e.g. shared.css instead of /shared.css).
@@ -830,3 +881,4 @@
   from = "/*"
   to = "/404.html"
   status = 404
+
