@@ -357,7 +357,7 @@ window.toggleTheme = function(){
   // the active link.
   var SITE_NAV_LINKS = [
     { href: '/tools/',     label: 'Calculators', match: ['/tools'] },
-    { href: '/blog',      label: 'Blog',        match: ['/blog'] },
+    { href: '/blog/',      label: 'Blog',        match: ['/blog'] },
     { href: '/pricing',   label: 'Pricing',     match: ['/pricing'] },
     { href: '/about',     label: 'About',       match: ['/about'] },
     { href: '/contact',   label: 'Support',     match: ['/contact'] },

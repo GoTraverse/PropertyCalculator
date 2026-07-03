@@ -104,7 +104,7 @@ ToolPage.init({
   footer: [
     { href: '/', text: 'EquitySight.app' },
     { href: '/tools/stamp-duty-calculator', text: 'Stamp Duty' },
-    { href: '/tools/equity-release-calculator', text: 'Equity Release' },
+    { href: '/tools/equity-release-calculator', text: 'Home Equity' },
     { href: '/tools/mortgage-stress-calculator', text: 'Mortgage Stress' },
     { href: '/privacy', text: 'Privacy' }
   ],
