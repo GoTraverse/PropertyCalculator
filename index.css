@@ -663,8 +663,6 @@
   section > div > div[style*="display:flex"] { flex-direction: column!important; align-items: stretch!important; }
   section > div > div[style*="display:flex"] > button { width: 100%!important; justify-content: center!important; }
   .footer-copy { white-space: normal; }
-  .nav-hamburger { display: none !important; }
-  .site-nav-links { display: flex !important; }
   .site-nav-inner { padding: 0 16px; }
   /* "What it does" 3-col strip — stack on small screens */
   .feat-strip-grid { grid-template-columns: 1fr!important; }
