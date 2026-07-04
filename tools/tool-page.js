@@ -69,6 +69,28 @@ function monthlyRepayment(principal, annualRate, years, interestOnly) {
   return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 }
 
+/** Best-effort Australian state/territory code from the browser's IANA
+ *  timezone — used to pre-select the user's state on calculators so the
+ *  first result is already right for them (they can still change it).
+ *  Heuristic by design: ACT shares Sydney's zone (→ NSW), and a couple of
+ *  regional zones follow their clock, not their border. Returns '' when the
+ *  zone isn't Australian or is unknown. */
+function detectAUState() {
+  var tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { return ''; }
+  var MAP = {
+    'Australia/Sydney': 'NSW', 'Australia/Lord_Howe': 'NSW', 'Australia/NSW': 'NSW',
+    'Australia/Melbourne': 'VIC', 'Australia/Victoria': 'VIC',
+    'Australia/Brisbane': 'QLD', 'Australia/Lindeman': 'QLD', 'Australia/Queensland': 'QLD',
+    'Australia/Perth': 'WA', 'Australia/West': 'WA',
+    'Australia/Adelaide': 'SA', 'Australia/Broken_Hill': 'SA', 'Australia/Yancowinna': 'SA', 'Australia/South': 'SA',
+    'Australia/Hobart': 'TAS', 'Australia/Currie': 'TAS', 'Australia/Tasmania': 'TAS',
+    'Australia/Darwin': 'NT', 'Australia/North': 'NT',
+    'Australia/Canberra': 'ACT', 'Australia/ACT': 'ACT'
+  };
+  return MAP[tz] || '';
+}
+
 
 /* ══════════════════════════════════════════════════════════════════════
    TOOLPAGE NAMESPACE — section renderers + init
@@ -452,10 +474,33 @@ var ToolPage = (function() {
     });
   }
 
+  /* ── Pre-select the user's state/territory on first visit ──
+   * Fires only when the tool declares config.stateSelectId AND the user has
+   * no saved value for that select yet — a returning user's own choice always
+   * wins. Sets the value silently (no event); the page's own initial
+   * calculate() reads it on load. */
+  function _applyAutoState(slug, selectId) {
+    var sel = document.getElementById(selectId);
+    if (!sel || !sel.options || !sel.options.length) return;
+    try {
+      var saved = JSON.parse(localStorage.getItem('tool_inputs_v1:' + slug) || 'null');
+      if (saved && (selectId in saved)) return; // respect a saved choice
+    } catch (e) {}
+    var st = (typeof detectAUState === 'function') ? detectAUState() : '';
+    if (!st) return;
+    for (var i = 0; i < sel.options.length; i++) {
+      if ((sel.options[i].value || '').toUpperCase() === st) {
+        sel.value = sel.options[i].value;
+        return;
+      }
+    }
+  }
+
   function init(config) {
     var el;
 
     _installInputPersistence(config.slug);
+    if (config.stateSelectId) _applyAutoState(config.slug, config.stateSelectId);
     _installScrollToResult();
 
     el = document.getElementById('tool-cta-root');

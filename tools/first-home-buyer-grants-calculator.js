@@ -384,6 +384,7 @@ function calculate() {
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
   slug: 'first-home-buyer',
+  stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Plan your purchase and investment',

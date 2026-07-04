@@ -23,6 +23,28 @@ General - (DO NOT REMOVE THIS LINE)
     All target word counts verified via `node build/build-blog.js` with BLOG_MIN_WORDS=1500.
 
 
+PRODUCT ROADMAP (S/A/B tier) - (DO NOT REMOVE THIS LINE)
+- Goal: build value a chatbot/Google/a pro-without-a-tool/Notes/app-store-clone can't. Scorecard: https://claude.ai/code/artifact/4cf0348f-9d1f-4e13-a04d-d169cbbb2a80
+- BUILD ORDER IS A CHAIN: real data -> tools that use it -> trust+traffic -> revenue. Don't parallelise.
+- Constraints: no local Node (build runs on Netlify); suburb rebuild is credit-expensive — don't trigger casually.
+R1. [S] Real data: real ABS Census DataPack fields (income/age/tenure/dwelling) + state Valuer-General sold prices (start NSW) -> replace placeholder suburb data. FIRST stop the bleeding: present only real fields as fact; fix Parramatta postcode 1740->2150 + the N/A-vs-$108k income contradiction; drop the "ABS 2021 Census" byline on estimated data.
+R2. [S] Auto-state calculators — geolocate -> default the user's state/territory so answers are right without picking.
+R3. [S] "Is this listing overpriced?" checker — paste a listing -> fair-value range from real nearby sold prices (needs R1 NSW sales).
+R4. [S] Investor/landlord suite — land-tax by state + full cash-flow + portfolio tracker = the recurring subscription product.
+R5. [A] Affordability map — income+deposit -> which suburbs are in reach at real median prices (needs R1).
+R6. [A] Auction companion — pre-auction comparables sheet + live walk-away budget + nerve guardrails (needs R1 sales).
+R7. [A] Lead-gen to brokers/buyers-agents/conveyancers = revenue engine (disclose all referrals).
+R8. [A] MCP connector — expose verified calculators + data to Claude/ChatGPT (be the accurate source they call).
+R9. [A] Grow moderated real-user suburb reviews (already built) — drive traffic, guard moderation.
+R10. [A] Saved-suburb alerts + weekly PDF/email/RSS digests (after R1).
+R11. [B] One-stop cross-device home-buying workspace (PWA already covers platforms; direction, not a rebuild).
+R12. [B] Renter utility / NMI connection helper.
+R13. [B] Aggregated "what Australians are modelling" insights (anonymised, aggregate-only).
+R14. [B] Featured real AU property pros — blogs + contactable Q&A (E-E-A-T).
+R15. [B] Insurance/agent/council B2B/B2G — later, needs scale.
+Skipped (Tier C): air/noise/smell maps, crime warnings, native apps, physical print, video, Dave Ramsey brand, gamification/equity-bucks, cash-for-UGC.
+
+
 Desktop - (DO NOT REMOVE THIS LINE)
 -
 

@@ -208,6 +208,7 @@ function dCalc() {
 /* ═══ TOOL CONFIG ═══ */
 ToolPage.init({
   slug: 'cost-of-purchase',
+  stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
     title: 'Ready to buy?',
