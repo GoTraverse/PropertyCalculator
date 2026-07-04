@@ -91,14 +91,39 @@ var ToolPage = (function() {
       '</div>';
   }
 
+  // Monoline SVG icons replacing the emoji formerly used as resource-group
+  // headers (de-emoji pass). Keyed by base emoji (variation selector stripped)
+  // so both surrogate+FE0F and surrogate resolve. Unknown -> no icon.
+  var RES_ICON_WRAP = '<svg class="tool-res-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  var RES_ICONS = {
+    '\uD83D\uDCDA': '<path d="M4.5 5.5h4v13h-4zM9.5 5.5h4v13h-4z"/><path d="M15 6.6l3.6.9 0 12.4-3.6-.9z"/>', '\uD83D\uDCD6': '<path d="M4.5 5.5h4v13h-4zM9.5 5.5h4v13h-4z"/><path d="M15 6.6l3.6.9 0 12.4-3.6-.9z"/>',
+    '\uD83C\uDFDB': '<path d="M12 3.4 3 9.4h18z"/><path d="M5 9.6v9M9.5 9.6v9M14.5 9.6v9M19 9.6v9"/><path d="M3.5 18.6h17M4 21h16"/>',
+    '\uD83C\uDFAF': '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.7"/><circle cx="12" cy="12" r="1.1"/>',
+    '\uD83C\uDF81': '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.7"/><circle cx="12" cy="12" r="1.1"/>',
+    '\uD83D\uDCB0': '<circle cx="12" cy="12" r="8.5"/><path d="M12 6.8v10.4"/><path d="M14.6 9c-.6-.9-1.6-1.3-2.7-1.3-1.5 0-2.9.8-2.9 2.2 0 2.9 5.7 1.6 5.7 4.5 0 1.4-1.4 2.3-3 2.3-1.2 0-2.3-.5-2.9-1.4"/>', '\uD83D\uDCB5': '<circle cx="12" cy="12" r="8.5"/><path d="M12 6.8v10.4"/><path d="M14.6 9c-.6-.9-1.6-1.3-2.7-1.3-1.5 0-2.9.8-2.9 2.2 0 2.9 5.7 1.6 5.7 4.5 0 1.4-1.4 2.3-3 2.3-1.2 0-2.3-.5-2.9-1.4"/>', '\uD83E\uDE99': '<circle cx="12" cy="12" r="8.5"/><path d="M12 6.8v10.4"/><path d="M14.6 9c-.6-.9-1.6-1.3-2.7-1.3-1.5 0-2.9.8-2.9 2.2 0 2.9 5.7 1.6 5.7 4.5 0 1.4-1.4 2.3-3 2.3-1.2 0-2.3-.5-2.9-1.4"/>',
+    '\uD83C\uDFE6': '<rect x="3.3" y="5" width="17.4" height="14" rx="2"/><path d="M16.5 5v14"/><circle cx="10" cy="12" r="3.3"/><path d="M10 7.5v1.2M10 15.3v1.2M5.5 12h1.2M13.3 12h1.2"/>',
+    '\uD83C\uDFE0': '<path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.7V20h12V9.7"/><path d="M10 20v-5.5h4V20"/>',
+    '\uD83C\uDFE2': '<rect x="5" y="3.4" width="14" height="17.1" rx="1"/><path d="M8.6 7h1.8M13.6 7h1.8M8.6 11h1.8M13.6 11h1.8M8.6 15h1.8M13.6 15h1.8"/><path d="M3.8 20.5h16.4"/>', '\uD83D\uDD28': '<rect x="5" y="3.4" width="14" height="17.1" rx="1"/><path d="M8.6 7h1.8M13.6 7h1.8M8.6 11h1.8M13.6 11h1.8M8.6 15h1.8M13.6 15h1.8"/><path d="M3.8 20.5h16.4"/>',
+    '\uD83D\uDCCA': '<path d="M4 20.5h16"/><rect x="5.4" y="12" width="3" height="6.6" rx=".6"/><rect x="10.5" y="8" width="3" height="10.6" rx=".6"/><rect x="15.6" y="4.4" width="3" height="14.2" rx=".6"/>', '\uD83D\uDCC8': '<path d="M4 20.5h16"/><rect x="5.4" y="12" width="3" height="6.6" rx=".6"/><rect x="10.5" y="8" width="3" height="10.6" rx=".6"/><rect x="15.6" y="4.4" width="3" height="14.2" rx=".6"/>',
+    '\uD83D\uDCCB': '<rect x="5" y="4.5" width="14" height="16" rx="1.8"/><rect x="8.5" y="2.9" width="7" height="3.3" rx="1"/><path d="M8.6 11h6.8M8.6 14.5h6.8"/>',
+    '\uD83D\uDCB3': '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 9.9h18M6.5 14.2h4"/>',
+    '\uD83D\uDCCD': '<path d="M12 21s6.5-6 6.5-10.6a6.5 6.5 0 0 0-13 0C5.5 15 12 21 12 21Z"/><circle cx="12" cy="10.4" r="2.4"/>',
+    '\u2696': '<circle cx="12" cy="4.7" r="1.25"/><path d="M12 6v13M8.5 19h7M5.5 8.3h13"/><path d="M5.5 8.3 3 12.6M5.5 8.3 8 12.6M3 12.6a2.5 2.5 0 0 0 5 0"/><path d="M18.5 8.3 16 12.6M18.5 8.3 21 12.6M16 12.6a2.5 2.5 0 0 0 5 0"/>'
+  };
+  function resIcon(emoji) {
+    var k = (emoji || '').replace(/\uFE0F/g, '');
+    return RES_ICONS[k] ? (RES_ICON_WRAP + RES_ICONS[k] + '</svg>') : '';
+  }
+  var TRUST_EMBLEM = '<svg class="tool-trust-emblem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 4.5 5.2V11c0 4.6 3.2 7.9 7.5 9.3 4.3-1.4 7.5-4.7 7.5-9.3V5.2z"/><path d="M9 11.2l2.1 2.1 4-4.2"/></svg>';
+
   function renderResources(root, cfg) {
     if (!cfg || !cfg.groups) return;
     var html = '<div class="tool-resources">' +
-      '<h2 class="tool-resources-title">\uD83D\uDCDA Government Resources & Further Reading</h2>' +
+      '<h2 class="tool-resources-title"><svg class="tool-res-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 5.5h4v13h-4zM9.5 5.5h4v13h-4z"/><path d="M15 6.6l3.6.9 0 12.4-3.6-.9z"/></svg> Government resources &amp; further reading</h2>' +
       '<div class="tool-resources-grid">';
 
     cfg.groups.forEach(function(group) {
-      html += '<div><h3>' + group.icon + ' ' + escHtml(group.title) + '</h3><ul>';
+      html += '<div><h3>' + resIcon(group.icon) + escHtml(group.title) + '</h3><ul>';
       group.links.forEach(function(link) {
         html += '<li><a href="' + escHtml(link.href) + '" target="_blank" rel="noopener">' + escHtml(link.text) + '</a></li>';
       });
@@ -196,7 +221,8 @@ var ToolPage = (function() {
       '<div class="tool-trust-logos">';
     badges.forEach(function(b) {
       html += '<span class="tool-trust-logo" title="' + escHtml(b.name) + '">' +
-        badge(b.color, b.abbr, b.accent) +
+        TRUST_EMBLEM +
+        '<span class="tool-trust-abbr">' + escHtml(b.abbr) + '</span>' +
         '<span class="tool-trust-name">' + escHtml(b.name) + '</span>' +
         '</span>';
     });
@@ -206,9 +232,9 @@ var ToolPage = (function() {
 
   function renderRelated(root, links) {
     if (!links || !links.length) return;
-    var html = '<div class="tool-related"><h2>\uD83D\uDD17 Related Calculators</h2><div class="tool-related-grid">';
+    var html = '<div class="tool-related"><h2>Related calculators</h2><div class="tool-related-grid">';
     links.forEach(function(link) {
-      html += '<a href="' + escHtml(link.href) + '" class="tool-related-link">' + link.icon + ' ' + escHtml(link.label) + '</a>';
+      html += '<a href="' + escHtml(link.href) + '" class="tool-related-link">' + escHtml(link.label) + '</a>';
     });
     html += '</div></div>';
     root.innerHTML = html;
@@ -217,7 +243,7 @@ var ToolPage = (function() {
   function renderExamples(root, cfg) {
     if (!cfg || !cfg.length) return;
     var html = '<div class="tool-examples">' +
-      '<h2>\uD83D\uDCD0 Example Calculations</h2>' +
+      '<h2>Example calculations</h2>' +
       '<div class="tool-examples-grid">';
     cfg.forEach(function(ex) {
       html += '<div class="tool-example-card">';
@@ -244,7 +270,7 @@ var ToolPage = (function() {
 
   function renderFAQ(root, cfg) {
     if (!cfg || !cfg.length) return;
-    var html = '<div class="tool-faq"><h2>\u2754 Frequently Asked Questions</h2>';
+    var html = '<div class="tool-faq"><h2>Frequently asked questions</h2>';
     cfg.forEach(function(qa) {
       html += '<details class="tool-faq-item">' +
         '<summary class="tool-faq-q">' + escHtml(qa.q) + '</summary>' +
@@ -284,11 +310,11 @@ var ToolPage = (function() {
       if (!groups[g]) { groups[g] = []; order.push(g); }
       groups[g].push(link);
     });
-    var html = '<div class="tool-useful-links"><h2>\uD83D\uDD17 Useful Links</h2><div class="tool-useful-grid">';
+    var html = '<div class="tool-useful-links"><h2>Useful links</h2><div class="tool-useful-grid">';
     order.forEach(function(g) {
       html += '<div class="tool-useful-group"><h3>' + escHtml(g) + '</h3><ul>';
       groups[g].forEach(function(l) {
-        html += '<li><a href="' + escHtml(l.href) + '" class="tool-useful-link">' + (l.icon || '\u2192') + ' ' + escHtml(l.label) + '</a></li>';
+        html += '<li><a href="' + escHtml(l.href) + '" class="tool-useful-link">' + '→ ' + escHtml(l.label) + '</a></li>';
       });
       html += '</ul></div>';
     });
