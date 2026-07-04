@@ -256,6 +256,45 @@
 
 <div id="tool-resources-root"></div>
 <div id="tool-trust-root"></div>
+<!-- Static internal links: crawlable <a> to every calculator so Googlebot can
+     discover the full suite without executing the JS-injected related grid/nav.
+     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+<nav class="tool-resources" aria-label="All EquitySight calculators">
+  <div class="tool-resources-title">Explore all our free Australian property calculators</div>
+  <div class="tool-resources-grid">
+    <div>
+      <h3>Buying &amp; upfront costs</h3>
+      <ul>
+        <li><a href="/tools/stamp-duty-calculator">Stamp Duty Calculator</a></li>
+        <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
+        <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
+        <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Borrowing &amp; repayments</h3>
+      <ul>
+        <li><a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a></li>
+        <li><a href="/tools/loan-serviceability-calculator">Loan Serviceability Calculator</a></li>
+        <li><a href="/tools/mortgage-repayment-calculator">Mortgage Repayment Calculator</a></li>
+        <li><a href="/tools/mortgage-stress-calculator">Mortgage Stress Calculator</a></li>
+        <li><a href="/tools/interest-only-vs-principal-calculator">Interest-Only vs Principal Calculator</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Investment &amp; returns</h3>
+      <ul>
+        <li><a href="/tools/rental-yield-calculator">Rental Yield Calculator</a></li>
+        <li><a href="/tools/capital-gains-calculator">Capital Gains Tax Calculator</a></li>
+        <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
+        <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
+        <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="tool-resources-disclaimer"><a href="/tools/">View all Australian property calculators &rarr;</a></div>
+</nav>
+
 <div id="tool-footer-root"></div>
 
 <script src="stamp-duty-calculator-act.js" defer></script>
