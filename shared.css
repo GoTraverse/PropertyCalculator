@@ -407,6 +407,24 @@ html.dark-mode .section-tag {
   .btn-ghost { padding: 7px 11px; font-size: 12px; }
   .btn-gold { padding: 7px 12px; font-size: 12px; white-space: nowrap; }
   .nav-hamburger { display: flex !important; }
+  /* Mobile dropdown menu — elevated surface below the nav, toggled by the
+     hamburger (adds .nav-open). Sits flush under the sticky nav (top:100%). */
+  .site-nav-links.nav-open {
+    display: flex; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: #202024;
+    padding: 4px 0 8px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 18px 34px rgba(0,0,0,0.5);
+    z-index: 999;
+    max-height: calc(100vh - 56px); overflow-y: auto;
+  }
+  html.dark-mode .site-nav-links.nav-open { background: #141416; }
+  .site-nav-links.nav-open li { width: 100%; }
+  .site-nav-links.nav-open li + li { border-top: 1px solid rgba(255,255,255,0.05); }
+  .site-nav-links.nav-open a { display: block; padding: 13px 24px; font-size: 15px; }
+  .site-nav-links.nav-open a:hover,
+  .site-nav-links.nav-open a.active { background: rgba(201,168,76,0.10); color: var(--gold); }
   .site-nav { padding-bottom: 0; }
   .footer-bar { gap: 14px; padding: 16px 0; }
   .footer-copy { margin-left: 0; }
