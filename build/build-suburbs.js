@@ -478,7 +478,7 @@ function generateFAQ(s, sm) {
   // 1. Investment rating
   faqs.push({
     q: `Is ${s.suburb} a good suburb for investment?`,
-    a: `${name} scores ${scoreN}/100 on our EquitySight investment framework — a ${scoreLabel} rating. That score is driven by a population of ${fmt(pop)}${inc ? `, median household income of $${fmt(inc)}/year` : ''}${rent ? ` and median weekly rent of $${fmt(rent)}` : ''}. Whether it fits your portfolio depends on whether you are targeting cash flow, capital growth, or a value-add renovation — all three are scored with suburb-specific numbers elsewhere on this page.`,
+    a: `Whether ${name} suits you depends on your strategy, but the fundamentals are concrete: a population of ${fmt(pop)}${inc ? `, a median household income of $${fmt(inc)}/year` : ''}${rent ? ` and median weekly rent of $${fmt(rent)}` : ''}. Weigh those against your goal — cash flow, capital growth, or a value-add renovation — each of which we break down with suburb-specific ABS numbers elsewhere on this page.`,
   });
 
   // 2. Demand drivers
@@ -487,10 +487,11 @@ function generateFAQ(s, sm) {
   if (inc && sm.income && inc >= sm.income) drivers.push(`an above-state-median household income of $${fmt(inc)}/year`);
   else if (inc) drivers.push(`a median household income of $${fmt(inc)}/year`);
   if (housePct != null) drivers.push(`a dwelling mix that is ${housePct}% separate houses`);
-  drivers.push(`roughly ${s.school_count || 0} schools and ${s.park_count || 0} parks within the catchment`);
   faqs.push({
     q: `What drives property demand in ${s.suburb}?`,
-    a: `The main demand drivers in ${name} are ${drivers.join(', ')}. Together these shape both owner-occupier and tenant demand and are the factors we weight most heavily in the suburb's investment score.`,
+    a: drivers.length
+      ? `The main demand drivers in ${name} are ${drivers.join(', ')}. Together these shape both owner-occupier and tenant demand.`
+      : `Demand in ${name} is shaped by its population of ${fmt(pop)} and its position within ${s.state_name}, alongside the income and rent figures shown above.`,
   });
 
   // 3. Population
@@ -1026,7 +1027,7 @@ function generateOutlook(s, sm) {
   // Sentiment sentence — pinned to the score
   const tier = score >= 81 ? 'top tier' : score >= 61 ? 'upper-middle tier' : score >= 41 ? 'mid tier' : 'lower tier';
   const tone = sentimentLevel === 'strong' ? 'constructive' : sentimentLevel === 'moderate' ? 'balanced' : 'cautious';
-  parts.push(`The EquitySight investment score of ${score}/100 places ${s.suburb} in the ${tier} of Australian suburbs we profile, and overall investor sentiment is ${tone} heading into the second half of 2026.`);
+  parts.push(`Overall investor sentiment for ${s.suburb} is ${tone} heading into the second half of 2026, based on its income, rent and mortgage profile relative to the ${s.state_name} median.`);
 
   return `<h2>2026 Outlook</h2>\n    <div class="suburb-outlook-tags">\n      ${tags}\n    </div>\n    <p>${escHtml(parts.join(' '))}</p>`;
 }

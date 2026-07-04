@@ -75,11 +75,6 @@
     <p>{{OVERVIEW}}</p>
   </section>
 
-  <!-- Investment Score -->
-  <section class="suburb-section">
-    {{INVESTMENT_SCORE_HTML}}
-  </section>
-
   <!-- Location — inline SVG locator card. Replaces the old Google Maps
        iframe (which cost ~2s of tile-fetch latency). Renders instantly,
        offline-capable, and shows the suburb's position relative to the
@@ -153,26 +148,8 @@
 
   <!-- Lifestyle & Amenities -->
   <section class="suburb-section">
-    <h2>Lifestyle &amp; Amenities</h2>
+    <h2>Housing</h2>
     <div class="suburb-grid">
-      <details class="suburb-stat">
-        <summary>
-          <div class="suburb-stat-label">Schools nearby</div>
-          <div class="suburb-stat-value">{{SCHOOL_COUNT}}</div>
-        </summary>
-        <div class="suburb-stat-detail">
-          {{SCHOOLS_DETAIL}}
-        </div>
-      </details>
-      <details class="suburb-stat">
-        <summary>
-          <div class="suburb-stat-label">Parks &amp; green spaces</div>
-          <div class="suburb-stat-value">{{PARK_COUNT}}</div>
-        </summary>
-        <div class="suburb-stat-detail">
-          {{PARKS_DETAIL}}
-        </div>
-      </details>
       <details class="suburb-stat">
         <summary>
           <div class="suburb-stat-label">Median monthly mortgage</div>
