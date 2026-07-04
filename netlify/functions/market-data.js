@@ -24,6 +24,12 @@ const DOMAIN_CLIENT_SECRET = process.env.DOMAIN_CLIENT_SECRET || '';
 const TTL_CASH_RATE    = 24 * 3600;       // 24 hours
 const TTL_STATE_PRICES = 7  * 24 * 3600;  // 7 days
 const TTL_SUBURB       = 30 * 24 * 3600;  // 30 days (Domain free tier: 500 calls/day)
+const TTL_SUBURB_MISS  = 7  * 24 * 3600;  // 7 days — negative cache: Domain has no data for
+                                          // most of our ~14.6k suburbs, and every miss runs a
+                                          // full OAuth + multi-endpoint Domain lookup. Caching
+                                          // the "no data" verdict turns a re-crawl of an empty
+                                          // suburb into a cheap Redis read instead. Shorter than
+                                          // TTL_SUBURB so newly-available data / creds recover.
 
 const H = {
   'Content-Type': 'application/json',
@@ -358,17 +364,25 @@ exports.handler = async (event) => {
     if (String(suburb).length > 100) return fail('suburb too long');
 
     const cacheKey = `market:suburb:${suburb.toLowerCase().replace(/\s+/g, '_')}:${state.toUpperCase()}`;
+    // Cache stores the full verdict (found:true|false), so both hits and misses are
+    // served straight from Redis without touching the Domain API.
     const cached = await rGet(cacheKey);
     if (cached) return ok({ ok: true, ...cached, cached: true });
 
     const live = await fetchSuburbInsights(suburb, state);
+
     if (!live) {
-      return ok({ ok: true, found: false, suburb, state, cached: false,
-        note: DOMAIN_CLIENT_ID ? 'No data returned from Domain API' : 'Domain API credentials not configured' });
+      // Negative cache the "no data" result so repeat hits (esp. crawlers walking
+      // every suburb) don't re-run the OAuth + multi-endpoint Domain lookup each time.
+      const miss = { found: false, suburb, state,
+        note: DOMAIN_CLIENT_ID ? 'No data returned from Domain API' : 'Domain API credentials not configured' };
+      await rSet(cacheKey, miss, TTL_SUBURB_MISS);
+      return ok({ ok: true, ...miss, cached: false });
     }
 
-    await rSet(cacheKey, live, TTL_SUBURB);
-    return ok({ ok: true, found: true, ...live, cached: false });
+    const hit = { found: true, ...live };
+    await rSet(cacheKey, hit, TTL_SUBURB);
+    return ok({ ok: true, ...hit, cached: false });
   }
 
   return fail('Unknown action. Valid: cashRate, statePrices, suburbInsights');
