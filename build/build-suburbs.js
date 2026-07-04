@@ -2106,7 +2106,7 @@ ${links}
 function generateMethodologyBlock(s) {
   return `  <section class="suburb-section suburb-methodology">
     <h2>How we built this ${escHtml(s.suburb)} profile</h2>
-    <p>The population count and postcode on this page are real, sourced from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census</a> and Australia Post. The other figures here — including any income, amenity, school/park, and "investment score" values — are <strong>early estimates, not verified ABS or OpenStreetMap data</strong>. We're rebuilding these profiles on real, sourced data before featuring them, which is why this page isn't currently indexed. See our <a href="/methodology">methodology</a> and <a href="/data-sources">data sources</a> for exactly what's real and what's estimated.</p>
+    <p>The population, postcode, median household income, median weekly rent, median monthly mortgage repayment and dwelling mix on this page are <strong>real figures from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census</a></strong> (income is the ABS median weekly household income annualised; rent and mortgage are the ABS medians) and Australia Post. Distance to the CBD is calculated from the suburb's ABS centroid. The <strong>investment score is our own composite estimate</strong> derived from those figures, and any school or park counts are approximate heuristics rather than verified counts. See our <a href="/methodology">methodology</a> and <a href="/data-sources">data sources</a> for exactly what's measured and what's estimated.</p>
   </section>`;
 }
 
@@ -2240,10 +2240,14 @@ for (const s of suburbs) {
     ? `$${fmt(s.median_rent_weekly)}/wk`
     : 'N/A';
 
-  // Income display — the upstream income field is a name-seeded placeholder, not
-  // verified ABS data, so we do NOT publish a figure. Shown as N/A until a real
-  // ABS income source is integrated. (Honesty hold, Jun 2026.)
-  const incomeDisplay = 'N/A';
+  // Income display — real ABS 2021 median household income (the ABS median
+  // weekly household income annualised by apply-abs-data.js). The Jun 2026
+  // "N/A hold" was a mistake: it assumed this field was a name-seeded
+  // placeholder, but apply-abs-data.js overwrites it with the real ABS value.
+  // Falls back to N/A only when the ABS figure is genuinely absent.
+  const incomeDisplay = s.median_household_income
+    ? `$${fmt(s.median_household_income)}`
+    : 'N/A';
 
   // Mortgage display
   const mortgageDisplay = s.median_mortgage_monthly
