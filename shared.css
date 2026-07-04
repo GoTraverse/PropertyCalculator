@@ -510,6 +510,9 @@ html.dark-mode .section-tag {
 .tools-grid .tg-card { background: white; border: 1px solid rgba(28,28,30,0.08); border-radius: 10px; padding: 28px 22px; transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer; display: flex; flex-direction: column; width: 100%; }
 .tools-grid .tg-card:hover { border-color: rgba(201,168,76,0.4); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
 .tools-grid .tg-icon { font-size: 32px; margin-bottom: 14px; }
+/* Custom monoline calculator icons (inline SVG, inherit colour via currentColor). */
+.tools-grid .tg-icon svg { width: 34px; height: 34px; display: block; color: var(--gold-dark); }
+html.dark-mode .tools-grid .tg-icon svg { color: var(--gold); }
 .tools-grid .tg-name { font-family: var(--font-display); font-size: 17px; font-weight: 700; margin-bottom: 8px; }
 .tools-grid .tg-desc { font-size: 13px; color: var(--slate); line-height: 1.6; margin-bottom: 16px; flex: 1; }
 .tools-grid .tg-link { color: var(--gold-dark); font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; margin-top: auto; }
