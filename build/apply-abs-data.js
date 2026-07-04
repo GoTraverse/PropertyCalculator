@@ -276,6 +276,12 @@ for (const s of suburbs) {
   // Remove fake population_growth
   s.population_growth = null;
 
+  // Persist the resolved street postcode (e.g. NSW PO-box 1740 -> 2150) so the
+  // DISPLAYED postcode is correct. resolvePostcode() was previously only used
+  // internally for classification, leaving s.postcode showing the PO-box code
+  // on the page (e.g. Parramatta rendered as "NSW 1740" instead of "2150").
+  s.postcode = resolvePostcode(s.state, s.postcode);
+
   // Re-classify suburb type with tiered postcode ranges
   s.suburb_type = classifyType(s.state, s.postcode);
 
