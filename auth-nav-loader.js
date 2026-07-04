@@ -32,11 +32,7 @@
     ham.addEventListener('click', function () {
       var links = document.querySelector('.site-nav-links');
       if (!links) return;
-      if (links.style.display === 'flex') {
-        links.style.cssText = '';
-      } else {
-        links.style.cssText = 'display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--charcoal-soft);padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);z-index:999;';
-      }
+      links.classList.toggle('nav-open');
     });
   }
 
