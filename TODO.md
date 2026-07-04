@@ -21,6 +21,9 @@ General - (DO NOT REMOVE THIS LINE)
     - how-to-read-property-market-trends-like-an-investor (1,408 → 1,500): add a 100-word section on using RBA cash-rate history + ABS dwelling approvals as leading indicators; link to /methodology.
     - is-redbank-plains-a-good-investment-2026 (1,425 → 1,500): add a 90-word comparison vs neighbouring Collingwood Park + Bellbird Park (median price, gross yield, distance to CBD) pulled from the respective suburb pages.
     All target word counts verified via `node build/build-blog.js` with BLOG_MIN_WORDS=1500.
+31. (SEO audit Jul 2026 — low priority; site already scores PageSpeed Perf 99 / SEO 100, most report findings are noise) Homepage image aspect-ratio: add explicit width/height (or fix CSS) so display ratio matches intrinsic ratio — prevents distortion + CLS. Flagged by SEO Site Checkup. (Homepage title 92→56 chars + meta description 162→154 already fixed.)
+32. (SEO audit Jul 2026 — low priority) Add <lastmod> to sitemap-core.xml entries in the sitemap build — cheap content-freshness / crawl-scheduling hint. Flagged by RankMath.
+33. (SEO audit Jul 2026 — optional, marginal) Cut ~290ms homepage render-blocking: inline critical CSS and/or async-load the Google Fonts stylesheet. LCP already 1.5s so low payoff.
 
 
 PRODUCT ROADMAP (S/A/B tier) - (DO NOT REMOVE THIS LINE)
