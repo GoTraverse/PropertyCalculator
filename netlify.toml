@@ -1,3 +1,11 @@
+# ── Deploy marker ────────────────────────────────────────────────────────────
+# 2026-07-03: first build after the Netlify pause. Ships the type rebrand (#314),
+# the SEO round (#310–#313: /tools canonical loop, blog canonical 404, dead .html
+# redirects, crawl-budget robots block, static internal links, equity retarget)
+# and the onboarding wizard (#308). This build does a one-time full suburb rebuild
+# (the suburb templates' font-preload URL changed → cache-dep hash invalidated);
+# it re-caches afterwards, so subsequent deploys are fast again.
+
 [build]
   command = "node build.js"
   publish = "."
