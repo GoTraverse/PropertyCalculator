@@ -6,7 +6,7 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v13';
+const CACHE_NAME = 'equitysight-v14';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/offline.html',
@@ -14,6 +14,8 @@ const STATIC_ASSETS = [
   '/app.css',
   '/tools.css',
   '/index.css',
+  '/about.css',
+  '/contact.css',
   '/site-init.js',
   '/error-capture.js',
   '/auth-nav.js',
@@ -61,7 +63,11 @@ const SWR_API_PATTERNS = [
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(STATIC_ASSETS);
+      // Bypass the HTTP cache on (re)install so a version bump always re-fetches
+      // FRESH assets. Otherwise the 1-day HTTP cache lets the SW re-cache stale
+      // CSS/JS after a deploy (new HTML + old CSS = broken layouts on returning
+      // devices). {cache:'reload'} forces a network fetch, self-healing them.
+      return cache.addAll(STATIC_ASSETS.map(function(u){ return new Request(u, { cache: 'reload' }); }));
     })
   );
   self.skipWaiting();
