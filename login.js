@@ -120,7 +120,7 @@ if (refParam) {
 // 3. Already-logged-in redirect
 // ──────────────────────────────────────────────────────────────────────
 
-const ALLOWED_NEXT = ['app', 'account', 'pricing'];
+const ALLOWED_NEXT = ['app', 'account', 'pricing', 'portfolio'];
 const ALLOWED_NEXT_PREFIXES = ['suburb/', 'blog/'];
 function safeNextUrl(raw) {
   if (!raw) return '/app';
