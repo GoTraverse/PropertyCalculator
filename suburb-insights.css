@@ -774,20 +774,25 @@ html.dark-mode .suburb-proscons-col li { color: #F5F0E8; }
 html.dark-mode .suburb-tip h2 { color: #E6C870; }
 
 /* ── Blog cross-links inside the calc-CTA section ───────────────────── */
-.suburb-blog-links { margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,0.2); }
-.suburb-blog-links-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+.suburb-blog-links { margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(28,28,30,0.15); }
+.suburb-blog-links-label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--slate); margin-bottom: 8px; }
 .suburb-blog-link {
   display: inline-block;
   margin: 4px 6px 4px 0;
   padding: 7px 12px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: #fff;
+  border: 1px solid rgba(201,168,76,0.4);
   border-radius: 6px;
-  color: #F5F0E8;
+  color: var(--charcoal);
   text-decoration: none;
   font-size: 13px;
-  transition: background 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.suburb-blog-link:hover { background: rgba(255,255,255,0.15); }
+.suburb-blog-link:hover { border-color: var(--gold); box-shadow: 0 2px 8px rgba(201,168,76,0.2); }
+
+/* Dark mode: the panel is dark, so restore light text/chips. */
+html.dark-mode .suburb-blog-links { border-top-color: rgba(255,255,255,0.15); }
+html.dark-mode .suburb-blog-links-label { color: rgba(245,240,232,0.6); }
+html.dark-mode .suburb-blog-link { background: rgba(255,255,255,0.06); border-color: rgba(201,168,76,0.4); color: #F5F0E8; }
 
 html.dark-mode .suburb-calc-link{background:rgba(255,255,255,0.06);color:#F5F0E8;border-color:rgba(201,168,76,0.4);}
