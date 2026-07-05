@@ -253,7 +253,8 @@ function populateSuburbList() {
 var _SUBURB_HINTS = {
   vic: 'VIC data: median house + unit sale prices (Valuer-General Victoria, 2025 preliminary). No rent data yet.',
   qld: 'QLD data: current median weekly rents only (RTA, Mar 2026). No free public sale-price data exists for QLD.',
-  sa: 'SA data: median weekly rents (Jan–Mar 2026) + median house sale prices for metro Adelaide (Q1 2026).'
+  sa: 'SA data: median weekly rents (Jan–Mar 2026) + median house sale prices for metro Adelaide (Q1 2026).',
+  tas: 'TAS data: suburb median weekly rents (12 months of bond lodgements, Dept of Justice). No free public sale prices.'
 };
 
 function updateSuburbHint() {
@@ -270,7 +271,7 @@ function updateSuburbHint() {
 
 function loadMedians() {
   if (!window.fetch) { _mediansFailed = true; updateSuburbHint(); return; }
-  fetch('/tools/market-medians.json?v=2026Q2').then(function (r) {
+  fetch('/tools/market-medians.json?v=2026Q2b').then(function (r) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function (j) {
