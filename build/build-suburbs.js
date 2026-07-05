@@ -1476,7 +1476,10 @@ const BUILD_DATE = new Date().toLocaleDateString('en-AU', {
 // largest suburbs concentrates crawl budget + quality signal on the money
 // pages. Cut suburbs remain reachable as noindex,follow (link equity to the
 // calculators survives); they're just out of the sitemap + state-hub features.
-const MIN_POPULATION_FOR_INDEX = 10000;
+// Lowered from 10000 → 2000 (Jul 2026): the real-current-data requirement in
+// shouldNoindex() is now the quality gate, so smaller suburbs that carry genuine
+// current rent/sale-price (e.g. Glenelg SA, pop ~3.5k) are legitimately indexable.
+const MIN_POPULATION_FOR_INDEX = 2000;
 
 function shouldNoindex(s) {
   // Real-data gate (Jul 2026): index a suburb page only when it carries genuine,
