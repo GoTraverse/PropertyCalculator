@@ -1,11 +1,11 @@
-/* WA Stamp Duty Calculator — uses RevenueWA 2025–26 rates.
+/* WA Stamp Duty Calculator — uses RevenueWA 2026–27 rates (FHB thresholds raised 7 May 2026; verified 5 Jul 2026).
  * The bracket structure here mirrors that used by tools/stamp-duty-calculator.js
  * for WA; this file exists so the WA-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
 
 var WA_FOREIGN_RATE = 0.07;
-var WA_FHB_FULL = 500000;
-var WA_FHB_PARTIAL = 700000;
+var WA_FHB_FULL = 600000;   // raised from $500k for transactions from 7 May 2026
+var WA_FHB_PARTIAL = 800000; // raised from $700k (legislation est. late Jul 2026, retrospective)
 
 // State-standard transfer duty (investor / non-FHB).
 function calcWAStandard(v) {
@@ -97,7 +97,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Western Australia 2025-26 transfer duty. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Western Australia 2026-27 transfer duty (FHB thresholds from 7 May 2026; enabling legislation expected late July 2026 with retrospective refunds). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -261,7 +261,7 @@ ToolPage.init({
   },
   {
     "q": "Do first home buyers pay stamp duty in WA?",
-    "a": "Eligible first home buyers pay no transfer duty under the First Home Owner Rate of Duty (FHOR) on residential properties up to $500,000, with a sliding partial concession from $500,000 to $700,000. Above the $700,000 partial limit the standard general rates apply."
+    "a": "Eligible first home buyers pay no transfer duty under the First Home Owner Rate of Duty (FHOR) on homes up to $600,000, with a sliding partial concession from $600,000 to $800,000 — thresholds raised for transactions from 7 May 2026 (enabling legislation expected late July 2026; duty paid in the interim is refunded). Vacant land: exemption to $450,000, concession to $550,000. Above the caps the standard general rates apply."
   },
   {
     "q": "When is WA transfer duty due?",

@@ -27,9 +27,10 @@ var stateCosts = {
  * full duty there. Foreign-buyer surcharge per state.
  */
 var stateData = {
+  // NSW brackets CPI-indexed 1 Jul 2026 (FY2026-27, verified vs Revenue NSW 5 Jul 2026)
   nsw: { name: 'New South Wales', foreignRate: 0.09, fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
-    tiers: [ { from: 0, rate: 0.0125 }, { from: 17000, rate: 0.015 }, { from: 37000, rate: 0.0175 },
-             { from: 99000, rate: 0.035 }, { from: 372000, rate: 0.045 }, { from: 1240000, rate: 0.055 }, { from: 3721000, rate: 0.07 } ] },
+    tiers: [ { from: 0, rate: 0.0125 }, { from: 18000, rate: 0.015 }, { from: 38000, rate: 0.0175 },
+             { from: 103000, rate: 0.035 }, { from: 387000, rate: 0.045 }, { from: 1290000, rate: 0.055 }, { from: 3870000, rate: 0.07 } ] },
   vic: { name: 'Victoria', foreignRate: 0.08, fhbFull: 600000, fhbPartial: 750000, fhbExemption: Infinity,
     tiers: [ { from: 0, rate: 0.014 }, { from: 25000, rate: 0.024 }, { from: 130000, rate: 0.06 } ] },
   qld: { name: 'Queensland', foreignRate: 0.08, fhbFull: 700000, fhbPartial: 800000, fhbExemption: Infinity,
@@ -37,12 +38,15 @@ var stateData = {
   sa: { name: 'South Australia', foreignRate: 0.07, fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
     tiers: [ { from: 0, rate: 0.01 }, { from: 12000, rate: 0.02 }, { from: 30000, rate: 0.03 }, { from: 50000, rate: 0.035 },
              { from: 100000, rate: 0.04 }, { from: 200000, rate: 0.0425 }, { from: 250000, rate: 0.0475 }, { from: 300000, rate: 0.05 }, { from: 500000, rate: 0.055 } ] },
-  wa: { name: 'Western Australia', foreignRate: 0.07, fhbFull: 500000, fhbPartial: 700000, fhbExemption: Infinity,
+  // WA FHB thresholds raised 7 May 2026 (2026-27 Housing Taxation Package)
+  wa: { name: 'Western Australia', foreignRate: 0.07, fhbFull: 600000, fhbPartial: 800000, fhbExemption: Infinity,
     tiers: [ { from: 0, rate: 0.019 }, { from: 120000, rate: 0.0285 }, { from: 150000, rate: 0.038 }, { from: 360000, rate: 0.0475 }, { from: 725000, rate: 0.0515 } ] },
-  tas: { name: 'Tasmania', foreignRate: 0.08, fhbFull: 750000, fhbPartial: 750000, fhbExemption: Infinity,
+  // TAS established-home FHB exemption EXPIRED 30 Jun 2026 (not extended) — no FHB duty relief
+  tas: { name: 'Tasmania', foreignRate: 0.08, fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
     tiers: [ { from: 0, rate: 0 }, { from: 3000, rate: 0.0175 }, { from: 25000, rate: 0.0225 }, { from: 75000, rate: 0.035 },
              { from: 200000, rate: 0.04 }, { from: 375000, rate: 0.0425 }, { from: 725000, rate: 0.045 } ] },
-  act: { name: 'Australian Capital Territory', foreignRate: 0, fhbFull: 1020000, fhbPartial: 1020000, fhbExemption: Infinity,
+  // ACT: from 1 Jul 2026 the HBCS has NO income test and NO property value limit — eligible buyers pay $0 duty at any price
+  act: { name: 'Australian Capital Territory', foreignRate: 0, fhbFull: Infinity, fhbPartial: Infinity, fhbExemption: Infinity,
     tiers: [ { from: 0, rate: 0.0028 }, { from: 260000, rate: 0.022 }, { from: 300000, rate: 0.034 }, { from: 500000, rate: 0.0432 }, { from: 750000, rate: 0.059 }, { from: 1000000, rate: 0.064 } ] },
   nt: { name: 'Northern Territory', foreignRate: 0, fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity, tiers: [] }
 };

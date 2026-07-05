@@ -14,13 +14,16 @@ var _SD_STATE_DATA = {
   // fhbFull = full-exemption ceiling; fhbPartial = taper ceiling (===fhbFull
   // means hard cliff, no taper). SA + NT: NEW homes only / grants — no
   // value-based exemption, so fhbFull/fhbPartial are 0 (never auto-zeroed).
-  NSW: { fhbFull: 800000,  fhbPartial: 1000000, tiers: [[0,0.0125],[17000,0.015],[37000,0.0175],[99000,0.035],[372000,0.045],[1240000,0.055],[3721000,0.07]] },
+  // NSW brackets CPI-indexed 1 Jul 2026 (FY2026-27, verified vs Revenue NSW 5 Jul 2026)
+  NSW: { fhbFull: 800000,  fhbPartial: 1000000, tiers: [[0,0.0125],[18000,0.015],[38000,0.0175],[103000,0.035],[387000,0.045],[1290000,0.055],[3870000,0.07]] },
   VIC: { fhbFull: 600000,  fhbPartial: 750000,  tiers: [[0,0.014],[25000,0.024],[130000,0.06]] },
   QLD: { fhbFull: 700000,  fhbPartial: 800000,  tiers: [[0,0],[5000,0.015],[75000,0.035],[540000,0.045],[1000000,0.0575]] },
   SA:  { fhbFull: 0,       fhbPartial: 0,        tiers: [[0,0.01],[12000,0.02],[30000,0.03],[50000,0.035],[100000,0.04],[200000,0.0425],[250000,0.0475],[300000,0.05],[500000,0.055]] },
-  WA:  { fhbFull: 500000,  fhbPartial: 700000,  tiers: [[0,0.019],[120000,0.0285],[150000,0.038],[360000,0.0475],[725000,0.0515]] },
-  TAS: { fhbFull: 750000,  fhbPartial: 750000,  tiers: [[0,0],[3000,0.0175],[25000,0.0225],[75000,0.035],[200000,0.04],[375000,0.0425],[725000,0.045]] },
-  ACT: { fhbFull: 1020000, fhbPartial: 1020000, tiers: [[0,0.0028],[260000,0.022],[300000,0.034],[500000,0.0432],[750000,0.059],[1000000,0.064]] },
+  // WA FHB thresholds raised 7 May 2026; TAS established-home FHB exemption EXPIRED
+  // 30 Jun 2026 (0/0 = no relief); ACT HBCS uncapped + no income test from 1 Jul 2026.
+  WA:  { fhbFull: 600000,  fhbPartial: 800000,  tiers: [[0,0.019],[120000,0.0285],[150000,0.038],[360000,0.0475],[725000,0.0515]] },
+  TAS: { fhbFull: 0,       fhbPartial: 0,        tiers: [[0,0],[3000,0.0175],[25000,0.0225],[75000,0.035],[200000,0.04],[375000,0.0425],[725000,0.045]] },
+  ACT: { fhbFull: Infinity, fhbPartial: Infinity, tiers: [[0,0.0028],[260000,0.022],[300000,0.034],[500000,0.0432],[750000,0.059],[1000000,0.064]] },
   NT:  { fhbFull: 0,       fhbPartial: 0,        tiers: [] }
 };
 

@@ -1,4 +1,4 @@
-/* QLD Transfer Duty calculator — uses Queensland Revenue Office (QRO) 2025–26
+/* QLD Transfer Duty calculator — uses Queensland Revenue Office (QRO) 2026–27 (thresholds unchanged; verified 5 Jul 2026)
  * rates as published at https://qro.qld.gov.au/duties/transfer-duty/. The
  * standard, home concession, and first home concession brackets here mirror
  * those already used by tools/stamp-duty-calculator.js for QLD; this file
@@ -97,7 +97,7 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Queensland 2025–26 transfer duty. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Queensland 2026–27 transfer duty. From 1 Aug 2026, home concessions require Australian citizenship, permanent residency or specified foreign retiree status. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

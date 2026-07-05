@@ -10,57 +10,50 @@
  *     to what lenders actually use than the flat 2200+800 rule.
  *   • Credit-card limits assessed at 3.0% per month of total LIMIT, not
  *     balance — same as APRA-compliant lenders.
- *   • HECS/HELP cost computed from the income-tier repayment schedule
- *     (FY 2025-26 rates) rather than a flat percentage.
+ *   • HECS/HELP cost computed from the marginal repayment schedule
+ *     (FY 2026-27 rates) rather than a flat percentage.
  *   • Adjustable LVR (60-97%) so the indicative property price reflects
  *     actual deposit. Above 80% the calc warns about LMI.
  *   • "Borrowing capacity breakdown" — shows how each input reduces your
  *     borrowing power vs the no-deductions baseline. Most calculators
  *     don't surface this.
  *
- * Rate constants: existing FY 2025-26 values, unchanged this session.
+ * Rate constants: FY 2026-27 tax + HELP schedules, verified 5 Jul 2026.
  */
 
-// ── ATO resident individual tax (FY 2025-26 Stage 3) ──────────────────────
+// ── ATO resident individual tax (FY 2026-27) ──────────────────────────────
 function approxTax(gross) {
-  // FY 2025-26 brackets (Stage 3 cuts, in effect 1 Jul 2024). Verify each FY
-  // at https://www.ato.gov.au/rates/individual-income-tax-rates/
+  // FY 2026-27 brackets (second rate cut 16% → 15% from 1 Jul 2026). Verify
+  // each FY at https://www.ato.gov.au/rates/individual-income-tax-rates/
   var tax = 0;
   if (gross <= 18200) tax = 0;
-  else if (gross <= 45000) tax = (gross - 18200) * 0.16;
-  else if (gross <= 135000) tax = 4288 + (gross - 45000) * 0.30;
-  else if (gross <= 190000) tax = 31288 + (gross - 135000) * 0.37;
-  else tax = 51638 + (gross - 190000) * 0.45;
-  // Medicare levy: 0% below $27,222; sliding 10% of excess in $27,222-$34,027;
-  // flat 2% above $34,027 (singles, FY 2025-26).
-  if (gross > 34027) tax += gross * 0.02;
-  else if (gross > 27222) tax += (gross - 27222) * 0.10;
+  else if (gross <= 45000) tax = (gross - 18200) * 0.15;
+  else if (gross <= 135000) tax = 4020 + (gross - 45000) * 0.30;
+  else if (gross <= 190000) tax = 31020 + (gross - 135000) * 0.37;
+  else tax = 51370 + (gross - 190000) * 0.45;
+  // Medicare levy: 0% below $28,011; sliding 10% of excess in $28,011-$35,013;
+  // flat 2% above $35,013 (singles). FY 2025-26 thresholds (latest published;
+  // 2026-27 legislated retrospectively each year).
+  if (gross > 35013) tax += gross * 0.02;
+  else if (gross > 28011) tax += (gross - 28011) * 0.10;
   return tax;
 }
 
-// ── HECS/HELP repayment by income tier (FY 2025-26) ───────────────────────
-// Source: ATO study and training support loans schedule.
+// ── HECS/HELP repayment — marginal system (FY 2026-27) ────────────────────
+// From 1 Jul 2025 HELP repayments are MARGINAL (like income tax), replacing
+// the old whole-income %-tier table. FY 2026-27 schedule:
+//   repayment income ≤ $69,528: nil
+//   $69,529–$129,717: 15c per $1 over $69,528
+//   $129,718–$186,050: $9,028 + 17c per $1 over $129,717
+//   $186,051+: 10% of TOTAL repayment income — a CLIFF, not a marginal step
+//     (the flat 10% applies to the whole income, confirmed by ATO Example 3).
+// Source: ATO study loan rates, FY2026-27, verified 5 Jul 2026.
 // Repayment income (HRI) ≈ gross + reportable fringe benefits; here we use
 // gross as a close approximation.
 function hecsAnnual(gross) {
-  if (gross < 54435) return 0;
-  if (gross < 62851) return gross * 0.01;
-  if (gross < 66621) return gross * 0.02;
-  if (gross < 70619) return gross * 0.025;
-  if (gross < 74856) return gross * 0.03;
-  if (gross < 79347) return gross * 0.035;
-  if (gross < 84108) return gross * 0.04;
-  if (gross < 89155) return gross * 0.045;
-  if (gross < 94504) return gross * 0.05;
-  if (gross < 100175) return gross * 0.055;
-  if (gross < 106186) return gross * 0.06;
-  if (gross < 112557) return gross * 0.065;
-  if (gross < 119310) return gross * 0.07;
-  if (gross < 126468) return gross * 0.075;
-  if (gross < 134057) return gross * 0.08;
-  if (gross < 142101) return gross * 0.085;
-  if (gross < 150627) return gross * 0.09;
-  if (gross < 159664) return gross * 0.095;
+  if (gross <= 69528) return 0;
+  if (gross <= 129717) return (gross - 69528) * 0.15;
+  if (gross <= 186050) return 9028 + (gross - 129717) * 0.17;
   return gross * 0.10;
 }
 
@@ -362,9 +355,9 @@ ToolPage.init({
         { k: 'Card limit', v: '$15,000' }, { k: 'HECS', v: 'Both applicants' }
       ],
       outputs: [
-        { k: 'Max loan', v: '~$690,000' },
+        { k: 'Max loan', v: '~$720,000' },
         { k: 'Card cost on borrowing power', v: '~$60,000 reduction' },
-        { k: 'HECS cost on borrowing power', v: '~$95,000 reduction' }
+        { k: 'HECS cost on borrowing power', v: '~$62,000 reduction' }
       ]
     },
     {
@@ -385,7 +378,7 @@ ToolPage.init({
     { q: 'Why does my credit card limit reduce borrowing power even if I pay it off each month?',
       a: 'APRA requires lenders to assess credit cards at 3.0% per month of the FULL LIMIT — not the balance. A $20,000 limit you never use reduces your borrowing power by approximately $60,000-$80,000. Reduce or close unused cards at least 30 days before applying.' },
     { q: 'How does HECS/HELP debt affect borrowing power?',
-      a: 'HECS is assessed using the ATO income-tier repayment schedule (FY 2025-26: 1% from $54,435 rising to 10% above $159,664). On a $110,000 income, HECS reduces monthly available income by ~$700, translating to about $100,000 less borrowing power. The debt size itself does not matter — only the income-tier repayment rate.' },
+      a: 'Since 1 July 2025 HELP repayments are marginal, like income tax. For FY 2026-27: nil up to $69,528, then 15c per $1 between $69,529 and $129,717, then $9,028 plus 17c per $1 up to $186,050 — and above $186,050 a flat 10% of your ENTIRE repayment income applies (a cliff, not a marginal step). On a $110,000 income that is about $6,071 a year (~$506 a month), translating to roughly $60,000 less borrowing power. The debt size itself does not matter — only the repayment on your income.' },
     { q: 'What is HEM and why is it sometimes higher than my real expenses?',
       a: 'The Household Expenditure Measure is a Melbourne Institute benchmark of minimum reasonable living expenses, tiered by household size and income. Lenders apply whichever is HIGHER — your declared expenses or HEM — to stop borrowers understating spending. If your real expenses are well above HEM, the lender uses your actual figure. If below, the lender uses HEM.' },
     { q: 'Does APRA\'s 3% serviceability buffer ever change?',

@@ -1,4 +1,4 @@
-/* TAS Stamp Duty Calculator — uses State Revenue Office Tasmania 2025–26 rates.
+/* TAS Stamp Duty Calculator — uses State Revenue Office Tasmania 2026–27 rates (verified 5 Jul 2026).
  * The bracket structure here mirrors that used by tools/stamp-duty-calculator.js
  * for TAS; this file exists so the TAS-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
@@ -6,8 +6,8 @@
 // Tasmania levies an 8% Foreign Investor Duty Surcharge (FIDS) on residential
 // property acquired by foreign persons (since 1 April 2020).
 var TAS_FOREIGN_RATE = 0.08;
-var TAS_FHB_FULL = 750000;
-var TAS_FHB_PARTIAL = 750000;
+var TAS_FHB_FULL = 0;      // established-home exemption EXPIRED 30 Jun 2026
+var TAS_FHB_PARTIAL = 0;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcTASStandard(v) {
@@ -28,14 +28,11 @@ function calcTASDuty(price, ptype, buyer, fhb) {
   var v = price;
   var standard = calcTASStandard(v);
 
-  if (fhb && v <= TAS_FHB_FULL) {
-    // Full duty exemption for first-home buyers of established homes <= $750k
-    // (to 30 Jun 2026). Hard cliff — no taper above the threshold.
-    return { duty: 0, note: 'First home buyer exemption applied (established home up to $750,000).' };
-  }
-  if (fhb && v <= TAS_FHB_PARTIAL && TAS_FHB_PARTIAL > TAS_FHB_FULL) {
-    var slide = (TAS_FHB_PARTIAL - v) / (TAS_FHB_PARTIAL - TAS_FHB_FULL);
-    return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
+  if (fhb) {
+    // TAS's established-home FHB duty exemption (<= $750k) EXPIRED 30 June 2026
+    // and was NOT extended (SRO: "not available for transactions settling after
+    // 30 June 2026"). First home buyers now pay full standard duty.
+    return { duty: standard, note: 'Tasmania’s first home buyer duty exemption ended 30 June 2026 — standard duty applies. (The First Home Owner Grant for NEW builds is separate: $20,000 from 1 July 2026, subject to legislation.)' };
   }
 
   return { duty: standard, note: '' };
@@ -105,7 +102,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Tasmania 2025-26 property transfer duty. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Tasmania 2026-27 property transfer duty (FHB exemption ended 30 June 2026). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -140,7 +137,7 @@ ToolPage.init({
         icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Office Tasmania',
         links: [
           { text: 'TAS Property Transfer Duty', href: 'https://www.sro.tas.gov.au/property-transfer-duties' },
-          { text: 'First Home Buyer Duty Exemption (established homes up to $750k)', href: 'https://www.sro.tas.gov.au/property-transfer-duties/first-home-buyer-duty-concession' }
+          { text: 'First Home Buyer Duty Relief (scheme ended 30 June 2026)', href: 'https://www.sro.tas.gov.au/property-transfer-duties/first-home-buyer-duty-concession' }
         ]
       },
       {
@@ -203,7 +200,7 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (full FHB exemption)"
+        "v": "$22,498 (exemption ended 30 Jun 2026)"
       }
     ]
   },
@@ -230,7 +227,7 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$31,185 (over $750k cap)"
+        "v": "$31,185 (no FHB duty relief in TAS)"
       }
     ]
   },
@@ -257,7 +254,7 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$40,185 (over $750k cap)"
+        "v": "$40,185 (no FHB duty relief in TAS)"
       }
     ]
   }
@@ -269,7 +266,7 @@ ToolPage.init({
   },
   {
     "q": "Do first home buyers pay stamp duty in Tasmania?",
-    "a": "Eligible first home buyers receive a FULL exemption from property transfer duty on established homes valued up to $750,000 (a temporary measure currently legislated to 30 June 2026). It is a hard cliff: at $750,000 or below an eligible first home buyer pays $0 duty, but at $750,001 or above the full standard duty applies with no concession or taper."
+    "a": "Not any more on established homes. Tasmania's temporary full duty exemption for first home buyers of established homes up to $750,000 ended on 30 June 2026 and was not extended — transactions settling after that date pay full standard duty. The separate First Home Owner Grant still applies to NEW builds: $20,000 from 1 July 2026 ($10,000 base plus $10,000 additional, subject to legislation)."
   },
   {
     "q": "When is stamp duty due in Tasmania?",
