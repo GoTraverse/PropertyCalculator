@@ -48,7 +48,12 @@ try {
 
 const src = mc.sources || {};
 const data = mc.data || {};
-let nRent = 0, nHouse = 0, nUnit = 0, nYield = 0;
+// Postcode-keyed data (coarser geography — e.g. NSW DCJ rents are published per
+// postcode, not per suburb). Used only as a fallback when no suburb-level figure
+// exists; the geo field then reads "postcode" so the page labels it honestly and
+// shouldNoindex() does NOT count it as suburb-level data.
+const pcData = mc.data_postcode || {};
+let nRent = 0, nHouse = 0, nUnit = 0, nYield = 0, nRentPc = 0;
 
 for (const s of subs) {
   // Reset (idempotent — avoids stale values on re-runs)
@@ -57,6 +62,19 @@ for (const s of subs) {
   s.current_price_house = null; s.current_price_unit = null; s.current_price_period = null;
   s.current_price_source = null; s.current_price_geo = null; s.current_price_licence = null;
   s.current_gross_yield = null;
+
+  // Postcode-level rent fallback (before the suburb lookup so a suburb match can
+  // overwrite it below — suburb-geo data always wins over postcode-geo).
+  const prow = pcData[s.state] && s.postcode && pcData[s.state][String(s.postcode)];
+  if (prow && prow.rent) {
+    const pm = src[s.state + '_rent'] || {};
+    s.current_rent = prow.rent;
+    s.current_rent_period = pm.period || null;
+    s.current_rent_source = pm.source || null;
+    s.current_rent_geo = pm.geo || 'postcode';
+    s.current_rent_licence = pm.licence || null;
+    nRentPc++;
+  }
 
   const row = data[s.state] && data[s.state][norm(s.suburb)];
   if (!row) continue;
@@ -102,5 +120,5 @@ for (const s of subs) {
 fs.writeFileSync(SUB_FILE, JSON.stringify(subs, null, 2));
 console.log(
   `[merge-market] applied current data to ${subs.length} suburbs: ` +
-  `rent=${nRent} house-price=${nHouse} unit-price=${nUnit} yield=${nYield}`
+  `rent=${nRent} rent-by-postcode=${nRentPc} house-price=${nHouse} unit-price=${nUnit} yield=${nYield}`
 );
