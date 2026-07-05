@@ -142,7 +142,7 @@ details.tool-content-more > summary {
   text-transform: none;
   font-variant-caps: all-small-caps;
   font-weight: 600;
-  color: var(--gold);
+  color: var(--gold-dark); /* 11px text — plain gold is 2:1 on warm white */
   text-align: center;
 }
 details.tool-content-more > summary::-webkit-details-marker { display: none; }
@@ -150,6 +150,7 @@ details.tool-content-more > summary::after { content: ' ▾'; opacity: 0.7; }
 details.tool-content-more[open] > summary::after { content: ' ▴'; }
 details.tool-content-more[open] > summary { color: var(--slate); }
 .dark-mode details.tool-content-more { border-color: rgba(255,255,255,0.10); }
+.dark-mode details.tool-content-more > summary { color: var(--gold); }
 
 /* ── Resources ── */
 .tool-resources { background: white; border-radius: 10px; border: 1px solid rgba(28,28,30,0.1); padding: 24px; margin-bottom: 14px; }
@@ -347,11 +348,18 @@ html.dark-mode .tool-field-hint { color: rgba(245,240,232,0.7); }
 .mort-callout { display: flex; align-items: center; gap: 12px; margin: 14px 0; padding: 12px 16px; background: rgba(90,158,123,0.08); border-left: 3px solid var(--reward-green); border-radius: 4px; font-size: 13px; line-height: 1.5; color: var(--charcoal); }
 .mort-callout-gold { background: rgba(201,168,76,0.10); border-left-color: var(--gold); }
 .mort-callout-tag { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.08em; text-transform: none;
-  font-variant-caps: all-small-caps; font-weight: 700; color: var(--reward-green); white-space: nowrap; }
-.mort-callout-gold .mort-callout-tag { color: #b78712; }
+  /* #366E4F not var(--reward-green): 10px text needs 4.5:1 on the tinted card bg */
+  font-variant-caps: all-small-caps; font-weight: 700; color: #366E4F; white-space: nowrap; }
+.mort-callout-gold .mort-callout-tag { color: var(--gold-dark); }
 .mort-callout-text { flex: 1; }
 .dark-mode .mort-callout { background: rgba(90,158,123,0.18); color: rgba(245,240,232,0.92); }
 .dark-mode .mort-callout-gold { background: rgba(201,168,76,0.18); }
+.dark-mode .mort-callout-tag { color: var(--reward-green-bright); }
+.dark-mode .mort-callout-gold .mort-callout-tag { color: var(--gold); }
+
+/* Gold text link on the cream hub hero — plain var(--gold) is only 2:1 there */
+.hub-applink { color: var(--gold-dark); text-decoration: underline; }
+.dark-mode .hub-applink { color: var(--gold); }
 
 .mort-donut-wrap { display: flex; justify-content: center; margin: 22px 0 6px; }
 .mort-donut { width: 180px; height: 180px; max-width: 100%; }

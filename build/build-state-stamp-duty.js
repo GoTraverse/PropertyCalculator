@@ -586,7 +586,7 @@ ${s.foreignRate > 0 ? `      <div class="tool-stat" id="r-foreign-wrap">
     </div>
     <div class="tool-disclaimer" id="r-note" style="display:none"></div>
 
-    <h3 class="bp-subheading">Other upfront purchase costs</h3>
+    <h2 class="bp-subheading">Other upfront purchase costs</h2>
     <p class="bp-sub-desc">Stamp duty is the biggest line — these are the rest most calculators leave out.</p>
     <div class="tool-grid">
       <div class="tool-stat">
