@@ -68,10 +68,12 @@ if (sentinelPresent) {
 const SUBURB_CACHE_DEPS = [
   'build/build-suburbs.js',
   'build/apply-abs-data.js',
+  'build/merge-market-current.js',
   'templates/suburb-page.html',
   'templates/state-hub.html',
   'templates/city-page.html',
   'data/suburbs.json',
+  'data/market-current.json',
 ];
 
 // Hash the dependency file contents (path + bytes, in fixed order). Missing files
@@ -215,6 +217,16 @@ async function buildSuburbs() {
   } else {
     console.log('[build] SKIP_ABS_FETCH=true — skipping ABS fetch, using existing data.');
     execSync('node build/apply-abs-data.js', { stdio: 'inherit', cwd: __dirname });
+  }
+
+  // Step 1c: fold CURRENT market data (median rent / sale price from free
+  // CC BY 4.0 state-gov open data, pre-extracted + verified into
+  // data/market-current.json) into suburbs.json. Rebuild-only; keeps the 2021
+  // Census fields as a dated baseline.
+  try {
+    execSync('node build/merge-market-current.js', { stdio: 'inherit', cwd: __dirname });
+  } catch (e) {
+    console.error('[build] merge-market-current failed (keeping existing current_* fields):', e.message);
   }
 
   // Step 2: Build all suburb HTML pages from updated suburbs.json
