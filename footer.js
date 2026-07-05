@@ -31,6 +31,7 @@
     '        <div class="site-logo-text"><span class="site-logo-name">' + logoName + '</span><span class="site-logo-tld">' + logoTld + '</span></div>',
     '      </a>',
     '      <nav class="footer-nav">',
+    '        <a href="/portfolio">Portfolio</a>',
     '        <a href="/pricing">Pricing</a>',
     '        <a href="/blog">Blog</a>',
     '        <a href="/showcase">Gallery</a>',

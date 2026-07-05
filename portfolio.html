@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<script src="/gtag-loader.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
+<script src="/site-init.js" defer></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Property Portfolio Tracker | EquitySight</title>
+<meta name="description" content="Track every property across all 8 Australian states — multi-state land tax rollup, equity, LVR &amp; cash flow in one dashboard. Free for 2 holdings.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://equitysight.app/portfolio">
+<meta name="geo.region" content="AU">
+<meta name="geo.placename" content="Australia">
+<meta name="theme-color" content="#1C1C1E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:title" content="Property Portfolio Tracker | EquitySight">
+<meta property="og:description" content="Track every property across all 8 Australian states — multi-state land tax rollup, equity, LVR &amp; cash flow in one dashboard. Free for 2 holdings.">
+<meta property="og:url" content="https://equitysight.app/portfolio">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Property Portfolio Tracker | EquitySight">
+<meta name="twitter:description" content="Track every property across all 8 Australian states — multi-state land tax rollup, equity, LVR &amp; cash flow in one dashboard. Free for 2 holdings.">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"EquitySight Portfolio Tracker","url":"https://equitysight.app/portfolio","description":"Track every investment property across all 8 Australian states — multi-state land tax rollup, equity, LVR and cash flow in one dashboard. Values are your own entries; free for 2 holdings.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Portfolio Tracker","item":"https://equitysight.app/portfolio"}]}]}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
+<script src="/font-loader.js" defer></script>
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="portfolio.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.svg">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<!-- ══ SITE NAV ══ --><nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text">
+        <span class="site-logo-name">EquitySight</span>
+        <span class="site-logo-tld">.app</span>
+      </div>
+    </a>
+    <ul class="site-nav-links">
+      <li><a href="/pricing">Pricing</a></li>
+      <li><a href="/showcase">Gallery</a></li>
+      <li><a href="/blog/">Blog</a></li>
+      <li><a href="/contact">Support</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
+<script src="/error-capture.js" defer></script>
+<script src="/auth-nav-loader.js" defer></script>
+
+<main id="main-content">
+
+<!-- ══ GUEST STATE — the logged-out marketing surface (visible by default) ══ -->
+<section class="pf-guest" id="pf-guest">
+  <div class="pf-wrap">
+    <div id="pf-guest-msg" class="pf-guest-msg" style="display:none;" role="status"></div>
+    <div class="pf-hero">
+      <div class="pf-kicker">Portfolio Tracker</div>
+      <h1 class="pf-hero-h1">Every property. Every state.<br>One land tax picture.</h1>
+      <p class="pf-hero-sub">Keep all your properties in one place — Portfolio stores them, and <a href="/app">Scenarios</a> is where you visualise a property and try new things. Values are your own entries; government suburb medians appear as labelled context only.</p>
+
+      <div class="pf-hero-bullets">
+        <div class="pf-bullet">
+          <svg class="pf-bullet-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.4 3 9.4h18"/><path d="M5 9.6v9M9.5 9.6v9M14.5 9.6v9M19 9.6v9"/><path d="M3.5 18.6h17M4 21h16"/></svg>
+          <h2 class="pf-bullet-title">Multi-state land tax rollup</h2>
+          <p class="pf-bullet-text">Aggregated per state and owner type on schedules verified against every revenue office — the number most spreadsheets get wrong.</p>
+        </div>
+        <div class="pf-bullet">
+          <svg class="pf-bullet-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20.5h16"/><rect x="5.4" y="12" width="3" height="6.6" rx=".6"/><rect x="10.5" y="8" width="3" height="10.6" rx=".6"/><rect x="15.6" y="4.4" width="3" height="14.2" rx=".6"/></svg>
+          <h2 class="pf-bullet-title">Equity, LVR &amp; cash-flow dashboard</h2>
+          <p class="pf-bullet-text">Total value, total debt, equity, portfolio LVR and pre-tax weekly cash flow — big numbers from your own entries, updated as you edit.</p>
+        </div>
+        <div class="pf-bullet">
+          <svg class="pf-bullet-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"/><path d="M8 13h2M14 13h2M8 16.8h2"/></svg>
+          <h2 class="pf-bullet-title">IO-expiry &amp; lease dates in one panel</h2>
+          <p class="pf-bullet-text">Interest-only expiries (with the estimated repayment jump), fixed-rate ends, lease expiries and each state's land tax assessment date — sorted, with anything inside 90 days highlighted.</p>
+        </div>
+      </div>
+
+      <div class="pf-hero-ctas">
+        <a href="/login?tab=signup&amp;next=/portfolio" class="pf-btn pf-btn-gold pf-btn-lg" id="pf-signup-cta">Create a free account — track 2 properties free</a>
+        <span class="pf-hero-note">Pro: unlimited holdings</span>
+      </div>
+      <p class="pf-honest">Your data: manual entries, stored in your account, never shown publicly.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ LOGGED-IN STATE (hidden until a session is detected) ══ -->
+<section class="pf-app" id="pf-app" style="display:none;">
+  <div class="pf-wrap">
+
+    <header class="pf-page-head">
+      <div>
+        <div class="pf-kicker">Portfolio</div>
+        <h1 class="pf-title">Your property portfolio</h1>
+        <p class="pf-sub">Portfolio stores all your properties; <a href="/app">Scenarios</a> is where you visualise one and try new things.</p>
+      </div>
+      <button class="pf-btn pf-btn-gold" id="pf-add-btn" type="button">+ Add property</button>
+    </header>
+
+    <div id="pf-cap-note" class="pf-cap-note"></div>
+    <div id="pf-upgrade" style="display:none;"></div>
+
+    <!-- ── Add / edit form (inline expandable — not a modal) ── -->
+    <section class="pf-form" id="pf-form-wrap" style="display:none;" aria-labelledby="pf-form-title">
+      <h2 class="pf-form-title" id="pf-form-title">Add a property</h2>
+
+      <fieldset class="pf-fgroup">
+        <legend class="pf-fgroup-title">Property</legend>
+        <div class="pf-form-grid">
+          <div class="pf-field pf-field-wide">
+            <label class="pf-label" for="pf-f-label">Label</label>
+            <input class="pf-input" type="text" id="pf-f-label" maxlength="80" placeholder="e.g. Unit 4, Parramatta">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-state">State</label>
+            <select class="pf-input" id="pf-f-state">
+              <option value="nsw">New South Wales</option>
+              <option value="vic">Victoria</option>
+              <option value="qld">Queensland</option>
+              <option value="sa">South Australia</option>
+              <option value="wa">Western Australia</option>
+              <option value="tas">Tasmania</option>
+              <option value="act">Australian Capital Territory</option>
+              <option value="nt">Northern Territory</option>
+            </select>
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-suburb">Suburb</label>
+            <input class="pf-input" type="text" id="pf-f-suburb" maxlength="60" placeholder="e.g. Redbank Plains">
+            <div class="pf-hint">Used only to show suburb medians as context, where available.</div>
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-purchase-price">Purchase price</label>
+            <input class="pf-input" type="text" inputmode="decimal" id="pf-f-purchase-price" data-pf-currency placeholder="e.g. 650,000">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-purchase-date">Purchase date</label>
+            <input class="pf-input" type="month" id="pf-f-purchase-date" placeholder="YYYY-MM">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-current-value">Current value <span class="pf-hint-inline">(your estimate)</span></label>
+            <input class="pf-input" type="text" inputmode="decimal" id="pf-f-current-value" data-pf-currency placeholder="e.g. 720,000">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-land-value">Land value</label>
+            <input class="pf-input" type="text" inputmode="decimal" id="pf-f-land-value" data-pf-currency placeholder="e.g. 400,000">
+            <div class="pf-hint">The UNIMPROVED/site value from your valuation notice — much lower than market value.</div>
+            <button type="button" class="pf-btn pf-btn-outline pf-btn-sm" id="pf-suggest-land">Suggest from current value</button>
+            <div class="pf-hint" id="pf-suggest-hint" style="display:none;">Rough heuristic (55% of current value, rounded to $10k) — edit to match your notice.</div>
+          </div>
+          <div class="pf-field pf-field-wide">
+            <label class="pf-label" for="pf-f-notes">Notes <span class="pf-hint-inline">(optional, 280 max)</span></label>
+            <textarea class="pf-input pf-textarea" id="pf-f-notes" maxlength="280" rows="2" placeholder="e.g. depreciation schedule ordered; agent: J. Smith"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="pf-fgroup">
+        <legend class="pf-fgroup-title">Ownership</legend>
+        <div class="pf-form-grid">
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-entity">Owned by</label>
+            <select class="pf-input" id="pf-f-entity">
+              <option value="individual">Individual</option>
+              <option value="joint">Joint names</option>
+              <option value="company">Company</option>
+              <option value="trust">Trust</option>
+              <option value="smsf">SMSF</option>
+            </select>
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-pct">Your ownership %</label>
+            <input class="pf-input" type="number" id="pf-f-pct" min="1" max="100" step="1" value="100">
+          </div>
+          <div class="pf-field pf-field-wide">
+            <label class="pf-check-row" for="pf-f-ppr">
+              <input type="checkbox" id="pf-f-ppr">
+              <span><strong>This is my PPR</strong><span class="pf-hint" style="display:block;">Your home — exempt from land tax, excluded from cash flow.</span></span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="pf-fgroup">
+        <legend class="pf-fgroup-title">Loan</legend>
+        <div class="pf-form-grid">
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-loan-balance">Loan balance</label>
+            <input class="pf-input" type="text" inputmode="decimal" id="pf-f-loan-balance" data-pf-currency placeholder="e.g. 520,000">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-rate">Interest rate % p.a.</label>
+            <input class="pf-input" type="number" id="pf-f-rate" min="0" max="20" step="0.01" placeholder="e.g. 6.10">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-iopi">Repayment type</label>
+            <select class="pf-input" id="pf-f-iopi">
+              <option value="pi">Principal &amp; interest</option>
+              <option value="io">Interest-only</option>
+            </select>
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-term">Loan term (years)</label>
+            <input class="pf-input" type="number" id="pf-f-term" min="1" max="40" step="1" value="30">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="pf-fgroup">
+        <legend class="pf-fgroup-title">Income &amp; costs</legend>
+        <div class="pf-form-grid">
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-rent">Weekly rent</label>
+            <input class="pf-input" type="text" inputmode="decimal" id="pf-f-rent" data-pf-currency placeholder="e.g. 620">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-expenses">Annual expenses</label>
+            <input class="pf-input" type="text" inputmode="decimal" id="pf-f-expenses" data-pf-currency placeholder="e.g. 8,500">
+            <div class="pf-hint">Rates, insurance, management, maintenance, strata, land tax — everything except the loan.</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="pf-fgroup">
+        <legend class="pf-fgroup-title">Key dates</legend>
+        <div class="pf-form-grid">
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-io-expiry">Interest-only expiry</label>
+            <input class="pf-input" type="month" id="pf-f-io-expiry" placeholder="YYYY-MM">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-fixed-expiry">Fixed-rate expiry</label>
+            <input class="pf-input" type="month" id="pf-f-fixed-expiry" placeholder="YYYY-MM">
+          </div>
+          <div class="pf-field">
+            <label class="pf-label" for="pf-f-lease-expiry">Lease expiry</label>
+            <input class="pf-input" type="month" id="pf-f-lease-expiry" placeholder="YYYY-MM">
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="pf-form-actions">
+        <button class="pf-btn pf-btn-primary" id="pf-save-btn" type="button">Save property</button>
+        <button class="pf-btn pf-btn-outline" id="pf-cancel-btn" type="button">Cancel</button>
+        <button class="pf-btn pf-btn-danger" id="pf-delete-btn" type="button" style="display:none;">Delete</button>
+        <span class="pf-form-msg" id="pf-form-msg" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <div id="pf-loading" class="pf-loading">Loading your portfolio…</div>
+    <div id="pf-error" class="pf-error" style="display:none;">
+      <p>Couldn't load your portfolio — check your connection and try again.</p>
+      <button class="pf-btn pf-btn-outline" id="pf-retry-btn" type="button">Retry</button>
+    </div>
+
+    <div id="pf-content" style="display:none;">
+
+      <!-- a. Dashboard strip -->
+      <div class="pf-dash" id="pf-dash"></div>
+      <div class="pf-dash-note">Totals are your ownership share of each holding. PPR counts toward equity but is excluded from cash flow and land tax.</div>
+
+      <!-- b. Land tax panel (the hero) -->
+      <section class="pf-panel" aria-labelledby="pf-lt-heading">
+        <div class="pf-panel-head">
+          <svg class="pf-panel-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.4 3 9.4h18"/><path d="M5 9.6v9M9.5 9.6v9M14.5 9.6v9M19 9.6v9"/><path d="M3.5 18.6h17M4 21h16"/></svg>
+          <h2 id="pf-lt-heading">Land tax by state &amp; owner</h2>
+        </div>
+        <div id="pf-landtax" aria-live="polite"></div>
+        <p class="pf-caption">Estimates from FY2026-27 schedules, verified against each revenue office 5 Jul 2026 — assessment basis varies by state; land values are your entries.</p>
+        <p class="pf-caption">Simplifications: joint holdings are grouped as one individual owner; SMSF holdings use each state's general/company scale; foreign-owner surcharges and WA's metro MRIT are not applied here. For a single owner group with surcharges, use the <a href="/tools/land-tax-calculator">Land Tax Calculator</a>.</p>
+      </section>
+
+      <!-- c. Upcoming dates -->
+      <section class="pf-panel" aria-labelledby="pf-dates-heading">
+        <div class="pf-panel-head">
+          <svg class="pf-panel-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"/><path d="M8 13h2M14 13h2M8 16.8h2"/></svg>
+          <h2 id="pf-dates-heading">Upcoming dates</h2>
+        </div>
+        <ul class="pf-dates" id="pf-dates"></ul>
+      </section>
+
+      <!-- d. Holdings -->
+      <section class="pf-panel" aria-labelledby="pf-holdings-heading">
+        <div class="pf-panel-head">
+          <svg class="pf-panel-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.7V20h12V9.7"/><path d="M10 20v-5.5h4V20"/></svg>
+          <h2 id="pf-holdings-heading">Holdings</h2>
+        </div>
+        <div id="pf-holdings"></div>
+        <p class="pf-caption">Net cash flow is pre-tax with 2 weeks vacancy assumed (weekly rent × 50, minus annual expenses and loan cost). For the after-tax picture, use the <a href="/tools/property-cashflow-calculator">Cash Flow Calculator</a>. Suburb medians, where shown, are government data for context — never a valuation of your property.</p>
+      </section>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ Cross-links (both states) ══ -->
+<section class="pf-links">
+  <div class="pf-wrap">
+    <h2 class="pf-links-title">Keep going</h2>
+    <div class="pf-links-grid">
+      <a class="pf-link-card" href="/tools/land-tax-calculator">
+        <span class="pf-link-name">Land Tax Calculator</span>
+        <span class="pf-link-desc">All 8 states, verified schedules — model surcharges and owner types.</span>
+      </a>
+      <a class="pf-link-card" href="/tools/property-cashflow-calculator">
+        <span class="pf-link-name">Cash Flow Calculator</span>
+        <span class="pf-link-desc">Weekly cash flow before and after tax, on FY2026-27 rates.</span>
+      </a>
+      <a class="pf-link-card" href="/tools/listing-price-checker">
+        <span class="pf-link-name">Listing Price Checker</span>
+        <span class="pf-link-desc">Sanity-check an asking price against government suburb medians.</span>
+      </a>
+      <a class="pf-link-card" href="/app">
+        <span class="pf-link-name">Scenarios</span>
+        <span class="pf-link-desc">Model changes to a property in Scenarios — rates, rent, renovations, 30 years out.</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div id="site-footer-root"></div>
+<script src="footer.js"></script>
+<script src="portfolio.js"></script>
+</body>
+</html>
