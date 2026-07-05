@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<script src="/gtag-loader.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script src="tool-page.js" defer></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Investment Property Cash Flow Calculator Australia</title>
+<meta name="description" content="Free Australian investment property cash flow calculator — weekly and annual cash flow before and after tax, with negative gearing on FY2026-27 rates.">
+<meta name="keywords" content="property cash flow calculator, negative gearing calculator, rental property cash flow, after tax cash flow, investment property calculator Australia, FY2026-27 tax rates">
+<link rel="canonical" href="https://equitysight.app/tools/property-cashflow-calculator">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/property-cashflow-calculator">
+<link rel="alternate" hreflang="x-default" href="https://equitysight.app/tools/property-cashflow-calculator">
+<meta name="geo.region" content="AU">
+<meta name="geo.placename" content="Australia">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Australian Property Cash Flow Calculator 2026 — Before &amp; After Tax | EquitySight">
+<meta property="og:description" content="Weekly and annual rental cash flow before and after tax, with negative gearing computed exactly on FY2026-27 Australian resident tax rates.">
+<meta property="og:url" content="https://equitysight.app/tools/property-cashflow-calculator">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Australian Property Cash Flow Calculator 2026 — Before &amp; After Tax">
+<meta name="twitter:description" content="Weekly and annual rental cash flow before and after tax, with negative gearing computed on FY2026-27 rates.">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
+<script src="/font-loader.js" defer></script>
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../tools.css">
+<script src="../adsense.js" defer></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebApplication","name":"Investment Property Cash Flow Calculator Australia","url":"https://equitysight.app/tools/property-cashflow-calculator","description":"Free Australian investment property cash flow calculator. Weekly and annual cash flow before and after tax, with negative gearing computed exactly on FY2026-27 resident tax rates.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}},
+{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Property Cash Flow Calculator"}]},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is negative gearing and how does the refund actually work?","acceptedAnswer":{"@type":"Answer","text":"A property is negatively geared when its deductible costs (loan interest, cash expenses, depreciation) exceed the rent. The loss reduces your taxable income, so the ATO effectively refunds it at your marginal rate. On a $16,595 loss in the 30% band (+2% Medicare), that is about $5,310 back at tax time — but you still wore the other $11,285. The refund softens a loss; it never turns a loss into a profit on its own."}},
+{"@type":"Question","name":"Which tax rates does this calculator use?","acceptedAnswer":{"@type":"Answer","text":"FY2026-27 Australian resident rates: 0% to $18,200, 15% to $45,000, 30% to $135,000, 37% to $190,000 and 45% above, plus a flat 2% Medicare levy. The 15% band applies from 1 July 2026 and is legislated to fall to 14% from 1 July 2027. The tax effect is computed exactly across brackets, not with a single marginal-rate shortcut."}},
+{"@type":"Question","name":"Why is my pre-tax cash flow different from my taxable result?","acceptedAnswer":{"@type":"Answer","text":"They are two different ledgers. Cash flow counts actual money movements, including the principal portion of P&I repayments (cash out, but not deductible). The taxable result counts only deductible items, including depreciation (deductible, but no cash leaves your pocket). A property can be cash-flow positive yet show a taxable loss — or the reverse."}},
+{"@type":"Question","name":"Do I need a quantity surveyor to claim depreciation?","acceptedAnswer":{"@type":"Answer","text":"In practice, yes. The ATO accepts construction-cost estimates from a qualified quantity surveyor where the actual costs are unknown; a schedule typically costs a few hundred dollars and is itself deductible. Note that for established homes bought after 9 May 2017 you generally cannot claim depreciation on second-hand plant and equipment — capital works (Division 43) deductions may still apply for buildings constructed after September 1987."}},
+{"@type":"Question","name":"What doesn't this calculator cover?","acceptedAnswer":{"@type":"Answer","text":"Capital gains tax on sale (use our Capital Gains Calculator for that), LMI, borrowing-cost amortisation, PAYG withholding variations, Medicare levy fine print (the low-income phase-in, surcharge and offsets), and ownership through trusts or companies, which are taxed differently. It models one full year at a fixed rate and rent."}},
+{"@type":"Question","name":"Is a negatively geared property a bad investment?","acceptedAnswer":{"@type":"Answer","text":"Not automatically — but the shortfall is real cash until growth exceeds it. A negatively geared property is a bet that capital growth will outrun the accumulated after-tax losses plus buying costs, selling costs and CGT. Run the +1% rate stress-test before you rely on the weekly figure, and make sure you can hold through a vacancy or a rate rise."}}
+]}
+]}
+</script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/blog/">Blog</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/about">About</a></li><li><a href="/contact">Support</a></li></ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
+<script src="/auth-nav-loader.js" defer></script>
+<script src="../error-capture.js" defer></script>
+<script src="../market-rate.js" defer></script>
+
+<section class="tool-hero" id="main-content">
+  <div class="tool-eyebrow">Free Tool · Australian Investors</div>
+  <h1>Property Cash Flow Calculator</h1>
+  <p>Weekly and annual cash flow for an Australian rental property — before and after tax, with negative gearing computed exactly on FY2026-27 resident rates.</p>
+</section>
+
+<div class="tool-main">
+
+  <div class="tool-card">
+    <div class="tool-card-title">Model your property</div>
+
+    <div class="fhb-section">
+      <div class="fhb-section-title">1. Property &amp; loan</div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="value">Property value</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="value" value="650,000">
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="loan">Loan amount</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="loan" value="520,000">
+        <p class="tool-field-hint">Enter 0 if the property is owned outright.</p>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
+        <input class="tool-input" type="number" id="rate" value="6.50" placeholder="e.g. 6.50" step="0.05" min="0" max="20">
+        <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="repay-type">Repayment type</label>
+        <select class="tool-input tool-select" id="repay-type">
+          <option value="io">Interest-only (IO)</option>
+          <option value="pi" selected>Principal &amp; interest (P&amp;I)</option>
+        </select>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="term">Loan term (years)</label>
+        <input class="tool-input" type="number" id="term" value="30" min="1" max="40" step="1">
+      </div>
+    </div>
+
+    <div class="fhb-section">
+      <div class="fhb-section-title">2. Rent</div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="state">State or territory <span class="tool-label-hint">(used for the suburb median lookup)</span></label>
+        <select class="tool-input tool-select" id="state">
+          <option value="nsw">New South Wales (NSW)</option>
+          <option value="vic">Victoria (VIC)</option>
+          <option value="qld" selected>Queensland (QLD)</option>
+          <option value="sa">South Australia (SA)</option>
+          <option value="wa">Western Australia (WA)</option>
+          <option value="tas">Tasmania (TAS)</option>
+          <option value="act">Australian Capital Territory (ACT)</option>
+          <option value="nt">Northern Territory (NT)</option>
+        </select>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="suburb">Suburb <span class="tool-label-hint">(optional — prefills the median weekly rent where public data exists)</span></label>
+        <input class="tool-input" type="text" id="suburb" list="suburb-list" autocomplete="off" placeholder="Start typing a suburb">
+        <datalist id="suburb-list"></datalist>
+        <p class="tool-field-hint" id="suburb-hint"></p>
+        <button class="tool-btn-secondary" type="button" id="use-median-btn">Use suburb median rent</button>
+        <p class="tool-field-hint" id="median-caption" style="display:none"></p>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="rent">Weekly rent</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="rent" placeholder="e.g. 570">
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="vacancy">Vacancy (weeks per year)</label>
+        <input class="tool-input" type="number" id="vacancy" value="2" min="0" max="52" step="1">
+        <p class="tool-field-hint">2 weeks is about 96% occupancy — a realistic planning figure for most metro rentals. Regional and seasonal markets often run higher.</p>
+      </div>
+    </div>
+
+    <div class="fhb-section">
+      <div class="fhb-section-title">3. Annual expenses</div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="mgmt">Property management fee (% of rent)</label>
+        <input class="tool-input" type="number" id="mgmt" value="7" min="0" max="20" step="0.1">
+        <p class="tool-field-hint">Typically 5–9% of rent plus GST. Enter 0 if self-managing.</p>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="rates">Council rates ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="rates" placeholder="e.g. 2,000">
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="water">Water ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="water" placeholder="e.g. 1,200">
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="insurance">Landlord insurance ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="insurance" placeholder="e.g. 1,800">
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="maintenance">Repairs &amp; maintenance ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="maintenance" placeholder="e.g. 1,500">
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="strata">Strata / body corporate ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="strata" placeholder="0">
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="landtax">Land tax ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="landtax" placeholder="0">
+        <p class="tool-field-hint">Usually $0 while your total land holdings sit under your state's threshold. <a href="/tools/land-tax-calculator">Estimate it with our Land Tax Calculator</a>.</p>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="other">Other ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="other" placeholder="0">
+        <p class="tool-field-hint">Pest control, gardening, compliance checks, accounting for the property, etc.</p>
+      </div>
+    </div>
+
+    <div class="fhb-section">
+      <div class="fhb-section-title">4. Your tax position</div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="income">Your taxable income ($/yr, before this property)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="income" placeholder="e.g. 95,000">
+        <p class="tool-field-hint">Salary and other taxable income. This sets the marginal rate your gearing result is taxed or refunded at.</p>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label" for="depreciation">Depreciation deduction ($/yr)</label>
+        <input class="tool-input" type="text" inputmode="decimal" id="depreciation" placeholder="0">
+        <p class="tool-field-hint">From a quantity surveyor's schedule — a non-cash deduction. Leave 0 if you don't have a schedule.</p>
+      </div>
+    </div>
+
+    <button class="tool-btn" id="calc-btn" aria-label="Calculate cash flow">Calculate Cash Flow</button>
+    <p class="tool-validation-msg" id="calc-msg" role="alert" hidden></p>
+  </div>
+
+  <div class="tool-result" aria-live="polite" aria-atomic="false" id="result" style="display:none">
+    <div class="tool-result-title">Your cash flow result</div>
+
+    <div class="fhb-hero">
+      <div class="fhb-hero-label">After-tax cash flow</div>
+      <div class="fhb-hero-value" id="r-hero">—</div>
+      <div class="fhb-hero-note" id="r-hero-note"></div>
+    </div>
+
+    <div id="verdict-callout"></div>
+
+    <div class="tool-cost-breakdown">
+      <div class="tool-cost-breakdown-title">1. Annual cash position</div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Rent collected (<span id="r-weeks">50</span> weeks)</span><span class="tool-cost-row-value" id="r-rent">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label" id="r-mgmt-label">Property management</span><span class="tool-cost-row-value" id="r-mgmt">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Council rates</span><span class="tool-cost-row-value" id="r-rates">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Water</span><span class="tool-cost-row-value" id="r-water">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Landlord insurance</span><span class="tool-cost-row-value" id="r-insurance">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Repairs &amp; maintenance</span><span class="tool-cost-row-value" id="r-maint">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Strata / body corporate</span><span class="tool-cost-row-value" id="r-strata">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Land tax</span><span class="tool-cost-row-value" id="r-landtax">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Other</span><span class="tool-cost-row-value" id="r-other">—</span></div>
+      <div class="tool-cost-row subtotal"><span class="tool-cost-row-label">Cash expenses</span><span class="tool-cost-row-value" id="r-cashexp">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label" id="r-loanpay-label">Loan payments</span><span class="tool-cost-row-value" id="r-loanpay">—</span></div>
+      <div class="tool-cost-row total"><span class="tool-cost-row-label">Pre-tax cash flow</span><span class="tool-cost-row-value" id="r-pretax">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Pre-tax cash flow (weekly)</span><span class="tool-cost-row-value" id="r-pretax-wk">—</span></div>
+    </div>
+
+    <div class="tool-cost-breakdown">
+      <div class="tool-cost-breakdown-title">2. Tax position (FY2026-27)</div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Rental income (taxable)</span><span class="tool-cost-row-value" id="r-t-rent">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Cash expenses (deductible)</span><span class="tool-cost-row-value" id="r-t-cashexp">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Loan interest (deductible)</span><span class="tool-cost-row-value" id="r-t-interest">—</span></div>
+      <p class="tool-field-hint" id="pi-footnote" style="display:none">Year-1 interest &asymp; loan &times; rate — the deductible share falls slowly as principal is repaid, so later years claim slightly less than this while the cash repayment stays the same.</p>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Depreciation (non-cash, deductible)</span><span class="tool-cost-row-value" id="r-t-depr">—</span></div>
+      <div class="tool-cost-row subtotal"><span class="tool-cost-row-label">Total deductions claimed</span><span class="tool-cost-row-value" id="r-t-deductions">—</span></div>
+      <div class="tool-cost-row subtotal"><span class="tool-cost-row-label">Property taxable result</span><span class="tool-cost-row-value" id="r-t-result">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Tax on your other income alone</span><span class="tool-cost-row-value" id="r-t-taxbase">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">Tax with the property included</span><span class="tool-cost-row-value" id="r-t-taxwith">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label" id="r-t-effect-label">Tax benefit</span><span class="tool-cost-row-value" id="r-t-effect">—</span></div>
+      <div class="tool-cost-row total"><span class="tool-cost-row-label">After-tax cash flow</span><span class="tool-cost-row-value" id="r-aftertax">—</span></div>
+      <div class="tool-cost-row"><span class="tool-cost-row-label">After-tax cash flow (weekly)</span><span class="tool-cost-row-value" id="r-aftertax-wk">—</span></div>
+    </div>
+
+    <div class="fhb-section">
+      <div class="fhb-section-title">Key ratios</div>
+      <div class="fhb-row"><span>Gross yield (full 52 weeks)</span><span class="fhb-row-val" id="r-gross">—</span></div>
+      <div class="fhb-row"><span>Net yield (after cash expenses)</span><span class="fhb-row-val" id="r-netyield">—</span></div>
+      <div class="fhb-row"><span>Total deductions claimed</span><span class="fhb-row-val" id="r-totded">—</span></div>
+      <div class="fhb-row"><span>Marginal tax band (with property)</span><span class="fhb-row-val" id="r-band">—</span></div>
+    </div>
+
+    <div id="stress-callout"></div>
+
+    <div class="fhb-section">
+      <div class="fhb-section-title">Assumptions &amp; simplifications</div>
+      <p class="tool-field-hint">Tax is computed on FY2026-27 Australian resident rates ($0–$18,200 at 0%, to $45,000 at 15%, to $135,000 at 30%, to $190,000 at 37%, 45% above), exactly across bracket crossings — no marginal-rate shortcut.</p>
+      <p class="tool-field-hint">The Medicare levy is applied as a flat 2% of taxable income. This ignores the low-income phase-in, tax offsets, and the Medicare levy surcharge.</p>
+      <p class="tool-field-hint">On P&amp;I loans, year-1 deductible interest is approximated as loan &times; rate. The deductible share falls slowly as principal is repaid; the cash repayment figure is exact.</p>
+      <p class="tool-field-hint">Models one full year at a fixed rate and rent. Excludes CGT on sale, LMI, borrowing-cost amortisation, and ownership via trusts or companies.</p>
+    </div>
+
+    <p class="tool-disclaimer">General information only — not tax or financial advice. Your deductions, rates, and eligibility depend on your circumstances; confirm with a registered tax agent and the ATO before acting.</p>
+  </div>
+
+  <div class="ad-slot" data-ad-type="calculator"></div>
+
+  <div id="tool-cta-root"></div>
+  <div id="tool-share-root"></div>
+  <div id="tool-related-root"></div>
+  <div id="tool-examples-root"></div>
+  <div id="tool-faq-root"></div>
+  <div id="tool-useful-links-root"></div>
+
+</div>
+
+<section class="tool-content">
+  <h2>What cash flow actually tells you (and what yield doesn't)</h2>
+  <p>Rental yield tells you what a property earns relative to its price. Capital growth tells you what it might be worth later. Cash flow answers the only question your bank account cares about: after the rent comes in and every bill, loan payment and tax adjustment goes out, how many dollars are left each week — or how many do you have to tip in? Two properties with identical 4.5% yields can produce wildly different cash flow once you account for the loan structure, strata fees, land tax and, critically, your own tax bracket. Yield is a property metric; cash flow is a <em>you-plus-property</em> metric. The same house can be comfortably cash-flow positive for an owner with no debt and heavily negative for a buyer borrowing 80% at today's rates. That is why this calculator asks for your taxable income — the after-tax number genuinely depends on it.</p>
+
+  <h2>How this calculator works: two ledgers, one property</h2>
+  <p>The calculator keeps two separate ledgers, because your bank account and the ATO disagree about what counts.</p>
+  <p><strong>The cash ledger.</strong> Rent collected (52 weeks minus your vacancy allowance) less the cash expenses — management, rates, water, insurance, repairs, strata, land tax, other — less the actual loan payment. On an interest-only loan that payment is simply loan &times; rate. On a principal-and-interest loan it is the full amortising repayment, including the principal component: money that genuinely leaves your account every month even though the ATO does not treat it as an expense. The result is your <strong>pre-tax cash flow</strong>.</p>
+  <p><strong>The tax ledger.</strong> Rent less <em>deductible</em> items only: the cash expenses, the <em>interest</em> portion of the loan (never the principal), and depreciation — which reduces taxable income without costing a cent in cash this year. The result is the property's <strong>taxable result</strong>. If it is negative, the property is negatively geared and the loss reduces the tax you pay on your salary. We then compute your tax bill twice — once on your income alone, once with the property's result included — using the full FY2026-27 resident rate scale. Because both bills are computed exactly, the benefit is correct even when the loss drags your income across a bracket boundary, which a single "loss &times; marginal rate" shortcut gets wrong.</p>
+  <p><strong>After-tax cash flow</strong> = pre-tax cash flow + the tax benefit (or minus the extra tax, if the property makes a profit). Divided by 52, that is the weekly figure in the hero box — the number to sanity-check against your household budget.</p>
+
+  <h2>Negative gearing, explained without the spruik</h2>
+  <p>Negative gearing is routinely sold as if the tax refund were the point. It is not — the refund is a partial rebate on a genuine loss. If your property loses $16,595 on the tax ledger and you earn $95,000, the deduction returns roughly 32 cents per dollar of loss (30% bracket plus 2% Medicare): about $5,310 back at tax time. You still spent the other $11,285. Put bluntly: <strong>you spend $1 to get back your marginal rate; the investment must grow to win.</strong> The strategy only pays off if capital growth outruns the accumulated after-tax shortfall, plus stamp duty on the way in, agent fees on the way out, and capital gains tax on the profit. That can absolutely happen — it has for many Australian investors — but it is a leveraged bet on growth, not a tax trick that manufactures wealth by itself.</p>
+  <p>There is one genuinely attractive corner case: when a large <em>non-cash</em> depreciation deduction creates a paper loss while the actual cash position stays positive. You collect a refund without a weekly out-of-pocket cost. This is why new builds are marketed so aggressively on their depreciation schedules — and why you should verify the numbers with a real quantity surveyor's report rather than a sales brochure.</p>
+
+  <h2>The FY2026-27 tax rates used here</h2>
+  <p>The calculator uses the Australian resident rates that apply from 1 July 2026:</p>
+  <ul>
+    <li>$0 – $18,200 — nil</li>
+    <li>$18,201 – $45,000 — 15c per $1 over $18,200</li>
+    <li>$45,001 – $135,000 — 30c per $1 over $45,000</li>
+    <li>$135,001 – $190,000 — 37c per $1 over $135,000</li>
+    <li>$190,001 and over — 45c per $1 over $190,000</li>
+  </ul>
+  <p>The 15% rate on the second band is new this financial year (it was 16% in FY2025-26) and is already legislated to fall again to 14% from 1 July 2027 — worth knowing, because it slightly <em>reduces</em> the future value of negative gearing deductions in that band. On top of the scale we add the Medicare levy as a flat 2% of taxable income. That is a deliberate simplification: the real levy phases in from zero across a low-income band, and offsets and the Medicare levy surcharge can move your bill in either direction. For most full-time earners the flat 2% is accurate; near the thresholds it slightly overstates tax.</p>
+
+  <h2>Depreciation: the paper deduction</h2>
+  <p>Depreciation comes in two flavours. <strong>Division 43 capital works</strong> lets you claim 2.5% of the original construction cost per year for 40 years on residential buildings constructed after mid-September 1987 — often thousands per year on newer stock. <strong>Division 40 plant and equipment</strong> covers items like ovens, carpets, blinds and air-conditioners, each depreciated over its effective life. One important catch: since 9 May 2017, buyers of established homes generally <em>cannot</em> claim Division 40 deductions on second-hand assets that came with the property — only on items they buy new themselves. Brand-new builds are unaffected. To claim either, you need a depreciation schedule from a qualified quantity surveyor; it typically costs a few hundred dollars, is itself deductible, and usually pays for itself in the first year. Enter the annual figure from that schedule in the depreciation field — it lowers your taxable result without touching your cash flow, which is exactly why it matters.</p>
+
+  <h2>Vacancy: the line most spreadsheets forget</h2>
+  <p>Advertised rent assumes 52 paying weeks. Real properties change tenants, sit empty between leases, and occasionally need a week of work before re-letting. The default here is 2 weeks (about 96% occupancy) — a fair planning figure for metro markets with normal demand. Holiday areas, single-industry towns and oversupplied apartment precincts can run materially worse. Every vacant week costs you a full week's rent <em>and</em> keeps almost all expenses running, so if the deal only works at 52/52 occupancy, it does not work.</p>
+
+  <h2>Worked example: $650,000 unit, $520,000 interest-only loan</h2>
+  <p>Rent $570/week with 2 weeks vacancy gives $28,500 of annual rent. Management at 7% costs $1,995; add rates $2,000, water $1,200, insurance $1,800 and maintenance $1,500 for total cash expenses of $8,495. Interest-only at 5.5% on $520,000 is $28,600. Cash out is therefore $37,095 against $28,500 in — a pre-tax cash flow of <strong>−$8,595, about −$165 a week</strong>.</p>
+  <p>Now the tax ledger. With an $8,000 depreciation schedule, deductions total $8,495 + $28,600 + $8,000 = $45,095, so the taxable result is −$16,595. For an investor on $95,000, tax (including flat 2% Medicare) falls from about $20,920 to about $15,610 — a benefit of <strong>$5,310</strong>. After-tax cash flow: −$8,595 + $5,310 = <strong>−$3,285 a year, roughly −$63 a week</strong>. Note the shape of the deal: the tax system converted a $165/week pre-tax cost into a $63/week after-tax cost, but the $63 is still real money leaving your pocket every week while you wait for growth.</p>
+
+  <h2>What this calculator doesn't cover</h2>
+  <ul>
+    <li><strong>Capital gains tax on exit.</strong> Selling triggers CGT on the growth (with a 50% discount for individuals after 12 months). Model it with our <a href="/tools/capital-gains-calculator">Capital Gains Tax Calculator</a> — an honest whole-of-life view needs both tools.</li>
+    <li><strong>LMI and borrowing costs.</strong> Lenders mortgage insurance, loan establishment fees and similar borrowing costs over $100 are deducted over five years (or the loan term if shorter), not in year one. They are excluded here.</li>
+    <li><strong>PAYG withholding variation.</strong> Investors expecting a large refund can apply to the ATO to reduce the tax withheld from salary during the year rather than waiting until July. The annual result is the same; the timing is not.</li>
+    <li><strong>Medicare fine print.</strong> The low-income phase-in, levy surcharge and tax offsets are ignored (flat 2% assumed).</li>
+    <li><strong>Trusts and companies.</strong> Ownership through a discretionary trust or company changes the tax treatment entirely — company profits are taxed at company rates, and trust losses generally stay trapped in the trust rather than offsetting your salary. This page models individual ownership only.</li>
+    <li><strong>Rent and rate movement.</strong> The model holds one year still. Rents rise, rates move, and the P&amp;I interest share falls each year — treat the result as a snapshot, and re-run it when your numbers change.</li>
+  </ul>
+  <p>This page provides general information only and is not personal tax or financial advice. Rules and rates change — confirm current settings with the <a href="https://www.ato.gov.au" rel="nofollow">ATO</a> and <a href="https://moneysmart.gov.au/property-investment" rel="nofollow">Moneysmart</a>, and speak with a registered tax agent about your own position before relying on any figure here.</p>
+</section>
+
+<div id="tool-resources-root"></div>
+<div id="tool-trust-root"></div>
+<!-- Static internal links: crawlable <a> to every calculator so Googlebot can
+     discover the full suite without executing the JS-injected related grid/nav.
+     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+<nav class="tool-resources" aria-label="All EquitySight calculators">
+  <div class="tool-resources-title">Explore all our free Australian property calculators</div>
+  <div class="tool-resources-grid">
+    <div>
+      <h3>Buying &amp; upfront costs</h3>
+      <ul>
+        <li><a href="/tools/stamp-duty-calculator">Stamp Duty Calculator</a></li>
+        <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
+        <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
+        <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Borrowing &amp; repayments</h3>
+      <ul>
+        <li><a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a></li>
+        <li><a href="/tools/loan-serviceability-calculator">Loan Serviceability Calculator</a></li>
+        <li><a href="/tools/mortgage-repayment-calculator">Mortgage Repayment Calculator</a></li>
+        <li><a href="/tools/mortgage-stress-calculator">Mortgage Stress Calculator</a></li>
+        <li><a href="/tools/interest-only-vs-principal-calculator">Interest-Only vs Principal Calculator</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Investment &amp; returns</h3>
+      <ul>
+        <li><a href="/tools/rental-yield-calculator">Rental Yield Calculator</a></li>
+        <li><a href="/tools/capital-gains-calculator">Capital Gains Tax Calculator</a></li>
+        <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
+        <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
+        <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="tool-resources-disclaimer"><a href="/tools/">View all Australian property calculators &rarr;</a></div>
+</nav>
+
+<div id="tool-footer-root"></div>
+
+<script src="property-cashflow-calculator.js" defer></script>
+
+</body>
+</html>

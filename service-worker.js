@@ -6,7 +6,7 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v21';
+const CACHE_NAME = 'equitysight-v22';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/offline.html',
@@ -53,7 +53,8 @@ const STATIC_ASSETS = [
   '/tools/renovation-cost-calculator',
   '/tools/listing-price-checker',
   '/tools/auction-budget-calculator',
-  '/tools/land-tax-calculator'
+  '/tools/land-tax-calculator',
+  '/tools/property-cashflow-calculator'
 ];
 
 // Idempotent GET endpoints that benefit from stale-while-revalidate so the
