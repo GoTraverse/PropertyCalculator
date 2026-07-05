@@ -323,6 +323,14 @@ function calculate() {
       rowHtml('Annualised rent (× 52)', fmt(annualRent)),
       rowHtml('Implied gross yield at asking price', fmtPct(impliedYield, 2) + ' (indicative)', 'subtotal')
     ];
+    // If the user entered their own rent and the suburb median is known,
+    // surface the median beside it — this is exactly the "verify it against
+    // the suburb median" step the verdict would otherwise leave to the user.
+    var rentDev = null;
+    if (rentIsUser && suburbRent > 0) {
+      rentDev = (userRent - suburbRent) / suburbRent * 100;
+      yieldRows.splice(1, 0, rowHtml('Suburb median rent (for comparison)', fmt(suburbRent) + '/wk'));
+    }
     // Suburb rent momentum — direction matters as much as level.
     var rentTrend = (entry && typeof entry.rc === 'number') ? entry.rc : null;
     if (rentTrend !== null) {
@@ -361,6 +369,15 @@ function calculate() {
         yieldVerdict = 'The implied gross yield is above the typical band — the price looks modest relative to the rent (or the advertised rent is optimistic; verify it against the suburb median).';
       }
     }
+    // If the advertised rent is well off the suburb median, do the
+    // verification for the reader instead of telling them to do it.
+    if (rentDev !== null && Math.abs(rentDev) >= 10) {
+      yieldVerdict += ' Note: the advertised rent is ' + Math.abs(rentDev).toFixed(0) + '% ' +
+        (rentDev > 0 ? 'above' : 'below') + ' the suburb median rent (' + fmt(suburbRent) + '/wk), so the implied yield reads ' +
+        (rentDev > 0 ? 'optimistic — re-run the check with the median to see the conservative case.' : 'conservative — there may be rental upside.');
+    } else if (rentDev !== null) {
+      yieldVerdict += ' The advertised rent is in line with the suburb median (' + fmt(suburbRent) + '/wk), which grounds this yield read.';
+    }
     // Append rent momentum so the read carries direction, not just level.
     if (rentTrend !== null && rentSrcKey) {
       yieldVerdict += ' Suburb median rent moved ' + signedPct(rentTrend) + ' over ' + trendPeriod(rentSrcKey) + '.';
@@ -371,9 +388,14 @@ function calculate() {
         'Yield read', yieldVerdict);
 
     // Stamp the sources of every suburb figure used above (linked to the
-    // dataset page so every number is verifiable in one click).
-    if (suburbRent > 0 && rentSrcKey && (!rentIsUser || refYield !== null)) {
+    // dataset page so every number is verifiable in one click). Any RTA/CBS
+    // figure on screen — median row, comparison row or trend — gets stamped,
+    // including when the user supplied their own rent (the trend still
+    // renders, so the caption must too).
+    if (suburbRent > 0 && rentSrcKey) {
       sources.push('Suburb median rent: ' + fmt(suburbRent) + '/wk — ' + srcCaptionHtml(rentSrcKey) + '.');
+    } else if (rentTrend !== null && rentSrcKey) {
+      sources.push('Suburb rent trend — ' + srcCaptionHtml(rentSrcKey) + '.');
     }
     if (refYield !== null && priceSrcKey && !median) {
       sources.push('Suburb house median (yield reference): ' + fmt(entry.h) + ' — ' + srcCaptionHtml(priceSrcKey) + '.');
