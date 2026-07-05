@@ -229,6 +229,15 @@ html.dark-mode .tool-resources a { color: var(--gold); }
 .tool-cost-row-label { color: var(--slate); flex: 1; }
 .tool-cost-row-value { color: var(--charcoal); font-family: var(--font-mono); text-align: right; min-width: 120px; }
 .tool-cost-row.total .tool-cost-row-value { font-family: var(--font-display); font-size: 18px; color: var(--charcoal); }
+/* Small screens: long data-caption values (e.g. "$570/wk (suburb median rent)")
+   must wrap under the label instead of forcing horizontal overflow. */
+@media (max-width: 600px) {
+  .tool-cost-row { flex-wrap: wrap; }
+  .tool-cost-row-value { min-width: 0; margin-left: auto; word-break: break-word; font-size: 13px; }
+}
+/* Block-level field hint (e.g. per-state data-coverage note under a select). */
+.tool-field-hint { display: block; margin: 6px 0 0; color: var(--slate); font-size: 11px; line-height: 1.5; }
+html.dark-mode .tool-field-hint { color: rgba(245,240,232,0.7); }
 
 /* ── Save-results prompt (fixed bottom bar, slides up after first result) ── */
 .tool-save-prompt { position: fixed; bottom: 0; left: 0; right: 0; z-index: 900; background: var(--charcoal); color: var(--cream); padding: 14px 20px; display: flex; align-items: center; gap: 16px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 -4px 24px rgba(0,0,0,0.3); }
