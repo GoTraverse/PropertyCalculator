@@ -1479,20 +1479,21 @@ const BUILD_DATE = new Date().toLocaleDateString('en-AU', {
 const MIN_POPULATION_FOR_INDEX = 10000;
 
 function shouldNoindex(s) {
-  // Honesty hold (Jun 2026): suburb pages currently display ESTIMATED / placeholder
-  // figures (median income, transport/amenity/investment scores, school/park counts)
-  // that are NOT verified ABS or OpenStreetMap data. Until real data is sourced, every
-  // suburb page is noindex,follow — still reachable, but excluded from the sitemap and
-  // Google — so placeholder numbers are never presented to search users as fact.
-  // To restore selective indexing once real data lands, re-enable the gate below.
-  return true;
-  /* original population/postcode/income gate — retained for when real data is in:
+  // Real-data gate (Jul 2026): index a suburb page only when it carries genuine,
+  // CURRENT, suburb-level, CC-licensed market data (median rent or sale price) from
+  // build/merge-market-current.js — plus the usual population + postcode floor.
+  // Everything else stays noindex,follow (reachable, kept out of Google + the
+  // sitemap) so pages built on 2021-only / placeholder figures are never presented
+  // to search users as current. This is what makes the SA / VIC / QLD suburbs that
+  // now have real rent/price figures indexable, while the long tail stays dark.
   if (s.tiny) return true;
   if (!s.postcode) return true;
   if ((s.population || 0) < MIN_POPULATION_FOR_INDEX) return true;
-  if (!s.median_household_income) return true;
+  const geoOk = g => typeof g === 'string' && g.indexOf('suburb') === 0;
+  const realRent  = !!(s.current_rent && geoOk(s.current_rent_geo));
+  const realPrice = !!((s.current_price_house || s.current_price_unit) && geoOk(s.current_price_geo));
+  if (!realRent && !realPrice) return true;
   return false;
-  */
 }
 
 // Quality score 0–100 for reporting / future sorting. Not used as the noindex
@@ -2111,6 +2112,37 @@ function generateMethodologyBlock(s) {
   </section>`;
 }
 
+// Current sale-price + yield section (state-government open data, CC BY 4.0).
+// Rent lives in Key Indicators; this shows sale prices + derived yield when present.
+function _statTile(label, value, detailHtml) {
+  return `      <details class="suburb-stat">
+        <summary>
+          <div class="suburb-stat-label">${escHtml(label)}</div>
+          <div class="suburb-stat-value">${escHtml(value)}</div>
+        </summary>
+        <div class="suburb-stat-detail"><p>${detailHtml}</p></div>
+      </details>`;
+}
+function generateCurrentMarket(s) {
+  const tiles = [];
+  const cap = (label) => {
+    const geo = (s.current_price_geo && s.current_price_geo !== 'suburb')
+      ? ` Figure covers ${escHtml(s.current_price_geo)}.` : '';
+    return `${escHtml(label)} — as at ${escHtml(s.current_price_period || '')}, ${escHtml(s.current_price_source || '')}${s.current_price_licence ? ` (${escHtml(s.current_price_licence)})` : ''}.${geo}`;
+  };
+  if (s.current_price_house) tiles.push(_statTile('Median house price', `$${fmt(s.current_price_house)}`, cap('Median house sale price')));
+  if (s.current_price_unit)  tiles.push(_statTile('Median unit price',  `$${fmt(s.current_price_unit)}`,  cap('Median unit sale price')));
+  if (s.current_gross_yield) tiles.push(_statTile('Indicative gross yield', `${s.current_gross_yield}%`,
+    'Estimated as current median rent &#215; 52 &#247; current median house price. A guide only — not a guaranteed return; excludes costs, vacancy and buying expenses.'));
+  if (!tiles.length) return '';
+  return `  <section class="suburb-section">
+    <h2>Sale prices &amp; yield</h2>
+    <div class="suburb-grid">
+${tiles.join('\n')}
+    </div>
+  </section>`;
+}
+
 // ── Review prefetch (Phase 4) ───────────────────────────────────────────
 // Fetches approved reviews from Upstash Redis via a tiny helper script so
 // the rest of this build stays synchronous. Safe no-op when env vars absent;
@@ -2236,10 +2268,18 @@ for (const s of suburbs) {
     ? `${s.distance_to_cbd} km`
     : 'N/A';
 
-  // Rent display
-  const rentDisplay = s.median_rent_weekly
-    ? `$${fmt(s.median_rent_weekly)}/wk`
-    : 'N/A';
+  // Rent display — prefer CURRENT state-gov median rent; fall back to the 2021
+  // Census figure (clearly dated) only when no current figure exists.
+  const rentIsCurrent = !!s.current_rent;
+  const rentVal = s.current_rent || s.median_rent_weekly;
+  const rentDisplay = rentVal ? `$${fmt(rentVal)}/wk` : 'N/A';
+  const rentGeoNote = (rentIsCurrent && s.current_rent_geo && s.current_rent_geo !== 'suburb')
+    ? ` Figure covers the ${escHtml(s.current_rent_geo)}, not the suburb alone.` : '';
+  const rentDetail = rentIsCurrent
+    ? `Median weekly rent — as at ${escHtml(s.current_rent_period || '')}, ${escHtml(s.current_rent_source || '')}${s.current_rent_licence ? ` (${escHtml(s.current_rent_licence)})` : ''}.${rentGeoNote}`
+    : (s.median_rent_weekly
+        ? `Median weekly rent recorded at the 2021 Census — market rents have risen since, so treat this as a dated baseline, not a current figure.`
+        : `A current median rent has not been published for this suburb.`);
 
   // Income display — real ABS 2021 median household income (the ABS median
   // weekly household income annualised by apply-abs-data.js). The Jun 2026
@@ -2279,7 +2319,7 @@ for (const s of suburbs) {
     : `<p>Estimated ${s.park_count} park${s.park_count !== 1 ? 's' : ''} and green spaces near this suburb.</p>`;
 
   // Data source note for hero
-  const dataSourceNote = `ABS 2021 Census · Updated ${BUILD_DATE}`;
+  const dataSourceNote = `ABS 2021 Census demographics · current market data`;
 
   // Suburb locator card — inline SVG state silhouette with a red dot at the
   // suburb's lat/lng centroid (set by build/apply-abs-data.js from ABS
@@ -2314,6 +2354,7 @@ for (const s of suburbs) {
     .replace(/\{\{POPULATION\}\}/g, fmt(s.population))
     .replace(/\{\{DISTANCE_TO_CBD\}\}/g, distDisplay)
     .replace(/\{\{MEDIAN_RENT\}\}/g, rentDisplay)
+    .replace(/\{\{RENT_DETAIL\}\}/g, rentDetail)
     .replace(/\{\{MEDIAN_INCOME\}\}/g, incomeDisplay)
     .replace(/\{\{MEDIAN_MORTGAGE\}\}/g, mortgageDisplay)
     .replace(/\{\{HOUSE_PCT\}\}/g, housePctDisplay)
@@ -2323,6 +2364,7 @@ for (const s of suburbs) {
     .replace(/\{\{PARKS_DETAIL\}\}/g, parksDetail)
     .replace(/\{\{DATA_SOURCE_NOTE\}\}/g, escHtml(dataSourceNote))
     .replace(/\{\{LOCATOR_CARD_HTML\}\}/g, locatorCardHtml)
+    .replace(/\{\{CURRENT_MARKET_HTML\}\}/g, generateCurrentMarket(s))
     .replace(/\{\{INVESTMENT_INSIGHT\}\}/g, generateInsight(s, sm))
     .replace(/\{\{INVESTMENT_SCORE_HTML\}\}/g, generateInvestmentScore(s))
     .replace(/\{\{STRATEGY_HTML\}\}/g, generateStrategy(s, sm))
