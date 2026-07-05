@@ -57,6 +57,7 @@ fetch-overpass-amenities.js
 
 # Raw / fetched source data (large intermediate files, not needed at runtime)
 data/abs-suburbs.json
+data/market-current.json
 data/overpass-amenities.json
 data/blog-fixture.json
 data/blog-posts/
