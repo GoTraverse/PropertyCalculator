@@ -1657,8 +1657,11 @@
       if(!quiet) requireAccount('save this scenario');
       return false;
     }
-    // Address is required for a real (logged-in) save — scenarios are titled/keyed by it.
-    if(!addr.trim()){
+    // Address is required for a MANUAL (logged-in) save — scenarios are titled/keyed
+    // by it. Quiet saves (the post-signup migration) are exempt: the wizard never
+    // collects an address, so blocking here silently dropped the migrated scenario.
+    // Address-less quiet saves fall through to the 'Unnamed Property' title below.
+    if(!addr.trim() && !quiet){
       showToast('⚠️ Please enter a property address before saving');
       const addrEl = document.getElementById('pd-address');
       if(addrEl){ addrEl.focus(); addrEl.style.borderColor='var(--terracotta)'; setTimeout(()=>addrEl.style.borderColor='',2500); }
@@ -4356,8 +4359,12 @@
   try{
     if(isLoggedIn() && localStorage.getItem('propCalc_pendingSave')){
       localStorage.removeItem('propCalc_pendingSave');
-      var _migAddr = (document.getElementById('pd-address') && document.getElementById('pd-address').value.trim()) || '';
-      var _willMigrate = !!(_hadDraft && _migAddr);
+      // Address is NOT required to migrate — the onboarding wizard never collects
+      // one, so requiring it here silently broke the signup promise ("your scenario
+      // moves into your account automatically") for the primary new-user path.
+      // Address-less scenarios save under the fallback title; the user can rename
+      // by adding an address later. (App architecture audit, step-1 funnel fix.)
+      var _willMigrate = !!_hadDraft;
       if(window.trackGuest) trackGuest('signup_completed', {migrated: _willMigrate});
       if(_willMigrate){
         // saveScenario resolves with usedCloud (true only when actually persisted to
@@ -4764,12 +4771,15 @@
   async function requireAccount(actionLabel){
     if(isLoggedIn()) return true;
     if(window.trackGuest) trackGuest('signup_prompt_shown', {action: actionLabel||'save', source: 'modal'});
-    var ok = await appConfirm(
-      'Create a free account',
-      'Create a free EquitySight account to ' + escHtml(actionLabel || 'save your scenario') +
-      '.<br><span style="opacity:0.7;">Your scenario stays on this device and moves into your account automatically.</span>',
-      {icon:'🔒', confirmLabel:'Create free account'}
-    );
+    // HONEST gating copy: export is a Pro feature, so the guest prompt must say
+    // so upfront — promising it for a free account was bait (architecture audit).
+    var isExport = /export/i.test(actionLabel || '');
+    var body = isExport
+      ? 'PDF export is a <strong>Pro</strong> feature (A$8.99/mo).<br>' +
+        'Create a free account first — your scenario moves into it automatically — then upgrade any time to export.'
+      : 'Create a free EquitySight account to ' + escHtml(actionLabel || 'save your scenario') +
+        '.<br><span style="opacity:0.7;">Your scenario stays on this device and moves into your account automatically.</span>';
+    var ok = await appConfirm('Create a free account', body, {icon:'🔒', confirmLabel:'Create free account'});
     if(ok) _goToSignup(actionLabel || 'save', 'modal');
     return false;
   }
