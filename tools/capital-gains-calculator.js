@@ -1,18 +1,19 @@
 /* ═══ CAPITAL GAINS TAX CALCULATOR ═══ */
 
 function calcTax(taxable) {
-  // 2025-26 resident individual tax scale (Stage 3) including Medicare levy.
-  // Brackets per ATO; thresholds in AUD.
+  // FY2026-27 resident individual tax scale including Medicare levy.
+  // Brackets per ATO (second rate cut 16% → 15% from 1 Jul 2026); AUD.
   var tax = 0;
   if (taxable <= 18200) tax = 0;
-  else if (taxable <= 45000) tax = (taxable - 18200) * 0.16;
-  else if (taxable <= 135000) tax = 4288 + (taxable - 45000) * 0.30;
-  else if (taxable <= 190000) tax = 31288 + (taxable - 135000) * 0.37;
-  else tax = 51638 + (taxable - 190000) * 0.45;
-  // Medicare levy: 0% below $27,222; sliding 10% of excess in $27,222-$34,027
-  // shading-in band; flat 2% of taxable above $34,027 (singles, 2025-26).
-  if (taxable > 34027) tax += taxable * 0.02;
-  else if (taxable > 27222) tax += (taxable - 27222) * 0.10;
+  else if (taxable <= 45000) tax = (taxable - 18200) * 0.15;
+  else if (taxable <= 135000) tax = 4020 + (taxable - 45000) * 0.30;
+  else if (taxable <= 190000) tax = 31020 + (taxable - 135000) * 0.37;
+  else tax = 51370 + (taxable - 190000) * 0.45;
+  // Medicare levy: 0% below $28,011; sliding 10% of excess in $28,011-$35,013
+  // shading-in band; flat 2% of taxable above $35,013 (singles). FY2025-26
+  // thresholds (latest published; 2026-27 legislated retrospectively each year).
+  if (taxable > 35013) tax += taxable * 0.02;
+  else if (taxable > 28011) tax += (taxable - 28011) * 0.10;
   return tax;
 }
 
@@ -104,7 +105,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'Simplified estimate. Your actual CGT depends on partial-year holding periods, offset losses, main-residence absences, and other ATO rules. Always consult a registered tax agent.'
+    disclaimer: 'Simplified estimate. Your actual CGT depends on partial-year holding periods, offset losses, main-residence absences, and other ATO rules. This calculator applies current FY2026-27 law (50% discount); from 1 July 2027 legislated reforms (Treasury Laws Amendment (Tax Reform No. 1) Act 2026) replace the discount with cost-base indexation plus a 30% minimum tax rate on gains that accrue after that date. Always consult a registered tax agent.'
   },
   share: {
     url: 'https://equitysight.app/tools/capital-gains-calculator',
@@ -175,7 +176,9 @@ ToolPage.init({
     { q: 'Can I reduce CGT by timing the sale?',
       a: 'Yes. Because CGT is taxed at your marginal rate, selling in a low-income year (e.g. during retirement, parental leave, or a sabbatical) can drop you into lower brackets and dramatically reduce the tax bill.' },
     { q: 'Do capital losses reduce my CGT?',
-      a: 'Yes. Capital losses from other investments (shares, another property) can offset capital gains in the same year. Unused losses carry forward indefinitely. Only capital losses — not ordinary income losses — can offset capital gains.' }
+      a: 'Yes. Capital losses from other investments (shares, another property) can offset capital gains in the same year. Unused losses carry forward indefinitely. Only capital losses — not ordinary income losses — can offset capital gains.' },
+    { q: 'Is the 50% CGT discount changing?',
+      a: 'Yes — from 1 July 2027. The 2026-27 Federal Budget reforms are now law (Treasury Laws Amendment (Tax Reform No. 1) Act 2026): for individuals, trusts and partnerships, the 50% CGT discount will be replaced by cost-base indexation plus a 30% minimum tax rate on gains that accrue after 1 July 2027. Gains accrued before that date keep the current treatment. This calculator applies current FY2026-27 law, so the 50% discount still applies in full to sales this financial year.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '📈', href: '/tools/rental-yield-calculator', label: 'Rental Yield' },

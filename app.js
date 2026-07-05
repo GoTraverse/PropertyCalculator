@@ -99,10 +99,11 @@
   // Returns estimated stamp duty for all 8 Australian states (2026 thresholds)
   function calcStampDutyAmt(price, state, isFHB, isNew) {
     if (!price || !state) return 0;
-    // FY2025-26 cumulative-marginal tiers [from, rate], verified against each state
-    // revenue office (same schedules as tools/stamp-duty-calculator.js).
+    // FY2026-27 cumulative-marginal tiers [from, rate], verified against each state
+    // revenue office (same schedules as tools/stamp-duty-calculator.js). NSW brackets
+    // CPI-indexed 1 Jul 2026.
     var TIERS = {
-      nsw: [[0,0.0125],[17000,0.015],[37000,0.0175],[99000,0.035],[372000,0.045],[1240000,0.055],[3721000,0.07]],
+      nsw: [[0,0.0125],[18000,0.015],[38000,0.0175],[103000,0.035],[387000,0.045],[1290000,0.055],[3870000,0.07]],
       vic: [[0,0.014],[25000,0.024],[130000,0.06]],
       qld: [[0,0],[5000,0.015],[75000,0.035],[540000,0.045],[1000000,0.0575]],
       sa:  [[0,0.01],[12000,0.02],[30000,0.03],[50000,0.035],[100000,0.04],[200000,0.0425],[250000,0.0475],[300000,0.05],[500000,0.055]],
@@ -137,7 +138,10 @@
         duty = (price <= 3000) ? 50 : duty + 50;                          // $50 base/minimum
       }
     }
-    // First-home-buyer concessions (FY2025-26).
+    // First-home-buyer concessions (FY2026-27, verified 5 Jul 2026).
+    // TAS: established-home exemption EXPIRED 30 Jun 2026 — no FHB duty relief.
+    // WA: thresholds raised to $600k/$800k from 7 May 2026.
+    // ACT: HBCS uncapped + no income test from 1 Jul 2026 — $0 duty at any price.
     if (isFHB) {
       if (state === 'qld') {
         if (isNew) duty = 0;                                              // new-home full exemption
@@ -150,12 +154,10 @@
         if (price <= 600000) duty = 0;
         else if (price < 750000) duty *= (price - 600000) / 150000;
       } else if (state === 'wa') {
-        if (price <= 500000) duty = 0;
-        else if (price < 700000) duty *= (price - 500000) / 200000;
-      } else if (state === 'tas') {
-        if (price <= 750000) duty = 0;                                    // established-home cliff
+        if (price <= 600000) duty = 0;
+        else if (price < 800000) duty *= (price - 600000) / 200000;
       } else if (state === 'act') {
-        if (price <= 1020000) duty = 0;                                   // HBCS (income-tested)
+        duty = 0;                                                         // HBCS: uncapped from 1 Jul 2026
       } else if ((state === 'sa' || state === 'nt') && isNew) {
         duty = 0;                                                         // new-build relief only
       }

@@ -1,4 +1,5 @@
-/* NSW Stamp Duty Calculator — uses Revenue NSW 2025–26 rates.
+/* NSW Stamp Duty Calculator — uses Revenue NSW 2026–27 rates
+ * (brackets CPI-indexed 1 Jul 2026; verified vs Revenue NSW 5 Jul 2026).
  * The bracket structure here mirrors that used by tools/stamp-duty-calculator.js
  * for NSW; this file exists so the NSW-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
@@ -10,13 +11,13 @@ var NSW_FHB_PARTIAL = 1000000;
 // State-standard transfer duty (investor / non-FHB).
 function calcNSWStandard(v) {
   if (v <= 0) return 0;
-  if (v <= 17000) return v * 0.0125;
-  if (v <= 37000) return 212.5 + (v - 17000) * 0.015;
-  if (v <= 99000) return 512.5 + (v - 37000) * 0.0175;
-  if (v <= 372000) return 1597.5 + (v - 99000) * 0.035;
-  if (v <= 1240000) return 11152.5 + (v - 372000) * 0.045;
-  if (v <= 3721000) return 50212.5 + (v - 1240000) * 0.055;
-  return 186667.5 + (v - 3721000) * 0.07;
+  if (v <= 18000) return v * 0.0125;
+  if (v <= 38000) return 225 + (v - 18000) * 0.015;
+  if (v <= 103000) return 525 + (v - 38000) * 0.0175;
+  if (v <= 387000) return 1662.5 + (v - 103000) * 0.035;
+  if (v <= 1290000) return 11602.5 + (v - 387000) * 0.045;
+  if (v <= 3870000) return 52237.5 + (v - 1290000) * 0.055;
+  return 194137.5 + (v - 3870000) * 0.07;
 }
 
 function calcNSWDuty(price, ptype, buyer, fhb) {
@@ -99,7 +100,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on New South Wales 2025-26 conveyancing duty. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on New South Wales 2026-27 transfer duty (brackets indexed 1 July 2026; verified 5 July 2026). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -189,11 +190,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$23,213"
+        "v": "$22,988"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$23,213"
+        "v": "$22,988"
       },
       {
         "k": "First home buyer duty",
@@ -216,15 +217,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$34,913"
+        "v": "$34,688"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$34,913"
+        "v": "$34,688"
       },
       {
         "k": "First home buyer duty",
-        "v": "$17,456 (FHB concession)"
+        "v": "$17,344 (FHB concession)"
       }
     ]
   },
@@ -243,15 +244,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$48,413"
+        "v": "$48,188"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$48,413"
+        "v": "$48,188"
       },
       {
         "k": "First home buyer duty",
-        "v": "$48,413 (over cap)"
+        "v": "$48,188 (over cap)"
       }
     ]
   }
@@ -259,7 +260,7 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in NSW?",
-    "a": "NSW transfer duty (still commonly called stamp duty) is charged by Revenue NSW on the dutiable value of any property purchase. The duty steps up across brackets: 1.25% up to $17,000, 1.5% to $37,000, 1.75% to $99,000, 3.5% to $372,000, 4.5% to $1.24 million, 5.5% to $3.721 million, and 7% on the portion above $3.721 million. There is no owner-occupier \"home concession\" in NSW — owner-occupiers and investors pay the same standard rates. The main relief is the First Home Buyers Assistance Scheme."
+    "a": "NSW transfer duty (still commonly called stamp duty) is charged by Revenue NSW on the dutiable value of any property purchase. The duty steps up across brackets (FY2026-27, indexed 1 July 2026): 1.25% up to $18,000, 1.5% to $38,000, 1.75% to $103,000, 3.5% to $387,000, 4.5% to $1.29 million, 5.5% to $3.87 million, and 7% on the portion above $3.87 million. There is no owner-occupier \"home concession\" in NSW — owner-occupiers and investors pay the same standard rates. The main relief is the First Home Buyers Assistance Scheme."
   },
   {
     "q": "Do first home buyers pay stamp duty in NSW?",

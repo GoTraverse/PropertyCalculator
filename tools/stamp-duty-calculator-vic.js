@@ -1,4 +1,4 @@
-/* VIC Stamp Duty Calculator — uses State Revenue Office Victoria 2025–26 rates.
+/* VIC Stamp Duty Calculator — uses State Revenue Office Victoria 2026–27 rates (verified 5 Jul 2026).
  * The bracket structure here mirrors that used by tools/stamp-duty-calculator.js
  * for VIC; this file exists so the VIC-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
@@ -99,7 +99,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Victoria 2025-26 land transfer duty. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Victoria 2026-27 land transfer duty. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

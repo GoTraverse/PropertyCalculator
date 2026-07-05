@@ -14,26 +14,30 @@
  * boundaries duty payable was dropping by hundreds of dollars going up by
  * one cent. See PR #223 follow-up commit and tests/stamp-duty-test.js.
  *
- * Source of rates: state revenue offices, FY 2025–26 published rates as
- * at May 2026. Each state revenue office has the canonical reference; URLs
+ * Source of rates: state revenue offices, FY 2026–27 published rates as
+ * at 5 July 2026 (NSW brackets CPI-indexed 1 Jul 2026; WA FHB thresholds
+ * raised 7 May 2026; TAS established-home FHB exemption expired 30 Jun 2026;
+ * ACT HBCS uncapped from 1 Jul 2026). Each state revenue office has the
+ * canonical reference; URLs
  * are listed in the `resources` block of each per-state calculator page
  * (e.g. tools/stamp-duty-calculator-nsw.js).
  */
 var stateData = {
-  // Rates verified against each state revenue office, FY2025-26 (as at Jun 2026).
+  // Rates verified against each state revenue office, FY2026-27 (as at 5 Jul 2026).
   // NOTE: VIC ($960k-$2M), ACT (>$1.455M) and NT use flat-of-total or quadratic
   // bands that the simple cumulative-tier model can't express — see calcDuty().
   nsw: {
     name: 'New South Wales', dutyName: 'Transfer Duty', foreignRate: 0.09,
     fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
+    // Brackets CPI-indexed 1 Jul 2026 (FY2026-27; premium threshold $3,870,000).
     tiers: [
       { from: 0,       rate: 0.0125 },
-      { from: 17000,   rate: 0.015  },
-      { from: 37000,   rate: 0.0175 },
-      { from: 99000,   rate: 0.035  },
-      { from: 372000,  rate: 0.045  },
-      { from: 1240000, rate: 0.055  },
-      { from: 3721000, rate: 0.07   }
+      { from: 18000,   rate: 0.015  },
+      { from: 38000,   rate: 0.0175 },
+      { from: 103000,  rate: 0.035  },
+      { from: 387000,  rate: 0.045  },
+      { from: 1290000, rate: 0.055  },
+      { from: 3870000, rate: 0.07   }
     ]
   },
   vic: {
@@ -76,7 +80,9 @@ var stateData = {
   },
   wa: {
     name: 'Western Australia', dutyName: 'Transfer Duty', foreignRate: 0.07,
-    fhbFull: 500000, fhbPartial: 700000, fhbExemption: Infinity,
+    // FHB thresholds raised for transactions from 7 May 2026 (2026-27 Housing
+    // Taxation Package; enabling legislation est. late Jul 2026, retrospective).
+    fhbFull: 600000, fhbPartial: 800000, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0.019  },
       { from: 120000,  rate: 0.0285 },
@@ -87,8 +93,9 @@ var stateData = {
   },
   tas: {
     name: 'Tasmania', dutyName: 'Property Transfer Duty', foreignRate: 0.08,
-    // FHB: full exemption on established homes <= $750k (to 30 Jun 2026) — hard cliff.
-    fhbFull: 750000, fhbPartial: 750000, fhbExemption: Infinity,
+    // FHB established-home exemption EXPIRED 30 Jun 2026 (SRO: "not available for
+    // transactions settling after 30 June 2026") — no FHB duty relief in TAS now.
+    fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0      },
       { from: 3000,    rate: 0.0175 },
@@ -101,8 +108,9 @@ var stateData = {
   },
   act: {
     name: 'Australian Capital Territory', dutyName: 'Conveyance Duty', foreignRate: 0,
-    // Home Buyer Concession Scheme: full exemption up to $1.02M (income-tested).
-    fhbFull: 1020000, fhbPartial: 1020000, fhbExemption: Infinity,
+    // HBCS from 1 Jul 2026: NO income test, NO property value limit — eligible
+    // buyers (no property owned in prior 5 yrs) pay $0 duty at any price.
+    fhbFull: Infinity, fhbPartial: Infinity, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0.0028 },
       { from: 260000,  rate: 0.022  },
@@ -158,7 +166,7 @@ function calcDuty(state, v) {
   return duty;
 }
 
-// ── Standard reference (FY 2025-26) ───────────────────────────────────────
+// ── Standard reference (FY 2026-27) ───────────────────────────────────────
 // Mortgage registration fees + title transfer fees by state. These are
 // nominal in dollar terms ($150-600 typically) but every legitimate
 // upfront-cost calculator includes them. Values from state title office
@@ -304,7 +312,7 @@ function calculate() {
     fhbCols.forEach(function(el) { el.style.display = isFHB ? '' : 'none'; });
   }
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2025-26 thresholds. LMI is an industry-average estimate \u2014 get a formal quote. Verify all figures with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2026-27 thresholds (verified 5 July 2026). LMI is an industry-average estimate \u2014 get a formal quote. Verify all figures with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -391,16 +399,16 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'QLD — First home buyer, $650,000',
+      label: 'QLD — First home buyer, $750,000',
       inputs: [
-        { k: 'Property price', v: '$650,000' },
+        { k: 'Property price', v: '$750,000' },
         { k: 'State', v: 'Queensland' },
         { k: 'First home buyer', v: 'Yes' },
         { k: 'Property type', v: 'Established dwelling' }
       ],
       outputs: [
-        { k: 'Estimated stamp duty', v: '~$12,850' },
-        { k: 'Includes FHB concession', v: 'Yes (partial)' }
+        { k: 'Estimated stamp duty', v: '~$13,390' },
+        { k: 'Includes FHB concession', v: 'Yes (partial — full exemption ends at $700k)' }
       ]
     },
     {
@@ -412,8 +420,8 @@ ToolPage.init({
         { k: 'Foreign buyer', v: 'No' }
       ],
       outputs: [
-        { k: 'Estimated stamp duty', v: '~$38,000' },
-        { k: 'Mortgage registration', v: '~$165' }
+        { k: 'Estimated stamp duty (FY2026-27 brackets)', v: '~$36,900' },
+        { k: 'Mortgage registration', v: '~$185' }
       ]
     },
     {
@@ -434,7 +442,7 @@ ToolPage.init({
     { q: 'How is stamp duty calculated?',
       a: 'Stamp duty is a state tax based on the property purchase price and the state you buy in. Each state uses tiered brackets — higher prices attract a higher percentage. First home buyers, pensioners, and certain property types can attract concessions.' },
     { q: 'Do first home buyers pay less stamp duty?',
-      a: 'Yes. Every Australian state offers some form of first home buyer relief, ranging from full exemption (ACT: up to $1M; NSW: up to $800K) to a sliding concession. QLD offers a full concession up to $500,000. Check your state\u2019s threshold before you commit.' },
+      a: 'Mostly, but it now varies sharply by state. The ACT charges eligible home buyers no duty at all from 1 July 2026 (no price cap or income test). NSW exempts first home buyers to $800,000, VIC to $600,000, QLD to $700,000 (and new homes at any price), WA to $600,000 from 7 May 2026. SA waives duty on new builds only. Tasmania\u2019s established-home exemption expired on 30 June 2026, so TAS first home buyers now pay full duty. Check your state\u2019s current threshold before you commit.' },
     { q: 'When do I have to pay stamp duty?',
       a: 'Most states require payment within 30 days of settlement. In NSW and VIC, duty can be deferred in limited circumstances. Unpaid duty accrues interest, so arrange funds as part of your settlement budget.' },
     { q: 'Is stamp duty tax deductible?',

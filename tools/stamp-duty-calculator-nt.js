@@ -1,4 +1,4 @@
-/* NT Stamp Duty Calculator — uses Territory Revenue Office 2025–26 rates.
+/* NT Stamp Duty Calculator — uses Territory Revenue Office 2026–27 rates (verified 5 Jul 2026).
  * The bracket structure here mirrors that used by tools/stamp-duty-calculator.js
  * for NT; this file exists so the NT-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
@@ -98,7 +98,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Northern Territory 2025-26 stamp duty on conveyances. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Northern Territory 2026-27 stamp duty on conveyances. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -262,7 +262,7 @@ ToolPage.init({
   },
   {
     "q": "Do first home buyers pay stamp duty in the NT?",
-    "a": "First home buyers buying new homes, house and land packages, or vacant land where a new home will be built can claim a stamp duty discount of up to $50,000. There is no full exemption — the discount reduces the duty payable by up to $50,000. For established homes there is no first home buyer concession."
+    "a": "The NT's House and Land Package Exemption gives a FULL stamp duty exemption (no value cap, not means-tested) when you buy a house-and-land package from a building contractor in a single transaction — contracts signed 1 July 2022 to 30 June 2027. It is not limited to first home buyers. For established homes there is no duty concession; first home buyers of NEW homes may also qualify for the $50,000 HomeGrown Territory grant (a cash grant, separate from duty)."
   },
   {
     "q": "When is stamp duty due in the NT?",

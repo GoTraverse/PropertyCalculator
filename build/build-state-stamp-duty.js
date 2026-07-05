@@ -896,7 +896,8 @@ window.addEventListener('DOMContentLoaded', function() {
 // the `tiers` arrays in tools/stamp-duty-calculator.js so the dedicated
 // state pages produce identical figures to the all-states tool.
 const STATE_TIERS = {
-  NSW: [[0,0.0125],[17000,0.015],[37000,0.0175],[99000,0.035],[372000,0.045],[1240000,0.055],[3721000,0.07]],
+  // NSW brackets CPI-indexed 1 Jul 2026 (FY2026-27; premium threshold $3,870,000).
+  NSW: [[0,0.0125],[18000,0.015],[38000,0.0175],[103000,0.035],[387000,0.045],[1290000,0.055],[3870000,0.07]],
   VIC: [[0,0.014],[25000,0.024],[130000,0.06]],
   QLD: [[0,0],[5000,0.015],[75000,0.035],[540000,0.045],[1000000,0.0575]],
   SA:  [[0,0.01],[12000,0.02],[30000,0.03],[50000,0.035],[100000,0.04],[200000,0.0425],[250000,0.0475],[300000,0.05],[500000,0.055]],

@@ -1,4 +1,4 @@
-/* ACT Stamp Duty Calculator — uses ACT Revenue Office 2025–26 rates.
+/* ACT Stamp Duty Calculator — uses ACT Revenue Office 2026–27 rates (HBCS uncapped from 1 Jul 2026; verified 5 Jul 2026).
  * The bracket structure here mirrors that used by tools/stamp-duty-calculator.js
  * for ACT; this file exists so the ACT-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
@@ -6,8 +6,8 @@
 // The ACT does NOT levy a one-off foreign-buyer stamp-duty surcharge (foreign
 // owners pay a separate annual land-tax surcharge instead) — so no surcharge here.
 var ACT_FOREIGN_RATE = 0;
-var ACT_FHB_FULL = 1020000;
-var ACT_FHB_PARTIAL = 1020000;
+var ACT_FHB_FULL = Infinity;   // HBCS: no property value limit from 1 Jul 2026
+var ACT_FHB_PARTIAL = Infinity; // (and no income test)
 
 // State-standard transfer duty (investor / non-FHB).
 function calcACTStandard(v) {
@@ -27,7 +27,7 @@ function calcACTDuty(price, ptype, buyer, fhb) {
   var standard = calcACTStandard(v);
 
   if (fhb && v <= ACT_FHB_FULL) {
-    return { duty: 0, note: 'First home buyer exemption applied.' };
+    return { duty: 0, note: 'Home Buyer Concession applied — $0 duty (no income test or property value limit from 1 July 2026).' };
   }
   if (fhb && v <= ACT_FHB_PARTIAL && ACT_FHB_PARTIAL > ACT_FHB_FULL) {
     var slide = (ACT_FHB_PARTIAL - v) / (ACT_FHB_PARTIAL - ACT_FHB_FULL);
@@ -101,7 +101,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Australian Capital Territory 2025-26 conveyance duty. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Australian Capital Territory 2026-27 conveyance duty (HBCS uncapped from 1 July 2026). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -226,7 +226,7 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$37,158 (over cap)"
+        "v": "$0 (HBCS — no price cap from 1 Jul 2026)"
       }
     ]
   },
@@ -253,7 +253,7 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$46,758 (over cap)"
+        "v": "$0 (HBCS — no price cap from 1 Jul 2026)"
       }
     ]
   }
@@ -261,15 +261,15 @@ ToolPage.init({
   faq: [
   {
     "q": "How does stamp duty work in the ACT?",
-    "a": "ACT conveyance duty is charged by the ACT Revenue Office on the dutiable value of any property purchase. Rates step up across multiple brackets: 0.28% up to $260,000, 2.2% to $300,000, 3.4% to $500,000, 4.32% to $750,000, 5.9% to $1,000,000, and 6.4% to $1,455,000. Above $1,455,000 a flat rate of 4.54% applies to the whole purchase price. Eligible owner-occupiers (subject to income tests) can claim full duty exemption under the Home Buyer Concession Scheme on properties up to $1,020,000."
+    "a": "ACT conveyance duty is charged by the ACT Revenue Office on the dutiable value of any property purchase. Rates step up across multiple brackets: 0.28% up to $260,000, 2.2% to $300,000, 3.4% to $500,000, 4.32% to $750,000, 5.9% to $1,000,000, and 6.4% to $1,455,000. Above $1,455,000 a flat rate of 4.54% applies to the whole purchase price. From 1 July 2026, eligible home buyers (no property owned in the previous 5 years) pay no conveyance duty at all under the Home Buyer Concession Scheme — the income test and the $1,020,000 property value limit were both removed."
   },
   {
     "q": "Do first home buyers pay stamp duty in the ACT?",
-    "a": "The ACT Home Buyer Concession Scheme (HBCS) is more generous than other states — it covers all eligible buyers (not just first home buyers) on properties up to $1,020,000, subject to a household income test (with adjustments for dependants). Most first home buyers within these thresholds pay no conveyance duty in the ACT."
+    "a": "The ACT Home Buyer Concession Scheme (HBCS) is more generous than other states — from 1 July 2026 it covers all eligible buyers (no property owned in the previous 5 years) with NO income test and NO property value limit. Eligible ACT buyers pay no conveyance duty at any price."
   },
   {
     "q": "What is the ACT Home Buyer Concession Scheme?",
-    "a": "The HBCS provides full duty exemption for eligible owner-occupiers (not just first home buyers) on properties valued up to $1,020,000, subject to a household income test. The scheme replaced the previous First Home Owner Grant + duty concession in 2019 and is materially more generous. To qualify you must occupy the property as your principal residence for at least 12 months continuously starting within 12 months of settlement."
+    "a": "From 1 July 2026 the HBCS provides full duty exemption for eligible owner-occupiers (not just first home buyers) with no income test and no property value limit. The scheme replaced the previous First Home Owner Grant + duty concession in 2019 and is materially more generous. To qualify you must occupy the property as your principal residence for at least 12 months continuously starting within 12 months of settlement."
   },
   {
     "q": "When is stamp duty due in the ACT?",

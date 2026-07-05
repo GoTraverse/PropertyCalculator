@@ -1,4 +1,4 @@
-/* SA Stamp Duty Calculator — uses RevenueSA 2025–26 rates.
+/* SA Stamp Duty Calculator — uses RevenueSA 2026–27 rates (verified 5 Jul 2026).
  * The bracket structure here mirrors that used by tools/stamp-duty-calculator.js
  * for SA; this file exists so the SA-specific landing URL can run a
  * state-locked version of the tool without a state selector. */
@@ -111,7 +111,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on South Australia 2025-26 stamp duty on conveyances. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on South Australia 2026-27 stamp duty on conveyances. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

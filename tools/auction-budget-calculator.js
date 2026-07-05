@@ -8,8 +8,8 @@
  */
 
 /* ═══════════════════════════════════════════════════════════════════════
- * SYNC: copied verbatim from stamp-duty-calculator.js (FY2025-26 schedules,
- * verified Jun 2026 vs state revenue offices). If rates change, update BOTH
+ * SYNC: copied verbatim from stamp-duty-calculator.js (FY2026-27 schedules,
+ * verified 5 Jul 2026 vs state revenue offices). If rates change, update BOTH
  * files. Blocks copied: stateData, calcDuty, REG_FEES, applyFhbConcession.
  * Do NOT modify the copied maths.
  * ═══════════════════════════════════════════════════════════════════════ */
@@ -30,26 +30,27 @@
  * boundaries duty payable was dropping by hundreds of dollars going up by
  * one cent. See PR #223 follow-up commit and tests/stamp-duty-test.js.
  *
- * Source of rates: state revenue offices, FY 2025–26 published rates as
- * at May 2026. Each state revenue office has the canonical reference; URLs
+ * Source of rates: state revenue offices, FY 2026–27 published rates as
+ * at 5 July 2026. Each state revenue office has the canonical reference; URLs
  * are listed in the `resources` block of each per-state calculator page
  * (e.g. tools/stamp-duty-calculator-nsw.js).
  */
 var stateData = {
-  // Rates verified against each state revenue office, FY2025-26 (as at Jun 2026).
+  // Rates verified against each state revenue office, FY2026-27 (as at 5 Jul 2026).
   // NOTE: VIC ($960k-$2M), ACT (>$1.455M) and NT use flat-of-total or quadratic
   // bands that the simple cumulative-tier model can't express — see calcDuty().
   nsw: {
     name: 'New South Wales', dutyName: 'Transfer Duty', foreignRate: 0.09,
     fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
+    // Brackets CPI-indexed 1 Jul 2026 (FY2026-27; premium threshold $3,870,000).
     tiers: [
       { from: 0,       rate: 0.0125 },
-      { from: 17000,   rate: 0.015  },
-      { from: 37000,   rate: 0.0175 },
-      { from: 99000,   rate: 0.035  },
-      { from: 372000,  rate: 0.045  },
-      { from: 1240000, rate: 0.055  },
-      { from: 3721000, rate: 0.07   }
+      { from: 18000,   rate: 0.015  },
+      { from: 38000,   rate: 0.0175 },
+      { from: 103000,  rate: 0.035  },
+      { from: 387000,  rate: 0.045  },
+      { from: 1290000, rate: 0.055  },
+      { from: 3870000, rate: 0.07   }
     ]
   },
   vic: {
@@ -92,7 +93,7 @@ var stateData = {
   },
   wa: {
     name: 'Western Australia', dutyName: 'Transfer Duty', foreignRate: 0.07,
-    fhbFull: 500000, fhbPartial: 700000, fhbExemption: Infinity,
+    fhbFull: 600000, fhbPartial: 800000, fhbExemption: Infinity, // WA thresholds raised 7 May 2026
     tiers: [
       { from: 0,       rate: 0.019  },
       { from: 120000,  rate: 0.0285 },
@@ -103,8 +104,7 @@ var stateData = {
   },
   tas: {
     name: 'Tasmania', dutyName: 'Property Transfer Duty', foreignRate: 0.08,
-    // FHB: full exemption on established homes <= $750k (to 30 Jun 2026) — hard cliff.
-    fhbFull: 750000, fhbPartial: 750000, fhbExemption: Infinity,
+    fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity, // TAS FHB exemption EXPIRED 30 Jun 2026
     tiers: [
       { from: 0,       rate: 0      },
       { from: 3000,    rate: 0.0175 },
@@ -117,8 +117,7 @@ var stateData = {
   },
   act: {
     name: 'Australian Capital Territory', dutyName: 'Conveyance Duty', foreignRate: 0,
-    // Home Buyer Concession Scheme: full exemption up to $1.02M (income-tested).
-    fhbFull: 1020000, fhbPartial: 1020000, fhbExemption: Infinity,
+    fhbFull: Infinity, fhbPartial: Infinity, fhbExemption: Infinity, // ACT HBCS uncapped from 1 Jul 2026
     tiers: [
       { from: 0,       rate: 0.0028 },
       { from: 260000,  rate: 0.022  },
@@ -174,7 +173,7 @@ function calcDuty(state, v) {
   return duty;
 }
 
-// ── Standard reference (FY 2025-26) ───────────────────────────────────────
+// ── Standard reference (FY 2026-27) ───────────────────────────────────────
 // Mortgage registration fees + title transfer fees by state. These are
 // nominal in dollar terms ($150-600 typically) but every legitimate
 // upfront-cost calculator includes them. Values from state title office
@@ -501,7 +500,7 @@ function calculate() {
 
   var disc = document.getElementById('disclaimer');
   if (disc) disc.textContent = 'Estimates only. ' + data.dutyName + ' is based on ' + data.name +
-    ' FY2025-26 schedules; registration and conveyancing figures are indicative — verify with your conveyancer and state revenue office. Your lender’s formal approval, valuation and LVR limits can reduce what you can actually borrow. General information — not financial advice.';
+    ' FY2026-27 schedules (verified 5 Jul 2026); registration and conveyancing figures are indicative — verify with your conveyancer and state revenue office. Your lender’s formal approval, valuation and LVR limits can reduce what you can actually borrow. General information — not financial advice.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -623,7 +622,7 @@ ToolPage.init({
     { q: 'What happens if the property passes in?',
       a: 'If bidding doesn’t reach the vendor’s reserve the property is passed in. The highest bidder usually gets the first right to negotiate with the vendor immediately afterwards. Your walk-away price still applies in that negotiation — a pass-in doesn’t make the property cheaper to own.' },
     { q: 'How accurate is the stamp duty figure?',
-      a: 'Duty is computed from FY 2025-26 schedules for all eight Australian states and territories, including first home buyer concessions, verified against each state revenue office. It is still an estimate — confirm your exact assessment with your conveyancer or state revenue office before settlement.' },
+      a: 'Duty is computed from FY 2026-27 schedules for all eight Australian states and territories, including first home buyer concessions, verified against each state revenue office. It is still an estimate — confirm your exact assessment with your conveyancer or state revenue office before settlement.' },
     { q: 'Why keep a safety buffer?',
       a: 'Buying at auction is unconditional, and ownership generates immediate costs — moving, repairs, rates adjustments — plus the ongoing risk of rate rises. Spending your last dollar at the hammer leaves nothing for the first surprise. Many buyers keep 5–10% of savings untouched.' }
   ],
