@@ -65,6 +65,20 @@ function stampDutyEstimate(price, state, fhb) {
   if (!fhb) return baseDuty;
   var data = _SD_STATE_DATA[state];
   if (!data) return baseDuty;
+  // QLD — QRO band-table method (verified 5 Jul 2026): a fixed concession
+  // amount ($17,350 at <$710k, stepping down $1,735 per $10k band to nil at
+  // $800k+) is deducted from the HOME-concession duty, not the standard
+  // rate; above $800k the home-concession rate still applies (an FHB is an
+  // owner-occupier). QRO worked example: $730k → $6,555.
+  if (state === 'QLD') {
+    var qHome = price <= 350000 ? price * 0.01
+      : price <= 540000 ? 3500 + (price - 350000) * 0.035
+      : price <= 1000000 ? 10150 + (price - 540000) * 0.045
+      : 30850 + (price - 1000000) * 0.0575;
+    var qConc = price < 710000 ? 17350
+      : (price >= 800000 ? 0 : 17350 - Math.floor((price - 700000) / 10000) * 1735);
+    return Math.max(0, qHome - qConc);
+  }
   // Full exemption at/below fhbFull (SA + NT have fhbFull === 0 → no value-based
   // exemption: relief is NEW-home only, so established buyers pay full duty).
   if (data.fhbFull > 0 && price <= data.fhbFull) return 0;

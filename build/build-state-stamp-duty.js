@@ -414,6 +414,8 @@ const STATES = {
 const REG_FEES = {
   nsw: { mortgage: 185, transfer: 185 },
   vic: { mortgage: 123, transfer: 124 },
+  // qld unused here (QLD page is hand-authored) and stale — Titles Qld fees are
+  // value-scaled FY2026-27; see tools/stamp-duty-calculator-qld.js.
   qld: { mortgage: 232, transfer: 250 },
   sa:  { mortgage: 200, transfer: 230 },
   wa:  { mortgage: 190, transfer: 200 },

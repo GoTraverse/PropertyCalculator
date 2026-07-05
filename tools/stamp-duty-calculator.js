@@ -52,7 +52,7 @@ var stateData = {
   qld: {
     name: 'Queensland', dutyName: 'Transfer Duty', foreignRate: 0.08,
     fhbFull: 700000, fhbPartial: 800000, fhbExemption: Infinity,
-    landFhbFull: 350000, landFhbPartial: 500000,
+    // First home vacant land: NO duty at any value (contracts from 1 May 2025).
     tiers: [
       { from: 0,        rate: 0      },
       { from: 5000,     rate: 0.015  },
@@ -174,6 +174,8 @@ function calcDuty(state, v) {
 var REG_FEES = {
   nsw: { mortgage: 185, transfer: 185 },
   vic: { mortgage: 123, transfer: 124 },
+  // qld entry superseded at runtime by regFeesTotal() — Titles Qld fees are
+  // value-scaled FY2026-27 (transfer $248.04 + $46.56/$10k over $180k).
   qld: { mortgage: 232, transfer: 250 },
   sa:  { mortgage: 200, transfer: 230 },
   wa:  { mortgage: 190, transfer: 200 },
@@ -193,9 +195,39 @@ function estimateLmiTier(lvr) {
 }
 
 // Apply FHB exemption / partial concession given a state's policy
+// QLD home-concession duty (owner-occupier rate — QRO schedule): 1% to $350k;
+// $3,500 + 3.5% to $540k; $10,150 + 4.5% to $1M; $30,850 + 5.75% above.
+function qldHomeDuty(v) {
+  if (v <= 350000) return v * 0.01;
+  if (v <= 540000) return 3500 + (v - 350000) * 0.035;
+  if (v <= 1000000) return 10150 + (v - 540000) * 0.045;
+  return 30850 + (v - 1000000) * 0.0575;
+}
+
+// QLD first home concession amount — QRO's exact $10,000-band table (contracts
+// on/after 9 Jun 2024; unchanged FY2026-27, verified 5 Jul 2026): $17,350 at
+// ≤$709,999.99 stepping down $1,735 per band to nil at $800,000+. Deducted
+// from the HOME-concession duty, not standard duty. QRO worked example:
+// $730,000 → $18,700 − $12,145 = $6,555.
+function qldFhbConcessionAmt(v) {
+  if (v < 710000) return 17350;
+  if (v >= 800000) return 0;
+  return 17350 - Math.floor((v - 700000) / 10000) * 1735;
+}
+
 function applyFhbConcession(state, val, baseDuty) {
   var data = stateData[state];
   if (!data) return { duty: baseDuty, note: '' };
+  if (state === 'qld') {
+    // QRO method: band-table concession off HOME-concession duty. An FHB is
+    // an owner-occupier, so above $800k the home-concession rate still
+    // applies rather than reverting to standard duty.
+    var qduty = Math.max(0, qldHomeDuty(val) - qldFhbConcessionAmt(val));
+    var qnote = val <= 700000 ? 'First home buyer exemption applied.'
+      : (val < 800000 ? 'QLD first home concession (QRO $10,000-band table) applied.'
+        : 'QLD home concession applied (over the $800,000 first-home cap).');
+    return { duty: qduty, note: qnote };
+  }
   if (val <= data.fhbFull) {
     var ex = Math.min(data.fhbExemption || Infinity, baseDuty);
     return { duty: Math.max(0, baseDuty - ex), note: 'First home buyer exemption applied.' };
@@ -205,6 +237,18 @@ function applyFhbConcession(state, val, baseDuty) {
     return { duty: Math.max(0, baseDuty * (1 - slide)), note: 'First home buyer partial concession applied.' };
   }
   return { duty: baseDuty, note: '' };
+}
+
+// QLD Titles Registry fees are value-scaled (FY2026-27, verified 5 Jul 2026):
+// transfer $248.04 + $46.56 per $10,000 (or part) of consideration above
+// $180,000; mortgage lodgement flat $248.04. Other states use the flat
+// REG_FEES table above.
+function regFeesTotal(state, val) {
+  if (state === 'qld') {
+    return Math.round(248.04 + 248.04 + (val > 180000 ? Math.ceil((val - 180000) / 10000) * 46.56 : 0));
+  }
+  var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
+  return reg.mortgage + reg.transfer;
 }
 
 function updateState() {
@@ -241,7 +285,17 @@ function calculate() {
   var lvr = loanAmount / val;
 
   var baseDuty = calcDuty(state, val);
-  var dutyResult = isFHB && !isLand ? applyFhbConcession(state, val, baseDuty) : { duty: baseDuty, note: '' };
+  var dutyResult;
+  if (isFHB && isLand && state === 'qld') {
+    // QLD first home vacant land concession: NO duty at any land value for
+    // agreements from 1 May 2025 (QRO). Other states' land FHB rules are not
+    // modelled — they fall through to standard duty (conservative).
+    dutyResult = { duty: 0, note: 'First home vacant land concession — no duty at any value (contracts from 1 May 2025).' };
+  } else if (isFHB && !isLand) {
+    dutyResult = applyFhbConcession(state, val, baseDuty);
+  } else {
+    dutyResult = { duty: baseDuty, note: '' };
+  }
   var duty = dutyResult.duty;
   var note = dutyResult.note;
 
@@ -251,7 +305,7 @@ function calculate() {
 
   // \u2500\u2500 Reg fees + LMI \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
-  var regTotal = reg.mortgage + reg.transfer;
+  var regTotal = regFeesTotal(state, val);
   // Conveyancing / legal: industry-typical $1,500-$2,500 \u2014 use mid-point
   var conveyancing = 1800;
   var lmiTier = estimateLmiTier(lvr);
@@ -279,7 +333,9 @@ function calculate() {
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')';
+  if (regEl) regEl.textContent = state === 'qld'
+    ? fmt(regTotal) + ' (Titles Qld — transfer fee scales with price)'
+    : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')';
   var conveyEl = document.getElementById('r-conveyancing');
   if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500\u2013$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
@@ -294,7 +350,9 @@ function calculate() {
     Object.keys(stateData).forEach(function(s) {
       var d = stateData[s];
       var base = calcDuty(s, val);
-      var fhbAdj = isFHB && !isLand ? applyFhbConcession(s, val, base) : { duty: base };
+      var fhbAdj = isFHB && !isLand ? applyFhbConcession(s, val, base)
+        : (isFHB && isLand && s === 'qld') ? { duty: 0 }  // QLD land FHB: $0 (matches headline)
+        : { duty: base };
       rows.push({ code: s.toUpperCase(), name: d.name, dutyName: d.dutyName, std: base, fhb: fhbAdj.duty, current: s === state });
     });
     rows.sort(function(a, b) { return (isFHB ? a.fhb - b.fhb : a.std - b.std); });
@@ -407,8 +465,8 @@ ToolPage.init({
         { k: 'Property type', v: 'Established dwelling' }
       ],
       outputs: [
-        { k: 'Estimated stamp duty', v: '~$13,390' },
-        { k: 'Includes FHB concession', v: 'Yes (partial — full exemption ends at $700k)' }
+        { k: 'Estimated stamp duty', v: '~$10,925' },
+        { k: 'Includes FHB concession', v: 'Yes (QRO band concession — full exemption ends at $700k)' }
       ]
     },
     {

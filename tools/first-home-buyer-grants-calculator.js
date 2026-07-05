@@ -79,7 +79,7 @@ const STATES = {
     // Established: full ≤$700k sliding to $800k. NEW homes: duty nil with NO
     // value cap for contracts from 1 May 2025 (fhbNewHomeExempt).
     fhbFull: 700000, fhbPartial: 800000, fhbNewHomeExempt: true,
-    fhbNote: 'Established homes: full exemption to $700k, sliding to $800k. New homes: duty nil with no value cap (contracts from 1 May 2025). From 1 Aug 2026 buyers must be Australian citizens, permanent residents or specified foreign retirees.',
+    fhbNote: 'Established homes: full exemption to $700k, then a phased concession to $800k (QRO deducts a fixed amount per $10,000 band from the home-concession duty). New homes: duty nil with no value cap (contracts from 1 May 2025). From 1 Aug 2026 buyers must be Australian citizens, permanent residents or specified foreign retirees.',
     // $30k FHOG CONTINUES for eligible contracts from 1 Jul 2026 (2026-27
     // Budget — the $15k reversion did not happen; pending Royal Assent).
     // capStrict: QLD's cap is "less than $750,000" (exclusive), unlike the
@@ -231,6 +231,20 @@ function fhbDuty(stateData, stateCode, price, isNewBuild) {
   // New-home full exemptions with NO value cap: QLD (contracts ≥1 May 2025),
   // SA new/off-the-plan (≥6 Jun 2024), NT house-and-land packages (to 30 Jun 2027).
   if (stateData.fhbNewHomeExempt && isNewBuild) return 0;
+  // QLD established homes — QRO band-table method (verified 5 Jul 2026): a
+  // fixed concession amount ($17,350 at <$710k, stepping down $1,735 per
+  // $10k band to nil at $800k+) is deducted from the HOME-concession duty,
+  // not the standard rate. An FHB is an owner-occupier, so above $800k the
+  // home-concession rate still applies. QRO worked example: $730k → $6,555.
+  if (stateCode === 'qld') {
+    const qHome = price <= 350000 ? price * 0.01
+      : price <= 540000 ? 3500 + (price - 350000) * 0.035
+      : price <= 1000000 ? 10150 + (price - 540000) * 0.045
+      : 30850 + (price - 1000000) * 0.0575;
+    const qConc = price < 710000 ? 17350
+      : (price >= 800000 ? 0 : 17350 - Math.floor((price - 700000) / 10000) * 1735);
+    return Math.max(0, qHome - qConc);
+  }
   // No value-based relief: SA/NT established homes, TAS (established-home
   // exemption expired 30 Jun 2026).
   if (stateData.fhbFull <= 0) return stdDuty;

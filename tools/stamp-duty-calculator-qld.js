@@ -22,45 +22,44 @@ function calcQldStandard(v) {
 function calcQldHome(v) {
   if (v <= 350000) return v * 0.01;
   if (v <= 540000) return 3500 + (v - 350000) * 0.035;
-  // Above $540k the concessional rate keeps growing at 4.5%, so the saving
-  // versus standard ($7,175) stays flat.
-  return 10150 + (v - 540000) * 0.045;
+  // From $540k the concessional rate matches standard (4.5% then 5.75% above
+  // $1M), so the saving versus standard stays flat at $7,175.
+  if (v <= 1000000) return 10150 + (v - 540000) * 0.045;
+  return 30850 + (v - 1000000) * 0.0575;
 }
 
-// First home concession (residential dwelling). From 1 May 2025 the QLD first
-// home concession gives full exemption up to $700,000, with a sliding partial
-// concession to $800,000, then the standard home concession.
+// First home concession amount — QRO's exact $10,000-band table (contracts on
+// or after 9 Jun 2024; unchanged FY2026-27, verified 5 Jul 2026 vs
+// qro.qld.gov.au/duties/transfer-duty/concessions/homes/concession-rates/):
+// $17,350 at ≤$709,999.99, stepping down $1,735 per $10,000 band to nil at
+// $800,000+. The amount is deducted from the HOME-concession duty (not the
+// standard rate). QRO worked example: $730,000 → $18,700 − $12,145 = $6,555.
+function qldFhbConcessionAmt(v) {
+  if (v < 710000) return 17350;
+  if (v >= 800000) return 0;
+  return 17350 - Math.floor((v - 700000) / 10000) * 1735;
+}
 function calcQldFhbHome(v) {
-  if (v <= 700000) return 0;
-  if (v <= 800000) {
-    var home = calcQldHome(v);
-    var slide = (800000 - v) / 100000; // 1.0 at $700k, 0 at $800k
-    return Math.max(0, home * (1 - slide));
-  }
-  return calcQldHome(v);
+  return Math.max(0, calcQldHome(v) - qldFhbConcessionAmt(v));
 }
 
-// First home vacant land concession. Full exemption up to $250,000, sliding
-// partial concession to $400,000, then standard.
+// First home vacant land concession — NO duty at any land value for
+// agreements entered into from 1 May 2025 (QRO: "If the whole property is
+// residential vacant land — no duty will be payable"). The old $250k/$400k
+// and $350k/$500k tapers only apply to pre-1-May-2025 contracts.
 function calcQldFhbLand(v) {
-  if (v <= 250000) return 0;
-  if (v <= 400000) {
-    var std = calcQldStandard(v);
-    var slide = (400000 - v) / 150000;
-    return Math.max(0, std * (1 - slide));
-  }
-  return calcQldStandard(v);
+  return 0;
 }
 
 function calcQldDuty(price, ptype, buyer, fhb) {
   if (price <= 0) return { duty: 0, note: '' };
   var v = price;
   if (fhb && ptype === 'land') {
-    return { duty: calcQldFhbLand(v), note: 'First home vacant land concession applied.' };
+    return { duty: calcQldFhbLand(v), note: 'First home vacant land concession — no duty at any value (contracts from 1 May 2025).' };
   }
   if (fhb && ptype === 'home') {
     if (v <= 700000) return { duty: 0, note: 'First home concession — full exemption.' };
-    if (v <= 800000) return { duty: calcQldFhbHome(v), note: 'First home concession — partial.' };
+    if (v < 800000) return { duty: calcQldFhbHome(v), note: 'First home concession — QRO $10,000-band concession applied.' };
     return { duty: calcQldFhbHome(v), note: 'Home concession applied (over first home threshold).' };
   }
   if (buyer === 'owner' && ptype === 'home') {
@@ -90,6 +89,32 @@ function calculate() {
   var total = duty + foreignAmt;
   var rate = val > 0 ? (total / val * 100) : 0;
 
+  // ── Reg fees + LMI + total upfront ─────────────────────────────────
+  var depPctEl = document.getElementById('deposit-pct');
+  var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
+  var loanAmount = val * (1 - depositPct / 100);
+  var lvr = loanAmount / val;
+  // Titles Queensland FY2026-27 lodgement fees (from 1 Jul 2026; verified
+  // 5 Jul 2026 vs the official schedule PDF). Unlike most states, the QLD
+  // transfer fee SCALES with price: $248.04 base + $46.56 per $10,000 (or
+  // part) of consideration above $180,000. Mortgage lodgement is flat.
+  var regMortgage = 248.04;
+  var regTransfer = 248.04 + (val > 180000 ? Math.ceil((val - 180000) / 10000) * 46.56 : 0);
+  var regTotal = Math.round(regMortgage + regTransfer);
+  var conveyancing = 1800;
+  function lmiRate(lvr) {
+    if (lvr <= 0.80) return 0;
+    if (lvr <= 0.85) return 0.0080;
+    if (lvr <= 0.90) return 0.0190;
+    if (lvr <= 0.95) return 0.0340;
+    return 0.0430;
+  }
+  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = (isFHB && lvr > 0.80)
+    ? '$0 (FHBG eligibility assumed)'
+    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  var upfrontTotal = total + lmi + regTotal + conveyancing;
+
   document.getElementById('r-duty').textContent = fmt(duty);
   document.getElementById('r-foreign').textContent = isForeign ? fmt(foreignAmt) : 'N/A';
   document.getElementById('r-total').textContent = fmt(total);
@@ -97,7 +122,19 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Queensland 2026–27 transfer duty. From 1 Aug 2026, home concessions require Australian citizenship, permanent residency or specified foreign retiree status. Verify with a solicitor before settlement.';
+
+  var lvrEl = document.getElementById('r-lvr');
+  if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
+  var lmiEl = document.getElementById('r-lmi');
+  if (lmiEl) lmiEl.textContent = lmiLabel;
+  var regEl = document.getElementById('r-reg');
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Titles Qld — transfer fee scales with price)';
+  var conveyEl = document.getElementById('r-conveyancing');
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  var upfrontEl = document.getElementById('r-upfront');
+  if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
+
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Queensland 2026–27 transfer duty. From 1 Aug 2026, home concessions require Australian citizenship, permanent residency or specified foreign retiree status. LMI is an industry-average estimate; title registry fees per the Titles Queensland FY2026-27 schedule. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -218,7 +255,7 @@ ToolPage.init({
     { q: 'What is the QLD home concession?',
       a: 'The home concession is a reduced transfer duty rate available to anyone buying a home as their principal place of residence — including non-first-home-buyers. It saves up to $7,175 compared to the investor rate. To qualify you must move in within 12 months of settlement and live there for at least 12 months.' },
     { q: 'What is the QLD first home buyer concession?',
-      a: 'Eligible first home buyers pay no transfer duty on residential purchases up to $700,000 (thresholds lifted from 1 May 2025). A sliding partial concession applies between $700,000 and $800,000. For vacant land, the first home concession provides full exemption up to $250,000 with a partial concession to $400,000. You must intend to live in the home as your principal place of residence within 12 months of settlement.' },
+      a: 'Eligible first home buyers pay no transfer duty on established-home purchases up to $700,000. Between $700,000 and $800,000, QRO deducts a fixed concession amount per $10,000 price band ($17,350 stepping down to nil at $800,000) from the home-concession duty — a $730,000 first home pays $6,555. Brand-new homes and vacant land attract no duty at any value for contracts from 1 May 2025. You must intend to live in the home as your principal place of residence within 12 months of settlement.' },
     { q: 'When is stamp duty due in QLD?',
       a: 'Transfer duty is payable within 30 days of the dutiable transaction — usually 30 days after contract date or settlement. Most buyers pay duty at settlement through their solicitor or conveyancer.' },
     { q: 'What is the difference between stamp duty and transfer duty?',

@@ -87,6 +87,20 @@ function calcDuty(state, v) {
 function applyFhbConcession(state, val, baseDuty) {
   var data = stateData[state];
   if (!data) return baseDuty;
+  // QLD — QRO band-table method (verified 5 Jul 2026): a fixed concession
+  // amount ($17,350 at <$710k, stepping down $1,735 per $10k band to nil at
+  // $800k+) is deducted from the HOME-concession duty, not the standard
+  // rate; above $800k the home-concession rate still applies (an FHB is an
+  // owner-occupier). QRO worked example: $730k → $6,555.
+  if (state === 'qld') {
+    var qHome = val <= 350000 ? val * 0.01
+      : val <= 540000 ? 3500 + (val - 350000) * 0.035
+      : val <= 1000000 ? 10150 + (val - 540000) * 0.045
+      : 30850 + (val - 1000000) * 0.0575;
+    var qConc = val < 710000 ? 17350
+      : (val >= 800000 ? 0 : 17350 - Math.floor((val - 700000) / 10000) * 1735);
+    return Math.max(0, qHome - qConc);
+  }
   if (val <= data.fhbFull) {
     var ex = Math.min(data.fhbExemption || Infinity, baseDuty);
     return Math.max(0, baseDuty - ex);
