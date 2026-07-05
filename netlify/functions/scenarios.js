@@ -12,6 +12,8 @@
  *   scenarios:<userId>:photo:<id>     → base64 photo data
  */
 
+const log = require('./_log');
+
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
@@ -141,14 +143,36 @@ async function verifyToken(event){
   let data;
   try{data=JSON.parse(raw);}catch(e){return null;}
   if(data.expires&&Date.now()>data.expires){ await redisCmd('DEL','token:'+token); return null; }
-  // Check user still exists — deleted users should not retain access
-  if(data.email){ const u=await redisCmd('GET','user:'+data.email); if(!u) return null; }
+  // Check user still exists — deleted users should not retain access. While we
+  // have the record, refresh plan from it: the token snapshot goes stale after
+  // Stripe upgrades / admin plan changes (same freshness rule as portfolio.js —
+  // matters here because the scenario cap is plan-based).
+  if(data.email){
+    const u=await redisCmd('GET','user:'+data.email);
+    if(!u) return null;
+    try{
+      const userData=JSON.parse(u);
+      if(userData && userData.plan) data.plan=userData.plan;
+    }catch(e){ /* keep token plan */ }
+  }
   return data; // {userId, email, name, plan, role}
 }
 
 
 function ok(b){ return {statusCode:200,headers:H,body:JSON.stringify(b)}; }
 function fail(msg,code){ return {statusCode:code||200,headers:H,body:JSON.stringify({ok:false,error:msg})}; }
+function capFail(cap){ return {statusCode:403,headers:H,body:JSON.stringify({ok:false,error:'cap',cap})}; }
+
+// Scenario cap per plan — the SERVER is the source of truth, never the client.
+// Free limit is the same admin-configurable value the client mirrors
+// (config:site.freeScenarioLimit, cached client-side as propCalc_siteConfig_v1
+// and read in app.js saveScenario()); pro/adviser get the portfolio.js-style
+// 100 sanity cap. Enforced on CREATE only — updates always allowed.
+function capMaxScenarios(plan, cfg){
+  if(plan==='pro'||plan==='adviser') return 100;
+  const n=parseInt(cfg&&cfg.freeScenarioLimit,10);
+  return (isFinite(n)&&n>0)?n:1;
+}
 
 function indexKey(uid){ return 'scenarios:'+uid+':index'; }
 function stateKey(uid,id){ return 'scenarios:'+uid+':state:'+id; }
@@ -187,6 +211,20 @@ exports.handler = async function(event){
     console.error('[scenarios] Missing UPSTASH env vars');
     return fail('Storage not configured. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Netlify → Site Settings → Environment Variables.',500);
   }
+
+  // Per-IP rate limit FIRST — cheapest guard, runs before body parse and any
+  // auth lookups so unauthenticated bot floods (the July 2026 credit incident)
+  // are shed early. Mirrors portfolio.js verbatim, keys ratelimit:scenarios:ip:<ip>.
+  const clientIp = ((event.headers && event.headers['x-nf-client-connection-ip']) || 'unknown').split(',')[0].trim();
+  try {
+    const ipKey = 'ratelimit:scenarios:ip:' + clientIp;
+    const ipCount = parseInt(await redisCmd('INCR', ipKey), 10);
+    if (ipCount === 1) await redisCmd('EXPIRE', ipKey, '60');
+    if (ipCount > 30) {
+      log.warn('scenarios.rate_limited', { scope: 'ip', ip: clientIp, count: ipCount });
+      return fail('Too many requests — please slow down and try again in a minute.', 429);
+    }
+  } catch(e) { console.warn('[scenarios] ip rate-limit error:', e.message); }
 
   // Parse body early so resolveUser can read userId fallback
   let body = null;
@@ -266,19 +304,56 @@ exports.handler = async function(event){
       }catch(e){ return fail('Error. Please try again.'); }
     }
 
-    const uid = await resolveUser(event, body);
+    // Resolve the session ONCE and keep the whole record — the create cap below
+    // needs plan, not just userId (same data resolveUser reads, so behaviour for
+    // every other action is unchanged).
+    let sessionUser = null;
+    try{ sessionUser = await verifyToken(event); }
+    catch(e){ console.warn('[scenarios] token verify error:', e.message); }
+    const uid = sessionUser ? sessionUser.userId : null;
     if(!uid) return fail('Authentication required — please sign in', 401);
 
     if(!action || action==='save'){
       const {id, fullAddr, state, hasPhoto, status, thumb} = body;
       if(!id || !fullAddr || !state) return fail('id, fullAddr and state are required');
       const stateStr = typeof state==='string' ? state : JSON.stringify(state);
-      if(stateStr.length > 2_000_000) return fail('Scenario state too large');
-      await rSet(stateKey(uid,id), stateStr);
+      // Server-side size guard — 256 KB temporary ceiling while v1 DOM-dump
+      // blobs still exist (typed v2 records serialize to ~2-4 KB; the ceiling
+      // drops once the step-5 client cutover lands). Oversized attempts are
+      // logged for visibility, portfolio.js-style.
+      if(stateStr.length > 262144){
+        log.warn('scenarios.save_too_large', { userId: uid, bytes: stateStr.length });
+        return {statusCode:413,headers:H,body:JSON.stringify({ok:false,error:'too_large'})};
+      }
+      // v2 accept-but-flag: records with v:2 (shared/scenario-schema.js) start
+      // arriving with the step-5 client cutover. BOTH shapes are accepted and
+      // stored verbatim — nothing below is v1-specific — the flag is rollout
+      // monitoring only. Full v2 validation moves server-side at cutover.
+      let isV2 = false;
+      try{
+        const st = typeof state==='string' ? JSON.parse(state) : state;
+        isV2 = !!(st && st.v===2);
+      }catch(e){ /* unparseable → treat as v1 blob */ }
+      if(isV2) log.info('scenarios.v2_save', { userId: uid });
+
       const index = await readIndex(uid);
       const existing = index.findIndex(s=>s.id===id);
-      const entry = {id, fullAddr, hasPhoto:!!hasPhoto, status:status||'browsing', savedAt:Date.now(), thumb:thumb||''};
       const isNew = existing < 0;
+      if(isNew){
+        // CREATE — server-enforced plan cap (mirrors portfolio.js; the
+        // client-side freeScenarioLimit gate in app.js is a UX nicety, never
+        // the source of truth). Updates to an existing id are always allowed.
+        const plan = (sessionUser && sessionUser.plan) || 'free';
+        let cfg = {};
+        try{ cfg = (await rGet('config:site')) || {}; }catch(e){ /* default limit */ }
+        const max = capMaxScenarios(plan, cfg);
+        if(index.length >= max){
+          log.info('scenarios.cap_hit', { userId: uid, plan, used: index.length, max });
+          return capFail({ max, used: index.length, plan });
+        }
+      }
+      await rSet(stateKey(uid,id), stateStr);
+      const entry = {id, fullAddr, hasPhoto:!!hasPhoto, status:status||'browsing', savedAt:Date.now(), thumb:thumb||''};
       if(isNew) index.push(entry); else index[existing]=entry;
       await writeIndex(uid, index);
       if(isNew) logEvent(uid,'scenario_created',{address:fullAddr}).catch(()=>{});

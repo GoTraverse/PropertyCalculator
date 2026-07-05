@@ -22,6 +22,11 @@ db/
 # Dev/admin utility script — uses REDIS_TOKEN directly, never runs in prod
 reset-admin-pw.js
 
+# Node regression tests (dev-only; never needed at runtime).
+# NOTE: shared/ is deliberately NOT listed — shared/scenario-schema.js will be
+# loaded by the browser after the v2 scenario cutover and must stay servable.
+tests/
+
 # Dev tooling: Lighthouse CI config
 .lighthouserc.json
 
