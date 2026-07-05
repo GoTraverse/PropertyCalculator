@@ -144,9 +144,21 @@
     // ACT: HBCS uncapped + no income test from 1 Jul 2026 — $0 duty at any price.
     if (isFHB) {
       if (state === 'qld') {
+        // QRO band-table method (verified 5 Jul 2026): a fixed concession
+        // amount ($17,350 at <$710k, stepping down $1,735 per $10k band to
+        // nil at $800k+) is deducted from the HOME-concession duty. An FHB
+        // is an owner-occupier, so above $800k the home-concession rate
+        // still applies rather than standard duty.
         if (isNew) duty = 0;                                              // new-home full exemption
-        else if (price <= 700000) duty = 0;
-        else if (price < 800000) duty *= (price - 700000) / 100000;
+        else {
+          var qHome = price <= 350000 ? price * 0.01
+            : price <= 540000 ? 3500 + (price - 350000) * 0.035
+            : price <= 1000000 ? 10150 + (price - 540000) * 0.045
+            : 30850 + (price - 1000000) * 0.0575;
+          var qConc = price < 710000 ? 17350
+            : (price >= 800000 ? 0 : 17350 - Math.floor((price - 700000) / 10000) * 1735);
+          duty = Math.max(0, qHome - qConc);
+        }
       } else if (state === 'nsw') {
         if (price <= 800000) duty = 0;
         else if (price < 1000000) duty *= (price - 800000) / 200000;

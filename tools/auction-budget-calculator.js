@@ -10,7 +10,8 @@
 /* ═══════════════════════════════════════════════════════════════════════
  * SYNC: copied verbatim from stamp-duty-calculator.js (FY2026-27 schedules,
  * verified 5 Jul 2026 vs state revenue offices). If rates change, update BOTH
- * files. Blocks copied: stateData, calcDuty, REG_FEES, applyFhbConcession.
+ * files. Blocks copied: stateData, calcDuty, REG_FEES, qldHomeDuty,
+ * qldFhbConcessionAmt, applyFhbConcession, regFeesTotal.
  * Do NOT modify the copied maths.
  * ═══════════════════════════════════════════════════════════════════════ */
 
@@ -65,7 +66,7 @@ var stateData = {
   qld: {
     name: 'Queensland', dutyName: 'Transfer Duty', foreignRate: 0.08,
     fhbFull: 700000, fhbPartial: 800000, fhbExemption: Infinity,
-    landFhbFull: 350000, landFhbPartial: 500000,
+    // First home vacant land: NO duty at any value (contracts from 1 May 2025).
     tiers: [
       { from: 0,        rate: 0      },
       { from: 5000,     rate: 0.015  },
@@ -181,6 +182,8 @@ function calcDuty(state, v) {
 var REG_FEES = {
   nsw: { mortgage: 185, transfer: 185 },
   vic: { mortgage: 123, transfer: 124 },
+  // qld entry superseded at runtime by regFeesTotal() — Titles Qld fees are
+  // value-scaled FY2026-27 (transfer $248.04 + $46.56/$10k over $180k).
   qld: { mortgage: 232, transfer: 250 },
   sa:  { mortgage: 200, transfer: 230 },
   wa:  { mortgage: 190, transfer: 200 },
@@ -190,9 +193,39 @@ var REG_FEES = {
 };
 
 // Apply FHB exemption / partial concession given a state's policy
+// QLD home-concession duty (owner-occupier rate — QRO schedule): 1% to $350k;
+// $3,500 + 3.5% to $540k; $10,150 + 4.5% to $1M; $30,850 + 5.75% above.
+function qldHomeDuty(v) {
+  if (v <= 350000) return v * 0.01;
+  if (v <= 540000) return 3500 + (v - 350000) * 0.035;
+  if (v <= 1000000) return 10150 + (v - 540000) * 0.045;
+  return 30850 + (v - 1000000) * 0.0575;
+}
+
+// QLD first home concession amount — QRO's exact $10,000-band table (contracts
+// on/after 9 Jun 2024; unchanged FY2026-27, verified 5 Jul 2026): $17,350 at
+// ≤$709,999.99 stepping down $1,735 per band to nil at $800,000+. Deducted
+// from the HOME-concession duty, not standard duty. QRO worked example:
+// $730,000 → $18,700 − $12,145 = $6,555.
+function qldFhbConcessionAmt(v) {
+  if (v < 710000) return 17350;
+  if (v >= 800000) return 0;
+  return 17350 - Math.floor((v - 700000) / 10000) * 1735;
+}
+
 function applyFhbConcession(state, val, baseDuty) {
   var data = stateData[state];
   if (!data) return { duty: baseDuty, note: '' };
+  if (state === 'qld') {
+    // QRO method: band-table concession off HOME-concession duty. An FHB is
+    // an owner-occupier, so above $800k the home-concession rate still
+    // applies rather than reverting to standard duty.
+    var qduty = Math.max(0, qldHomeDuty(val) - qldFhbConcessionAmt(val));
+    var qnote = val <= 700000 ? 'First home buyer exemption applied.'
+      : (val < 800000 ? 'QLD first home concession (QRO $10,000-band table) applied.'
+        : 'QLD home concession applied (over the $800,000 first-home cap).');
+    return { duty: qduty, note: qnote };
+  }
   if (val <= data.fhbFull) {
     var ex = Math.min(data.fhbExemption || Infinity, baseDuty);
     return { duty: Math.max(0, baseDuty - ex), note: 'First home buyer exemption applied.' };
@@ -202,6 +235,18 @@ function applyFhbConcession(state, val, baseDuty) {
     return { duty: Math.max(0, baseDuty * (1 - slide)), note: 'First home buyer partial concession applied.' };
   }
   return { duty: baseDuty, note: '' };
+}
+
+// QLD Titles Registry fees are value-scaled (FY2026-27, verified 5 Jul 2026):
+// transfer $248.04 + $46.56 per $10,000 (or part) of consideration above
+// $180,000; mortgage lodgement flat $248.04. Other states use the flat
+// REG_FEES table above.
+function regFeesTotal(state, val) {
+  if (state === 'qld') {
+    return Math.round(248.04 + 248.04 + (val > 180000 ? Math.ceil((val - 180000) / 10000) * 46.56 : 0));
+  }
+  var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
+  return reg.mortgage + reg.transfer;
 }
 
 /* ═══ END of blocks copied from stamp-duty-calculator.js ═══ */
@@ -443,9 +488,15 @@ function calculate() {
   var usable = savings - bufferKept;
   var funds = usable + preapproval;
   var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
-  var regTotal = reg.mortgage + reg.transfer;
+  var regTotal = regFeesTotal(state, funds);
 
   var W = solveWalkAway(funds, state, fhb, regTotal, legal);
+  // QLD reg fees scale with the price — refine once at the solved price
+  // (the fee moves $46.56 per $10k, so one refinement converges).
+  if (state === 'qld' && W > 0) {
+    regTotal = regFeesTotal(state, W);
+    W = solveWalkAway(funds, state, fhb, regTotal, legal);
+  }
   if (W <= 0) {
     if (!_isInit) _showErr('Your usable funds don’t cover the fixed purchase costs yet — add savings or pre-approval, or lower the buffer.');
     return;
@@ -472,7 +523,9 @@ function calculate() {
     noteEl.textContent = dres.note || '';
     noteEl.style.display = dres.note ? '' : 'none';
   }
-  setText('r-reg', fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')');
+  setText('r-reg', state === 'qld'
+    ? fmt(regTotal) + ' (Titles Qld — transfer fee scales with price)'
+    : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')');
   setText('r-legal', fmt(legal));
   setText('r-allin', fmt(allIn));
   setText('r-loan', fmt(loanUsed));
@@ -605,10 +658,10 @@ ToolPage.init({
         { k: 'Conveyancing', v: '$1,800' }
       ],
       outputs: [
-        { k: 'Walk-away price', v: '$563,000' },
+        { k: 'Walk-away price', v: '$561,000' },
         { k: 'Transfer duty', v: '$0 (QLD FHB concession ≤ $700k)' },
-        { k: 'Total all-in cost', v: '~$565,300' },
-        { k: '10% deposit on the day', v: '~$56,300' }
+        { k: 'Total all-in cost', v: '~$565,100' },
+        { k: '10% deposit on the day', v: '~$56,100' }
       ]
     }
   ],
