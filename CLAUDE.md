@@ -1,11 +1,13 @@
 # CLAUDE.md — Working Notes for Claude Code
 
 ## Project Summary
-**EquitySight.app** — Australia's smartest property investment calculator. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys to production.
+**EquitySight.app** — Australian property finance calculators + suburb data, built on verified government sources. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys to production. North star: **value a chatbot/Google/a pro-without-a-tool can't give** — verified-current rates, real sourced data, persistent scenarios (roadmap in TODO.md "PRODUCT ROADMAP" + Claude's memory project-product-roadmap).
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**~32 core HTML pages** (17 root + 14 free calculators + `/tools` landing) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (~641 indexed post-prune; pop ≥ 10,000) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **14 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics` [MCP-facing, not web-app], `share-view`) + `_log.js` structured-log helper (plus a leftover `db-health.js` Phase-0 spike with no caller) | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
+**~36 core HTML pages** (17 root + 18 free calculators + `/tools` landing) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (**1,475 indexed** — real-data gate: pop ≥ 2,000 + a genuine suburb-geo CC BY 4.0 current rent/price figure; QLD 583 / VIC 516 / SA 293 / TAS 83; NSW/WA/ACT/NT 0 pending suburb-level data) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **14 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics` [MCP-facing, not web-app], `share-view`) + `_log.js` structured-log helper (plus a leftover `db-health.js` Phase-0 spike with no caller) | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
+
+**Current market data (Jul 2026):** suburb pages + newest tools carry REAL, CURRENT, CC BY 4.0 state-government data — `data/market-current.json` (suburb pages, folded in by `build/merge-market-current.js`) + `tools/market-medians.json` (tool pages) — QLD/SA/TAS suburb rents, VIC/SA-metro sale medians (+12-month trends), NSW postcode rents. Every figure captioned "as at [period], [source]". Pre-extracted + hand-verified quarterly (recipe in Claude's memory: project-suburb-data-architecture). Rules: strict-period only (drop suppressed suburbs — never mislabel an older quarter as current); 2021 Census figures are a clearly-dated fallback, never presented as current.
 
 See **`CODEBASE.md`** for complete architecture, auth model, file map, data flows, and security notes.
 See **`README.md`** for feature overview and quick start guide.
@@ -100,14 +102,14 @@ See **`README.md`** for feature overview and quick start guide.
 - **PDF Export**: `exportPDF()` generates standalone HTML snapshot of current state
 
 ### Calculator Architecture (Unified Pattern)
-- **14 free calculators** in `/tools/` plus `/tools/index.html` landing page that groups them (Buying / Borrowing / Investment). All share identical HTML/CSS structure via `tools.css` (no duplication).
+- **18 free calculators** in `/tools/` plus `/tools/index.html` landing page that groups them (Buying / Borrowing / Investment). All share identical HTML/CSS structure via `tools.css` (no duplication).
 - **Template pattern**: `<nav class="site-nav">` (full site nav) → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (aria-live polite) → `.tool-cta` → `.tool-resources` → footer div
 - **Currency inputs** use `type="text" inputmode="decimal"` with `fmtInput()` thousands-separator formatting. Pure numeric inputs (rate, term) use `type="number"`.
 - **Shared utilities**: `tools/tool-page.js` provides the shared calc helpers (`fmtNum()`, `parseNum()`, `monthlyRepayment()`, etc.) loaded by every tool page (`shared-calcs.js` was removed — it was dead code).
 - **Live market data**: `market-rate.js` provides `window.MarketRate` (RBA cash rate, ABS state medians) — included in calculators that need current rates
 - **Input persistence**: `tool-page.js _installInputPersistence()` snapshots every input/select to `localStorage['tool_inputs_v1:<slug>']` on change (250ms debounce) and restores on load — refresh doesn't lose work.
 - **Scroll-to-result**: `tool-page.js _installScrollToResult()` smooth-scrolls the result container into view 60ms after a Calculate click. Respects `prefers-reduced-motion`.
-- **Injected components** (standard across all 14 tool pages):
+- **Injected components** (standard across all 18 tool pages):
   - `auth-nav.js` — injects full site-nav link list (`SITE_NAV_LINKS`) + auth controls
   - `footer.js` — injects footer into `#site-footer-root` div
   - `error-capture.js` — global error handler POSTs to `client-errors` function
@@ -231,6 +233,41 @@ Files intentionally NOT blocked (needed at runtime):
 - Submit sitemap.xml: https://search.google.com/search-console
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
+
+## Recent Changes (Jul 2026 — Real-data pivot + 4 new calculators, PRs #335–#348)
+
+The "beat a chatbot" roadmap sprint (S/A/B-tier bets in TODO.md "PRODUCT ROADMAP"; strategy
++ status in Claude's memory: project-product-roadmap). Prompted by Whirlpool "AI slop /
+nothing Claude couldn't do natively" criticism. Highlights:
+
+- **Real current market data** replaced the 5-year-old-Census / placeholder problem: free
+  CC BY 4.0 state-gov datasets (QLD RTA rents Mar-2026, SA CBS rents + Valuer-General sale
+  medians Q1-2026, VIC VGV house/unit sale medians 2025-prelim, TAS DoJ bond-derived rents,
+  NSW DCJ postcode rents) pre-extracted by hand, verified, committed as
+  `data/market-current.json` + `tools/market-medians.json` (with 12-month trend fields).
+  Suburb pages render them with honest "as at" captions; 2021 Census = dated fallback.
+- **Re-index**: `shouldNoindex()` in build-suburbs.js flipped from always-true to a
+  real-data gate (pop ≥ 2,000 + suburb-geo CC-licensed current figure) → **1,475 indexed
+  suburb pages**. Fabricated Investment Score + school/park counts REMOVED; real ABS
+  income restored in Key Indicators; NSW PO-box postcodes fixed (Parramatta 1740 → 2150).
+- **4 new calculators** (18 total): `/tools/listing-price-checker` (asking price vs real
+  gov medians, verdict bands, yield mode for rent-only states, 12-month trends, linked
+  sources), `/tools/auction-budget-calculator` (walk-away price solver + printable
+  auction-day plan; **its stamp-duty tables are a SYNC copy of stamp-duty-calculator.js —
+  update BOTH together**), `/tools/land-tax-calculator` (all 8 jurisdictions,
+  adversarially verified Jul 2026 — schedules + refresh cycle in Claude's memory
+  project-land-tax-verified), `/tools/property-cashflow-calculator` (exact FY2026-27
+  negative gearing incl. the new 15% band, suburb-median rent prefill, land-tax link).
+- **Auto-state**: `detectAUState()` in tool-page.js (IANA timezone → state) pre-selects
+  the visitor's state on tools that declare `stateSelectId` in their config; a returning
+  user's saved input always wins.
+- Homepage title/desc trimmed to SERP limits (#336); mobile `.tool-cost-row` wrap +
+  `.tool-field-hint` added to tools.css; SW at v22.
+- **Data-honesty rules (bake into future work)**: strict-period only — if the source
+  suppresses the latest period for a suburb, DROP it, never backfill with an older
+  quarter labelled as current; suppress thin-volume trends (e.g. SA sale-price change
+  hidden unless ≥10 sales in both quarters); postcode-geo figures are labelled "postcode"
+  and never count as suburb-level data for indexing.
 
 ## Recent Changes (Jul 2026 — First-run onboarding wizard + first-view fixes, PR #308)
 
@@ -380,7 +417,7 @@ Rounds 1–5 of the "audit the whole site" pass. PR #197 merged 2026-04-24, foll
 **Round 3** — nav + cross-linking
 - `auth-nav.js` is the single source of truth for the site-nav link set (`SITE_NAV_LINKS` = Calculators / Blog / Gallery / Pricing / About / Support). Every page's `<ul class="site-nav-links">` is overwritten on load.
 - All 14 tool pages got the full `<nav class="site-nav">` (was a minimal logo-only `<header class="tool-header">`).
-- New `/tools/index.html` landing page (CollectionPage JSON-LD) grouping all 14 calculators in Buying / Borrowing / Investment sections.
+- New `/tools/index.html` landing page (CollectionPage JSON-LD) grouping all calculators in Buying / Borrowing / Investment sections.
 - All 4 calculators missing `usefulLinks[]` now have full blocks (house-flip, mortgage-stress, equity-release, renovation-cost). Orphan inbound counts boosted across the board.
 - `inputmode="decimal"` on all 38 currency text inputs — correct mobile keyboard without breaking comma formatting.
 - Year-marker comments on hardcoded FY2025-26 constants (ATO Stage 3, APRA APS 220 3% since Oct 2021, HEM).
