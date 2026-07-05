@@ -251,8 +251,11 @@
     var cfg = {};
     try { cfg = JSON.parse(localStorage.getItem('propCalc_siteConfig_v1')||'{}'); } catch(e) {}
     var freeLimit = cfg.freeScenarioLimit || 1;
-    var proPrice = cfg.proMonthlyPrice || 2.99;
-    var advPrice = cfg.adviserMonthlyPrice || 29;
+    // Prices are hardcoded, NOT read from cached siteConfig — older admin
+    // sessions still carry proMonthlyPrice=2.99 from the launch promo and
+    // would display the wrong price forever (same guard as pricing.js).
+    var proPrice = 8.99;
+    var advPrice = 29;
     var planLabel = plan === 'free' ? '&#x2B50; Starter' : (plan === 'pro' ? '&#x26A1; Pro' : '&#x1F451; Adviser');
     var planName  = plan === 'free' ? 'Starter (Free)'  : (plan === 'pro' ? `Pro \u2014 A$${proPrice.toFixed(2)}/mo AUD` : `Adviser \u2014 A$${advPrice.toFixed(2)}/mo AUD`);
     var planDesc  = plan === 'free' ? `${freeLimit} saved scenario${freeLimit > 1 ? 's' : ''} \u00B7 Core calculator` : 'Unlimited scenarios \u00B7 Cloud sync \u00B7 PDF export';
