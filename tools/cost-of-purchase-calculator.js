@@ -112,6 +112,32 @@ function applyFhbConcession(state, val, baseDuty) {
   return baseDuty;
 }
 
+// Title-office registration fees (mortgage + transfer), FY2026-27 — verified
+// 6 Jul 2026 vs each registry's official schedule. SYNC: same schedules as
+// regFeesTotal() in stamp-duty-calculator.js / auction-budget-calculator.js;
+// QLD/VIC/SA/WA transfer fees scale with price, the rest are flat.
+function regFeesTotal(state, val) {
+  if (state === 'qld') {
+    return Math.round(248.04 + 248.04 + (val > 180000 ? Math.ceil((val - 180000) / 10000) * 46.56 : 0));
+  }
+  if (state === 'vic') {
+    var vt = Math.min(3614, Math.ceil(104.30 + Math.floor(val / 1000) * 2.34));
+    return Math.round(129.20 + vt);
+  }
+  if (state === 'sa') {
+    var st = val <= 5000 ? 204 : val <= 20000 ? 228 : val <= 40000 ? 251
+      : 353 + 105 * Math.ceil(Math.max(0, val - 50000) / 10000);
+    return Math.round(204 + st);
+  }
+  if (state === 'wa') {
+    var wt = val <= 85000 ? 225.10 : val <= 120000 ? 235.10 : val <= 200000 ? 255.10
+      : 255.10 + 20 * Math.ceil((val - 200000) / 100000);
+    return Math.round(225.10 + wt);
+  }
+  var FLAT = { nsw: 366, tas: 425, act: 680, nt: 362 };
+  return FLAT[state] || 400;
+}
+
 function getNumVal(id) {
   return parseFloat(document.getElementById(id).value) || 0;
 }
@@ -152,6 +178,7 @@ function calc() {
   var bankValuation = Math.max(300, Math.min(700, purchasePrice / 1000));
   var loanFee = Math.max(150, calculatedLoan * 0.002);
   var settlementFee = 250;
+  var regFees = sKey ? regFeesTotal(sKey, purchasePrice) : 400;
   var conveyancing = costs.conveyancing.min + (costs.conveyancing.max - costs.conveyancing.min) * 0.5;
   var inspection = 500;
 
@@ -173,6 +200,7 @@ function calc() {
   var leaseBreakCost = isRenting ? leaseBreak : 0;
 
   setTextContent('stampDuty', stampDuty);
+  setTextContent('regFees', regFees);
   setTextContent('conveyancing', conveyancing);
   setTextContent('bankValuation', bankValuation);
   setTextContent('loanFee', loanFee);
@@ -188,7 +216,7 @@ function calc() {
   setTextContent('leaseBreakCost', leaseBreakCost);
   document.getElementById('rentGroup').style.display = isRenting ? 'block' : 'none';
 
-  var totalCosts = stampDuty + conveyancing + bankValuation + loanFee + settlementFee + inspection + buildingIns + contentsIns + movingCosts + lmi + leaseBreakCost;
+  var totalCosts = stampDuty + regFees + conveyancing + bankValuation + loanFee + settlementFee + inspection + buildingIns + contentsIns + movingCosts + lmi + leaseBreakCost;
   var totalPct = (totalCosts / purchasePrice) * 100;
   var cashNeeded = totalCosts + deposit;
 
@@ -324,9 +352,10 @@ ToolPage.init({
       ],
       outputs: [
         { k: 'Stamp duty', v: '~$58,000' },
+        { k: 'Title-office reg fees', v: '~$2,810 (VIC fee scales with price)' },
         { k: 'Legal + conveyancing', v: '~$2,300' },
         { k: 'Inspections + searches', v: '~$900' },
-        { k: 'Total upfront costs', v: '~$61,200' }
+        { k: 'Total upfront costs', v: '~$64,000' }
       ]
     }
   ],

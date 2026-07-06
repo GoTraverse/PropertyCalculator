@@ -306,6 +306,8 @@ function calculate() {
   var isFHB = document.getElementById('fhb').checked;
   var isForeign = document.getElementById('foreign').checked;
   var isLand = document.getElementById('ptype').value === 'land';
+  var buyerEl = document.getElementById('buyer');
+  var isOwner = buyerEl ? buyerEl.value === 'owner' : false;
   var depositPctEl = document.getElementById('deposit-pct');
   var depositPct = depositPctEl ? (parseFloat(depositPctEl.value) || 20) : 20;
   var loanAmount = val * (1 - depositPct / 100);
@@ -320,6 +322,11 @@ function calculate() {
     dutyResult = { duty: 0, note: 'First home vacant land concession — no duty at any value (contracts from 1 May 2025).' };
   } else if (isFHB && !isLand) {
     dutyResult = applyFhbConcession(state, val, baseDuty);
+  } else if (isOwner && !isLand && state === 'qld') {
+    // QLD owner-occupier (non-FHB): home-concession rate — QRO schedule, max
+    // saving $7,175 vs standard. No other state has an owner/investor duty
+    // split, so the buyer profile changes nothing elsewhere.
+    dutyResult = { duty: qldHomeDuty(val), note: 'QLD home concession applied (owner-occupier).' };
   } else {
     dutyResult = { duty: baseDuty, note: '' };
   }
