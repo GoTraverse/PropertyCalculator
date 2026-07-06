@@ -6,7 +6,7 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v28';
+const CACHE_NAME = 'equitysight-v29';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/offline.html',

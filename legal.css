@@ -35,7 +35,8 @@ body { background: var(--warm-white); }
 .legal-meta {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: rgba(245,240,232,0.35);
+  /* 0.70 not 0.35: sits on the dark hero — 0.35 was ~2.5:1 contrast (a11y audit Jul 2026) */
+  color: rgba(245,240,232,0.70);
   letter-spacing: 1px;
 }
 

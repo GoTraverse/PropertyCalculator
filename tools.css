@@ -450,3 +450,16 @@ html.dark-mode .tool-field-hint { color: rgba(245,240,232,0.7); }
  * hide). */
 .ad-slot:empty { display: none; }
 
+
+/* ── Dark mode: Government resources band (was white bg + cream text — unreadable; live audit Jul 2026) ── */
+.dark-mode .tool-resources { background: #1C1C1E; border-color: rgba(255,255,255,0.1); }
+.dark-mode .tool-resources-grid h3 { color: #f2f2f7; }
+.dark-mode .tool-resources-title .tool-res-ico,
+.dark-mode .tool-resources-grid h3 .tool-res-ico { color: var(--gold); }
+
+/* ── Narrow phones: header CTA pill overflowed the 390px viewport by ~29px on
+   suburb/city/hub pages (nowrap). Let it wrap and tighten padding. ── */
+@media (max-width: 430px) {
+  .tool-header { padding: 13px 16px; gap: 10px; }
+  .tool-header-link { white-space: normal; text-align: center; font-size: 10px; padding: 5px 9px; letter-spacing: 0.3px; }
+}

@@ -136,7 +136,7 @@ ToolPage.init({
         icon: '\uD83C\uDFDB\uFE0F', title: 'RevenueWA',
         links: [
           { text: 'WA Transfer Duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' },
-          { text: 'First Home Owner Rate of Duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/first-home-owner-rate-duty' }
+          { text: 'First Home Owner Rate of Duty', href: 'https://www.wa.gov.au/government/publications/duties-fact-sheet-first-home-owner-rate' }
         ]
       },
       {

@@ -139,7 +139,7 @@ ToolPage.init({
         icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Office Tasmania',
         links: [
           { text: 'TAS Property Transfer Duty', href: 'https://www.sro.tas.gov.au/property-transfer-duties' },
-          { text: 'First Home Buyer Duty Relief (scheme ended 30 June 2026)', href: 'https://www.sro.tas.gov.au/property-transfer-duties/first-home-buyer-duty-concession' }
+          { text: 'First Home Buyer Duty Relief (scheme ended 30 June 2026)', href: 'https://www.sro.tas.gov.au/property-transfer-duties/concessions-exemptions/first-home-buyers-of-established-homes-duty-relief' }
         ]
       },
       {

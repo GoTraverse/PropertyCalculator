@@ -101,3 +101,10 @@ html.dark-mode .tn{color:rgba(245,240,232,0.25);}
 html.dark-mode .faq-item{border-color:rgba(255,255,255,0.1);}
 html.dark-mode .faq-q{color:var(--cream);}
 html.dark-mode .faq-ans{color:rgba(245,240,232,0.6);}
+
+/* Muted "Available soon" Adviser price — was inline dark-charcoal rgba that
+   went invisible in dark mode (live audit Jul 2026). */
+.pcard-amt-muted{color:rgba(28,28,30,0.35);}
+.pcard-sub-muted{font-family:var(--font-mono);font-size:10px;color:rgba(28,28,30,0.35);margin-top:6px;}
+html.dark-mode .pcard-amt-muted{color:rgba(245,240,232,0.40);}
+html.dark-mode .pcard-sub-muted{color:rgba(245,240,232,0.35);}
