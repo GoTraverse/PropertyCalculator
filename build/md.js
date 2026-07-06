@@ -9,8 +9,11 @@
  *
  * Supported Markdown:
  *   ---frontmatter---        → parsed into { fm, body }
- *   ## Heading               → <h2> wrapped in .legal-section w/ anchor + auto-TOC
+ *   # Heading / ## Heading   → <h2> wrapped in .legal-section w/ anchor + auto-TOC
+ *                              (# and ## are equivalent — the page H1 comes from
+ *                              the template, so body headings are always h2)
  *   ### Heading              → <h3>
+ *   --- (standalone line)    → <hr>
  *   > text                   → gold highlight box (.legal-highlight)
  *   > ⚠ text                → red warning box (.legal-warning)
  *   - item                   → <ul><li>
@@ -141,6 +144,14 @@ function renderBlock(md) {
     }
     if (state === 'table') closeTable();
 
+    // Standalone --- (3+ dashes) is a horizontal rule. Must come after the
+    // table branch (|---| separator rows) and never matches "- item" lists.
+    if (/^\s*---+\s*$/.test(line)) {
+      closeAll();
+      out += '<hr>';
+      continue;
+    }
+
     if (/^[-*] /.test(line)) {
       flushPara();
       if (state !== 'ul') { out += '<ul>'; state = 'ul'; }
@@ -177,7 +188,11 @@ function renderBlock(md) {
 }
 
 function parsePage(body) {
-  var chunks = body.split(/^## /m);
+  // `# ` and `## ` both delimit sections (### stays a sub-heading — the
+  // regex backtracks: "### x" can't satisfy `##? ` at line start). Blog
+  // authors write single-# section headings; before Jul 2026 those rendered
+  // as literal "# Heading" paragraph text (the wall-of-text bug).
+  var chunks = body.split(/^##? /m);
   var preHtml = renderBlock(chunks[0]);
   var sections = [];
   for (var i = 1; i < chunks.length; i++) {
