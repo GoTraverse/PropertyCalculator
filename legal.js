@@ -166,6 +166,15 @@
       }
       if (state === 'table') closeTable();
 
+      // Standalone --- (3+ dashes) is a horizontal rule. Must come after the
+      // table branch (|---| separator rows) and never matches "- item" lists.
+      // (Mirrors build/md.js — keep both parsers byte-identical in output.)
+      if (/^\s*---+\s*$/.test(line)) {
+        closeAll();
+        out += '<hr>';
+        continue;
+      }
+
       // Unordered list item
       if (/^[-*] /.test(line)) {
         flushPara();
@@ -213,8 +222,10 @@
   // ── Full page parser ──────────────────────────────────────────────────────
 
   function parsePage(body) {
-    // Split on ## headings (keep the heading text in each chunk)
-    var chunks = body.split(/^## /m);
+    // `# ` and `## ` both delimit sections (### stays a sub-heading). Blog
+    // authors write single-# headings; the page H1 comes from the template.
+    // (Mirrors build/md.js — keep both parsers byte-identical in output.)
+    var chunks = body.split(/^##? /m);
     var preHtml = renderBlock(chunks[0]);
     var sections = [];
 
