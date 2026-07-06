@@ -796,3 +796,11 @@ html.dark-mode .suburb-blog-links-label { color: rgba(245,240,232,0.6); }
 html.dark-mode .suburb-blog-link { background: rgba(255,255,255,0.06); border-color: rgba(201,168,76,0.4); color: #F5F0E8; }
 
 html.dark-mode .suburb-calc-link{background:rgba(255,255,255,0.06);color:#F5F0E8;border-color:rgba(201,168,76,0.4);}
+
+/* ── A11y (live audit Jul 2026): the Pros/Cons h3 headings used --reward-green
+   (3.18:1) and --risk-red (4.24:1) on the light card — both below AA 4.5:1 for
+   16px bold. Darken on light bg; keep the -bright tokens in dark mode. ── */
+.suburb-proscons-pros h3 { color: #3D7358; }
+.suburb-proscons-cons h3 { color: #B0454F; }
+html.dark-mode .suburb-proscons-pros h3 { color: var(--reward-green-bright); }
+html.dark-mode .suburb-proscons-cons h3 { color: var(--risk-red-bright); }

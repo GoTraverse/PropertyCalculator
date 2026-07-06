@@ -32,16 +32,57 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase());
 }
 
+// ── Rent provenance helper (data-honesty pass, Jul 2026) ────────────────────
+// Suburb records carry TWO rent tiers:
+//   current_rent  — genuine current figure from state-government open data
+//                   (QLD RTA, SA CBS, TAS DoJ, NSW DCJ postcode rents), folded
+//                   in by build/merge-market-current.js with period + source.
+//   median_rent_weekly — ABS 2021 Census median, five years stale.
+// Site rule (strict-period honesty): every rent figure shown in prose, titles
+// or tables must carry its period. Current figures get "as at <period>,
+// <source>"; Census figures are ALWAYS labelled "2021 Census" and never
+// presented as current. All generators consume THIS helper rather than
+// reading median_rent_weekly directly.
+function rentInfo(s) {
+  if (s.current_rent) {
+    const geo = String(s.current_rent_geo || 'suburb');
+    return {
+      value: s.current_rent,
+      isCurrent: true,
+      period: s.current_rent_period || 'the latest published period',
+      source: s.current_rent_source || 'state government open data',
+      // e.g. "as at Mar 2026, Residential Tenancies Authority (Qld)"
+      label: `as at ${s.current_rent_period || 'the latest published period'}, ${s.current_rent_source || 'state government open data'}`,
+      geo,
+      // NSW DCJ rents are postcode-geo — say so wherever the figure appears.
+      geoNote: geo.indexOf('suburb') === 0 ? '' : ` (${geo}-level figure)`,
+    };
+  }
+  if (s.median_rent_weekly) {
+    return {
+      value: s.median_rent_weekly,
+      isCurrent: false,
+      period: '2021 Census',
+      source: 'ABS 2021 Census',
+      label: '2021 Census',
+      geo: 'suburb',
+      geoNote: '',
+    };
+  }
+  return null;
+}
+
 // SEO title builder. Target: under 60 chars (Google SERP truncates at ~60 on
 // desktop, ~55 on mobile). Builds a fact-first title that injects the most
 // specific numeric data we have for the suburb so the SERP snippet answers
 // the query rather than describing the page. Variants are tried in order
 // of richness; the first one that fits the budget wins.
 //
-// Per-suburb numeric coverage in data/suburbs.json (May 2026): postcode 99.8%,
-// population 100%, median_household_income 100%. Median rent / mortgage /
-// distance-to-CBD are not yet populated — the title gracefully falls back
-// through population + income variants when those richer numbers are absent.
+// Data-honesty (Jul 2026): rent-led variants use the CURRENT state-gov rent
+// (current_rent) when present. A Census-only rent may still appear but MUST
+// carry the "(2021 Census)" label — a 2021 figure is never presented bare as
+// if it were today's rent. Current sale-price medians (VIC/SA) slot in when
+// no current rent exists.
 function buildSuburbTitle(s) {
   const pc = s.postcode || '';
   const region = pc ? `${s.state} ${pc}` : s.state;
@@ -55,10 +96,21 @@ function buildSuburbTitle(s) {
     : null;
 
   const variants = [];
-  // Best — has rent (when populated upstream)
-  if (s.median_rent_weekly) {
-    variants.push(`${s.suburb} ${region} Median Rent $${s.median_rent_weekly}/wk Profile`);
-    variants.push(`${s.suburb} ${region} Rent $${s.median_rent_weekly}/wk Suburb Profile`);
+  // Best — a genuine CURRENT rent figure (state-government open data)
+  if (s.current_rent) {
+    variants.push(`${s.suburb} ${region} Median Rent $${s.current_rent}/wk Profile`);
+    variants.push(`${s.suburb} ${region} Rent $${s.current_rent}/wk Suburb Profile`);
+    variants.push(`${s.suburb} ${region} Rent $${s.current_rent}/wk Profile`);
+  }
+  // Current sale-price median (e.g. Valuer-General VIC/SA) when no current rent
+  if (!s.current_rent && s.current_price_house) {
+    const priceK = Math.round(s.current_price_house / 1000);
+    variants.push(`${s.suburb} ${region} Median House Price $${priceK}k`);
+    variants.push(`${s.suburb} ${region} House Price $${priceK}k Profile`);
+  }
+  // Census-only rent — always dated, never presented as current
+  if (!s.current_rent && s.median_rent_weekly) {
+    variants.push(`${s.suburb} ${region} Rent $${s.median_rent_weekly}/wk (2021 Census)`);
   }
   // Income-led variants (current real-data fallback for almost every suburb)
   if (incomeK) {
@@ -101,26 +153,33 @@ function buildSuburbMetaDesc(s) {
   const pop = s.population ? Number(s.population).toLocaleString('en-AU') : '';
   const inc = s.median_household_income;
   const incK = inc ? '$' + Math.round(inc / 1000) + 'k' : null;
-  const rent = s.median_rent_weekly;
   const dist = s.distance_to_cbd;
   const stateName = s.state_name || s.state;
   const region = pc ? `${s.state} ${pc}` : s.state;
 
   const variants = [];
 
-  // Tier 1 — rent + income + population (richest)
-  if (rent && inc && pop) {
+  // Tier 0 — CURRENT rent (state-gov open data), always with its period
+  if (s.current_rent && pop) {
+    const per = s.current_rent_period || 'current';
     variants.push(
-      `${s.suburb} ${region} median rent $${rent}/wk, median income ${incK}/yr. Population ${pop}. Free 2026 ${stateName} suburb profile.`
+      `${s.suburb} ${region} median rent $${s.current_rent}/wk (as at ${per}). Population ${pop}. Free ${stateName} suburb profile, sourced data.`
     );
     variants.push(
-      `${s.suburb} ${region}: median rent $${rent}/wk, income ${incK}/yr, pop ${pop}. Free 2026 suburb profile & investor data.`
+      `${s.suburb} ${region}: median rent $${s.current_rent}/wk as at ${per}, pop ${pop}. Free suburb profile & investor data.`
     );
   }
-  // Tier 2 — rent + population
-  if (rent && pop) {
+  // Tier 0b — CURRENT house-price median when no current rent (VIC/SA)
+  if (!s.current_rent && s.current_price_house && pop) {
+    const per = s.current_price_period || 'current';
     variants.push(
-      `${s.suburb} ${region} median rent $${rent}/wk. Population ${pop}. Free 2026 suburb profile, demographics & investor insights.`
+      `${s.suburb} ${region} median house price $${Number(s.current_price_house).toLocaleString('en-AU')} (as at ${per}). Population ${pop}. Free suburb profile.`
+    );
+  }
+  // Tier 1 — Census rent, clearly dated (only when no current figure exists)
+  if (!s.current_rent && s.median_rent_weekly && pop) {
+    variants.push(
+      `${s.suburb} ${region} median rent $${s.median_rent_weekly}/wk at the 2021 Census. Population ${pop}. Free suburb profile & investor insights.`
     );
   }
   // Tier 3 — distance + income + population (when distance is populated)
@@ -136,13 +195,13 @@ function buildSuburbMetaDesc(s) {
       `${s.suburb} ${region}: median household income ${incK}/yr, population ${pop}. Free 2026 suburb profile & investor insights.`
     );
     variants.push(
-      `${s.suburb} ${region} profile. Pop ${pop}, median income ${incK}/yr. Schools, parks & 2026 investor data.`
+      `${s.suburb} ${region} profile. Pop ${pop}, median income ${incK}/yr. Demographics & 2026 investor data.`
     );
   }
   // Tier 5 — population + postcode (no income)
   if (pop && pc) {
     variants.push(
-      `${s.suburb} ${region} suburb profile. Population ${pop}. Demographics, schools, parks & 2026 investor insights for ${stateName}.`
+      `${s.suburb} ${region} suburb profile. Population ${pop}. Demographics & 2026 investor insights for ${stateName}.`
     );
   }
   // Tier 6 — bare-bones fallback
@@ -289,7 +348,7 @@ const stateCapitals = {
 const stateResources = {
   QLD: [
     ['Queensland Government — Property', 'https://www.qld.gov.au/housing'],
-    ['QLD Office of State Revenue', 'https://www.treasury.qld.gov.au/budget-and-financial-management/revenue/'],
+    ['Queensland Revenue Office', 'https://qro.qld.gov.au/'],
     ['REIQ — Real Estate Institute of QLD', 'https://www.reiq.com/'],
   ],
   NSW: [
@@ -372,7 +431,7 @@ function generateInsight(s, sm) {
   sm = sm || {};
   const parts = [];
   const inc  = s.median_household_income;
-  const rent = s.median_rent_weekly;
+  const ri   = rentInfo(s); // current state-gov rent when present, else labelled 2021 Census
   const mort = s.median_mortgage_monthly;
   const pop  = s.population || 0;
   const dist = s.distance_to_cbd;
@@ -411,22 +470,47 @@ function generateInsight(s, sm) {
     }
   }
 
-  // Rent + mortgage coverage — a suburb-specific cash-flow fingerprint
-  if (rent && mort) {
-    const monthlyRent = Math.round(rent * 52 / 12);
+  // Rent + mortgage coverage — a suburb-specific cash-flow fingerprint.
+  // Data honesty: the mortgage median is ALWAYS from the ABS 2021 Census. When
+  // the rent is a current state-gov figure the two periods differ, so the
+  // sentence names both periods and flags that repayments have risen since
+  // 2021 rather than presenting the ratio as a clean current-day coverage.
+  // The wording band is driven by whichever rent figure is actually shown.
+  if (ri && mort) {
+    const monthlyRent = Math.round(ri.value * 52 / 12);
     const coverage = Math.round((monthlyRent / mort) * 100);
     const gap = mort - monthlyRent;
-    if (coverage >= 90) {
-      parts.push(`Median weekly rent of $${fmt(rent)} equates to $${fmt(monthlyRent)}/month — about ${coverage}% of the median mortgage repayment of $${fmt(mort)}/month — meaning rental income covers most of a typical owner's repayment and this is a genuine cash-flow suburb before tax benefits.`);
-    } else if (coverage >= 70) {
-      parts.push(`Rent of $${fmt(rent)}/week (${coverage}% coverage of the $${fmt(mort)}/month median mortgage) leaves a gap of roughly $${fmt(gap)}/month that a typical investor bridges with negative gearing, depreciation and capital growth.`);
-    } else if (coverage >= 50) {
-      parts.push(`Median rent of $${fmt(rent)}/week (~$${fmt(monthlyRent)}/month) covers only ${coverage}% of the median mortgage of $${fmt(mort)}/month — the remaining $${fmt(gap)}/month must be funded from other income, so this suburb tilts toward capital growth rather than yield.`);
+    if (ri.isCurrent) {
+      const rentDesc = `$${fmt(ri.value)}/week (${ri.label})${ri.geoNote}`;
+      const mortDesc = `$${fmt(mort)}/month median mortgage repayment recorded at the 2021 Census`;
+      if (coverage >= 90) {
+        parts.push(`Median rent of ${rentDesc} equates to roughly $${fmt(monthlyRent)}/month — about ${coverage}% of the ${mortDesc}. On those figures rental income covers most or all of the recorded repayment, but repayments on new loans have risen with interest rates since 2021, so re-run the coverage at today's rates before treating this as a cash-flow suburb.`);
+      } else if (coverage >= 70) {
+        parts.push(`Median rent of ${rentDesc} covers about ${coverage}% of the ${mortDesc}, leaving a gap of roughly $${fmt(gap)}/month on those figures — and since the mortgage baseline predates the post-2021 rate rises, the real gap on a new loan is likely wider.`);
+      } else if (coverage >= 50) {
+        parts.push(`Median rent of ${rentDesc} (~$${fmt(monthlyRent)}/month) covers only ${coverage}% of the ${mortDesc} — and repayments on new loans have risen since 2021, so this suburb tilts firmly toward capital growth rather than yield.`);
+      } else {
+        parts.push(`Median rent of ${rentDesc} covers just ${coverage}% of the ${mortDesc}, a gap of $${fmt(gap)}/month on those figures alone — investors should only pursue this suburb with a clear capital-growth thesis and sufficient external income to fund the shortfall.`);
+      }
     } else {
-      parts.push(`Weekly rent of $${fmt(rent)} covers just ${coverage}% of the median $${fmt(mort)}/month mortgage repayment, leaving a $${fmt(gap)}/month gap — investors should only pursue this suburb with a clear capital-growth thesis and sufficient external income to fund the shortfall.`);
+      // Census-to-Census — same period on both sides, but five years old, so
+      // the whole claim is dated rather than presented as today's cash flow.
+      if (coverage >= 90) {
+        parts.push(`At the 2021 Census, median weekly rent of $${fmt(ri.value)} equated to $${fmt(monthlyRent)}/month — about ${coverage}% of the then-median mortgage repayment of $${fmt(mort)}/month. Both figures have moved substantially since 2021, so treat the ratio as a historical signal that this suburb leaned cash-flow-friendly, and verify against current listings and rates.`);
+      } else if (coverage >= 70) {
+        parts.push(`At the 2021 Census, rent of $${fmt(ri.value)}/week covered ${coverage}% of the $${fmt(mort)}/month median mortgage recorded at the same Census, leaving a gap of roughly $${fmt(gap)}/month at the time. Rents and repayments have both risen since — re-run the numbers with current figures before drawing conclusions.`);
+      } else if (coverage >= 50) {
+        parts.push(`At the 2021 Census, median rent of $${fmt(ri.value)}/week (~$${fmt(monthlyRent)}/month) covered only ${coverage}% of the $${fmt(mort)}/month median mortgage recorded at the same Census — a dated snapshot, but one that suggests this suburb tilted toward capital growth rather than yield.`);
+      } else {
+        parts.push(`At the 2021 Census, weekly rent of $${fmt(ri.value)} covered just ${coverage}% of the $${fmt(mort)}/month median mortgage recorded at the same Census, a $${fmt(gap)}/month gap at the time — verify current rents and repayments before pursuing this suburb, and only with a clear capital-growth thesis.`);
+      }
     }
-  } else if (rent) {
-    parts.push(`The median weekly rent of $${fmt(rent)} translates to approximately $${fmt(rent * 52)}/year in gross rental income, setting the upper bound on yield before vacancy, rates, insurance and maintenance.`);
+  } else if (ri) {
+    if (ri.isCurrent) {
+      parts.push(`The median weekly rent is $${fmt(ri.value)} (${ri.label})${ri.geoNote}, translating to approximately $${fmt(ri.value * 52)}/year in gross rental income — the upper bound on yield before vacancy, rates, insurance and maintenance.`);
+    } else {
+      parts.push(`At the 2021 Census the median weekly rent was $${fmt(ri.value)} (≈ $${fmt(ri.value * 52)}/year gross at the time). Market rents have moved substantially since 2021, so benchmark against current listings before running yield numbers.`);
+    }
   }
 
   // Distance to CBD with real km
@@ -533,12 +617,12 @@ function generateFAQ(s, sm) {
       q: `Is ${s.suburb} cash-flow positive for investors?`,
       a: `A median weekly rent of $${fmt(rent)} works out to $${fmt(monthlyRent)}/month, covering ${coverage}% of the median mortgage repayment of $${fmt(mort)}/month. ${gap > 0
         ? `That leaves a $${fmt(gap)}/month shortfall (around $${fmt(gap * 12)}/year before tax benefits), so a typical owner-occupier-priced property here is negatively geared.`
-        : `That means rent exceeds the median repayment by roughly $${fmt(-gap)}/month, so on these numbers ${name} leans cash-flow-positive before accounting for strata, council rates, insurance and maintenance.`} Actual cash flow depends on your deposit, loan terms, ownership costs and marginal tax rate — run the full numbers in our <a href="/tools/rental-yield-calculator/">rental yield calculator</a>.`,
+        : `That means rent exceeds the median repayment by roughly $${fmt(-gap)}/month, so on these numbers ${name} leans cash-flow-positive before accounting for strata, council rates, insurance and maintenance.`} Actual cash flow depends on your deposit, loan terms, ownership costs and marginal tax rate — run the full numbers in our <a href="/tools/rental-yield-calculator">rental yield calculator</a>.`,
     });
   } else {
     faqs.push({
       q: `Is ${s.suburb} cash-flow positive for investors?`,
-      a: `Census data was not complete enough in ${name} to compute a clean rent-to-mortgage coverage. Use current listings to benchmark weekly rent, then plug your expected purchase price into our <a href="/tools/rental-yield-calculator/">rental yield calculator</a> to see whether the investment runs cash-flow positive or negative.`,
+      a: `Census data was not complete enough in ${name} to compute a clean rent-to-mortgage coverage. Use current listings to benchmark weekly rent, then plug your expected purchase price into our <a href="/tools/rental-yield-calculator">rental yield calculator</a> to see whether the investment runs cash-flow positive or negative.`,
     });
   }
 
@@ -836,17 +920,17 @@ function generateStrategy(s, sm) {
     const gap = mort - monthlyRent;
     if (coverage >= 85) {
       ryIcon = '\u2705';
-      ryText = `Strong rental coverage: $${fmt(rent)}/week (~$${fmt(monthlyRent)}/month) covers ${coverage}% of the $${fmt(mort)}/month median mortgage repayment, so the shortfall sits at just $${fmt(Math.max(0, gap))}/month. Investors targeting positive cash flow should shortlist this suburb.`;
+      ryText = `Strong rental coverage at the 2021 Census: $${fmt(rent)}/week (~$${fmt(monthlyRent)}/month) covered ${coverage}% of the $${fmt(mort)}/month median mortgage, a shortfall of just $${fmt(Math.max(0, gap))}/month. Both rents and repayments have moved since 2021 — verify current figures, though this suburb has historically leaned cash-flow-friendly.`;
     } else if (coverage >= 65) {
       ryIcon = '\u26A0\uFE0F';
-      ryText = `Moderate rental coverage: rent of $${fmt(rent)}/week covers ${coverage}% of a $${fmt(mort)}/month mortgage, leaving a $${fmt(gap)}/month gap that an investor bridges with equity, depreciation and tax benefits.`;
+      ryText = `Moderate rental coverage at the 2021 Census: rent of $${fmt(rent)}/week covered ${coverage}% of a $${fmt(mort)}/month mortgage, a $${fmt(gap)}/month gap bridged with equity, depreciation and tax benefits. Re-check with current rents and rates before committing.`;
     } else {
       ryIcon = '\u274C';
-      ryText = `Weak cash flow: $${fmt(rent)}/week rent covers only ${coverage}% of the $${fmt(mort)}/month median mortgage — a $${fmt(gap)}/month gap that must be funded from other income. This suburb is a capital-growth play, not a yield play.`;
+      ryText = `Weak cash flow at the 2021 Census: $${fmt(rent)}/week rent covered only ${coverage}% of the $${fmt(mort)}/month median mortgage — a $${fmt(gap)}/month gap funded from other income. On the Census snapshot this reads as a capital-growth play, not a yield play; verify current rents before deciding.`;
     }
   } else if (rent) {
     ryIcon = '\u26A0\uFE0F';
-    ryText = `Gross rent of $${fmt(rent)}/week (~$${fmt(rent * 52)}/year) sets the yield ceiling. Cross-check against your purchase price to confirm whether this suburb hits the 4–5% gross yield most Australian investors target.`;
+    ryText = `Gross rent of $${fmt(rent)}/week (~$${fmt(rent * 52)}/year, 2021 Census) sets an indicative yield ceiling. Cross-check against current listings and your purchase price to confirm whether this suburb hits the 4–5% gross yield most Australian investors target.`;
   } else {
     ryIcon = '\u26A0\uFE0F';
     ryText = `Median rental data was not captured for ${s.suburb}. Use current realestate.com.au and Domain listings to triangulate a realistic weekly rent before committing, then feed that number into our rental yield calculator.`;
@@ -932,7 +1016,7 @@ function generateRisks(s, sm) {
   if (rent && inc) {
     const rentPct = Math.round((rent * 52 / inc) * 100);
     if (rentPct >= 35) {
-      risks.push(`Rental stress: a median rent of $${fmt(rent)}/week consumes about ${rentPct}% of the $${fmt(inc)}/year median household income — past the 30% rental-stress threshold — meaning tenants may resist further rent rises and vacancy risk is elevated during downturns.`);
+      risks.push(`Rental stress (2021 Census): a median rent of $${fmt(rent)}/week consumed about ${rentPct}% of the $${fmt(inc)}/year median household income at the Census — past the 30% stress threshold — signalling tenants may resist further rises and vacancy risk lifts in downturns. Both figures have moved since 2021; confirm with current data.`);
     }
   }
 
@@ -1017,9 +1101,10 @@ function generateOutlook(s, sm) {
       : coverage >= 60
       ? 'leaving a manageable top-up for most investors'
       : 'meaning investors will rely on capital growth rather than yield';
-    parts.push(`Rental coverage runs at ~${coverage}% of the typical mortgage ($${fmt(monthlyRent)}/month rent vs $${fmt(mort)}/month repayment), ${tail}.`);
-  } else if (rent) {
-    parts.push(`Rents sit around $${fmt(rent)}/week, setting the baseline gross rental income at roughly $${fmt(rent * 52)}/year — refine this against current listings before running your numbers.`);
+    parts.push(`At the 2021 Census, rental coverage ran at ~${coverage}% of the typical mortgage ($${fmt(monthlyRent)}/month rent vs $${fmt(mort)}/month repayment), ${tail}. Verify against current rents and rates.`);
+  } else if (rentInfo(s)) {
+    const ri2 = rentInfo(s);
+    parts.push(`Rents sit around $${fmt(ri2.value)}/week (${ri2.label})${ri2.geoNote}, a baseline gross rental income of roughly $${fmt(ri2.value * 52)}/year — refine against current listings before running your numbers.`);
   } else {
     parts.push(`Rental fundamentals will need to be verified against live listings, as a clean median rent was not recorded for ${s.suburb}.`);
   }
@@ -1605,10 +1690,10 @@ function generateComparisonTable(s, sm) {
     rows.push(`<tr><th scope="row">Median household income</th><td>$${fmt(s.median_household_income)}/yr</td><td>$${fmt(sm.income)}/yr</td>${deltaCell(pctDelta(s.median_household_income, sm.income))}</tr>`);
   }
   if (s.median_rent_weekly && sm.rent) {
-    rows.push(`<tr><th scope="row">Median rent (weekly)</th><td>$${fmt(s.median_rent_weekly)}</td><td>$${fmt(sm.rent)}</td>${deltaCell(pctDelta(s.median_rent_weekly, sm.rent))}</tr>`);
+    rows.push(`<tr><th scope="row">Median rent (weekly, 2021 Census)</th><td>$${fmt(s.median_rent_weekly)}</td><td>$${fmt(sm.rent)}</td>${deltaCell(pctDelta(s.median_rent_weekly, sm.rent))}</tr>`);
   }
   if (s.median_mortgage_monthly && sm.mortgage) {
-    rows.push(`<tr><th scope="row">Median mortgage (monthly)</th><td>$${fmt(s.median_mortgage_monthly)}</td><td>$${fmt(sm.mortgage)}</td>${deltaCell(pctDelta(s.median_mortgage_monthly, sm.mortgage))}</tr>`);
+    rows.push(`<tr><th scope="row">Median mortgage (monthly, 2021 Census)</th><td>$${fmt(s.median_mortgage_monthly)}</td><td>$${fmt(sm.mortgage)}</td>${deltaCell(pctDelta(s.median_mortgage_monthly, sm.mortgage))}</tr>`);
   }
   if (s.distance_to_cbd != null && sm.distance != null) {
     rows.push(`<tr><th scope="row">Distance to CBD</th><td>${s.distance_to_cbd} km</td><td>${sm.distance} km</td>${deltaCell(pctDelta(s.distance_to_cbd, sm.distance))}</tr>`);
@@ -1674,13 +1759,15 @@ function generateInvestorChecklist(s, sm) {
     items.push(`<strong>Purchasing power:</strong> household income not captured for this suburb.`);
   }
 
-  // 3. Cash-flow coverage
+  // 3. Cash-flow coverage (rent + mortgage are both 2021 Census — keep the
+  //    ratio period-consistent; the current rent is shown in Key Indicators).
+  const ri = rentInfo(s);
   if (rent && mort) {
     const monthlyRent = Math.round(rent * 52 / 12);
     const coverage = Math.round((monthlyRent / mort) * 100);
-    items.push(`<strong>Cash-flow coverage:</strong> $${fmt(rent)}/week rent (≈ $${fmt(monthlyRent)}/month) covers ~${coverage}% of the $${fmt(mort)}/month median mortgage.`);
-  } else if (rent) {
-    items.push(`<strong>Gross rental income:</strong> $${fmt(rent)}/week, ~$${fmt(rent * 52)}/year.`);
+    items.push(`<strong>Cash-flow coverage (2021 Census):</strong> $${fmt(rent)}/week rent (≈ $${fmt(monthlyRent)}/month) covered ~${coverage}% of the $${fmt(mort)}/month median mortgage at the 2021 Census — verify against current rents and rates.`);
+  } else if (ri) {
+    items.push(`<strong>Gross rental income:</strong> $${fmt(ri.value)}/week (${ri.label})${ri.geoNote}, ~$${fmt(ri.value * 52)}/year.`);
   } else {
     items.push(`<strong>Gross rental income:</strong> verify via realestate.com.au — median rent data was not captured for this suburb.`);
   }
@@ -1701,9 +1788,6 @@ function generateInvestorChecklist(s, sm) {
   } else {
     items.push(`<strong>Home mix:</strong> the housing-type split was not captured — verify on the ground.`);
   }
-
-  // 6. Amenities
-  items.push(`<strong>Amenities:</strong> approximately ${schools} school${schools === 1 ? '' : 's'} and ${parks} park${parks === 1 ? '' : 's'} within or near the suburb.`);
 
   // 7. Stress-test buffer
   if (mort) {
@@ -2025,7 +2109,7 @@ function generateInvestmentTip(s, sm) {
   let closing = '';
   if (s.median_rent_weekly && s.median_household_income) {
     const rentYrPct = Math.round((s.median_rent_weekly * 52 / s.median_household_income) * 100);
-    closing = ` Local rents consume roughly ${rentYrPct}% of household income — a useful sanity check on tenant affordability.`;
+    closing = ` At the 2021 Census, local rents consumed roughly ${rentYrPct}% of household income — a dated but useful sanity check on tenant affordability.`;
   } else if (s.distance_to_cbd != null && stateCapitals[s.state]) {
     closing = ` Proximity to ${stateCapitals[s.state]} (~${s.distance_to_cbd} km) is a key driver of demand here.`;
   } else if (s.population) {
@@ -2109,9 +2193,13 @@ ${links}
 
 // Short methodology pointer for suburb pages — adds an E-E-A-T anchor.
 function generateMethodologyBlock(s) {
+  const hasCurrent = !!s.current_rent;
+  const currentLine = hasCurrent
+    ? ` The <strong>current median weekly rent</strong> in Key Indicators is a genuine recent figure from ${escHtml(s.current_rent_source || 'state-government open data')} (${escHtml(s.current_rent_period || 'latest published period')}), published under a Creative Commons licence — it is dated on the page and is separate from the older Census rent.`
+    : '';
   return `  <section class="suburb-section suburb-methodology">
     <h2>How we built this ${escHtml(s.suburb)} profile</h2>
-    <p>The population, postcode, median household income, median weekly rent, median monthly mortgage repayment and dwelling mix on this page are <strong>real figures from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census</a></strong> (income is the ABS median weekly household income annualised; rent and mortgage are the ABS medians) and Australia Post. Distance to the CBD is calculated from the suburb's ABS centroid. The <strong>investment score is our own composite estimate</strong> derived from those figures, and any school or park counts are approximate heuristics rather than verified counts. See our <a href="/methodology">methodology</a> and <a href="/data-sources">data sources</a> for exactly what's measured and what's estimated.</p>
+    <p>The population, postcode, median household income, and dwelling mix on this page are <strong>real figures from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census</a></strong> (income is the ABS median weekly household income annualised) and Australia Post. Distance to the CBD is calculated from the suburb's ABS centroid. The Census median rent and mortgage repayment are <strong>2021 figures</strong> and are clearly labelled as such wherever they appear — they are five years old and have moved substantially since.${currentLine} We do not publish an investment score or school/park counts for this suburb. See our <a href="/methodology">methodology</a> and <a href="/data-sources">data sources</a> for exactly what's measured and what's estimated.</p>
   </section>`;
 }
 
@@ -2566,7 +2654,7 @@ function generateStateFaqHTML(state, stateName, stateSubs) {
     },
     {
       q: `When was the data on these ${stateName} pages last updated?`,
-      a: `Suburb-level Census data (population, household income, median rent, dwelling type) is sourced from the ABS 2021 Census of Population and Housing — the latest available. Stamp duty rates and FHB thresholds are kept current to the 2025–26 financial year. Live market data integration (Domain API for current sale prices and listings) is rolling out incrementally.`
+      a: `Suburb demographics (population, household income, dwelling type) come from the ABS 2021 Census of Population and Housing — the latest available; the Census median rent and mortgage are 2021 figures and are labelled as such. Where shown, the current median rent and sale-price figures come from state-government open data (QLD RTA, SA CBS, TAS DoJ, VIC VGV) published under Creative Commons licences, each dated with its period on the page. Stamp duty rates and FHB thresholds are kept current to the 2026–27 financial year.`
     }
   ];
   return faqs.map(f => `<details class="suburb-faq-item"><summary>${escHtml(f.q)}</summary><div class="suburb-faq-detail"><p>${f.a}</p></div></details>`).join('\n    ');
