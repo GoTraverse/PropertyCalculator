@@ -832,3 +832,10 @@
     color: #ff786e;
     border-color: rgba(255, 120, 110, 0.25);
   }
+
+/* ── A11y fixes (live audit Jul 2026) ─────────────────────────────────── */
+/* Featured label: plain gold on warm white was 2.1:1 */
+.blog-featured-label { color: var(--gold-dark); }
+html.dark-mode .blog-featured-label { color: var(--gold); }
+/* In-body links must not rely on colour alone (link-in-text-block) */
+.legal-section p a, .legal-section li a { text-decoration: underline; }

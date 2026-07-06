@@ -424,7 +424,14 @@ function renderIndex(posts, page, totalPages, template, opts) {
   if (!isMainFirst) {
     const canonUrl = SITE_URL + ((page > 1) ? (baseHref + 'page/' + page + '/') : baseHref);
     const title = opts.pageTitle || ('EquitySight Blog — Page ' + page);
+    // Unique per-variant description (audit Jul 2026: /blog/general/ shipped
+    // the identical description as /blog/ — a duplicate-description pair).
+    const desc = opts.pageDesc || (title + ' — Australian property investing articles from EquitySight.');
     out = out
+      .replace('<meta name="description" content="Long-form analysis for Australian property investors — market cycles, cash-flow strategy, first home buyer schemes, tax and suburb research.">',
+        '<meta name="description" content="' + escHtml(desc) + '">')
+      .replace('<meta property="og:description" content="Long-form analysis for Australian property investors — market cycles, cash-flow strategy, first-home-buyer schemes, tax structuring, and suburb research.">',
+        '<meta property="og:description" content="' + escHtml(desc) + '">')
       .replace('<link rel="canonical" href="https://equitysight.app/blog/">', '<link rel="canonical" href="' + canonUrl + '">')
       .replace('<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/blog/">', '<link rel="alternate" hreflang="en-AU" href="' + canonUrl + '">')
       .replace('<link rel="alternate" hreflang="x-default" href="https://equitysight.app/blog/">', '<link rel="alternate" hreflang="x-default" href="' + canonUrl + '">')
