@@ -63,8 +63,9 @@ function calculate() {
   var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
   var loanAmount = val * (1 - depositPct / 100);
   var lvr = loanAmount / val;
-  var regMortgage = 185;
-  var regTransfer = 185;
+  // NSW LRS FY2026-27 (verified 6 Jul 2026): $182.73 incl GST per dealing.
+  var regMortgage = 183;
+  var regTransfer = 183;
   var regTotal = regMortgage + regTransfer;
   var conveyancing = 1800;
   function lmiRate(lvr) {

@@ -62,9 +62,12 @@ function calculate() {
   var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
   var loanAmount = val * (1 - depositPct / 100);
   var lvr = loanAmount / val;
-  var regMortgage = 123;
-  var regTransfer = 124;
-  var regTotal = regMortgage + regTransfer;
+  // Land Use Victoria FY2026-27, electronic lodgement (verified 6 Jul 2026):
+  // transfer $104.30 + $2.34 per whole $1,000 of price, rounded UP to the
+  // next dollar, capped at $3,614; mortgage $129.20 flat.
+  var regMortgage = 129.20;
+  var regTransfer = Math.min(3614, Math.ceil(104.30 + Math.floor(val / 1000) * 2.34));
+  var regTotal = Math.round(regMortgage + regTransfer);
   var conveyancing = 1800;
   function lmiRate(lvr) {
     if (lvr <= 0.80) return 0;
@@ -93,7 +96,7 @@ function calculate() {
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Use Victoria — transfer fee scales with price)';
   var conveyEl = document.getElementById('r-conveyancing');
   if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
   var upfrontEl = document.getElementById('r-upfront');

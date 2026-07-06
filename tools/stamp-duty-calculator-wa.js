@@ -60,9 +60,13 @@ function calculate() {
   var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
   var loanAmount = val * (1 - depositPct / 100);
   var lvr = loanAmount / val;
-  var regMortgage = 190;
-  var regTransfer = 200;
-  var regTotal = regMortgage + regTransfer;
+  // Landgate FY2026-27 (verified 6 Jul 2026): transfer banded — <=$85k
+  // $225.10; <=$120k $235.10; <=$200k $255.10; then + $20 per whole-or-part
+  // $100,000 above $200,000. Mortgage $225.10 flat.
+  var regMortgage = 225.10;
+  var regTransfer = val <= 85000 ? 225.10 : val <= 120000 ? 235.10 : val <= 200000 ? 255.10
+    : 255.10 + 20 * Math.ceil((val - 200000) / 100000);
+  var regTotal = Math.round(regMortgage + regTransfer);
   var conveyancing = 1800;
   function lmiRate(lvr) {
     if (lvr <= 0.80) return 0;
@@ -91,7 +95,7 @@ function calculate() {
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Landgate — transfer fee scales with price)';
   var conveyEl = document.getElementById('r-conveyancing');
   if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
