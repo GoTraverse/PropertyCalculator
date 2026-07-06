@@ -61,8 +61,10 @@ function calculate() {
   var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
   var loanAmount = val * (1 - depositPct / 100);
   var lvr = loanAmount / val;
-  var regMortgage = 200;
-  var regTransfer = 200;
+  // NT Land Titles Office FY2026-27 (verified 6 Jul 2026): flat $181 per
+  // dealing for both mortgage and transfer.
+  var regMortgage = 181;
+  var regTransfer = 181;
   var regTotal = regMortgage + regTransfer;
   var conveyancing = 1800;
   function lmiRate(lvr) {

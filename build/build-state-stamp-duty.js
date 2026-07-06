@@ -406,23 +406,80 @@ const STATES = {
   },
 };
 
-// ── Title-office registration fees (FY 2025-26) ────────────────────────────
-// Mortgage registration + title transfer fees. Mirrors the table in
-// tools/stamp-duty-calculator.js so both the all-states and per-state
-// pages display identical figures. Verify against state title-office
-// fee schedules each financial year.
+// ── Title-office registration fees (FY 2026-27, verified 6 Jul 2026) ──────
+// Flat fees only. VIC/SA/WA (and hand-authored QLD) have VALUE-SCALED
+// transfer fees emitted by regFeeBlock() below — their entries here are
+// unused. Mirrors tools/stamp-duty-calculator.js REG_FEES. Verify against
+// each registry's official schedule every financial year.
 const REG_FEES = {
-  nsw: { mortgage: 185, transfer: 185 },
-  vic: { mortgage: 123, transfer: 124 },
-  // qld unused here (QLD page is hand-authored) and stale — Titles Qld fees are
-  // value-scaled FY2026-27; see tools/stamp-duty-calculator-qld.js.
-  qld: { mortgage: 232, transfer: 250 },
-  sa:  { mortgage: 200, transfer: 230 },
-  wa:  { mortgage: 190, transfer: 200 },
-  tas: { mortgage: 150, transfer: 250 },
-  act: { mortgage: 200, transfer: 200 },
-  nt:  { mortgage: 200, transfer: 200 },
+  nsw: { mortgage: 183, transfer: 183 },  // NSW LRS $182.73 incl GST each
+  vic: { mortgage: 129, transfer: 124 },  // scaled — see regFeeBlock()
+  // qld unused here (QLD page is hand-authored; value-scaled Titles Qld fees
+  // live in tools/stamp-duty-calculator-qld.js).
+  qld: { mortgage: 248, transfer: 250 },
+  sa:  { mortgage: 204, transfer: 230 },  // scaled — see regFeeBlock()
+  wa:  { mortgage: 225, transfer: 200 },  // scaled — see regFeeBlock()
+  tas: { mortgage: 168, transfer: 257 },  // NRE Tas $167.58 / $256.76
+  act: { mortgage: 184, transfer: 496 },  // DI2026-104 items 15 / 9
+  nt:  { mortgage: 181, transfer: 181 },  // NT LTO flat per dealing
 };
+
+// Reg-fee code emitted into each state page. VIC/SA/WA transfer fees scale
+// with price (FY2026-27, verified 6 Jul 2026); everything else inlines the
+// flat REG_FEES pair plus a provenance comment — all emit strings are kept
+// byte-identical with the committed page code.
+const NL = String.fromCharCode(10);
+function regFeeBlock(code) {
+  if (code === 'vic') return [
+    '// Land Use Victoria FY2026-27, electronic lodgement (verified 6 Jul 2026):',
+    '  // transfer $104.30 + $2.34 per whole $1,000 of price, rounded UP to the',
+    '  // next dollar, capped at $3,614; mortgage $129.20 flat.',
+    '  var regMortgage = 129.20;',
+    '  var regTransfer = Math.min(3614, Math.ceil(104.30 + Math.floor(val / 1000) * 2.34));',
+    '  var regTotal = Math.round(regMortgage + regTransfer);',
+  ].join(NL);
+  if (code === 'sa') return [
+    '// Land Services SA FY2026-27 (verified 6 Jul 2026): transfer fee is ad',
+    '  // valorem with NO cap — <=$5k $204; <=$20k $228; <=$40k $251; then $353 +',
+    '  // $105 per $10,000 (or part) above $50,000 ($750k => $7,703, the highest',
+    '  // registration fee in the country). Mortgage $204 flat.',
+    '  var regMortgage = 204;',
+    '  var regTransfer = val <= 5000 ? 204 : val <= 20000 ? 228 : val <= 40000 ? 251',
+    '    : 353 + 105 * Math.ceil(Math.max(0, val - 50000) / 10000);',
+    '  var regTotal = Math.round(regMortgage + regTransfer);',
+  ].join(NL);
+  if (code === 'wa') return [
+    '// Landgate FY2026-27 (verified 6 Jul 2026): transfer banded — <=$85k',
+    '  // $225.10; <=$120k $235.10; <=$200k $255.10; then + $20 per whole-or-part',
+    '  // $100,000 above $200,000. Mortgage $225.10 flat.',
+    '  var regMortgage = 225.10;',
+    '  var regTransfer = val <= 85000 ? 225.10 : val <= 120000 ? 235.10 : val <= 200000 ? 255.10',
+    '    : 255.10 + 20 * Math.ceil((val - 200000) / 100000);',
+    '  var regTotal = Math.round(regMortgage + regTransfer);',
+  ].join(NL);
+  const FLAT_NOTES = {
+    nsw: ['// NSW LRS FY2026-27 (verified 6 Jul 2026): $182.73 incl GST per dealing.'],
+    tas: ['// TAS Land Titles Office FY2026-27 (verified 6 Jul 2026): mortgage $167.58,',
+          '  // transfer $256.76 — both flat.'],
+    act: ['// ACT Land Titles (Fees) Determination 2026 (No 2), from 1 Jul 2026:',
+          '  // mortgage $184, transfer $496 — both flat (verified 6 Jul 2026).'],
+    nt:  ['// NT Land Titles Office FY2026-27 (verified 6 Jul 2026): flat $181 per',
+          '  // dealing for both mortgage and transfer.'],
+  };
+  const f = REG_FEES[code] || { mortgage: 200, transfer: 200 };
+  const note = FLAT_NOTES[code] ? FLAT_NOTES[code].join(NL) + NL + '  ' : '';
+  return note + [
+    'var regMortgage = ' + f.mortgage + ';',
+    '  var regTransfer = ' + f.transfer + ';',
+    '  var regTotal = regMortgage + regTransfer;',
+  ].join(NL);
+}
+
+function regCaptionLine(code) {
+  const names = { vic: 'Land Use Victoria', sa: 'Land Services SA', wa: 'Landgate' };
+  if (names[code]) return "if (regEl) regEl.textContent = fmt(regTotal) + ' (" + names[code] + " — transfer fee scales with price)';";
+  return "if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';";
+}
 
 // ── Templates ──────────────────────────────────────────────────────────────
 
@@ -741,9 +798,7 @@ function calculate() {
   var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
   var loanAmount = val * (1 - depositPct / 100);
   var lvr = loanAmount / val;
-  var regMortgage = ${(REG_FEES[s.STATE.toLowerCase()] && REG_FEES[s.STATE.toLowerCase()].mortgage) || 200};
-  var regTransfer = ${(REG_FEES[s.STATE.toLowerCase()] && REG_FEES[s.STATE.toLowerCase()].transfer) || 200};
-  var regTotal = regMortgage + regTransfer;
+  ${regFeeBlock(s.STATE.toLowerCase())}
   var conveyancing = 1800;
   function lmiRate(lvr) {
     if (lvr <= 0.80) return 0;
@@ -772,7 +827,7 @@ function calculate() {
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
+  ${regCaptionLine(s.STATE.toLowerCase())}
   var conveyEl = document.getElementById('r-conveyancing');
   if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
   var upfrontEl = document.getElementById('r-upfront');

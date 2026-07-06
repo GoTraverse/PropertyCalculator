@@ -311,8 +311,8 @@ ToolPage.init({
       outputs: [
         { k: 'Stamp duty', v: '~$33,800' },
         { k: 'Legal + conveyancing', v: '~$2,200' },
-        { k: 'Mortgage + title fees', v: '~$400' },
-        { k: 'Total upfront costs', v: '~$36,400' }
+        { k: 'Mortgage + title fees', v: '~$365' },
+        { k: 'Total upfront costs', v: '~$36,365' }
       ]
     },
     {

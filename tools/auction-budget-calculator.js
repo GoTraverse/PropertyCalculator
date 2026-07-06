@@ -9,9 +9,10 @@
 
 /* ═══════════════════════════════════════════════════════════════════════
  * SYNC: copied verbatim from stamp-duty-calculator.js (FY2026-27 schedules,
- * verified 5 Jul 2026 vs state revenue offices). If rates change, update BOTH
- * files. Blocks copied: stateData, calcDuty, REG_FEES, qldHomeDuty,
- * qldFhbConcessionAmt, applyFhbConcession, regFeesTotal.
+ * verified 5-6 Jul 2026 vs state revenue offices + title registries). If
+ * rates change, update BOTH files. Blocks copied: stateData, calcDuty,
+ * REG_FEES, SCALED_REG, regFeesTotal, qldHomeDuty, qldFhbConcessionAmt,
+ * applyFhbConcession.
  * Do NOT modify the copied maths.
  * ═══════════════════════════════════════════════════════════════════════ */
 
@@ -180,16 +181,17 @@ function calcDuty(state, v) {
 // upfront-cost calculator includes them. Values from state title office
 // fee schedules; verify before settlement.
 var REG_FEES = {
-  nsw: { mortgage: 185, transfer: 185 },
-  vic: { mortgage: 123, transfer: 124 },
-  // qld entry superseded at runtime by regFeesTotal() — Titles Qld fees are
-  // value-scaled FY2026-27 (transfer $248.04 + $46.56/$10k over $180k).
-  qld: { mortgage: 232, transfer: 250 },
-  sa:  { mortgage: 200, transfer: 230 },
-  wa:  { mortgage: 190, transfer: 200 },
-  tas: { mortgage: 150, transfer: 250 },
-  act: { mortgage: 200, transfer: 200 },
-  nt:  { mortgage: 200, transfer: 200 }
+  // Flat fees verified FY2026-27 (6 Jul 2026) vs each registry's official
+  // schedule. qld/vic/sa/wa entries are UNUSED at runtime — their transfer
+  // fees are value-scaled and computed in regFeesTotal() below.
+  nsw: { mortgage: 183, transfer: 183 },  // NSW LRS $182.73 incl GST each
+  vic: { mortgage: 129, transfer: 124 },  // superseded by regFeesTotal()
+  qld: { mortgage: 248, transfer: 250 },  // superseded by regFeesTotal()
+  sa:  { mortgage: 204, transfer: 230 },  // superseded by regFeesTotal()
+  wa:  { mortgage: 225, transfer: 200 },  // superseded by regFeesTotal()
+  tas: { mortgage: 168, transfer: 257 },  // NRE Tas $167.58 / $256.76
+  act: { mortgage: 184, transfer: 496 },  // DI2026-104 items 15 / 9
+  nt:  { mortgage: 181, transfer: 181 }   // NT LTO flat per dealing
 };
 
 // Apply FHB exemption / partial concession given a state's policy
@@ -237,13 +239,39 @@ function applyFhbConcession(state, val, baseDuty) {
   return { duty: baseDuty, note: '' };
 }
 
-// QLD Titles Registry fees are value-scaled (FY2026-27, verified 5 Jul 2026):
-// transfer $248.04 + $46.56 per $10,000 (or part) of consideration above
-// $180,000; mortgage lodgement flat $248.04. Other states use the flat
-// REG_FEES table above.
+// Registry names for states whose TRANSFER fee is value-scaled (FY2026-27,
+// verified 6 Jul 2026 vs each registry's official schedule; electronic-
+// lodgement fees where the channels differ). Used for the r-reg caption.
+var SCALED_REG = { qld: 'Titles Qld', vic: 'Land Use Victoria', sa: 'Land Services SA', wa: 'Landgate' };
+
+// Title-office registration fees (mortgage + transfer). QLD/VIC/SA/WA scale
+// with price; the rest are flat via REG_FEES above.
 function regFeesTotal(state, val) {
   if (state === 'qld') {
+    // Titles Qld: transfer $248.04 + $46.56 per $10k (or part) over $180k; mortgage $248.04.
     return Math.round(248.04 + 248.04 + (val > 180000 ? Math.ceil((val - 180000) / 10000) * 46.56 : 0));
+  }
+  if (state === 'vic') {
+    // Land Use Victoria (electronic): transfer $104.30 + $2.34 per whole
+    // $1,000 of price, rounded UP to the next dollar, capped at $3,614;
+    // mortgage $129.20.
+    var vt = Math.min(3614, Math.ceil(104.30 + Math.floor(val / 1000) * 2.34));
+    return Math.round(129.20 + vt);
+  }
+  if (state === 'sa') {
+    // Land Services SA (ad valorem, NO cap — highest in the country):
+    // <=$5k $204; <=$20k $228; <=$40k $251; then $353 + $105 per $10k (or
+    // part) above $50,000. Mortgage $204. ($750k => transfer $7,703.)
+    var st = val <= 5000 ? 204 : val <= 20000 ? 228 : val <= 40000 ? 251
+      : 353 + 105 * Math.ceil(Math.max(0, val - 50000) / 10000);
+    return Math.round(204 + st);
+  }
+  if (state === 'wa') {
+    // Landgate: <=$85k $225.10; <=$120k $235.10; <=$200k $255.10; then
+    // + $20 per whole-or-part $100k above $200,000. Mortgage $225.10.
+    var wt = val <= 85000 ? 225.10 : val <= 120000 ? 235.10 : val <= 200000 ? 255.10
+      : 255.10 + 20 * Math.ceil((val - 200000) / 100000);
+    return Math.round(225.10 + wt);
   }
   var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
   return reg.mortgage + reg.transfer;
@@ -491,9 +519,9 @@ function calculate() {
   var regTotal = regFeesTotal(state, funds);
 
   var W = solveWalkAway(funds, state, fhb, regTotal, legal);
-  // QLD reg fees scale with the price — refine once at the solved price
-  // (the fee moves $46.56 per $10k, so one refinement converges).
-  if (state === 'qld' && W > 0) {
+  // QLD/VIC/SA/WA reg fees scale with the price — refine once at the solved
+  // price (fee slope is far below $1 per $1 of price, so one pass converges).
+  if (SCALED_REG[state] && W > 0) {
     regTotal = regFeesTotal(state, W);
     W = solveWalkAway(funds, state, fhb, regTotal, legal);
   }
@@ -523,8 +551,8 @@ function calculate() {
     noteEl.textContent = dres.note || '';
     noteEl.style.display = dres.note ? '' : 'none';
   }
-  setText('r-reg', state === 'qld'
-    ? fmt(regTotal) + ' (Titles Qld — transfer fee scales with price)'
+  setText('r-reg', SCALED_REG[state]
+    ? fmt(regTotal) + ' (' + SCALED_REG[state] + ' — transfer fee scales with price)'
     : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')');
   setText('r-legal', fmt(legal));
   setText('r-allin', fmt(allIn));
@@ -642,10 +670,10 @@ ToolPage.init({
         { k: 'Conveyancing', v: '$1,800' }
       ],
       outputs: [
-        { k: 'Walk-away price', v: '$638,000' },
-        { k: 'Land transfer duty (VIC)', v: '~$33,350' },
-        { k: 'Total all-in cost', v: '~$673,400' },
-        { k: 'Cash at settlement', v: '~$113,400' }
+        { k: 'Walk-away price', v: '$637,000' },
+        { k: 'Land transfer duty (VIC)', v: '~$33,290' },
+        { k: 'Total all-in cost', v: '~$673,800' },
+        { k: 'Cash at settlement', v: '~$113,800' }
       ]
     },
     {

@@ -64,8 +64,10 @@ function calculate() {
   var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
   var loanAmount = val * (1 - depositPct / 100);
   var lvr = loanAmount / val;
-  var regMortgage = 200;
-  var regTransfer = 200;
+  // ACT Land Titles (Fees) Determination 2026 (No 2), from 1 Jul 2026:
+  // mortgage $184, transfer $496 — both flat (verified 6 Jul 2026).
+  var regMortgage = 184;
+  var regTransfer = 496;
   var regTotal = regMortgage + regTransfer;
   var conveyancing = 1800;
   function lmiRate(lvr) {

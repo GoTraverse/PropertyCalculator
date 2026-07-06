@@ -74,9 +74,14 @@ function calculate() {
   var depositPct = depPctEl ? (parseFloat(depPctEl.value) || 20) : 20;
   var loanAmount = val * (1 - depositPct / 100);
   var lvr = loanAmount / val;
-  var regMortgage = 200;
-  var regTransfer = 230;
-  var regTotal = regMortgage + regTransfer;
+  // Land Services SA FY2026-27 (verified 6 Jul 2026): transfer fee is ad
+  // valorem with NO cap — <=$5k $204; <=$20k $228; <=$40k $251; then $353 +
+  // $105 per $10,000 (or part) above $50,000 ($750k => $7,703, the highest
+  // registration fee in the country). Mortgage $204 flat.
+  var regMortgage = 204;
+  var regTransfer = val <= 5000 ? 204 : val <= 20000 ? 228 : val <= 40000 ? 251
+    : 353 + 105 * Math.ceil(Math.max(0, val - 50000) / 10000);
+  var regTotal = Math.round(regMortgage + regTransfer);
   var conveyancing = 1800;
   function lmiRate(lvr) {
     if (lvr <= 0.80) return 0;
@@ -105,7 +110,7 @@ function calculate() {
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Services SA — transfer fee scales with price)';
   var conveyEl = document.getElementById('r-conveyancing');
   if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
