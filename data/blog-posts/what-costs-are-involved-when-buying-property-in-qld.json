@@ -12,9 +12,9 @@
   "cover_image": "",
   "tags": [],
   "featured": false,
-  "status": "draft",
+  "status": "published",
   "created_at": 1783299110909,
-  "updated_at": 1783299110909,
-  "published_at": null,
+  "updated_at": 1783299112661,
+  "published_at": 1783299112661,
   "comment_count": 0
 }
