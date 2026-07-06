@@ -500,9 +500,12 @@
   z-index: 1;
   cursor: zoom-in;
 }
-.sc-slot-desktop { aspect-ratio: 16/10; min-height: 0; }
+/* Slot ratios match the screenshots' intrinsic ratios (1794x1082, 582x1021)
+   so display ratio === intrinsic ratio — clears the SEO-audit aspect-ratio
+   mismatch flag and avoids cropping the captures. */
+.sc-slot-desktop { aspect-ratio: 1794/1082; min-height: 0; }
 /* Phone aspect ratio — use padding-bottom trick for reliable cross-browser support in flex/grid contexts */
-.sc-slot-phone { height: 0; padding-bottom: 216.41%; min-height: 0; } /* 844/390 × 100% */
+.sc-slot-phone { height: 0; padding-bottom: 175.43%; min-height: 0; } /* 1021/582 × 100% */
 
 /* ── Showcase page (showcase.html) ── */
 .sc-page { background: var(--warm-white); }

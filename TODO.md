@@ -15,15 +15,13 @@ General - (DO NOT REMOVE THIS LINE)
 29. (External SEO audit round 6 — needs user input) Facebook Pixel ID. Paste a 16-digit Pixel ID and Claude will wire the standard FB Pixel base script into the head of every page (defer-safe, CSP-compliant — will need a CSP `connect-src` update for `connect.facebook.net`).
 30. (External SEO audit round 6 — needs user input) Business address + phone. Decide whether to expose. If yes, Claude will add a `ContactPoint` to the `Organization` JSON-LD (about.html) and a contact block on contact.html. If staying private, mark this item resolved.
 27. Expand 5 borderline blog posts from ~1,400 to 1,500+ words, then bump BLOG_MIN_WORDS back to 1500 in Netlify env vars. Per-post brief — add each section to reach the floor cleanly:
-    - what-costs-are-involved-when-buying-property-in-qld (1,394 → 1,500): add a 120-word comparison table of QLD vs NSW/VIC stamp duty, FHOG and FHB concessions; cite revenue.qld.gov.au + sro.vic.gov.au as sources.
+    - what-costs-are-involved-when-buying-property-in-qld: TEXT READY (2026-07-06) — replacement sections prepared (fixes the wrong "$400–$600" registration-fee claim to the real Titles Qld value-scaled schedule AND adds the QLD/NSW/VIC comparison table, ~1,640 words). Owner: paste from Claude's chat message into Admin → Blog, save, deploy.
     - is-it-better-to-pay-off-your-mortgage-or-invest (1,390 → 1,500): add a 110-word worked example at 6.25% mortgage vs 8% long-run equities return, with a break-even calculation using the repayment formula so readers can plug their own numbers.
     - what-is-negative-gearing-and-does-it-still-work-in-2026 (1,399 → 1,500): add a 110-word paragraph on recent federal policy stability (negative gearing untouched in 2025 budget) and what the ALP stance has been since the 2019 election — anchors E-E-A-T recency.
     - how-to-read-property-market-trends-like-an-investor (1,408 → 1,500): add a 100-word section on using RBA cash-rate history + ABS dwelling approvals as leading indicators; link to /methodology.
     - is-redbank-plains-a-good-investment-2026 (1,425 → 1,500): add a 90-word comparison vs neighbouring Collingwood Park + Bellbird Park (median price, gross yield, distance to CBD) pulled from the respective suburb pages.
     All target word counts verified via `node build/build-blog.js` with BLOG_MIN_WORDS=1500.
-31. (SEO audit Jul 2026 — low priority; site already scores PageSpeed Perf 99 / SEO 100, most report findings are noise) Homepage image aspect-ratio: add explicit width/height (or fix CSS) so display ratio matches intrinsic ratio — prevents distortion + CLS. Flagged by SEO Site Checkup. (Homepage title 92→56 chars + meta description 162→154 already fixed.)
-32. (SEO audit Jul 2026 — low priority) Add <lastmod> to sitemap-core.xml entries in the sitemap build — cheap content-freshness / crawl-scheduling hint. Flagged by RankMath.
-33. (SEO audit Jul 2026 — optional, marginal) Cut ~290ms homepage render-blocking: inline critical CSS and/or async-load the Google Fonts stylesheet. LCP already 1.5s so low payoff.
+33. (SEO audit Jul 2026 — optional, marginal) Cut ~290ms homepage render-blocking: inline critical CSS and/or async-load the Google Fonts stylesheet. LCP already 1.5s so low payoff. NOTE (Jul 2026): the usual async-font trick (media="print" + onload attr) is an inline event handler — blocked by our CSP script-src-attr; needs a small site-init.js approach if ever done.
 
 
 PRODUCT ROADMAP (S/A/B tier) - (DO NOT REMOVE THIS LINE)
