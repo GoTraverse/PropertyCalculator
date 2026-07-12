@@ -493,3 +493,10 @@ html.dark-mode .joffer-cap, html.dark-mode .joffer-grid p { color: rgba(245,240,
 .jplace-proj { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.4px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: transparent; color: var(--gold-dark); cursor: pointer; flex: none; }
 .jplace-proj:hover { border-color: var(--gold); }
 html.dark-mode .jplace-proj { color: var(--gold); border-color: rgba(245,240,232,0.16); }
+
+/* dark-sweep fixes (overnight item 8) */
+html.dark-mode .jtl-tick.jtl-goal { color: var(--gold); }
+html.dark-mode .jplace-st { color: rgba(245,240,232,0.6); }
+html.dark-mode .jrec-row .k, html.dark-mode .jrec-price label { color: rgba(245,240,232,0.62); }
+html.dark-mode .jrec-row .est { color: rgba(245,240,232,0.45); }
+html.dark-mode .jrec-head .est, html.dark-mode .jrec-head .act { color: rgba(245,240,232,0.55); }

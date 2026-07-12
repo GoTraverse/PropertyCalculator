@@ -347,6 +347,13 @@ that asking price as the journey target and opens the scheme projector
 recomputed at it — 'what would buying THIS one look like?' RO-guarded;
 harness proj=1 drive verified the full click-through. SW v38.
 
+### Phase 1a.18 — dark-mode sweep (overnight, 12 Jul 2026)
+Harness gained ?dark=1; all 8 views screenshot-swept in dark mode. Three
+real bugs fixed: the timeline's 'your goal' tick was gold-dark on
+charcoal (invisible), muted place-status pills unreadable, and the
+stop-7 reconcile labels/'we carried' column too dim. Mobile-width pass
+clean (500px floor noted in harness docs). SW v39.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
