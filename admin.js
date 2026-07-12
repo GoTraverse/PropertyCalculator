@@ -3901,12 +3901,13 @@ async function openJourneyDetail(email) {
   const insp = Array.isArray(st.inspections) ? st.inspections : [];
   if (insp.length) {
     h += '<div><div style="font-size:11px;color:var(--slate);margin-bottom:6px;">Places logged (' + insp.length + ')</div>';
+    const PLACE_ST = { browsed: 'Browsed', inspected: 'Inspected', shortlist: 'Shortlist', offer: 'Offer made', lost: 'Lost auction', passed: 'Passed', won: 'Won' };
     insp.slice(0, 20).forEach(function (r) {
-      const verdicts = ['Looking', 'Shortlist', 'Pass'];
+      const stKey = r.st || ['inspected', 'shortlist', 'passed'][r.v] || 'inspected';
       h += '<div style="padding:6px 0;border-top:1px solid var(--border);font-size:12px;">' +
         '<strong>' + escHtml(r.addr || '') + '</strong>' +
         (r.price ? ' · <span style="font-family:var(--font-mono);font-size:11px;">' + jFmtMoney(r.price) + '</span>' : '') +
-        ' · <span style="color:var(--slate);">' + escHtml(verdicts[r.v] || '') + '</span>' +
+        ' · <span style="color:' + (stKey === 'won' ? 'var(--sage)' : 'var(--slate)') + ';">' + (PLACE_ST[stKey] || 'Inspected') + '</span>' +
         (r.note ? '<div style="color:var(--slate);font-size:11px;">' + escHtml(r.note) + '</div>' : '') +
         '</div>';
     });

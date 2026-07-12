@@ -200,6 +200,26 @@ What works now at `/journey`:
   deal dates, logged places incl. notes — escHtml'd) + delete (server copy
   only). Auto-loads on first tab visit; wired in admin-events.js.
 
+### Phase 1a.6 — the places library (12 Jul 2026)
+Owner's architecture locked: **one journey per user**; the multi-item layers
+live inside it — scenarios (later) and the **places library** (this round).
+- Stop 5's 3-state inspection tracker became the full library: statuses
+  Browsed / Inspected / Shortlist / Offer made / Lost auction / Passed /
+  Won, chosen from a tap-open picker (no more cycle button). Old `v`
+  indexes migrate to `st` keys on load.
+- Every priced place shows its delta against the stop-3 walk-away cap
+  ("$15,000 over your cap" / "under cap"). Filter chips with live counts.
+  Lost/passed rows muted + struck through. A "Won" place personalises the
+  stop-5 milestone ("You found it — 14 Wattle St.").
+- Trail home gets a compact "Your places" summary card (counts by status →
+  open the library). Library capped at 50 places (server blob ceiling).
+- Admin journey detail shows the new statuses (Won highlighted sage).
+- **Browser harness**: `tests/journey-browser-harness.html` (dev-only,
+  tests/ is .netlifyignore'd) — seeds a rich journey into localStorage and
+  drives any view for headless-Chrome screenshots. Now part of the
+  pre-merge routine after the v3 modal[hidden] regression proved DOM-stub
+  tests can't catch CSS conflicts.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
