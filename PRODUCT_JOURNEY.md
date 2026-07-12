@@ -161,6 +161,23 @@ What works now at `/journey`:
   guide; timeframe verdict (fits / months past goal / save-rate to hit it) in
   stop 2's "Our read".
 
+### Phase 1a.4 — v4 wizards everywhere + stage routing (12 Jul 2026)
+- **Stage question** opens the wizard ("Where are you up to right now?" —
+  working it out / comparing schemes / budget & lenders / choosing suburbs /
+  inspecting / signed a contract). The trail drops the buyer at the matching
+  stop; earlier undone stops read "Open — catch up any time". "Signed a
+  contract" pre-arms stop 6.
+- **Stop 3 is now a 4-step budget wizard** (upfront costs → deposit level →
+  income stress-check → commit) ending in a **committed walk-away number**.
+  The cap drives stop 4's search band and stop 5's auction advice; the
+  dashboard shows all-in numbers at the cap. No cap → no milestone button.
+- **Stop 6 is now real deadline tracking**: pre-contract explainer → 6-step
+  date wizard (contract, per-state statutory cooling-off prefill in business
+  days [WA/TAS none], building & pest, finance clause, pre-approval expiry —
+  pain #7, settlement) → dashboard with live days-left chips
+  (passed/today/urgent ≤7d/soon ≤21d), sorted by proximity. Email nudges
+  still Phase 1b (needs accounts).
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
