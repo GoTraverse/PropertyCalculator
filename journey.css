@@ -489,3 +489,7 @@ html.dark-mode .jrec-verdict.under { color: var(--sage-light); }
 .joffer-grid p { font-size: 13.5px; line-height: 1.6; color: var(--slate); }
 @media (max-width: 640px) { .joffer-grid { grid-template-columns: 1fr; } }
 html.dark-mode .joffer-cap, html.dark-mode .joffer-grid p { color: rgba(245,240,232,0.65); }
+
+.jplace-proj { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.4px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: transparent; color: var(--gold-dark); cursor: pointer; flex: none; }
+.jplace-proj:hover { border-color: var(--gold); }
+html.dark-mode .jplace-proj { color: var(--gold); border-color: rgba(245,240,232,0.16); }

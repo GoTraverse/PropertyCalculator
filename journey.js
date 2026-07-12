@@ -1117,6 +1117,7 @@
       return '<div class="jinsp' + (st === 'passed' || st === 'lost' ? ' muted' : '') + '">' +
         '<div class="jinsp-main"><div class="jinsp-addr">' + esc(r.addr) + '</div>' +
         '<div class="jinsp-meta">' + (r.price ? m$(r.price) + capDelta(r.price) + (r.note ? ' · ' : '') : '') + esc(r.note || '') + '</div></div>' +
+        (r.price ? '<button type="button" class="jplace-proj" data-place-proj="' + i + '" title="Run the scheme paths at this price">Project</button>' : '') +
         '<button type="button" class="jplace-st st-' + st + '" data-place-status="' + i + '" aria-expanded="' + (_huntOpen === i) + '">' + PLACE_LABEL[st] + ' ▾</button>' +
         '<button type="button" class="jinsp-del" data-insp-del="' + i + '" aria-label="Remove">×</button>' +
         '</div>' + picker;
@@ -1490,7 +1491,7 @@
   }
 
   document.addEventListener('click', function (e) {
-    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-place-set],[data-insp-del],[data-bdep],[data-scen-load],[data-scen-del],#jreset-btn')) return;
+    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-place-set],[data-place-proj],[data-insp-del],[data-bdep],[data-scen-load],[data-scen-del],#jreset-btn')) return;
     var go = e.target.closest('[data-jgoto]');
     if (go) { show(go.getAttribute('data-jgoto')); return; }
     var mk = e.target.closest('[data-jmark]');
@@ -1549,6 +1550,18 @@
       var jsc = document.getElementById('jscen');
       if (jsc && document.getElementById('jv-projector').classList.contains('active')) renderProjector();
       renderScenSummary();
+      return;
+    }
+    var pp = e.target.closest('[data-place-proj]');
+    if (pp) {
+      var ppi = +pp.getAttribute('data-place-proj');
+      var pr = S.inspections[ppi];
+      if (pr && pr.price) {
+        S.numbers.price = pr.price;
+        save();
+        show('projector');
+        track('journey_place_projected', {});
+      }
       return;
     }
     var pf = e.target.closest('[data-place-filter]');
