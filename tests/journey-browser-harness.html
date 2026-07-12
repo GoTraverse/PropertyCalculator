@@ -24,13 +24,17 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
     { addr: '19 Melaleuca Dr, Bracken Ridge', price: 619000, note: 'Saw online only', st: 'browsed' },
     { addr: '7 Cedar Ct, Boondall', price: 645000, note: 'Open home Saturday', st: 'browsed' }
   ],
+  scenarios: [
+    { name: 'QLD $650,000', at: 1, numbers: { price: 650000, saved: 45000, saveMo: 2000, state: 'qld' }, profile: { fhb: true, area: 'capital', buyers: 'couple', build: 'established', income: 145000 }, bestName: 'Help to Buy', mo: 0, buyBy: 'Ready now', rep: 2650, need: 16500, saved: 45000, saveMo: 2000 },
+    { name: 'QLD $720,000', at: 2, numbers: { price: 720000, saved: 45000, saveMo: 2500, state: 'qld' }, profile: { fhb: true, area: 'capital', buyers: 'couple', build: 'established', income: 145000 }, bestName: '5% Deposit Scheme', mo: 4, buyBy: 'Nov 2026', rep: 4100, need: 39500, saved: 45000, saveMo: 2500 }
+  ],
   signupDismissed: true,
   updatedAt: 1
 }));
 </script>
 <script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
-<link rel="stylesheet" href="shared.css">
-<link rel="stylesheet" href="journey.css">
+<link rel="stylesheet" href="/shared.css">
+<link rel="stylesheet" href="/journey.css">
 </head>
 <body class="journey-page">
 <main id="main-content" class="jwrap">
@@ -49,7 +53,7 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
     <p class="jreset-row"><button type="button" class="jwiz-skip" id="jreset-btn">Start the whole journey over</button></p>
   </div>
   <div class="jview" id="jv-wizard"><div id="jwizard"></div></div>
-  <div class="jview" id="jv-projector"><div id="jctx-chips"></div><p id="jduty-note"></p><section id="jpaths"></section><div class="jbars" id="jbars"></div><div id="jread"></div></div>
+  <div class="jview" id="jv-projector"><div id="jctx-chips"></div><p id="jduty-note"></p><section class="jpaths" id="jpaths"></section><section class="jcard jpad"><div class="jbars" id="jbars"></div></section><section><div class="jread" id="jread"></div></section><section id="jscen"></section><section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You know your path.</div></div><button class="jbtn" data-jmark="2">Mark this stop done</button></section></div>
   <div class="jview" id="jv-budget"><div id="jbudget"></div></div>
   <div class="jview" id="jv-ground"><div id="jground"></div></div>
   <div class="jview" id="jv-hunt">
@@ -66,13 +70,13 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
     <div class="jmodal-btns" id="jmodal-btns"></div>
   </div>
 </div>
-<script src="journey.js" defer></script>
+<script src="/journey.js" defer></script>
 <script>
 window.addEventListener('load', function () {
   var q = new URLSearchParams(location.search);
-  if (q.get('view') === 'hunt') {
+  if (q.get('view')) {
     setTimeout(function () {
-      var b = document.querySelector('#jplaces-slot [data-jgoto="hunt"]');
+      var b = document.querySelector('[data-jgoto="' + q.get('view') + '"]');
       if (b) b.click();
       setTimeout(function () {
         var pill = document.querySelector('[data-place-status]');
