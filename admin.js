@@ -3802,7 +3802,7 @@ async function callJourney(action, payload) {
 }
 
 const JOURNEY_STAGES = { start: 'Just starting', schemes: 'Comparing schemes', budget: 'Budget & lenders', ground: 'Choosing suburbs', hunt: 'Inspecting', deal: 'Contract signed' };
-const JOURNEY_STOPS = ['Get your bearings', 'Find your path', 'Set your real budget', 'Pick your ground', 'Hunt & compare', 'Seal the deal', 'Settle & move in'];
+const JOURNEY_STOPS = ['Get your bearings', 'Find your path', 'Set your budget', 'Pick your ground', 'Hunt & compare', 'Seal the deal', 'Settle & move in'];
 
 function jFmtMoney(v) { return (v || v === 0) ? '$' + Math.round(v).toLocaleString('en-AU') : '—'; }
 function jFmtWhen(ts) {

@@ -384,6 +384,18 @@ sensitivity computed live (+1% on THEIR best path), FHOG scope, how to
 decide. Facts mirrored from the verified grants page; figures computed
 per buyer. SW v41.
 
+### Phase 1a.22 — de-AI copy pass on the whole journey (13 Jul 2026)
+Owner: the journey read AI-made; same principles as the #320 site pass.
+Removed across journey.html/journey.js/index.html + OG image: em-dash
+rhetoric, aphorisms (auction fodder, rose-tinted glasses, buffer did its
+job, cold showers, that's the journey), honest/real/actually tics, triad
+constructions. Plain descriptive sentences throughout; 'walk-away
+number' → 'maximum price'; Stop → Step everywhere user-facing;
+'Set your real budget' → 'Set your budget' (admin labels synced).
+Also fixed a factual error: the trade-off line claimed scheme places are
+limited each year, wrong for the 5% Deposit Scheme since 1 Oct 2025.
+FAQ JSON-LD kept in sync with visible text. SW v42.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).

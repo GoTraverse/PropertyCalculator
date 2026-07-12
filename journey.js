@@ -166,13 +166,13 @@
 
   // ── The stops (ALL native — no external links) ───────────────────────
   var STOPS = [
-    { n: 1, icon: 'compass', title: 'Get your bearings', view: 'wizard', cta: 'Start — about 2 minutes', blurb: 'Quick questions about you, your money and your target — every answer powers a real number later.', milestone: 'You know your numbers.' },
-    { n: 2, icon: 'signpost', title: 'Find your path', view: 'projector', cta: 'Compare my scheme paths', blurb: 'Which government scheme gets you in sooner — and what each really costs. Side by side, for your exact situation.', milestone: 'You know your path.' },
-    { n: 3, icon: 'wallet', title: 'Set your real budget', view: 'budget', cta: 'Set my walk-away number', blurb: 'Every upfront cost — including the solicitor — an honest income check, and one committed walk-away number.', milestone: 'You have a real budget.' },
-    { n: 4, icon: 'pin', title: 'Pick your ground', view: 'ground', cta: 'Work out where', blurb: 'The price band your budget really buys, and how to shortlist suburbs around the life you already have.', milestone: 'You know where.' },
-    { n: 5, icon: 'search', title: 'Hunt & compare', view: 'hunt', cta: 'Open my places library', blurb: 'Every place you browse, inspect or bid on — one honest library, compared against your cap.', milestone: 'You found it.' },
-    { n: 6, icon: 'pen', title: 'Seal the deal', view: 'deal', cta: 'Track my deadlines', blurb: 'Contract signed — now every deadline matters. Enter the dates from your contract; we keep count on every one.', milestone: 'Contract signed.' },
-    { n: 7, icon: 'key', title: 'Settle & move in', view: 'settle', cta: 'The final stretch', blurb: 'Settlement day checklist and the last dollars — then the keys are yours.', milestone: 'Keys in hand.' }
+    { n: 1, icon: 'compass', title: 'Get your bearings', view: 'wizard', cta: 'Start (about 2 minutes)', blurb: 'A few quick questions about you, your savings and what you want to buy.', milestone: 'You know your numbers.' },
+    { n: 2, icon: 'signpost', title: 'Find your path', view: 'projector', cta: 'Compare my scheme paths', blurb: 'Compare the government schemes against buying without one, using your own numbers.', milestone: 'You know your path.' },
+    { n: 3, icon: 'wallet', title: 'Set your budget', view: 'budget', cta: 'Set my maximum price', blurb: 'Every upfront cost including the solicitor, a repayment check against your income, and a firm maximum price.', milestone: 'Your budget is set.' },
+    { n: 4, icon: 'pin', title: 'Pick your ground', view: 'ground', cta: 'Work out where', blurb: 'A realistic price band, and suburbs that fit inside it.', milestone: 'You know where.' },
+    { n: 5, icon: 'search', title: 'Hunt & compare', view: 'hunt', cta: 'Open my places library', blurb: 'A record of every place you look at, compared against your budget.', milestone: 'You found it.' },
+    { n: 6, icon: 'pen', title: 'Seal the deal', view: 'deal', cta: 'Track my deadlines', blurb: 'Enter the dates from your contract and track every deadline.', milestone: 'Contract signed.' },
+    { n: 7, icon: 'key', title: 'Settle & move in', view: 'settle', cta: 'The final stretch', blurb: 'The settlement checklist and the final costs.', milestone: 'Keys in hand.' }
   ];
 
   // Real-world stage → the stop that matches it. Buyers can enter mid-journey;
@@ -232,11 +232,11 @@
     jModal({
       kicker: 'Milestone ahead',
       title: stop.milestone,
-      body: 'Marking “' + stop.title + '” done tells the journey you’re ready for the next stop. You can always come back and redo it.',
+      body: 'Marking “' + stop.title + '” done moves you to the next step. You can come back and redo it any time.',
       icon: IC.flag,
       buttons: [
         { label: 'Not yet', cls: 'quiet' },
-        { label: 'Yes — mark it done', cb: function () { markDone(n); } }
+        { label: 'Yes, mark it done', cb: function () { markDone(n); } }
       ]
     });
   }
@@ -249,11 +249,11 @@
     var next = null;
     for (var i = 0; i < STOPS.length; i++) if (!S.done[STOPS[i].n]) { next = STOPS[i]; break; }
     jModal({
-      kicker: 'Milestone reached — stop ' + n + ' of 7',
+      kicker: 'Milestone reached: step ' + n + ' of 7',
       title: stop.milestone,
       body: doneCount >= 7
-        ? 'That’s the whole journey. Keys in hand — congratulations.'
-        : (next ? 'Next stop: ' + next.title + '. ' + next.blurb : ''),
+        ? 'That’s the whole journey done. Congratulations.'
+        : (next ? 'Next step: ' + next.title + '. ' + next.blurb : ''),
       icon: IC.check,
       iconCls: 'sage',
       buttons: doneCount >= 7
@@ -268,7 +268,7 @@
   function resetJourney() {
     jModal({
       title: 'Start the whole journey over?',
-      body: 'This erases everything on this device — your answers, milestones, inspections and checklists. It can’t be undone.',
+      body: 'This erases everything on this device: your answers, milestones, inspections and checklists. It can’t be undone.',
       buttons: [
         { label: 'Keep my journey', cls: 'quiet' },
         { label: 'Erase and start over', cls: 'danger', cb: function () {
@@ -287,7 +287,7 @@
     var cur = currentStop();
     var doneCount = 0; STOPS.forEach(function (s) { if (S.done[s.n]) doneCount++; });
     var lbl = document.getElementById('jprog-label');
-    if (lbl) lbl.textContent = doneCount >= 7 ? 'Journey complete' : 'Stop ' + cur + ' of 7';
+    if (lbl) lbl.textContent = doneCount >= 7 ? 'Journey complete' : 'Step ' + cur + ' of 7';
     var pct = Math.round(doneCount / 7 * 100);
     var fill = document.getElementById('jprog-fill'); if (fill) fill.style.width = pct + '%';
     var pctEl = document.getElementById('jprog-pct'); if (pctEl) pctEl.textContent = pct + '%';
@@ -300,9 +300,9 @@
     var html = STOPS.map(function (s, i) {
       var side = i % 2 === 0 ? 'left' : 'right';
       var stateCls = S.done[s.n] ? 'done' : (s.n === cur ? 'current' : 'ahead');
-      var stateLbl = S.done[s.n] ? '<span class="jstate done-t jsc">Done — open to revisit</span>'
+      var stateLbl = S.done[s.n] ? '<span class="jstate done-t jsc">Done</span>'
         : (s.n === cur ? '<span class="jstate here jsc">You are here</span>'
-          : '<span class="jstate jsc">' + (s.n === 7 ? 'The finish' : (s.n < cur ? 'Open — catch up any time' : 'Ahead')) + '</span>');
+          : '<span class="jstate jsc">' + (s.n === 7 ? 'The finish' : (s.n < cur ? 'Open to catch up' : 'Ahead')) + '</span>');
       var isCurrent = s.n === cur && !S.done[s.n];
       var inner = stateLbl + '<h2>' + esc(s.title) + '</h2>';
       if (isCurrent) {
@@ -331,7 +331,7 @@
     slot.innerHTML = '<div class="jcard jpad jsignup">' +
       '<div>' +
       '<span class="jsc jsc-gold jblock">Keep your journey</span>' +
-      '<p>Everything here works without an account — but your progress lives only in this browser, and we can’t get it back if it’s cleared. A free account keeps your journey on any device.</p>' +
+      '<p>Everything here works without an account, but your progress lives only in this browser and can’t be recovered if it’s cleared. A free account keeps your journey on any device.</p>' +
       '</div>' +
       '<div class="jsignup-actions">' +
       '<a class="jbtn" href="/login?tab=signup&next=%2Fjourney">Create a free account</a>' +
@@ -432,18 +432,18 @@
 
   // ── Stop 1 wizard (nine questions, one at a time) ────────────────────
   var WQ = [
-    { id: 'stage', kind: 'chips', cols: 2, q: 'Where are you in your home-buying journey?', help: 'Everyone starts in a different place. Pick the closest match and we’ll take you straight to the part that helps today — you can go back over the earlier steps any time.', opts: [['start', 'Wondering if I can afford it'], ['schemes', 'Saving up and researching'], ['budget', 'Working out what I can borrow'], ['ground', 'Deciding where to buy'], ['hunt', 'Out inspecting homes'], ['deal', 'I’ve signed a contract']], store: 'profile' },
-    { id: 'state', kind: 'chips', q: 'Where are you looking to buy?', help: 'Stamp duty, concessions and schemes all change at the border.', opts: [['qld', 'QLD'], ['nsw', 'NSW'], ['vic', 'VIC'], ['sa', 'SA'], ['wa', 'WA'], ['tas', 'TAS'], ['act', 'ACT'], ['nt', 'NT']], store: 'numbers' },
+    { id: 'stage', kind: 'chips', cols: 2, q: 'Where are you in your home-buying journey?', help: 'Pick the closest match and we’ll take you straight to the part that helps now. You can go back over the earlier steps any time.', opts: [['start', 'Wondering if I can afford it'], ['schemes', 'Saving up and researching'], ['budget', 'Working out what I can borrow'], ['ground', 'Deciding where to buy'], ['hunt', 'Out inspecting homes'], ['deal', 'I’ve signed a contract']], store: 'profile' },
+    { id: 'state', kind: 'chips', q: 'Where are you looking to buy?', help: 'Stamp duty, concessions and schemes differ by state.', opts: [['qld', 'QLD'], ['nsw', 'NSW'], ['vic', 'VIC'], ['sa', 'SA'], ['wa', 'WA'], ['tas', 'TAS'], ['act', 'ACT'], ['nt', 'NT']], store: 'numbers' },
     { id: 'area', kind: 'chips', q: 'Capital city, or regional?', help: 'The government schemes use different price caps for capitals and the rest of the state.', opts: [['capital', 'Capital city'], ['regional', 'Regional']], store: 'profile' },
     { id: 'buyers', kind: 'chips', q: 'Buying alone or together?', help: 'Income caps for shared-equity schemes are different for joint applicants.', opts: [['single', 'Just me'], ['couple', 'Two of us']], store: 'profile' },
     { id: 'fhb', kind: 'chips', q: 'Is this your first home?', help: 'First home buyers get stamp duty concessions and access to the federal schemes.', opts: [[true, 'Yes, first home'], [false, 'Owned before']], store: 'profile' },
     { id: 'build', kind: 'chips', q: 'Established home, or a new build?', help: 'Some concessions and equity schemes are more generous for new builds.', opts: [['established', 'Established'], ['new', 'New build'], ['unsure', 'Not sure yet']], store: 'profile' },
-    { id: 'income', kind: 'money', q: 'Household income, before tax?', help: 'Yearly, combined if you’re buying together. Used only to check scheme eligibility and give you an honest affordability guide.', def: 95000, min: 0, store: 'profile' },
-    { id: 'price', kind: 'money', q: 'What price are you aiming for?', help: 'A rough target is fine — you can change it any time.', def: 650000, min: 50000, store: 'numbers' },
-    { id: 'saved', kind: 'money', q: 'How much have you saved so far?', help: 'Deposit savings only — don’t count your emergency buffer.', def: 60000, min: 0, store: 'numbers' },
-    { id: 'saveMo', kind: 'money', q: 'How much can you put away each month?', help: 'Be honest rather than hopeful — the projections use this.', def: 2000, min: 0, store: 'numbers' },
+    { id: 'income', kind: 'money', q: 'Household income, before tax?', help: 'Yearly, combined if you’re buying together. Used to check scheme eligibility and repayments against your income.', def: 95000, min: 0, store: 'profile' },
+    { id: 'price', kind: 'money', q: 'What price are you aiming for?', help: 'A rough target is fine. You can change it any time.', def: 650000, min: 50000, store: 'numbers' },
+    { id: 'saved', kind: 'money', q: 'How much have you saved so far?', help: 'Deposit savings only. Don’t count your emergency buffer.', def: 60000, min: 0, store: 'numbers' },
+    { id: 'saveMo', kind: 'money', q: 'How much can you put away each month?', help: 'The projections use this, so pick a number you can keep up.', def: 2000, min: 0, store: 'numbers' },
     { id: 'rentNow', kind: 'money', q: 'What do you pay in rent or board each month?', help: 'Zero is fine. We use it to show how a mortgage compares to what you already pay.', def: 0, min: 0, store: 'profile' },
-    { id: 'cardLimits', kind: 'money', q: 'Total limit across your credit cards?', help: 'The limit, not the balance — lenders assess the whole limit even at $0 owing. Zero if you have none.', def: 0, min: 0, store: 'profile' },
+    { id: 'cardLimits', kind: 'money', q: 'Total limit across your credit cards?', help: 'The limit, not the balance. Lenders assess the whole limit even at $0 owing. Zero if you have none.', def: 0, min: 0, store: 'profile' },
     { id: 'employment', kind: 'chips', q: 'How do you earn your income?', help: 'Lenders treat salaried, self-employed and casual income differently.', opts: [['payg', 'Salaried (PAYG)'], ['self', 'Self-employed'], ['casual', 'Casual / contract']], store: 'profile' },
     { id: 'dependants', kind: 'chips', q: 'Any dependants?', help: 'Kids and dependants change what lenders assume you spend.', opts: [[0, 'None'], [1, '1'], [2, '2'], [3, '3 or more']], store: 'profile' },
     { id: 'timeframe', kind: 'chips', q: 'When do you want to be in?', help: 'We’ll flag which paths actually fit your timeframe.', opts: [['asap', 'As soon as possible'], ['6mo', 'Within 6 months'], ['12mo', 'Within a year'], ['2yr', '1–2 years plus']], store: 'profile' }
@@ -519,7 +519,7 @@
     box.innerHTML = '<div class="jwiz-card">' +
       '<div class="jwiz-done-icon">' + IC.check + '</div>' +
       '<div class="jwiz-q">That’s your bearings.</div>' +
-      '<p class="jwiz-help">First milestone reached — you know your numbers. Next comes the one most buyers never find out: which scheme path suits <em>your</em> situation.</p>' +
+      '<p class="jwiz-help">That’s the first step done. Next: compare the scheme paths for your situation.</p>' +
       (function () {
         var row = function (k, v, mono) {
           return '<div class="jsum-row"><span class="k">' + k + '</span><span class="v' + (mono ? ' mono' : '') + '">' + v + '</span></div>';
@@ -549,7 +549,7 @@
       '<button type="button" class="jwiz-skip" data-jgoto="wizard">↺ Redo my answers</button>' +
       (STAGE_STOP[P.stage] > 2
         ? '<button type="button" class="jbtn" data-jgoto="' + stopByN(STAGE_STOP[P.stage]).view + '">Jump to where you are: ' + esc(stopByN(STAGE_STOP[P.stage]).title) + ' →</button>'
-        : '<button type="button" class="jbtn" data-jgoto="projector">Next stop: find your path →</button>') +
+        : '<button type="button" class="jbtn" data-jgoto="projector">Next step: find your path →</button>') +
       '</div></div>';
   }
 
@@ -581,12 +581,12 @@
         eligible: !(tags && tags.warn)
       });
     }
-    add('Save to 20%', 'The classic path — no LMI, smallest loan, longest wait.', price * 0.20, 0);
+    add('Save to 20%', 'No LMI and the smallest loan, but the longest wait.', price * 0.20, 0);
     var dep10 = price * 0.10, base10 = price - dep10;
-    add('10% deposit + LMI', 'Buy sooner without a scheme place — LMI is added to the loan.', dep10, base10 * lmiRate(base10 / price));
+    add('10% deposit + LMI', 'Buy sooner without a scheme. LMI is added to the loan.', dep10, base10 * lmiRate(base10 / price));
     if (P.fhb) {
       var fdsCap = schemeCaps(FDS_CAPS);
-      add('5% Deposit Scheme', '5% deposit, the government guarantees the rest — no LMI, no income cap.',
+      add('5% Deposit Scheme', 'A 5% deposit and the government guarantees the rest. No LMI, no income cap.',
         price * 0.05, 0, 0,
         price > fdsCap ? { warn: 'Above the ' + m$(fdsCap) + ' price cap for your area' } : null);
       var h2bCap = schemeCaps(H2B_CAPS);
@@ -595,7 +595,7 @@
       var h2bWarn = null;
       if (price > h2bCap) h2bWarn = 'Above the ' + m$(h2bCap) + ' price cap for your area';
       else if (P.income != null && P.income > incCap) h2bWarn = 'Income above the ' + m$(incCap) + ' cap for ' + (P.buyers === 'couple' ? 'joint applicants' : 'single applicants');
-      add('Help to Buy', 'Federal shared equity — the government takes up to ' + Math.round(eq * 100) + '% (' + (P.build === 'new' ? 'new build' : 'established') + '), you start from a 2% deposit.',
+      add('Help to Buy', 'Federal shared equity. The government takes up to ' + Math.round(eq * 100) + '% (' + (P.build === 'new' ? 'new build' : 'established') + ') and you start from a 2% deposit.',
         price * 0.02, 0, price * eq,
         h2bWarn ? { warn: h2bWarn } : { equity: 'Gov up to ' + Math.round(eq * 100) + '%' });
     }
@@ -645,7 +645,7 @@
       var yearsToCap = releaseCap / yearly;
       html += '<p style="margin-top:8px">At your ' + m$(N.saveMo) + '/mo, contributions like these would reach the release cap in about <b class="mono-strong">' + (Math.round(yearsToCap * 10) / 10) + ' years</b>' + (N.saveMo * 12 > yearlyCap ? ' (the ' + m$(yearlyCap) + '/yr contribution cap is the limit, not your saving rate)' : '') + '.</p>';
     }
-    html += '<p class="jcaveat" style="margin-top:10px">The tax edge is real but depends on your marginal rate and the ATO\u2019s deemed earnings \u2014 we don\u2019t guess it here. Get your exact figure from the <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme" target="_blank" rel="noopener">ATO\u2019s FHSS pages</a> or our <a href="/tools/first-home-buyer-grants-calculator">grants calculator</a> before committing \u2014 contributions are hard to reverse.</p>';
+    html += '<p class="jcaveat" style="margin-top:10px">The tax benefit depends on your marginal rate and the ATO\u2019s deemed earnings, so we don\u2019t estimate it here. Get your exact figure from the <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme" target="_blank" rel="noopener">ATO\u2019s FHSS pages</a> or our <a href="/tools/first-home-buyer-grants-calculator">grants calculator</a> before committing, because contributions are hard to reverse.</p>';
     box.innerHTML = html;
   }
 
@@ -663,20 +663,20 @@
     var qa = [];
     if (fds) {
       qa.push(['What\u2019s the catch with the 5% Deposit Scheme?',
-        'It\u2019s a guarantee, not a grant — you still borrow the other 95%' + (p20 ? ', so the repayment is <b class="mono-strong">' + m$(fds.rep) + '/mo</b> against <b class="mono-strong">' + m$(p20.rep) + '/mo</b> on a 20% deposit' : '') + '. Since 1 October 2025 there are no income caps, unlimited places and no waitlist, but the price cap for your area is <b class="mono-strong">' + m$(schemeCaps(FDS_CAPS)) + '</b>, you must live in the home, and it runs through Housing Australia\u2019s panel of participating lenders — not every bank.']);
+        'It\u2019s a guarantee, not a grant: you still borrow the other 95%' + (p20 ? ', so the repayment is <b class="mono-strong">' + m$(fds.rep) + '/mo</b> against <b class="mono-strong">' + m$(p20.rep) + '/mo</b> on a 20% deposit' : '') + '. Since 1 October 2025 there are no income caps, unlimited places and no waitlist, but the price cap for your area is <b class="mono-strong">' + m$(schemeCaps(FDS_CAPS)) + '</b>, you must live in the home, and it runs through Housing Australia\u2019s panel of participating lenders — not every bank.']);
     }
     if (h2b) {
       qa.push(['What does Help to Buy really cost me later?',
-        'The government holds its share of your home — when you sell or refinance it takes the same proportion of any capital gain, and you can buy it out progressively along the way. Income caps apply ($103,000 single / $165,000 joint or single parents, from 1 July 2026), there are 10,000 places in FY2026-27, and it opened through Commonwealth Bank and Bank Australia with more lenders joining during 2026.']);
+        'The government holds its share of your home. When you sell or refinance it takes the same proportion of any capital gain, and you can buy it out progressively along the way. Income caps apply ($103,000 single / $165,000 joint or single parents, from 1 July 2026), there are 10,000 places in FY2026-27, and it opened through Commonwealth Bank and Bank Australia with more lenders joining during 2026.']);
       qa.push(['Can I combine the schemes?',
         'Mostly. Your state\u2019s stamp duty concession, the First Home Owner Grant and the super saver (FHSS) all stack, and the 5% Deposit Scheme adds on top of those. The one hard rule: <strong>Help to Buy and the 5% Deposit Scheme are mutually exclusive</strong> — you pick one.']);
     }
     qa.push(['What if rates rise?',
-      'Every figure here uses today\u2019s ' + RATE.toFixed(2) + '% flat. If rates were 1% higher, \u201c' + esc(b.name) + '\u201d\u2019s repayment would be <b class="mono-strong">' + m$(payAtRate(b.loan, RATE + 1)) + '/mo</b> instead of <b class="mono-strong">' + m$(b.rep) + '/mo</b> — worth stress-testing before you commit. Stop 3 tests your budget at the full 3% lender buffer.']);
+      'Every figure here uses today\u2019s ' + RATE.toFixed(2) + '% flat. If rates were 1% higher, \u201c' + esc(b.name) + '\u201d\u2019s repayment would be <b class="mono-strong">' + m$(payAtRate(b.loan, RATE + 1)) + '/mo</b> instead of <b class="mono-strong">' + m$(b.rep) + '/mo</b>. Step 3 tests your budget at the full 3% lender buffer.']);
     qa.push(['Where\u2019s the First Home Owner Grant?',
-      'The FHOG is a state grant, mostly for new builds' + (P.build === 'new' ? ' — which you\u2019re considering, so it may genuinely apply to you' : '') + '. It changes the cash you need, not which path structure wins, so it isn\u2019t a column here. The <a href="/tools/first-home-buyer-grants-calculator">grants calculator</a> computes your exact FHOG and stamp-duty saving for ' + N.state.toUpperCase() + '.']);
-    qa.push(['How do I actually decide?',
-      'Pick what matters most above and see which path holds up. If two paths land within a couple of months of each other, the one with less LMI and a smaller loan usually serves you better long-term — the 30-year stake table above shows why. Then confirm eligibility with the scheme administrator and a lender or broker before you commit to anything.']);
+      'The FHOG is a state grant, mostly for new builds' + (P.build === 'new' ? ' (which you\u2019re considering, so it may apply to you)' : '') + '. It changes the cash you need rather than which path wins, so it isn\u2019t a column here. The <a href="/tools/first-home-buyer-grants-calculator">grants calculator</a> computes your exact FHOG and stamp-duty saving for ' + N.state.toUpperCase() + '.']);
+    qa.push(['How do I decide?',
+      'Pick what matters most above and see which path holds up. If two paths land within a couple of months of each other, the one with less LMI and a smaller loan usually works out better over time. Confirm eligibility with the scheme administrator and a lender or broker before committing.']);
     box.innerHTML = '<span class="jsc jblock">Questions you\u2019re probably asking</span>' +
       qa.map(function (item) {
         return '<details class="jfaq-item"><summary>' + item[0] + '</summary><p>' + item[1] + '</p></details>';
@@ -697,7 +697,7 @@
         '<span class="nm">' + esc(p.name) + '</span>' + cells + '</div>';
     }).join('');
     box.innerHTML = head + rows +
-      '<p class="jcaveat" style="margin-top:10px">Your stake = price paid \u2212 what you\u2019d still owe \u2212 the government\u2019s share, at today\u2019s ' + RATE.toFixed(2) + '% over 30 years, counted from the day each path buys. The home is deliberately valued flat at ' + m$(price) + ' \u2014 we don\u2019t guess capital growth. Help to Buy\u2019s government share is repayable at market value when you sell or buy it out.</p>';
+      '<p class="jcaveat" style="margin-top:10px">What you would own = price paid, minus what you\u2019d still owe, minus the government\u2019s share, at today\u2019s ' + RATE.toFixed(2) + '% over 30 years, counted from the day each path buys. The home is valued flat at ' + m$(price) + ' because we don\u2019t forecast capital growth. Help to Buy\u2019s share is repayable at market value when you sell or buy it out.</p>';
   }
 
   function renderProjector() {
@@ -721,8 +721,8 @@
     if (note) {
       var dutyLabel = P.fhb ? 'first-home-buyer stamp duty' : 'stamp duty';
       note.innerHTML = R.duty < 1
-        ? 'Estimated ' + dutyLabel + ' in ' + N.state.toUpperCase() + ' at this price' + (P.fhb && P.build === 'new' && (N.state === 'sa' || N.state === 'qld') ? ' (new build)' : '') + ': <b>$0</b> — included in every path below.'
-        : 'Estimated ' + dutyLabel + ' in ' + N.state.toUpperCase() + ' at this price: <b>' + m$(R.duty) + '</b> — included in the cash needed for every path.';
+        ? 'Estimated ' + dutyLabel + ' in ' + N.state.toUpperCase() + ' at this price' + (P.fhb && P.build === 'new' && (N.state === 'sa' || N.state === 'qld') ? ' (new build)' : '') + ': <b>$0</b>, included in every path below.'
+        : 'Estimated ' + dutyLabel + ' in ' + N.state.toUpperCase() + ' at this price: <b>' + m$(R.duty) + '</b>, included in the cash needed for every path.';
     }
 
     var PRIO_OPTS = [
@@ -730,7 +730,7 @@
       ['repay', 'Lowest repayment'],
       ['interest', 'Least interest over 30 yrs'],
       ['nolmi', 'Never pay LMI'],
-      ['own', 'Fully mine — no gov share']
+      ['own', 'Fully mine, no government share']
     ];
     var prioBox = document.getElementById('jprio');
     if (prioBox) {
@@ -738,7 +738,7 @@
         '<div class="jprio-row">' + PRIO_OPTS.map(function (o) {
           return '<button type="button" class="jprio-chip' + (R.prio === o[0] ? ' sel' : '') + '" data-prio="' + o[0] + '">' + o[1] + '</button>';
         }).join('') + '</div>' +
-        '<p class="jhint" style="margin-top:8px">The strongest path re-ranks around your answer — same honest numbers, your priority.</p>';
+        '<p class="jhint" style="margin-top:8px">The strongest path re-ranks around your answer, using the same numbers.</p>';
     }
 
     var paths = document.getElementById('jpaths');
@@ -753,7 +753,7 @@
         '<div class="jstat"><span class="k">Loan</span><span class="v">' + m$(p.loan) + '</span></div>' +
         '<div class="jstat"><span class="k">Repayment</span><span class="v">' + m$(p.rep) + '/mo</span></div>' +
         (p.equity ? '<div class="jstat"><span class="k">Equity share</span><span class="v warn">' + esc(p.equity) + '</span></div>' : '') +
-        (p.warn ? '<div class="jelig">' + esc(p.warn) + ' — shown for comparison.</div>' : '') +
+        (p.warn ? '<div class="jelig">' + esc(p.warn) + ' (shown for comparison).</div>' : '') +
         '</div>';
     }).join('');
 
@@ -789,15 +789,15 @@
       var b = R.best;
       var alt = R.paths.filter(function (p) { return !p.best && p.eligible; }).sort(function (a, b2) { return a.mo - b2.mo; })[0];
       var prioLead = {
-        repay: 'It has the lowest repayment of any path you qualify for: <b class="mono-strong">' + m$(b.rep) + '/mo</b>' + (alt ? ' — ' + m$(alt.rep - b.rep) + '/mo less than \u201c' + esc(alt.name) + '\u201d' : '') + '. ',
+        repay: 'It has the lowest repayment of any path you qualify for: <b class="mono-strong">' + m$(b.rep) + '/mo</b>' + (alt ? ', ' + m$(alt.rep - b.rep) + '/mo less than \u201c' + esc(alt.name) + '\u201d' : '') + '. ',
         interest: 'Over the full 30 years it pays the least interest: <b class="mono-strong">' + m$(b.interest) + '</b>' + (alt ? ' versus ' + m$(alt.interest) + ' on \u201c' + esc(alt.name) + '\u201d' : '') + '. ',
         nolmi: (b.lmi === 0 ? 'It gets you in without a dollar of lenders mortgage insurance. ' : 'No LMI-free path fits your numbers yet, so this is the nearest. '),
-        own: (!b.govShare ? 'Every dollar of it is yours — no government share to buy out later. ' : 'No fully-yours path fits your numbers yet, so this is the nearest. ')
+        own: (!b.govShare ? 'Every dollar of it is yours, with no government share to buy out later. ' : 'No fully-yours path fits your numbers yet, so this is the nearest. ')
       }[R.prio] || '';
       var txt = '<span class="jsc">Our read</span><strong>' + esc(b.name) + ' looks strongest for you.</strong> ' + prioLead;
-      if (b.mo <= 0) txt += 'Your savings already cover the cash this path needs — you could start now';
+      if (b.mo <= 0) txt += 'Your savings already cover the cash this path needs, so you could start now';
       else txt += 'You could be ready in about ' + b.mo + ' months (' + b.buyBy + ')';
-      if (alt) txt += (b.mo <= 0 ? ',' : ' —') + ' versus ' + (alt.mo <= 0 ? 'now' : 'about ' + alt.mo + ' months') + ' on “' + esc(alt.name) + '”. ';
+      if (alt) txt += ',' + ' versus ' + (alt.mo <= 0 ? 'now' : 'about ' + alt.mo + ' months') + ' on “' + esc(alt.name) + '”. ';
       else txt += '. ';
       txt += b.lmi ? 'It does carry ' + m$(b.lmi) + ' of LMI.' : 'It pays no lenders mortgage insurance.';
       var goal = TF_MONTHS[P.timeframe];
@@ -805,12 +805,12 @@
         var tfLabel = { asap: 'as soon as possible', '6mo': 'within 6 months', '12mo': 'within a year', '2yr': 'in 1–2 years' }[P.timeframe];
         if (b.mo <= goal) txt += ' That fits your goal of buying ' + tfLabel + '.';
         else {
-          txt += ' Your goal is to buy ' + tfLabel + ' — this path lands about ' + (b.mo - goal) + ' month' + (b.mo - goal > 1 ? 's' : '') + ' past that';
+          txt += ' Your goal is to buy ' + tfLabel + ', and this path lands about ' + (b.mo - goal) + ' month' + (b.mo - goal > 1 ? 's' : '') + ' past that';
           var extra = Math.ceil(Math.max(0, (b.need - S.numbers.saved) / Math.max(1, goal)) - S.numbers.saveMo);
           txt += extra > 0 ? ', unless you can lift saving to about ' + m$(S.numbers.saveMo + extra) + '/mo.' : '.';
         }
       }
-      txt += ' The trade-offs: scheme places are limited each year, and a smaller deposit means a larger loan and higher repayments.';
+      txt += ' The trade-off: a smaller deposit means a larger loan and higher repayments.';
       read.innerHTML = txt;
     }
     renderNetPosition(R);
@@ -906,14 +906,14 @@
 
     if (bStep === 0) {
       q = 'First, the costs on top of the price.';
-      help = 'These come out of your savings before the deposit does — every number that follows already includes them.';
+      help = 'These come out of your savings before the deposit does. Every number that follows includes them.';
       body = '<div style="margin-top:18px">' +
         '<div class="jstat"><span class="k">Stamp duty (' + N.state.toUpperCase() + (P.fhb ? ', first home buyer' : '') + ')</span><span class="v ' + (duty < 1 ? 'good' : '') + '">' + (duty < 1 ? '$0' : m$(duty)) + '</span></div>' +
         '<div class="jstat"><span class="k">Conveyancing / solicitor</span><span class="v">$1,300–$2,200</span></div>' +
         '<div class="jstat"><span class="k">Building &amp; pest inspection</span><span class="v">$400–$700</span></div>' +
         '<div class="jstat"><span class="k">Title &amp; mortgage registration</span><span class="v">varies by state</span></div>' +
         '<div class="jstat"><span class="k">Loan application / valuation</span><span class="v">$0–$600</span></div>' +
-        '</div><p class="jcaveat" style="margin-top:10px">The solicitor line is the one that surprises everyone — it’s budgeted from day one here. We carry ' + m$(OTHER_COSTS) + ' for legals and registration in every projection.</p>';
+        '</div><p class="jcaveat" style="margin-top:10px">Conveyancing catches many buyers out, so it’s budgeted from day one here. We carry ' + m$(OTHER_COSTS) + ' for legals and registration in every projection.</p>';
       nav = '<span></span><button type="button" class="jbtn" id="jb-next">Next</button>';
     }
 
@@ -940,8 +940,8 @@
       var lmi = budgetLmi(N.price, dep);
       var loan = N.price * (1 - dep) + lmi;
       var assessed = payAt(loan, RATE + 3);
-      q = 'Can your income actually carry it?';
-      help = 'Lenders don’t test you at today’s ' + RATE.toFixed(2) + '% — they add a 3% buffer.';
+      q = 'Can your income carry the repayments?';
+      help = 'Lenders don’t test you at today’s ' + RATE.toFixed(2) + '%. They add a 3% buffer.';
       body = '<div style="margin-top:18px">' +
         '<div class="jstat"><span class="k">Loan at a ' + Math.round(dep * 100) + '% deposit' + (lmi ? ' (incl. ' + m$(lmi) + ' LMI)' : '') + '</span><span class="v">' + m$(loan) + '</span></div>' +
         '<div class="jstat"><span class="k">Repayment at ' + RATE.toFixed(2) + '%</span><span class="v">' + m$(payAt(loan, RATE)) + '/mo</span></div>' +
@@ -949,9 +949,9 @@
         (P.income > 0 ? '<div class="jstat"><span class="k">Share of your gross income</span><span class="v ' + (assessed / (P.income / 12) <= 0.30 ? 'good' : 'warn') + '">' + Math.round(assessed / (P.income / 12) * 100) + '%</span></div>' : '') +
         '</div>' +
         (P.rentNow > 0 ? '<p class="jwiz-help" style="margin-top:12px">' + (assessed > P.rentNow
-          ? 'That’s ' + m$(assessed - P.rentNow) + '/mo more than your current rent. Bank the difference from this month and you’re proving the repayment to yourself before any lender asks.'
-          : 'That’s less than the ' + m$(P.rentNow) + '/mo you already pay in rent — you’re living the payment now; the deposit is the only gap.') + '</p>' : '') +
-        (P.cardLimits > 0 ? '<p class="jwiz-help" style="margin-top:8px">Your ' + m$(P.cardLimits) + ' of card limits also counts against you — lenders assess about 3% of the limit monthly (' + m$(P.cardLimits * 0.03) + '/mo) even at $0 owing. Cutting unused limits is the cheapest boost there is.</p>' : '');
+          ? 'That’s ' + m$(assessed - P.rentNow) + '/mo more than your current rent. Saving the difference each month is a good test of whether the repayment fits.'
+          : 'That’s less than the ' + m$(P.rentNow) + '/mo you already pay in rent. The deposit is the remaining gap.') + '</p>' : '') +
+        (P.cardLimits > 0 ? '<p class="jwiz-help" style="margin-top:8px">Your ' + m$(P.cardLimits) + ' of card limits also counts against you: lenders assess about 3% of the limit monthly (' + m$(P.cardLimits * 0.03) + '/mo) even at $0 owing. Cutting unused limits improves what you can borrow.</p>' : '');
       nav = '<button type="button" class="jwiz-skip" id="jb-back">← Back</button><button type="button" class="jbtn" id="jb-next">Next</button>';
     }
 
@@ -965,8 +965,8 @@
         incomeCeil = Math.floor(loanMax / (1 - dep3) / 5000) * 5000;
         suggest = Math.min(suggest, incomeCeil);
       }
-      q = 'Set your walk-away number.';
-      help = 'The most you’ll pay for any property — decided now, calmly, not in an auction room. ' +
+      q = 'Set your maximum price.';
+      help = 'The most you’ll pay for any property, decided now rather than at an auction. ' +
         (incomeCeil > 0 ? 'On your income, tested repayments pass the common 35% line at about ' + m$(incomeCeil) + '. ' : '') +
         'You can change it any time.';
       body = '<div class="jwiz-input-row"><span class="jwiz-cur">$</span>' +
@@ -1017,9 +1017,9 @@
     var html = '';
 
     html += '<section class="jcard jpad" style="text-align:center;margin-top:18px">' +
-      '<span class="jsc jsc-gold jblock">Your walk-away number</span>' +
+      '<span class="jsc jsc-gold jblock">Your maximum price</span>' +
       '<div class="jcap">' + m$(cap) + '</div>' +
-      '<p class="jwiz-help" style="margin-top:6px">At a ' + Math.round(dep * 100) + '% deposit' + (lmi ? ' (LMI ' + m$(lmi) + ' added to the loan)' : ', no LMI') + '. Set calmly, before any agent or auction room gets a say — it caps every search band and offer from here.</p>' +
+      '<p class="jwiz-help" style="margin-top:6px">At a ' + Math.round(dep * 100) + '% deposit' + (lmi ? ' (LMI ' + m$(lmi) + ' added to the loan)' : ', no LMI') + '. This caps your search band and every offer from here.</p>' +
       '<div class="jwiz-nav" style="justify-content:center;margin-top:14px"><button type="button" class="jwiz-skip" id="jb-edit">Adjust my budget</button></div></section>';
 
     html += '<section class="jcard jpad"><span class="jsc jblock">All-in at your cap</span>' +
@@ -1031,8 +1031,8 @@
       '<div class="jstat"><span class="k">Lender-tested at ' + (RATE + 3).toFixed(2) + '%</span><span class="v">' + m$(assessed) + '/mo' + (P.income > 0 ? ' (' + Math.round(assessed / (P.income / 12) * 100) + '% of income)' : '') + '</span></div>' +
       '<p class="jcaveat" style="margin-top:10px">A guide only — real serviceability depends on expenses, debts and the lender’s own rules. Not financial advice. Your savings: ' + m$(N.saved) + '.</p></section>';
 
-    html += '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You have a real budget.</div></div>' +
-      '<button class="jbtn" data-jmark="3">Mark this stop done</button></section>';
+    html += '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">Your budget is set.</div></div>' +
+      '<button class="jbtn" data-jmark="3">Mark this step done</button></section>';
     box.innerHTML = html;
     var ed = document.getElementById('jb-edit');
     if (ed) ed.addEventListener('click', function () { S.budget.editing = true; bStep = 1; save(); renderBudget(); });
@@ -1126,17 +1126,17 @@
     var lo = Math.round(target * 0.9 / 5000) * 5000, hi = Math.round(target * 1.1 / 5000) * 5000;
     box.innerHTML =
       '<section class="jcard jpad"><span class="jsc jblock">Your realistic search band</span>' +
-      '<p style="font-size:15px;line-height:1.65">With ' + (S.budget.cap ? 'your committed cap of' : 'a target of') + ' <b class="mono-strong">' + m$(target) + '</b>, shortlist suburbs where typical listings sit between <b class="mono-strong">' + m$(lo) + '</b> and <b class="mono-strong">' + m$(hi) + '</b>. Below the band you\u2019re compromising more than you need to; above it you\u2019re auction fodder.</p></section>' +
-      '<section class="jcard jpad"><span class="jsc jblock">Suburbs your band actually buys</span>' +
+      '<p style="font-size:15px;line-height:1.65">With ' + (S.budget.cap ? 'your committed maximum of' : 'a target of') + ' <b class="mono-strong">' + m$(target) + '</b>, shortlist suburbs where typical listings sit between <b class="mono-strong">' + m$(lo) + '</b> and <b class="mono-strong">' + m$(hi) + '</b>. Below the band you\u2019re giving up more than you need to; above it you\u2019ll keep getting outbid.</p></section>' +
+      '<section class="jcard jpad"><span class="jsc jblock">Suburbs inside your band</span>' +
       '<div id="jground-fits"><p class="jcaveat">Loading the verified dataset\u2026</p></div></section>' +
       '<section class="jcard jpad"><span class="jsc jblock">Search the dataset</span>' +
       '<p class="jcaveat" style="margin:0 0 10px">1,473 suburbs with a current, licensed figure — sale medians (VIC, metro SA) or median rents (QLD, SA, TAS). Each links to its full profile.</p>' +
       '<input type="text" id="jsub-q" class="jsub-input" placeholder="Type a suburb name\u2026" aria-label="Search suburbs">' +
       '<div id="jsub-res"></div></section>' +
-      '<section class="jcard jpad"><span class="jsc jblock">Shortlist around your life, not the hype</span>' +
-      '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">The best suburb filter isn\u2019t a score — it\u2019s the places your week already happens: work, family, church, the gym, mates. Write down your three non-negotiable places, then look at what\u2019s inside a 20-minute trip of each. Cross that with the list above and you have a real search map.</p></section>' +
+      '<section class="jcard jpad"><span class="jsc jblock">Shortlist around the places you already go</span>' +
+      '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Start from the places your week already happens around: work, family, church, the gym. Write down your three most important ones, then look at suburbs within a 20-minute trip of each. Cross that with the list above and you have your search map.</p></section>' +
       '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You know where.</div></div>' +
-      '<button class="jbtn" data-jmark="4">Mark this stop done</button></section>';
+      '<button class="jbtn" data-jmark="4">Mark this step done</button></section>';
     fetchSuburbs().then(function (j) {
       renderGroundFits(j);
       renderGroundSearch(j);
@@ -1216,25 +1216,25 @@
       '</form>' +
       (S.inspections.length
         ? filters + '<div class="jinsp-list">' + rows + '</div>'
-        : '<p class="jcaveat" style="margin-top:12px">Nothing here yet. Log every place — even the ones you only browsed online. The pattern of what you keep passing on teaches you what you actually want. Write the honest note before the car leaves the street.</p>') +
+        : '<p class="jcaveat" style="margin-top:12px">Nothing here yet. Log every place, even ones you only saw online, and add a note about what you noticed while it\u2019s fresh.</p>') +
       '</section>' +
       '<section class="jcard jpad"><span class="jsc jblock">When you\u2019re ready to make a move</span>' +
       (S.budget.cap
-        ? '<p class="joffer-cap">Your walk-away number: <b class="mono-strong">' + m$(S.budget.cap) + '</b> — set at stop 3, calmly. It rules both roads below.</p>'
-        : '<p class="joffer-cap">Set your walk-away number at stop 3 first — both roads below start from it.</p>') +
+        ? '<p class="joffer-cap">Your maximum price: <b class="mono-strong">' + m$(S.budget.cap) + '</b>, set at step 3. It applies to both options below.</p>'
+        : '<p class="joffer-cap">Set your maximum price at step 3 first. Both options below start from it.</p>') +
       '<div class="joffer-grid">' +
       '<div><h3 class="joffer-h">Private sale</h3>' +
-      '<p>Open below your cap so there\u2019s room to move — and anchor to what the suburb\u2019s verified median says (stop 4), not the listing price. Your finance and building-and-pest clauses are your safety net; waiving them to look stronger is a conversation for your solicitor, not the agent.</p></div>' +
+      '<p>Open below your maximum so there\u2019s room to move, and base your offer on the suburb\u2019s verified median (step 4) rather than the listing price. Keep your finance and building-and-pest clauses; talk to your solicitor before waiving anything.</p></div>' +
       '<div><h3 class="joffer-h">At auction</h3>' +
-      '<p>The fall of the hammer is unconditional — building &amp; pest and loan approval happen BEFORE the day, not after. Register early, bring the cap in writing, and let someone else win anything above it. Lost one? Mark it \u201cLost auction\u201d above and keep the note — it sharpens the next bid.</p></div>' +
+      '<p>An auction sale is unconditional, so building and pest and loan approval happen before the day. Register early and take your maximum in writing. If you miss out, mark the place \u201cLost auction\u201d above and keep the note for next time.</p></div>' +
       '</div>' +
-      '<div class="jwiz-nav" style="margin-top:14px"><span class="jmins">Bid steps and a printable auction-day plan:</span>' +
+      '<div class="jwiz-nav" style="margin-top:14px"><span class="jmins">Bidding steps and a printable auction-day plan:</span>' +
       '<a class="jbtn quiet" href="/tools/auction-budget-calculator">Build my auction-day plan</a></div>' +
       '</section>' +
       '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">' +
       (won ? 'You found it — ' + esc(won.addr) + '.' : 'You found it.') +
       '</div></div>' +
-      '<button class="jbtn" data-jmark="5">Mark this stop done</button></section>';
+      '<button class="jbtn" data-jmark="5">Mark this step done</button></section>';
 
     var f = document.getElementById('jinsp-form');
     if (f) f.addEventListener('submit', function (e) {
@@ -1272,18 +1272,18 @@
 
   // ── Stops 6 & 7 checklists ───────────────────────────────────────────
   var DEAL_CHECKS = [
-    ['Send the contract to your solicitor', 'Budget $1,300–$2,200 — the cost that surprises everyone'],
-    ['Book the building and pest inspection', '$400–$700 · book inside the first week'],
-    ['Send the contract to your lender or broker', 'Starts formal approval — don’t wait'],
-    ['Confirm your scheme place is locked in', 'The path you chose at stop 2'],
+    ['Send the contract to your solicitor', 'Budget $1,300 to $2,200'],
+    ['Book the building and pest inspection', '$400 to $700, book inside the first week'],
+    ['Send the contract to your lender or broker', 'This starts formal approval'],
+    ['Confirm your scheme place is locked in', 'The path you chose at step 2'],
     ['Arrange building insurance from the contract date', 'In some states risk passes to you at signing']
   ];
   var SETTLE_CHECKS = [
-    ['Final inspection booked (day before settlement)', 'Same condition as when you signed — check every room'],
+    ['Final inspection booked (day before settlement)', 'Check the place is in the same condition as when you signed'],
     ['Shortfall funds transferred to your solicitor', 'They’ll give you the exact figure a few days out'],
     ['Building insurance active from settlement day', 'Lenders require proof before they’ll settle'],
-    ['Utilities and internet booked for move-in', 'Two weeks’ lead time saves cold showers'],
-    ['Collect the keys', 'That’s it. That’s the journey.']
+    ['Utilities and internet booked for move-in', 'Book about two weeks ahead'],
+    ['Collect the keys', 'The last step.']
   ];
   function renderChecklist(elId, items, stateKey) {
     var boxEl = document.getElementById(elId);
@@ -1344,11 +1344,11 @@
   function renderDealPre(box) {
     box.innerHTML =
       '<section class="jcard jpad" style="margin-top:18px"><span class="jsc jblock">Not signed yet? Here’s what’s coming</span>' +
-      '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">The moment you sign, a set of clocks starts: cooling-off, building &amp; pest, finance approval, your pre-approval’s own expiry, settlement. Miss one and you can lose your deposit or your loan. The day you sign, come back here with the contract and enter each date — we’ll keep count on every one.</p>' +
+      '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Several deadlines start the day you sign: cooling-off, building and pest, finance approval, your pre-approval’s own expiry, and settlement. Missing one can cost you the deposit or the loan. When you sign, come back with the contract and enter each date.</p>' +
       '<div class="jdl"><div><div>Cooling-off ends</div><div class="jwhen">days after signing, set by your state</div></div><span class="jdays urgent">first</span></div>' +
       '<div class="jdl"><div><div>Building &amp; pest deadline</div><div class="jwhen">typically ~14 days</div></div><span class="jdays soon">soon after</span></div>' +
       '<div class="jdl"><div><div>Finance approval deadline</div><div class="jwhen">typically 14–21 days</div></div><span class="jdays soon">then</span></div>' +
-      '<div class="jdl"><div><div>Pre-approval expires</div><div class="jwhen">~90 days from issue — the one buyers forget</div></div><span class="jdays ok">watch it</span></div>' +
+      '<div class="jdl"><div><div>Pre-approval expires</div><div class="jwhen">About 90 days from issue, and easily forgotten</div></div><span class="jdays ok">watch it</span></div>' +
       '<div class="jdl"><div><div>Settlement</div><div class="jwhen">30–60 days after signing</div></div><span class="jdays ok">the finish</span></div>' +
       '<div class="jwiz-nav" style="margin-top:16px"><span></span><button type="button" class="jbtn" id="jd-signed">I’ve signed — enter my dates</button></div></section>';
     var b = document.getElementById('jd-signed');
@@ -1465,7 +1465,7 @@
       '</div></section>' +
       '<section class="jcard jpad jdone-row" style="margin-top:18px">' +
       '<div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">Contract signed.</div></div>' +
-      '<button class="jbtn" data-jmark="6">Mark this stop done</button></section>';
+      '<button class="jbtn" data-jmark="6">Mark this step done</button></section>';
     renderChecklist('jdeal-checks', DEAL_CHECKS, 'dealChecks');
     var ics = document.getElementById('jd-ics');
     if (ics) ics.addEventListener('click', downloadDealIcs);
@@ -1511,15 +1511,15 @@
       if (actKeys.length >= 2) {
         var diff = actTotal - estTotal;
         verdict = diff > 0
-          ? '<p class="jrec-verdict over">' + m$(diff) + ' more than the journey carried \u2014 worth knowing for the next buyer you help.</p>'
-          : '<p class="jrec-verdict under">' + m$(-diff) + ' under what the journey carried. The buffer did its job.</p>';
+          ? '<p class="jrec-verdict over">' + m$(diff) + ' over the estimate.</p>'
+          : '<p class="jrec-verdict under">' + m$(-diff) + ' under the estimate.</p>';
       }
       box.innerHTML =
         '<div class="jrec-price"><label for="jrec-price">Final purchase price</label>' +
         '<input type="text" id="jrec-price" inputmode="decimal" value="' + Number(price).toLocaleString('en-AU') + '"' + (RO ? ' disabled' : '') + '></div>' +
         '<div class="jrec-row jrec-head"><span class="k"></span><span class="est">We carried</span><span class="act">You paid</span></div>' +
         rows + totals + verdict +
-        '<p class="jcaveat" style="margin-top:10px">Stamp duty recomputes from your final price with the same engine as the calculators. \u201cCarried\u201d is what the journey\u2019s cash math assumed \u2014 ' + m$(OTHER_COSTS) + ' for legals and registration plus exact duty. Enter what you actually paid as the bills land.</p>';
+        '<p class="jcaveat" style="margin-top:10px">Stamp duty recomputes from your final price with the same engine as the calculators. \u201cWe carried\u201d is what the journey\u2019s cash math assumed: ' + m$(OTHER_COSTS) + ' for legals and registration, plus exact duty. Enter what you paid as the bills arrive.</p>';
       var pi = document.getElementById('jrec-price');
       if (pi) pi.addEventListener('change', function () {
         var v = parseNum(pi.value);
@@ -1543,10 +1543,10 @@
     for (var i = 0; i < btns.length; i++) {
       var n = +btns[i].getAttribute('data-jmark');
       if (S.done[n]) {
-        btns[i].textContent = '↺ Redo this stop';
+        btns[i].textContent = '↺ Redo this step';
         btns[i].classList.add('quiet');
       } else {
-        btns[i].textContent = n === 7 ? 'Mark the journey complete' : 'Mark this stop done';
+        btns[i].textContent = n === 7 ? 'Mark the journey complete' : 'Mark this step done';
         btns[i].classList.remove('quiet');
       }
     }
@@ -1717,13 +1717,13 @@
       if (!S.done[1]) { slot.innerHTML = ''; return; }
       slot.innerHTML = '<div class="jcard jpad jsignup"><div>' +
         '<span class="jsc jblock">Bring someone along</span>' +
-        '<p>Buying with a partner, or want family to follow along? A free account lets you share this journey — view-only, or a link that lets your partner edit it with you.</p></div>' +
+        '<p>Buying with a partner, or want family to follow along? A free account lets you share this journey, view-only or with a partner link that lets you both edit it.</p></div>' +
         '<div class="jsignup-actions"><a class="jbtn quiet" href="/login?tab=signup&next=%2Fjourney">Create a free account</a></div></div>';
       return;
     }
     slot.innerHTML = '<div class="jcard jpad jsignup"><div>' +
       '<span class="jsc jblock">Bring someone along</span>' +
-      '<p>Share a follow-along link with family, or a partner link that lets the two of you work the same journey — every change syncs both ways.</p></div>' +
+      '<p>Share a follow-along link with family, or a partner link that lets the two of you work on the same journey. Changes sync both ways.</p></div>' +
       '<div class="jsignup-actions">' +
       '<button type="button" class="jbtn quiet" id="jshare-view">Copy follow-along link</button>' +
       '<button type="button" class="jbtn" id="jshare-edit">Copy partner link</button>' +
