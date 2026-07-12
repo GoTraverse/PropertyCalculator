@@ -317,6 +317,15 @@ equity share. Deliberately flat-valued at the target price (no growth
 guessing, stated in the caveat); H2B share noted as repayable at market
 value. Best path bolded, ineligible greyed. SW v34.
 
+### Phase 1a.14 — FHSS booster card (overnight, 12 Jul 2026)
+Spec asked for an FHSS path; an honest one needs marginal-rate + deemed-
+earnings modelling we refuse to hand-write. Shipped instead as a booster
+card on the projector (FHB only): verified ATO caps (SYNC COPY from the
+grants engine: $15k/yr contributions, $50k/person release, doubled for
+couples) + time-to-release-cap at the buyer's own save rate (pure
+arithmetic). Tax edge explicitly NOT estimated — ATO + grants-calculator
+links instead. SW v35.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
