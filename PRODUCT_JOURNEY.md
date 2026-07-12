@@ -147,6 +147,20 @@ What works now at `/journey`:
 - Page is **noindex** until Phase 2 makes it the front door (flip robots +
   add to sitemap-core in that PR).
 
+### Phase 1a.3 — v3 milestones + timeline (12 Jul 2026)
+- **Milestone moments**: marking a stop done now asks for confirmation, then
+  celebrates with a modal (stop count, next-stop CTA); full-journey reset with
+  a destructive-confirm modal (`#jreset-btn` on the trail).
+- **Time-axis timeline** replaced the "soonness bars" (a longer bar read as
+  *better*, which was backwards): each path is a dot positioned at its
+  buy-ready month on a Now→horizon axis, with the buyer's own timeframe goal
+  ticked on the axis when it fits the scale.
+- **Wizard v3**: five new questions — current rent, credit-card limits,
+  employment type, dependants, buying timeframe. All are *used*: rent
+  comparison + card-limit (3%/mo assessment) notes in stop 3's affordability
+  guide; timeframe verdict (fits / months past goal / save-rate to hit it) in
+  stop 2's "Our read".
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
