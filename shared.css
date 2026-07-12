@@ -26,6 +26,7 @@
   --charcoal-mid:     #3A3A3C;
   --slate:            #4A4A52;
   --sage:             #7B9E87;
+  --sage-dark:        #4E7059; /* WCAG-AA on cream/warm-white for small text (5.1:1) */
   --sage-light:       #A8C4B0;
   --terracotta:       #C4704A;
   --terracotta-light: #E8A882;
@@ -568,3 +569,7 @@ html.dark-mode .tools-grid .tg-name { color: #F5F0E8; }
   }
   .spinner-ring { animation-duration: 1.4s !important; animation-iteration-count: infinite !important; }
 }
+
+/* Footer is injected by footer.js after first paint — reserve its space so
+   the injection doesn't shift the page (Lighthouse CLS culprit on every page). */
+#site-footer-root { min-height: 150px; }

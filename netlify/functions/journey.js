@@ -312,6 +312,11 @@ exports.handler = async function(event) {
     const email = String(body.email || '').trim().toLowerCase();
     if (!email) return fail('email required');
     try {
+      // revoke share/collab tokens too — otherwise they dangle and silently
+      // come back to life if the user ever re-syncs
+      const map = (await rGet('journey:shares:' + email)) || {};
+      for (const mode of Object.keys(map)) await redisCmd('DEL', 'journey:share:' + map[mode]);
+      await redisCmd('DEL', 'journey:shares:' + email);
       await redisCmd('DEL', 'journey:' + email);
       await redisCmd('SREM', 'journey:users', email);
       return ok({ ok: true });
