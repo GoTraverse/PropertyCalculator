@@ -82,6 +82,8 @@ window.addEventListener('load', function () {
       setTimeout(function () {
         var pill = document.querySelector('[data-place-status]');
         if (pill && q.get('picker') === '1') pill.click();
+        var proj = document.querySelector('[data-place-proj]');
+        if (proj && q.get('proj') === '1') proj.click();
       }, 250);
     }, 250);
   }

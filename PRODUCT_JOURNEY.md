@@ -341,6 +341,12 @@ median, clauses are the safety net) beside auction guidance (hammer is
 unconditional — B&P + approval BEFORE the day) with a deep link into the
 auction-budget tool's printable day plan. Pain #1. SW v37.
 
+### Phase 1a.17 — place → projector linking (overnight, 12 Jul 2026)
+Every priced place in the library gains a 'Project' chip: one tap sets
+that asking price as the journey target and opens the scheme projector
+recomputed at it — 'what would buying THIS one look like?' RO-guarded;
+harness proj=1 drive verified the full click-through. SW v38.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
