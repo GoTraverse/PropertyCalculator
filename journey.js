@@ -48,7 +48,8 @@
       inspections: [],
       budget: { depositPct: null, cap: null },
       deal: { signed: false, dates: {} },
-      signupDismissed: false
+      signupDismissed: false,
+      updatedAt: 0
     };
   }
   function load() {
@@ -70,8 +71,41 @@
     } catch (e) {}
     return blank();
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  var RO = false;           // read-only: viewing someone else's shared journey
+  var COLLAB = null;        // edit-mode share token — writes go to the owner's record
+  try { COLLAB = localStorage.getItem('propCalc_journey_collab') || null; } catch (e) {}
+  function save() {
+    if (RO) return;
+    S.updatedAt = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    scheduleSync();
+  }
   var S = load();
+
+  // ── Account sync + sharing (netlify/functions/journey.js) ───────────
+  function api(payload) {
+    return fetch('/.netlify/functions/journey', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (r) { return r.json(); })
+      .catch(function () { return { ok: false, error: 'network' }; });
+  }
+  var _syncT = null;
+  function scheduleSync() {
+    if (RO || !isLoggedIn()) return;
+    if (_syncT) clearTimeout(_syncT);
+    _syncT = setTimeout(function () {
+      var p = { action: 'sync', state: S };
+      if (COLLAB) p.collab = COLLAB;
+      api(p).then(function (r) {
+        if (r && r.ok) {
+          var st = document.getElementById('jsaved-text');
+          if (st) st.textContent = COLLAB ? 'Synced to the shared journey.' : 'Synced to your account.';
+        }
+      });
+    }, 1500);
+  }
 
   // Prefill (not complete) from the app draft if the user came from /app.
   try {
@@ -238,6 +272,7 @@
     var pctEl = document.getElementById('jprog-pct'); if (pctEl) pctEl.textContent = pct + '%';
 
     renderSignupCard();
+    if (typeof renderShareCard === 'function') renderShareCard();
 
     var html = STOPS.map(function (s, i) {
       var side = i % 2 === 0 ? 'left' : 'right';
@@ -1055,6 +1090,7 @@
   }
 
   document.addEventListener('click', function (e) {
+    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-insp-verdict],[data-insp-del],[data-bdep],#jreset-btn')) return;
     var go = e.target.closest('[data-jgoto]');
     if (go) { show(go.getAttribute('data-jgoto')); return; }
     var mk = e.target.closest('[data-jmark]');
@@ -1112,9 +1148,160 @@
 
   if (isLoggedIn()) {
     var st = document.getElementById('jsaved-text');
-    if (st) st.textContent = 'Progress saves on this device — account sync arrives with the full journey.';
+    if (st) st.textContent = 'Progress syncs to your account.';
+  }
+
+  // ── Share / collaborate ──────────────────────────────────────────────
+  function shareUrl(token) { return location.origin + '/journey?join=' + encodeURIComponent(token); }
+  function copyText(txt, btn) {
+    var done = function () {
+      if (!btn) return;
+      var old = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      setTimeout(function () { btn.textContent = old; }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, function () { window.prompt('Copy this link:', txt); });
+    } else { window.prompt('Copy this link:', txt); }
+  }
+  function renderShareCard() {
+    var slot = document.getElementById('jshare-slot');
+    if (!slot) return;
+    if (RO || COLLAB) { slot.innerHTML = ''; return; }
+    if (!isLoggedIn()) {
+      if (!S.done[1]) { slot.innerHTML = ''; return; }
+      slot.innerHTML = '<div class="jcard jpad jsignup"><div>' +
+        '<span class="jsc jblock">Bring someone along</span>' +
+        '<p>Buying with a partner, or want family to follow along? A free account lets you share this journey — view-only, or a link that lets your partner edit it with you.</p></div>' +
+        '<div class="jsignup-actions"><a class="jbtn quiet" href="/login?tab=signup&next=%2Fjourney">Create a free account</a></div></div>';
+      return;
+    }
+    slot.innerHTML = '<div class="jcard jpad jsignup"><div>' +
+      '<span class="jsc jblock">Bring someone along</span>' +
+      '<p>Share a follow-along link with family, or a partner link that lets the two of you work the same journey — every change syncs both ways.</p></div>' +
+      '<div class="jsignup-actions">' +
+      '<button type="button" class="jbtn quiet" id="jshare-view">Copy follow-along link</button>' +
+      '<button type="button" class="jbtn" id="jshare-edit">Copy partner link</button>' +
+      '</div></div>';
+    var wire = function (id, mode) {
+      var b = document.getElementById(id);
+      if (!b) return;
+      b.addEventListener('click', function () {
+        b.disabled = true;
+        api({ action: 'shareCreate', mode: mode }).then(function (r) {
+          b.disabled = false;
+          if (r && r.ok && r.token) {
+            copyText(shareUrl(r.token), b);
+            track('journey_share_created', { mode: mode });
+          } else {
+            b.textContent = (r && r.error) || 'Something went wrong';
+            setTimeout(function () { b.textContent = mode === 'edit' ? 'Copy partner link' : 'Copy follow-along link'; }, 2400);
+          }
+        });
+      });
+    };
+    wire('jshare-view', 'view');
+    wire('jshare-edit', 'edit');
+  }
+
+  function setModeBanner(html) {
+    var slot = document.getElementById('jmode-banner');
+    if (slot) slot.innerHTML = html || '';
+  }
+  function leaveCollab() {
+    try { localStorage.removeItem('propCalc_journey_collab'); } catch (e) {}
+    location.href = '/journey';
+  }
+  function enterReadOnly(resp) {
+    RO = true;
+    S = resp.state;
+    document.body.classList.add('jro');
+    setModeBanner('<div class="jcard jpad jsignup"><div>' +
+      '<span class="jsc jsc-gold jblock">Following ' + esc(resp.ownerName) + '\u2019s journey</span>' +
+      '<p>You\u2019re viewing read-only — nothing you tap here changes their journey.</p></div>' +
+      '<div class="jsignup-actions"><a class="jbtn quiet" href="/journey">Start my own journey</a></div></div>');
+    renderTrail();
+    track('journey_share_opened', { mode: 'view' });
+  }
+
+  function bootRemote() {
+    var joinTok = null;
+    try { joinTok = new URLSearchParams(location.search).get('join'); } catch (e) {}
+
+    if (joinTok) {
+      api({ action: 'shareResolve', token: joinTok }).then(function (r) {
+        if (!r || !r.ok || !r.state) return;
+        if (r.mode === 'view') { enterReadOnly(r); return; }
+        // edit link
+        if (!isLoggedIn()) {
+          enterReadOnly(r);
+          setModeBanner('<div class="jcard jpad jsignup"><div>' +
+            '<span class="jsc jsc-gold jblock">' + esc(r.ownerName) + ' invited you to their journey</span>' +
+            '<p>Sign in (free) and the two of you can work the same journey — every change syncs both ways. Until then you\u2019re viewing read-only.</p></div>' +
+            '<div class="jsignup-actions"><a class="jbtn" href="/login?tab=signup&next=' + encodeURIComponent('/journey?join=' + joinTok) + '">Sign in to join</a></div></div>');
+          return;
+        }
+        jModal({
+          kicker: 'Journey invite',
+          title: 'Join ' + r.ownerName + '\u2019s journey?',
+          body: 'You\u2019ll work on their journey together — every change either of you makes syncs to both. The journey saved on this device is replaced by theirs.',
+          buttons: [
+            { label: 'Not now', cls: 'quiet' },
+            { label: 'Join their journey', cb: function () {
+                COLLAB = joinTok;
+                try { localStorage.setItem('propCalc_journey_collab', joinTok); } catch (e) {}
+                RO = false;
+                S = r.state;
+                save();
+                setModeBanner('<div class="jcard jpad jsignup"><div>' +
+                  '<span class="jsc jsc-gold jblock">On ' + esc(r.ownerName) + '\u2019s journey</span>' +
+                  '<p>Changes you make sync to the shared journey.</p></div>' +
+                  '<div class="jsignup-actions"><button type="button" class="jbtn quiet" id="jcollab-leave">Leave</button></div></div>');
+                var lv = document.getElementById('jcollab-leave');
+                if (lv) lv.addEventListener('click', leaveCollab);
+                renderTrail();
+                track('journey_collab_joined', {});
+              } }
+          ]
+        });
+      });
+      return;
+    }
+
+    if (COLLAB && isLoggedIn()) {
+      api({ action: 'get', collab: COLLAB }).then(function (r) {
+        if (r && r.ok && r.record && r.record.state) {
+          S = r.record.state;
+          try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+          setModeBanner('<div class="jcard jpad jsignup"><div>' +
+            '<span class="jsc jsc-gold jblock">Shared journey</span>' +
+            '<p>Changes you make sync to the shared journey.</p></div>' +
+            '<div class="jsignup-actions"><button type="button" class="jbtn quiet" id="jcollab-leave">Leave</button></div></div>');
+          var lv = document.getElementById('jcollab-leave');
+          if (lv) lv.addEventListener('click', leaveCollab);
+          renderTrail();
+        } else if (r && !r.ok && /no longer active/i.test(r.error || '')) {
+          leaveCollab();
+        }
+      });
+      return;
+    }
+
+    if (isLoggedIn()) {
+      api({ action: 'get' }).then(function (r) {
+        if (r && r.ok && r.record && r.record.state && (r.record.updatedAt || 0) > (S.updatedAt || 0)) {
+          S = r.record.state;
+          try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+          renderTrail();
+        } else if (r && r.ok && !r.record && S.done[1]) {
+          // first login with local guest progress — push it up
+          scheduleSync();
+        }
+      });
+    }
   }
 
   renderTrail();
+  bootRemote();
   track('journey_view', { view: 'home' });
 })();

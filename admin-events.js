@@ -61,6 +61,20 @@ if(modAllBtn) modAllBtn.addEventListener('click', function(){ modSetSubtab('all'
 var modRefreshBtn = document.getElementById('mod-refresh-btn');
 if(modRefreshBtn) modRefreshBtn.addEventListener('click', modLoadReviews);
 
+var journeysRefreshBtn = document.getElementById('journeys-refresh-btn');
+if(journeysRefreshBtn) journeysRefreshBtn.addEventListener('click', loadJourneys);
+var journeysWrap = document.getElementById('journeys-wrap');
+if(journeysWrap) journeysWrap.addEventListener('click', function(e){
+  var btn = e.target.closest('.journey-open-btn');
+  if(btn) openJourneyDetail(btn.getAttribute('data-email'));
+});
+var journeyDetailClose = document.getElementById('journey-detail-close');
+if(journeyDetailClose) journeyDetailClose.addEventListener('click', function(){
+  document.getElementById('journey-detail-card').style.display = 'none';
+});
+var journeyDetailDelete = document.getElementById('journey-detail-delete');
+if(journeyDetailDelete) journeyDetailDelete.addEventListener('click', deleteJourneyDetail);
+
 (function(){
   var tabs = document.querySelectorAll('.admin-tab[data-tab]');
   tabs.forEach(function(btn, idx){

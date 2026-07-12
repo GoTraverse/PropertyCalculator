@@ -178,11 +178,34 @@ What works now at `/journey`:
   (passed/today/urgent ≤7d/soon ≤21d), sorted by proximity. Email nudges
   still Phase 1b (needs accounts).
 
+### Phase 1a.5 — sync, share/collaborate, admin visibility (12 Jul 2026)
+- **Account sync**: new `netlify/functions/journey.js` (reviews.js auth
+  pattern). Logged-in users debounce-sync their journey to Redis
+  (`journey:<email>`) 1.5s after every save; on load the newer of
+  local/server wins. A guest's first login pushes their local progress up.
+  Guests generate zero API traffic.
+- **Share / collaborate** (owner ask): "Bring someone along" card on the
+  trail. Two links: **follow-along** (view — opens read-only, no account
+  needed, all write paths blocked via `RO` guard + hidden chrome) and
+  **partner** (edit — a signed-in partner joins via confirm modal and both
+  write the SAME journey record; last write wins, both re-pull on load).
+  Tokens: crypto-random, one active per mode, reusable, revocable
+  (`shareRevoke`), stored `journey:share:<token>` +
+  `journey:shares:<email>`. Join URL: `/journey?join=<token>`. Partner
+  binding: localStorage `propCalc_journey_collab`.
+- **Admin → Journeys tab** (owner ask: "see what journeys people have and
+  load saved ones"): table of every synced journey (stage, stops done
+  progress bar, state, target, cap, places logged, last update, ✓ contract
+  flag) + read-only detail view (profile chips, money grid, per-stop ticks,
+  deal dates, logged places incl. notes — escHtml'd) + delete (server copy
+  only). Auto-loads on first tab visit; wired in admin-events.js.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
-2. Account sync for journey state (scenarios-function pattern) + guest→account
-   migration on signup.
+2. ~~Account sync for journey state~~ — DONE (Phase 1a.5). Remaining:
+   auto-adopt on signup redirect could be smoother (currently first /journey
+   visit after login pulls/pushes correctly).
 3. Eligibility checks in the projector (income caps, price caps per scheme/
    state) — verified sources only, same rigour as #350.
 4. Stop 6 real dates: user-entered deadline dates, days-left computed, Resend

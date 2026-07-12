@@ -207,6 +207,7 @@
     <button class="admin-tab" data-tab="suburbs">Suburbs</button>
     <button class="admin-tab" data-tab="blog">Blog</button>
     <button class="admin-tab" data-tab="moderation">Moderation</button>
+    <button class="admin-tab" data-tab="journeys">Journeys</button>
   </div>
 
   <!-- USERS TAB -->
@@ -1070,6 +1071,33 @@
     </div>
   </div>
   <!-- MODERATION TAB -->
+  <!-- JOURNEYS TAB -->
+  <div class="admin-section" id="tab-journeys">
+    <div class="admin-card">
+      <div class="admin-card-head">
+        <div>
+          <h3>User Journeys</h3>
+          <span style="font-size:11px;color:var(--slate);">Every synced First Home Journey — where each user is up to, and a read-only view of their full journey. Guests appear only after they create an account (guest journeys live in their browser).</span>
+        </div>
+        <button class="btn-admin" id="journeys-refresh-btn" style="font-size:10px;padding:7px 14px;">↻ Refresh</button>
+      </div>
+      <div id="journeys-wrap" style="padding:16px 20px;">
+        <div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading journeys…</div>
+      </div>
+    </div>
+    <div class="admin-card" id="journey-detail-card" style="display:none;margin-top:14px;">
+      <div class="admin-card-head">
+        <h3 id="journey-detail-title" style="word-break:break-all;">Journey</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-admin-outline" id="journey-detail-delete" style="font-size:10px;padding:7px 14px;">Delete journey</button>
+          <button class="btn-admin-outline" id="journey-detail-close" style="font-size:10px;padding:7px 14px;">Close</button>
+        </div>
+      </div>
+      <div id="journey-detail-wrap" style="padding:16px 20px;"></div>
+    </div>
+    <div id="journeys-status" class="admin-status"></div>
+  </div>
+
   <div class="admin-section" id="tab-moderation">
     <div class="admin-card">
       <div class="admin-card-head">
