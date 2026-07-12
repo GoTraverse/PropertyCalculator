@@ -231,6 +231,25 @@ RO-guarded for shared views; rides along in account sync automatically.
 Harness now mirrors the real projector markup (its earlier simplified copy
 hid the strip — fidelity rule: harness views must match journey.html).
 
+### Phase 1a.8 — stop-4 suburb suggester from the verified dataset (12 Jul 2026)
+Owner ask: "pick your ground almost needs to search our DB of suburbs and
+suggest some around aus that could fit."
+- New generated `/journey-suburbs.json` (67 KB, lazy-fetched on stop 4) via
+  `build/make-journey-suburbs.js`: joins `data/market-current.json` with
+  suburb slugs/population — **1,473 suburbs, each linking to an indexed
+  profile page** (pop ≥ 2,000 gate). Regenerate after each quarterly
+  market-data refresh.
+- **"Suburbs your band actually buys"**: suburbs whose verified sale median
+  (VIC Valuer-General 2025 prelim · SA Valuer-General Q1 2026 metro) sits
+  inside the ±10% band around the committed cap, 12 closest shown, houses/
+  units labelled, full source captions. Rent-only states get an honest
+  coverage note (their list is cross-country until a licensed price source
+  ships).
+- **Dataset search**: type-ahead over all 1,473 suburbs — sale medians
+  and/or median weekly rents (labelled as rents, never prices), each row
+  linking to the suburb page. NSW excluded (postcode-geo only, per the
+  data-honesty rules).
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
