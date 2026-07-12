@@ -35,6 +35,20 @@
 <script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="journey.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebApplication","@id":"https://equitysight.app/journey#app","name":"First Home Journey","url":"https://equitysight.app/journey","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"description":"A free, guided walk through buying your first home in Australia — government schemes compared for your exact numbers, a committed budget, suburb shortlisting from verified data, and every contract deadline tracked.","publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}},
+{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"First Home Journey","item":"https://equitysight.app/journey"}]},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the First Home Journey free?","acceptedAnswer":{"@type":"Answer","text":"Yes — every stop is free and nothing is locked behind a paywall. You don't need an account to start; a free account only adds saving across devices and sharing your journey with a partner."}},
+{"@type":"Question","name":"Which government schemes does it compare?","acceptedAnswer":{"@type":"Answer","text":"The 5% Deposit Scheme (expanded First Home Guarantee), the federal Help to Buy shared-equity scheme, and your state's first-home stamp duty concessions — side by side with the no-scheme paths (saving to a 20% deposit, or buying sooner with a 10% deposit plus lenders mortgage insurance). Every figure is computed from your own numbers. Scheme eligibility should always be confirmed with the scheme administrator and your lender."}},
+{"@type":"Question","name":"Where does the suburb data come from?","acceptedAnswer":{"@type":"Answer","text":"Licensed CC BY 4.0 state-government datasets: sale medians from the Valuer-General of Victoria and the Valuer-General of South Australia (metro Adelaide), and median rents from the Queensland RTA, SA Consumer & Business Services and Tasmanian rental bonds. Every figure carries its period and source, and rents are never presented as prices."}},
+{"@type":"Question","name":"Do I have to start at the beginning?","acceptedAnswer":{"@type":"Answer","text":"No. The first question asks where you are in your journey — already inspecting homes, or a contract signed — and takes you straight to the stop that matches. The earlier stops stay open to go back over any time."}},
+{"@type":"Question","name":"Can my partner or family follow along?","acceptedAnswer":{"@type":"Answer","text":"Yes. You can share a follow-along link (view-only, no account needed) or a partner link that lets the two of you work the same journey together, with changes syncing both ways."}},
+{"@type":"Question","name":"Is this financial advice?","acceptedAnswer":{"@type":"Answer","text":"No. The journey is general information and education only — the formulas are shown, the assumptions are stated, and nothing here considers your personal circumstances. Talk to a licensed adviser, broker or your lender before acting."}}
+]}]}
+</script>
+
 </head>
 <body class="journey-page">
 <a href="#main-content" class="skip-link">Skip to content</a>
@@ -193,6 +207,40 @@
     <div id="jdeal"><!-- rendered by journey.js --></div>
   </div>
 
+
+  <!-- ══ Always-visible page content (same pattern as the calculator pages) ══ -->
+  <section class="jseo">
+    <h2>What the First Home Journey is</h2>
+    <p>Buying a first home in Australia is a six-month-plus process that most people walk blind: schemes they never heard about, budgets set in an auction room, deadlines tracked on a fridge calendar. The First Home Journey breaks it into seven stops, in the order the purchase actually happens — and at every stop, the numbers are computed for <em>your</em> situation, not a national average.</p>
+
+    <h3>The seven stops</h3>
+    <ol>
+      <li><strong>Get your bearings</strong> — a two-minute wizard: where you're buying, what you earn, what you've saved, and where you are in the process. Every answer powers a real number later.</li>
+      <li><strong>Find your path</strong> — the scheme projector. The 5% Deposit Scheme, Help to Buy shared equity, and the no-scheme paths side by side: when you could buy, cash needed, LMI paid, repayment — with price caps and income caps checked against your answers.</li>
+      <li><strong>Set your real budget</strong> — every upfront cost including the solicitor bill that surprises everyone, a lender-style stress test at the 3% buffer, and one committed walk-away number.</li>
+      <li><strong>Pick your ground</strong> — suburbs whose verified sale medians actually fit your band, from licensed Valuer-General data, plus a search across 1,473 suburbs with current government figures.</li>
+      <li><strong>Hunt &amp; compare</strong> — a library of every place you browse, inspect, bid on or lose at auction, each compared against your cap, with the honest note you'll trust later.</li>
+      <li><strong>Seal the deal</strong> — the clocks that start the day you sign: cooling-off, building &amp; pest, finance approval, your pre-approval's own expiry, settlement. Each one counted down.</li>
+      <li><strong>Settle &amp; move in</strong> — the final checklist through to the keys.</li>
+    </ol>
+
+    <h3>Frequently asked questions</h3>
+    <dl>
+      <dt>Is the First Home Journey free?</dt>
+      <dd>Yes — every stop is free and nothing is locked behind a paywall. You don't need an account to start; a free account only adds saving across devices and sharing your journey with a partner.</dd>
+      <dt>Which government schemes does it compare?</dt>
+      <dd>The 5% Deposit Scheme (expanded First Home Guarantee), the federal Help to Buy shared-equity scheme, and your state's first-home stamp duty concessions — side by side with the no-scheme paths (saving to a 20% deposit, or buying sooner with a 10% deposit plus lenders mortgage insurance). Every figure is computed from your own numbers. Scheme eligibility should always be confirmed with the scheme administrator and your lender.</dd>
+      <dt>Where does the suburb data come from?</dt>
+      <dd>Licensed CC BY 4.0 state-government datasets: sale medians from the Valuer-General of Victoria and the Valuer-General of South Australia (metro Adelaide), and median rents from the Queensland RTA, SA Consumer &amp; Business Services and Tasmanian rental bonds. Every figure carries its period and source, and rents are never presented as prices.</dd>
+      <dt>Do I have to start at the beginning?</dt>
+      <dd>No. The first question asks where you are in your journey — already inspecting homes, or a contract signed — and takes you straight to the stop that matches. The earlier stops stay open to go back over any time.</dd>
+      <dt>Can my partner or family follow along?</dt>
+      <dd>Yes. You can share a follow-along link (view-only, no account needed) or a partner link that lets the two of you work the same journey together, with changes syncing both ways.</dd>
+      <dt>Is this financial advice?</dt>
+      <dd>No. The journey is general information and education only — the formulas are shown, the assumptions are stated, and nothing here considers your personal circumstances. Talk to a licensed adviser, broker or your lender before acting.</dd>
+    </dl>
+    <p class="jseo-links">Prefer a single calculation? All of it exists standalone in the <a href="/tools/">free calculator suite</a> — stamp duty for every state, borrowing power, the <a href="/tools/first-home-buyer-grants-calculator">first home buyer grants calculator</a> and more. How we source and verify data: <a href="/methodology">methodology</a> · <a href="/data-sources">data sources</a>.</p>
+  </section>
 </main>
 
 <!-- Journey modal (confirm / milestone celebration) -->

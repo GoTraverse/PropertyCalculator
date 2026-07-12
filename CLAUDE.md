@@ -5,7 +5,7 @@
 
 **Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**~36 core HTML pages** (17 root + 18 free calculators + `/tools` landing) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (**1,475 indexed** — real-data gate: pop ≥ 2,000 + a genuine suburb-geo CC BY 4.0 current rent/price figure; QLD 583 / VIC 516 / SA 293 / TAS 83; NSW/WA/ACT/NT 0 pending suburb-level data) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **15 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics` [MCP-facing, not web-app], `share-view`, `journey` [journey sync + share/collab + admin visibility]) + `_log.js` structured-log helper (plus a leftover `db-health.js` Phase-0 spike with no caller) | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
+**~36 core HTML pages** (17 root + 18 free calculators + `/tools` landing) + **`/journey` flagship** (guided first-home journey — see section below) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (**1,475 indexed** — real-data gate: pop ≥ 2,000 + a genuine suburb-geo CC BY 4.0 current rent/price figure; QLD 583 / VIC 516 / SA 293 / TAS 83; NSW/WA/ACT/NT 0 pending suburb-level data) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **15 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics` [MCP-facing, not web-app], `share-view`, `journey` [journey sync + share/collab + admin visibility]) + `_log.js` structured-log helper (plus a leftover `db-health.js` Phase-0 spike with no caller) | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
 
 **Current market data (Jul 2026):** suburb pages + newest tools carry REAL, CURRENT, CC BY 4.0 state-government data — `data/market-current.json` (suburb pages, folded in by `build/merge-market-current.js`) + `tools/market-medians.json` (tool pages) — QLD/SA/TAS suburb rents, VIC/SA-metro sale medians (+12-month trends), NSW postcode rents. Every figure captioned "as at [period], [source]". Pre-extracted + hand-verified quarterly (recipe in Claude's memory: project-suburb-data-architecture). Rules: strict-period only (drop suppressed suburbs — never mislabel an older quarter as current); 2021 Census figures are a clearly-dated fallback, never presented as current.
 
@@ -135,6 +135,40 @@ See **`README.md`** for feature overview and quick start guide.
   - Uses Netlify build cache to persist pages between deploys
 - **Admin tab**: Admin → Suburbs — browse/search suburbs, state breakdown, trigger rebuilds via Netlify deploy hook
 - **To regenerate data**: `node fetch-abs-data.js` then `node generate-suburbs-data.js`
+
+### The First Home Journey (flagship, /journey — Jul 2026)
+- **The product**: 7 guided stops (bearings wizard → scheme projector → budget
+  wizard w/ committed walk-away cap → suburb suggester → places library →
+  deal-deadline tracker → settlement). Homepage, nav, footer, manifest
+  start_url and the 19 buyer-tool CTAs all route here; 7 investor tools keep
+  /app. Full spec + build log: `PRODUCT_JOURNEY.md` (internal, blocked from CDN).
+- **Files**: `journey.html` / `journey.js` / `journey.css` +
+  `journey-suburbs.json` (generated — regenerate with
+  `node build/make-journey-suburbs.js` after each quarterly market-data
+  refresh) + `netlify/functions/journey.js`.
+- **State**: localStorage `propCalc_journey_v1`, guest-first. EVERY state
+  entering the page (localStorage, server pull, share view, collab join) must
+  pass `normalizeState()` — older persisted states lack newer fields and
+  crash renderers otherwise. Transient flags (`budget.editing`,
+  `deal.editing`) are purged there; never persist UI flags.
+- **Sync/share**: logged-in users debounce-sync to Redis `journey:<email>`;
+  share tokens `journey:share:<token>` (view = read-only for anyone, edit =
+  a signed-in partner writes the OWNER's record, last-write-wins).
+  login.js `safeNextUrl` explicitly allows `journey` and
+  `journey?join=<token>` — don't break that allowlist.
+- **Admin → Journeys tab**: list + read-only detail + delete (delete also
+  revokes the user's share tokens).
+- **⚠ SYNC COPIES**: journey.js embeds the duty engine (from
+  tools/stamp-duty-calculator.js) and scheme caps (from
+  first-home-buyer-grants-calculator.js). `node tests/duty-sync-test.js`
+  asserts the three duty copies agree — run it after ANY duty change.
+- **Verification**: `tests/journey-browser-harness.html` (dev-only) seeds a
+  rich journey and drives any view for headless-Chrome screenshots — use it
+  before merging journey UI changes (a CSS [hidden] conflict once shipped a
+  page-blocking overlay that DOM-stub tests can't catch). Lighthouse (local):
+  bin/lighthouse-local.sh /journey — currently 100/100/·/100, CLS 0.
+- **SW rule**: bump the service-worker version whenever journey assets change
+  (they're pre-cached since v30).
 
 ### Blog CMS (Static-first, Redis-backed)
 - **Architecture**: Posts are authored in the admin UI → stored in Upstash Redis → rendered to static HTML at build time via `build/build-blog.js`. Public pages under `/blog/` are 100% static for Googlebot/AdSense.

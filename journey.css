@@ -16,7 +16,7 @@
   color: var(--slate);
 }
 .jsc-gold { color: var(--gold-dark); font-size: 16px; }
-.jsc-sage { color: var(--sage); }
+.jsc-sage { color: var(--sage-dark); }
 .jblock { display: block; margin-bottom: 6px; }
 .jwrap h1, .jwrap h2, .jwrap h3 {
   font-family: var(--font-display);
@@ -63,19 +63,19 @@ button.jstopcard:hover { border-color: var(--gold); }
 button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .jstate { display: block; margin-bottom: 2px; font-size: 14px; }
 .jstate.here { color: var(--gold-dark); }
-.jstate.done-t { color: var(--sage); }
-.jstopcard h3 { font-size: 17px; }
+.jstate.done-t { color: var(--sage-dark); }
+.jstopcard h2 { font-size: 17px; }
 .jstopcard p { font-size: 13.5px; color: var(--slate); margin-top: 4px; line-height: 1.55; }
 .jstop.ahead .jstopcard { box-shadow: none; background: transparent; }
-.jstop.ahead .jstopcard h3 { color: var(--slate); }
+.jstop.ahead .jstopcard h2 { color: var(--slate); }
 
 .jstop.current .jstopcard { border-color: var(--gold); padding: 20px 22px; }
-.jstop.current .jstopcard h3 { font-size: 20px; }
+.jstop.current .jstopcard h2 { font-size: 20px; }
 .jbody { margin-top: 8px; font-size: 14.5px; color: var(--slate); line-height: 1.6; }
 .jbody strong { color: var(--charcoal); }
 .jcta-row { display: flex; align-items: center; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
 .jmins { font-size: 12.5px; color: var(--slate); }
-.jmilestone { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: var(--sage); font-size: 13.5px; font-weight: 600; }
+.jmilestone { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: var(--sage-dark); font-size: 13.5px; font-weight: 600; }
 .jmilestone svg { width: 16px; height: 16px; flex: none; }
 
 .jsaved { display: flex; align-items: center; gap: 8px; margin-top: 30px; font-size: 13px; color: var(--slate); justify-content: center; }
@@ -231,10 +231,10 @@ html.dark-mode .jsc-sage, html.dark-mode .jstate.done-t, html.dark-mode .jmilest
 html.dark-mode .jstate.here { color: var(--gold); }
 html.dark-mode .jstopcard, html.dark-mode .jcard, html.dark-mode .jpath { background: #1F1F22; border-color: rgba(245,240,232,0.13); box-shadow: 0 8px 26px rgba(0,0,0,0.4); }
 html.dark-mode .jstop.ahead .jstopcard { background: transparent; box-shadow: none; }
-html.dark-mode .jstopcard h3, html.dark-mode .jpath h3, html.dark-mode .jdone-t, html.dark-mode .jbuyby, html.dark-mode .jcheck .t, html.dark-mode .jdl, html.dark-mode .jread, html.dark-mode .jstat .v { color: var(--cream); }
+html.dark-mode .jstopcard h2, html.dark-mode .jpath h3, html.dark-mode .jdone-t, html.dark-mode .jbuyby, html.dark-mode .jcheck .t, html.dark-mode .jdl, html.dark-mode .jread, html.dark-mode .jstat .v { color: var(--cream); }
 html.dark-mode .jstopcard p, html.dark-mode .jbody, html.dark-mode .jwhy, html.dark-mode .jstat .k, html.dark-mode .jtl-row .nm, html.dark-mode .jcheck .d, html.dark-mode .jmins, html.dark-mode .jsaved, html.dark-mode .jcaveat, html.dark-mode .jduty-note, html.dark-mode .jhint, html.dark-mode .jwhen, html.dark-mode .jback, html.dark-mode .jprogress { color: rgba(245,240,232,0.62); }
 html.dark-mode .jbody strong { color: var(--cream); }
-html.dark-mode .jstop.ahead .jstopcard h3 { color: rgba(245,240,232,0.55); }
+html.dark-mode .jstop.ahead .jstopcard h2 { color: rgba(245,240,232,0.55); }
 html.dark-mode .jnode { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: rgba(245,240,232,0.6); }
 html.dark-mode .jstop.done .jnode { background: var(--sage); border-color: var(--sage); color: #14251a; }
 html.dark-mode .jstop.current .jnode { background: var(--gold); border-color: var(--gold); color: var(--charcoal); }
@@ -417,3 +417,25 @@ html.dark-mode .jscen-row { border-color: rgba(245,240,232,0.1); }
 html.dark-mode .jsub-name, html.dark-mode .jsub-fig { color: var(--cream); }
 html.dark-mode .jsub-row { border-color: rgba(245,240,232,0.1); }
 html.dark-mode .jsub-input { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
+
+/* ── audit: CLS + a11y ───────────────────────────────────────── */
+/* The trail renders after journey.js runs — reserve approximate space so the
+   saved-note / reset / share rows below it don't jump on first paint. */
+#jtrail:empty { min-height: 660px; }
+/* Always-visible page content below the app (tool-page pattern) */
+.jseo { max-width: 720px; margin: 80px auto 0; padding-top: 34px; border-top: 1px solid var(--border); }
+.jseo h2 { font-size: 24px; }
+.jseo h3 { font-size: 18px; margin-top: 28px; }
+.jseo p, .jseo li, .jseo dd { font-size: 14.5px; line-height: 1.7; color: var(--slate); }
+.jseo p { margin-top: 10px; }
+.jseo ol { margin: 12px 0 0 20px; display: flex; flex-direction: column; gap: 9px; }
+.jseo li strong, .jseo dt { color: var(--charcoal); }
+.jseo dl { margin-top: 12px; }
+.jseo dt { font-weight: 600; font-size: 14.5px; margin-top: 16px; }
+.jseo dd { margin: 4px 0 0; }
+.jseo a { color: var(--gold-dark); text-decoration: underline; text-underline-offset: 2px; }
+.jseo-links { margin-top: 24px; font-size: 13px; }
+html.dark-mode .jseo { border-color: rgba(245,240,232,0.12); }
+html.dark-mode .jseo p, html.dark-mode .jseo li, html.dark-mode .jseo dd { color: rgba(245,240,232,0.65); }
+html.dark-mode .jseo li strong, html.dark-mode .jseo dt { color: var(--cream); }
+html.dark-mode .jseo a { color: var(--gold); }

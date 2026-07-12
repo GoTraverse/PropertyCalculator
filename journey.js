@@ -53,27 +53,36 @@
       updatedAt: 0
     };
   }
+  // Every state that enters this page — localStorage, the account copy from
+  // the server, or a shared/collab journey — must pass through here. Older
+  // clients persisted states without newer fields; renderers assume them.
+  function normalizeState(s) {
+    var b = blank();
+    s.done = s.done || {};
+    s.numbers = s.numbers || b.numbers;
+    for (var nk in b.numbers) if (!(nk in s.numbers)) s.numbers[nk] = b.numbers[nk];
+    s.profile = s.profile || b.profile;
+    for (var pk in b.profile) if (!(pk in s.profile)) s.profile[pk] = b.profile[pk];
+    s.dealChecks = s.dealChecks || b.dealChecks;
+    s.settleChecks = s.settleChecks || b.settleChecks;
+    s.inspections = s.inspections || [];
+    s.inspections.forEach(function (r) {
+      if (!r.st) r.st = ['inspected', 'shortlist', 'passed'][r.v] || 'inspected';
+    });
+    s.scenarios = s.scenarios || [];
+    s.budget = s.budget || b.budget;
+    s.deal = s.deal || b.deal;
+    s.deal.dates = s.deal.dates || {};
+    // transient UI flags must never persist/sync — they re-open wizards on reload
+    delete s.budget.editing;
+    delete s.deal.editing;
+    if (typeof s.signupDismissed !== 'boolean') s.signupDismissed = false;
+    return s;
+  }
   function load() {
     try {
       var s = JSON.parse(localStorage.getItem(KEY) || 'null');
-      if (s && s.v === 1) {
-        var b = blank();
-        // forward-fill fields added since first ship
-        s.profile = s.profile || b.profile;
-        for (var pk in b.profile) if (!(pk in s.profile)) s.profile[pk] = b.profile[pk];
-        s.settleChecks = s.settleChecks || b.settleChecks;
-        s.inspections = s.inspections || [];
-        // places library migration: verdict index (v) → status key (st)
-        s.inspections.forEach(function (r) {
-          if (!r.st) r.st = ['inspected', 'shortlist', 'passed'][r.v] || 'inspected';
-        });
-        s.budget = s.budget || b.budget;
-        s.scenarios = s.scenarios || [];
-        s.deal = s.deal || b.deal;
-        s.deal.dates = s.deal.dates || {};
-        if (typeof s.signupDismissed !== 'boolean') s.signupDismissed = false;
-        return s;
-      }
+      if (s && s.v === 1) return normalizeState(s);
     } catch (e) {}
     return blank();
   }
@@ -290,7 +299,7 @@
         : (s.n === cur ? '<span class="jstate here jsc">You are here</span>'
           : '<span class="jstate jsc">' + (s.n === 7 ? 'The finish' : (s.n < cur ? 'Open — catch up any time' : 'Ahead')) + '</span>');
       var isCurrent = s.n === cur && !S.done[s.n];
-      var inner = stateLbl + '<h3>' + esc(s.title) + '</h3>';
+      var inner = stateLbl + '<h2>' + esc(s.title) + '</h2>';
       if (isCurrent) {
         inner += '<div class="jbody">' + esc(s.blurb) + '</div>' +
           '<div class="jcta-row"><span class="jbtn">' + esc(s.cta) + '</span></div>' +
@@ -435,7 +444,8 @@
   var wStep = 0;
 
   function wVal(q) { return q.store === 'profile' ? S.profile[q.id] : S.numbers[q.id]; }
-  function wSet(q, v) { if (q.store === 'profile') S.profile[q.id] = v; else S.numbers[q.id] = v; save(); }
+  function wSet(q, v) {
+    if (RO) return; if (q.store === 'profile') S.profile[q.id] = v; else S.numbers[q.id] = v; save(); }
 
   function renderWizard() {
     var box = document.getElementById('jwizard');
@@ -1482,7 +1492,7 @@
   }
   function enterReadOnly(resp) {
     RO = true;
-    S = resp.state;
+    S = normalizeState(resp.state);
     document.body.classList.add('jro');
     setModeBanner('<div class="jcard jpad jsignup"><div>' +
       '<span class="jsc jsc-gold jblock">Following ' + esc(resp.ownerName) + '\u2019s journey</span>' +
@@ -1519,7 +1529,7 @@
                 COLLAB = joinTok;
                 try { localStorage.setItem('propCalc_journey_collab', joinTok); } catch (e) {}
                 RO = false;
-                S = r.state;
+                S = normalizeState(r.state);
                 save();
                 setModeBanner('<div class="jcard jpad jsignup"><div>' +
                   '<span class="jsc jsc-gold jblock">On ' + esc(r.ownerName) + '\u2019s journey</span>' +
@@ -1539,7 +1549,7 @@
     if (COLLAB && isLoggedIn()) {
       api({ action: 'get', collab: COLLAB }).then(function (r) {
         if (r && r.ok && r.record && r.record.state) {
-          S = r.record.state;
+          S = normalizeState(r.record.state);
           try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
           setModeBanner('<div class="jcard jpad jsignup"><div>' +
             '<span class="jsc jsc-gold jblock">Shared journey</span>' +
@@ -1558,7 +1568,7 @@
     if (isLoggedIn()) {
       api({ action: 'get' }).then(function (r) {
         if (r && r.ok && r.record && r.record.state && (r.record.updatedAt || 0) > (S.updatedAt || 0)) {
-          S = r.record.state;
+          S = normalizeState(r.record.state);
           try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
           renderTrail();
         } else if (r && r.ok && !r.record && S.done[1]) {

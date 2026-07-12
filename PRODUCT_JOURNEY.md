@@ -270,6 +270,32 @@ suggest some around aus that could fit."
   4. Service worker v30: pre-caches /journey + journey.css + journey.js.
      RULE: bump the SW version whenever journey assets change from now on.
 
+### Phase 1a.10 — flagship audit round (12 Jul 2026, owner-requested deep pass)
+- **Lighthouse (local) 100/100/·/100, CLS 0.286 → 0.000**: reserved space for
+  the JS-rendered trail and the injected footer (the footer fix helps every
+  page on the site); sage small-text now AA (--sage-dark); trail cards h3→h2
+  (heading order); SEO-block links underlined (not color-only).
+- **Bug fixes from the adversarial review**: (1) every adopted state — server
+  pull, share view, collab join — now passes normalizeState(); previously a
+  record synced by an older client crashed renderTrail and blanked the page.
+  (2) transient budget/deal 'editing' flags no longer persist (wizards
+  re-opened on reload). (3) adminDelete now revokes the user's share tokens
+  (they used to dangle and come back to life on re-sync). (4) wizard writes
+  RO-guarded directly.
+- **Flagship SEO**: journey.html gained JSON-LD @graph (WebApplication +
+  BreadcrumbList + FAQPage) and an always-visible content section (what it
+  is, the 7 stops, 6-question FAQ matching the schema) — the tool-page
+  pattern; the page previously had almost no indexable text. Sitemap
+  priority 0.9 → 1.0.
+- **Site setup**: manifest start_url /app.html → /journey (+ app shortcuts);
+  suburb-page template CTAs → journey (primary) with investor /app secondary
+  (takes effect on next suburb rebuild).
+- **Guardrail**: tests/duty-sync-test.js — extracts the duty engine from its
+  three sync-copy homes and asserts identical output across 8 states × 23
+  bracket-crossing prices + the verified reference figures. Run after ANY
+  duty change.
+- CLAUDE.md gained a First Home Journey subsystem section.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
