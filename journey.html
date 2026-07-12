@@ -61,6 +61,8 @@
       </div>
     </header>
 
+    <div id="jsignup-slot"><!-- guest signup moment (journey.js) --></div>
+
     <div class="jtrail" id="jtrail"><!-- stops rendered by journey.js --></div>
 
     <p class="jsaved"><span class="jpip"></span> <span id="jsaved-text">Progress saves on this device — a free account keeps it everywhere.</span></p>
@@ -81,26 +83,7 @@
       <p>Computed for your numbers — not averages, not another buyer's situation.</p>
     </div>
 
-    <form class="jnumbers" id="jnumbers" aria-label="Your numbers">
-      <label>Target price
-        <input type="text" inputmode="decimal" id="jn-price" value="650,000">
-      </label>
-      <label>Saved so far
-        <input type="text" inputmode="decimal" id="jn-saved" value="60,000">
-      </label>
-      <label>Saving / month
-        <input type="text" inputmode="decimal" id="jn-savemo" value="2,000">
-      </label>
-      <label>State
-        <select id="jn-state">
-          <option value="qld" selected>QLD</option><option value="nsw">NSW</option>
-          <option value="vic">VIC</option><option value="sa">SA</option>
-          <option value="wa">WA</option><option value="tas">TAS</option>
-          <option value="act">ACT</option><option value="nt">NT</option>
-        </select>
-      </label>
-      <button type="submit" class="jbtn">Update paths</button>
-    </form>
+    <div class="jwiz-summary" id="jctx-chips" aria-label="Your answers"><!-- rendered by journey.js --></div>
     <p class="jduty-note" id="jduty-note"></p>
 
     <section class="jpaths" id="jpaths" aria-live="polite"></section>
@@ -121,6 +104,57 @@
         <div class="jdone-t">You know your path.</div>
       </div>
       <button class="jbtn" id="jdone-2">Mark this stop done</button>
+    </section>
+  </div>
+
+  <!-- ══ VIEW: STOP 3 · YOUR REAL BUDGET ══ -->
+  <div class="jview" id="jv-budget">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Stop 3 · Set your real budget</span>
+      <h2>The all-in numbers, honestly</h2>
+      <p>Not just the price — everything you’ll actually pay, and whether the repayments fit your life.</p>
+    </div>
+    <div id="jbudget"><!-- rendered by journey.js --></div>
+  </div>
+
+  <!-- ══ VIEW: STOP 4 · PICK YOUR GROUND ══ -->
+  <div class="jview" id="jv-ground">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Stop 4 · Pick your ground</span>
+      <h2>Where your budget actually lives</h2>
+      <p>The band to search in, and a shortlisting method that starts with your life, not a heat map.</p>
+    </div>
+    <div id="jground"><!-- rendered by journey.js --></div>
+  </div>
+
+  <!-- ══ VIEW: STOP 5 · HUNT &amp; COMPARE ══ -->
+  <div class="jview" id="jv-hunt">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Stop 5 · Hunt &amp; compare</span>
+      <h2>Every inspection, on the record</h2>
+      <p>Rose-tinted glasses are how people overpay. Log each place while it’s fresh, keep one honest note, and let the list argue with your heart.</p>
+    </div>
+    <div id="jhunt"><!-- rendered by journey.js --></div>
+  </div>
+
+  <!-- ══ VIEW: STOP 7 · SETTLE &amp; MOVE IN ══ -->
+  <div class="jview" id="jv-settle">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Stop 7 · Settle &amp; move in</span>
+      <h2>The final stretch</h2>
+      <p>Five things stand between you and the keys. Tick them off.</p>
+    </div>
+    <section class="jcard jpad" style="margin-top:18px">
+      <span class="jsc jblock">Settlement checklist</span>
+      <div id="jsettle-checks"><!-- rendered by journey.js --></div>
+    </section>
+    <section class="jcard jpad jdone-row" style="margin-top:18px">
+      <div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">Keys in hand.</div></div>
+      <button class="jbtn" data-jdone="7">Mark the journey complete</button>
     </section>
   </div>
 
@@ -147,6 +181,10 @@
         <div class="jdl"><div><div>Settlement</div><div class="jwhen">example</div></div><span class="jdays ok">55 days</span></div>
         <p class="jhint">Email reminders 7 days and 48 hours before each date.</p>
       </div>
+    </section>
+    <section class="jcard jpad jdone-row" style="margin-top:18px">
+      <div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">Contract signed.</div></div>
+      <button class="jbtn" data-jdone="6">Mark this stop done</button>
     </section>
   </div>
 

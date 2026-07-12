@@ -262,3 +262,40 @@ html.dark-mode .jdays.urgent { background: rgba(196,112,74,0.24); color: var(--t
 .chip { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border-radius: 18px; border: 1px solid var(--border); background: var(--card); font-size: 13px; color: var(--charcoal); }
 .chip b { font-family: var(--font-mono); font-weight: 600; font-size: 12.5px; }
 html.dark-mode .chip { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
+
+/* ── v2 additions: eligibility, inspections, signup moment ── */
+.jelig { font-size: 12px; color: var(--terracotta); margin-top: 10px; line-height: 1.5; }
+.jpath.inelig { opacity: 0.75; }
+.mono-strong { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.jsignup { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin: 22px 0 4px; border-color: var(--gold); }
+.jsignup p { font-size: 13.5px; color: var(--slate); line-height: 1.6; max-width: 52ch; }
+.jsignup-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.jsignup-actions .jbtn { text-decoration: none; display: inline-block; }
+
+.jinsp-form { display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 8px; margin-top: 4px; }
+.jinsp-form input { font-family: var(--font-body); font-size: 13.5px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 11px; min-width: 0; }
+.jinsp-form input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.jinsp-list { margin-top: 14px; }
+.jinsp { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-top: 1px solid var(--border); }
+.jinsp-main { flex: 1; min-width: 0; }
+.jinsp-addr { font-size: 14.5px; color: var(--charcoal); font-weight: 600; }
+.jinsp-meta { font-size: 12.5px; color: var(--slate); overflow: hidden; text-overflow: ellipsis; }
+.jverdict { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; border: none; cursor: pointer; padding: 6px 12px; border-radius: 12px; flex: none; }
+.jverdict.v0 { background: rgba(28,28,30,0.07); color: var(--slate); }
+.jverdict.v1 { background: rgba(123,158,135,0.18); color: var(--sage); }
+.jverdict.v2 { background: rgba(196,112,74,0.16); color: var(--terracotta); }
+.jinsp-del { background: none; border: none; cursor: pointer; color: var(--slate); font-size: 17px; padding: 2px 6px; flex: none; }
+.jinsp-del:hover { color: var(--terracotta); }
+
+@media (max-width: 640px) { .jinsp-form { grid-template-columns: 1fr 1fr; } .jinsp-form input:first-child { grid-column: 1 / -1; } }
+
+html.dark-mode .jelig { color: var(--terracotta-light); }
+html.dark-mode .jsignup p { color: rgba(245,240,232,0.62); }
+html.dark-mode .jinsp-form input { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
+html.dark-mode .jinsp { border-color: rgba(245,240,232,0.1); }
+html.dark-mode .jinsp-addr { color: var(--cream); }
+html.dark-mode .jinsp-meta, html.dark-mode .jinsp-del { color: rgba(245,240,232,0.6); }
+html.dark-mode .jverdict.v0 { background: rgba(245,240,232,0.1); color: rgba(245,240,232,0.65); }
+html.dark-mode .jverdict.v1 { background: rgba(123,158,135,0.22); color: var(--sage-light); }
+html.dark-mode .jverdict.v2 { background: rgba(196,112,74,0.22); color: var(--terracotta-light); }
