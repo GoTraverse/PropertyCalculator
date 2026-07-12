@@ -1251,6 +1251,45 @@
     if (ny) ny.addEventListener('click', function () { S.deal.signed = false; save(); renderDeal(); });
   }
 
+  // ICS export (RFC 5545): all-day VEVENTs, CRLF line endings, UID+DTSTAMP.
+  function buildDealIcs() {
+    var D = S.deal.dates;
+    var labels = {
+      cooling: 'Cooling-off ends', bp: 'Building & pest deadline',
+      finance: 'Finance approval deadline', preapproval: 'Pre-approval expires',
+      settlement: 'Settlement day'
+    };
+    var d = new Date();
+    var stamp = d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) + 'T' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + '00Z';
+    var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//EquitySight//First Home Journey//EN', 'CALSCALE:GREGORIAN'];
+    Object.keys(labels).forEach(function (k) {
+      if (!D[k]) return;
+      var ymd = D[k].replace(/-/g, '');
+      lines.push('BEGIN:VEVENT');
+      lines.push('UID:journey-' + k + '-' + ymd + '@equitysight.app');
+      lines.push('DTSTAMP:' + stamp);
+      lines.push('DTSTART;VALUE=DATE:' + ymd);
+      lines.push('DTEND;VALUE=DATE:' + addDaysISO(D[k], 1).replace(/-/g, ''));
+      lines.push('SUMMARY:' + labels[k] + ' \u2014 first home purchase');
+      lines.push('DESCRIPTION:From your First Home Journey deadline tracker (equitysight.app/journey). Check the exact terms in your contract.');
+      lines.push('END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    return lines.join('\r\n') + '\r\n';
+  }
+  function downloadDealIcs() {
+    try {
+      var blob = new Blob([buildDealIcs()], { type: 'text/calendar' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'first-home-deadlines.ics';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+      track('journey_ics_download', {});
+    } catch (e) {}
+  }
+
   var DEAL_DATE_LABELS = {
     contract: 'Contract signed', cooling: 'Cooling-off ends', bp: 'Building & pest deadline',
     finance: 'Finance approval deadline', preapproval: 'Pre-approval expires', settlement: 'Settlement day'
@@ -1277,12 +1316,14 @@
       '<div class="jdl"><div><div>Contract signed</div><div class="jwhen">' + humanDate(D.contract) + '</div></div><span class="jdays ok">done</span></div>' +
       rows +
       '<p class="jhint">Counted from today, on this device. Email nudges before each date arrive with accounts.</p>' +
-      '<div class="jwiz-nav" style="margin-top:10px"><span></span><button type="button" class="jwiz-skip" id="jd-edit">Edit my dates</button></div>' +
+      '<div class="jwiz-nav" style="margin-top:10px"><button type="button" class="jbtn quiet" id="jd-ics">Add these dates to my calendar</button><button type="button" class="jwiz-skip" id="jd-edit">Edit my dates</button></div>' +
       '</div></section>' +
       '<section class="jcard jpad jdone-row" style="margin-top:18px">' +
       '<div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">Contract signed.</div></div>' +
       '<button class="jbtn" data-jmark="6">Mark this stop done</button></section>';
     renderChecklist('jdeal-checks', DEAL_CHECKS, 'dealChecks');
+    var ics = document.getElementById('jd-ics');
+    if (ics) ics.addEventListener('click', downloadDealIcs);
     var ed = document.getElementById('jd-edit');
     if (ed) ed.addEventListener('click', function () { S.deal.editing = true; dStep = 0; save(); renderDeal(); });
   }

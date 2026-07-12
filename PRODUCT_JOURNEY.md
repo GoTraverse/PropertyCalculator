@@ -296,6 +296,13 @@ suggest some around aus that could fit."
   duty change.
 - CLAUDE.md gained a First Home Journey subsystem section.
 
+### Phase 1a.11 — calendar export for deal deadlines (overnight, 12 Jul 2026)
+Stop 6 dashboard: **Add these dates to my calendar** downloads an RFC 5545
+.ics (all-day events for cooling-off, B&P, finance, pre-approval expiry,
+settlement — skips unset dates) importable into Google/Apple/Outlook. The
+no-infrastructure half of pain #7; Resend email nudges remain Phase 1b.
+Unit-tested (event count, CRLF, DTSTART/DTEND); SW v32.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
