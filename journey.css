@@ -481,3 +481,11 @@ html.dark-mode .jrec-row { border-color: rgba(245,240,232,0.1); }
 html.dark-mode .jrec-row .act input, html.dark-mode .jrec-price input { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
 html.dark-mode .jrec-total .est, html.dark-mode .jrec-total .act { color: var(--cream); }
 html.dark-mode .jrec-verdict.under { color: var(--sage-light); }
+
+/* stop-5 offer strategy */
+.joffer-cap { font-size: 14.5px; line-height: 1.6; color: var(--slate); margin-bottom: 12px; }
+.joffer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.joffer-h { font-size: 15px; margin-bottom: 4px; }
+.joffer-grid p { font-size: 13.5px; line-height: 1.6; color: var(--slate); }
+@media (max-width: 640px) { .joffer-grid { grid-template-columns: 1fr; } }
+html.dark-mode .joffer-cap, html.dark-mode .joffer-grid p { color: rgba(245,240,232,0.65); }

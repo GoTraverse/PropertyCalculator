@@ -334,6 +334,13 @@ B&P + loan-fee ranges) with actual-$ inputs persisted in S.settle; totals
 + over/under verdict once 2+ actuals entered. Pain #8 closed end-to-end.
 RO-disabled inputs; SW v36.
 
+### Phase 1a.16 — stop-5 offer strategy (overnight, 12 Jul 2026)
+'When you're ready to make a move': the walk-away cap headlines, then
+private-sale guidance (open below cap, anchor to the stop-4 verified
+median, clauses are the safety net) beside auction guidance (hammer is
+unconditional — B&P + approval BEFORE the day) with a deep link into the
+auction-budget tool's printable day plan. Pain #1. SW v37.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
