@@ -297,6 +297,11 @@ html.dark-mode .jverdict.v2 { background: rgba(196,112,74,0.22); color: var(--te
 /* ── v3: modal (confirm + milestone), timeline, reset ───── */
 .jreset-row { text-align: center; margin-top: 10px; }
 .jmodal-overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(28,28,30,0.55); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 20px; }
+/* The author display:grid above beats the hidden attribute's UA display:none —
+   without these two rules the empty overlay renders permanently and eats every
+   click on the page (shipped broken in v3; keep them). */
+.jmodal-overlay[hidden] { display: none !important; }
+.jmodal-icon[hidden] { display: none !important; }
 .jmodal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-width: 430px; width: 100%; padding: 30px 30px 26px; text-align: center; }
 .jmodal h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--charcoal); letter-spacing: -0.3px; text-wrap: balance; }
 .jmodal p { font-size: 14.5px; color: var(--slate); line-height: 1.6; margin-top: 8px; }
