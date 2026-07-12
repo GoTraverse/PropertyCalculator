@@ -309,6 +309,14 @@ images/og-journey-template.html (netlifyignored) in the house per-calculator
 OG style — charcoal, gold edge, stepping-stones motif (done/here/ahead).
 journey.html og:image + twitter:image updated; SW v33.
 
+### Phase 1a.13 — stake at 5/10/30 years per pathway (overnight, 12 Jul 2026)
+The spec's missing projector column. New table under the timeline: your
+stake per path at 5/10/30 years — price paid − closed-form amortised
+balance (verified against iterative amortisation to 4dp) − government
+equity share. Deliberately flat-valued at the target price (no growth
+guessing, stated in the caveat); H2B share noted as repayable at market
+value. Best path bolded, ineligible greyed. SW v34.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
