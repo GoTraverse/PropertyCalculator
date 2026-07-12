@@ -9,14 +9,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Your First Home Journey — EquitySight.app</title>
 <meta name="description" content="Buy your first home step by step — schemes compared for your numbers, a real budget, inspection tracking, and every deadline that matters.">
-<!-- noindex until the journey replaces the old front door (Phase 2 in
-     PRODUCT_JOURNEY.md). Flip to index + add to sitemap-core in the same PR
-     that points the homepage here. -->
-<meta name="robots" content="noindex, follow">
+<meta name="robots" content="index, follow">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="alternate icon" href="favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
 <link rel="canonical" href="https://equitysight.app/journey">
+<link rel="alternate" hreflang="en-AU" href="https://equitysight.app/journey">
+<link rel="alternate" hreflang="x-default" href="https://equitysight.app/journey">
+<meta name="geo.region" content="AU">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EquitySight.app">
+<meta property="og:title" content="Your First Home Journey — step by step, free">
+<meta property="og:description" content="Seven guided stops from “can I even do this?” to keys in hand — government schemes compared for your exact situation, a real budget, every deadline tracked.">
+<meta property="og:url" content="https://equitysight.app/journey">
+<meta property="og:image" content="https://equitysight.app/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Your First Home Journey — step by step, free">
+<meta name="twitter:description" content="Seven guided stops from “can I even do this?” to keys in hand. Free, no signup to start.">
+<meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
@@ -103,7 +115,7 @@
         <span class="jsc jsc-sage">Milestone</span>
         <div class="jdone-t">You know your path.</div>
       </div>
-      <button class="jbtn" id="jdone-2">Mark this stop done</button>
+      <button class="jbtn" data-jmark="2">Mark this stop done</button>
     </section>
   </div>
 
@@ -154,7 +166,7 @@
     </section>
     <section class="jcard jpad jdone-row" style="margin-top:18px">
       <div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">Keys in hand.</div></div>
-      <button class="jbtn" data-jdone="7">Mark the journey complete</button>
+      <button class="jbtn" data-jmark="7">Mark the journey complete</button>
     </section>
   </div>
 
@@ -184,7 +196,7 @@
     </section>
     <section class="jcard jpad jdone-row" style="margin-top:18px">
       <div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">Contract signed.</div></div>
-      <button class="jbtn" data-jdone="6">Mark this stop done</button>
+      <button class="jbtn" data-jmark="6">Mark this stop done</button>
     </section>
   </div>
 
