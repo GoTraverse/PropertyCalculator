@@ -50,6 +50,7 @@
       budget: { depositPct: null, cap: null },
       deal: { signed: false, dates: {} },
       settle: { price: null, actuals: {} },
+      pathPriority: 'soonest',
       signupDismissed: false,
       updatedAt: 0
     };
@@ -76,6 +77,7 @@
     s.deal.dates = s.deal.dates || {};
     s.settle = s.settle || b.settle;
     s.settle.actuals = s.settle.actuals || {};
+    if (!s.pathPriority) s.pathPriority = 'soonest';
     // transient UI flags must never persist/sync — they re-open wizards on reload
     delete s.budget.editing;
     delete s.deal.editing;
@@ -597,11 +599,23 @@
         price * 0.02, 0, price * eq,
         h2bWarn ? { warn: h2bWarn } : { equity: 'Gov up to ' + Math.round(eq * 100) + '%' });
     }
+    out.forEach(function (p) { p.interest = p.rep * TERM - p.loan; });
     var eligible = out.filter(function (p) { return p.eligible; });
     var pool = eligible.length ? eligible : out;
-    var best = pool.slice().sort(function (a, b) { return a.mo - b.mo || a.lmi - b.lmi || a.rep - b.rep; })[0];
+    var prio = S.pathPriority || 'soonest';
+    var cmp = {
+      soonest: function (a, b) { return a.mo - b.mo || a.lmi - b.lmi || a.rep - b.rep; },
+      repay: function (a, b) { return a.rep - b.rep || a.mo - b.mo; },
+      interest: function (a, b) { return a.interest - b.interest || a.mo - b.mo; },
+      nolmi: function (a, b) { return a.mo - b.mo || a.rep - b.rep; },
+      own: function (a, b) { return a.mo - b.mo || a.lmi - b.lmi; }
+    }[prio] || null;
+    var prioPool = pool;
+    if (prio === 'nolmi') { var nl = pool.filter(function (p) { return p.lmi === 0; }); if (nl.length) prioPool = nl; }
+    if (prio === 'own') { var ow = pool.filter(function (p) { return !p.govShare; }); if (ow.length) prioPool = ow; }
+    var best = prioPool.slice().sort(cmp)[0];
     out.forEach(function (p) { p.best = (p === best); });
-    return { paths: out, duty: duty, best: best };
+    return { paths: out, duty: duty, best: best, prio: prio };
   }
 
   // Remaining loan balance after n months at RATE over TERM (closed form).
@@ -633,6 +647,40 @@
     }
     html += '<p class="jcaveat" style="margin-top:10px">The tax edge is real but depends on your marginal rate and the ATO\u2019s deemed earnings \u2014 we don\u2019t guess it here. Get your exact figure from the <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme" target="_blank" rel="noopener">ATO\u2019s FHSS pages</a> or our <a href="/tools/first-home-buyer-grants-calculator">grants calculator</a> before committing \u2014 contributions are hard to reverse.</p>';
     box.innerHTML = html;
+  }
+
+  // "Questions you're probably asking" — facts mirrored from the verified
+  // grants calculator page (tools/first-home-buyer-grants-calculator.html);
+  // every figure below is computed from this buyer's own paths.
+  function renderPathFaq(R) {
+    var box = document.getElementById('jfaq');
+    if (!box) return;
+    var P = S.profile, N = S.numbers;
+    var find = function (name) { for (var i = 0; i < R.paths.length; i++) if (R.paths[i].name === name) return R.paths[i]; return null; };
+    var fds = find('5% Deposit Scheme'), h2b = find('Help to Buy'), p20 = find('Save to 20%');
+    var b = R.best;
+    var payAtRate = function (loan, rate) { var r = rate / 100 / 12; return loan * r / (1 - Math.pow(1 + r, -TERM)); };
+    var qa = [];
+    if (fds) {
+      qa.push(['What\u2019s the catch with the 5% Deposit Scheme?',
+        'It\u2019s a guarantee, not a grant — you still borrow the other 95%' + (p20 ? ', so the repayment is <b class="mono-strong">' + m$(fds.rep) + '/mo</b> against <b class="mono-strong">' + m$(p20.rep) + '/mo</b> on a 20% deposit' : '') + '. Since 1 October 2025 there are no income caps, unlimited places and no waitlist, but the price cap for your area is <b class="mono-strong">' + m$(schemeCaps(FDS_CAPS)) + '</b>, you must live in the home, and it runs through Housing Australia\u2019s panel of participating lenders — not every bank.']);
+    }
+    if (h2b) {
+      qa.push(['What does Help to Buy really cost me later?',
+        'The government holds its share of your home — when you sell or refinance it takes the same proportion of any capital gain, and you can buy it out progressively along the way. Income caps apply ($103,000 single / $165,000 joint or single parents, from 1 July 2026), there are 10,000 places in FY2026-27, and it opened through Commonwealth Bank and Bank Australia with more lenders joining during 2026.']);
+      qa.push(['Can I combine the schemes?',
+        'Mostly. Your state\u2019s stamp duty concession, the First Home Owner Grant and the super saver (FHSS) all stack, and the 5% Deposit Scheme adds on top of those. The one hard rule: <strong>Help to Buy and the 5% Deposit Scheme are mutually exclusive</strong> — you pick one.']);
+    }
+    qa.push(['What if rates rise?',
+      'Every figure here uses today\u2019s ' + RATE.toFixed(2) + '% flat. If rates were 1% higher, \u201c' + esc(b.name) + '\u201d\u2019s repayment would be <b class="mono-strong">' + m$(payAtRate(b.loan, RATE + 1)) + '/mo</b> instead of <b class="mono-strong">' + m$(b.rep) + '/mo</b> — worth stress-testing before you commit. Stop 3 tests your budget at the full 3% lender buffer.']);
+    qa.push(['Where\u2019s the First Home Owner Grant?',
+      'The FHOG is a state grant, mostly for new builds' + (P.build === 'new' ? ' — which you\u2019re considering, so it may genuinely apply to you' : '') + '. It changes the cash you need, not which path structure wins, so it isn\u2019t a column here. The <a href="/tools/first-home-buyer-grants-calculator">grants calculator</a> computes your exact FHOG and stamp-duty saving for ' + N.state.toUpperCase() + '.']);
+    qa.push(['How do I actually decide?',
+      'Pick what matters most above and see which path holds up. If two paths land within a couple of months of each other, the one with less LMI and a smaller loan usually serves you better long-term — the 30-year stake table above shows why. Then confirm eligibility with the scheme administrator and a lender or broker before you commit to anything.']);
+    box.innerHTML = '<span class="jsc jblock">Questions you\u2019re probably asking</span>' +
+      qa.map(function (item) {
+        return '<details class="jfaq-item"><summary>' + item[0] + '</summary><p>' + item[1] + '</p></details>';
+      }).join('');
   }
 
   function renderNetPosition(R) {
@@ -675,6 +723,22 @@
       note.innerHTML = R.duty < 1
         ? 'Estimated ' + dutyLabel + ' in ' + N.state.toUpperCase() + ' at this price' + (P.fhb && P.build === 'new' && (N.state === 'sa' || N.state === 'qld') ? ' (new build)' : '') + ': <b>$0</b> — included in every path below.'
         : 'Estimated ' + dutyLabel + ' in ' + N.state.toUpperCase() + ' at this price: <b>' + m$(R.duty) + '</b> — included in the cash needed for every path.';
+    }
+
+    var PRIO_OPTS = [
+      ['soonest', 'In the door soonest'],
+      ['repay', 'Lowest repayment'],
+      ['interest', 'Least interest over 30 yrs'],
+      ['nolmi', 'Never pay LMI'],
+      ['own', 'Fully mine — no gov share']
+    ];
+    var prioBox = document.getElementById('jprio');
+    if (prioBox) {
+      prioBox.innerHTML = '<span class="jsc jblock">What matters most to you?</span>' +
+        '<div class="jprio-row">' + PRIO_OPTS.map(function (o) {
+          return '<button type="button" class="jprio-chip' + (R.prio === o[0] ? ' sel' : '') + '" data-prio="' + o[0] + '">' + o[1] + '</button>';
+        }).join('') + '</div>' +
+        '<p class="jhint" style="margin-top:8px">The strongest path re-ranks around your answer — same honest numbers, your priority.</p>';
     }
 
     var paths = document.getElementById('jpaths');
@@ -724,7 +788,13 @@
     if (read) {
       var b = R.best;
       var alt = R.paths.filter(function (p) { return !p.best && p.eligible; }).sort(function (a, b2) { return a.mo - b2.mo; })[0];
-      var txt = '<span class="jsc">Our read</span><strong>' + esc(b.name) + ' looks strongest for you.</strong> ';
+      var prioLead = {
+        repay: 'It has the lowest repayment of any path you qualify for: <b class="mono-strong">' + m$(b.rep) + '/mo</b>' + (alt ? ' — ' + m$(alt.rep - b.rep) + '/mo less than \u201c' + esc(alt.name) + '\u201d' : '') + '. ',
+        interest: 'Over the full 30 years it pays the least interest: <b class="mono-strong">' + m$(b.interest) + '</b>' + (alt ? ' versus ' + m$(alt.interest) + ' on \u201c' + esc(alt.name) + '\u201d' : '') + '. ',
+        nolmi: (b.lmi === 0 ? 'It gets you in without a dollar of lenders mortgage insurance. ' : 'No LMI-free path fits your numbers yet, so this is the nearest. '),
+        own: (!b.govShare ? 'Every dollar of it is yours — no government share to buy out later. ' : 'No fully-yours path fits your numbers yet, so this is the nearest. ')
+      }[R.prio] || '';
+      var txt = '<span class="jsc">Our read</span><strong>' + esc(b.name) + ' looks strongest for you.</strong> ' + prioLead;
       if (b.mo <= 0) txt += 'Your savings already cover the cash this path needs — you could start now';
       else txt += 'You could be ready in about ' + b.mo + ' months (' + b.buyBy + ')';
       if (alt) txt += (b.mo <= 0 ? ',' : ' —') + ' versus ' + (alt.mo <= 0 ? 'now' : 'about ' + alt.mo + ' months') + ' on “' + esc(alt.name) + '”. ';
@@ -745,6 +815,7 @@
     }
     renderNetPosition(R);
     renderFhss();
+    renderPathFaq(R);
     renderScenarios(R);
     track('projector_update', { st: N.state, price: N.price });
   }
@@ -1559,6 +1630,15 @@
       var jsc = document.getElementById('jscen');
       if (jsc && document.getElementById('jv-projector').classList.contains('active')) renderProjector();
       renderScenSummary();
+      return;
+    }
+    var pr = e.target.closest('[data-prio]');
+    if (pr) {
+      if (RO) return;
+      S.pathPriority = pr.getAttribute('data-prio');
+      save();
+      renderProjector();
+      track('journey_priority_set', { prio: S.pathPriority });
       return;
     }
     var pp = e.target.closest('[data-place-proj]');
