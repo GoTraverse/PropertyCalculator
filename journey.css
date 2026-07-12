@@ -401,3 +401,19 @@ html.dark-mode .jplace-pick { border-color: rgba(245,240,232,0.1); }
 html.dark-mode .jscen-name { color: var(--cream); }
 html.dark-mode .jscen-meta { color: rgba(245,240,232,0.62); }
 html.dark-mode .jscen-row { border-color: rgba(245,240,232,0.1); }
+
+/* ── v8: stop-4 suburb suggester ─────────────────────────────── */
+.jsub-list { display: flex; flex-direction: column; }
+.jsub-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 2px; border-top: 1px solid var(--border); text-decoration: none; color: inherit; }
+.jsub-row:first-child { border-top: none; }
+.jsub-row:hover .jsub-name { color: var(--gold-dark); }
+.jsub-name { font-weight: 600; font-size: 14px; color: var(--charcoal); }
+.jsub-st { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; color: var(--slate); letter-spacing: 0.5px; margin-left: 4px; }
+.jsub-fig { font-family: var(--font-mono); font-size: 12.5px; color: var(--charcoal); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.jsub-fig b { font-weight: 600; }
+.jsub-kind { font-family: var(--font-body); color: var(--slate); font-size: 11.5px; }
+.jsub-input { width: 100%; font: inherit; font-size: 14px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; }
+.jsub-input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+html.dark-mode .jsub-name, html.dark-mode .jsub-fig { color: var(--cream); }
+html.dark-mode .jsub-row { border-color: rgba(245,240,232,0.1); }
+html.dark-mode .jsub-input { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
