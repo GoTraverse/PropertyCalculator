@@ -1,0 +1,212 @@
+/* journey.css — the First Home Journey (Phase 1a scaffold)
+   Design locked from the approved v3 mockup (PRODUCT_JOURNEY.md):
+   stepping stones with NO drawn path, house rebrand styling —
+   small-caps labels, sentence-case headings, thin line icons. */
+
+.journey-page { background: var(--warm-white); }
+
+.jwrap { max-width: 920px; margin: 0 auto; padding: 26px 20px 90px; }
+
+/* ── Type helpers (house style) ─────────────────────────── */
+.jsc {
+  font-family: var(--font-body);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: var(--slate);
+}
+.jsc-gold { color: var(--gold-dark); font-size: 16px; }
+.jsc-sage { color: var(--sage); }
+.jblock { display: block; margin-bottom: 6px; }
+.jwrap h1, .jwrap h2, .jwrap h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--charcoal);
+  text-wrap: balance;
+}
+
+/* ── Greeting + progress ────────────────────────────────── */
+.jgreet { margin: 14px 0 4px; }
+.jgreet h1 { font-size: clamp(27px, 4.6vw, 38px); line-height: 1.12; margin-top: 4px; }
+.jgreet p { color: var(--slate); margin-top: 8px; max-width: 58ch; font-size: 15.5px; line-height: 1.6; }
+.jprogress { display: flex; align-items: center; gap: 10px; margin: 18px 0 8px; font-size: 13.5px; color: var(--slate); }
+.jprog-rail { flex: 1; max-width: 220px; height: 6px; border-radius: 3px; background: rgba(28,28,30,0.08); overflow: hidden; }
+.jprog-fill { display: block; width: 0%; height: 100%; background: var(--gold); border-radius: 3px; transition: width .4s; }
+.jprog-pct { font-family: var(--font-mono); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { .jprog-fill { transition: none; } }
+
+/* ── The trail: stepping stones, no drawn path ──────────── */
+.jtrail { margin-top: 26px; display: flex; flex-direction: column; gap: 26px; }
+.jstop { display: grid; align-items: center; gap: 18px; }
+.jstop.left  { grid-template-columns: 64px minmax(0, 460px); justify-content: start; }
+.jstop.right { grid-template-columns: minmax(0, 460px) 64px; justify-content: end; }
+.jstop.right .jnode { order: 2; }
+.jstop.right .jstopcard { order: 1; }
+
+.jnode {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: grid; place-items: center; flex: none;
+  border: 2px solid var(--border); background: var(--card); color: var(--slate);
+}
+.jnode svg { width: 24px; height: 24px; }
+.jstop.done    .jnode { background: var(--sage); border-color: var(--sage); color: #fff; }
+.jstop.current .jnode { background: var(--gold); border-color: var(--gold); color: var(--charcoal); box-shadow: 0 0 0 6px rgba(201,168,76,0.22); }
+
+.jstopcard {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm); padding: 16px 18px; width: 100%;
+  text-align: left; font: inherit; color: inherit;
+}
+button.jstopcard { cursor: pointer; }
+button.jstopcard:hover { border-color: var(--gold); }
+button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.jstate { display: block; margin-bottom: 2px; font-size: 14px; }
+.jstate.here { color: var(--gold-dark); }
+.jstate.done-t { color: var(--sage); }
+.jstopcard h3 { font-size: 17px; }
+.jstopcard p { font-size: 13.5px; color: var(--slate); margin-top: 4px; line-height: 1.55; }
+.jstop.ahead .jstopcard { box-shadow: none; background: transparent; }
+.jstop.ahead .jstopcard h3 { color: var(--slate); }
+
+.jstop.current .jstopcard { border-color: var(--gold); padding: 20px 22px; }
+.jstop.current .jstopcard h3 { font-size: 20px; }
+.jbody { margin-top: 8px; font-size: 14.5px; color: var(--slate); line-height: 1.6; }
+.jbody strong { color: var(--charcoal); }
+.jcta-row { display: flex; align-items: center; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
+.jmins { font-size: 12.5px; color: var(--slate); }
+.jmilestone { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: var(--sage); font-size: 13.5px; font-weight: 600; }
+.jmilestone svg { width: 16px; height: 16px; flex: none; }
+
+.jsaved { display: flex; align-items: center; gap: 8px; margin-top: 30px; font-size: 13px; color: var(--slate); justify-content: center; }
+.jpip { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); flex: none; }
+
+/* ── Buttons (house: mono, small, gold primary) ─────────── */
+.jbtn {
+  font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.5px; font-weight: 500;
+  border: none; cursor: pointer; padding: 12px 22px; border-radius: var(--radius-sm);
+  background: var(--gold); color: var(--charcoal);
+}
+.jbtn.quiet { background: transparent; color: var(--charcoal); border: 1px solid var(--border); }
+.jbtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.jbtn[disabled] { opacity: 0.55; cursor: default; }
+
+/* ── Detail views ───────────────────────────────────────── */
+.jview { display: none; }
+.jview.active { display: block; }
+.jback { background: none; border: none; cursor: pointer; color: var(--slate); font: inherit; font-size: 13.5px; padding: 0; margin: 14px 0 16px; }
+.jback:hover { color: var(--charcoal); }
+.jstephead h2 { font-size: clamp(23px, 3.8vw, 31px); margin-top: 4px; }
+.jstephead .jsc { color: var(--gold-dark); font-size: 15px; }
+.jstephead p { color: var(--slate); margin-top: 6px; max-width: 60ch; font-size: 15px; line-height: 1.6; }
+.jcard { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+.jpad { padding: 20px 22px; }
+.jgrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+.jview section + section { margin-top: 18px; }
+
+/* Your numbers */
+.jnumbers { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin: 16px 0 6px; }
+.jnumbers label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--slate); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; }
+.jnumbers input, .jnumbers select {
+  font-family: var(--font-mono); font-size: 13.5px; color: var(--charcoal);
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 9px 11px; width: 122px;
+}
+.jnumbers select { width: 96px; }
+.jnumbers input:focus-visible, .jnumbers select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.jduty-note { font-size: 13px; color: var(--slate); margin: 4px 0 18px; }
+.jduty-note b { color: var(--sage); font-family: var(--font-mono); font-size: 12.5px; }
+
+/* Pathway cards */
+.jpaths { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 14px; }
+.jpath { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 18px; }
+.jpath.best { border-color: var(--gold); border-width: 2px; }
+.jflag { display: block; color: var(--gold-dark); font-size: 14px; margin-bottom: 2px; }
+.jpath h3 { font-size: 16px; }
+.jwhy { font-size: 12.5px; color: var(--slate); margin: 4px 0 12px; min-height: 34px; line-height: 1.5; }
+.jbuyby { font-family: var(--font-mono); font-size: 20px; font-weight: 600; margin: 1px 0 10px; color: var(--charcoal); }
+.jbuyby.now { color: var(--sage); }
+.jstat { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 7px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.jstat .k { color: var(--slate); }
+.jstat .v { font-family: var(--font-mono); font-weight: 600; font-size: 13px; color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.jstat .v.good { color: var(--sage); }
+.jstat .v.warn { color: var(--terracotta); }
+
+/* Soonness bars */
+.jbars { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.jbar-row { display: grid; grid-template-columns: 158px 1fr 78px; gap: 12px; align-items: center; font-size: 13px; }
+.jbar-row .nm { color: var(--slate); text-align: right; }
+.jrail { height: 10px; background: rgba(28,28,30,0.07); border-radius: 5px; overflow: hidden; }
+.jfill { display: block; height: 100%; border-radius: 5px; background: var(--gold); }
+.jfill.zero { background: var(--sage); }
+.jbar-val { font-family: var(--font-mono); font-weight: 600; font-size: 12.5px; color: var(--charcoal); }
+
+/* Our read + caveat */
+.jread { background: rgba(28,28,30,0.045); border-radius: var(--radius-md); padding: 16px 20px; font-size: 14.5px; line-height: 1.6; color: var(--charcoal); }
+.jread .jsc { color: var(--gold-dark); display: block; margin-bottom: 4px; }
+.jcaveat { font-size: 12px; color: var(--slate); margin-top: 12px; line-height: 1.6; }
+.jdone-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.jdone-t { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--charcoal); }
+
+/* Checklist + deadlines */
+.jcheck { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-top: 1px solid var(--border); cursor: pointer; background: none; width: 100%; text-align: left; font: inherit; color: inherit; border-left: none; border-right: none; border-bottom: none; }
+.jcheck:first-child { border-top: none; }
+.jbox { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border); flex: none; margin-top: 2px; display: grid; place-items: center; }
+.jbox svg { width: 12px; height: 12px; color: #fff; display: none; }
+.jcheck.on .jbox { background: var(--sage); border-color: var(--sage); }
+.jcheck.on .jbox svg { display: block; }
+.jcheck.on .t { text-decoration: line-through; color: var(--slate); }
+.jcheck .t { font-size: 14.5px; color: var(--charcoal); }
+.jcheck .d { font-size: 12.5px; color: var(--slate); margin-top: 1px; }
+.jcheck:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+.jdl { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--border); font-size: 14px; color: var(--charcoal); }
+.jdl:first-of-type { border-top: none; }
+.jwhen { font-family: var(--font-mono); font-size: 12px; color: var(--slate); }
+.jdays { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 12px; flex: none; }
+.jdays.ok { background: rgba(123,158,135,0.16); color: var(--sage); }
+.jdays.soon { background: rgba(201,168,76,0.2); color: var(--gold-dark); }
+.jdays.urgent { background: rgba(196,112,74,0.18); color: var(--terracotta); }
+.jhint { font-size: 12.5px; color: var(--slate); margin-top: 12px; }
+
+/* ── Mobile ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .jstop.left, .jstop.right { grid-template-columns: 52px 1fr; justify-content: start; }
+  .jstop.right .jnode { order: 0; }
+  .jstop.right .jstopcard { order: 1; }
+  .jnode { width: 48px; height: 48px; }
+  .jnode svg { width: 21px; height: 21px; }
+  .jtrail { gap: 18px; }
+  .jgrid2 { grid-template-columns: 1fr; }
+  .jbar-row { grid-template-columns: 104px 1fr 70px; }
+  .jnumbers input { width: 104px; }
+}
+
+/* ── Dark mode (site convention: html.dark-mode) ────────── */
+html.dark-mode .journey-page { background: #171719; }
+html.dark-mode .jwrap h1, html.dark-mode .jwrap h2, html.dark-mode .jwrap h3 { color: var(--cream); }
+html.dark-mode .jgreet p, html.dark-mode .jstephead p { color: rgba(245,240,232,0.7); }
+html.dark-mode .jsc { color: rgba(245,240,232,0.6); }
+html.dark-mode .jsc-gold, html.dark-mode .jstephead .jsc, html.dark-mode .jflag, html.dark-mode .jread .jsc { color: var(--gold); }
+html.dark-mode .jsc-sage, html.dark-mode .jstate.done-t, html.dark-mode .jmilestone { color: var(--sage-light); }
+html.dark-mode .jstate.here { color: var(--gold); }
+html.dark-mode .jstopcard, html.dark-mode .jcard, html.dark-mode .jpath { background: #1F1F22; border-color: rgba(245,240,232,0.13); box-shadow: 0 8px 26px rgba(0,0,0,0.4); }
+html.dark-mode .jstop.ahead .jstopcard { background: transparent; box-shadow: none; }
+html.dark-mode .jstopcard h3, html.dark-mode .jpath h3, html.dark-mode .jdone-t, html.dark-mode .jbuyby, html.dark-mode .jcheck .t, html.dark-mode .jdl, html.dark-mode .jread, html.dark-mode .jstat .v, html.dark-mode .jbar-val { color: var(--cream); }
+html.dark-mode .jstopcard p, html.dark-mode .jbody, html.dark-mode .jwhy, html.dark-mode .jstat .k, html.dark-mode .jbar-row .nm, html.dark-mode .jcheck .d, html.dark-mode .jmins, html.dark-mode .jsaved, html.dark-mode .jcaveat, html.dark-mode .jduty-note, html.dark-mode .jhint, html.dark-mode .jwhen, html.dark-mode .jback, html.dark-mode .jprogress { color: rgba(245,240,232,0.62); }
+html.dark-mode .jbody strong { color: var(--cream); }
+html.dark-mode .jstop.ahead .jstopcard h3 { color: rgba(245,240,232,0.55); }
+html.dark-mode .jnode { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: rgba(245,240,232,0.6); }
+html.dark-mode .jstop.done .jnode { background: var(--sage); border-color: var(--sage); color: #14251a; }
+html.dark-mode .jstop.current .jnode { background: var(--gold); border-color: var(--gold); color: var(--charcoal); }
+html.dark-mode .jread { background: rgba(245,240,232,0.05); }
+html.dark-mode .jprog-rail, html.dark-mode .jrail { background: rgba(245,240,232,0.1); }
+html.dark-mode .jnumbers input, html.dark-mode .jnumbers select { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
+html.dark-mode .jnumbers label { color: rgba(245,240,232,0.6); }
+html.dark-mode .jbtn.quiet { color: var(--cream); border-color: rgba(245,240,232,0.2); }
+html.dark-mode .jstat, html.dark-mode .jdl, html.dark-mode .jcheck { border-color: rgba(245,240,232,0.1); }
+html.dark-mode .jstat .v.good { color: var(--sage-light); }
+html.dark-mode .jstat .v.warn { color: var(--terracotta-light); }
+html.dark-mode .jbuyby.now { color: var(--sage-light); }
+html.dark-mode .jdays.ok { background: rgba(123,158,135,0.2); color: var(--sage-light); }
+html.dark-mode .jdays.soon { background: rgba(201,168,76,0.22); color: var(--gold); }
+html.dark-mode .jdays.urgent { background: rgba(196,112,74,0.24); color: var(--terracotta-light); }

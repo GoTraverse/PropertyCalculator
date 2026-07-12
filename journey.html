@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<script src="/gtag-loader.js" defer></script>
+<script src="/analytics.js" defer></script>
+<meta charset="UTF-8">
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
+<script src="/site-init.js" defer></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Your First Home Journey — EquitySight.app</title>
+<meta name="description" content="Buy your first home step by step — schemes compared for your numbers, a real budget, inspection tracking, and every deadline that matters.">
+<!-- noindex until the journey replaces the old front door (Phase 2 in
+     PRODUCT_JOURNEY.md). Flip to index + add to sitemap-core in the same PR
+     that points the homepage here. -->
+<meta name="robots" content="noindex, follow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.svg">
+<meta name="theme-color" content="#1C1C1E">
+<link rel="canonical" href="https://equitysight.app/journey">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
+<script src="/font-loader.js" defer></script>
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="journey.css">
+</head>
+<body class="journey-page">
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="/" class="site-logo">
+      <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
+      <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
+    </a>
+    <ul class="site-nav-links">
+      <li><a href="/pricing">Pricing</a></li>
+      <li><a href="/showcase">Gallery</a></li>
+      <li><a href="/contact">Support</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+    <div class="site-nav-actions"></div>
+    <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
+  </div>
+</nav>
+<script src="/error-capture.js" defer></script>
+<script src="/auth-nav-loader.js" defer></script>
+
+<main id="main-content" class="jwrap">
+
+  <!-- ══ VIEW: THE TRAIL ══ -->
+  <div class="jview active" id="jv-home">
+    <header class="jgreet">
+      <span class="jsc jsc-gold">Your first home journey</span>
+      <h1>Seven stops between you and the keys.</h1>
+      <p>Each stop walks you through one part of buying your first home — a short guided setup, a checklist, and the right tool at the right moment. Finish a stop, reach the milestone, keep walking.</p>
+      <div class="jprogress" aria-label="Journey progress">
+        <span id="jprog-label">Stop 1 of 7</span>
+        <span class="jprog-rail"><span class="jprog-fill" id="jprog-fill"></span></span>
+        <span class="jprog-pct" id="jprog-pct">0%</span>
+      </div>
+    </header>
+
+    <div class="jtrail" id="jtrail"><!-- stops rendered by journey.js --></div>
+
+    <p class="jsaved"><span class="jpip"></span> <span id="jsaved-text">Progress saves on this device — a free account keeps it everywhere.</span></p>
+  </div>
+
+  <!-- ══ VIEW: STOP 2 · SCHEME PATHWAY PROJECTOR ══ -->
+  <div class="jview" id="jv-projector">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Stop 2 · Find your path</span>
+      <h2 id="jproj-title">Four ways to buy your first home</h2>
+      <p>Computed for your numbers — not averages, not another buyer's situation.</p>
+    </div>
+
+    <form class="jnumbers" id="jnumbers" aria-label="Your numbers">
+      <label>Target price
+        <input type="text" inputmode="decimal" id="jn-price" value="650,000">
+      </label>
+      <label>Saved so far
+        <input type="text" inputmode="decimal" id="jn-saved" value="60,000">
+      </label>
+      <label>Saving / month
+        <input type="text" inputmode="decimal" id="jn-savemo" value="2,000">
+      </label>
+      <label>State
+        <select id="jn-state">
+          <option value="qld" selected>QLD</option><option value="nsw">NSW</option>
+          <option value="vic">VIC</option><option value="sa">SA</option>
+          <option value="wa">WA</option><option value="tas">TAS</option>
+          <option value="act">ACT</option><option value="nt">NT</option>
+        </select>
+      </label>
+      <button type="submit" class="jbtn">Update paths</button>
+    </form>
+    <p class="jduty-note" id="jduty-note"></p>
+
+    <section class="jpaths" id="jpaths" aria-live="polite"></section>
+
+    <section class="jcard jpad">
+      <span class="jsc">How soon could you buy?</span>
+      <div class="jbars" id="jbars"></div>
+    </section>
+
+    <section>
+      <div class="jread" id="jread"></div>
+      <p class="jcaveat">Estimates use the same repayment, stamp duty and LMI formulas as our calculators, at 6.00% over 30 years, with your figures above. Eligibility for each scheme (income caps, property price caps, available places, state availability) is not yet checked here — confirm with the scheme administrator and your lender. General information only, not financial advice.</p>
+    </section>
+
+    <section class="jcard jpad jdone-row">
+      <div>
+        <span class="jsc jsc-sage">Milestone</span>
+        <div class="jdone-t">You know your path.</div>
+      </div>
+      <button class="jbtn" id="jdone-2">Mark this stop done</button>
+    </section>
+  </div>
+
+  <!-- ══ VIEW: STOP 6 · SEAL THE DEAL (preview) ══ -->
+  <div class="jview" id="jv-deal">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Stop 6 · Seal the deal</span>
+      <h2>Contract signed — now the clock matters</h2>
+      <p>From here it's deadlines. Miss one and you can lose your deposit or your loan. Each date lives here, and we'll nudge you before it bites. <em>(Preview — full date tracking arrives with this stop.)</em></p>
+    </div>
+
+    <section class="jgrid2">
+      <div class="jcard jpad">
+        <span class="jsc jblock">Checklist</span>
+        <div id="jdeal-checks"><!-- rendered --></div>
+      </div>
+      <div class="jcard jpad">
+        <span class="jsc jblock">Deadlines you'll track here</span>
+        <div class="jdl"><div><div>Cooling-off ends</div><div class="jwhen">example</div></div><span class="jdays urgent">3 days</span></div>
+        <div class="jdl"><div><div>Building &amp; pest clause</div><div class="jwhen">example</div></div><span class="jdays soon">13 days</span></div>
+        <div class="jdl"><div><div>Finance approval clause</div><div class="jwhen">example</div></div><span class="jdays soon">20 days</span></div>
+        <div class="jdl"><div><div>Pre-approval expires</div><div class="jwhen">example</div></div><span class="jdays ok">30 days</span></div>
+        <div class="jdl"><div><div>Settlement</div><div class="jwhen">example</div></div><span class="jdays ok">55 days</span></div>
+        <p class="jhint">Email reminders 7 days and 48 hours before each date.</p>
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<div id="site-footer-root"></div>
+<script src="footer.js" defer></script>
+<script src="journey.js" defer></script>
+</body>
+</html>
