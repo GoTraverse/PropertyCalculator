@@ -518,22 +518,31 @@
       '<div class="jwiz-done-icon">' + IC.check + '</div>' +
       '<div class="jwiz-q">That’s your bearings.</div>' +
       '<p class="jwiz-help">First milestone reached — you know your numbers. Next comes the one most buyers never find out: which scheme path suits <em>your</em> situation.</p>' +
-      '<div class="jwiz-summary">' +
-      (STAGE_LABEL[P.stage] ? '<span class="chip">' + STAGE_LABEL[P.stage] + '</span>' : '') +
-      '<span class="chip"><b>' + N.state.toUpperCase() + '</b> ' + (P.area === 'capital' ? 'capital' : 'regional') + '</span>' +
-      '<span class="chip">' + (P.buyers === 'couple' ? 'Buying together' : 'Buying solo') + '</span>' +
-      '<span class="chip">' + (P.fhb ? 'First home' : 'Owned before') + '</span>' +
-      '<span class="chip">' + (P.build === 'new' ? 'New build' : P.build === 'unsure' ? 'Build: not sure' : 'Established') + '</span>' +
-      '<span class="chip">Income <b>' + m$(P.income || 0) + '</b></span>' +
-      '<span class="chip">Target <b>' + m$(N.price) + '</b></span>' +
-      '<span class="chip">Saved <b>' + m$(N.saved) + '</b></span>' +
-      '<span class="chip">Saving <b>' + m$(N.saveMo) + '/mo</b></span>' +
-      (P.rentNow ? '<span class="chip">Rent now <b>' + m$(P.rentNow) + '/mo</b></span>' : '') +
-      (P.cardLimits ? '<span class="chip">Card limits <b>' + m$(P.cardLimits) + '</b></span>' : '') +
-      '<span class="chip">' + (P.employment === 'self' ? 'Self-employed' : P.employment === 'casual' ? 'Casual / contract' : 'Salaried') + '</span>' +
-      (P.dependants ? '<span class="chip">' + P.dependants + (P.dependants >= 3 ? '+' : '') + ' dependant' + (P.dependants > 1 ? 's' : '') + '</span>' : '') +
-      '<span class="chip">' + ({ asap: 'Buying ASAP', '6mo': 'Within 6 months', '12mo': 'Within a year', '2yr': '1–2 years+' })[P.timeframe] + '</span>' +
-      '</div>' +
+      (function () {
+        var row = function (k, v, mono) {
+          return '<div class="jsum-row"><span class="k">' + k + '</span><span class="v' + (mono ? ' mono' : '') + '">' + v + '</span></div>';
+        };
+        var you =
+          row('Where', N.state.toUpperCase() + ' — ' + (P.area === 'capital' ? 'capital city' : 'regional')) +
+          row('Buying', (P.buyers === 'couple' ? 'Together' : 'Solo') + ' · ' + (P.fhb ? 'first home' : 'owned before')) +
+          row('Home type', P.build === 'new' ? 'New build' : P.build === 'unsure' ? 'Not sure yet' : 'Established') +
+          row('Income type', (P.employment === 'self' ? 'Self-employed' : P.employment === 'casual' ? 'Casual / contract' : 'Salaried') + (P.dependants ? ' · ' + P.dependants + (P.dependants >= 3 ? '+' : '') + ' dependant' + (P.dependants > 1 ? 's' : '') : ''));
+        var money =
+          row('Household income', m$(P.income || 0) + '/yr', true) +
+          row('Saved so far', m$(N.saved), true) +
+          row('Saving', m$(N.saveMo) + '/mo', true) +
+          (P.rentNow ? row('Rent now', m$(P.rentNow) + '/mo', true) : '') +
+          (P.cardLimits ? row('Card limits', m$(P.cardLimits), true) : '');
+        var plan =
+          row('Target price', m$(N.price), true) +
+          row('Timeframe', ({ asap: 'As soon as possible', '6mo': 'Within 6 months', '12mo': 'Within a year', '2yr': '1–2 years plus' })[P.timeframe] || '—') +
+          (STAGE_LABEL[P.stage] ? row('Where you\u2019re up to', STAGE_LABEL[P.stage]) : '');
+        return '<div class="jsum">' +
+          '<div class="jsum-group"><span class="jsc jblock">You</span>' + you + '</div>' +
+          '<div class="jsum-group"><span class="jsc jblock">Your money</span>' + money + '</div>' +
+          '<div class="jsum-group"><span class="jsc jblock">Your plan</span>' + plan + '</div>' +
+          '</div>';
+      })() +
       '<div class="jwiz-nav" style="margin-top:22px">' +
       '<button type="button" class="jwiz-skip" data-jgoto="wizard">↺ Redo my answers</button>' +
       (STAGE_STOP[P.stage] > 2

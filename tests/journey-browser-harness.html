@@ -75,6 +75,17 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
 <script>
 window.addEventListener('load', function () {
   var q = new URLSearchParams(location.search);
+  if (q.get('walk') === '1') {
+    var walked = false;
+    var walker = setInterval(function () {
+      if (document.querySelector('.jwiz-done-icon')) { clearInterval(walker); return; }
+      var next = document.getElementById('jwiz-next');
+      var chip = document.querySelector('.jwiz-states [data-wopt]');
+      if (next) { walked = true; next.click(); }
+      else if (chip) { walked = true; chip.click(); }
+      else if (walked) clearInterval(walker);
+    }, 120);
+  }
   if (q.get('view')) {
     setTimeout(function () {
       var b = document.querySelector('[data-jgoto="' + q.get('view') + '"]');

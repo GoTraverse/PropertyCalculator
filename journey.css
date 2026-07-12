@@ -500,3 +500,15 @@ html.dark-mode .jplace-st { color: rgba(245,240,232,0.6); }
 html.dark-mode .jrec-row .k, html.dark-mode .jrec-price label { color: rgba(245,240,232,0.62); }
 html.dark-mode .jrec-row .est { color: rgba(245,240,232,0.45); }
 html.dark-mode .jrec-head .est, html.dark-mode .jrec-head .act { color: rgba(245,240,232,0.55); }
+
+/* wizard-done grouped summary (replaces the chip cloud) */
+.jsum { margin-top: 20px; display: flex; flex-direction: column; gap: 18px; text-align: left; }
+.jsum-group .jsc { margin-bottom: 2px; }
+.jsum-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.jsum-row:last-child { border-bottom: none; }
+.jsum-row .k { color: var(--slate); }
+.jsum-row .v { color: var(--charcoal); font-weight: 600; text-align: right; }
+.jsum-row .v.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+html.dark-mode .jsum-row { border-color: rgba(245,240,232,0.1); }
+html.dark-mode .jsum-row .k { color: rgba(245,240,232,0.55); }
+html.dark-mode .jsum-row .v { color: var(--cream); }
