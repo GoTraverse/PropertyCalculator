@@ -453,3 +453,10 @@ html.dark-mode .jnet-row { border-color: rgba(245,240,232,0.1); }
 html.dark-mode .jnet-row .v { color: var(--cream); }
 html.dark-mode .jnet-row.best .nm { color: var(--gold); }
 html.dark-mode .jnet-row.inelig .v, html.dark-mode .jnet-row.inelig .nm { color: rgba(245,240,232,0.3); }
+
+.jfhss p { font-size: 14.5px; line-height: 1.65; color: var(--slate); }
+.jfhss strong, .jfhss .mono-strong { color: var(--charcoal); }
+.jfhss a { color: var(--gold-dark); text-decoration: underline; text-underline-offset: 2px; }
+html.dark-mode .jfhss p { color: rgba(245,240,232,0.65); }
+html.dark-mode .jfhss strong, html.dark-mode .jfhss .mono-strong { color: var(--cream); }
+html.dark-mode .jfhss a { color: var(--gold); }

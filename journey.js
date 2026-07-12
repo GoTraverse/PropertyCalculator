@@ -417,6 +417,8 @@
   // ── end scheme sync copy ─────────────────────────────────────────────
 
   var RATE = 6.0, TERM = 360, OTHER_COSTS = 3500; // conveyancing + registration estimate
+  // SYNC COPY ← tools/first-home-buyer-grants-calculator.js (ATO FHSS caps)
+  var FHSS_MAX_CONTRIB_ANNUAL = 15000, FHSS_MAX_TOTAL = 50000;
   var TF_MONTHS = { asap: 3, '6mo': 6, '12mo': 12, '2yr': 24 };
   function pay(P) { var r = RATE / 100 / 12; return P * r / (1 - Math.pow(1 + r, -TERM)); }
   function lmiRate(lvr) { return lvr <= 0.80 ? 0 : lvr <= 0.85 ? 0.008 : lvr <= 0.90 ? 0.019 : lvr <= 0.95 ? 0.034 : 0.043; }
@@ -602,6 +604,25 @@
   function stakeAt(p, price, months) {
     return Math.max(0, price - balanceAfter(p.loan, months) - p.govShare);
   }
+  function renderFhss() {
+    var box = document.getElementById('jfhss');
+    if (!box) return;
+    var P = S.profile, N = S.numbers;
+    if (!P.fhb) { box.innerHTML = ''; var sec = box.closest('section'); if (sec) sec.hidden = true; return; }
+    var sec2 = box.closest('section'); if (sec2) sec2.hidden = false;
+    var people = P.buyers === 'couple' ? 2 : 1;
+    var releaseCap = FHSS_MAX_TOTAL * people;
+    var yearlyCap = FHSS_MAX_CONTRIB_ANNUAL * people;
+    var html = '<p>Whichever path you pick, the <strong>First Home Super Saver</strong> scheme changes <em>where</em> you save: voluntary super contributions of up to <b class="mono-strong">' + m$(FHSS_MAX_CONTRIB_ANNUAL) + '</b> a year each count toward a release cap of <b class="mono-strong">' + m$(releaseCap) + '</b>' + (people === 2 ? ' between you' : '') + ' when you buy.</p>';
+    if (N.saveMo > 0) {
+      var yearly = Math.min(N.saveMo * 12, yearlyCap);
+      var yearsToCap = releaseCap / yearly;
+      html += '<p style="margin-top:8px">At your ' + m$(N.saveMo) + '/mo, contributions like these would reach the release cap in about <b class="mono-strong">' + (Math.round(yearsToCap * 10) / 10) + ' years</b>' + (N.saveMo * 12 > yearlyCap ? ' (the ' + m$(yearlyCap) + '/yr contribution cap is the limit, not your saving rate)' : '') + '.</p>';
+    }
+    html += '<p class="jcaveat" style="margin-top:10px">The tax edge is real but depends on your marginal rate and the ATO\u2019s deemed earnings \u2014 we don\u2019t guess it here. Get your exact figure from the <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme" target="_blank" rel="noopener">ATO\u2019s FHSS pages</a> or our <a href="/tools/first-home-buyer-grants-calculator">grants calculator</a> before committing \u2014 contributions are hard to reverse.</p>';
+    box.innerHTML = html;
+  }
+
   function renderNetPosition(R) {
     var box = document.getElementById('jnet');
     if (!box) return;
@@ -711,6 +732,7 @@
       read.innerHTML = txt;
     }
     renderNetPosition(R);
+    renderFhss();
     renderScenarios(R);
     track('projector_update', { st: N.state, price: N.price });
   }
