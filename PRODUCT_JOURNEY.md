@@ -363,6 +363,13 @@ surfaces; and the refactor touches the SEO-critical calculator page.
 Stays reserved for a desktop session that can verify the live pages
 (Phase 1b item 1).
 
+### Phase 1a.20 — wizard-done summary redesign (12 Jul 2026)
+Owner: 'this summary page looks bad'. The 13-chip cloud became a grouped
+receipt — You / Your money / Your plan — label–value rows, mono numbers
+right-aligned, house small-caps group headers. Also removed the projector
+tagline ('Computed for your numbers…') per owner. Harness gained walk=1
+(auto-drives the full wizard to the done screen for screenshots). SW v40.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
