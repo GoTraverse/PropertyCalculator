@@ -37,7 +37,7 @@
       v: 1,
       done: {},
       numbers: { price: 650000, saved: 60000, saveMo: 2000, state: 'qld' },
-      profile: { area: 'capital', buyers: 'single', fhb: true, build: 'established', income: null },
+      profile: { area: 'capital', buyers: 'single', fhb: true, build: 'established', income: null, timeframe: '12mo', dependants: 0, employment: 'payg', rentNow: 0, cardLimits: 0 },
       dealChecks: [false, false, false, false, false],
       settleChecks: [false, false, false, false, false],
       inspections: [],
@@ -51,6 +51,7 @@
         var b = blank();
         // forward-fill fields added since first ship
         s.profile = s.profile || b.profile;
+        for (var pk in b.profile) if (!(pk in s.profile)) s.profile[pk] = b.profile[pk];
         s.settleChecks = s.settleChecks || b.settleChecks;
         s.inspections = s.inspections || [];
         if (typeof s.signupDismissed !== 'boolean') s.signupDismissed = false;
@@ -101,7 +102,7 @@
 
   // ── The stops (ALL native — no external links) ───────────────────────
   var STOPS = [
-    { n: 1, icon: 'compass', title: 'Get your bearings', view: 'wizard', cta: 'Start — about 90 seconds', blurb: 'Nine quick questions about you and your target — they power everything after.', milestone: 'You know your numbers.' },
+    { n: 1, icon: 'compass', title: 'Get your bearings', view: 'wizard', cta: 'Start — about 2 minutes', blurb: 'Quick questions about you, your money and your target — every answer powers a real number later.', milestone: 'You know your numbers.' },
     { n: 2, icon: 'signpost', title: 'Find your path', view: 'projector', cta: 'Compare my scheme paths', blurb: 'Which government scheme gets you in sooner — and what each really costs. Side by side, for your exact situation.', milestone: 'You know your path.' },
     { n: 3, icon: 'wallet', title: 'Set your real budget', view: 'budget', cta: 'See my real numbers', blurb: 'Every upfront cost for your purchase — including the solicitor — and an honest check against your income.', milestone: 'You have a real budget.' },
     { n: 4, icon: 'pin', title: 'Pick your ground', view: 'ground', cta: 'Work out where', blurb: 'The price band your budget really buys, and how to shortlist suburbs around the life you already have.', milestone: 'You know where.' },
@@ -114,11 +115,92 @@
     for (var i = 0; i < STOPS.length; i++) if (!S.done[STOPS[i].n]) return STOPS[i].n;
     return 7;
   }
+  // ── Modal (confirm + milestone celebration) ─────────────────────────
+  function jModal(opts) {
+    var ov = document.getElementById('jmodal');
+    if (!ov) { if (opts.buttons && opts.buttons[0] && opts.buttons[0].cb) opts.buttons[0].cb(); return; }
+    var iconEl = document.getElementById('jmodal-icon');
+    if (opts.icon) { iconEl.hidden = false; iconEl.className = 'jmodal-icon' + (opts.iconCls ? ' ' + opts.iconCls : ''); iconEl.innerHTML = opts.icon; }
+    else { iconEl.hidden = true; iconEl.innerHTML = ''; }
+    document.getElementById('jmodal-title').innerHTML = (opts.kicker ? '<span class="jsc jsc-line">' + esc(opts.kicker) + '</span>' : '') + esc(opts.title);
+    document.getElementById('jmodal-body').textContent = opts.body || '';
+    var btns = document.getElementById('jmodal-btns');
+    btns.innerHTML = '';
+    (opts.buttons || []).forEach(function (b) {
+      var el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'jbtn' + (b.cls ? ' ' + b.cls : '');
+      el.textContent = b.label;
+      el.addEventListener('click', function () { closeModal(); if (b.cb) b.cb(); });
+      btns.appendChild(el);
+    });
+    ov.hidden = false;
+    var first = btns.querySelector('.jbtn:not(.quiet):not(.danger)') || btns.firstChild;
+    if (first) first.focus();
+  }
+  function closeModal() { var ov = document.getElementById('jmodal'); if (ov) ov.hidden = true; }
+  document.addEventListener('click', function (e) {
+    var ov = document.getElementById('jmodal');
+    if (ov && !ov.hidden && e.target === ov) closeModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  function stopByN(n) { for (var i = 0; i < STOPS.length; i++) if (STOPS[i].n === n) return STOPS[i]; return null; }
+
+  // Confirm → mark → celebrate. Milestones are a big deal now.
+  function requestMarkDone(n) {
+    var stop = stopByN(n);
+    jModal({
+      kicker: 'Milestone ahead',
+      title: stop.milestone,
+      body: 'Marking “' + stop.title + '” done tells the journey you’re ready for the next stop. You can always come back and redo it.',
+      icon: IC.flag,
+      buttons: [
+        { label: 'Not yet', cls: 'quiet' },
+        { label: 'Yes — mark it done', cb: function () { markDone(n); } }
+      ]
+    });
+  }
   function markDone(n) {
     S.done[n] = true;
     save();
     track('journey_step_done', { step: n });
-    show('home');
+    var stop = stopByN(n);
+    var doneCount = 0; STOPS.forEach(function (s) { if (S.done[s.n]) doneCount++; });
+    var next = null;
+    for (var i = 0; i < STOPS.length; i++) if (!S.done[STOPS[i].n]) { next = STOPS[i]; break; }
+    jModal({
+      kicker: 'Milestone reached — stop ' + n + ' of 7',
+      title: stop.milestone,
+      body: doneCount >= 7
+        ? 'That’s the whole journey. Keys in hand — congratulations.'
+        : (next ? 'Next stop: ' + next.title + '. ' + next.blurb : ''),
+      icon: IC.check,
+      iconCls: 'sage',
+      buttons: doneCount >= 7
+        ? [{ label: 'Back to the journey', cb: function () { show('home'); } }]
+        : [
+            { label: 'Back to the journey', cls: 'quiet', cb: function () { show('home'); } },
+            { label: 'Continue → ' + (next ? next.title : ''), cb: function () { show(next.view); } }
+          ]
+    });
+  }
+
+  function resetJourney() {
+    jModal({
+      title: 'Start the whole journey over?',
+      body: 'This erases everything on this device — your answers, milestones, inspections and checklists. It can’t be undone.',
+      buttons: [
+        { label: 'Keep my journey', cls: 'quiet' },
+        { label: 'Erase and start over', cls: 'danger', cb: function () {
+            S = blank(); save();
+            track('journey_reset', {});
+            show('home');
+          } }
+      ]
+    });
   }
 
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -259,6 +341,7 @@
   // ── end scheme sync copy ─────────────────────────────────────────────
 
   var RATE = 6.0, TERM = 360, OTHER_COSTS = 3500; // conveyancing + registration estimate
+  var TF_MONTHS = { asap: 3, '6mo': 6, '12mo': 12, '2yr': 24 };
   function pay(P) { var r = RATE / 100 / 12; return P * r / (1 - Math.pow(1 + r, -TERM)); }
   function lmiRate(lvr) { return lvr <= 0.80 ? 0 : lvr <= 0.85 ? 0.008 : lvr <= 0.90 ? 0.019 : lvr <= 0.95 ? 0.034 : 0.043; }
   function m$(v) { return '$' + Math.round(v).toLocaleString('en-AU'); }
@@ -274,7 +357,12 @@
     { id: 'income', kind: 'money', q: 'Household income, before tax?', help: 'Yearly, combined if you’re buying together. Used only to check scheme eligibility and give you an honest affordability guide.', def: 95000, min: 0, store: 'profile' },
     { id: 'price', kind: 'money', q: 'What price are you aiming for?', help: 'A rough target is fine — you can change it any time.', def: 650000, min: 50000, store: 'numbers' },
     { id: 'saved', kind: 'money', q: 'How much have you saved so far?', help: 'Deposit savings only — don’t count your emergency buffer.', def: 60000, min: 0, store: 'numbers' },
-    { id: 'saveMo', kind: 'money', q: 'How much can you put away each month?', help: 'Be honest rather than hopeful — the projections use this.', def: 2000, min: 0, store: 'numbers' }
+    { id: 'saveMo', kind: 'money', q: 'How much can you put away each month?', help: 'Be honest rather than hopeful — the projections use this.', def: 2000, min: 0, store: 'numbers' },
+    { id: 'rentNow', kind: 'money', q: 'What do you pay in rent or board each month?', help: 'Zero is fine. We use it to show how a mortgage compares to what you already pay.', def: 0, min: 0, store: 'profile' },
+    { id: 'cardLimits', kind: 'money', q: 'Total limit across your credit cards?', help: 'The limit, not the balance — lenders assess the whole limit even at $0 owing. Zero if you have none.', def: 0, min: 0, store: 'profile' },
+    { id: 'employment', kind: 'chips', q: 'How do you earn?', help: 'Lenders treat salaried, self-employed and casual income differently.', opts: [['payg', 'Salaried (PAYG)'], ['self', 'Self-employed'], ['casual', 'Casual / contract']], store: 'profile' },
+    { id: 'dependants', kind: 'chips', q: 'Any dependants?', help: 'Kids and dependants change what lenders assume you spend.', opts: [[0, 'None'], [1, '1'], [2, '2'], [3, '3 or more']], store: 'profile' },
+    { id: 'timeframe', kind: 'chips', q: 'When do you want to be in?', help: 'We’ll flag which paths actually fit your timeframe.', opts: [['asap', 'As soon as possible'], ['6mo', 'Within 6 months'], ['12mo', 'Within a year'], ['2yr', '1–2 years plus']], store: 'profile' }
   ];
   var wStep = 0;
 
@@ -355,6 +443,11 @@
       '<span class="chip">Target <b>' + m$(N.price) + '</b></span>' +
       '<span class="chip">Saved <b>' + m$(N.saved) + '</b></span>' +
       '<span class="chip">Saving <b>' + m$(N.saveMo) + '/mo</b></span>' +
+      (P.rentNow ? '<span class="chip">Rent now <b>' + m$(P.rentNow) + '/mo</b></span>' : '') +
+      (P.cardLimits ? '<span class="chip">Card limits <b>' + m$(P.cardLimits) + '</b></span>' : '') +
+      '<span class="chip">' + (P.employment === 'self' ? 'Self-employed' : P.employment === 'casual' ? 'Casual / contract' : 'Salaried') + '</span>' +
+      (P.dependants ? '<span class="chip">' + P.dependants + (P.dependants >= 3 ? '+' : '') + ' dependant' + (P.dependants > 1 ? 's' : '') + '</span>' : '') +
+      '<span class="chip">' + ({ asap: 'Buying ASAP', '6mo': 'Within 6 months', '12mo': 'Within a year', '2yr': '1–2 years+' })[P.timeframe] + '</span>' +
       '</div>' +
       '<div class="jwiz-nav" style="margin-top:22px">' +
       '<button type="button" class="jwiz-skip" data-jgoto="wizard">↺ Redo my answers</button>' +
@@ -456,14 +549,32 @@
         '</div>';
     }).join('');
 
-    var maxMo = Math.max.apply(null, R.paths.map(function (p) { return p.mo; }).concat([1]));
+    // Time-axis timeline: each path is a dot at its buy-ready month, not a bar
+    var maxMo = Math.max.apply(null, R.paths.map(function (p) { return p.mo; }).concat([6]));
+    var scaleMo = Math.ceil(maxMo * 1.08); // breathing room so the last dot isn't flush right
+    var monthLabel = function (mo) {
+      var d = new Date(); d.setMonth(d.getMonth() + mo);
+      return d.toLocaleDateString('en-AU', { month: 'short', year: '2-digit' }).replace(' ', ' ’');
+    };
+    var pos = function (mo) { return Math.min(100, Math.max(0, mo / scaleMo * 100)); };
     var bars = document.getElementById('jbars');
-    if (bars) bars.innerHTML = R.paths.map(function (p) {
-      var w = p.mo <= 0 ? 4 : Math.max(6, Math.round(p.mo / maxMo * 100));
-      return '<div class="jbar-row"><span class="nm">' + esc(p.name) + '</span>' +
-        '<span class="jrail"><span class="jfill' + (p.mo <= 0 ? ' zero' : '') + '" style="width:' + w + '%"></span></span>' +
-        '<span class="jbar-val">' + (p.mo <= 0 ? 'now' : p.mo + ' months') + '</span></div>';
-    }).join('');
+    if (bars) {
+      var goalMo = TF_MONTHS[P.timeframe] || null;
+      var midMo = Math.round(scaleMo / 2);
+      var ticks = '<span class="jtl-tick" style="left:0">Now</span>' +
+        (midMo >= 2 ? '<span class="jtl-tick" style="left:50%">' + monthLabel(midMo) + '</span>' : '') +
+        '<span class="jtl-tick" style="left:100%">' + monthLabel(scaleMo) + '</span>' +
+        (goalMo && goalMo <= scaleMo && Math.abs(pos(goalMo) - 50) > 9 && pos(goalMo) > 9 && pos(goalMo) < 91
+          ? '<span class="jtl-tick jtl-goal" style="left:' + pos(goalMo).toFixed(1) + '%">your goal</span>' : '');
+      bars.innerHTML =
+        '<div class="jtl-axis"><span></span><span class="jtl-ticks">' + ticks + '</span><span></span></div>' +
+        R.paths.map(function (p) {
+          var cls = 'jtl-dot' + (p.mo <= 0 ? ' now' : '') + (p.best ? ' best' : '') + (p.warn ? ' inelig' : '');
+          return '<div class="jtl-row"><span class="nm">' + esc(p.name) + '</span>' +
+            '<span class="jtl-rail"><span class="' + cls + '" style="left:' + pos(p.mo).toFixed(1) + '%"></span></span>' +
+            '<span class="jtl-date' + (p.mo <= 0 ? ' now' : '') + '">' + (p.mo <= 0 ? 'Ready now' : p.buyBy) + '</span></div>';
+        }).join('');
+    }
 
     var read = document.getElementById('jread');
     if (read) {
@@ -475,6 +586,16 @@
       if (alt) txt += (b.mo <= 0 ? ',' : ' —') + ' versus ' + (alt.mo <= 0 ? 'now' : 'about ' + alt.mo + ' months') + ' on “' + esc(alt.name) + '”. ';
       else txt += '. ';
       txt += b.lmi ? 'It does carry ' + m$(b.lmi) + ' of LMI.' : 'It pays no lenders mortgage insurance.';
+      var goal = TF_MONTHS[P.timeframe];
+      if (goal) {
+        var tfLabel = { asap: 'as soon as possible', '6mo': 'within 6 months', '12mo': 'within a year', '2yr': 'in 1–2 years' }[P.timeframe];
+        if (b.mo <= goal) txt += ' That fits your goal of buying ' + tfLabel + '.';
+        else {
+          txt += ' Your goal is to buy ' + tfLabel + ' — this path lands about ' + (b.mo - goal) + ' month' + (b.mo - goal > 1 ? 's' : '') + ' past that';
+          var extra = Math.ceil(Math.max(0, (b.need - S.numbers.saved) / Math.max(1, goal)) - S.numbers.saveMo);
+          txt += extra > 0 ? ', unless you can lift saving to about ' + m$(S.numbers.saveMo + extra) + '/mo.' : '.';
+        }
+      }
       txt += ' The trade-offs: scheme places are limited each year, and a smaller deposit means a larger loan and higher repayments.';
       read.innerHTML = txt;
     }
@@ -515,8 +636,20 @@
       var label = share <= 0.30 ? 'comfortably inside the common 30%-of-income guide'
         : share <= 0.40 ? 'stretching past the 30%-of-income guide'
           : 'well above the 30%-of-income guide — most lenders would push back';
+      var rentLine = '';
+      if (P.rentNow > 0) {
+        var diff = assessed - P.rentNow;
+        rentLine = diff > 0
+          ? '<p style="font-size:14.5px;line-height:1.6;margin-top:8px">You pay <b class="mono-strong">' + m$(P.rentNow) + '/mo</b> in rent now — the tested repayment is <b class="mono-strong">' + m$(diff) + '/mo more</b>. If you can bank that difference each month starting today, you’re proving the repayment to yourself (and building deposit) before any lender asks.</p>'
+          : '<p style="font-size:14.5px;line-height:1.6;margin-top:8px">You pay <b class="mono-strong">' + m$(P.rentNow) + '/mo</b> in rent now — more than the tested repayment. You’re already living the payment; the deposit is the only gap.</p>';
+      }
+      var cardLine = '';
+      if (P.cardLimits > 0) {
+        cardLine = '<p style="font-size:14.5px;line-height:1.6;margin-top:8px">Your <b class="mono-strong">' + m$(P.cardLimits) + '</b> of credit-card limits costs you too: lenders assess card limits at about 3% a month (<b class="mono-strong">' + m$(P.cardLimits * 0.03) + '/mo</b>) even if the cards sit unused. Cutting limits you don’t need is the cheapest borrowing-power boost there is.</p>';
+      }
       html += '<section class="jcard jpad"><span class="jsc jblock">Honest affordability guide</span>' +
         '<p style="font-size:14.5px;line-height:1.6">On a 95% loan, a lender won’t test you at today’s ' + RATE.toFixed(2) + '% — they add a 3% buffer. At ' + (RATE + 3).toFixed(2) + '%, the tested repayment is <b class="mono-strong">' + m$(assessed) + '/mo</b>, which is <b class="mono-strong">' + Math.round(share * 100) + '%</b> of your gross monthly income — ' + label + '.</p>' +
+        rentLine + cardLine +
         '<p class="jcaveat" style="margin-top:8px">A guide only — real serviceability depends on expenses, debts and the lender’s own rules. Not financial advice.</p></section>';
     }
 
@@ -660,7 +793,7 @@
         track('journey_step_redo', { step: mn });
         refreshMarkButtons();
       } else {
-        markDone(mn);
+        requestMarkDone(mn);
       }
       return;
     }
@@ -677,7 +810,7 @@
     if (wopt) {
       var q = WQ[wStep];
       var raw = wopt.getAttribute('data-wopt');
-      var val = raw === 'true' ? true : raw === 'false' ? false : raw;
+      var val = raw === 'true' ? true : raw === 'false' ? false : (/^[0-9]+$/.test(raw) ? +raw : raw);
       wSet(q, val);
       wStep++;
       renderWizard();
@@ -700,6 +833,9 @@
   document.addEventListener('keydown', function (e) {
     if ((e.key === ' ' || e.key === 'Enter') && e.target.classList && e.target.classList.contains('jcheck')) { e.preventDefault(); e.target.click(); }
   });
+
+  var resetBtn = document.getElementById('jreset-btn');
+  if (resetBtn) resetBtn.addEventListener('click', resetJourney);
 
   if (isLoggedIn()) {
     var st = document.getElementById('jsaved-text');
