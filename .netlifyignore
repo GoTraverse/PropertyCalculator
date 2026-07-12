@@ -77,3 +77,4 @@ images/*.html
 
 # Node artefacts
 node_modules/
+images/og-journey-template.html

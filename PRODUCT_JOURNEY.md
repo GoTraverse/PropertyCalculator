@@ -303,6 +303,12 @@ settlement — skips unset dates) importable into Google/Apple/Outlook. The
 no-infrastructure half of pain #7; Resend email nudges remain Phase 1b.
 Unit-tested (event count, CRLF, DTSTART/DTEND); SW v32.
 
+### Phase 1a.12 — journey OG image (overnight, 12 Jul 2026)
+Dedicated 1200×630 social card at images/og/journey.png, rendered from
+images/og-journey-template.html (netlifyignored) in the house per-calculator
+OG style — charcoal, gold edge, stepping-stones motif (done/here/ahead).
+journey.html og:image + twitter:image updated; SW v33.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).

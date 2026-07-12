@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>journey og</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:1200px; height:630px; overflow:hidden; background:#1C1C1E;
+  font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+.edge { position:absolute; left:0; top:0; bottom:0; width:14px; background:#C9A84C; }
+.glow { position:absolute; right:0; top:0; bottom:0; width:380px;
+  background: radial-gradient(120% 90% at 100% 40%, rgba(201,168,76,0.16), rgba(201,168,76,0.03) 55%, transparent 75%); }
+.wrap { position:absolute; left:90px; right:90px; top:0; bottom:0; }
+.eyebrow { position:absolute; top:150px; color:#C9A84C; font-size:26px; font-weight:700;
+  letter-spacing:6px; text-transform:uppercase; }
+h1 { position:absolute; top:205px; color:#FAF7F0; font-size:88px; font-weight:800; letter-spacing:-1px; }
+.sub { position:absolute; top:328px; color:#9B958A; font-size:29px; font-weight:400; }
+.rule { position:absolute; left:0; right:0; bottom:100px; height:1px; background:rgba(250,247,240,0.16); }
+.brand { position:absolute; bottom:48px; left:0; color:#FAF7F0; font-size:30px; font-weight:700; }
+.brand span { color:#C9A84C; }
+.free { position:absolute; bottom:50px; right:0; color:#9B958A; font-size:26px; }
+.stops { position:absolute; top:408px; display:flex; gap:14px; align-items:center; }
+.stop { width:40px; height:40px; border-radius:50%; border:2px solid rgba(250,247,240,0.25);
+  color:rgba(250,247,240,0.55); font-size:19px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.stop.done { background:#7B9E87; border-color:#7B9E87; color:#fff; }
+.stop.here { background:#C9A84C; border-color:#C9A84C; color:#1C1C1E; box-shadow:0 0 0 7px rgba(201,168,76,0.22); }
+.dash { width:26px; height:2px; background:rgba(250,247,240,0.18); border-radius:1px; }
+</style>
+</head>
+<body>
+<div class="edge"></div>
+<div class="glow"></div>
+<div class="wrap">
+  <div class="eyebrow">Your first home, step by step</div>
+  <h1>The First Home Journey</h1>
+  <div class="sub">Schemes compared for your numbers · a real budget · every deadline tracked</div>
+  <div class="stops">
+    <div class="stop done">✓</div><div class="dash"></div>
+    <div class="stop done">✓</div><div class="dash"></div>
+    <div class="stop here">3</div><div class="dash"></div>
+    <div class="stop">4</div><div class="dash"></div>
+    <div class="stop">5</div><div class="dash"></div>
+    <div class="stop">6</div><div class="dash"></div>
+    <div class="stop">7</div>
+  </div>
+  <div class="rule"></div>
+  <div class="brand">EquitySight<span>.app</span>/journey</div>
+  <div class="free">Free · no signup to start</div>
+</div>
+</body>
+</html>
