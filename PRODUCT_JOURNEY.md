@@ -113,3 +113,49 @@ stays parked as a future layer — suburb data later enriches step 4).
 Jacoby's real purchase (next year) walks the steps as they ship. Every friction
 he hits is a roadmap item. Target: the app is one step ahead of his journey at
 all times.
+
+---
+
+## Build log
+
+### Phase 1a — scaffold SHIPPED (12 Jul 2026, this PR)
+Design locked from the approved v3 mockup: **stepping stones, no drawn path**,
+house rebrand styling (small-caps labels, sentence-case headings, 24×24
+stroke-1.6 line icons), stops alternating left/right (straight left rail on
+mobile).
+
+Files: `journey.html` · `journey.css` · `journey.js` (all public).
+
+What works now at `/journey`:
+- The trail: 7 stops, state-aware (done / you-are-here / ahead), progress bar.
+- Stop 1 auto-completes from the app draft (`propCalc_draft_v1`) when the
+  onboarding wizard has already collected numbers; price/savings/state are
+  pulled into the journey.
+- **Stop 2 — Scheme Pathway Projector v1**: editable numbers (price, saved,
+  saving/mo, state), pathways computed for all 8 states — Save-to-20%, First
+  Home Guarantee, 10%+LMI, and Boost to Buy (QLD only, until other states'
+  shared-equity schemes are verified). FHB stamp duty included in cash-needed
+  via a **sync copy** of the duty engine from `tools/stamp-duty-calculator.js`
+  (marked in-file; keep both in sync — same rule as the auction tool). Verified
+  against the calculator's reference figures (QLD $750k FHB = $10,925; 600k@6%
+  = $3,597/mo). "Strongest for you" chosen by soonest-to-buy, tie-broken by
+  LMI then repayment. Honest caveat block; "mark this stop done" milestone.
+- Stop 6 preview: checklist (persisted) + example deadline list.
+- Stops 3/4/5/7 deep-link to the existing tools.
+- State: `propCalc_journey_v1` (localStorage, guest-first). GA events:
+  `journey_view`, `projector_update`, `journey_step_done`.
+- Page is **noindex** until Phase 2 makes it the front door (flip robots +
+  add to sitemap-core in that PR).
+
+### Phase 1b — next (desktop session; can verify live)
+1. Extract the duty/LMI/repayment formulas into a shared module used by
+   journey.js + the calculators (kill the sync copy).
+2. Account sync for journey state (scenarios-function pattern) + guest→account
+   migration on signup.
+3. Eligibility checks in the projector (income caps, price caps per scheme/
+   state) — verified sources only, same rigour as #350.
+4. Stop 6 real dates: user-entered deadline dates, days-left computed, Resend
+   email nudges (7d / 48h).
+5. Stop 5: reframe the library as the inspection tracker inside the journey.
+6. Homepage CTA → /journey (Phase 2 gate) once 1b lands and the owner has
+   walked it on his own purchase.
