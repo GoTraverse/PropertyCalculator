@@ -67,7 +67,7 @@
 
   // ── The stops ────────────────────────────────────────────────────────
   var STOPS = [
-    { n: 1, icon: 'compass', title: 'Get your bearings', blurb: 'Your target price, savings, and situation — the wizard in the calculator collects this.', link: '/app', linkLabel: 'Open the setup wizard' },
+    { n: 1, icon: 'compass', title: 'Get your bearings', blurb: 'Four quick questions — where, how much, what you’ve saved, how fast you’re saving. That’s it.', view: 'wizard', cta: 'Start — about 60 seconds', milestone: 'You know your numbers.' },
     { n: 2, icon: 'signpost', title: 'Find your path', blurb: 'Which government scheme gets you in sooner — and what each really costs. Side by side, for your numbers.', view: 'projector', cta: 'Compare my scheme paths', milestone: 'You know your path.' },
     { n: 3, icon: 'wallet', title: 'Set your real budget', blurb: 'Borrowing power with the bank’s buffer, plus every upfront cost — including the solicitor.', link: '/tools/borrowing-power-calculator', linkLabel: 'Open borrowing power' },
     { n: 4, icon: 'pin', title: 'Pick your ground', blurb: 'Suburbs that fit your budget — and your life.', link: '/invest/qld/', linkLabel: 'Browse suburbs' },
@@ -281,6 +281,89 @@
     track('projector_update', { st: N.state, price: N.price });
   }
 
+  // ── Stop 1 wizard (native — four questions, one at a time) ──────────
+  var WQ = [
+    { id: 'state', q: 'Where are you looking to buy?', help: 'Stamp duty, concessions and schemes all change at the border — this drives everything after.' },
+    { id: 'price', q: 'What price are you aiming for?', help: 'A rough target is fine — you can change it any time.', cur: '$', def: 650000, min: 50000 },
+    { id: 'saved', q: 'How much have you saved so far?', help: 'Deposit savings only — don’t count your emergency buffer.', cur: '$', def: 60000, min: 0 },
+    { id: 'saveMo', q: 'How much can you put away each month?', help: 'Be honest rather than hopeful — the projections use this.', cur: '$', def: 2000, min: 0 }
+  ];
+  var wStep = 0;
+  var STATES = ['qld', 'nsw', 'vic', 'sa', 'wa', 'tas', 'act', 'nt'];
+
+  function renderWizard() {
+    var box = document.getElementById('jwizard');
+    if (!box) return;
+    if (wStep >= WQ.length) { renderWizardDone(); return; }
+    var q = WQ[wStep];
+    var dots = WQ.map(function (_, i) { return '<span class="jwiz-dot' + (i <= wStep ? ' on' : '') + '"></span>'; }).join('');
+    var body;
+    if (q.id === 'state') {
+      body = '<div class="jwiz-states">' + STATES.map(function (st) {
+        return '<button type="button" class="jwiz-state' + (S.numbers.state === st ? ' sel' : '') + '" data-wstate="' + st + '">' + st.toUpperCase() + '</button>';
+      }).join('') + '</div>';
+    } else {
+      var val = S.numbers[q.id] != null ? S.numbers[q.id] : q.def;
+      body = '<div class="jwiz-input-row"><span class="jwiz-cur">' + q.cur + '</span>' +
+        '<input class="jwiz-input" id="jwiz-in" type="text" inputmode="decimal" value="' + Number(val).toLocaleString('en-AU') + '" aria-label="' + esc(q.q) + '"></div>';
+    }
+    box.innerHTML = '<div class="jwiz-card">' +
+      '<div class="jwiz-dots">' + dots + '</div>' +
+      '<div class="jwiz-q">' + esc(q.q) + '</div>' +
+      '<p class="jwiz-help">' + esc(q.help) + '</p>' + body +
+      '<div class="jwiz-nav">' +
+      (wStep > 0 ? '<button type="button" class="jwiz-skip" id="jwiz-back">← Back</button>' : '<span></span>') +
+      (q.id === 'state' ? '<span class="jmins">tap your state</span>' : '<button type="button" class="jbtn" id="jwiz-next">Next</button>') +
+      '</div></div>';
+    var input = document.getElementById('jwiz-in');
+    if (input) {
+      input.focus();
+      try { input.setSelectionRange(0, input.value.length); } catch (e) {}
+      input.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); wizardNext(); } });
+    }
+    var nb = document.getElementById('jwiz-next');
+    if (nb) nb.addEventListener('click', wizardNext);
+    var bb = document.getElementById('jwiz-back');
+    if (bb) bb.addEventListener('click', function () { wStep = Math.max(0, wStep - 1); renderWizard(); });
+    track('journey_wizard_step', { step: wStep });
+  }
+
+  function wizardNext() {
+    var q = WQ[wStep];
+    if (q.id !== 'state') {
+      var input = document.getElementById('jwiz-in');
+      var n = parseNum(input ? input.value : '');
+      if (!(n >= q.min)) { if (input) { input.focus(); input.style.borderBottomColor = 'var(--terracotta)'; setTimeout(function () { input.style.borderBottomColor = ''; }, 1200); } return; }
+      S.numbers[q.id] = Math.round(n);
+      save();
+    }
+    wStep++;
+    renderWizard();
+  }
+
+  function renderWizardDone() {
+    S.done[1] = true;
+    if (S.numbers.saveMo < 1) S.numbers.saveMo = 1;
+    save();
+    track('journey_wizard_done', {});
+    var box = document.getElementById('jwizard');
+    var N = S.numbers;
+    box.innerHTML = '<div class="jwiz-card">' +
+      '<div class="jwiz-done-icon">' + IC.check + '</div>' +
+      '<div class="jwiz-q">That’s your bearings.</div>' +
+      '<p class="jwiz-help">First milestone reached — you know your numbers. Next comes the one most buyers never find out: which government scheme path suits <em>your</em> situation.</p>' +
+      '<div class="jwiz-summary">' +
+      '<span class="chip jsc">' + N.state.toUpperCase() + '</span>' +
+      '<span class="chip">Target <b class="v" style="font-family:var(--font-mono)">$' + N.price.toLocaleString('en-AU') + '</b></span>' +
+      '<span class="chip">Saved <b style="font-family:var(--font-mono)">$' + N.saved.toLocaleString('en-AU') + '</b></span>' +
+      '<span class="chip">Saving <b style="font-family:var(--font-mono)">$' + N.saveMo.toLocaleString('en-AU') + '/mo</b></span>' +
+      '</div>' +
+      '<div class="jwiz-nav" style="margin-top:22px">' +
+      '<button type="button" class="jwiz-skip" data-jgoto="home">Back to the journey</button>' +
+      '<button type="button" class="jbtn" data-jgoto="projector">Next stop: find your path →</button>' +
+      '</div></div>';
+  }
+
   // ── Stop 6 checklist ─────────────────────────────────────────────────
   var DEAL_CHECKS = [
     ['Send the contract to your solicitor', 'Budget $1,300–$2,200 — the cost that surprises everyone'],
@@ -300,12 +383,13 @@
   }
 
   // ── View switching + events ──────────────────────────────────────────
-  var VIEWS = { home: 'jv-home', projector: 'jv-projector', deal: 'jv-deal' };
+  var VIEWS = { home: 'jv-home', wizard: 'jv-wizard', projector: 'jv-projector', deal: 'jv-deal' };
   function show(view) {
     Object.keys(VIEWS).forEach(function (k) {
       var el = document.getElementById(VIEWS[k]);
       if (el) el.classList.toggle('active', k === view);
     });
+    if (view === 'wizard') { wStep = 0; renderWizard(); }
     if (view === 'projector') renderProjector();
     if (view === 'deal') renderDealChecks();
     if (view === 'home') renderTrail();
@@ -323,6 +407,14 @@
       var i = +chk.getAttribute('data-check');
       S.dealChecks[i] = !S.dealChecks[i];
       save(); renderDealChecks();
+      return;
+    }
+    var ws = e.target.closest('[data-wstate]');
+    if (ws) {
+      S.numbers.state = ws.getAttribute('data-wstate');
+      save();
+      wStep++;
+      renderWizard();
       return;
     }
   });
