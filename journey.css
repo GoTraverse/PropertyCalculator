@@ -388,3 +388,16 @@ html.dark-mode .jplace-st.st-won { background: var(--sage); color: #14251a; }
 html.dark-mode .jcapdelta.under { color: var(--sage-light); }
 html.dark-mode .jcapdelta.over { color: var(--terracotta-light); }
 html.dark-mode .jplace-pick { border-color: rgba(245,240,232,0.1); }
+
+/* ── v7: worked scenarios ────────────────────────────────────── */
+.jscen-list { display: flex; flex-direction: column; }
+.jscen-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
+.jscen-row:first-child { border-top: none; }
+.jscen-main { flex: 1; min-width: 0; }
+.jscen-name { font-weight: 600; font-size: 14px; color: var(--charcoal); }
+.jscen-meta { font-size: 12px; color: var(--slate); margin-top: 2px; line-height: 1.5; }
+.jscen-btn { padding: 8px 14px; flex: none; }
+#jscen-slot .jsignup { margin-top: 14px; }
+html.dark-mode .jscen-name { color: var(--cream); }
+html.dark-mode .jscen-meta { color: rgba(245,240,232,0.62); }
+html.dark-mode .jscen-row { border-color: rgba(245,240,232,0.1); }

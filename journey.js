@@ -46,6 +46,7 @@
       dealChecks: [false, false, false, false, false],
       settleChecks: [false, false, false, false, false],
       inspections: [],
+      scenarios: [],
       budget: { depositPct: null, cap: null },
       deal: { signed: false, dates: {} },
       signupDismissed: false,
@@ -67,6 +68,7 @@
           if (!r.st) r.st = ['inspected', 'shortlist', 'passed'][r.v] || 'inspected';
         });
         s.budget = s.budget || b.budget;
+        s.scenarios = s.scenarios || [];
         s.deal = s.deal || b.deal;
         s.deal.dates = s.deal.dates || {};
         if (typeof s.signupDismissed !== 'boolean') s.signupDismissed = false;
@@ -279,6 +281,7 @@
     renderSignupCard();
     if (typeof renderShareCard === 'function') renderShareCard();
     if (typeof renderPlacesSummary === 'function') renderPlacesSummary();
+    if (typeof renderScenSummary === 'function') renderScenSummary();
 
     var html = STOPS.map(function (s, i) {
       var side = i % 2 === 0 ? 'left' : 'right';
@@ -668,7 +671,64 @@
       txt += ' The trade-offs: scheme places are limited each year, and a smaller deposit means a larger loan and higher repayments.';
       read.innerHTML = txt;
     }
+    renderScenarios(R);
     track('projector_update', { st: N.state, price: N.price });
+  }
+
+  // ── Scenarios: saved projector runs, compared side by side ──────────
+  // The owner's architecture: one journey → many worked scenarios. Each is a
+  // snapshot of the inputs + the best path at save time; Load restores the
+  // inputs and the projector recomputes live.
+  function scenName() {
+    var N = S.numbers, P = S.profile;
+    return N.state.toUpperCase() + ' ' + m$(N.price) + (P.fhb ? '' : ' · not first home');
+  }
+  function renderScenarios(R) {
+    var box = document.getElementById('jscen');
+    if (!box) return;
+    var rows = S.scenarios.map(function (sc, i) {
+      return '<div class="jscen-row">' +
+        '<div class="jscen-main"><div class="jscen-name">' + esc(sc.name) + '</div>' +
+        '<div class="jscen-meta">' + esc(sc.bestName) + ' · ' + (sc.mo <= 0 ? 'ready now' : 'ready ' + esc(sc.buyBy)) + ' · ' + m$(sc.rep) + '/mo · needs ' + m$(sc.need) + ' · saved ' + m$(sc.saved) + ' at ' + m$(sc.saveMo) + '/mo</div></div>' +
+        '<button type="button" class="jbtn quiet jscen-btn" data-scen-load="' + i + '">Load</button>' +
+        '<button type="button" class="jinsp-del" data-scen-del="' + i + '" aria-label="Delete scenario">×</button>' +
+        '</div>';
+    }).join('');
+    box.innerHTML = '<div class="jcard jpad">' +
+      '<span class="jsc jblock">Worked scenarios</span>' +
+      (rows ? '<div class="jscen-list">' + rows + '</div>'
+        : '<p class="jcaveat" style="margin-top:2px">Save this run and try another — a different price, state or savings rate. Each saved scenario keeps its numbers so you can compare the versions of your plan side by side.</p>') +
+      '<div class="jwiz-nav" style="margin-top:12px"><span class="jmins">' + (S.scenarios.length ? S.scenarios.length + ' of 12 saved' : '') + '</span>' +
+      '<button type="button" class="jbtn" id="jscen-save"' + (S.scenarios.length >= 12 ? ' disabled' : '') + '>Save this as a scenario</button></div>' +
+      '</div>';
+    var sb = document.getElementById('jscen-save');
+    if (sb) sb.addEventListener('click', function () {
+      if (RO || S.scenarios.length >= 12) return;
+      var N = S.numbers, P = S.profile, b = R.best;
+      S.scenarios.unshift({
+        name: scenName(),
+        at: Date.now(),
+        numbers: { price: N.price, saved: N.saved, saveMo: N.saveMo, state: N.state },
+        profile: { fhb: P.fhb, area: P.area, buyers: P.buyers, build: P.build, income: P.income },
+        bestName: b.name, mo: b.mo, buyBy: b.buyBy, rep: Math.round(b.rep), need: Math.round(b.need),
+        saved: N.saved, saveMo: N.saveMo
+      });
+      S.scenarios = S.scenarios.slice(0, 12);
+      save();
+      renderScenarios(R);
+      track('journey_scenario_saved', { st: N.state });
+    });
+  }
+
+  function renderScenSummary() {
+    var slot = document.getElementById('jscen-slot');
+    if (!slot) return;
+    if (!S.scenarios.length) { slot.innerHTML = ''; return; }
+    var latest = S.scenarios[0];
+    slot.innerHTML = '<div class="jcard jpad jsignup"><div>' +
+      '<span class="jsc jblock">Your scenarios</span>' +
+      '<p><b>' + S.scenarios.length + '</b> worked scenario' + (S.scenarios.length > 1 ? 's' : '') + ' — latest: ' + esc(latest.name) + ' via ' + esc(latest.bestName) + '.</p></div>' +
+      '<div class="jsignup-actions"><button type="button" class="jbtn quiet" data-jgoto="projector">Compare paths</button></div></div>';
   }
 
   // ── Stop 3: budget wizard → a committed walk-away number ────────────
@@ -1167,7 +1227,7 @@
   }
 
   document.addEventListener('click', function (e) {
-    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-place-set],[data-insp-del],[data-bdep],#jreset-btn')) return;
+    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-place-set],[data-insp-del],[data-bdep],[data-scen-load],[data-scen-del],#jreset-btn')) return;
     var go = e.target.closest('[data-jgoto]');
     if (go) { show(go.getAttribute('data-jgoto')); return; }
     var mk = e.target.closest('[data-jmark]');
@@ -1200,6 +1260,32 @@
       wSet(q, val);
       wStep++;
       renderWizard();
+      return;
+    }
+    var sl = e.target.closest('[data-scen-load]');
+    if (sl) {
+      var si = +sl.getAttribute('data-scen-load');
+      var sc = S.scenarios[si];
+      if (sc) {
+        S.numbers.price = sc.numbers.price; S.numbers.saved = sc.numbers.saved;
+        S.numbers.saveMo = sc.numbers.saveMo; S.numbers.state = sc.numbers.state;
+        S.profile.fhb = sc.profile.fhb; S.profile.area = sc.profile.area;
+        S.profile.buyers = sc.profile.buyers; S.profile.build = sc.profile.build;
+        S.profile.income = sc.profile.income;
+        save();
+        renderProjector();
+        track('journey_scenario_loaded', {});
+        try { window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } catch (err) { window.scrollTo(0, 0); }
+      }
+      return;
+    }
+    var sd = e.target.closest('[data-scen-del]');
+    if (sd) {
+      S.scenarios.splice(+sd.getAttribute('data-scen-del'), 1);
+      save();
+      var jsc = document.getElementById('jscen');
+      if (jsc && document.getElementById('jv-projector').classList.contains('active')) renderProjector();
+      renderScenSummary();
       return;
     }
     var pf = e.target.closest('[data-place-filter]');

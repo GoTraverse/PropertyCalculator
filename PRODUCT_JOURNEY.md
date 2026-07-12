@@ -220,6 +220,17 @@ live inside it — scenarios (later) and the **places library** (this round).
   pre-merge routine after the v3 modal[hidden] regression proved DOM-stub
   tests can't catch CSS conflicts.
 
+### Phase 1a.7 — worked scenarios (12 Jul 2026)
+The second multi-item layer of the owner's architecture (journey → scenarios
++ places): the projector gains **"Save this as a scenario"** — a snapshot of
+the inputs + best path (name auto-derived, e.g. "QLD $650,000"). Saved
+scenarios list under the projector with best-path/ready-date/repayment/cash
+meta, **Load** (restores the inputs, projector recomputes live) and delete;
+capped at 12 (sync blob budget); a "Your scenarios" card on the trail home.
+RO-guarded for shared views; rides along in account sync automatically.
+Harness now mirrors the real projector markup (its earlier simplified copy
+hid the strip — fidelity rule: harness views must match journey.html).
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
