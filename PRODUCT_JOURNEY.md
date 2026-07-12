@@ -326,6 +326,14 @@ couples) + time-to-release-cap at the buyer's own save rate (pure
 arithmetic). Tax edge explicitly NOT estimated — ATO + grants-calculator
 links instead. SW v35.
 
+### Phase 1a.15 — stop-7 final-costs reconciliation (overnight, 12 Jul 2026)
+'The final dollars': final purchase price (auto-filled from the Won place
+→ cap → target, editable) with duty recomputed by the engine at that
+price; 'we carried vs you paid' rows (duty exact, $3,500 legals carried,
+B&P + loan-fee ranges) with actual-$ inputs persisted in S.settle; totals
++ over/under verdict once 2+ actuals entered. Pain #8 closed end-to-end.
+RO-disabled inputs; SW v36.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
