@@ -1137,10 +1137,19 @@
         ? filters + '<div class="jinsp-list">' + rows + '</div>'
         : '<p class="jcaveat" style="margin-top:12px">Nothing here yet. Log every place — even the ones you only browsed online. The pattern of what you keep passing on teaches you what you actually want. Write the honest note before the car leaves the street.</p>') +
       '</section>' +
-      '<section class="jcard jpad"><span class="jsc jblock">Before any auction</span>' +
+      '<section class="jcard jpad"><span class="jsc jblock">When you\u2019re ready to make a move</span>' +
       (S.budget.cap
-        ? '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Your walk-away number is <b class="mono-strong">' + m$(S.budget.cap) + '</b> — you set it at stop 3, calmly. Write it down the night before and don\u2019t let the room move it a dollar. Lost one? Mark it \u201cLost auction\u201d and keep the note — it sharpens the next bid.</p>'
-        : '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Set your walk-away number at stop 3 first — decided in writing, when you\u2019re calm, it\u2019s the number the auction room can\u2019t argue with.</p>') + '</section>' +
+        ? '<p class="joffer-cap">Your walk-away number: <b class="mono-strong">' + m$(S.budget.cap) + '</b> — set at stop 3, calmly. It rules both roads below.</p>'
+        : '<p class="joffer-cap">Set your walk-away number at stop 3 first — both roads below start from it.</p>') +
+      '<div class="joffer-grid">' +
+      '<div><h3 class="joffer-h">Private sale</h3>' +
+      '<p>Open below your cap so there\u2019s room to move — and anchor to what the suburb\u2019s verified median says (stop 4), not the listing price. Your finance and building-and-pest clauses are your safety net; waiving them to look stronger is a conversation for your solicitor, not the agent.</p></div>' +
+      '<div><h3 class="joffer-h">At auction</h3>' +
+      '<p>The fall of the hammer is unconditional — building &amp; pest and loan approval happen BEFORE the day, not after. Register early, bring the cap in writing, and let someone else win anything above it. Lost one? Mark it \u201cLost auction\u201d above and keep the note — it sharpens the next bid.</p></div>' +
+      '</div>' +
+      '<div class="jwiz-nav" style="margin-top:14px"><span class="jmins">Bid steps and a printable auction-day plan:</span>' +
+      '<a class="jbtn quiet" href="/tools/auction-budget-calculator">Build my auction-day plan</a></div>' +
+      '</section>' +
       '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">' +
       (won ? 'You found it — ' + esc(won.addr) + '.' : 'You found it.') +
       '</div></div>' +
