@@ -354,6 +354,15 @@ charcoal (invisible), muted place-status pills unreadable, and the
 stop-7 reconcile labels/'we carried' column too dim. Mobile-width pass
 clean (500px floor noted in harness docs). SW v39.
 
+### Phase 1a.19 — shared duty-engine module: consciously SKIPPED (overnight)
+Assessed and deliberately not attempted unattended: the drift risk the
+module would solve is already neutralised by tests/duty-sync-test.js; the
+8 state stamp-duty pages carry their own per-state math (not copies of
+the all-states engine), so consolidation would cover only 3 of 11 duty
+surfaces; and the refactor touches the SEO-critical calculator page.
+Stays reserved for a desktop session that can verify the live pages
+(Phase 1b item 1).
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
