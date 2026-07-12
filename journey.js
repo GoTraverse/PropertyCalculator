@@ -62,6 +62,10 @@
         for (var pk in b.profile) if (!(pk in s.profile)) s.profile[pk] = b.profile[pk];
         s.settleChecks = s.settleChecks || b.settleChecks;
         s.inspections = s.inspections || [];
+        // places library migration: verdict index (v) → status key (st)
+        s.inspections.forEach(function (r) {
+          if (!r.st) r.st = ['inspected', 'shortlist', 'passed'][r.v] || 'inspected';
+        });
         s.budget = s.budget || b.budget;
         s.deal = s.deal || b.deal;
         s.deal.dates = s.deal.dates || {};
@@ -150,7 +154,7 @@
     { n: 2, icon: 'signpost', title: 'Find your path', view: 'projector', cta: 'Compare my scheme paths', blurb: 'Which government scheme gets you in sooner — and what each really costs. Side by side, for your exact situation.', milestone: 'You know your path.' },
     { n: 3, icon: 'wallet', title: 'Set your real budget', view: 'budget', cta: 'Set my walk-away number', blurb: 'Every upfront cost — including the solicitor — an honest income check, and one committed walk-away number.', milestone: 'You have a real budget.' },
     { n: 4, icon: 'pin', title: 'Pick your ground', view: 'ground', cta: 'Work out where', blurb: 'The price band your budget really buys, and how to shortlist suburbs around the life you already have.', milestone: 'You know where.' },
-    { n: 5, icon: 'search', title: 'Hunt & compare', view: 'hunt', cta: 'Track my inspections', blurb: 'Log every place you inspect, keep honest notes, and shortlist without the rose-tinted glasses.', milestone: 'You found it.' },
+    { n: 5, icon: 'search', title: 'Hunt & compare', view: 'hunt', cta: 'Open my places library', blurb: 'Every place you browse, inspect or bid on — one honest library, compared against your cap.', milestone: 'You found it.' },
     { n: 6, icon: 'pen', title: 'Seal the deal', view: 'deal', cta: 'Track my deadlines', blurb: 'Contract signed — now every deadline matters. Enter the dates from your contract; we keep count on every one.', milestone: 'Contract signed.' },
     { n: 7, icon: 'key', title: 'Settle & move in', view: 'settle', cta: 'The final stretch', blurb: 'Settlement day checklist and the last dollars — then the keys are yours.', milestone: 'Keys in hand.' }
   ];
@@ -274,6 +278,7 @@
 
     renderSignupCard();
     if (typeof renderShareCard === 'function') renderShareCard();
+    if (typeof renderPlacesSummary === 'function') renderPlacesSummary();
 
     var html = STOPS.map(function (s, i) {
       var side = i % 2 === 0 ? 'left' : 'right';
@@ -845,50 +850,121 @@
       '<button class="jbtn" data-jmark="4">Mark this stop done</button></section>';
   }
 
-  // ── Stop 5: hunt & compare (native inspection tracker v1) ────────────
-  var VERDICTS = ['Looking', 'Shortlist', 'Pass'];
+  // ── Stop 5: the places library ───────────────────────────────────────
+  // One library for the whole hunt: everything browsed, inspected, offered
+  // on, lost at auction or won — the owner's "portfolio of places".
+  var PLACE_STATUSES = [
+    ['browsed', 'Browsed'],
+    ['inspected', 'Inspected'],
+    ['shortlist', 'Shortlist'],
+    ['offer', 'Offer made'],
+    ['lost', 'Lost auction'],
+    ['passed', 'Passed'],
+    ['won', 'Won']
+  ];
+  var PLACE_LABEL = {};
+  PLACE_STATUSES.forEach(function (s) { PLACE_LABEL[s[0]] = s[1]; });
+  function placeSt(r) { return r.st || ['inspected', 'shortlist', 'passed'][r.v] || 'inspected'; }
+  var _huntFilter = 'all';
+  var _huntOpen = -1;
+
+  function capDelta(price) {
+    var cap = S.budget.cap;
+    if (!cap || !price) return '';
+    var diff = price - cap;
+    if (diff > 0) return ' <span class="jcapdelta over">' + m$(diff) + ' over your cap</span>';
+    return ' <span class="jcapdelta under">under cap</span>';
+  }
+
   function renderHunt() {
     var box = document.getElementById('jhunt');
     if (!box) return;
+    if (_huntOpen >= S.inspections.length) _huntOpen = -1;
+
+    var counts = { all: S.inspections.length };
+    S.inspections.forEach(function (r) { var k = placeSt(r); counts[k] = (counts[k] || 0) + 1; });
+    if (!counts[_huntFilter]) _huntFilter = 'all';
+
+    var filters = '<div class="jplace-filters">' +
+      [['all', 'All']].concat(PLACE_STATUSES).map(function (s) {
+        if (s[0] !== 'all' && !counts[s[0]]) return '';
+        return '<button type="button" class="jplace-filter' + (_huntFilter === s[0] ? ' sel' : '') + '" data-place-filter="' + s[0] + '">' +
+          s[1] + ' <b>' + (counts[s[0]] || 0) + '</b></button>';
+      }).join('') + '</div>';
+
     var rows = S.inspections.map(function (r, i) {
-      return '<div class="jinsp">' +
+      var st = placeSt(r);
+      if (_huntFilter !== 'all' && st !== _huntFilter) return '';
+      var picker = '';
+      if (_huntOpen === i) {
+        picker = '<div class="jplace-pick">' + PLACE_STATUSES.map(function (s) {
+          return '<button type="button" class="jplace-pick-chip st-' + s[0] + (st === s[0] ? ' sel' : '') + '" data-place-set="' + i + ':' + s[0] + '">' + s[1] + '</button>';
+        }).join('') + '</div>';
+      }
+      return '<div class="jinsp' + (st === 'passed' || st === 'lost' ? ' muted' : '') + '">' +
         '<div class="jinsp-main"><div class="jinsp-addr">' + esc(r.addr) + '</div>' +
-        '<div class="jinsp-meta">' + (r.price ? m$(r.price) + ' · ' : '') + esc(r.note || '') + '</div></div>' +
-        '<button type="button" class="jverdict v' + r.v + '" data-insp-verdict="' + i + '">' + VERDICTS[r.v] + '</button>' +
+        '<div class="jinsp-meta">' + (r.price ? m$(r.price) + capDelta(r.price) + (r.note ? ' · ' : '') : '') + esc(r.note || '') + '</div></div>' +
+        '<button type="button" class="jplace-st st-' + st + '" data-place-status="' + i + '" aria-expanded="' + (_huntOpen === i) + '">' + PLACE_LABEL[st] + ' ▾</button>' +
         '<button type="button" class="jinsp-del" data-insp-del="' + i + '" aria-label="Remove">×</button>' +
-        '</div>';
+        '</div>' + picker;
     }).join('');
+
+    var won = null;
+    for (var w = 0; w < S.inspections.length; w++) if (placeSt(S.inspections[w]) === 'won') { won = S.inspections[w]; break; }
+
     box.innerHTML =
-      '<section class="jcard jpad"><span class="jsc jblock">Log an inspection</span>' +
+      '<section class="jcard jpad"><span class="jsc jblock">Add a place</span>' +
       '<form id="jinsp-form" class="jinsp-form">' +
       '<input type="text" id="jinsp-addr" placeholder="12 Example St, Suburb" aria-label="Address" required>' +
       '<input type="text" id="jinsp-price" inputmode="decimal" placeholder="Asking $" aria-label="Asking price">' +
       '<input type="text" id="jinsp-note" placeholder="One honest note (the flaw you noticed)" aria-label="Note">' +
       '<button type="submit" class="jbtn">Add</button>' +
       '</form>' +
-      (rows ? '<div class="jinsp-list">' + rows + '</div>' : '<p class="jcaveat" style="margin-top:12px">Nothing logged yet. After every inspection, write the honest note before the car leaves the street — that’s the one you’ll trust later.</p>') +
+      (S.inspections.length
+        ? filters + '<div class="jinsp-list">' + rows + '</div>'
+        : '<p class="jcaveat" style="margin-top:12px">Nothing here yet. Log every place — even the ones you only browsed online. The pattern of what you keep passing on teaches you what you actually want. Write the honest note before the car leaves the street.</p>') +
       '</section>' +
       '<section class="jcard jpad"><span class="jsc jblock">Before any auction</span>' +
       (S.budget.cap
-        ? '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Your walk-away number is <b class="mono-strong">' + m$(S.budget.cap) + '</b> — you set it at stop 3, calmly. Write it down the night before and don’t let the room move it a dollar.</p>'
-        : '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Set your walk-away number at stop 3 first — decided in writing, when you’re calm, it’s the number the auction room can’t argue with.</p>') + '</section>' +
-      '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You found it.</div></div>' +
+        ? '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Your walk-away number is <b class="mono-strong">' + m$(S.budget.cap) + '</b> — you set it at stop 3, calmly. Write it down the night before and don\u2019t let the room move it a dollar. Lost one? Mark it \u201cLost auction\u201d and keep the note — it sharpens the next bid.</p>'
+        : '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Set your walk-away number at stop 3 first — decided in writing, when you\u2019re calm, it\u2019s the number the auction room can\u2019t argue with.</p>') + '</section>' +
+      '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">' +
+      (won ? 'You found it — ' + esc(won.addr) + '.' : 'You found it.') +
+      '</div></div>' +
       '<button class="jbtn" data-jmark="5">Mark this stop done</button></section>';
+
     var f = document.getElementById('jinsp-form');
     if (f) f.addEventListener('submit', function (e) {
       e.preventDefault();
+      if (RO) return;
       var addr = (document.getElementById('jinsp-addr').value || '').trim();
       if (!addr) return;
       S.inspections.unshift({
         addr: addr.slice(0, 120),
         price: parseNum(document.getElementById('jinsp-price').value) || 0,
         note: (document.getElementById('jinsp-note').value || '').trim().slice(0, 160),
-        v: 0
+        st: 'inspected'
       });
-      S.inspections = S.inspections.slice(0, 40);
-      save(); renderHunt();
-      track('journey_inspection_added', {});
+      S.inspections = S.inspections.slice(0, 50);
+      _huntOpen = -1;
+      save(); renderHunt(); renderPlacesSummary();
+      track('journey_place_added', {});
     });
+  }
+
+  // Compact library summary on the trail home.
+  function renderPlacesSummary() {
+    var slot = document.getElementById('jplaces-slot');
+    if (!slot) return;
+    if (!S.inspections.length) { slot.innerHTML = ''; return; }
+    var counts = {};
+    S.inspections.forEach(function (r) { var k = placeSt(r); counts[k] = (counts[k] || 0) + 1; });
+    var bits = PLACE_STATUSES.filter(function (s) { return counts[s[0]]; })
+      .map(function (s) { return '<b>' + counts[s[0]] + '</b> ' + (counts[s[0]] === 1 ? s[1].toLowerCase() : (s[0] === 'browsed' ? 'browsed' : s[0] === 'inspected' ? 'inspected' : s[0] === 'shortlist' ? 'shortlisted' : s[0] === 'offer' ? 'offers made' : s[0] === 'lost' ? 'lost at auction' : s[0] === 'passed' ? 'passed on' : 'won')); });
+    slot.innerHTML = '<div class="jcard jpad jsignup"><div>' +
+      '<span class="jsc jblock">Your places</span>' +
+      '<p>' + bits.join(' · ') + '</p></div>' +
+      '<div class="jsignup-actions"><button type="button" class="jbtn quiet" data-jgoto="hunt">Open the library</button></div></div>';
   }
 
   // ── Stops 6 & 7 checklists ───────────────────────────────────────────
@@ -1091,7 +1167,7 @@
   }
 
   document.addEventListener('click', function (e) {
-    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-insp-verdict],[data-insp-del],[data-bdep],#jreset-btn')) return;
+    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-place-set],[data-insp-del],[data-bdep],#jreset-btn')) return;
     var go = e.target.closest('[data-jgoto]');
     if (go) { show(go.getAttribute('data-jgoto')); return; }
     var mk = e.target.closest('[data-jmark]');
@@ -1126,16 +1202,33 @@
       renderWizard();
       return;
     }
-    var vb = e.target.closest('[data-insp-verdict]');
-    if (vb) {
-      var vi = +vb.getAttribute('data-insp-verdict');
-      if (S.inspections[vi]) { S.inspections[vi].v = (S.inspections[vi].v + 1) % VERDICTS.length; save(); renderHunt(); }
+    var pf = e.target.closest('[data-place-filter]');
+    if (pf) { _huntFilter = pf.getAttribute('data-place-filter'); _huntOpen = -1; renderHunt(); return; }
+    var ps = e.target.closest('[data-place-status]');
+    if (ps) {
+      var pi = +ps.getAttribute('data-place-status');
+      _huntOpen = (_huntOpen === pi ? -1 : pi);
+      renderHunt();
+      return;
+    }
+    var pset = e.target.closest('[data-place-set]');
+    if (pset) {
+      var parts = pset.getAttribute('data-place-set').split(':');
+      var idx = +parts[0], key = parts[1];
+      if (S.inspections[idx] && PLACE_LABEL[key]) {
+        S.inspections[idx].st = key;
+        _huntOpen = -1;
+        save(); renderHunt(); renderPlacesSummary();
+        track('journey_place_status', { st: key });
+      }
       return;
     }
     var db = e.target.closest('[data-insp-del]');
     if (db) {
       var di = +db.getAttribute('data-insp-del');
-      S.inspections.splice(di, 1); save(); renderHunt();
+      S.inspections.splice(di, 1);
+      if (_huntOpen === di) _huntOpen = -1; else if (_huntOpen > di) _huntOpen--;
+      save(); renderHunt(); renderPlacesSummary();
       return;
     }
   });

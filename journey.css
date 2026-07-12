@@ -355,3 +355,36 @@ html.dark-mode .jcap { color: var(--cream); }
 #jmode-banner .jsignup { margin: 14px 0 4px; }
 #jshare-slot .jsignup { margin-top: 26px; }
 body.jro [data-jmark], body.jro #jreset-btn, body.jro .jreset-row, body.jro #jshare-slot, body.jro #jsignup-slot { display: none !important; }
+
+/* ── v6: places library (stop 5) ─────────────────────────────── */
+.jplace-filters { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 16px; }
+.jplace-filter { font-family: var(--font-body); font-size: 12px; padding: 6px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); color: var(--slate); cursor: pointer; }
+.jplace-filter b { font-family: var(--font-mono); font-weight: 600; font-size: 11px; }
+.jplace-filter.sel { background: var(--charcoal); border-color: var(--charcoal); color: var(--cream); }
+.jplace-st { font-family: var(--font-body); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; font-size: 13px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: var(--card); color: var(--slate); cursor: pointer; flex: none; }
+.jplace-st.st-shortlist { border-color: var(--gold); color: var(--gold-dark); background: rgba(201,168,76,0.1); }
+.jplace-st.st-offer { border-color: var(--gold-dark); color: var(--charcoal); background: rgba(201,168,76,0.22); }
+.jplace-st.st-lost { border-color: rgba(196,112,74,0.4); color: var(--terracotta); background: rgba(196,112,74,0.08); }
+.jplace-st.st-won { border-color: var(--sage); color: #fff; background: var(--sage); }
+.jplace-st.st-passed { color: var(--slate); }
+.jinsp.muted .jinsp-addr { color: var(--slate); text-decoration: line-through; text-decoration-thickness: 1px; }
+.jplace-pick { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 0 12px; border-bottom: 1px solid var(--border); }
+.jplace-pick-chip { font-family: var(--font-body); font-size: 12px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: var(--card); color: var(--charcoal); cursor: pointer; }
+.jplace-pick-chip:hover { border-color: var(--gold); }
+.jplace-pick-chip.sel { background: var(--charcoal); border-color: var(--charcoal); color: var(--cream); }
+.jplace-pick-chip.st-won:hover { border-color: var(--sage); }
+.jcapdelta { font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; }
+.jcapdelta.over { background: rgba(196,112,74,0.12); color: var(--terracotta); }
+.jcapdelta.under { background: rgba(123,158,135,0.14); color: var(--sage); }
+#jplaces-slot .jsignup { margin-top: 22px; }
+html.dark-mode .jplace-filter, html.dark-mode .jplace-st, html.dark-mode .jplace-pick-chip { background: #1F1F22; border-color: rgba(245,240,232,0.16); }
+html.dark-mode .jplace-filter { color: rgba(245,240,232,0.62); }
+html.dark-mode .jplace-pick-chip { color: var(--cream); }
+html.dark-mode .jplace-filter.sel, html.dark-mode .jplace-pick-chip.sel { background: var(--gold); border-color: var(--gold); color: var(--charcoal); }
+html.dark-mode .jplace-st.st-shortlist { color: var(--gold); }
+html.dark-mode .jplace-st.st-offer { color: var(--gold); background: rgba(201,168,76,0.16); }
+html.dark-mode .jplace-st.st-lost { color: var(--terracotta-light); }
+html.dark-mode .jplace-st.st-won { background: var(--sage); color: #14251a; }
+html.dark-mode .jcapdelta.under { color: var(--sage-light); }
+html.dark-mode .jcapdelta.over { color: var(--terracotta-light); }
+html.dark-mode .jplace-pick { border-color: rgba(245,240,232,0.1); }

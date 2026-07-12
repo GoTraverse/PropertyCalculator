@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>journey test harness</title>
+<script>
+// Seed BEFORE journey.js (defer) runs
+localStorage.setItem('propCalc_journey_v1', JSON.stringify({
+  v: 1,
+  done: { 1: true, 2: true, 3: true, 4: true },
+  numbers: { price: 650000, saved: 45000, saveMo: 2000, state: 'qld' },
+  profile: { stage: 'hunt', area: 'capital', buyers: 'couple', fhb: true, build: 'established', income: 145000, timeframe: '12mo', dependants: 0, employment: 'payg', rentNow: 2400, cardLimits: 0 },
+  budget: { depositPct: 0.05, cap: 640000 },
+  deal: { signed: false, dates: {} },
+  dealChecks: [false,false,false,false,false],
+  settleChecks: [false,false,false,false,false],
+  inspections: [
+    { addr: '14 Wattle St, Chermside', price: 655000, note: 'West-facing living room, gets hot', st: 'shortlist' },
+    { addr: '3/22 Banksia Ave, Kedron', price: 598000, note: 'Body corp $980/q', st: 'offer' },
+    { addr: '8 Coral Cres, Zillmere', price: 671000, note: 'Went $40k over reserve', st: 'lost' },
+    { addr: '112 Gympie Rd, Strathpine', price: 612000, note: 'Main road noise', st: 'passed' },
+    { addr: '5 Fern Pl, Aspley', price: 634000, note: 'Great yard, dated kitchen', st: 'inspected' },
+    { addr: '19 Melaleuca Dr, Bracken Ridge', price: 619000, note: 'Saw online only', st: 'browsed' },
+    { addr: '7 Cedar Ct, Boondall', price: 645000, note: 'Open home Saturday', st: 'browsed' }
+  ],
+  signupDismissed: true,
+  updatedAt: 1
+}));
+</script>
+<script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="journey.css">
+</head>
+<body class="journey-page">
+<main id="main-content" class="jwrap">
+  <div class="jview active" id="jv-home">
+    <header class="jgreet">
+      <span class="jsc jsc-gold">Your first home journey</span>
+      <h1>Seven stops between you and the keys.</h1>
+      <div class="jprogress"><span id="jprog-label"></span><span class="jprog-rail"><span class="jprog-fill" id="jprog-fill"></span></span><span class="jprog-pct" id="jprog-pct"></span></div>
+    </header>
+    <div id="jmode-banner"></div>
+    <div id="jsignup-slot"></div>
+    <div class="jtrail" id="jtrail"></div>
+    <div id="jplaces-slot"></div>
+    <p class="jsaved"><span class="jpip"></span> <span id="jsaved-text">Progress saves on this device.</span></p>
+    <div id="jshare-slot"></div>
+    <p class="jreset-row"><button type="button" class="jwiz-skip" id="jreset-btn">Start the whole journey over</button></p>
+  </div>
+  <div class="jview" id="jv-wizard"><div id="jwizard"></div></div>
+  <div class="jview" id="jv-projector"><div id="jctx-chips"></div><p id="jduty-note"></p><section id="jpaths"></section><div class="jbars" id="jbars"></div><div id="jread"></div></div>
+  <div class="jview" id="jv-budget"><div id="jbudget"></div></div>
+  <div class="jview" id="jv-ground"><div id="jground"></div></div>
+  <div class="jview" id="jv-hunt">
+    <div class="jstephead"><span class="jsc">Stop 5 · Hunt &amp; compare</span><h2>Every inspection, on the record</h2></div>
+    <div id="jhunt"></div>
+  </div>
+  <div class="jview" id="jv-settle"><div id="jsettle-checks"></div></div>
+  <div class="jview" id="jv-deal"><div id="jdeal"></div></div>
+</main>
+<div class="jmodal-overlay" id="jmodal" hidden>
+  <div class="jmodal" role="dialog" aria-modal="true" aria-labelledby="jmodal-title">
+    <div id="jmodal-icon" class="jmodal-icon" hidden></div>
+    <h2 id="jmodal-title"></h2><p id="jmodal-body"></p>
+    <div class="jmodal-btns" id="jmodal-btns"></div>
+  </div>
+</div>
+<script src="journey.js" defer></script>
+<script>
+window.addEventListener('load', function () {
+  var q = new URLSearchParams(location.search);
+  if (q.get('view') === 'hunt') {
+    setTimeout(function () {
+      var b = document.querySelector('#jplaces-slot [data-jgoto="hunt"]');
+      if (b) b.click();
+      setTimeout(function () {
+        var pill = document.querySelector('[data-place-status]');
+        if (pill && q.get('picker') === '1') pill.click();
+      }, 250);
+    }, 250);
+  }
+});
+</script>
+</body>
+</html>
