@@ -370,6 +370,20 @@ right-aligned, house small-caps group headers. Also removed the projector
 tagline ('Computed for your numbers…') per owner. Harness gained walk=1
 (auto-drives the full wizard to the done screen for screenshots). SW v40.
 
+### Phase 1a.21 — stop-2 decision layer (13 Jul 2026)
+Owner: 'this step needs to help the user work out which scheme will work
+for them'. Two additions: (1) 'What matters most to you?' re-ranker —
+soonest / lowest repayment / least 30-yr interest / never pay LMI / fully
+mine — re-picks the strongest path with priority-specific reasoning in
+'Our read' (verified: 'fully mine' flips H2B → 5% Deposit Scheme);
+persisted + synced as pathPriority. (2) 'Questions you're probably
+asking' accordion — 5% scheme catches (guarantee≠grant, their area's
+price cap, lender panel), H2B's later cost (capital-gain share, buyout,
+10k places), scheme stacking rules (FDS+H2B mutually exclusive), rate
+sensitivity computed live (+1% on THEIR best path), FHOG scope, how to
+decide. Facts mirrored from the verified grants page; figures computed
+per buyer. SW v41.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).

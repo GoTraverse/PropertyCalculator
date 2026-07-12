@@ -512,3 +512,22 @@ html.dark-mode .jrec-head .est, html.dark-mode .jrec-head .act { color: rgba(245
 html.dark-mode .jsum-row { border-color: rgba(245,240,232,0.1); }
 html.dark-mode .jsum-row .k { color: rgba(245,240,232,0.55); }
 html.dark-mode .jsum-row .v { color: var(--cream); }
+
+/* stop-2 decision layer: priority re-ranker + questions */
+.jprio-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.jprio-chip { font-family: var(--font-body); font-size: 13px; padding: 9px 14px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--card); color: var(--charcoal); cursor: pointer; }
+.jprio-chip:hover { border-color: var(--gold); }
+.jprio-chip.sel { background: var(--charcoal); border-color: var(--charcoal); color: var(--cream); font-weight: 600; }
+.jfaq-item { border-top: 1px solid var(--border); }
+.jfaq-item:first-of-type { border-top: none; }
+.jfaq-item summary { cursor: pointer; padding: 12px 0; font-size: 14.5px; font-weight: 600; color: var(--charcoal); list-style-position: outside; }
+.jfaq-item summary:hover { color: var(--gold-dark); }
+.jfaq-item p { font-size: 13.5px; line-height: 1.65; color: var(--slate); padding: 0 0 14px 18px; }
+.jfaq-item a { color: var(--gold-dark); text-decoration: underline; text-underline-offset: 2px; }
+html.dark-mode .jprio-chip { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
+html.dark-mode .jprio-chip.sel { background: var(--gold); border-color: var(--gold); color: var(--charcoal); }
+html.dark-mode .jfaq-item { border-color: rgba(245,240,232,0.1); }
+html.dark-mode .jfaq-item summary { color: var(--cream); }
+html.dark-mode .jfaq-item summary:hover { color: var(--gold); }
+html.dark-mode .jfaq-item p { color: rgba(245,240,232,0.65); }
+html.dark-mode .jfaq-item a { color: var(--gold); }
