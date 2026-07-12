@@ -176,8 +176,8 @@
     var ov = document.getElementById('jmodal');
     if (!ov) { if (opts.buttons && opts.buttons[0] && opts.buttons[0].cb) opts.buttons[0].cb(); return; }
     var iconEl = document.getElementById('jmodal-icon');
-    if (opts.icon) { iconEl.hidden = false; iconEl.className = 'jmodal-icon' + (opts.iconCls ? ' ' + opts.iconCls : ''); iconEl.innerHTML = opts.icon; }
-    else { iconEl.hidden = true; iconEl.innerHTML = ''; }
+    if (opts.icon) { iconEl.hidden = false; iconEl.style.display = 'grid'; iconEl.className = 'jmodal-icon' + (opts.iconCls ? ' ' + opts.iconCls : ''); iconEl.innerHTML = opts.icon; }
+    else { iconEl.hidden = true; iconEl.style.display = 'none'; iconEl.innerHTML = ''; }
     document.getElementById('jmodal-title').innerHTML = (opts.kicker ? '<span class="jsc jsc-line">' + esc(opts.kicker) + '</span>' : '') + esc(opts.title);
     document.getElementById('jmodal-body').textContent = opts.body || '';
     var btns = document.getElementById('jmodal-btns');
@@ -191,10 +191,11 @@
       btns.appendChild(el);
     });
     ov.hidden = false;
+    ov.style.display = 'grid';
     var first = btns.querySelector('.jbtn:not(.quiet):not(.danger)') || btns.firstChild;
     if (first) first.focus();
   }
-  function closeModal() { var ov = document.getElementById('jmodal'); if (ov) ov.hidden = true; }
+  function closeModal() { var ov = document.getElementById('jmodal'); if (ov) { ov.hidden = true; ov.style.display = 'none'; } }
   document.addEventListener('click', function (e) {
     var ov = document.getElementById('jmodal');
     if (ov && !ov.hidden && e.target === ov) closeModal();
