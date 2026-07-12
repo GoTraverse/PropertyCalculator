@@ -834,6 +834,7 @@ function showAdminTab(tab, btn){
     if (tab === 'blog'       && typeof loadBlogPosts    === 'function') loadBlogPosts();
     if (tab === 'moderation' && typeof modLoadReviews   === 'function') modLoadReviews();
     if (tab === 'suburbs'    && typeof loadSuburbsTab   === 'function') loadSuburbsTab();
+    if (tab === 'journeys'   && typeof loadJourneys    === 'function') loadJourneys();
   }
 }
 
@@ -3784,6 +3785,149 @@ function modSetKind(kind) {
     comBtn.setAttribute('aria-selected', kind === 'comments' ? 'true' : 'false');
   }
   modLoadReviews();
+}
+
+// ── User Journeys tab ─────────────────────────────────────────────────────
+async function callJourney(action, payload) {
+  try {
+    const r = await fetch('/.netlify/functions/journey', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ action }, payload || {}))
+    });
+    return await r.json();
+  } catch (e) {
+    return { ok: false, error: 'Network error — check your connection and try again.' };
+  }
+}
+
+const JOURNEY_STAGES = { start: 'Just starting', schemes: 'Comparing schemes', budget: 'Budget & lenders', ground: 'Choosing suburbs', hunt: 'Inspecting', deal: 'Contract signed' };
+const JOURNEY_STOPS = ['Get your bearings', 'Find your path', 'Set your real budget', 'Pick your ground', 'Hunt & compare', 'Seal the deal', 'Settle & move in'];
+
+function jFmtMoney(v) { return (v || v === 0) ? '$' + Math.round(v).toLocaleString('en-AU') : '—'; }
+function jFmtWhen(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+}
+
+async function loadJourneys() {
+  const wrap = document.getElementById('journeys-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading journeys…</div>';
+  const d = await callJourney('adminList');
+  if (!d.ok) {
+    wrap.innerHTML = '<div style="text-align:center;color:var(--terracotta);padding:24px;">✗ ' + escHtml(d.error || 'Failed to load journeys') + '</div>';
+    return;
+  }
+  if (!d.items.length) {
+    wrap.innerHTML = '<div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">No synced journeys yet — journeys appear here once a signed-in user visits /journey.</div>';
+    return;
+  }
+  let rows = '';
+  d.items.forEach(function (it) {
+    const prog = Math.round(it.doneCount / 7 * 100);
+    rows += '<tr>' +
+      '<td style="word-break:break-all;">' + escHtml(it.email) + (it.name ? '<br><span style="color:var(--slate);font-size:10px;">' + escHtml(it.name) + '</span>' : '') + '</td>' +
+      '<td>' + escHtml(JOURNEY_STAGES[it.stage] || '—') + '</td>' +
+      '<td><span style="font-family:var(--font-mono);font-size:11px;">' + it.doneCount + '/7</span> <span style="display:inline-block;width:56px;height:5px;border-radius:3px;background:rgba(28,28,30,0.1);vertical-align:middle;margin-left:4px;"><span style="display:block;width:' + prog + '%;height:100%;border-radius:3px;background:var(--gold);"></span></span>' + (it.signedContract ? ' <span style="font-size:10px;color:var(--sage);">✓ contract</span>' : '') + '</td>' +
+      '<td>' + (it.state ? it.state.toUpperCase() : '—') + '</td>' +
+      '<td style="font-family:var(--font-mono);font-size:11px;">' + jFmtMoney(it.price) + '</td>' +
+      '<td style="font-family:var(--font-mono);font-size:11px;">' + jFmtMoney(it.cap) + '</td>' +
+      '<td style="font-family:var(--font-mono);font-size:11px;">' + it.inspections + '</td>' +
+      '<td style="font-size:11px;color:var(--slate);">' + jFmtWhen(it.updatedAt) + '</td>' +
+      '<td><button class="btn-admin-outline journey-open-btn" data-email="' + escHtml(it.email) + '" style="font-size:10px;padding:5px 12px;">Open</button></td>' +
+      '</tr>';
+  });
+  wrap.innerHTML = '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr>' +
+    '<th>User</th><th>Stage</th><th>Progress</th><th>State</th><th>Target</th><th>Cap</th><th>Places</th><th>Updated</th><th></th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<div style="font-size:11px;color:var(--slate);margin-top:10px;">' + d.items.length + (d.total > d.items.length ? ' of ' + d.total : '') + ' journeys, newest activity first.</div>';
+}
+
+let _journeyDetailEmail = null;
+async function openJourneyDetail(email) {
+  const card = document.getElementById('journey-detail-card');
+  const wrap = document.getElementById('journey-detail-wrap');
+  const title = document.getElementById('journey-detail-title');
+  if (!card || !wrap) return;
+  _journeyDetailEmail = email;
+  card.style.display = '';
+  title.textContent = 'Journey — ' + email;
+  wrap.innerHTML = '<div style="text-align:center;color:var(--slate);padding:24px;font-style:italic;">Loading…</div>';
+  const d = await callJourney('adminGet', { email });
+  if (!d.ok || !d.record) {
+    wrap.innerHTML = '<div style="color:var(--terracotta);">✗ ' + escHtml(d.error || 'Failed to load') + '</div>';
+    return;
+  }
+  const rec = d.record, st = rec.state || {};
+  const N = st.numbers || {}, P = st.profile || {}, B = st.budget || {}, D = st.deal || {};
+  const done = st.done || {};
+  const chip = function (label) { return '<span style="display:inline-block;background:rgba(28,28,30,0.05);border:1px solid var(--border);border-radius:12px;padding:3px 10px;font-size:11px;margin:0 6px 6px 0;">' + label + '</span>'; };
+  let h = '';
+  h += '<div style="margin-bottom:14px;">' +
+    chip('Stage: ' + escHtml(JOURNEY_STAGES[P.stage] || '—')) +
+    chip((N.state || '—').toUpperCase() + ' · ' + escHtml(P.area === 'regional' ? 'regional' : 'capital')) +
+    chip(P.fhb ? 'First home buyer' : 'Owned before') +
+    chip(P.buyers === 'couple' ? 'Couple' : 'Single') +
+    chip('Income ' + jFmtMoney(P.income)) +
+    chip('Updated ' + jFmtWhen(rec.updatedAt)) +
+    (rec.lastEditor && rec.lastEditor !== rec.email ? chip('Last edit by ' + escHtml(rec.lastEditor) + ' (partner)') : '') +
+    '</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;">';
+  [['Target price', jFmtMoney(N.price)], ['Saved', jFmtMoney(N.saved)], ['Saving / month', jFmtMoney(N.saveMo)],
+   ['Walk-away cap', jFmtMoney(B.cap)], ['Deposit level', B.depositPct ? Math.round(B.depositPct * 100) + '%' : '—'],
+   ['Rent now / month', jFmtMoney(P.rentNow)], ['Card limits', jFmtMoney(P.cardLimits)]].forEach(function (kv) {
+    h += '<div style="background:rgba(28,28,30,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;"><div style="font-size:10px;color:var(--slate);">' + kv[0] + '</div><div style="font-family:var(--font-mono);font-size:13px;font-weight:600;">' + kv[1] + '</div></div>';
+  });
+  h += '</div>';
+  h += '<div style="margin-bottom:16px;"><div style="font-size:11px;color:var(--slate);margin-bottom:6px;">Stops</div>';
+  JOURNEY_STOPS.forEach(function (name, i) {
+    const n = i + 1;
+    h += '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">' +
+      '<span style="width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#fff;background:' + (done[n] ? 'var(--sage)' : 'rgba(28,28,30,0.18)') + ';">' + (done[n] ? '✓' : n) + '</span>' +
+      '<span' + (done[n] ? '' : ' style="color:var(--slate);"') + '>' + name + '</span></div>';
+  });
+  h += '</div>';
+  if (D.signed && D.dates && D.dates.contract) {
+    h += '<div style="margin-bottom:16px;"><div style="font-size:11px;color:var(--slate);margin-bottom:6px;">Deal deadlines</div>';
+    const labels = { contract: 'Contract signed', cooling: 'Cooling-off ends', bp: 'Building & pest', finance: 'Finance approval', preapproval: 'Pre-approval expires', settlement: 'Settlement' };
+    Object.keys(labels).forEach(function (k) {
+      if (!D.dates[k]) return;
+      h += '<div style="display:flex;justify-content:space-between;max-width:340px;padding:3px 0;font-size:12px;"><span>' + labels[k] + '</span><span style="font-family:var(--font-mono);font-size:11px;">' + escHtml(D.dates[k]) + '</span></div>';
+    });
+    h += '</div>';
+  }
+  const insp = Array.isArray(st.inspections) ? st.inspections : [];
+  if (insp.length) {
+    h += '<div><div style="font-size:11px;color:var(--slate);margin-bottom:6px;">Places logged (' + insp.length + ')</div>';
+    insp.slice(0, 20).forEach(function (r) {
+      const verdicts = ['Looking', 'Shortlist', 'Pass'];
+      h += '<div style="padding:6px 0;border-top:1px solid var(--border);font-size:12px;">' +
+        '<strong>' + escHtml(r.addr || '') + '</strong>' +
+        (r.price ? ' · <span style="font-family:var(--font-mono);font-size:11px;">' + jFmtMoney(r.price) + '</span>' : '') +
+        ' · <span style="color:var(--slate);">' + escHtml(verdicts[r.v] || '') + '</span>' +
+        (r.note ? '<div style="color:var(--slate);font-size:11px;">' + escHtml(r.note) + '</div>' : '') +
+        '</div>';
+    });
+    h += '</div>';
+  }
+  wrap.innerHTML = h;
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function deleteJourneyDetail() {
+  if (!_journeyDetailEmail) return;
+  const yes = await customConfirm('Delete journey', 'Erase the synced journey for ' + _journeyDetailEmail + '? Their local browser copy is untouched and will re-sync on their next visit.', { danger: true, confirmText: 'Delete' });
+  if (!yes) return;
+  const d = await callJourney('adminDelete', { email: _journeyDetailEmail });
+  if (d.ok) {
+    document.getElementById('journey-detail-card').style.display = 'none';
+    _journeyDetailEmail = null;
+    loadJourneys();
+  } else {
+    alert('Delete failed: ' + (d.error || 'unknown error'));
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

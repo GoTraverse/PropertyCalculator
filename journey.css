@@ -345,3 +345,8 @@ html.dark-mode .jtl-axis { color: rgba(245,240,232,0.55); }
 .jb-dep { width: 100%; }
 html.dark-mode .jcap { color: var(--cream); }
 .jwiz-states.cols2 .jwiz-state { font-family: var(--font-body); font-size: 13.5px; letter-spacing: 0; line-height: 1.35; padding: 13px 12px; }
+
+/* ── v5: shared / collaborative journeys ─────────────────────── */
+#jmode-banner .jsignup { margin: 14px 0 4px; }
+#jshare-slot .jsignup { margin-top: 26px; }
+body.jro [data-jmark], body.jro #jreset-btn, body.jro .jreset-row, body.jro #jshare-slot, body.jro #jsignup-slot { display: none !important; }
