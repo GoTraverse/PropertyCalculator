@@ -357,7 +357,7 @@
       '<span class="chip">Saving <b>' + m$(N.saveMo) + '/mo</b></span>' +
       '</div>' +
       '<div class="jwiz-nav" style="margin-top:22px">' +
-      '<button type="button" class="jwiz-skip" data-jgoto="home">Back to the journey</button>' +
+      '<button type="button" class="jwiz-skip" data-jgoto="wizard">↺ Redo my answers</button>' +
       '<button type="button" class="jbtn" data-jgoto="projector">Next stop: find your path →</button>' +
       '</div></div>';
   }
@@ -521,7 +521,7 @@
     }
 
     html += '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You have a real budget.</div></div>' +
-      '<button class="jbtn" data-jdone="3">Mark this stop done</button></section>';
+      '<button class="jbtn" data-jmark="3">Mark this stop done</button></section>';
     box.innerHTML = html;
   }
 
@@ -538,7 +538,7 @@
       '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">The best suburb filter isn’t a score — it’s the places your week already happens: work, family, church, the gym, mates. Write down your three non-negotiable places, then look at what’s inside a 20-minute trip of each. That intersection is your search map.</p>' +
       '<p class="jcaveat" style="margin-top:8px">Suburb shortlist tools land here next — price bands per suburb, travel-time filters and current rents from our data.</p></section>' +
       '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You know where.</div></div>' +
-      '<button class="jbtn" data-jdone="4">Mark this stop done</button></section>';
+      '<button class="jbtn" data-jmark="4">Mark this stop done</button></section>';
   }
 
   // ── Stop 5: hunt & compare (native inspection tracker v1) ────────────
@@ -567,7 +567,7 @@
       '<section class="jcard jpad"><span class="jsc jblock">Before any auction</span>' +
       '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Set your walk-away number the night before, in writing, when you’re calm — it’s your budget cap from stop 3, not the number the room pushes you to. Auction-day planning tools land here next.</p></section>' +
       '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You found it.</div></div>' +
-      '<button class="jbtn" data-jdone="5">Mark this stop done</button></section>';
+      '<button class="jbtn" data-jmark="5">Mark this stop done</button></section>';
     var f = document.getElementById('jinsp-form');
     if (f) f.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -616,6 +616,20 @@
 
   // ── View switching + delegated events ────────────────────────────────
   var VIEWS = { home: 'jv-home', wizard: 'jv-wizard', projector: 'jv-projector', budget: 'jv-budget', ground: 'jv-ground', hunt: 'jv-hunt', deal: 'jv-deal', settle: 'jv-settle' };
+  function refreshMarkButtons() {
+    var btns = document.querySelectorAll('[data-jmark]');
+    for (var i = 0; i < btns.length; i++) {
+      var n = +btns[i].getAttribute('data-jmark');
+      if (S.done[n]) {
+        btns[i].textContent = '↺ Redo this stop';
+        btns[i].classList.add('quiet');
+      } else {
+        btns[i].textContent = n === 7 ? 'Mark the journey complete' : 'Mark this stop done';
+        btns[i].classList.remove('quiet');
+      }
+    }
+  }
+
   function show(view) {
     Object.keys(VIEWS).forEach(function (k) {
       var el = document.getElementById(VIEWS[k]);
@@ -629,6 +643,7 @@
     if (view === 'deal') renderDeal();
     if (view === 'settle') renderSettle();
     if (view === 'home') renderTrail();
+    refreshMarkButtons();
     try { window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
     track('journey_view', { view: view });
   }
@@ -636,8 +651,19 @@
   document.addEventListener('click', function (e) {
     var go = e.target.closest('[data-jgoto]');
     if (go) { show(go.getAttribute('data-jgoto')); return; }
-    var dn = e.target.closest('[data-jdone]');
-    if (dn) { markDone(+dn.getAttribute('data-jdone')); return; }
+    var mk = e.target.closest('[data-jmark]');
+    if (mk) {
+      var mn = +mk.getAttribute('data-jmark');
+      if (S.done[mn]) {
+        // Redo: reopen the stop — clear done, stay on the view so they can change things.
+        S.done[mn] = false; save();
+        track('journey_step_redo', { step: mn });
+        refreshMarkButtons();
+      } else {
+        markDone(mn);
+      }
+      return;
+    }
     var chk = e.target.closest('[data-check]');
     if (chk) {
       var key = chk.getAttribute('data-checklist') || 'dealChecks';
@@ -674,9 +700,6 @@
   document.addEventListener('keydown', function (e) {
     if ((e.key === ' ' || e.key === 'Enter') && e.target.classList && e.target.classList.contains('jcheck')) { e.preventDefault(); e.target.click(); }
   });
-
-  var done2 = document.getElementById('jdone-2');
-  if (done2) done2.addEventListener('click', function () { markDone(2); });
 
   if (isLoggedIn()) {
     var st = document.getElementById('jsaved-text');
