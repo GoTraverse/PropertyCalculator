@@ -560,7 +560,7 @@
       var loan = price - dep - (govShare || 0) + (lmi || 0);
       out.push({
         name: name, why: why, mo: mo, buyBy: buyBy(mo), need: need,
-        lmi: lmi || 0, loan: loan, rep: pay(loan),
+        lmi: lmi || 0, loan: loan, rep: pay(loan), govShare: govShare || 0,
         equity: tags && tags.equity, warn: (tags && tags.warn) || null,
         eligible: !(tags && tags.warn)
       });
@@ -588,6 +588,35 @@
     var best = pool.slice().sort(function (a, b) { return a.mo - b.mo || a.lmi - b.lmi || a.rep - b.rep; })[0];
     out.forEach(function (p) { p.best = (p === best); });
     return { paths: out, duty: duty, best: best };
+  }
+
+  // Remaining loan balance after n months at RATE over TERM (closed form).
+  function balanceAfter(loan, months) {
+    if (months >= TERM) return 0;
+    var r = RATE / 100 / 12;
+    var f = Math.pow(1 + r, months);
+    return Math.max(0, loan * f - pay(loan) * (f - 1) / r);
+  }
+  // Your stake at flat value: price − what you'd still owe − the government's
+  // share (Help to Buy). Deliberately NO capital-growth assumption.
+  function stakeAt(p, price, months) {
+    return Math.max(0, price - balanceAfter(p.loan, months) - p.govShare);
+  }
+  function renderNetPosition(R) {
+    var box = document.getElementById('jnet');
+    if (!box) return;
+    var price = S.numbers.price;
+    var head = '<div class="jnet-row jnet-head"><span class="nm"></span>' +
+      ['5 yrs', '10 yrs', '30 yrs'].map(function (h) { return '<span>' + h + '</span>'; }).join('') + '</div>';
+    var rows = R.paths.map(function (p) {
+      var cells = [60, 120, 360].map(function (m) {
+        return '<span class="v">' + m$(stakeAt(p, price, m)) + '</span>';
+      }).join('');
+      return '<div class="jnet-row' + (p.warn ? ' inelig' : '') + (p.best ? ' best' : '') + '">' +
+        '<span class="nm">' + esc(p.name) + '</span>' + cells + '</div>';
+    }).join('');
+    box.innerHTML = head + rows +
+      '<p class="jcaveat" style="margin-top:10px">Your stake = price paid \u2212 what you\u2019d still owe \u2212 the government\u2019s share, at today\u2019s ' + RATE.toFixed(2) + '% over 30 years, counted from the day each path buys. The home is deliberately valued flat at ' + m$(price) + ' \u2014 we don\u2019t guess capital growth. Help to Buy\u2019s government share is repayable at market value when you sell or buy it out.</p>';
   }
 
   function renderProjector() {
@@ -681,6 +710,7 @@
       txt += ' The trade-offs: scheme places are limited each year, and a smaller deposit means a larger loan and higher repayments.';
       read.innerHTML = txt;
     }
+    renderNetPosition(R);
     renderScenarios(R);
     track('projector_update', { st: N.state, price: N.price });
   }
