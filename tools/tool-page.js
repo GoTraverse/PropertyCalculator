@@ -107,7 +107,7 @@ var ToolPage = (function() {
         '<div class="tool-cta-eye">' + escHtml(cfg.eyebrow || 'Go deeper') + '</div>' +
         '<h2>' + escHtml(cfg.title) + '</h2>' +
         '<p>' + escHtml(cfg.description) + '</p>' +
-        '<a href="' + escHtml(cfg.buttonHref || '/app') + '" class="tool-cta-btn">' +
+        '<a href="' + escHtml(cfg.buttonHref || '/journey') + '" class="tool-cta-btn">' +
           escHtml(cfg.buttonText || 'Try the full calculator free \u2192') +
         '</a>' +
       '</div>';
@@ -506,7 +506,8 @@ var ToolPage = (function() {
     el = document.getElementById('tool-cta-root');
     if (el) renderCTA(el, config.cta);
 
-    // The "go deeper" CTA now points to the free app (config.cta.buttonHref = /app),
+    // The "go deeper" CTA points to the First Home Journey for buyer tools and
+    // /app for investor tools (per-page config.cta.buttonHref),
     // but the save-results prompt must keep driving signup (you create an account to SAVE).
     // Decoupled so the two can differ — always send the save prompt to the signup tab.
     _watchForResult('/login?tab=signup');

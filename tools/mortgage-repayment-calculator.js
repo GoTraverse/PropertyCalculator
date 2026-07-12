@@ -354,8 +354,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model the full property investment',
     description: 'Multi-scenario comparison, 30-year projections, tax modelling and PDF reports — all free.',
-    buttonText: 'Try it free — no signup →',
-    buttonHref: '/app'
+    buttonText: 'Start your first-home journey — free \u2192',
+    buttonHref: '/journey'
   },
   resources: {
     groups: [

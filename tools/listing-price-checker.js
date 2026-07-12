@@ -441,8 +441,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model the full purchase',
     description: 'Take this listing into the full calculator — stamp duty, loan repayments, rental income and a 30-year equity projection, side by side.',
-    buttonText: 'Try it free — no signup →',
-    buttonHref: '/app'
+    buttonText: 'Start your first-home journey — free \u2192',
+    buttonHref: '/journey'
   },
   resources: {
     groups: [

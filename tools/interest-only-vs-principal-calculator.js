@@ -52,8 +52,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model tax, cash-flow and equity growth on IO vs P&I',
     description: 'Include negative gearing, depreciation and 30-year equity projections — free in EquitySight.',
-    buttonText: 'Try it free — no signup →',
-    buttonHref: '/app'
+    buttonText: 'Start your first-home journey — free \u2192',
+    buttonHref: '/journey'
   },
   resources: {
     groups: [

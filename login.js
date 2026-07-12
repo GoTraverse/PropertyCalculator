@@ -120,11 +120,14 @@ if (refParam) {
 // 3. Already-logged-in redirect
 // ──────────────────────────────────────────────────────────────────────
 
-const ALLOWED_NEXT = ['app', 'account', 'pricing', 'portfolio'];
+const ALLOWED_NEXT = ['app', 'account', 'pricing', 'portfolio', 'journey'];
 const ALLOWED_NEXT_PREFIXES = ['suburb/', 'blog/'];
 function safeNextUrl(raw) {
   if (!raw) return '/app';
   const clean = raw.replace(/^\//, '').replace(/\.html$/, '');
+  // The journey's partner-invite link carries its join token through signup —
+  // without this, the token is dropped and the collaborator lands on /app.
+  if (/^journey\?join=[A-Za-z0-9_-]{6,64}$/.test(clean)) return '/' + clean;
   if (ALLOWED_NEXT.includes(clean)) return '/' + clean;
   for (let i = 0; i < ALLOWED_NEXT_PREFIXES.length; i++) {
     if (clean.indexOf(ALLOWED_NEXT_PREFIXES[i]) === 0 && !/[?#]/.test(clean)) return '/' + clean;

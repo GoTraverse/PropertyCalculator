@@ -250,6 +250,26 @@ suggest some around aus that could fit."
   linking to the suburb page. NSW excluded (postcode-geo only, per the
   data-honesty rules).
 
+### Phase 1a.9 — wording pass + infrastructure integration audit (12 Jul 2026)
+- **Wizard wording** (owner: 'this page needs better wording'): the stage
+  question no longer references stops/schemes a first-time visitor hasn't
+  met — 'Where are you in your home-buying journey?' with plain chips
+  (Wondering if I can afford it / Saving up and researching / Working out
+  what I can borrow / Deciding where to buy / Out inspecting homes / I've
+  signed a contract). Stage labels updated everywhere they surface.
+- **Integration audit fixes** (owner: 'audit this workflow so we can
+  integrate it better into the existing infrastructure'):
+  1. login.js safeNextUrl now allows /journey AND the partner-invite
+     journey?join=<token> URL — previously every journey signup bounced to
+     /app and the collaboration token was dropped (broken funnel).
+  2. Tool CTAs: 19 buyer tools (all stamp duty pages, borrowing power,
+     deposit, FHB grants, repayment, serviceability, IO-vs-P&I, stress,
+     auction budget, listing checker, cost of purchase) now send their
+     'go deeper' CTA to /journey; 7 investor/owner tools keep /app.
+  3. footer.js: legacy /portfolio link replaced with /journey.
+  4. Service worker v30: pre-caches /journey + journey.css + journey.js.
+     RULE: bump the SW version whenever journey assets change from now on.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).
