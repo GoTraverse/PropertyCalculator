@@ -1,5 +1,12 @@
 # Session Handoff — for Claude Code (desktop / local)
 
+> **⚠ PRODUCT DIRECTION UPDATE (12 Jul 2026):** the flagship is now the
+> **First Home Journey** — a guided, milestone-based walk from "can I?" to
+> keys-in-hand, with the **Scheme Pathway Projector** as the hero feature.
+> Read **`PRODUCT_JOURNEY.md`** before starting new feature work; it
+> supersedes "calculators as the product" (they remain as SEO surface +
+> embedded tools). Owner-approved; grounded in the founder's own purchase.
+
 Handoff from a **Claude Code on the web** session (sandboxed; its egress proxy
 **blocked `equitysight.app`**, so it could never load production). You're running
 **locally**, so you *can* reach the live site — **use that to test.**
