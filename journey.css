@@ -460,3 +460,24 @@ html.dark-mode .jnet-row.inelig .v, html.dark-mode .jnet-row.inelig .nm { color:
 html.dark-mode .jfhss p { color: rgba(245,240,232,0.65); }
 html.dark-mode .jfhss strong, html.dark-mode .jfhss .mono-strong { color: var(--cream); }
 html.dark-mode .jfhss a { color: var(--gold); }
+
+/* ── stop-7 final-costs reconciliation ───────────────────────── */
+.jrec-price { display: flex; align-items: center; gap: 12px; margin: 12px 0 16px; }
+.jrec-price label { font-family: var(--font-body); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; color: var(--slate); font-size: 13.5px; }
+.jrec-price input { font-family: var(--font-mono); font-size: 14px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; width: 140px; }
+.jrec-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.jrec-row .k { color: var(--slate); }
+.jrec-row .est { font-family: var(--font-mono); font-size: 12.5px; color: var(--slate); text-align: right; font-variant-numeric: tabular-nums; }
+.jrec-row .act { text-align: right; }
+.jrec-row .act input { font-family: var(--font-mono); font-size: 13px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 10px; width: 110px; text-align: right; }
+.jrec-row .act input:focus-visible, .jrec-price input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.jrec-head { border-top: none; padding-bottom: 2px; }
+.jrec-head .est, .jrec-head .act { font-family: var(--font-body); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; font-size: 13px; }
+.jrec-total .est, .jrec-total .act { font-weight: 700; color: var(--charcoal); font-size: 13.5px; }
+.jrec-verdict { margin-top: 12px; font-size: 14px; font-weight: 600; }
+.jrec-verdict.over { color: var(--terracotta); }
+.jrec-verdict.under { color: var(--sage-dark); }
+html.dark-mode .jrec-row { border-color: rgba(245,240,232,0.1); }
+html.dark-mode .jrec-row .act input, html.dark-mode .jrec-price input { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
+html.dark-mode .jrec-total .est, html.dark-mode .jrec-total .act { color: var(--cream); }
+html.dark-mode .jrec-verdict.under { color: var(--sage-light); }

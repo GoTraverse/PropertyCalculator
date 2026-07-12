@@ -49,6 +49,7 @@
       scenarios: [],
       budget: { depositPct: null, cap: null },
       deal: { signed: false, dates: {} },
+      settle: { price: null, actuals: {} },
       signupDismissed: false,
       updatedAt: 0
     };
@@ -73,6 +74,8 @@
     s.budget = s.budget || b.budget;
     s.deal = s.deal || b.deal;
     s.deal.dates = s.deal.dates || {};
+    s.settle = s.settle || b.settle;
+    s.settle.actuals = s.settle.actuals || {};
     // transient UI flags must never persist/sync — they re-open wizards on reload
     delete s.budget.editing;
     delete s.deal.editing;
@@ -1379,7 +1382,67 @@
     var ed = document.getElementById('jd-edit');
     if (ed) ed.addEventListener('click', function () { S.deal.editing = true; dStep = 0; save(); renderDeal(); });
   }
+  var REC_ROWS = [
+    ['duty', 'Stamp duty', 'engine'],
+    ['legals', 'Conveyancing, title & registration', 'carried'],
+    ['bp', 'Building & pest', 'range'],
+    ['loan', 'Loan / valuation fees', 'range']
+  ];
+  function settleFinalPrice() {
+    if (S.settle.price) return S.settle.price;
+    for (var i = 0; i < S.inspections.length; i++) {
+      var r = S.inspections[i];
+      if (placeSt(r) === 'won' && r.price) return r.price;
+    }
+    return S.budget.cap || S.numbers.price;
+  }
   function renderSettle() {
+    var box = document.getElementById('jreconcile');
+    if (box) {
+      var price = settleFinalPrice();
+      var duty = buyerDutyAt(price);
+      var A = S.settle.actuals;
+      var estFor = { duty: duty, legals: OTHER_COSTS, bp: null, loan: null };
+      var estLabel = { duty: (duty < 1 ? '$0' : m$(duty)), legals: m$(OTHER_COSTS) + ' carried', bp: '$400\u2013$700', loan: '$0\u2013$600' };
+      var rows = REC_ROWS.map(function (r) {
+        var k = r[0];
+        var have = A[k] != null && A[k] !== '';
+        return '<div class="jrec-row"><span class="k">' + r[1] + '</span>' +
+          '<span class="est">' + estLabel[k] + '</span>' +
+          '<span class="act"><input type="text" inputmode="decimal" data-rec="' + k + '" value="' + (have ? Number(A[k]).toLocaleString('en-AU') : '') + '" placeholder="actual $"' + (RO ? ' disabled' : '') + '></span></div>';
+      }).join('');
+      var estTotal = duty + OTHER_COSTS;
+      var actKeys = Object.keys(A).filter(function (k) { return A[k] != null && A[k] !== ''; });
+      var actTotal = actKeys.reduce(function (t, k) { return t + (parseNum(A[k]) || 0); }, 0);
+      var totals = '<div class="jrec-row jrec-total"><span class="k">Total</span>' +
+        '<span class="est">' + m$(estTotal) + ' carried</span>' +
+        '<span class="act mono-strong">' + (actKeys.length ? m$(actTotal) : '\u2014') + '</span></div>';
+      var verdict = '';
+      if (actKeys.length >= 2) {
+        var diff = actTotal - estTotal;
+        verdict = diff > 0
+          ? '<p class="jrec-verdict over">' + m$(diff) + ' more than the journey carried \u2014 worth knowing for the next buyer you help.</p>'
+          : '<p class="jrec-verdict under">' + m$(-diff) + ' under what the journey carried. The buffer did its job.</p>';
+      }
+      box.innerHTML =
+        '<div class="jrec-price"><label for="jrec-price">Final purchase price</label>' +
+        '<input type="text" id="jrec-price" inputmode="decimal" value="' + Number(price).toLocaleString('en-AU') + '"' + (RO ? ' disabled' : '') + '></div>' +
+        '<div class="jrec-row jrec-head"><span class="k"></span><span class="est">We carried</span><span class="act">You paid</span></div>' +
+        rows + totals + verdict +
+        '<p class="jcaveat" style="margin-top:10px">Stamp duty recomputes from your final price with the same engine as the calculators. \u201cCarried\u201d is what the journey\u2019s cash math assumed \u2014 ' + m$(OTHER_COSTS) + ' for legals and registration plus exact duty. Enter what you actually paid as the bills land.</p>';
+      var pi = document.getElementById('jrec-price');
+      if (pi) pi.addEventListener('change', function () {
+        var v = parseNum(pi.value);
+        S.settle.price = v > 0 ? Math.round(v) : null;
+        save(); renderSettle();
+      });
+      var ins = box.querySelectorAll('[data-rec]');
+      for (var i = 0; i < ins.length; i++) ins[i].addEventListener('change', function () {
+        var v = parseNum(this.value);
+        S.settle.actuals[this.getAttribute('data-rec')] = this.value === '' ? null : Math.round(v);
+        save(); renderSettle();
+      });
+    }
     renderChecklist('jsettle-checks', SETTLE_CHECKS, 'settleChecks');
   }
 

@@ -16,7 +16,7 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
   dealChecks: [false,false,false,false,false],
   settleChecks: [false,false,false,false,false],
   inspections: [
-    { addr: '14 Wattle St, Chermside', price: 655000, note: 'West-facing living room, gets hot', st: 'shortlist' },
+    { addr: '14 Wattle St, Chermside', price: 655000, note: 'West-facing living room, gets hot', st: 'won' },
     { addr: '3/22 Banksia Ave, Kedron', price: 598000, note: 'Body corp $980/q', st: 'offer' },
     { addr: '8 Coral Cres, Zillmere', price: 671000, note: 'Went $40k over reserve', st: 'lost' },
     { addr: '112 Gympie Rd, Strathpine', price: 612000, note: 'Main road noise', st: 'passed' },
@@ -28,6 +28,7 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
     { name: 'QLD $650,000', at: 1, numbers: { price: 650000, saved: 45000, saveMo: 2000, state: 'qld' }, profile: { fhb: true, area: 'capital', buyers: 'couple', build: 'established', income: 145000 }, bestName: 'Help to Buy', mo: 0, buyBy: 'Ready now', rep: 2650, need: 16500, saved: 45000, saveMo: 2000 },
     { name: 'QLD $720,000', at: 2, numbers: { price: 720000, saved: 45000, saveMo: 2500, state: 'qld' }, profile: { fhb: true, area: 'capital', buyers: 'couple', build: 'established', income: 145000 }, bestName: '5% Deposit Scheme', mo: 4, buyBy: 'Nov 2026', rep: 4100, need: 39500, saved: 45000, saveMo: 2500 }
   ],
+  settle: { price: null, actuals: { legals: 1850, bp: 550 } },
   signupDismissed: true,
   updatedAt: 1
 }));
@@ -60,7 +61,7 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
     <div class="jstephead"><span class="jsc">Stop 5 · Hunt &amp; compare</span><h2>Every inspection, on the record</h2></div>
     <div id="jhunt"></div>
   </div>
-  <div class="jview" id="jv-settle"><div id="jsettle-checks"></div></div>
+  <div class="jview" id="jv-settle"><section class="jcard jpad"><span class="jsc jblock">The final dollars</span><div id="jreconcile"></div></section><section class="jcard jpad"><span class="jsc jblock">Settlement checklist</span><div id="jsettle-checks"></div></section></div>
   <div class="jview" id="jv-deal"><div id="jdeal"></div></div>
 </main>
 <div class="jmodal-overlay" id="jmodal" hidden>
