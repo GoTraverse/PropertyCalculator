@@ -338,3 +338,10 @@ html.dark-mode .jtl-date { color: var(--cream); }
 html.dark-mode .jtl-date.now { color: var(--sage-light); }
 html.dark-mode .jtl-dot.inelig { background: rgba(245,240,232,0.25); }
 html.dark-mode .jtl-axis { color: rgba(245,240,232,0.55); }
+
+/* ── v4: budget cap hero + date inputs ───────────────────────── */
+.jcap { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 5.4vw, 42px); letter-spacing: -0.8px; color: var(--charcoal); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.jwiz-input.jdate { font-size: 19px; max-width: 230px; }
+.jb-dep { width: 100%; }
+html.dark-mode .jcap { color: var(--cream); }
+.jwiz-states.cols2 .jwiz-state { font-family: var(--font-body); font-size: 13.5px; letter-spacing: 0; line-height: 1.35; padding: 13px 12px; }

@@ -1,5 +1,5 @@
 /**
- * journey.js — The First Home Journey (v2)
+ * journey.js — The First Home Journey (v4)
  *
  * v2 (owner feedback on live Phase 1a):
  *  - Stop 1 wizard asks the buyer's real profile (9 quick questions), not
@@ -12,6 +12,11 @@
  *  - /journey is a full guest demo: everything works without an account;
  *    after the first real milestone we ask once for signup, honestly framed
  *    ("guest data lives only in this browser").
+ *
+ * v4: stage question routes buyers to the stop matching their real-world
+ * position; stop 3 is a budget wizard ending in a committed walk-away cap
+ * (used by stops 4/5); stop 6 tracks the buyer's real contract deadlines
+ * (per-state cooling-off prefill, days-left dashboard).
  *
  * State: localStorage 'propCalc_journey_v1' (guest-first).
  *
@@ -37,10 +42,12 @@
       v: 1,
       done: {},
       numbers: { price: 650000, saved: 60000, saveMo: 2000, state: 'qld' },
-      profile: { area: 'capital', buyers: 'single', fhb: true, build: 'established', income: null, timeframe: '12mo', dependants: 0, employment: 'payg', rentNow: 0, cardLimits: 0 },
+      profile: { stage: null, area: 'capital', buyers: 'single', fhb: true, build: 'established', income: null, timeframe: '12mo', dependants: 0, employment: 'payg', rentNow: 0, cardLimits: 0 },
       dealChecks: [false, false, false, false, false],
       settleChecks: [false, false, false, false, false],
       inspections: [],
+      budget: { depositPct: null, cap: null },
+      deal: { signed: false, dates: {} },
       signupDismissed: false
     };
   }
@@ -54,6 +61,9 @@
         for (var pk in b.profile) if (!(pk in s.profile)) s.profile[pk] = b.profile[pk];
         s.settleChecks = s.settleChecks || b.settleChecks;
         s.inspections = s.inspections || [];
+        s.budget = s.budget || b.budget;
+        s.deal = s.deal || b.deal;
+        s.deal.dates = s.deal.dates || {};
         if (typeof s.signupDismissed !== 'boolean') s.signupDismissed = false;
         return s;
       }
@@ -104,16 +114,28 @@
   var STOPS = [
     { n: 1, icon: 'compass', title: 'Get your bearings', view: 'wizard', cta: 'Start — about 2 minutes', blurb: 'Quick questions about you, your money and your target — every answer powers a real number later.', milestone: 'You know your numbers.' },
     { n: 2, icon: 'signpost', title: 'Find your path', view: 'projector', cta: 'Compare my scheme paths', blurb: 'Which government scheme gets you in sooner — and what each really costs. Side by side, for your exact situation.', milestone: 'You know your path.' },
-    { n: 3, icon: 'wallet', title: 'Set your real budget', view: 'budget', cta: 'See my real numbers', blurb: 'Every upfront cost for your purchase — including the solicitor — and an honest check against your income.', milestone: 'You have a real budget.' },
+    { n: 3, icon: 'wallet', title: 'Set your real budget', view: 'budget', cta: 'Set my walk-away number', blurb: 'Every upfront cost — including the solicitor — an honest income check, and one committed walk-away number.', milestone: 'You have a real budget.' },
     { n: 4, icon: 'pin', title: 'Pick your ground', view: 'ground', cta: 'Work out where', blurb: 'The price band your budget really buys, and how to shortlist suburbs around the life you already have.', milestone: 'You know where.' },
     { n: 5, icon: 'search', title: 'Hunt & compare', view: 'hunt', cta: 'Track my inspections', blurb: 'Log every place you inspect, keep honest notes, and shortlist without the rose-tinted glasses.', milestone: 'You found it.' },
-    { n: 6, icon: 'pen', title: 'Seal the deal', view: 'deal', cta: 'See the deadlines', blurb: 'Contract signed — now every deadline matters. Track each one, get nudged before it bites.', milestone: 'Contract signed.' },
+    { n: 6, icon: 'pen', title: 'Seal the deal', view: 'deal', cta: 'Track my deadlines', blurb: 'Contract signed — now every deadline matters. Enter the dates from your contract; we keep count on every one.', milestone: 'Contract signed.' },
     { n: 7, icon: 'key', title: 'Settle & move in', view: 'settle', cta: 'The final stretch', blurb: 'Settlement day checklist and the last dollars — then the keys are yours.', milestone: 'Keys in hand.' }
   ];
 
+  // Real-world stage → the stop that matches it. Buyers can enter mid-journey;
+  // earlier stops stay open ("catch up any time") rather than blocking.
+  var STAGE_STOP = { start: 2, schemes: 2, budget: 3, ground: 4, hunt: 5, deal: 6 };
+  var STAGE_LABEL = { start: 'Just starting', schemes: 'Comparing schemes', budget: 'Budget & lenders', ground: 'Choosing suburbs', hunt: 'Inspecting places', deal: 'Contract signed' };
   function currentStop() {
-    for (var i = 0; i < STOPS.length; i++) if (!S.done[STOPS[i].n]) return STOPS[i].n;
-    return 7;
+    var first = null;
+    for (var i = 0; i < STOPS.length; i++) if (!S.done[STOPS[i].n]) { first = STOPS[i].n; break; }
+    if (first == null) return 7;
+    var target = first;
+    if (S.done[1] && S.profile.stage && STAGE_STOP[S.profile.stage]) {
+      target = Math.max(first, STAGE_STOP[S.profile.stage]);
+      while (target <= 7 && S.done[target]) target++;
+      if (target > 7) target = first;
+    }
+    return target;
   }
   // ── Modal (confirm + milestone celebration) ─────────────────────────
   function jModal(opts) {
@@ -222,7 +244,7 @@
       var stateCls = S.done[s.n] ? 'done' : (s.n === cur ? 'current' : 'ahead');
       var stateLbl = S.done[s.n] ? '<span class="jstate done-t jsc">Done — open to revisit</span>'
         : (s.n === cur ? '<span class="jstate here jsc">You are here</span>'
-          : '<span class="jstate jsc">' + (s.n === 7 ? 'The finish' : 'Ahead') + '</span>');
+          : '<span class="jstate jsc">' + (s.n === 7 ? 'The finish' : (s.n < cur ? 'Open — catch up any time' : 'Ahead')) + '</span>');
       var isCurrent = s.n === cur && !S.done[s.n];
       var inner = stateLbl + '<h3>' + esc(s.title) + '</h3>';
       if (isCurrent) {
@@ -325,12 +347,13 @@
   // reliefs documented in the grants engine (SA: new/off-the-plan only,
   // no cap, contracts from 6 Jun 2024; QLD: new homes duty nil, no cap,
   // contracts from 1 May 2025).
-  function buyerDuty() {
-    var st = S.numbers.state, v = S.numbers.price, P = S.profile;
+  function buyerDutyAt(v) {
+    var st = S.numbers.state, P = S.profile;
     if (!P.fhb) return calcDuty(st, v);
     if (P.build === 'new' && (st === 'sa' || st === 'qld')) return 0;
     return fhbDuty(st, v);
   }
+  function buyerDuty() { return buyerDutyAt(S.numbers.price); }
   // ── end duty sync copy ───────────────────────────────────────────────
 
   // ── SYNC COPY: scheme constants (first-home-buyer-grants-calculator.js)
@@ -349,6 +372,7 @@
 
   // ── Stop 1 wizard (nine questions, one at a time) ────────────────────
   var WQ = [
+    { id: 'stage', kind: 'chips', cols: 2, q: 'Where are you up to right now?', help: 'Buying isn’t linear — we’ll drop you at the stop that matches, and everything earlier stays open to catch up on.', opts: [['start', 'Just working out if I can'], ['schemes', 'Comparing schemes & saving'], ['budget', 'Setting a budget / talking to lenders'], ['ground', 'Choosing suburbs'], ['hunt', 'Inspecting places'], ['deal', 'I’ve signed a contract']], store: 'profile' },
     { id: 'state', kind: 'chips', q: 'Where are you looking to buy?', help: 'Stamp duty, concessions and schemes all change at the border.', opts: [['qld', 'QLD'], ['nsw', 'NSW'], ['vic', 'VIC'], ['sa', 'SA'], ['wa', 'WA'], ['tas', 'TAS'], ['act', 'ACT'], ['nt', 'NT']], store: 'numbers' },
     { id: 'area', kind: 'chips', q: 'Capital city, or regional?', help: 'The government schemes use different price caps for capitals and the rest of the state.', opts: [['capital', 'Capital city'], ['regional', 'Regional']], store: 'profile' },
     { id: 'buyers', kind: 'chips', q: 'Buying alone or together?', help: 'Income caps for shared-equity schemes are different for joint applicants.', opts: [['single', 'Just me'], ['couple', 'Two of us']], store: 'profile' },
@@ -377,8 +401,8 @@
     var dots = WQ.map(function (_, i) { return '<span class="jwiz-dot' + (i <= wStep ? ' on' : '') + '"></span>'; }).join('');
     var body;
     if (q.kind === 'chips') {
-      var cols = q.opts.length > 4 ? 4 : q.opts.length;
-      body = '<div class="jwiz-states" style="grid-template-columns:repeat(' + cols + ',1fr)">' + q.opts.map(function (o) {
+      var cols = q.cols || (q.opts.length > 4 ? 4 : q.opts.length);
+      body = '<div class="jwiz-states' + (cols === 2 && q.opts.length > 2 ? ' cols2' : '') + '" style="grid-template-columns:repeat(' + cols + ',1fr)">' + q.opts.map(function (o) {
         var sel = String(wVal(q)) === String(o[0]);
         return '<button type="button" class="jwiz-state' + (sel ? ' sel' : '') + '" data-wopt="' + esc(String(o[0])) + '">' + esc(o[1]) + '</button>';
       }).join('') + '</div>';
@@ -426,8 +450,9 @@
   function renderWizardDone() {
     S.done[1] = true;
     if (S.numbers.saveMo < 1) S.numbers.saveMo = 1;
+    if (S.profile.stage === 'deal' && !S.deal.signed) S.deal.signed = true;
     save();
-    track('journey_wizard_done', {});
+    track('journey_wizard_done', { stage: S.profile.stage || 'unset' });
     var box = document.getElementById('jwizard');
     var N = S.numbers, P = S.profile;
     box.innerHTML = '<div class="jwiz-card">' +
@@ -435,6 +460,7 @@
       '<div class="jwiz-q">That’s your bearings.</div>' +
       '<p class="jwiz-help">First milestone reached — you know your numbers. Next comes the one most buyers never find out: which scheme path suits <em>your</em> situation.</p>' +
       '<div class="jwiz-summary">' +
+      (STAGE_LABEL[P.stage] ? '<span class="chip">' + STAGE_LABEL[P.stage] + '</span>' : '') +
       '<span class="chip"><b>' + N.state.toUpperCase() + '</b> ' + (P.area === 'capital' ? 'capital' : 'regional') + '</span>' +
       '<span class="chip">' + (P.buyers === 'couple' ? 'Buying together' : 'Buying solo') + '</span>' +
       '<span class="chip">' + (P.fhb ? 'First home' : 'Owned before') + '</span>' +
@@ -451,7 +477,9 @@
       '</div>' +
       '<div class="jwiz-nav" style="margin-top:22px">' +
       '<button type="button" class="jwiz-skip" data-jgoto="wizard">↺ Redo my answers</button>' +
-      '<button type="button" class="jbtn" data-jgoto="projector">Next stop: find your path →</button>' +
+      (STAGE_STOP[P.stage] > 2
+        ? '<button type="button" class="jbtn" data-jgoto="' + stopByN(STAGE_STOP[P.stage]).view + '">Jump to where you are: ' + esc(stopByN(STAGE_STOP[P.stage]).title) + ' →</button>'
+        : '<button type="button" class="jbtn" data-jgoto="projector">Next stop: find your path →</button>') +
       '</div></div>';
   }
 
@@ -602,60 +630,166 @@
     track('projector_update', { st: N.state, price: N.price });
   }
 
-  // ── Stop 3: your real budget (native) ────────────────────────────────
+  // ── Stop 3: budget wizard → a committed walk-away number ────────────
+  var bStep = 0;
+  function payAt(loan, rate) { var r = rate / 100 / 12; return loan * r / (1 - Math.pow(1 + r, -TERM)); }
+  function budgetLmi(price, dep) {
+    // Scheme path: an eligible FHB at 5% pays no LMI (the guarantee replaces it).
+    if (dep >= 0.20) return 0;
+    if (S.profile.fhb && dep <= 0.051) return 0;
+    var loan = price * (1 - dep);
+    return loan * lmiRate(loan / price);
+  }
+  function bDepDefault() {
+    var b = S.budget.depositPct;
+    if (b) return b;
+    return S.profile.fhb ? 0.05 : 0.10;
+  }
   function renderBudget() {
     var box = document.getElementById('jbudget');
     if (!box) return;
+    if (S.budget.cap && !S.budget.editing) { renderBudgetDash(box); refreshMarkButtons(); return; }
+    renderBudgetWizard(box);
+  }
+
+  function renderBudgetWizard(box) {
     var N = S.numbers, P = S.profile;
     var duty = buyerDuty();
+    var dots = [0, 1, 2, 3].map(function (i) { return '<span class="jwiz-dot' + (i <= bStep ? ' on' : '') + '"></span>'; }).join('');
+    var body = '', q = '', help = '', nav = '';
+
+    if (bStep === 0) {
+      q = 'First, the costs on top of the price.';
+      help = 'These come out of your savings before the deposit does — every number that follows already includes them.';
+      body = '<div style="margin-top:18px">' +
+        '<div class="jstat"><span class="k">Stamp duty (' + N.state.toUpperCase() + (P.fhb ? ', first home buyer' : '') + ')</span><span class="v ' + (duty < 1 ? 'good' : '') + '">' + (duty < 1 ? '$0' : m$(duty)) + '</span></div>' +
+        '<div class="jstat"><span class="k">Conveyancing / solicitor</span><span class="v">$1,300–$2,200</span></div>' +
+        '<div class="jstat"><span class="k">Building &amp; pest inspection</span><span class="v">$400–$700</span></div>' +
+        '<div class="jstat"><span class="k">Title &amp; mortgage registration</span><span class="v">varies by state</span></div>' +
+        '<div class="jstat"><span class="k">Loan application / valuation</span><span class="v">$0–$600</span></div>' +
+        '</div><p class="jcaveat" style="margin-top:10px">The solicitor line is the one that surprises everyone — it’s budgeted from day one here. We carry ' + m$(OTHER_COSTS) + ' for legals and registration in every projection.</p>';
+      nav = '<span></span><button type="button" class="jbtn" id="jb-next">Next</button>';
+    }
+
+    if (bStep === 1) {
+      q = 'Which deposit level are you working toward?';
+      help = 'Cash needed = deposit + stamp duty + ' + m$(OTHER_COSTS) + ' of legals, at your ' + m$(N.price) + ' target. You have ' + m$(N.saved) + ' saved.';
+      var costs = duty + OTHER_COSTS;
+      var sel = bDepDefault();
+      body = '<div style="display:flex;flex-direction:column;gap:9px;margin-top:18px">' +
+        [[0.05, P.fhb ? '5% — the scheme path' : '5% deposit', P.fhb ? 'No LMI with a 5% Deposit Scheme place' : 'Carries the steepest LMI'],
+         [0.10, '10% deposit', 'Buy sooner without a scheme place — LMI applies'],
+         [0.20, '20% deposit', 'No LMI, smallest loan, longest save']].map(function (o) {
+          var need = N.price * o[0] + costs;
+          var ok = N.saved >= need;
+          return '<button type="button" class="jwiz-state jb-dep' + (Math.abs(sel - o[0]) < 0.001 ? ' sel' : '') + '" data-bdep="' + o[0] + '" style="text-align:left;padding:14px 16px">' +
+            '<span style="display:block;font-family:var(--font-body);font-weight:600">' + o[1] + '</span>' +
+            '<span style="display:block;font-family:var(--font-body);font-size:12.5px;font-weight:400;opacity:0.75;margin-top:2px">' + o[2] + ' · needs ' + m$(need) + (ok ? ' — covered' : ' — short ' + m$(need - N.saved)) + '</span></button>';
+        }).join('') + '</div>';
+      nav = '<button type="button" class="jwiz-skip" id="jb-back">← Back</button><span class="jmins">tap one</span>';
+    }
+
+    if (bStep === 2) {
+      var dep = bDepDefault();
+      var lmi = budgetLmi(N.price, dep);
+      var loan = N.price * (1 - dep) + lmi;
+      var assessed = payAt(loan, RATE + 3);
+      q = 'Can your income actually carry it?';
+      help = 'Lenders don’t test you at today’s ' + RATE.toFixed(2) + '% — they add a 3% buffer.';
+      body = '<div style="margin-top:18px">' +
+        '<div class="jstat"><span class="k">Loan at a ' + Math.round(dep * 100) + '% deposit' + (lmi ? ' (incl. ' + m$(lmi) + ' LMI)' : '') + '</span><span class="v">' + m$(loan) + '</span></div>' +
+        '<div class="jstat"><span class="k">Repayment at ' + RATE.toFixed(2) + '%</span><span class="v">' + m$(payAt(loan, RATE)) + '/mo</span></div>' +
+        '<div class="jstat"><span class="k">Tested at ' + (RATE + 3).toFixed(2) + '%</span><span class="v">' + m$(assessed) + '/mo</span></div>' +
+        (P.income > 0 ? '<div class="jstat"><span class="k">Share of your gross income</span><span class="v ' + (assessed / (P.income / 12) <= 0.30 ? 'good' : 'warn') + '">' + Math.round(assessed / (P.income / 12) * 100) + '%</span></div>' : '') +
+        '</div>' +
+        (P.rentNow > 0 ? '<p class="jwiz-help" style="margin-top:12px">' + (assessed > P.rentNow
+          ? 'That’s ' + m$(assessed - P.rentNow) + '/mo more than your current rent. Bank the difference from this month and you’re proving the repayment to yourself before any lender asks.'
+          : 'That’s less than the ' + m$(P.rentNow) + '/mo you already pay in rent — you’re living the payment now; the deposit is the only gap.') + '</p>' : '') +
+        (P.cardLimits > 0 ? '<p class="jwiz-help" style="margin-top:8px">Your ' + m$(P.cardLimits) + ' of card limits also counts against you — lenders assess about 3% of the limit monthly (' + m$(P.cardLimits * 0.03) + '/mo) even at $0 owing. Cutting unused limits is the cheapest boost there is.</p>' : '');
+      nav = '<button type="button" class="jwiz-skip" id="jb-back">← Back</button><button type="button" class="jbtn" id="jb-next">Next</button>';
+    }
+
+    if (bStep === 3) {
+      var dep3 = bDepDefault();
+      var suggest = N.price;
+      var incomeCeil = 0;
+      if (P.income > 0) {
+        var factor = (function () { var r = (RATE + 3) / 100 / 12; return r / (1 - Math.pow(1 + r, -TERM)); })();
+        var loanMax = (P.income / 12) * 0.35 / factor;
+        incomeCeil = Math.floor(loanMax / (1 - dep3) / 5000) * 5000;
+        suggest = Math.min(suggest, incomeCeil);
+      }
+      q = 'Set your walk-away number.';
+      help = 'The most you’ll pay for any property — decided now, calmly, not in an auction room. ' +
+        (incomeCeil > 0 ? 'On your income, tested repayments pass the common 35% line at about ' + m$(incomeCeil) + '. ' : '') +
+        'You can change it any time.';
+      body = '<div class="jwiz-input-row"><span class="jwiz-cur">$</span>' +
+        '<input class="jwiz-input" id="jb-cap" type="text" inputmode="decimal" value="' + Number(S.budget.cap || suggest).toLocaleString('en-AU') + '" aria-label="Walk-away number"></div>';
+      nav = '<button type="button" class="jwiz-skip" id="jb-back">← Back</button><button type="button" class="jbtn" id="jb-commit">Commit to this number</button>';
+    }
+
+    box.innerHTML = '<div class="jwizard"><div class="jwiz-card">' +
+      '<div class="jwiz-dots">' + dots + '</div>' +
+      '<div class="jwiz-q">' + q + '</div>' +
+      '<p class="jwiz-help">' + help + '</p>' + body +
+      '<div class="jwiz-nav">' + nav + '</div>' +
+      '</div></div>';
+
+    var nx = document.getElementById('jb-next');
+    if (nx) nx.addEventListener('click', function () { bStep++; renderBudget(); });
+    var bk = document.getElementById('jb-back');
+    if (bk) bk.addEventListener('click', function () { bStep = Math.max(0, bStep - 1); renderBudget(); });
+    var deps = box.querySelectorAll('[data-bdep]');
+    for (var i = 0; i < deps.length; i++) deps[i].addEventListener('click', function () {
+      S.budget.depositPct = parseFloat(this.getAttribute('data-bdep'));
+      save(); bStep = 2; renderBudget();
+    });
+    var cm = document.getElementById('jb-commit');
+    if (cm) cm.addEventListener('click', function () {
+      var v = parseNum(document.getElementById('jb-cap').value);
+      var capIn = document.getElementById('jb-cap');
+      if (!(v >= 50000)) { if (capIn) { capIn.focus(); capIn.style.borderBottomColor = 'var(--terracotta)'; setTimeout(function () { capIn.style.borderBottomColor = ''; }, 1200); } return; }
+      S.budget.cap = Math.round(v);
+      S.budget.depositPct = bDepDefault();
+      S.budget.editing = false;
+      save();
+      track('journey_budget_cap_set', { cap: S.budget.cap });
+      renderBudget();
+    });
+    var capField = document.getElementById('jb-cap');
+    if (capField) capField.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); var b2 = document.getElementById('jb-commit'); if (b2) b2.click(); } });
+  }
+
+  function renderBudgetDash(box) {
+    var N = S.numbers, P = S.profile;
+    var cap = S.budget.cap, dep = bDepDefault();
+    var duty = buyerDutyAt(cap);
+    var costs = duty + OTHER_COSTS;
+    var lmi = budgetLmi(cap, dep);
+    var loan = cap * (1 - dep) + lmi;
+    var assessed = payAt(loan, RATE + 3);
     var html = '';
 
-    html += '<section class="jcard jpad"><span class="jsc jblock">Upfront costs at ' + m$(N.price) + '</span>' +
+    html += '<section class="jcard jpad" style="text-align:center;margin-top:18px">' +
+      '<span class="jsc jsc-gold jblock">Your walk-away number</span>' +
+      '<div class="jcap">' + m$(cap) + '</div>' +
+      '<p class="jwiz-help" style="margin-top:6px">At a ' + Math.round(dep * 100) + '% deposit' + (lmi ? ' (LMI ' + m$(lmi) + ' added to the loan)' : ', no LMI') + '. Set calmly, before any agent or auction room gets a say — it caps every search band and offer from here.</p>' +
+      '<div class="jwiz-nav" style="justify-content:center;margin-top:14px"><button type="button" class="jwiz-skip" id="jb-edit">Adjust my budget</button></div></section>';
+
+    html += '<section class="jcard jpad"><span class="jsc jblock">All-in at your cap</span>' +
       '<div class="jstat"><span class="k">Stamp duty (' + N.state.toUpperCase() + (P.fhb ? ', first home buyer' : '') + ')</span><span class="v ' + (duty < 1 ? 'good' : '') + '">' + (duty < 1 ? '$0' : m$(duty)) + '</span></div>' +
-      '<div class="jstat"><span class="k">Conveyancing / solicitor</span><span class="v">$1,300–$2,200</span></div>' +
-      '<div class="jstat"><span class="k">Building & pest inspection</span><span class="v">$400–$700</span></div>' +
-      '<div class="jstat"><span class="k">Title & mortgage registration</span><span class="v">varies by state</span></div>' +
-      '<div class="jstat"><span class="k">Loan application / valuation</span><span class="v">$0–$600</span></div>' +
-      '<p class="jcaveat" style="margin-top:10px">The solicitor line is the one that surprises everyone — budget for it from day one. Exact registration fees are computed at the deal stage.</p></section>';
-
-    var costs = duty + OTHER_COSTS;
-    html += '<section class="jcard jpad"><span class="jsc jblock">What each deposit level needs in cash</span>';
-    [[0.05, '5% (scheme path)'], [0.10, '10%'], [0.20, '20%']].forEach(function (d) {
-      var need = N.price * d[0] + costs;
-      var ok = N.saved >= need;
-      var short = need - N.saved;
-      html += '<div class="jstat"><span class="k">' + d[1] + ' deposit</span><span class="v ' + (ok ? 'good' : '') + '">' + m$(need) + (ok ? ' — covered' : ' — short ' + m$(short)) + '</span></div>';
-    });
-    html += '<p class="jcaveat" style="margin-top:10px">Cash needed = deposit + stamp duty + a conservative estimate of legals and registration. Your savings: ' + m$(N.saved) + '.</p></section>';
-
-    if (P.income > 0) {
-      var loan95 = N.price * 0.95;
-      var assessed = (function () { var r = (RATE + 3) / 100 / 12; return loan95 * r / (1 - Math.pow(1 + r, -TERM)); })();
-      var moIncome = P.income / 12;
-      var share = assessed / moIncome;
-      var label = share <= 0.30 ? 'comfortably inside the common 30%-of-income guide'
-        : share <= 0.40 ? 'stretching past the 30%-of-income guide'
-          : 'well above the 30%-of-income guide — most lenders would push back';
-      var rentLine = '';
-      if (P.rentNow > 0) {
-        var diff = assessed - P.rentNow;
-        rentLine = diff > 0
-          ? '<p style="font-size:14.5px;line-height:1.6;margin-top:8px">You pay <b class="mono-strong">' + m$(P.rentNow) + '/mo</b> in rent now — the tested repayment is <b class="mono-strong">' + m$(diff) + '/mo more</b>. If you can bank that difference each month starting today, you’re proving the repayment to yourself (and building deposit) before any lender asks.</p>'
-          : '<p style="font-size:14.5px;line-height:1.6;margin-top:8px">You pay <b class="mono-strong">' + m$(P.rentNow) + '/mo</b> in rent now — more than the tested repayment. You’re already living the payment; the deposit is the only gap.</p>';
-      }
-      var cardLine = '';
-      if (P.cardLimits > 0) {
-        cardLine = '<p style="font-size:14.5px;line-height:1.6;margin-top:8px">Your <b class="mono-strong">' + m$(P.cardLimits) + '</b> of credit-card limits costs you too: lenders assess card limits at about 3% a month (<b class="mono-strong">' + m$(P.cardLimits * 0.03) + '/mo</b>) even if the cards sit unused. Cutting limits you don’t need is the cheapest borrowing-power boost there is.</p>';
-      }
-      html += '<section class="jcard jpad"><span class="jsc jblock">Honest affordability guide</span>' +
-        '<p style="font-size:14.5px;line-height:1.6">On a 95% loan, a lender won’t test you at today’s ' + RATE.toFixed(2) + '% — they add a 3% buffer. At ' + (RATE + 3).toFixed(2) + '%, the tested repayment is <b class="mono-strong">' + m$(assessed) + '/mo</b>, which is <b class="mono-strong">' + Math.round(share * 100) + '%</b> of your gross monthly income — ' + label + '.</p>' +
-        rentLine + cardLine +
-        '<p class="jcaveat" style="margin-top:8px">A guide only — real serviceability depends on expenses, debts and the lender’s own rules. Not financial advice.</p></section>';
-    }
+      '<div class="jstat"><span class="k">Legals &amp; registration (carried estimate)</span><span class="v">' + m$(OTHER_COSTS) + '</span></div>' +
+      '<div class="jstat"><span class="k">Cash needed (' + Math.round(dep * 100) + '% deposit + costs)</span><span class="v ' + (N.saved >= cap * dep + costs ? 'good' : '') + '">' + m$(cap * dep + costs) + (N.saved >= cap * dep + costs ? ' — covered' : ' — short ' + m$(cap * dep + costs - N.saved)) + '</span></div>' +
+      '<div class="jstat"><span class="k">Loan</span><span class="v">' + m$(loan) + '</span></div>' +
+      '<div class="jstat"><span class="k">Repayment at ' + RATE.toFixed(2) + '%</span><span class="v">' + m$(payAt(loan, RATE)) + '/mo</span></div>' +
+      '<div class="jstat"><span class="k">Lender-tested at ' + (RATE + 3).toFixed(2) + '%</span><span class="v">' + m$(assessed) + '/mo' + (P.income > 0 ? ' (' + Math.round(assessed / (P.income / 12) * 100) + '% of income)' : '') + '</span></div>' +
+      '<p class="jcaveat" style="margin-top:10px">A guide only — real serviceability depends on expenses, debts and the lender’s own rules. Not financial advice. Your savings: ' + m$(N.saved) + '.</p></section>';
 
     html += '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You have a real budget.</div></div>' +
       '<button class="jbtn" data-jmark="3">Mark this stop done</button></section>';
     box.innerHTML = html;
+    var ed = document.getElementById('jb-edit');
+    if (ed) ed.addEventListener('click', function () { S.budget.editing = true; bStep = 1; save(); renderBudget(); });
   }
 
   // ── Stop 4: pick your ground (native v1) ─────────────────────────────
@@ -663,10 +797,11 @@
     var box = document.getElementById('jground');
     if (!box) return;
     var N = S.numbers;
-    var lo = Math.round(N.price * 0.9 / 5000) * 5000, hi = Math.round(N.price * 1.1 / 5000) * 5000;
+    var target = S.budget.cap || N.price;
+    var lo = Math.round(target * 0.9 / 5000) * 5000, hi = Math.round(target * 1.1 / 5000) * 5000;
     box.innerHTML =
       '<section class="jcard jpad"><span class="jsc jblock">Your realistic search band</span>' +
-      '<p style="font-size:15px;line-height:1.65">With a target of <b class="mono-strong">' + m$(N.price) + '</b>, shortlist suburbs where typical listings sit between <b class="mono-strong">' + m$(lo) + '</b> and <b class="mono-strong">' + m$(hi) + '</b>. Below the band you’re compromising more than you need to; above it you’re auction fodder.</p></section>' +
+      '<p style="font-size:15px;line-height:1.65">With ' + (S.budget.cap ? 'your committed cap of' : 'a target of') + ' <b class="mono-strong">' + m$(target) + '</b>, shortlist suburbs where typical listings sit between <b class="mono-strong">' + m$(lo) + '</b> and <b class="mono-strong">' + m$(hi) + '</b>. Below the band you’re compromising more than you need to; above it you’re auction fodder.</p></section>' +
       '<section class="jcard jpad"><span class="jsc jblock">Shortlist around your life, not the hype</span>' +
       '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">The best suburb filter isn’t a score — it’s the places your week already happens: work, family, church, the gym, mates. Write down your three non-negotiable places, then look at what’s inside a 20-minute trip of each. That intersection is your search map.</p>' +
       '<p class="jcaveat" style="margin-top:8px">Suburb shortlist tools land here next — price bands per suburb, travel-time filters and current rents from our data.</p></section>' +
@@ -698,7 +833,9 @@
       (rows ? '<div class="jinsp-list">' + rows + '</div>' : '<p class="jcaveat" style="margin-top:12px">Nothing logged yet. After every inspection, write the honest note before the car leaves the street — that’s the one you’ll trust later.</p>') +
       '</section>' +
       '<section class="jcard jpad"><span class="jsc jblock">Before any auction</span>' +
-      '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Set your walk-away number the night before, in writing, when you’re calm — it’s your budget cap from stop 3, not the number the room pushes you to. Auction-day planning tools land here next.</p></section>' +
+      (S.budget.cap
+        ? '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Your walk-away number is <b class="mono-strong">' + m$(S.budget.cap) + '</b> — you set it at stop 3, calmly. Write it down the night before and don’t let the room move it a dollar.</p>'
+        : '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">Set your walk-away number at stop 3 first — decided in writing, when you’re calm, it’s the number the auction room can’t argue with.</p>') + '</section>' +
       '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You found it.</div></div>' +
       '<button class="jbtn" data-jmark="5">Mark this stop done</button></section>';
     var f = document.getElementById('jinsp-form');
@@ -742,7 +879,143 @@
         '<span class="jbox">' + IC.check + '</span><span><span class="t">' + esc(c[0]) + '</span><span class="d" style="display:block">' + esc(c[1]) + '</span></span></button>';
     }).join('');
   }
-  function renderDeal() { renderChecklist('jdeal-checks', DEAL_CHECKS, 'dealChecks'); }
+  // ── Stop 6: real deadline tracking ───────────────────────────────────
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function isoDate(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function fromISO(s) { var p = String(s || '').split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function addDaysISO(s, n) { var d = fromISO(s); d.setDate(d.getDate() + n); return isoDate(d); }
+  function addBizDaysISO(s, n) {
+    var d = fromISO(s), left = n;
+    while (left > 0) { d.setDate(d.getDate() + 1); var w = d.getDay(); if (w !== 0 && w !== 6) left--; }
+    return isoDate(d);
+  }
+  function daysLeft(s) {
+    var t = new Date(), today = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+    return Math.round((fromISO(s) - today) / 86400000);
+  }
+  function humanDate(s) { try { return fromISO(s).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return s; } }
+  // Statutory cooling-off, business days, private treaty sales (auctions have
+  // none anywhere). WA and TAS have no statutory cooling-off period.
+  var COOL_OFF_BIZ = { qld: 5, nsw: 5, vic: 3, sa: 2, act: 5, nt: 4 };
+
+  var dStep = 0;
+  function dealDateQs() {
+    var st = S.numbers.state;
+    var biz = COOL_OFF_BIZ[st];
+    var c = S.deal.dates.contract;
+    return [
+      { id: 'contract', q: 'When did you sign the contract?', help: 'Every other deadline counts from this date.', def: isoDate(new Date()) },
+      { id: 'cooling', q: 'When does cooling-off end?',
+        help: biz
+          ? 'In ' + st.toUpperCase() + ' it’s ' + biz + ' business days for a private treaty sale — auctions have none. Use the date your solicitor confirms.'
+          : st.toUpperCase() + ' has no statutory cooling-off period. Skip this unless your contract adds one.',
+        def: c && biz ? addBizDaysISO(c, biz) : '', optional: !biz },
+      { id: 'bp', q: 'Building & pest deadline?', help: 'The date your contract gives you to get the inspection done and act on it — around 14 days is typical. Use your contract’s date.', def: c ? addDaysISO(c, 14) : '' },
+      { id: 'finance', q: 'Finance approval deadline?', help: 'The “subject to finance” date. If the loan isn’t approved by then you must extend, terminate or risk your deposit. 14–21 days is common.', def: c ? addDaysISO(c, 21) : '', optional: true },
+      { id: 'preapproval', q: 'When does your pre-approval expire?', help: 'Usually about 90 days from when the lender issued it — the deadline most buyers lose track of. Skip if you don’t have one.', def: '', optional: true },
+      { id: 'settlement', q: 'Settlement day?', help: 'The day the money moves and the keys are yours. Check the contract — 30 to 60 days after signing is common.', def: c ? addDaysISO(c, 42) : '' }
+    ];
+  }
+
+  function renderDeal() {
+    var box = document.getElementById('jdeal');
+    if (!box) return;
+    if (!S.deal.signed) { renderDealPre(box); refreshMarkButtons(); return; }
+    if (!S.deal.dates.contract || S.deal.editing) { renderDealWizard(box); return; }
+    renderDealDash(box);
+    refreshMarkButtons();
+  }
+
+  function renderDealPre(box) {
+    box.innerHTML =
+      '<section class="jcard jpad" style="margin-top:18px"><span class="jsc jblock">Not signed yet? Here’s what’s coming</span>' +
+      '<p style="font-size:14.5px;line-height:1.65;color:var(--slate)">The moment you sign, a set of clocks starts: cooling-off, building &amp; pest, finance approval, your pre-approval’s own expiry, settlement. Miss one and you can lose your deposit or your loan. The day you sign, come back here with the contract and enter each date — we’ll keep count on every one.</p>' +
+      '<div class="jdl"><div><div>Cooling-off ends</div><div class="jwhen">days after signing, set by your state</div></div><span class="jdays urgent">first</span></div>' +
+      '<div class="jdl"><div><div>Building &amp; pest deadline</div><div class="jwhen">typically ~14 days</div></div><span class="jdays soon">soon after</span></div>' +
+      '<div class="jdl"><div><div>Finance approval deadline</div><div class="jwhen">typically 14–21 days</div></div><span class="jdays soon">then</span></div>' +
+      '<div class="jdl"><div><div>Pre-approval expires</div><div class="jwhen">~90 days from issue — the one buyers forget</div></div><span class="jdays ok">watch it</span></div>' +
+      '<div class="jdl"><div><div>Settlement</div><div class="jwhen">30–60 days after signing</div></div><span class="jdays ok">the finish</span></div>' +
+      '<div class="jwiz-nav" style="margin-top:16px"><span></span><button type="button" class="jbtn" id="jd-signed">I’ve signed — enter my dates</button></div></section>';
+    var b = document.getElementById('jd-signed');
+    if (b) b.addEventListener('click', function () { S.deal.signed = true; dStep = 0; save(); renderDeal(); });
+  }
+
+  function renderDealWizard(box) {
+    var qs = dealDateQs();
+    if (dStep >= qs.length) {
+      S.deal.editing = false; save();
+      track('journey_deal_dates_set', {});
+      renderDeal();
+      return;
+    }
+    var q = qs[dStep];
+    var cur = S.deal.dates[q.id] || q.def || '';
+    var dots = qs.map(function (_, i) { return '<span class="jwiz-dot' + (i <= dStep ? ' on' : '') + '"></span>'; }).join('');
+    box.innerHTML = '<div class="jwizard"><div class="jwiz-card">' +
+      '<div class="jwiz-dots">' + dots + '</div>' +
+      '<div class="jwiz-q">' + esc(q.q) + '</div>' +
+      '<p class="jwiz-help">' + esc(q.help) + '</p>' +
+      '<div class="jwiz-input-row"><input class="jwiz-input jdate" id="jd-in" type="date" value="' + esc(cur) + '" aria-label="' + esc(q.q) + '"></div>' +
+      '<div class="jwiz-nav">' +
+      (dStep > 0 ? '<button type="button" class="jwiz-skip" id="jd-back">← Back</button>' : '<button type="button" class="jwiz-skip" id="jd-notyet">← Not signed yet</button>') +
+      '<span style="display:flex;gap:14px;align-items:center">' +
+      (q.optional ? '<button type="button" class="jwiz-skip" id="jd-skip">Skip</button>' : '') +
+      '<button type="button" class="jbtn" id="jd-next">Next</button></span>' +
+      '</div></div></div>';
+    var nx = document.getElementById('jd-next');
+    if (nx) nx.addEventListener('click', function () {
+      var inp = document.getElementById('jd-in');
+      var v = inp ? inp.value : '';
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+        if (inp) { inp.focus(); inp.style.borderBottomColor = 'var(--terracotta)'; setTimeout(function () { inp.style.borderBottomColor = ''; }, 1200); }
+        return;
+      }
+      S.deal.dates[q.id] = v; save();
+      dStep++; renderDealWizard(box);
+    });
+    var sk = document.getElementById('jd-skip');
+    if (sk) sk.addEventListener('click', function () { S.deal.dates[q.id] = null; save(); dStep++; renderDealWizard(box); });
+    var bk = document.getElementById('jd-back');
+    if (bk) bk.addEventListener('click', function () { dStep = Math.max(0, dStep - 1); renderDealWizard(box); });
+    var ny = document.getElementById('jd-notyet');
+    if (ny) ny.addEventListener('click', function () { S.deal.signed = false; save(); renderDeal(); });
+  }
+
+  var DEAL_DATE_LABELS = {
+    contract: 'Contract signed', cooling: 'Cooling-off ends', bp: 'Building & pest deadline',
+    finance: 'Finance approval deadline', preapproval: 'Pre-approval expires', settlement: 'Settlement day'
+  };
+  function renderDealDash(box) {
+    var D = S.deal.dates;
+    var rows = ['cooling', 'bp', 'finance', 'preapproval', 'settlement']
+      .filter(function (k) { return D[k]; })
+      .map(function (k) { return { k: k, date: D[k], left: daysLeft(D[k]) }; })
+      .sort(function (a, b) { return a.left - b.left; })
+      .map(function (r) {
+        var chip;
+        if (r.left < 0) chip = '<span class="jdays urgent">passed</span>';
+        else if (r.left === 0) chip = '<span class="jdays urgent">today</span>';
+        else if (r.left <= 7) chip = '<span class="jdays urgent">' + r.left + ' day' + (r.left > 1 ? 's' : '') + '</span>';
+        else if (r.left <= 21) chip = '<span class="jdays soon">' + r.left + ' days</span>';
+        else chip = '<span class="jdays ok">' + r.left + ' days</span>';
+        return '<div class="jdl"><div><div>' + DEAL_DATE_LABELS[r.k] + '</div><div class="jwhen">' + humanDate(r.date) + '</div></div>' + chip + '</div>';
+      }).join('');
+    box.innerHTML =
+      '<section class="jgrid2" style="margin-top:18px">' +
+      '<div class="jcard jpad"><span class="jsc jblock">Checklist</span><div id="jdeal-checks"></div></div>' +
+      '<div class="jcard jpad"><span class="jsc jblock">Your deadlines</span>' +
+      '<div class="jdl"><div><div>Contract signed</div><div class="jwhen">' + humanDate(D.contract) + '</div></div><span class="jdays ok">done</span></div>' +
+      rows +
+      '<p class="jhint">Counted from today, on this device. Email nudges before each date arrive with accounts.</p>' +
+      '<div class="jwiz-nav" style="margin-top:10px"><span></span><button type="button" class="jwiz-skip" id="jd-edit">Edit my dates</button></div>' +
+      '</div></section>' +
+      '<section class="jcard jpad jdone-row" style="margin-top:18px">' +
+      '<div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">Contract signed.</div></div>' +
+      '<button class="jbtn" data-jmark="6">Mark this stop done</button></section>';
+    renderChecklist('jdeal-checks', DEAL_CHECKS, 'dealChecks');
+    var ed = document.getElementById('jd-edit');
+    if (ed) ed.addEventListener('click', function () { S.deal.editing = true; dStep = 0; save(); renderDeal(); });
+  }
   function renderSettle() {
     renderChecklist('jsettle-checks', SETTLE_CHECKS, 'settleChecks');
   }
