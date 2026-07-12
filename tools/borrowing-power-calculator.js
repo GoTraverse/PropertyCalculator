@@ -289,8 +289,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Compare multiple purchase scenarios side-by-side',
     description: 'Test different deposits, rates, and properties with long-term equity, cashflow and tax modelling — free in EquitySight.',
-    buttonText: 'Try it free — no signup →',
-    buttonHref: '/app'
+    buttonText: 'Start your first-home journey — free \u2192',
+    buttonHref: '/journey'
   },
   resources: {
     groups: [

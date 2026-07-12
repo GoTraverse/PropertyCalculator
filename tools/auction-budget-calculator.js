@@ -608,8 +608,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model the full purchase before you bid',
     description: 'Stack stamp duty, LMI, repayments and a 30-year projection for the property you’re bidding on — free in EquitySight.',
-    buttonText: 'Try it free — no signup →',
-    buttonHref: '/app'
+    buttonText: 'Start your first-home journey — free \u2192',
+    buttonHref: '/journey'
   },
   resources: {
     groups: [

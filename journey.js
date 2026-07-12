@@ -164,7 +164,7 @@
   // Real-world stage → the stop that matches it. Buyers can enter mid-journey;
   // earlier stops stay open ("catch up any time") rather than blocking.
   var STAGE_STOP = { start: 2, schemes: 2, budget: 3, ground: 4, hunt: 5, deal: 6 };
-  var STAGE_LABEL = { start: 'Just starting', schemes: 'Comparing schemes', budget: 'Budget & lenders', ground: 'Choosing suburbs', hunt: 'Inspecting places', deal: 'Contract signed' };
+  var STAGE_LABEL = { start: 'Early days', schemes: 'Saving & researching', budget: 'Working out borrowing', ground: 'Deciding where', hunt: 'Inspecting homes', deal: 'Contract signed' };
   function currentStop() {
     var first = null;
     for (var i = 0; i < STOPS.length; i++) if (!S.done[STOPS[i].n]) { first = STOPS[i].n; break; }
@@ -416,7 +416,7 @@
 
   // ── Stop 1 wizard (nine questions, one at a time) ────────────────────
   var WQ = [
-    { id: 'stage', kind: 'chips', cols: 2, q: 'Where are you up to right now?', help: 'Buying isn’t linear — we’ll drop you at the stop that matches, and everything earlier stays open to catch up on.', opts: [['start', 'Just working out if I can'], ['schemes', 'Comparing schemes & saving'], ['budget', 'Setting a budget / talking to lenders'], ['ground', 'Choosing suburbs'], ['hunt', 'Inspecting places'], ['deal', 'I’ve signed a contract']], store: 'profile' },
+    { id: 'stage', kind: 'chips', cols: 2, q: 'Where are you in your home-buying journey?', help: 'Everyone starts in a different place. Pick the closest match and we’ll take you straight to the part that helps today — you can go back over the earlier steps any time.', opts: [['start', 'Wondering if I can afford it'], ['schemes', 'Saving up and researching'], ['budget', 'Working out what I can borrow'], ['ground', 'Deciding where to buy'], ['hunt', 'Out inspecting homes'], ['deal', 'I’ve signed a contract']], store: 'profile' },
     { id: 'state', kind: 'chips', q: 'Where are you looking to buy?', help: 'Stamp duty, concessions and schemes all change at the border.', opts: [['qld', 'QLD'], ['nsw', 'NSW'], ['vic', 'VIC'], ['sa', 'SA'], ['wa', 'WA'], ['tas', 'TAS'], ['act', 'ACT'], ['nt', 'NT']], store: 'numbers' },
     { id: 'area', kind: 'chips', q: 'Capital city, or regional?', help: 'The government schemes use different price caps for capitals and the rest of the state.', opts: [['capital', 'Capital city'], ['regional', 'Regional']], store: 'profile' },
     { id: 'buyers', kind: 'chips', q: 'Buying alone or together?', help: 'Income caps for shared-equity schemes are different for joint applicants.', opts: [['single', 'Just me'], ['couple', 'Two of us']], store: 'profile' },
@@ -428,7 +428,7 @@
     { id: 'saveMo', kind: 'money', q: 'How much can you put away each month?', help: 'Be honest rather than hopeful — the projections use this.', def: 2000, min: 0, store: 'numbers' },
     { id: 'rentNow', kind: 'money', q: 'What do you pay in rent or board each month?', help: 'Zero is fine. We use it to show how a mortgage compares to what you already pay.', def: 0, min: 0, store: 'profile' },
     { id: 'cardLimits', kind: 'money', q: 'Total limit across your credit cards?', help: 'The limit, not the balance — lenders assess the whole limit even at $0 owing. Zero if you have none.', def: 0, min: 0, store: 'profile' },
-    { id: 'employment', kind: 'chips', q: 'How do you earn?', help: 'Lenders treat salaried, self-employed and casual income differently.', opts: [['payg', 'Salaried (PAYG)'], ['self', 'Self-employed'], ['casual', 'Casual / contract']], store: 'profile' },
+    { id: 'employment', kind: 'chips', q: 'How do you earn your income?', help: 'Lenders treat salaried, self-employed and casual income differently.', opts: [['payg', 'Salaried (PAYG)'], ['self', 'Self-employed'], ['casual', 'Casual / contract']], store: 'profile' },
     { id: 'dependants', kind: 'chips', q: 'Any dependants?', help: 'Kids and dependants change what lenders assume you spend.', opts: [[0, 'None'], [1, '1'], [2, '2'], [3, '3 or more']], store: 'profile' },
     { id: 'timeframe', kind: 'chips', q: 'When do you want to be in?', help: 'We’ll flag which paths actually fit your timeframe.', opts: [['asap', 'As soon as possible'], ['6mo', 'Within 6 months'], ['12mo', 'Within a year'], ['2yr', '1–2 years plus']], store: 'profile' }
   ];

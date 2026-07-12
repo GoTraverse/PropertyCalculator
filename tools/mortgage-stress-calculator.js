@@ -94,8 +94,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Plan the full property purchase',
     description: 'Model equity buildup, offset account impact, and compare properties side by side \u2014 all free in EquitySight.',
-    buttonText: 'Try it free \u2014 no signup \u2192',
-    buttonHref: '/app'
+    buttonText: 'Start your first-home journey — free \u2192',
+    buttonHref: '/journey'
   },
   resources: {
     groups: [

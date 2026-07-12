@@ -6,7 +6,7 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v29';
+const CACHE_NAME = 'equitysight-v30';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/offline.html',
@@ -38,6 +38,9 @@ const STATIC_ASSETS = [
   // access so a user can open any calculator without a prior online visit. The
   // HTMLs stay small (~30 KB each); install cost ~400 KB. Individual tool JS
   // files are cached on-demand by the static-asset pattern below.
+  '/journey',
+  '/journey.css',
+  '/journey.js',
   '/tools/',
   '/tools/stamp-duty-calculator',
   '/tools/cost-of-purchase-calculator',

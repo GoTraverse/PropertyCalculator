@@ -432,8 +432,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Model the full property investment',
     description: 'Add rental income, renovation costs, equity projections, and compare multiple properties side by side — all in EquitySight.',
-    buttonText: 'Try it free \u2014 no signup \u2192',
-    buttonHref: '/app'
+    buttonText: 'Start your first-home journey — free \u2192',
+    buttonHref: '/journey'
   },
   resources: {
     groups: [

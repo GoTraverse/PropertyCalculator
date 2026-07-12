@@ -468,8 +468,8 @@ ToolPage.init({
     eyebrow: 'Go deeper',
     title: 'Plan your purchase and investment',
     description: 'Model your full purchase costs, deposit timeline, and post-purchase cashflow — all free in EquitySight.',
-    buttonText: 'Try it free — no signup →',
-    buttonHref: '/app'
+    buttonText: 'Start your first-home journey — free \u2192',
+    buttonHref: '/journey'
   },
   resources: {
     groups: [
