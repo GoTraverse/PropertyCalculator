@@ -396,6 +396,17 @@ Also fixed a factual error: the trade-off line claimed scheme places are
 limited each year, wrong for the 5% Deposit Scheme since 1 Oct 2025.
 FAQ JSON-LD kept in sync with visible text. SW v42.
 
+### Phase 1a.23 — anchor suburb + nearest-first step 4 (13 Jul 2026)
+Owner: told it QLD, got VIC suburbs first. New optional wizard question
+(a suburb or town to live near, skippable). data/suburb-coords.json built
+from the matthewproctor/australianpostcodes community dataset (MIT,
+netlifyignored); journey-suburbs.json rows now carry lat/lng (regenerate
+with node build/make-journey-suburbs.js). Step 4 leads with Near {anchor}:
+the nearest dataset suburbs with their own figures and km, rents labelled
+as rents. The cross-country band list sorts by distance to the anchor
+when set. Fixed a slug-collision bug found in verification (Belmont VIC
+measured against Belmont QLD; matching is now state+slug). SW v43.
+
 ### Phase 1b — next (desktop session; can verify live)
 1. Extract the duty/LMI/repayment formulas into a shared module used by
    journey.js + the calculators (kill the sync copy).

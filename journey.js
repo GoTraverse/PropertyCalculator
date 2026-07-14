@@ -42,7 +42,7 @@
       v: 1,
       done: {},
       numbers: { price: 650000, saved: 60000, saveMo: 2000, state: 'qld' },
-      profile: { stage: null, area: 'capital', buyers: 'single', fhb: true, build: 'established', income: null, timeframe: '12mo', dependants: 0, employment: 'payg', rentNow: 0, cardLimits: 0 },
+      profile: { stage: null, anchor: '', area: 'capital', buyers: 'single', fhb: true, build: 'established', income: null, timeframe: '12mo', dependants: 0, employment: 'payg', rentNow: 0, cardLimits: 0 },
       dealChecks: [false, false, false, false, false],
       settleChecks: [false, false, false, false, false],
       inspections: [],
@@ -435,6 +435,7 @@
     { id: 'stage', kind: 'chips', cols: 2, q: 'Where are you in your home-buying journey?', help: 'Pick the closest match and we’ll take you straight to the part that helps now. You can go back over the earlier steps any time.', opts: [['start', 'Wondering if I can afford it'], ['schemes', 'Saving up and researching'], ['budget', 'Working out what I can borrow'], ['ground', 'Deciding where to buy'], ['hunt', 'Out inspecting homes'], ['deal', 'I’ve signed a contract']], store: 'profile' },
     { id: 'state', kind: 'chips', q: 'Where are you looking to buy?', help: 'Stamp duty, concessions and schemes differ by state.', opts: [['qld', 'QLD'], ['nsw', 'NSW'], ['vic', 'VIC'], ['sa', 'SA'], ['wa', 'WA'], ['tas', 'TAS'], ['act', 'ACT'], ['nt', 'NT']], store: 'numbers' },
     { id: 'area', kind: 'chips', q: 'Capital city, or regional?', help: 'The government schemes use different price caps for capitals and the rest of the state.', opts: [['capital', 'Capital city'], ['regional', 'Regional']], store: 'profile' },
+    { id: 'anchor', kind: 'text', optional: true, q: 'Is there a suburb or town you want to live near?', help: 'Optional. We use it to sort suburb suggestions by distance. Skip it if you have no idea yet.', store: 'profile' },
     { id: 'buyers', kind: 'chips', q: 'Buying alone or together?', help: 'Income caps for shared-equity schemes are different for joint applicants.', opts: [['single', 'Just me'], ['couple', 'Two of us']], store: 'profile' },
     { id: 'fhb', kind: 'chips', q: 'Is this your first home?', help: 'First home buyers get stamp duty concessions and access to the federal schemes.', opts: [[true, 'Yes, first home'], [false, 'Owned before']], store: 'profile' },
     { id: 'build', kind: 'chips', q: 'Established home, or a new build?', help: 'Some concessions and equity schemes are more generous for new builds.', opts: [['established', 'Established'], ['new', 'New build'], ['unsure', 'Not sure yet']], store: 'profile' },
@@ -467,6 +468,9 @@
         var sel = String(wVal(q)) === String(o[0]);
         return '<button type="button" class="jwiz-state' + (sel ? ' sel' : '') + '" data-wopt="' + esc(String(o[0])) + '">' + esc(o[1]) + '</button>';
       }).join('') + '</div>';
+    } else if (q.kind === 'text') {
+      body = '<div class="jwiz-input-row">' +
+        '<input class="jwiz-input" id="jwiz-in" type="text" value="' + esc(wVal(q) || '') + '" placeholder="e.g. Chermside" aria-label="' + esc(q.q) + '" style="max-width:320px;font-size:20px"></div>';
     } else {
       var val = wVal(q) != null ? wVal(q) : q.def;
       body = '<div class="jwiz-input-row"><span class="jwiz-cur">$</span>' +
@@ -478,7 +482,9 @@
       '<p class="jwiz-help">' + esc(q.help) + '</p>' + body +
       '<div class="jwiz-nav">' +
       (wStep > 0 ? '<button type="button" class="jwiz-skip" id="jwiz-back">← Back</button>' : '<span></span>') +
-      (q.kind === 'chips' ? '<span class="jmins">tap one</span>' : '<button type="button" class="jbtn" id="jwiz-next">Next</button>') +
+      (q.kind === 'chips' ? '<span class="jmins">tap one</span>'
+        : (q.optional ? '<span style="display:flex;gap:14px;align-items:center"><button type="button" class="jwiz-skip" id="jwiz-skipq">Skip</button><button type="button" class="jbtn" id="jwiz-next">Next</button></span>'
+          : '<button type="button" class="jbtn" id="jwiz-next">Next</button>')) +
       '</div></div>';
     var input = document.getElementById('jwiz-in');
     if (input) {
@@ -488,6 +494,8 @@
     }
     var nb = document.getElementById('jwiz-next');
     if (nb) nb.addEventListener('click', wizardNext);
+    var sq = document.getElementById('jwiz-skipq');
+    if (sq) sq.addEventListener('click', function () { wSet(WQ[wStep], ''); wStep++; renderWizard(); });
     var bb = document.getElementById('jwiz-back');
     if (bb) bb.addEventListener('click', function () { wStep = Math.max(0, wStep - 1); renderWizard(); });
     track('journey_wizard_step', { step: wStep });
@@ -495,6 +503,13 @@
 
   function wizardNext() {
     var q = WQ[wStep];
+    if (q.kind === 'text') {
+      var ti = document.getElementById('jwiz-in');
+      wSet(q, (ti && ti.value ? ti.value : '').trim().slice(0, 60));
+      wStep++;
+      renderWizard();
+      return;
+    }
     if (q.kind === 'money') {
       var input = document.getElementById('jwiz-in');
       var n = parseNum(input ? input.value : '');
@@ -537,6 +552,7 @@
           (P.cardLimits ? row('Card limits', m$(P.cardLimits), true) : '');
         var plan =
           row('Target price', m$(N.price), true) +
+          (P.anchor ? row('Near', esc(P.anchor)) : '') +
           row('Timeframe', ({ asap: 'As soon as possible', '6mo': 'Within 6 months', '12mo': 'Within a year', '2yr': '1–2 years plus' })[P.timeframe] || '—') +
           (STAGE_LABEL[P.stage] ? row('Where you\u2019re up to', STAGE_LABEL[P.stage]) : '');
         return '<div class="jsum">' +
@@ -1053,6 +1069,54 @@
       .catch(function () { _subFetch = null; return null; });
     return _subFetch;
   }
+  function kmBetween(a, b) {
+    var R = 6371, d2r = Math.PI / 180;
+    var dLat = (b[0] - a[0]) * d2r, dLng = (b[1] - a[1]) * d2r;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(a[0] * d2r) * Math.cos(b[0] * d2r) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }
+  function resolveAnchor(j) {
+    var name = (S.profile.anchor || '').trim().toLowerCase();
+    if (!name || !j) return null;
+    var same = null, other = null;
+    for (var i = 0; i < j.rows.length; i++) {
+      var r = j.rows[i];
+      if (!r[6]) continue;
+      if (r[1].toLowerCase() === name) {
+        if (r[0] === S.numbers.state) { same = r; break; }
+        if (!other) other = r;
+      }
+    }
+    return same || other;
+  }
+  function subFigure(r) {
+    var bits = [];
+    if (r[3]) bits.push('<b>' + m$(r[3]) + '</b> <span class="jsub-kind">median, houses</span>');
+    if (r[4]) bits.push('<b>' + m$(r[4]) + '</b> <span class="jsub-kind">median, units</span>');
+    if (!r[3] && !r[4] && r[5]) bits.push('<b>$' + r[5] + '/wk</b> <span class="jsub-kind">median rent</span>');
+    return bits.join(' · ');
+  }
+  function renderGroundNear(j) {
+    var box = document.getElementById('jground-near');
+    if (!box) return;
+    var a = resolveAnchor(j);
+    var sec = box.closest('section');
+    if (!a) { if (sec) sec.hidden = true; return; }
+    if (sec) sec.hidden = false;
+    var withDist = j.rows.filter(function (r) { return r[6] && r[2] !== a[2]; })
+      .map(function (r) { return { r: r, km: kmBetween([a[6], a[7]], [r[6], r[7]]) }; })
+      .sort(function (x, y) { return x.km - y.km; })
+      .slice(0, 8);
+    box.innerHTML =
+      '<p class="jhint" style="margin:0 0 8px">The closest suburbs in our dataset to ' + esc(a[1]) + '. Rents are rents, not prices.</p>' +
+      '<div class="jsub-list">' +
+      subRow(a[1] + ' (your pick)', a[0], subFigure(a) || '<span class="jsub-kind">page only</span>', a[2]) +
+      withDist.map(function (x) {
+        return subRow(x.r[1], x.r[0], subFigure(x.r) + ' <span class="jsub-kind">' + Math.round(x.km) + ' km</span>', x.r[2]);
+      }).join('') + '</div>';
+  }
+
   var SUB_SRC = 'Sale medians: Valuer-General Victoria 2025 (preliminary) · Valuer-General SA Q1 2026 (metro Adelaide). Rents: RTA Mar 2026 (QLD) · CBS SA Jan–Mar 2026 · Tas rental bonds May 2025–Apr 2026. All CC BY 4.0 state-government data.';
 
   function subRow(name, st, figure, slug) {
@@ -1072,7 +1136,17 @@
       if (r[3] >= lo && r[3] <= hi) fits.push({ st: r[0], name: r[1], slug: r[2], price: r[3], kind: 'houses' });
       else if (r[4] >= lo && r[4] <= hi) fits.push({ st: r[0], name: r[1], slug: r[2], price: r[4], kind: 'units' });
     });
-    fits.sort(function (a, b) { return Math.abs(a.price - target) - Math.abs(b.price - target); });
+    var anch = resolveAnchor(j);
+    if (anch) {
+      fits.forEach(function (f) {
+        var row = null;
+        for (var i = 0; i < j.rows.length; i++) if (j.rows[i][2] === f.slug && j.rows[i][0] === f.st) { row = j.rows[i]; break; }
+        f.km = row && row[6] ? kmBetween([anch[6], anch[7]], [row[6], row[7]]) : 1e9;
+      });
+      fits.sort(function (a, b) { return a.km - b.km; });
+    } else {
+      fits.sort(function (a, b) { return Math.abs(a.price - target) - Math.abs(b.price - target); });
+    }
     var top = fits.slice(0, 12);
     var myState = S.numbers.state;
     var stateHasPrices = fits.some(function (f) { return f.st === myState; }) || myState === 'vic' || myState === 'sa';
@@ -1082,9 +1156,9 @@
     }
     if (top.length) {
       html += '<div class="jsub-list">' + top.map(function (f) {
-        return subRow(f.name, f.st, '<b>' + m$(f.price) + '</b> <span class="jsub-kind">median, ' + f.kind + '</span>', f.slug);
+        return subRow(f.name, f.st, '<b>' + m$(f.price) + '</b> <span class="jsub-kind">median, ' + f.kind + (f.km && f.km < 1e9 ? ' · ' + Math.round(f.km) + ' km' : '') + '</span>', f.slug);
       }).join('') + '</div>';
-      if (fits.length > top.length) html += '<p class="jhint" style="margin-top:8px">' + fits.length + ' suburbs fit your ' + m$(lo) + '\u2013' + m$(hi) + ' band — showing the 12 closest to ' + m$(target) + '.</p>';
+      if (fits.length > top.length) html += '<p class="jhint" style="margin-top:8px">' + fits.length + ' suburbs fit your ' + m$(lo) + '\u2013' + m$(hi) + ' band. Showing the 12 ' + (resolveAnchor(j) ? 'closest to ' + esc(resolveAnchor(j)[1]) : 'closest to ' + m$(target)) + '.</p>';
     } else {
       html += '<p class="jcaveat">No suburb in the verified dataset has a median inside ' + m$(lo) + '\u2013' + m$(hi) + ' right now. Try widening the band by adjusting your budget at stop 3, or search the dataset below.</p>';
     }
@@ -1127,6 +1201,8 @@
     box.innerHTML =
       '<section class="jcard jpad"><span class="jsc jblock">Your realistic search band</span>' +
       '<p style="font-size:15px;line-height:1.65">With ' + (S.budget.cap ? 'your committed maximum of' : 'a target of') + ' <b class="mono-strong">' + m$(target) + '</b>, shortlist suburbs where typical listings sit between <b class="mono-strong">' + m$(lo) + '</b> and <b class="mono-strong">' + m$(hi) + '</b>. Below the band you\u2019re giving up more than you need to; above it you\u2019ll keep getting outbid.</p></section>' +
+      '<section class="jcard jpad"><span class="jsc jblock">Near ' + (S.profile.anchor ? esc(S.profile.anchor) : 'your pick') + '</span>' +
+      '<div id="jground-near"></div></section>' +
       '<section class="jcard jpad"><span class="jsc jblock">Suburbs inside your band</span>' +
       '<div id="jground-fits"><p class="jcaveat">Loading the verified dataset\u2026</p></div></section>' +
       '<section class="jcard jpad"><span class="jsc jblock">Search the dataset</span>' +
@@ -1138,6 +1214,7 @@
       '<section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You know where.</div></div>' +
       '<button class="jbtn" data-jmark="4">Mark this step done</button></section>';
     fetchSuburbs().then(function (j) {
+      renderGroundNear(j);
       renderGroundFits(j);
       renderGroundSearch(j);
     });
