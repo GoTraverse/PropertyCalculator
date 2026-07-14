@@ -23,13 +23,14 @@ const path = require('path');
 
 const market = require(path.join(__dirname, '..', 'data', 'market-current.json'));
 const suburbs = require(path.join(__dirname, '..', 'data', 'suburbs.json'));
+const coords = require(path.join(__dirname, '..', 'data', 'suburb-coords.json')).coords;
 
 // state → { UPPERNAME → {slug, pop} }
 const bySlug = {};
 for (const s of suburbs) {
   const st = String(s.state || '').toLowerCase();
   if (!bySlug[st]) bySlug[st] = {};
-  bySlug[st][String(s.suburb || '').toUpperCase()] = { slug: s.slug, pop: s.population || 0 };
+  bySlug[st][String(s.suburb || '').toUpperCase()] = { slug: s.slug, pop: s.population || 0, lat: s.lat, lng: s.lng };
 }
 
 const rows = [];
@@ -48,6 +49,8 @@ for (const ST of Object.keys(market.data)) {
       rec.price_house || 0,
       rec.price_unit || 0,
       rec.rent || 0,
+      (coords[st + '|' + NAME] || [0, 0])[0],
+      (coords[st + '|' + NAME] || [0, 0])[1],
     ]);
   }
 }
@@ -63,7 +66,7 @@ const out = {
     sa_rent: 'Consumer & Business Services (SA), Jan–Mar 2026',
     tas_rent: 'Tasmanian rental bonds (DoJ), May 2025 – Apr 2026',
   },
-  // row: [state, name, slug, price_house, price_unit, rent_weekly]
+  // row: [state, name, slug, price_house, price_unit, rent_weekly, lat, lng]
   rows,
 };
 
