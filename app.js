@@ -2416,9 +2416,13 @@
 
   function _renderAdminAllSection(groups){
     const section=document.getElementById('admin-all-section');
+    if(!section) return;
+    if(!document.getElementById('admin-all-grid')){
+      section.innerHTML='<div style="font-family:monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--sky);padding:8px 0 6px;border-bottom:1px solid rgba(91,143,171,0.25);margin-bottom:8px;display:flex;align-items:center;gap:8px;"><span>All Users\u2019 Scenarios</span><span id="admin-all-count" style="color:rgba(91,143,171,0.5);font-size:11px;"></span></div><div id="admin-all-grid"></div>';
+    }
     const grid=document.getElementById('admin-all-grid');
     const countEl=document.getElementById('admin-all-count');
-    if(!section||!grid) return;
+    if(!grid) return;
     // Re-check flag — applyFeatureFlags may have disabled it while fetch was in-flight
     if(!_adminViewAllEnabled){ section.style.display='none'; return; }
     // Filter out admin's own scenarios (they're already in the main grid)
@@ -4690,7 +4694,11 @@
     var adminSection = document.getElementById('admin-all-section');
     if(adminSection && !_adminViewAllEnabled){
       adminSection.style.display = 'none';
-      adminSection.innerHTML = '';
+    }
+    // Flag on (or just turned on via a config refresh): populate the section
+    // without needing a full page reload.
+    if(_adminViewAllEnabled){
+      try{ loadAdminAllScenarios(); }catch(e){}
     }
 
     // ── PDF Export feature flag ───────────────────────────────────
