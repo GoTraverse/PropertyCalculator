@@ -472,10 +472,17 @@ exports.handler = async function(event){
   }
 
   // ── General per-IP rate limit: max 30 auth requests per 60 seconds ──────────
+  // A signed-in admin is exempt once over the limit: the admin dashboard makes
+  // many auth calls per minute (user lists, stats, per-user fetches), and the
+  // cap was locking the owner out of saving their own config. The extra token
+  // lookup only runs in the over-limit path, so anonymous abuse still pays it.
   const reqIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
   try{
     const ipCount=await rRateInc('authReq:'+reqIp, 60);
-    if(ipCount>30) return fail('Too many requests — please slow down', 429);
+    if(ipCount>30){
+      const maybeAdmin=await verifyToken(event);
+      if(!maybeAdmin || maybeAdmin.role!=='admin') return fail('Too many requests — please slow down', 429);
+    }
   }catch(e){ /* non-fatal — don't block if Redis hiccups */ }
 
   let body;
