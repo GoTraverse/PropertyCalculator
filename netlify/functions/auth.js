@@ -1169,7 +1169,7 @@ exports.handler = async function(event){
       'maintenanceMode','maintenanceMessage','allowSignups','minPasswordLength',
       'bannerText','bannerType','bannerExpiry',
       'freeScenarioLimit','proScenarioLimit',
-      'enablePdfExport','enableProjections','enableGuestAccess',
+      'enablePdfExport','enableProjections','enableGuestAccess','adminViewAllScenarios',
       'proMonthlyPrice','proAnnualPrice','adviserMonthlyPrice',
       'contactDiscord','contactTwitter','referralEnabled','referralBonus',
       'maxUploadMb','sessionTtlDays','requireEmailDomain',
