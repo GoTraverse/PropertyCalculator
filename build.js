@@ -138,6 +138,11 @@ function restoreFromCache() {
   for (const f of getSitemapFiles(CACHE_DIR)) {
     fs.copyFileSync(path.join(CACHE_DIR, f), path.join(ROOT, f));
   }
+  // Restore the sitemap INDEX too — the committed sitemap.xml can lag the split
+  // files (it once shipped with only core+blog, dropping every suburb URL from
+  // Google's view), so the rebuild-generated index must survive non-rebuild deploys.
+  const cachedIndex = path.join(CACHE_DIR, 'sitemap.xml');
+  if (fs.existsSync(cachedIndex)) fs.copyFileSync(cachedIndex, path.join(ROOT, 'sitemap.xml'));
   if (fs.existsSync(CACHE_REPORT)) {
     fs.copyFileSync(CACHE_REPORT, path.join(ROOT, REPORT_FILE));
   }
@@ -155,10 +160,12 @@ function saveToCache() {
   if (fs.existsSync(CACHE_INVEST)) execSync(`rm -rf "${CACHE_INVEST}"`, { stdio: 'inherit' });
   copyDir(SUBURB_DIR, CACHE_SUBURB);
   copyDir(INVEST_DIR, CACHE_INVEST);
-  // Cache all split sitemap files
+  // Cache all split sitemap files + the index that references them
   for (const f of getSitemapFiles(ROOT)) {
     fs.copyFileSync(path.join(ROOT, f), path.join(CACHE_DIR, f));
   }
+  const indexPath = path.join(ROOT, 'sitemap.xml');
+  if (fs.existsSync(indexPath)) fs.copyFileSync(indexPath, path.join(CACHE_DIR, 'sitemap.xml'));
   // Cache index report so it survives non-rebuild deploys
   const reportPath = path.join(ROOT, REPORT_FILE);
   if (fs.existsSync(reportPath)) {

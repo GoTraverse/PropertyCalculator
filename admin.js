@@ -1802,13 +1802,13 @@ const DEFAULT_SCHEMES = [
     maxPropertyPrice: 700000,
     removesLMI: false,
     fixedGrantAmount: 0,
-    eligibility: 'Australian citizen or permanent resident, first home buyer, income under $90k single / $120k couple',
+    eligibility: 'Australian citizen or permanent resident, first home buyer, income under $103k single / $165k joint (caps from 1 Jul 2026)',
     incomeThresholds: [
-      { label: 'Single', maxIncome: 90000 },
-      { label: 'Couple / Joint', maxIncome: 120000 }
+      { label: 'Single', maxIncome: 103000 },
+      { label: 'Couple / Joint', maxIncome: 165000 }
     ],
     suburbBonuses: [],
-    notes: '',
+    notes: 'Price caps vary by state (capital city vs rest of state) — check Housing Australia for your area.',
     active: true
   },
   {
@@ -1816,7 +1816,7 @@ const DEFAULT_SCHEMES = [
     name: 'VIC Homebuyer Fund',
     type: 'shared-equity',
     country: 'Australia – Victoria',
-    description: 'Victorian government co-contribution up to 25% for eligible buyers purchasing in Victoria.',
+    description: 'Victorian government co-contribution up to 25% for eligible buyers purchasing in Victoria. Closed to new applications in 2025 — existing participants continue; new buyers use the federal Help to Buy scheme.',
     govtMinPct: 5,
     govtMaxPct: 25,
     govtDefaultPct: 25,
@@ -1829,12 +1829,12 @@ const DEFAULT_SCHEMES = [
       { label: 'Couple / Joint', maxIncome: 204000 }
     ],
     suburbBonuses: [],
-    notes: '',
-    active: true
+    notes: 'Closed to new applications in 2025 — kept for existing participants modelling their position.',
+    active: false
   },
   {
     id: 'first-home-guarantee',
-    name: 'First Home Guarantee (FHBG)',
+    name: '5% Deposit Scheme (formerly First Home Guarantee)',
     type: 'lmi-waiver',
     country: 'Australia',
     description: 'Government guarantees up to 15% of the property value, allowing buyers to purchase with a 5% deposit without paying LMI.',
@@ -1844,13 +1844,10 @@ const DEFAULT_SCHEMES = [
     maxPropertyPrice: 700000,
     removesLMI: true,
     fixedGrantAmount: 0,
-    eligibility: 'Australian citizen or permanent resident, first home buyer, income under $125k single / $200k couple',
-    incomeThresholds: [
-      { label: 'Single', maxIncome: 125000 },
-      { label: 'Couple / Joint', maxIncome: 200000 }
-    ],
+    eligibility: 'Australian citizen or permanent resident, first home buyer (or no property owned in the last 10 years), owner-occupier. No income caps since 1 Oct 2025.',
+    incomeThresholds: [],
     suburbBonuses: [],
-    notes: 'Government does not contribute equity — it only guarantees the loan to remove LMI requirement.',
+    notes: 'Government does not contribute equity — it only guarantees the loan to remove LMI. No income caps or place limits since 1 Oct 2025; price caps vary by state — check Housing Australia.',
     active: true
   },
   {

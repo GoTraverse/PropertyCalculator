@@ -1,81 +1,69 @@
 ---
 title: EquitySight Methodology
-date: June 2026
+date: August 2026
 tag: Transparency
 ---
 
 ## 1. Why I publish my methodology
 
-This page documents how EquitySight produces the numbers you see on the site — and, just as importantly, which of those numbers are real measured data and which are estimates. I think you deserve to know the difference before you rely on anything here.
+This page documents how EquitySight produces the numbers you see on the site, and which of those numbers are measured data versus estimates. You deserve to know the difference before you rely on anything here.
 
 I publish the methodology because:
 
-- Investors should never rely on opaque "scores" without understanding what they measure and where the inputs come from.
-- Australia's property industry has a long history of undisclosed conflicts and paid placements — I want mine out in the open.
-- Being upfront about what is estimated is more useful than a confident-sounding number with no honest basis.
+- Nobody should rely on opaque property numbers without knowing what they measure and where the inputs come from.
+- Australia's property industry has a long history of undisclosed conflicts and paid placements. I want mine out in the open.
+- Saying plainly what is estimated is more useful than a confident-sounding number with no basis.
 
 EquitySight is built and maintained by one person — Jacoby, a solo operator. There is no in-house valuation team and no certified valuer on staff. I do not collect any paid data from agents or developers, and I do not accept sponsored content.
 
-## 2. What is real data vs. an estimate
+## 2. What suburb pages show, and where each number comes from
 
-Two fields on each suburb profile are sourced from published, official datasets:
+Every figure displayed on a suburb page today comes from one of these sources:
 
 | Field | Source | Status |
 |-------|--------|--------|
-| Usual-resident population | ABS 2021 Census (SAL geography) | **Real** |
-| Postcode | Australia Post | **Real** |
+| Usual-resident population | ABS 2021 Census (SAL geography) | Measured |
+| Postcode | Community postcode dataset, cross-checked against the Australia Post postcode finder | Measured |
+| Current median weekly rent | State government open data (QLD RTA, SA CBS, TAS rental bonds; NSW at postcode level) | Measured, with the period shown next to the figure |
+| Current median sale price | Valuer-General Victoria and Valuer-General SA | Measured, with the period shown next to the figure |
+| 2021 Census median rent / mortgage | ABS 2021 Census | Measured but five years old — labelled as 2021 wherever it appears |
 
-Everything else currently shown on a suburb profile is an **estimate or a placeholder**, not a measured value:
+Every current rent and price figure carries an "as at" caption naming the source and period. The [data sources](/data-sources) page lists each dataset, its licence and its refresh cadence.
 
-- **Median household income** — currently a pseudo-random figure derived from the suburb name. It is **not** an ABS Census income figure and should not be read as one. I intend to replace or remove it once I have a verified source, and in the meantime the suburb pages are kept out of search (see below).
-- **Transport score** and **amenity score** — currently pseudo-random placeholders. They are **not** derived from OpenStreetMap, transit data, or any external amenity dataset.
-- **School count** and **park count** — currently rough population-ratio estimates (roughly one school per ~4,000 residents, one park per ~2,500 residents). They are **not** counts of real, named facilities and are **not** sourced from OpenStreetMap.
-- **Investment Score** — because it is computed partly from the estimated fields above, the score should be treated as illustrative only, not as a measured assessment.
+## 3. Figures I removed rather than estimate
 
-Fields that are **not populated at all** in production today: median weekly rent, median monthly mortgage, dwelling-type percentages, distance to CBD, and suburb centroid coordinates (lat/lng). Live rental and sales market data (Domain or similar listing feeds) and OpenStreetMap amenity data are **not** integrated.
+Earlier versions of the suburb pages displayed fields I could not verify. Rather than label them and hope readers notice the label, I removed them:
 
-Because of all this, suburb profile pages are currently **not indexed for search** while I upgrade the underlying data. I would rather hold these pages back than have them rank on numbers I cannot stand behind.
+- **Median household income** — the build previously generated a placeholder income figure that was not an ABS number. It was removed from all suburb pages in August 2026. Income will return if and when I can source it properly from ABS Census data.
+- **Investment score** — removed. A 0–100 score computed partly from estimated inputs is not a measurement, so I no longer publish one anywhere on the site.
+- **School and park counts** — never verified against a real facilities dataset, so they are not published.
 
-## 3. The EquitySight Investment Score (0–100)
+Some internal fields (a postcode-derived suburb-type classification, and rough transport/amenity weightings) still exist in the build and can influence which sentence variant a page uses. They never appear as displayed figures.
 
-The investment score is a weighted combination of several factors. I am documenting it here for transparency, but please read it alongside section 2: several of its inputs are estimates, so the score itself is **illustrative, not measured**.
+## 4. Which suburb pages are indexed for search
 
-The factors and their weights are:
+Only suburb pages that carry genuine, current, suburb-level market data are submitted to search engines. The gate requires all of:
 
-| Factor | Weight | Input |
-|--------|--------|-------|
-| Median household income (linear scale: $55k → 0, $115k → 25) | up to 25 pts | **Estimated** (name-seeded placeholder — not ABS) |
-| Straight-line distance to CBD | up to 20 pts | Not currently populated |
-| Suburb type (inner-city / middle-ring / coastal / outer-metro / regional) | up to 20 pts | Derived from postcode range + population |
-| Transport score | up to 15 pts | **Estimated** (placeholder) |
-| Amenity score | up to 10 pts | **Estimated** (placeholder) |
-| Median weekly rent | up to 10 pts | Not currently populated |
+- population of at least 2,000 (ABS 2021 Census),
+- a postcode, and
+- a current suburb-level median rent or sale price from state government open data.
 
-The sum is capped at 100. Suburb-type points are lookup values: inner-city 18, middle-ring 16, coastal 14, outer-metro 12, regional 8.
+About 1,475 pages pass that gate today (concentrated in QLD, VIC, SA and TAS, where suburb-level open data exists). The other pages remain reachable for browsing but are marked noindex, because I would rather hold a page out of search than have it rank on numbers I cannot stand behind.
 
-Scores fall into four labels:
+## 5. Suburb prose and strategy text
 
-- **Strong** — 81 to 100
-- **Good** — 61 to 80
-- **Moderate** — 41 to 60
-- **Weak** — 0 to 40
+The strategy verdicts, risk factors and outlook text on suburb pages are generated by rule-based logic over the measured fields — gross yield where both rent and price exist, price relative to state medians, population size and suburb type. Every dollar figure or percentage quoted in that text is computed from a measured input; the logic never invents a number. Where a page lacks a field, the sentences that depend on it are omitted rather than filled with a guess.
 
-> The score is descriptive, not predictive, and it currently rests partly on estimated inputs. It does not forecast returns. Past performance is not a guarantee of future performance. Treat it as a rough starting point, not advice.
+## 6. Known limitations
 
-## 4. Suburb prose and strategy text
-
-The strategy verdicts, risk factors, and outlook text on suburb pages are generated by rule-based logic over the available fields, with deterministic phrasing. Where that logic depends on the estimated fields described in section 2, the resulting text inherits the same caveat: it reflects estimates, not measured market conditions. I am reworking this content as verified data becomes available.
-
-## 5. Known limitations
-
-- The most important limitation is the one in section 2: most suburb figures are estimates or placeholders, and several richer fields are not populated at all. I am working to replace these with verified sources before re-indexing the pages.
-- ABS 2021 Census data (the population field) is four years old at time of writing. Census 2026 data will be incorporated as soon as the ABS releases it.
-- I do not collect any paid data from agents or developers, and I do not accept sponsored content.
+- ABS 2021 Census population data is five years old at the time of writing. Census 2026 data will be incorporated once the ABS releases it.
+- Current market coverage is uneven by state: NSW rents exist only at postcode level, and no free suburb-level sale-price dataset exists for Queensland. Pages say so rather than substituting a modelled figure.
+- Valuer-General sale medians lag the market by one to several quarters. The period caption next to each figure is the honest read of its age.
 - EquitySight is run by a solo, non-credentialed operator. Nothing on the site is personal financial advice. Always seek licensed, independent advice before making a property decision.
 
-## 6. Mortgage repayment formulas (main calculator)
+## 7. Mortgage repayment formulas (main calculator)
 
-The calculators are where my methodology is on the firmest ground: they apply standard, published formulas to the numbers you enter, and the RBA cash rate they reference is real.
+The calculators are where my methodology is on the firmest ground: they apply standard, published formulas to the numbers you enter.
 
 The Purchase Calculator (`/app`) uses the standard monthly amortisation formula:
 
@@ -95,10 +83,19 @@ The "switching to fortnightly saves X years and $Y in interest" number is comput
 
 This matches the "pay half the monthly amount every fortnight" offer most Australian lenders advertise. It is **not** the same as paying `annual / 26` every fortnight (which would just be monthly repayments relabelled and would save nothing).
 
+Stamp duty, LMI and scheme rules in the calculators and the First Home Journey follow the published FY2026-27 state revenue office schedules and Housing Australia program settings, with the verification date noted on each tool page.
+
 ### A note on the written guides
 
-The explanatory guides that accompany my calculators are drafted with AI assistance and then reviewed and edited by a human for accuracy before publishing. I mention this so the AI-assistance is disclosed rather than implied to be otherwise.
+The explanatory guides that accompany my calculators are drafted with AI assistance and then reviewed and edited by a human for accuracy before publishing. I mention this so the AI assistance is disclosed rather than implied to be otherwise.
 
-## 7. Questions?
+## 8. Change log
+
+- **August 2026** — Removed the placeholder household income figure from all suburb pages. Documented the real-data indexing gate (section 4) and the current state-government market data sources.
+- **July 2026** — Integrated current suburb-level rents and sale medians from state government open data; began indexing the ~1,475 suburb pages that carry them.
+- **June 2026** — Rewrote this page to separate measured data from estimates. Removed the investment score.
+- **April 2026** — First published methodology.
+
+## 9. Questions?
 
 If anything on this page is unclear, or you find a calculation error, email me at [support@equitysight.app](mailto:support@equitysight.app). I would genuinely rather hear about it.

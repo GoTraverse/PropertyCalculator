@@ -167,7 +167,7 @@
   <p>Every number the checker shows carries its period and source right next to it, because a median without a date is a trap. We do not blend, model, or extrapolate these figures — if a suburb or a state isn't in a free, lawfully republishable government dataset, the tool says so plainly rather than inventing a number.</p>
 
   <h2>How the comparison works</h2>
-  <p>The price check is a single honest ratio:</p>
+  <p>The price check is a single ratio:</p>
   <ul>
     <li><strong>Difference vs median (%) = (asking price &minus; suburb median) &divide; suburb median</strong></li>
   </ul>
@@ -176,17 +176,17 @@
   <ul>
     <li><strong>Implied gross yield = (weekly rent &times; 52) &divide; asking price</strong></li>
   </ul>
-  <p>If you enter the advertised rent, the checker uses that; otherwise it uses the suburb's median weekly rent where one exists. Where the suburb also has a recorded house sale median, it computes the suburb's own <em>reference yield</em> (median rent against median price) and compares your listing to it. Where there's no local reference, it falls back to honest indicative bands: metro houses commonly sit around 2.5–4.5% gross, units around 4–6%. A markedly low implied yield means the asking price is high relative to the property's rental fundamentals. All yield output is labelled indicative — gross yield ignores rates, insurance, maintenance, management and vacancy.</p>
+  <p>If you enter the advertised rent, the checker uses that; otherwise it uses the suburb's median weekly rent where one exists. Where the suburb also has a recorded house sale median, it computes the suburb's own <em>reference yield</em> (median rent against median price) and compares your listing to it. Where there's no local reference, it falls back to indicative bands: metro houses commonly sit around 2.5–4.5% gross, units around 4–6%. A markedly low implied yield means the asking price is high relative to the property's rental fundamentals. All yield output is labelled indicative — gross yield ignores rates, insurance, maintenance, management and vacancy.</p>
 
   <h2>Worked examples with the actual data</h2>
   <p><strong>Point Cook, VIC (house).</strong> The Valuer-General's preliminary 2025 median house price for Point Cook is $787,500. Suppose a listing is asking $830,000. The difference is $830,000 &minus; $787,500 = $42,500, and $42,500 &divide; $787,500 = 5.4%. That lands just inside the "somewhat above the suburb median" band — not alarming, but you'd want the comparables to justify the premium (bigger land, renovated, better street).</p>
   <p><strong>New Farm, QLD (house).</strong> Queensland publishes no free suburb sale prices, so the checker switches to rental fundamentals. The RTA's March 2026 median rent for New Farm is $700 a week — $700 &times; 52 = $36,400 a year. Against a $1,300,000 asking price, the implied gross yield is $36,400 &divide; $1,300,000 = 2.8%. That's at the bottom of the typical metro house band, which is what you'd expect in a prestige inner-city suburb: the price is being carried by land value and capital-growth expectations, not rent.</p>
   <p><strong>Glenelg, SA (house).</strong> The Valuer-General's Q1 2026 metro median for Glenelg is $1,949,000 and the CBS median rent is $598 a week. A listing asking $1,850,000 sits $99,000 (5.1%) <em>below</em> the median — and the suburb's own reference yield ($598 &times; 52 &divide; $1,949,000 = 1.6%) tells you Glenelg pricing is driven almost entirely by the beachside land, not rental income.</p>
 
-  <h2>State-by-state coverage, honestly</h2>
+  <h2>State-by-state coverage</h2>
   <p><strong>Victoria</strong> has the best free coverage: suburb-level house <em>and</em> unit sale medians from the Valuer-General, republishable under CC BY 4.0. No free suburb rent medians yet. Note the current release is the preliminary 2025 series — final figures can differ.</p>
   <p><strong>South Australia</strong> provides metro Adelaide house sale medians (Valuer-General, quarterly) and suburb median rents (Consumer &amp; Business Services). Unit sale medians and non-metro suburbs aren't in the free release.</p>
-  <p><strong>Queensland</strong> is the honest outlier: there is <em>no free suburb-level sale price dataset</em> — that data is sold through commercial providers. The RTA's bond-based median rents are excellent, though, so for QLD the checker runs the rental-fundamentals test instead of a sale-median test and says so on screen.</p>
+  <p><strong>Queensland</strong> is the outlier: there is <em>no free suburb-level sale price dataset</em> — that data is sold through commercial providers. The RTA's bond-based median rents are excellent, though, so for QLD the checker runs the rental-fundamentals test instead of a sale-median test and says so on screen.</p>
   <p><strong>Tasmania</strong> has no free suburb sale prices either, but the Department of Justice publishes raw rental-bond lodgements — we aggregate 12 months of them into suburb median rents (suppressing suburbs with fewer than 10 bonds), so TAS gets the same rental-fundamentals check as Queensland.</p>
   <p><strong>New South Wales</strong> publishes rich sales data, but the Valuer-General's bulk licence is non-commercial and no-derivatives, which means we cannot lawfully republish suburb medians derived from it. <strong>WA, the ACT and the NT</strong> aren't covered by a free, republishable suburb-level dataset yet. For these the tool degrades gracefully: it tells you there's no free public data for the state, and the general sanity checks (comparable sold prices, days on market, implied yield from an advertised rent you enter yourself) still work.</p>
 
