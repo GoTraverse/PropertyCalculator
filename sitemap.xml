@@ -6,4 +6,16 @@
   <sitemap>
     <loc>https://equitysight.app/sitemap-blog.xml</loc>
   </sitemap>
+  <sitemap>
+    <loc>https://equitysight.app/sitemap-suburbs-qld.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://equitysight.app/sitemap-suburbs-sa.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://equitysight.app/sitemap-suburbs-tas.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://equitysight.app/sitemap-suburbs-vic.xml</loc>
+  </sitemap>
 </sitemapindex>

@@ -33,7 +33,7 @@
     '      <nav class="footer-nav">',
     '        <a href="/journey">First Home Journey</a>',
     '        <a href="/pricing">Pricing</a>',
-    '        <a href="/blog">Blog</a>',
+    '        <a href="/blog/">Blog</a>',
     '        <a href="/showcase">Gallery</a>',
     '        <a href="/about">About</a>',
     '        <a href="/methodology">Methodology</a>',

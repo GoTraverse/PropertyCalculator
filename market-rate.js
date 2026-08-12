@@ -44,7 +44,9 @@
     fetch('/.netlify/functions/market-data?action=cashRate')
       .then(function (r) { return r.json(); })
       .then(function (res) {
-        if (!res.ok || res.rate == null) throw new Error('no rate');
+        // A 'fallback' source is the server's hardcoded last-resort rate — it can
+        // be months stale, so never render it as live market context.
+        if (!res.ok || res.rate == null || res.source === 'fallback') throw new Error('no live rate');
 
         var cashRate      = parseFloat(res.rate);
         var suggestedRate = parseFloat((cashRate + LENDER_MARGIN).toFixed(2));

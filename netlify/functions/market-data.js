@@ -69,8 +69,9 @@ async function rSet(key, val, ttl) {
 
 // ── RBA cash rate ──────────────────────────────────────────────────────────────
 
-// Hardcoded fallback — updated Feb 2025 (first RBA cut in 4 years)
-// Live API will override this when available.
+// Hardcoded last resort, served only when the RBA API and Redis cache both fail.
+// Clients (market-rate.js) suppress source==='fallback' so this stale figure is
+// never rendered as live market context — it exists so the API shape stays stable.
 const FALLBACK_CASH_RATE = { rate: 4.10, date: '2025-02-18', source: 'fallback' };
 
 async function fetchCashRate() {
