@@ -226,9 +226,12 @@ for (const s of suburbs) {
   if (abs) {
     matched++;
 
-    // Income: weekly × 52, or keep placeholder if null
+    // Income: weekly × 52, or keep placeholder if null. Tag the source so
+    // build-suburbs.js knows this figure is real ABS 2021 data — untagged
+    // income is the name-seeded placeholder and is nulled before rendering.
     if (abs.median_weekly_income) {
       s.median_household_income = abs.median_weekly_income * 52;
+      s.income_source = 'abs2021';
     }
 
     // Centroid coordinates — stored for geographic nearby-suburb matching
