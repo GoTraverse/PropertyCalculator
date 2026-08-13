@@ -91,7 +91,7 @@ const DEFAULT_TEMPLATES = {
   },
   welcome: {
     subject: 'Welcome to EquitySight!',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Welcome, {{firstName}}! 🎉</h2><p>Your EquitySight account is verified and ready to go.</p><p>You can now:</p><ul><li>Calculate property investment scenarios</li><li>Save and compare multiple properties</li><li>Track growth projections over time</li></ul><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a><p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Welcome, {{firstName}}! 🎉</h2><p>Your EquitySight account is verified and ready to go.</p><p>Your First Home Journey now syncs to your account, so it follows you across devices — and you can share it with a partner from the journey page.</p><a href="https://equitysight.app/journey" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open your journey</a><p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p></div>',
     variables: ['{{firstName}}', '{{name}}'],
   },
   password_reset: {
@@ -317,6 +317,18 @@ async function deleteUserKeys(userData, opts){
     rDel('events:'+uid),
   ];
   if(userData.stripeCustomerId) delOps.push(rDel('cid:'+userData.stripeCustomerId));
+  // Journey data + share tokens — privacy policy promises deletion within 30
+  // days, so the journey record and any live share links must go too.
+  delOps.push(rDel('journey:'+email));
+  try{
+    // Shape: journey:shares:<email> → { view: <token>, edit: <token> }
+    const shRaw = await redisCmd('GET','journey:shares:'+email);
+    const sh = shRaw ? (()=>{ try{return JSON.parse(shRaw);}catch(e){return null;} })() : null;
+    if(sh && typeof sh === 'object'){
+      for(const k of Object.keys(sh)){ if(sh[k]) delOps.push(rDel('journey:share:'+sh[k])); }
+    }
+  }catch(e){ /* non-fatal */ }
+  delOps.push(rDel('journey:shares:'+email));
   // Delete all scenarios for this user
   try{
     const raw = await redisCmd('GET','scenarios:'+uid+':index');

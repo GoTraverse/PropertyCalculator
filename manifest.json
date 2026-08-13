@@ -5,8 +5,7 @@
   "start_url": "/journey",
   "shortcuts": [
     { "name": "First Home Journey", "url": "/journey" },
-    { "name": "Calculators", "url": "/tools/" },
-    { "name": "Investor calculator", "url": "/app" }
+    { "name": "Calculators", "url": "/tools/" }
   ],
   "scope": "/",
   "display": "standalone",

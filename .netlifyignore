@@ -34,6 +34,12 @@ tests/
 # Internal audit notes (mention dev tooling; never public)
 docs/
 
+# Dormant-feature frontends: no live page loads these while the blog is dark
+# and review submissions are closed. Remove these three lines if either returns.
+suburb-reviews.js
+blog-comments.js
+blog.css
+
 # MCP server config + this ignore file itself
 .mcp.json
 .netlifyignore
