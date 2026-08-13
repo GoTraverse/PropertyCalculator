@@ -358,7 +358,6 @@ window.toggleTheme = function(){
   var SITE_NAV_LINKS = [
     { href: '/journey',   label: 'Journey',     match: ['/journey'] },
     { href: '/tools/',     label: 'Calculators', match: ['/tools'] },
-    { href: '/blog/',      label: 'Blog',        match: ['/blog'] },
     { href: '/pricing',   label: 'Pricing',     match: ['/pricing'] },
     { href: '/about',     label: 'About',       match: ['/about'] },
     { href: '/contact',   label: 'Support',     match: ['/contact'] },
@@ -477,7 +476,7 @@ window.toggleTheme = function(){
     } else {
       actions.innerHTML =
         '<a href="/login" class="btn-ghost">Sign in</a>' +
-        '<a href="/app" class="btn-gold"><span class="nav-btn-full">Try it free</span><span class="nav-btn-short">Try free</span></a>';
+        '<a href="/journey" class="btn-gold"><span class="nav-btn-full">Try it free</span><span class="nav-btn-short">Try free</span></a>';
     }
   }
 
