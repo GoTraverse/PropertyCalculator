@@ -22,3 +22,4 @@ data/abs-batch-*.json
 data/au_postcodes.csv
 data/abs-population-raw.json
 data/overpass-amenities.json
+.claude/worktrees/

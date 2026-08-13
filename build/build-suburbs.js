@@ -3,6 +3,12 @@
  * build-suburbs.js — Generates static suburb insight pages and state hub pages
  * from data/suburbs.json + templates.
  *
+ * Aug 2026 product cut: ONLY suburbs that pass the shouldNoindex() real-data
+ * gate are generated at all (~1,475 pages). The other ~13,000 records used to
+ * render as noindexed shells; they now have no page (404 by design). The old
+ * 19 city pages (/invest/{state}/{city}/) were cut entirely; state hubs are
+ * plain honest directories of the surviving suburbs.
+ *
  * Usage: node build-suburbs.js
  * Output: /suburb/{state}/{slug}/index.html and /invest/{state}/index.html
  */
@@ -14,7 +20,6 @@ const ROOT = path.join(__dirname, '..');
 const DATA_FILE = path.join(ROOT, 'data', 'suburbs.json');
 const SUBURB_TPL = fs.readFileSync(path.join(ROOT, 'templates', 'suburb-page.html'), 'utf8');
 const HUB_TPL = fs.readFileSync(path.join(ROOT, 'templates', 'state-hub.html'), 'utf8');
-const CITY_TPL = fs.readFileSync(path.join(ROOT, 'templates', 'city-page.html'), 'utf8');
 
 const suburbs = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 
@@ -819,73 +824,10 @@ function computeScore(s) {
   return Math.min(100, incomePts + distPts + typePts + transportPts + amenityPts + rentPts);
 }
 
-function generateInvestmentScore(s) {
-  const score = computeScore(s);
-  const h = seedHash(s.suburb + s.state);
-
-  let label, cssClass;
-  if (score >= 81) { label = 'Strong'; cssClass = 'suburb-score--strong'; }
-  else if (score >= 61) { label = 'Good'; cssClass = 'suburb-score--good'; }
-  else if (score >= 41) { label = 'Moderate'; cssClass = 'suburb-score--moderate'; }
-  else { label = 'Weak'; cssClass = 'suburb-score--weak'; }
-
-  // Build explanation from top factors
-  const parts = [];
-  const inc = s.median_household_income || 55000;
-
-  // Income commentary
-  if (inc >= 90000) {
-    parts.push(pick(h, [
-      `Strong household incomes in ${s.suburb} underpin solid property demand.`,
-      `Above-average earnings in ${s.suburb} support sustained property values.`,
-      `${s.suburb} benefits from a high-income resident base, supporting premium property pricing.`,
-    ]));
-  } else if (inc >= 72000) {
-    parts.push(pick(h >> 1, [
-      `Household incomes in ${s.suburb} sit in a comfortable mid-range for the ${s.state_name} market.`,
-      `Moderate income levels in ${s.suburb} indicate steady rental demand from working households.`,
-      `${s.suburb} has a solid income profile that supports reliable occupancy rates.`,
-    ]));
-  } else {
-    parts.push(pick(h >> 2, [
-      `Lower income levels in ${s.suburb} typically translate to more affordable entry points for investors.`,
-      `${s.suburb}'s income profile suggests a value-oriented market with competitive purchase prices.`,
-      `Household earnings in ${s.suburb} are below the state average, which may affect long-term capital growth.`,
-    ]));
-  }
-
-  // Location commentary
-  if (s.distance_to_cbd != null && s.distance_to_cbd <= 15) {
-    parts.push(pick(h >> 3, [
-      `Its proximity to the CBD adds a strong location premium.`,
-      `Close CBD access strengthens tenant appeal and resale value.`,
-      `The short commute to the city centre is a key demand driver.`,
-    ]));
-  } else if (s.suburb_type === 'coastal') {
-    parts.push(pick(h >> 4, [
-      `Coastal lifestyle appeal adds a premium that supports long-term demand.`,
-      `Seaside positioning attracts both owner-occupiers and holiday rental demand.`,
-      `The coastal setting provides a lifestyle factor that underpins property values.`,
-    ]));
-  } else if (s.suburb_type === 'regional') {
-    parts.push(pick(h >> 5, [
-      `As a regional location, growth prospects depend on local economic conditions and infrastructure investment.`,
-      `Regional positioning means lower entry costs but potentially longer hold periods for capital gains.`,
-      `Distance from major centres is a consideration, though regional markets can offer higher rental yields.`,
-    ]));
-  } else if (s.distance_to_cbd != null && s.distance_to_cbd > 30) {
-    parts.push(pick(h >> 6, [
-      `Greater distance from the CBD may temper short-term capital growth.`,
-      `The outer location offers affordability but may see slower price appreciation.`,
-      `While further from the city, improving transport links could boost future demand.`,
-    ]));
-  }
-
-  // Cap at 2-3 sentences
-  const explanation = parts.slice(0, 3).join(' ');
-
-  return `<h2>Investment score</h2>\n    <div class="suburb-score-badge">\n      <span class="suburb-score-value">${score}</span>\n      <span class="suburb-score-max">/ 100</span>\n      <span class="suburb-score-label ${cssClass}">${label}</span>\n    </div>\n    <p>${explanation}</p>`;
-}
+// (generateInvestmentScore was removed Aug 2026 — the {{INVESTMENT_SCORE_HTML}}
+// placeholder no longer exists in templates/suburb-page.html; the fabricated
+// 0-100 score must not render. computeScore() itself stays: the FAQ and
+// outlook generators still use it as an internal banding heuristic.)
 
 // ── Investment Strategy ──
 
@@ -1134,436 +1076,6 @@ function generateOutlook(s, sm) {
   return `<h2>2026 outlook</h2>\n    <div class="suburb-outlook-tags">\n      ${tags}\n    </div>\n    <p>${escHtml(parts.join(' '))}</p>`;
 }
 
-// ── City definitions (19 major Australian metro areas by postcode range) ──
-
-const CITY_DEFS = {
-  'Brisbane':        { state: 'QLD', ranges: [[4000,4179],[4300,4310]] },
-  'Gold Coast':      { state: 'QLD', ranges: [[4210,4230]] },
-  'Sunshine Coast':  { state: 'QLD', ranges: [[4551,4581]] },
-  'Cairns':          { state: 'QLD', ranges: [[4868,4885]] },
-  'Townsville':      { state: 'QLD', ranges: [[4810,4825]] },
-  'Toowoomba':       { state: 'QLD', ranges: [[4350,4365]] },
-  'Sydney':          { state: 'NSW', ranges: [[2000,2250]] },
-  'Newcastle':       { state: 'NSW', ranges: [[2280,2330]] },
-  'Wollongong':      { state: 'NSW', ranges: [[2500,2535]] },
-  'Melbourne':       { state: 'VIC', ranges: [[3000,3211]] },
-  'Geelong':         { state: 'VIC', ranges: [[3212,3232]] },
-  'Ballarat':        { state: 'VIC', ranges: [[3350,3360]] },
-  'Bendigo':         { state: 'VIC', ranges: [[3550,3560]] },
-  'Perth':           { state: 'WA', ranges: [[6000,6214]] },
-  'Adelaide':        { state: 'SA', ranges: [[5000,5130]] },
-  'Hobart':          { state: 'TAS', ranges: [[7000,7054]] },
-  'Launceston':      { state: 'TAS', ranges: [[7248,7260]] },
-  'Canberra':        { state: 'ACT', ranges: [[2600,2618],[2900,2920]] },
-  'Darwin':          { state: 'NT', ranges: [[800,840]] },
-};
-
-function citySlug(name) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '').replace(/^-+/, '');
-}
-
-function inCityRange(postcode, ranges) {
-  if (!postcode) return false;
-  const n = parseInt(postcode, 10);
-  return !isNaN(n) && ranges.some(([lo, hi]) => n >= lo && n <= hi);
-}
-
-// ── City content generators ──
-
-function computeCityScore(subs) {
-  if (!subs.length) return 50;
-  let totalPop = 0, weightedScore = 0;
-  for (const s of subs) {
-    const score = computeScore(s);
-    weightedScore += score * s.population;
-    totalPop += s.population;
-  }
-  return totalPop > 0 ? Math.round(weightedScore / totalPop) : 50;
-}
-
-// Average median household income across a city's suburbs — null when no
-// suburb carries a real (abs2021-tagged) income, so city prose and stats can
-// skip income entirely instead of averaging placeholders down to $0.
-function avgIncome(subs) {
-  const withInc = subs.filter(s => s.median_household_income);
-  return withInc.length
-    ? Math.round(withInc.reduce((a, s) => a + s.median_household_income, 0) / withInc.length)
-    : null;
-}
-
-function generateCityOverview(city, state, stateName, subs) {
-  const h = seedHash(city + state);
-  const totalPop = subs.reduce((a, s) => a + s.population, 0);
-  const avgInc = avgIncome(subs);
-  const types = {};
-  for (const s of subs) types[s.suburb_type] = (types[s.suburb_type] || 0) + 1;
-  const dominantType = Object.entries(types).sort((a, b) => b[1] - a[1])[0][0];
-
-  const sizeDesc = totalPop > 2000000 ? 'one of Australia\'s largest metropolitan areas'
-    : totalPop > 500000 ? 'a major Australian city'
-    : totalPop > 200000 ? 'a significant regional city'
-    : totalPop > 100000 ? 'a growing regional centre'
-    : 'a compact regional hub';
-
-  const marketDesc = avgInc == null
-    ? pick(h >> 3, ['a market spanning a broad mix of suburb profiles and price points', 'a varied market where conditions differ widely between suburbs', 'a diverse market covering established suburbs through to growth corridors'])
-    : avgInc >= 85000
-    ? pick(h, ['a premium property market with strong income fundamentals', 'a high-income market that supports robust property demand', 'a well-resourced market underpinned by above-average earnings'])
-    : avgInc >= 75000
-    ? pick(h >> 1, ['a solid mid-range property market', 'a balanced market with sustainable growth indicators', 'a stable market attractive to both investors and owner-occupiers'])
-    : pick(h >> 2, ['an affordable entry point for property investors', 'a value-oriented market with potential for yield-focused strategies', 'a cost-effective market that can suit budget-conscious investors']);
-
-  const typeDesc = dominantType === 'inner-city' ? 'an established inner-city fabric'
-    : dominantType === 'middle-ring' ? 'a well-developed middle-ring profile'
-    : dominantType === 'outer-metro' ? 'a mix of established and developing suburbs'
-    : dominantType === 'coastal' ? 'significant coastal lifestyle appeal'
-    : 'a diverse regional landscape';
-
-  return `${city} is ${sizeDesc}, home to approximately ${fmt(totalPop)} residents across ${subs.length} suburbs in ${stateName}. The metro area represents ${marketDesc}${avgInc != null ? `, with a median household income of $${fmt(avgInc)} per year` : ''}. The city features ${typeDesc}, offering varied opportunities for residential property investors.`;
-}
-
-function generateCityScoreHTML(city, state, subs) {
-  const score = computeCityScore(subs);
-  const h = seedHash(city + state);
-
-  let label, cssClass;
-  if (score >= 81) { label = 'Strong'; cssClass = 'suburb-score--strong'; }
-  else if (score >= 61) { label = 'Good'; cssClass = 'suburb-score--good'; }
-  else if (score >= 41) { label = 'Moderate'; cssClass = 'suburb-score--moderate'; }
-  else { label = 'Weak'; cssClass = 'suburb-score--weak'; }
-
-  const avgInc = avgIncome(subs);
-  const innerCount = subs.filter(s => s.suburb_type === 'inner-city' || s.suburb_type === 'middle-ring').length;
-  const innerPct = Math.round(innerCount / subs.length * 100);
-
-  const parts = [];
-  if (avgInc == null) {
-    // No verified income data — say nothing about incomes.
-  } else if (avgInc >= 85000) {
-    parts.push(pick(h, [
-      `${city}'s strong household incomes provide a solid foundation for property values across the metro area.`,
-      `High earning capacity across ${city} supports sustained demand and premium pricing.`,
-      `Above-average incomes in ${city} underpin both owner-occupier and investor demand.`,
-    ]));
-  } else if (avgInc >= 75000) {
-    parts.push(pick(h >> 1, [
-      `${city}'s income profile sits in a healthy mid-range, supporting stable property demand.`,
-      `Moderate income levels across ${city} sustain consistent rental and buyer activity.`,
-      `${city} offers a balanced demographic that supports steady market conditions.`,
-    ]));
-  } else {
-    parts.push(pick(h >> 2, [
-      `Lower average incomes in ${city} create a more affordable market with yield-focused potential.`,
-      `${city}'s income levels point toward a value market — entry prices are more accessible.`,
-      `The income profile in ${city} favours investors seeking higher relative yields.`,
-    ]));
-  }
-
-  if (innerPct >= 30) {
-    parts.push(pick(h >> 3, [
-      `With ${innerPct}% of suburbs classified as inner-city or middle-ring, location fundamentals are strong.`,
-      `A significant proportion of established, well-located suburbs supports this score.`,
-    ]));
-  }
-  if (!parts.length) {
-    parts.push(`The score reflects ${city}'s suburb mix, location profile and market depth.`);
-  }
-
-  return `<h2>City investment score</h2>\n    <div class="suburb-score-badge">\n      <span class="suburb-score-value">${score}</span>\n      <span class="suburb-score-max">/ 100</span>\n      <span class="suburb-score-label ${cssClass}">${label}</span>\n    </div>\n    <p>${parts.join(' ')}</p>`;
-}
-
-function generateCityStatsHTML(city, state, subs) {
-  const totalPop = subs.reduce((a, s) => a + s.population, 0);
-  const avgInc = avgIncome(subs);
-  const rents = subs.filter(s => s.median_rent_weekly).map(s => s.median_rent_weekly);
-  const avgRent = rents.length ? Math.round(rents.reduce((a, r) => a + r, 0) / rents.length) : null;
-  const dists = subs.filter(s => s.distance_to_cbd != null).map(s => s.distance_to_cbd);
-  const avgDist = dists.length ? Math.round(dists.reduce((a, d) => a + d, 0) / dists.length) : null;
-
-  // The income tile is omitted (not shown as N/A) when no verified income exists.
-  const stats = [
-    { label: 'Population', value: fmt(totalPop) },
-    { label: 'Suburbs', value: subs.length.toString() },
-    avgInc != null ? { label: 'Avg household income', value: `$${fmt(avgInc)}/yr` } : null,
-    { label: 'Avg weekly rent', value: avgRent ? `$${fmt(avgRent)}/wk` : 'N/A' },
-    { label: 'Avg distance to CBD', value: avgDist != null ? `${avgDist} km` : 'N/A' },
-  ].filter(Boolean);
-
-  return stats.map(s =>
-    `      <div class="city-stat">\n        <div class="city-stat-label">${s.label}</div>\n        <div class="city-stat-value">${s.value}</div>\n      </div>`
-  ).join('\n');
-}
-
-function generateCityStrategy(city, state, subs) {
-  const h = seedHash(city + state);
-  // null when no verified income \u2014 income conditions then fall through to the
-  // neutral verdicts instead of treating "no data" as a $0 income.
-  const avgInc = avgIncome(subs);
-  const totalPop = subs.reduce((a, s) => a + s.population, 0);
-  const innerPct = subs.filter(s => s.suburb_type === 'inner-city' || s.suburb_type === 'middle-ring').length / subs.length;
-  const outerPct = subs.filter(s => s.suburb_type === 'outer-metro').length / subs.length;
-
-  const strategies = [];
-
-  // Buy & Hold
-  let bhIcon, bhRating;
-  if (innerPct >= 0.25 && avgInc != null && avgInc >= 80000) { bhIcon = '\u2705'; bhRating = 'strong'; }
-  else if (avgInc != null && avgInc < 65000 && totalPop < 100000) { bhIcon = '\u274C'; bhRating = 'limited'; }
-  else { bhIcon = '\u26A0\uFE0F'; bhRating = 'moderate'; }
-
-  const bhText = {
-    strong: [
-      `${city}'s established suburbs and strong demographics make it a compelling buy-and-hold market.`,
-      `With a solid inner-ring profile, ${city} offers reliable long-term capital growth potential.`,
-      `${city}'s market fundamentals support patient investors seeking steady appreciation.`,
-    ],
-    moderate: [
-      `Buy-and-hold in ${city} can deliver solid results with careful suburb selection.`,
-      `${city} offers pockets of strong growth potential — research individual suburbs carefully.`,
-      `A hold strategy in ${city} is viable, particularly in suburbs with improving infrastructure.`,
-    ],
-    limited: [
-      `Long-term holding in ${city} requires careful due diligence on local economic drivers.`,
-      `Buy-and-hold prospects in ${city} are more uncertain — focus on well-located suburbs.`,
-      `Capital growth in ${city} may be limited — consider yield-focused alternatives.`,
-    ],
-  };
-  strategies.push({ name: 'Buy &amp; Hold', icon: bhIcon, text: pick(h, bhText[bhRating]) });
-
-  // Rental Yield
-  let ryIcon, ryRating;
-  if (innerPct >= 0.2 || (avgInc != null && avgInc >= 80000)) { ryIcon = '\u2705'; ryRating = 'strong'; }
-  else if (outerPct >= 0.3) { ryIcon = '\u26A0\uFE0F'; ryRating = 'moderate'; }
-  else { ryIcon = '\u26A0\uFE0F'; ryRating = 'moderate'; }
-
-  const ryText = {
-    strong: [
-      `${city}'s rental market benefits from strong tenant demand driven by population and employment.`,
-      `Consistent demand in ${city} supports reliable rental income and strong occupancy.`,
-      `Investors in ${city} can expect competitive yields, particularly in well-connected suburbs.`,
-    ],
-    moderate: [
-      `Rental yields in ${city} are achievable with the right suburb and property type selection.`,
-      `${city} offers reasonable rental returns — target areas with strong tenant demographics.`,
-      `Yields across ${city} vary — inner and middle-ring suburbs tend to offer better rental fundamentals.`,
-    ],
-  };
-  strategies.push({ name: 'Rental Yield', icon: ryIcon, text: pick(h >> 2, ryText[ryRating]) });
-
-  // Renovation / Flip
-  let rfIcon, rfRating;
-  if ((outerPct >= 0.2 || innerPct >= 0.15) && totalPop > 200000) { rfIcon = '\u2705'; rfRating = 'strong'; }
-  else if (totalPop > 50000) { rfIcon = '\u26A0\uFE0F'; rfRating = 'moderate'; }
-  else { rfIcon = '\u274C'; rfRating = 'limited'; }
-
-  const rfText = {
-    strong: [
-      `${city}'s diverse market offers solid renovation opportunities across multiple price points.`,
-      `Strong buyer depth in ${city} supports renovation margins — older stock is readily available.`,
-      `With ${subs.length} suburbs to choose from, ${city} has ample scope for value-add projects.`,
-    ],
-    moderate: [
-      `Selective renovation projects in ${city} can work well with careful suburb-level analysis.`,
-      `Renovation potential in ${city} exists but margins may be tighter in a smaller market.`,
-      `Flip strategies in ${city} are possible — focus on suburbs with growing buyer demand.`,
-    ],
-    limited: [
-      `Limited buyer depth in ${city} makes renovation/flip strategies higher risk.`,
-      `The resale market in ${city} may not consistently support quick-turnaround projects.`,
-      `Consider rental conversion over flipping in ${city}'s current market conditions.`,
-    ],
-  };
-  strategies.push({ name: 'Renovation / Flip', icon: rfIcon, text: pick(h >> 4, rfText[rfRating]) });
-
-  const items = strategies.map(st =>
-    `      <div class="suburb-strategy-item">\n        <span class="suburb-strategy-icon">${st.icon}</span>\n        <div>\n          <div class="suburb-strategy-name">${st.name}</div>\n          <p>${st.text}</p>\n        </div>\n      </div>`
-  ).join('\n');
-
-  return `<h2>Investment strategy</h2>\n    <div class="suburb-strategy-list">\n${items}\n    </div>`;
-}
-
-function generateCityRisks(city, state, stateName, subs) {
-  const h = seedHash(city + state);
-  const avgInc = avgIncome(subs);
-  const totalPop = subs.reduce((a, s) => a + s.population, 0);
-  const innerPct = subs.filter(s => s.suburb_type === 'inner-city').length / subs.length;
-  const coastalPct = subs.filter(s => s.suburb_type === 'coastal').length / subs.length;
-
-  const pool = [];
-
-  if (avgInc != null && avgInc >= 85000) {
-    pool.push([
-      `Premium property prices across ${city} raise the barrier to entry and can compress gross yields.`,
-      `High income levels correlate with elevated property prices in ${city} — cash flow modelling is essential.`,
-      `${city}'s premium market means larger mortgage commitments and greater interest rate sensitivity.`,
-    ]);
-  }
-
-  if (totalPop > 1000000) {
-    pool.push([
-      `As a major metro, ${city} faces ongoing supply from new developments, particularly in high-density corridors.`,
-      `New housing supply in ${city}'s growth corridors could moderate price gains in some suburbs.`,
-      `${city}'s scale means infrastructure strain — transport and amenity access varies significantly by suburb.`,
-    ]);
-  } else if (totalPop < 200000) {
-    pool.push([
-      `${city}'s smaller market means thinner buyer pools — liquidity can be a concern during downturns.`,
-      `As a regional city, ${city}'s property market is more sensitive to local economic conditions.`,
-      `Limited population growth in ${city} may constrain long-term capital appreciation.`,
-    ]);
-  }
-
-  if (innerPct >= 0.15) {
-    pool.push([
-      `High-density development in ${city}'s inner suburbs may increase supply competition for unit investors.`,
-      `Inner-city unit markets in ${city} face potential oversupply — strata costs can also erode returns.`,
-      `New apartment stock in ${city} could affect resale values for existing units.`,
-    ]);
-  }
-
-  if (coastalPct >= 0.2) {
-    pool.push([
-      `Coastal areas in ${city} may experience seasonal rental fluctuations and higher insurance premiums.`,
-      `Holiday rental regulatory changes in ${stateName} could impact coastal suburb returns.`,
-      `Climate risk premiums for coastal properties in ${city} may increase over time.`,
-    ]);
-  }
-
-  // Universal risks
-  pool.push([
-    `Interest rate movements remain the primary risk — ${city} investors should stress-test their cash flow at higher rates.`,
-    `RBA rate decisions will directly affect borrowing costs and buyer sentiment across ${city}.`,
-    `Changes to Australian tax settings (negative gearing, CGT discount) could reshape investor returns in ${city}.`,
-  ]);
-
-  pool.push([
-    `Property markets are cyclical — ${city}'s current conditions may shift with broader ${stateName} economic trends.`,
-    `National and state economic conditions will influence ${city}'s property trajectory in coming years.`,
-    `Broader regulatory or economic shifts could moderate ${city}'s investment appeal.`,
-  ]);
-
-  const count = Math.min(4, pool.length);
-  const selected = [];
-  for (let i = 0; i < count; i++) {
-    selected.push(pick(h + i, pool[i]));
-  }
-
-  const items = selected.map(r => `      <li>${escHtml(r)}</li>`).join('\n');
-  return `<h2>Risk factors</h2>\n    <ul class="suburb-risk-list">\n${items}\n    </ul>`;
-}
-
-function generateCityOutlook(city, state, subs) {
-  const h = seedHash(city + state);
-  const score = computeCityScore(subs);
-  const avgInc = avgIncome(subs);
-  const totalPop = subs.reduce((a, s) => a + s.population, 0);
-  const innerPct = subs.filter(s => s.suburb_type === 'inner-city' || s.suburb_type === 'middle-ring').length / subs.length;
-
-  // Growth outlook — missing income is neutral, not "low income".
-  let growthLevel;
-  if (innerPct >= 0.25 && avgInc != null && avgInc >= 82000) growthLevel = 'strong';
-  else if (totalPop < 150000 || (avgInc != null && avgInc < 70000)) growthLevel = 'low';
-  else growthLevel = 'moderate';
-
-  // Rental demand
-  let rentalLevel;
-  if (totalPop > 500000 || (innerPct >= 0.2 && avgInc != null && avgInc >= 80000)) rentalLevel = 'strong';
-  else if (totalPop < 100000) rentalLevel = 'low';
-  else rentalLevel = 'moderate';
-
-  // Sentiment
-  let sentimentLevel;
-  if (score >= 70) sentimentLevel = 'strong';
-  else if (score >= 50) sentimentLevel = 'moderate';
-  else sentimentLevel = 'low';
-
-  function tagHtml(label, level) {
-    return `<span class="suburb-outlook-tag suburb-outlook-tag--${level}">${escHtml(label)}: ${level.charAt(0).toUpperCase() + level.slice(1)}</span>`;
-  }
-
-  const tags = [
-    tagHtml('Growth', growthLevel),
-    tagHtml('Rental Demand', rentalLevel),
-    tagHtml('Investor Sentiment', sentimentLevel),
-  ].join('\n      ');
-
-  const parts = [];
-
-  if (growthLevel === 'strong') {
-    parts.push(pick(h, [
-      `${city} enters 2026 with strong growth fundamentals, supported by population inflows and constrained housing supply.`,
-      `The outlook for property appreciation in ${city} is positive heading into 2026, driven by demand exceeding supply.`,
-      `${city}'s growth trajectory remains encouraging for 2026, underpinned by robust employment and migration patterns.`,
-    ]));
-  } else if (growthLevel === 'moderate') {
-    parts.push(pick(h >> 1, [
-      `${city} is expected to see moderate price growth through 2026, broadly in line with the wider market.`,
-      `Property values in ${city} should track steadily in 2026, with selective suburbs outperforming.`,
-      `Growth across ${city} will likely be measured in 2026, with stronger results in well-located suburbs.`,
-    ]));
-  } else {
-    parts.push(pick(h >> 2, [
-      `Capital growth in ${city} may be subdued in 2026 as the market consolidates.`,
-      `${city} faces a cautious growth outlook for 2026 — yield strategies may be more appropriate.`,
-      `Price movement in ${city} is expected to be modest in 2026, reflecting current market dynamics.`,
-    ]));
-  }
-
-  if (rentalLevel === 'strong') {
-    parts.push(pick(h >> 3, [
-      `Rental demand across the city remains robust, with strong occupancy near historic highs.`,
-      `Tenant competition in ${city} supports landlords with strong occupancy and rent stability.`,
-      `Solid rental fundamentals across ${city}'s suburbs provide a dependable income base.`,
-    ]));
-  } else if (rentalLevel === 'moderate') {
-    parts.push(pick(h >> 4, [
-      `Rental demand is expected to be stable, though competitive pricing will help minimise gaps between tenancies.`,
-      `The rental market across ${city} should see steady occupancy through 2026.`,
-      `Landlords in ${city} can expect consistent demand, particularly for well-presented properties.`,
-    ]));
-  } else {
-    parts.push(pick(h >> 5, [
-      `Rental demand may be softer in parts of ${city} — investors should budget for potential gaps between tenancies.`,
-      `The rental outlook for ${city} is cautious — competitive pricing and property quality will matter.`,
-      `Tenant demand in ${city} is modest — flexible lease strategies may help secure occupants.`,
-    ]));
-  }
-
-  if (sentimentLevel === 'strong') {
-    parts.push(pick(h >> 6, [
-      `Overall investor sentiment toward ${city} is positive, with sustained buyer interest across key suburbs.`,
-      `${city} remains a focus for active property investors seeking medium-term growth.`,
-    ]));
-  } else if (sentimentLevel === 'moderate') {
-    parts.push(pick(h >> 7, [
-      `Investor sentiment is cautiously optimistic — selective opportunities are available for well-researched buyers.`,
-      `${city} offers balanced appeal for investors willing to look beyond headline metrics and identify suburb-level value.`,
-    ]));
-  } else {
-    parts.push(pick(h >> 8, [
-      `Investor sentiment toward ${city} is currently subdued — contrarian investors may find value.`,
-      `${city} is not currently a headline market, but improving conditions could shift sentiment over time.`,
-    ]));
-  }
-
-  return `<h2>2026 outlook</h2>\n    <div class="suburb-outlook-tags">\n      ${tags}\n    </div>\n    <p>${parts.join(' ')}</p>`;
-}
-
-function generateTopSuburbsHTML(subs, state) {
-  // Ordered by population (matching the caption on the city template) — the
-  // old score-ranked ordering displayed a fabricated 0-100 investment score
-  // derived from placeholder transport/amenity/income data, which must not
-  // render as fact.
-  const top = subs.slice().sort((a, b) => (b.population || 0) - (a.population || 0)).slice(0, 12);
-
-  return top.map(s =>
-    `      <a href="/suburb/${state.toLowerCase()}/${s.slug}/" class="city-top-card">
-        <div class="city-top-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>
-        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.suburb_type}</span></div>
-      </a>`
-  ).join('\n');
-}
-
 // ── Build suburb pages ──
 
 // Build date injected into all pages so "last updated" is always accurate
@@ -1601,10 +1113,11 @@ function shouldNoindex(s) {
   // Real-data gate (Jul 2026): index a suburb page only when it carries genuine,
   // CURRENT, suburb-level, CC-licensed market data (median rent or sale price) from
   // build/merge-market-current.js — plus the usual population + postcode floor.
-  // Everything else stays noindex,follow (reachable, kept out of Google + the
-  // sitemap) so pages built on 2021-only / placeholder figures are never presented
-  // to search users as current. This is what makes the SA / VIC / QLD suburbs that
-  // now have real rent/price figures indexable, while the long tail stays dark.
+  // Aug 2026: this gate is now also the GENERATION gate — suburbs that fail it
+  // get no page at all (their old noindexed-shell URLs 404 by design), so the
+  // generated set and the sitemap set coincide by construction. This is what
+  // makes the SA / VIC / QLD / TAS suburbs that have real rent/price figures
+  // publishable, while the long tail has no page.
   if (s.tiny) return true;
   if (!s.postcode) return true;
   if ((s.population || 0) < MIN_POPULATION_FOR_INDEX) return true;
@@ -2122,74 +1635,9 @@ function generateInvestmentTip(s, sm) {
   </section>`;
 }
 
-// ── Blog-post index (load once at build start) ────────────────────────────
-// Indexes posts from data/blog-posts/*.json so generateBlogLinks() can match
-// a relevant post to each suburb by suburb-name or state-tag overlap.
-
-const BLOG_POSTS_DIR = path.join(ROOT, 'data', 'blog-posts');
-let blogPostsIndex = [];
-(function loadBlogPosts() {
-  try {
-    if (!fs.existsSync(BLOG_POSTS_DIR)) return;
-    const files = fs.readdirSync(BLOG_POSTS_DIR).filter(f => f.endsWith('.json'));
-    for (const f of files) {
-      try {
-        const p = JSON.parse(fs.readFileSync(path.join(BLOG_POSTS_DIR, f), 'utf8'));
-        if (!p || p.status !== 'published' || !p.slug || !p.title) continue;
-        blogPostsIndex.push({
-          slug: p.slug,
-          title: p.title,
-          section: (p.section || 'general').replace(/[^a-z0-9-]/g, '') || 'general',
-          tags: Array.isArray(p.tags) ? p.tags.map(t => String(t).toLowerCase()) : [],
-          published_at: p.published_at || p.updated_at || 0,
-        });
-      } catch (_) { /* skip broken files */ }
-    }
-    blogPostsIndex.sort((a, b) => (b.published_at || 0) - (a.published_at || 0));
-    if (blogPostsIndex.length) {
-      console.log('[build-suburbs] Loaded ' + blogPostsIndex.length + ' blog post(s) for cross-linking');
-    }
-  } catch (e) {
-    console.warn('[build-suburbs] Blog index load skipped:', e.message);
-    blogPostsIndex = [];
-  }
-})();
-
-function generateBlogLinks(s) {
-  if (!blogPostsIndex.length) return '';
-  const suburbLc = String(s.suburb).toLowerCase();
-  const stateLc = String(s.state).toLowerCase();
-  const stateNameLc = String(s.state_name).toLowerCase();
-
-  const scored = blogPostsIndex.map(p => {
-    let score = 0;
-    const titleLc = p.title.toLowerCase();
-    const slugLc = p.slug.toLowerCase();
-    if (titleLc.includes(suburbLc) || slugLc.includes(suburbLc.replace(/\s+/g, '-'))) score += 10;
-    for (const tag of p.tags) {
-      if (tag.includes(suburbLc)) score += 6;
-      if (tag === stateLc || tag.startsWith(stateLc + ' ') || tag.endsWith(' ' + stateLc)) score += 3;
-      if (tag.includes(stateNameLc)) score += 2;
-      if (tag.includes('property') || tag.includes('investment')) score += 1;
-    }
-    return { post: p, score };
-  }).filter(x => x.score > 0);
-
-  // If nothing matched on suburb/state, fall back to the single most recent post
-  // so every featured suburb still ships with one outbound blog link.
-  const picks = scored.length
-    ? scored.sort((a, b) => b.score - a.score).slice(0, 2).map(x => x.post)
-    : [blogPostsIndex[0]];
-
-  const links = picks.map(p =>
-    `      <a href="/blog/${p.section || 'general'}/${escHtml(p.slug)}/" class="suburb-blog-link">📖 ${escHtml(p.title)}</a>`
-  ).join('\n');
-
-  return `    <div class="suburb-blog-links">
-      <p class="suburb-blog-links-label">Related reading</p>
-${links}
-    </div>`;
-}
+// (Blog cross-linking removed Aug 2026 — the blog is dark behind BLOG_ENABLE,
+// so suburb pages must not link /blog/ posts. The {{BLOG_LINKS_HTML}}
+// placeholder was removed from templates/suburb-page.html at the same time.)
 
 // Short methodology pointer for suburb pages — adds an E-E-A-T anchor.
 // Every claim in this paragraph is conditional on the field actually being
@@ -2347,22 +1795,43 @@ function generateAggregateRatingJson(state, slug, suburbName) {
   return ',{"@context":"https://schema.org","@type":"AggregateRating","itemReviewed":{"@type":"Place","name":"' + safeName + '"},"ratingValue":"' + avg.toFixed(1) + '","reviewCount":"' + agg.count + '","bestRating":"5","worstRating":"1"}';
 }
 
-let suburbCount = 0;
-let noindexCount = 0;
-const stateIndexStats = {}; // state → { indexed, noindexed, total }
-const stateGroups = {};
+// ── The surviving set (Aug 2026 product cut) ────────────────────────────
+// Only suburbs passing the real-data gate are generated at all. Everything
+// downstream (pages, hubs, directory index, related links, search index,
+// sitemap) is built from keptSuburbs so no generated page can link a slug
+// that has no page.
+const keptSuburbs = suburbs.filter(s => !shouldNoindex(s));
 
-for (const s of suburbs) {
+// Clean stale output up-front so pages cut from the dataset — and the old
+// /invest/{state}/{city}/ city pages — can never survive a rebuild in a
+// reused workspace or restored build cache.
+fs.rmSync(path.join(ROOT, 'suburb'), { recursive: true, force: true });
+fs.rmSync(path.join(ROOT, 'invest'), { recursive: true, force: true });
+for (const f of fs.readdirSync(ROOT)) {
+  if (/^sitemap-suburbs.*\.xml$/.test(f)) fs.unlinkSync(path.join(ROOT, f));
+}
+
+let suburbCount = 0;
+const stateIndexStats = {}; // state → { indexed, noindexed, total } (shape kept for the admin Suburbs tab)
+const stateGroups = {}; // state → surviving suburbs only
+
+for (const s of keptSuburbs) {
   if (!stateGroups[s.state]) stateGroups[s.state] = [];
   stateGroups[s.state].push(s);
 }
 
 // Pre-compute state medians once (used by every enrichment generator).
+// Still computed across the FULL dataset (population + postcode floor applied
+// inside) so each suburb's Δ-to-state prose keeps a stable reference point.
 const stateMedians = computeStateMedians(suburbs);
 
-const relatedMap = buildRelatedMap(suburbs);
+// Related/nearby suburbs are computed ONLY across the surviving set. The map
+// is keyed and grouped by state+slug inside buildRelatedMap, so same-name
+// suburbs in different states (e.g. Belmont VIC vs Belmont QLD) can't collide
+// and every related link targets a page that exists.
+const relatedMap = buildRelatedMap(keptSuburbs);
 
-for (const s of suburbs) {
+for (const s of keptSuburbs) {
   const related = getRelatedSuburbs(s, relatedMap);
   const sm = stateMedians[s.state] || {};
   const pc = s.postcode || '';
@@ -2422,58 +1891,55 @@ for (const s of suburbs) {
   // because there's nothing to fetch beyond the page itself.
   const locatorCardHtml = generateLocatorCard(s);
 
-  const isNoindexed = shouldNoindex(s);
-  const robotsMeta = isNoindexed ? '<meta name="robots" content="noindex, follow">\n' : '';
-  if (isNoindexed) noindexCount++;
+  // Every generated page passes the real-data gate → default index,follow
+  // (no robots meta emitted), exactly as gate-passing pages rendered before.
   if (!stateIndexStats[s.state]) stateIndexStats[s.state] = { indexed: 0, noindexed: 0, total: 0 };
   stateIndexStats[s.state].total++;
-  if (isNoindexed) stateIndexStats[s.state].noindexed++;
-  else stateIndexStats[s.state].indexed++;
+  stateIndexStats[s.state].indexed++;
 
+  // NOTE: function replacements throughout — generated HTML routinely contains
+  // `$` (prices), which String.replace treats as a special pattern character.
   let html = SUBURB_TPL
-    .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
-    .replace(/\{\{JOURNEY_LINK\}\}/g, '/journey?near=' + encodeURIComponent(s.suburb) + '&amp;st=' + s.state.toLowerCase())
-    .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
-    .replace(/\{\{STATE\}\}/g, escHtml(s.state))
-    .replace(/\{\{STATE_LOWER\}\}/g, s.state.toLowerCase())
-    .replace(/\{\{STATE_NAME\}\}/g, escHtml(s.state_name))
-    .replace(/\{\{SLUG\}\}/g, s.slug)
-    .replace(/\{\{POSTCODE\}\}/g, escHtml(pc))
-    .replace(/\{\{POSTCODE_TITLE\}\}/g, escHtml(pcTitle))
-    .replace(/\{\{POSTCODE_COMMA\}\}/g, escHtml(pcComma))
-    .replace(/\{\{POSTCODE_KW\}\}/g, escHtml(pcKw))
-    .replace(/\{\{POSTCODE_DISPLAY\}\}/g, escHtml(pcDisplay))
-    .replace(/\{\{PAGE_TITLE\}\}/g, escHtml(pageTitle))
-    .replace(/\{\{PAGE_H1\}\}/g, escHtml(pageH1))
-    .replace(/\{\{META_DESCRIPTION\}\}/g, escHtml(metaDesc))
-    .replace(/\{\{OVERVIEW\}\}/g, generateOverview(s))
-    .replace(/\{\{POPULATION\}\}/g, fmt(s.population))
-    .replace(/\{\{DISTANCE_TO_CBD\}\}/g, distDisplay)
-    .replace(/\{\{MEDIAN_RENT\}\}/g, rentDisplay)
-    .replace(/\{\{RENT_DETAIL\}\}/g, rentDetail)
-    .replace(/\{\{MEDIAN_MORTGAGE\}\}/g, mortgageDisplay)
-    .replace(/\{\{HOUSE_PCT\}\}/g, housePctDisplay)
-    .replace(/\{\{DATA_SOURCE_NOTE\}\}/g, escHtml(dataSourceNote))
-    .replace(/\{\{LOCATOR_CARD_HTML\}\}/g, locatorCardHtml)
-    .replace(/\{\{CURRENT_MARKET_HTML\}\}/g, generateCurrentMarket(s))
-    .replace(/\{\{INVESTMENT_INSIGHT\}\}/g, generateInsight(s, sm))
-    .replace(/\{\{INVESTMENT_SCORE_HTML\}\}/g, generateInvestmentScore(s))
-    .replace(/\{\{STRATEGY_HTML\}\}/g, generateStrategy(s, sm))
-    .replace(/\{\{RISK_FACTORS_HTML\}\}/g, generateRisks(s, sm))
-    .replace(/\{\{OUTLOOK_HTML\}\}/g, generateOutlook(s, sm))
-    .replace(/\{\{FAQ_HTML\}\}/g, generateFAQ(s, sm))
-    .replace(/\{\{COMPARE_HTML\}\}/g, generateComparisonTable(s, sm))
-    .replace(/\{\{CHECKLIST_HTML\}\}/g, generateInvestorChecklist(s, sm))
-    .replace(/\{\{METHODOLOGY_HTML\}\}/g, generateMethodologyBlock(s))
-    .replace(/\{\{LIFESTYLE_HTML\}\}/g, isNoindexed ? '' : generateLifestyle(s))
-    .replace(/\{\{AUDIENCE_HTML\}\}/g, isNoindexed ? '' : generateAudience(s, sm))
-    .replace(/\{\{PROSCONS_HTML\}\}/g, isNoindexed ? '' : generateProsCons(s, sm))
-    .replace(/\{\{INVESTMENT_TIP_HTML\}\}/g, isNoindexed ? '' : generateInvestmentTip(s, sm))
-    .replace(/\{\{BLOG_LINKS_HTML\}\}/g, isNoindexed ? '' : generateBlogLinks(s))
-    .replace(/\{\{REVIEWS_HTML\}\}/g, isNoindexed ? '' : generateReviewsBlock(s.state, s.slug, s.suburb))
-    .replace(/\{\{AGGREGATE_RATING_JSON\}\}/g, isNoindexed ? '' : generateAggregateRatingJson(s.state, s.slug, s.suburb))
-    .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, generateRelatedHTML(related, s.state))
-    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(s.state));
+    .replace(/\{\{ROBOTS_META\}\}/g, () => '')
+    .replace(/\{\{SUBURB\}\}/g, () => escHtml(s.suburb))
+    .replace(/\{\{STATE\}\}/g, () => escHtml(s.state))
+    .replace(/\{\{STATE_LOWER\}\}/g, () => s.state.toLowerCase())
+    .replace(/\{\{STATE_NAME\}\}/g, () => escHtml(s.state_name))
+    .replace(/\{\{SLUG\}\}/g, () => s.slug)
+    .replace(/\{\{POSTCODE\}\}/g, () => escHtml(pc))
+    .replace(/\{\{POSTCODE_TITLE\}\}/g, () => escHtml(pcTitle))
+    .replace(/\{\{POSTCODE_COMMA\}\}/g, () => escHtml(pcComma))
+    .replace(/\{\{POSTCODE_KW\}\}/g, () => escHtml(pcKw))
+    .replace(/\{\{POSTCODE_DISPLAY\}\}/g, () => escHtml(pcDisplay))
+    .replace(/\{\{PAGE_TITLE\}\}/g, () => escHtml(pageTitle))
+    .replace(/\{\{PAGE_H1\}\}/g, () => escHtml(pageH1))
+    .replace(/\{\{META_DESCRIPTION\}\}/g, () => escHtml(metaDesc))
+    .replace(/\{\{OVERVIEW\}\}/g, () => generateOverview(s))
+    .replace(/\{\{POPULATION\}\}/g, () => fmt(s.population))
+    .replace(/\{\{DISTANCE_TO_CBD\}\}/g, () => distDisplay)
+    .replace(/\{\{MEDIAN_RENT\}\}/g, () => rentDisplay)
+    .replace(/\{\{RENT_DETAIL\}\}/g, () => rentDetail)
+    .replace(/\{\{MEDIAN_MORTGAGE\}\}/g, () => mortgageDisplay)
+    .replace(/\{\{HOUSE_PCT\}\}/g, () => housePctDisplay)
+    .replace(/\{\{DATA_SOURCE_NOTE\}\}/g, () => escHtml(dataSourceNote))
+    .replace(/\{\{LOCATOR_CARD_HTML\}\}/g, () => locatorCardHtml)
+    .replace(/\{\{CURRENT_MARKET_HTML\}\}/g, () => generateCurrentMarket(s))
+    .replace(/\{\{INVESTMENT_INSIGHT\}\}/g, () => generateInsight(s, sm))
+    .replace(/\{\{STRATEGY_HTML\}\}/g, () => generateStrategy(s, sm))
+    .replace(/\{\{RISK_FACTORS_HTML\}\}/g, () => generateRisks(s, sm))
+    .replace(/\{\{OUTLOOK_HTML\}\}/g, () => generateOutlook(s, sm))
+    .replace(/\{\{FAQ_HTML\}\}/g, () => generateFAQ(s, sm))
+    .replace(/\{\{COMPARE_HTML\}\}/g, () => generateComparisonTable(s, sm))
+    .replace(/\{\{CHECKLIST_HTML\}\}/g, () => generateInvestorChecklist(s, sm))
+    .replace(/\{\{METHODOLOGY_HTML\}\}/g, () => generateMethodologyBlock(s))
+    .replace(/\{\{LIFESTYLE_HTML\}\}/g, () => generateLifestyle(s))
+    .replace(/\{\{AUDIENCE_HTML\}\}/g, () => generateAudience(s, sm))
+    .replace(/\{\{PROSCONS_HTML\}\}/g, () => generateProsCons(s, sm))
+    .replace(/\{\{INVESTMENT_TIP_HTML\}\}/g, () => generateInvestmentTip(s, sm))
+    .replace(/\{\{REVIEWS_HTML\}\}/g, () => generateReviewsBlock(s.state, s.slug, s.suburb))
+    .replace(/\{\{AGGREGATE_RATING_JSON\}\}/g, () => generateAggregateRatingJson(s.state, s.slug, s.suburb))
+    .replace(/\{\{RELATED_SUBURBS_HTML\}\}/g, () => generateRelatedHTML(related, s.state))
+    .replace(/\{\{RESOURCES_HTML\}\}/g, () => generateResourcesHTML(s.state));
 
   const outDir = path.join(ROOT, 'suburb', s.state.toLowerCase(), s.slug);
   fs.mkdirSync(outDir, { recursive: true });
@@ -2481,60 +1947,13 @@ for (const s of suburbs) {
   suburbCount++;
 }
 
-// ── Build city pages (before state hubs so cityByState is populated for hub links) ──
+// (City pages cut Aug 2026 — the 19 /invest/{state}/{city-slug}/ pages and
+// templates/city-page.html were removed; their aggregate scores rested on
+// placeholder data and the product is now the /journey first-home planner.)
 
-let cityCount = 0;
-const cityByState = {}; // state → [{ name, slug, suburbCount, population }] for state hub links
-const allStates = Object.keys(stateGroups).sort();
-
-for (const [cityName, cityDef] of Object.entries(CITY_DEFS)) {
-  const { state, ranges } = cityDef;
-  const cStateName = stateNames[state];
-  const cStateLower = state.toLowerCase();
-  const cSlug = citySlug(cityName);
-
-  // Filter suburbs belonging to this city
-  const citySubs = suburbs.filter(s => s.state === state && inCityRange(s.postcode, ranges));
-  if (!citySubs.length) continue;
-
-  const totalPop = citySubs.reduce((a, s) => a + s.population, 0);
-
-  // Track for state hub links
-  if (!cityByState[state]) cityByState[state] = [];
-  cityByState[state].push({ name: cityName, slug: cSlug, suburbCount: citySubs.length, population: totalPop });
-
-  const metaDesc = `Property investment insights for ${cityName}, ${cStateName}. ${citySubs.length} suburbs, population ${fmt(totalPop)}, key indicators, investment scores, and 2026 outlook.`;
-  const dataSourceNote = `ABS 2021 Census \u00b7 Updated ${BUILD_DATE}`;
-
-  // Suburb list cards (reuse state hub pattern)
-  const citySuburbListHTML = citySubs.map(s =>
-    `      <a href="/suburb/${cStateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span>${s.median_household_income ? `<span>$${fmt(s.median_household_income)}/yr</span>` : ''}</div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
-  ).join('\n');
-
-  let cityHtml = CITY_TPL
-    .replace(/\{\{CITY\}\}/g, escHtml(cityName))
-    .replace(/\{\{CITY_SLUG\}\}/g, cSlug)
-    .replace(/\{\{STATE\}\}/g, escHtml(state))
-    .replace(/\{\{STATE_LOWER\}\}/g, cStateLower)
-    .replace(/\{\{STATE_NAME\}\}/g, escHtml(cStateName))
-    .replace(/\{\{META_DESCRIPTION\}\}/g, escHtml(metaDesc))
-    .replace(/\{\{DATA_SOURCE_NOTE\}\}/g, escHtml(dataSourceNote))
-    .replace(/\{\{CITY_OVERVIEW\}\}/g, generateCityOverview(cityName, state, cStateName, citySubs))
-    .replace(/\{\{CITY_SCORE_HTML\}\}/g, generateCityScoreHTML(cityName, state, citySubs))
-    .replace(/\{\{CITY_STATS_HTML\}\}/g, generateCityStatsHTML(cityName, state, citySubs))
-    .replace(/\{\{CITY_STRATEGY_HTML\}\}/g, generateCityStrategy(cityName, state, citySubs))
-    .replace(/\{\{CITY_RISKS_HTML\}\}/g, generateCityRisks(cityName, state, cStateName, citySubs))
-    .replace(/\{\{CITY_OUTLOOK_HTML\}\}/g, generateCityOutlook(cityName, state, citySubs))
-    .replace(/\{\{TOP_SUBURBS_HTML\}\}/g, generateTopSuburbsHTML(citySubs, state))
-    .replace(/\{\{SUBURB_COUNT\}\}/g, citySubs.length)
-    .replace(/\{\{SUBURB_LIST_HTML\}\}/g, citySuburbListHTML)
-    .replace(/\{\{RESOURCES_HTML\}\}/g, generateResourcesHTML(state));
-
-  const cityOutDir = path.join(ROOT, 'invest', cStateLower, cSlug);
-  fs.mkdirSync(cityOutDir, { recursive: true });
-  fs.writeFileSync(path.join(cityOutDir, 'index.html'), cityHtml);
-  cityCount++;
-}
+// All 8 states/territories keep a hub page — states with no surviving suburb
+// profiles render an honest empty-state hub rather than disappearing.
+const allStates = Object.keys(stateNames).sort();
 
 // ── State-hub content generators ──
 
@@ -2597,29 +2016,43 @@ const stateMarketSummaries = {
   }
 };
 
+// All three hub generators consume ONLY the surviving suburbs for the state
+// (the pages that actually exist), so every count and average on a hub
+// reflects real published profiles — never the cut catalogue.
+
 function generateStateOverviewHTML(state, stateName, stateSubs) {
   const summary = stateMarketSummaries[state] || { body: `${stateName} is one of Australia's eight states and territories.` };
-  const totalPop = stateSubs.reduce((a, s) => a + (s.population || 0), 0);
-  const incSubs = stateSubs.filter(s => s.median_household_income);
-  const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
-  const dataSentence = `Across ${fmt(stateSubs.length)} ${stateName} suburbs in our database, the combined usual resident population is approximately ${fmt(totalPop)}${avgInc ? `, and the average median household income across suburbs is $${fmt(avgInc)}/year` : ''}.`;
+  const n = stateSubs.length;
+  let dataSentence;
+  if (n) {
+    const totalPop = stateSubs.reduce((a, s) => a + (s.population || 0), 0);
+    const incSubs = stateSubs.filter(s => s.median_household_income);
+    const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
+    dataSentence = `We currently publish ${fmt(n)} ${stateName} suburb profiles — every one carries a current, suburb-level median rent or sale price from state-government open data. Their combined usual resident population is approximately ${fmt(totalPop)}${avgInc ? `, and the average median household income across them is $${fmt(avgInc)}/year (ABS 2021 Census)` : ''}.`;
+  } else {
+    dataSentence = `We don't currently publish suburb profiles for ${stateName}. A profile requires a genuine, current, suburb-level median rent or sale price from government open data, and ${stateName} doesn't yet publish one at suburb level. The state-wide costs below (stamp duty, concessions) still apply.`;
+  }
   return `<p>${summary.body}</p><p>${dataSentence}</p>`;
 }
 
 function generateStateStatsHTML(state, stateName, stateSubs) {
   const summary = stateMarketSummaries[state] || {};
+  const n = stateSubs.length;
   const totalPop = stateSubs.reduce((a, s) => a + (s.population || 0), 0);
-  const indexable = stateSubs.filter(s => !shouldNoindex(s)).length;
   const incSubs = stateSubs.filter(s => s.median_household_income);
   const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
-  const rentSubs = stateSubs.filter(s => s.median_rent_weekly);
-  const medRent = rentSubs.length ? Math.round(rentSubs.reduce((a, s) => a + s.median_rent_weekly, 0) / rentSubs.length) : null;
+  // Current (state-gov) figures only — the 2021 Census rent average that used
+  // to sit here read as if it were today's market.
+  const rentSubs = stateSubs.filter(s => s.current_rent);
+  const avgRent = rentSubs.length ? Math.round(rentSubs.reduce((a, s) => a + s.current_rent, 0) / rentSubs.length) : null;
+  const priceSubs = stateSubs.filter(s => s.current_price_house);
+  const avgPrice = priceSubs.length ? Math.round(priceSubs.reduce((a, s) => a + s.current_price_house, 0) / priceSubs.length) : null;
   const rows = [
-    ['Total suburbs in database', fmt(stateSubs.length)],
-    ['Featured suburb profiles', fmt(indexable)],
-    ['Combined population', fmt(totalPop)],
-    avgInc ? ['Average median household income', `$${fmt(avgInc)}/year`] : null,
-    medRent ? ['Average median weekly rent', `$${fmt(medRent)}/week`] : null,
+    ['Suburb profiles published', fmt(n)],
+    n ? ['Combined population (profiled suburbs)', fmt(totalPop)] : null,
+    avgInc ? ['Average median household income (2021 Census)', `$${fmt(avgInc)}/year`] : null,
+    avgRent ? ['Average current median rent (gov. data)', `$${fmt(avgRent)}/week`] : null,
+    avgPrice ? ['Average current median house price (gov. data)', `$${fmt(avgPrice)}`] : null,
     summary.fhbThreshold ? ['First home buyer concession', summary.fhbThreshold] : null,
     summary.foreignSurcharge ? ['Foreign buyer surcharge', summary.foreignSurcharge] : null,
     summary.revenueOffice ? ['Revenue office', `<a href="${summary.revenueOfficeUrl}" target="_blank" rel="noopener">${escHtml(summary.revenueOffice)} →</a>`] : null
@@ -2630,29 +2063,32 @@ function generateStateStatsHTML(state, stateName, stateSubs) {
 
 function generateStateFaqHTML(state, stateName, stateSubs) {
   const summary = stateMarketSummaries[state] || {};
+  const n = stateSubs.length;
   const incSubs = stateSubs.filter(s => s.median_household_income);
   const avgInc = incSubs.length ? Math.round(incSubs.reduce((a, s) => a + s.median_household_income, 0) / incSubs.length) : null;
-  const indexable = stateSubs.filter(s => !shouldNoindex(s)).length;
   const faqs = [
     {
       q: `How many suburbs are profiled for ${stateName}?`,
-      a: `EquitySight publishes ${fmt(indexable)} featured suburb profiles for ${stateName}, drawn from a wider catalogue of ${fmt(stateSubs.length)} localities. Featured profiles include ABS 2021 Census population, current median rent or sale-price figures from state-government open data where published, a buy-and-hold versus yield versus value-add strategy breakdown, and a 2026 outlook.`
+      a: n
+        ? `EquitySight publishes ${fmt(n)} ${stateName} suburb profiles. We only publish a suburb page when it can carry a genuine, current, suburb-level median rent or sale price from state-government open data — each profile pairs that figure with ABS 2021 Census population, strategy context and a 2026 outlook.`
+        : `None yet. We only publish a suburb page when a genuine, current, suburb-level median rent or sale-price figure is available from state-government open data. ${stateName} figures published so far are postcode-level or not yet released at suburb level, so ${stateName} profiles will come online once that data is published.`
     },
     {
       q: `What stamp duty applies to ${stateName} property?`,
       a: `${stateName} stamp duty (transfer duty) is collected by the ${summary.revenueOffice || 'state revenue office'}. The first home buyer concession threshold is ${summary.fhbThreshold || 'set per state'}. Foreign buyer surcharge: ${summary.foreignSurcharge || 'check with the revenue office'}. Use our <a href="/tools/stamp-duty-calculator">all-states stamp duty calculator</a> or the dedicated <a href="/tools/stamp-duty-calculator-${state.toLowerCase()}">${state} stamp duty calculator</a> for an exact figure.`
     },
-    // Income FAQ only when at least one suburb carries a verified (abs2021)
-    // income — otherwise the question is dropped rather than answered with
-    // "no data".
+    // Income FAQ only when at least one surviving suburb carries a verified
+    // (abs2021) income — otherwise the question is dropped rather than
+    // answered with "no data".
     avgInc ? {
       q: `What's the average household income across ${stateName} suburbs?`,
-      a: `The average median household income across ${fmt(incSubs.length)} ${stateName} suburbs in our dataset is approximately $${fmt(avgInc)} per year. Income varies significantly by suburb — inner-city and middle-ring suburbs typically run 20–40% above this average, while regional and outer-metro localities run below.`
+      a: `The average median household income across the ${fmt(incSubs.length)} profiled ${stateName} suburbs is approximately $${fmt(avgInc)} per year (ABS 2021 Census). Income varies significantly by suburb — inner-city and middle-ring suburbs typically run 20–40% above this average, while regional and outer-metro localities run below.`
     } : null,
-    {
+    // Only meaningful when there is a list above to browse.
+    n ? {
       q: `Which ${stateName} suburbs are best for property investment?`,
-      a: `"Best" depends on whether you are targeting capital growth, rental yield, or value-add renovation. Each ${stateName} suburb profile on EquitySight breaks down buy-and-hold, rental yield and renovation strategies against the public data available for that suburb. Browse the featured suburb list above, sorted by population, or use the search box to filter by name or postcode.`
-    },
+      a: `"Best" depends on whether you are targeting capital growth, rental yield, or value-add renovation. Each ${stateName} suburb profile on EquitySight breaks down buy-and-hold, rental yield and renovation strategies against the public data available for that suburb. Browse the suburb list above, sorted by population, or use the search box to filter by name or postcode.`
+    } : null,
     {
       q: `When was the data on these ${stateName} pages last updated?`,
       a: `Suburb populations come from the ABS 2021 Census of Population and Housing — the latest available; where shown, Census median rent and mortgage figures are 2021 figures and are labelled as such. Where shown, the current median rent and sale-price figures come from state-government open data (QLD RTA, SA CBS, TAS DoJ, VIC VGV) published under Creative Commons licences, each dated with its period on the page. Stamp duty rates and FHB thresholds are kept current to the 2026–27 financial year.`
@@ -2666,66 +2102,60 @@ function generateStateFaqHTML(state, stateName, stateSubs) {
 let hubCount = 0;
 
 for (const state of allStates) {
-  const stateSuburbs = stateGroups[state];
+  // Surviving suburbs only — hubs are honest directories of pages that exist.
+  const stateSuburbs = (stateGroups[state] || []).slice().sort((a, b) => b.population - a.population);
   const stateName = stateNames[state];
   const stateLower = state.toLowerCase();
+  const n = stateSuburbs.length;
 
   // State navigation
   const stateNavHTML = allStates.map(st =>
     `      <a href="/invest/${st.toLowerCase()}/"${st === state ? ' class="active"' : ''}>${st}</a>`
   ).join('\n');
 
-  // City navigation cards
-  const cities = cityByState[state] || [];
-  let cityNavHTML = '';
-  if (cities.length) {
-    cities.sort((a, b) => b.population - a.population);
-    const cityCards = cities.map(c =>
-      `      <a href="/invest/${stateLower}/${c.slug}/" class="city-card">\n        <div class="city-card-name">${escHtml(c.name)}</div>\n        <div class="city-card-meta">${c.suburbCount} suburbs · Pop. ${fmt(c.population)}</div>\n      </a>`
-    ).join('\n');
-    cityNavHTML = `  <section class="suburb-section">\n    <h2>Major cities in ${escHtml(stateName)}</h2>\n    <div class="city-cards">\n${cityCards}\n    </div>\n  </section>\n`;
-  }
-
-  // Split the list: featured (indexed) vs reference (noindexed)
-  // — protects internal link equity while keeping thin pages out of the
-  // primary UI. Featured cards drive the `data-search` search index, the
-  // reference drawer shows plain anchors only.
-  const featured = stateSuburbs
-    .filter(s => !shouldNoindex(s))
-    .sort((a, b) => b.population - a.population);
-  const reference = stateSuburbs
-    .filter(s => shouldNoindex(s))
-    .sort((a, b) => a.suburb.localeCompare(b.suburb));
-
-  const featuredListHTML = featured.map(s =>
+  const suburbListHTML = stateSuburbs.map(s =>
     `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span>${s.median_household_income ? `<span>$${fmt(s.median_household_income)}/yr</span>` : ''}</div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
-  const referenceListHTML = reference.map(s =>
-    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-reference-link">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-reference-pc">${escHtml(s.postcode)}</span>` : ''}</a>`
-  ).join('\n');
-
-  const referenceDrawerHTML = reference.length
-    ? `<details class="hub-reference-drawer">\n    <summary>All localities in ${escHtml(stateName)} (${fmt(reference.length)} additional)</summary>\n    <p class="hub-reference-note">Smaller localities without enough data for a full property profile. Links stay available for research.</p>\n    <div class="hub-reference-list">\n${referenceListHTML}\n    </div>\n  </details>`
+  // Count-dependent copy computed here so empty-state hubs stay honest.
+  const hubTitle = n
+    ? `${stateName} Suburb Profiles — ${fmt(n)} Suburbs with Current Market Data | EquitySight`
+    : `${stateName} Suburb Profiles | EquitySight`;
+  const hubMetaDesc = n
+    ? `Browse ${fmt(n)} ${stateName} suburb profiles — each with a current, government-published median rent or sale price plus ABS Census population.`
+    : `No ${stateName} suburb profiles yet — we only publish a suburb page when current, suburb-level market data is available from government open data.`;
+  const hubHeroText = n
+    ? `${fmt(n)} ${stateName} suburb profiles, each built on a current, government-published median rent or sale price plus ABS Census population and postcode.`
+    : `No ${stateName} suburb profiles yet. We only publish a suburb page when a current, suburb-level median rent or sale price is available from government open data — ${stateName} doesn't publish one yet.`;
+  const hubListIntro = n
+    ? `${fmt(n)} suburbs with a current, government-published median rent or sale price, ordered by population. Every card links to a full profile.`
+    : `Nothing to list yet — ${stateName} suburb-level market data hasn't been published by a government source. Browse other states via the navigation above.`;
+  // Search box only renders when there are cards to search (state-hub-search.js
+  // no-ops without it).
+  const hubSearchHTML = n
+    ? `<input type="text" id="suburb-search" class="hub-search" placeholder="Search suburbs by name or postcode..." aria-label="Search suburbs by name or postcode" autocomplete="off">`
     : '';
 
   const stateOverviewHTML = generateStateOverviewHTML(state, stateName, stateSuburbs);
   const stateStatsHTML    = generateStateStatsHTML(state, stateName, stateSuburbs);
   const stateFaqHTML      = generateStateFaqHTML(state, stateName, stateSuburbs);
 
+  // Function replacements — generated HTML contains `$` (prices), which
+  // String.replace treats as a special pattern character.
   let html = HUB_TPL
-    .replace(/\{\{STATE\}\}/g, escHtml(state))
-    .replace(/\{\{STATE_LOWER\}\}/g, stateLower)
-    .replace(/\{\{STATE_NAME\}\}/g, escHtml(stateName))
-    .replace(/\{\{SUBURB_COUNT\}\}/g, fmt(featured.length))
-    .replace(/\{\{TOTAL_SUBURB_COUNT\}\}/g, fmt(stateSuburbs.length))
-    .replace(/\{\{STATE_NAV_HTML\}\}/g, stateNavHTML)
-    .replace(/\{\{CITY_NAV_HTML\}\}/g, cityNavHTML)
-    .replace(/\{\{STATE_OVERVIEW_HTML\}\}/g, stateOverviewHTML)
-    .replace(/\{\{STATE_STATS_HTML\}\}/g, stateStatsHTML)
-    .replace(/\{\{STATE_FAQ_HTML\}\}/g, stateFaqHTML)
-    .replace(/\{\{SUBURB_LIST_HTML\}\}/g, featuredListHTML)
-    .replace(/\{\{REFERENCE_DRAWER_HTML\}\}/g, referenceDrawerHTML);
+    .replace(/\{\{STATE\}\}/g, () => escHtml(state))
+    .replace(/\{\{STATE_LOWER\}\}/g, () => stateLower)
+    .replace(/\{\{STATE_NAME\}\}/g, () => escHtml(stateName))
+    .replace(/\{\{HUB_TITLE\}\}/g, () => escHtml(hubTitle))
+    .replace(/\{\{HUB_META_DESC\}\}/g, () => escHtml(hubMetaDesc))
+    .replace(/\{\{HUB_HERO_TEXT\}\}/g, () => escHtml(hubHeroText))
+    .replace(/\{\{HUB_LIST_INTRO\}\}/g, () => escHtml(hubListIntro))
+    .replace(/\{\{HUB_SEARCH_HTML\}\}/g, () => hubSearchHTML)
+    .replace(/\{\{STATE_NAV_HTML\}\}/g, () => stateNavHTML)
+    .replace(/\{\{STATE_OVERVIEW_HTML\}\}/g, () => stateOverviewHTML)
+    .replace(/\{\{STATE_STATS_HTML\}\}/g, () => stateStatsHTML)
+    .replace(/\{\{STATE_FAQ_HTML\}\}/g, () => stateFaqHTML)
+    .replace(/\{\{SUBURB_LIST_HTML\}\}/g, () => suburbListHTML);
 
   const outDir = path.join(ROOT, 'invest', stateLower);
   fs.mkdirSync(outDir, { recursive: true });
@@ -2734,16 +2164,11 @@ for (const state of allStates) {
 }
 
 // ── Generate suburb directory index ──
+// Lists ONLY the surviving suburbs, grouped by the states that actually have
+// profiles — every link on this page targets a generated file.
 
-const dirSections = allStates.map(state => {
-  const subs = stateGroups[state];
-  const stateName = stateNames[state];
-  const stateLower = state.toLowerCase();
-  const links = subs.map(s =>
-    `        <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card">\n          <div class="hub-suburb-name">${escHtml(s.suburb)}</div>\n          <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.suburb_type}</span></div>\n        </a>`
-  ).join('\n');
-  return `    <section class="suburb-section">\n      <h2><a href="/invest/${stateLower}/">${escHtml(stateName)} (${state})</a> — ${subs.length} suburbs</h2>\n      <div class="hub-suburb-list">\n${links}\n      </div>\n    </section>`;
-}).join('\n\n');
+const keptStates = allStates.filter(st => (stateGroups[st] || []).length);
+const keptStateNamesList = keptStates.map(st => stateNames[st]).join(', ');
 
 const dirIndexHTML = `<!DOCTYPE html>
 <html lang="en">
@@ -2751,8 +2176,8 @@ const dirIndexHTML = `<!DOCTYPE html>
 <meta charset="UTF-8">
 <script src="/site-init.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>All Australian Suburb Insights — ${suburbs.length} Suburbs | EquitySight</title>
-<meta name="description" content="Browse property investment insights for ${suburbs.length} Australian suburbs across all states and territories. Population data and investment context.">
+<title>All Australian Suburb Profiles — ${fmt(keptSuburbs.length)} Suburbs | EquitySight</title>
+<meta name="description" content="Browse ${fmt(keptSuburbs.length)} Australian suburb profiles — every page carries a current, government-published median rent or sale price plus ABS Census population.">
 <link rel="canonical" href="https://equitysight.app/suburb/">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
@@ -2770,7 +2195,7 @@ const dirIndexHTML = `<!DOCTYPE html>
     <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="/app" class="tool-header-link">Try the full calculator free →</a>
+  <a href="/journey" class="tool-header-link">Plan your first home — free →</a>
 </header>
 <script src="/auth-nav.js"></script>
 <script src="/error-capture.js"></script>
@@ -2780,9 +2205,9 @@ const dirIndexHTML = `<!DOCTYPE html>
     <a href="/">Home</a> <span>›</span>
     <span>All Suburbs</span>
   </nav>
-  <div class="tool-eyebrow">Suburb Insights · Australia</div>
-  <h1>Australian Suburb Investment Insights</h1>
-  <p>${suburbs.length} suburbs across ${allStates.length} states and territories — key indicators and investment context.</p>
+  <div class="tool-eyebrow">Suburb Profiles · Australia</div>
+  <h1>Australian Suburb Profiles</h1>
+  <p>${fmt(keptSuburbs.length)} suburb profiles across ${keptStateNamesList} — each built on a current, government-published median rent or sale price. More states come online as suburb-level data is published.</p>
 </section>
 
 <div class="suburb-main">
@@ -2790,11 +2215,11 @@ const dirIndexHTML = `<!DOCTYPE html>
   <section class="suburb-section">
     <h2>Browse by state</h2>
     <div class="state-nav">
-${allStates.map(st => `      <a href="#${st.toLowerCase()}">${st}</a>`).join('\n')}
+${keptStates.map(st => `      <a href="#${st.toLowerCase()}">${st}</a>`).join('\n')}
     </div>
   </section>
 
-${allStates.map(state => {
+${keptStates.map(state => {
   const subs = stateGroups[state];
   const stateName = stateNames[state];
   const stateLower = state.toLowerCase();
@@ -2813,10 +2238,10 @@ ${links}
 }).join('\n\n')}
 
   <section class="suburb-cta">
-    <div class="tool-cta-eye">Full Property Analysis</div>
-    <h3>Analyse any Australian property</h3>
-    <p>30-year projections, scenario comparison, cash flow analysis, and PDF export.</p>
-    <a href="/app" class="tool-cta-btn">Try it free — no signup →</a>
+    <div class="tool-cta-eye">Buying your first home?</div>
+    <h3>Turn suburb research into a plan</h3>
+    <p>Seven guided stops — government schemes compared for your exact numbers, a real budget, suburb shortlisting and every contract deadline tracked. Free, no signup to start.</p>
+    <a href="/journey" class="tool-cta-btn">Start your first-home journey →</a>
   </section>
 
 </div>
@@ -2829,7 +2254,7 @@ ${links}
 const suburbIndexDir = path.join(ROOT, 'suburb');
 fs.mkdirSync(suburbIndexDir, { recursive: true });
 fs.writeFileSync(path.join(suburbIndexDir, 'index.html'), dirIndexHTML);
-console.log(`Generated suburb directory index (${suburbs.length} suburbs, ${allStates.length} states)`);
+console.log(`Generated suburb directory index (${keptSuburbs.length} suburbs, ${keptStates.length} states with profiles)`);
 
 // ── Generate split sitemaps (max 1000 URLs per file, grouped by state) ──
 
@@ -2846,14 +2271,12 @@ for (const state of allStates) {
   stateUrls[state] = [];
 }
 
-// NOTE: /invest/ state-hub + city pages are now noindex,follow — their aggregate
-// investment scores rest on placeholder data, so they're intentionally excluded
-// from the sitemap (same policy as suburb pages) until backed by verified data.
+// NOTE: /invest/ state hubs stay noindex,follow (see templates/state-hub.html)
+// and out of the sitemap — they're navigation, not destination pages.
 
-// Suburb pages → into their state bucket (exclude noindex pages from sitemap)
-let sitemapExcluded = 0;
-for (const s of suburbs) {
-  if (shouldNoindex(s)) { sitemapExcluded++; continue; }
+// Suburb pages → into their state bucket. Every generated page passes the
+// gate, so the sitemap set and the generated set coincide by construction.
+for (const s of keptSuburbs) {
   stateUrls[s.state].push(sitemapUrl(`https://equitysight.app/suburb/${s.state.toLowerCase()}/${s.slug}/`, 'monthly', '0.6'));
 }
 
@@ -2880,9 +2303,14 @@ for (const state of allStates) {
 
 // ── Generate sitemap index ──
 
+// sitemap-blog.xml only exists when the blog is enabled (BLOG_ENABLE=true;
+// unset = blog dark) — referencing it while dark would point Google at a
+// dead file on every suburb rebuild.
 const sitemapIndexEntries = [
   '  <sitemap>\n    <loc>https://equitysight.app/sitemap-core.xml</loc>\n  </sitemap>',
-  '  <sitemap>\n    <loc>https://equitysight.app/sitemap-blog.xml</loc>\n  </sitemap>',
+  ...(process.env.BLOG_ENABLE === 'true'
+    ? ['  <sitemap>\n    <loc>https://equitysight.app/sitemap-blog.xml</loc>\n  </sitemap>']
+    : []),
   ...sitemapFiles.map(f =>
     `  <sitemap>\n    <loc>https://equitysight.app/${f.filename}</loc>\n  </sitemap>`
   ),
@@ -2895,20 +2323,17 @@ ${sitemapIndexEntries.join('\n')}
 `;
 
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), sitemapIndex);
+// (Stale sitemap-suburbs*.xml files — including states that no longer have
+// any surviving suburbs — are removed by the up-front output cleanup.)
 
-// Clean up old monolithic sitemap file if it exists
-const oldSitemap = path.join(ROOT, 'sitemap-suburbs.xml');
-if (fs.existsSync(oldSitemap)) fs.unlinkSync(oldSitemap);
-
-const indexedCount = suburbCount - noindexCount;
-console.log(`Built ${suburbCount} suburb pages — indexed=${indexedCount} noindexed=${noindexCount} (target 2,000–3,000 indexed)`);
-console.log(`Built ${cityCount} city pages, ${hubCount} state hub pages`);
-console.log('Per-state indexed / total:');
+console.log(`Built ${suburbCount} suburb pages — all pass the real-data gate (index,follow); ${suburbs.length - suburbCount} gate-failing records not generated`);
+console.log(`Built ${hubCount} state hub pages (${keptStates.length} with profiles)`);
+console.log('Per-state generated pages:');
 Object.keys(stateIndexStats).sort().forEach(st => {
   const r = stateIndexStats[st];
-  console.log(`  ${st}: ${r.indexed}/${r.total} (${r.noindexed} noindexed)`);
+  console.log(`  ${st}: ${r.indexed}`);
 });
-console.log(`Generated sitemap.xml (index) + ${sitemapFiles.length} sitemap files (${totalSitemapUrls} URLs, ${sitemapExcluded} excluded)`);
+console.log(`Generated sitemap.xml (index) + ${sitemapFiles.length} sitemap files (${totalSitemapUrls} URLs)`);
 sitemapFiles.forEach(f => console.log(`  ${f.filename}: ${f.urlCount} URLs`));
 
 // ── Write index report (consumed by the admin Suburbs tab) ──
@@ -2919,13 +2344,14 @@ const indexReport = {
   generated_at: new Date().toISOString(),
   build_date: BUILD_DATE,
   total: suburbCount,
-  indexed: indexedCount,
-  noindexed: noindexCount,
+  indexed: suburbCount, // every generated page passes the gate
+  noindexed: 0, // gate-failing records are no longer generated at all
+  not_generated: suburbs.length - suburbCount,
   min_population_for_index: MIN_POPULATION_FOR_INDEX,
   by_state: stateIndexStats,
   quality_score_histogram: (() => {
     const bins = { '0-20': 0, '21-40': 0, '41-60': 0, '61-80': 0, '81-100': 0 };
-    for (const s of suburbs) {
+    for (const s of keptSuburbs) {
       const q = qualityScore(s);
       if (q <= 20) bins['0-20']++;
       else if (q <= 40) bins['21-40']++;
