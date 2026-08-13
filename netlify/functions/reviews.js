@@ -230,6 +230,12 @@ exports.handler = async function(event) {
 
   // ── User-facing: submit a review ───────────────────────────────────
   if (action === 'submitReview') {
+    // Aug 2026: review submissions are closed (journey-only refocus, no
+    // moderation capacity). The form was removed from suburb pages; this
+    // server-side gate makes the closure real, not just cosmetic. Existing
+    // approved reviews still render. Delete this block to re-open.
+    return fail('Review submissions are closed.', 403);
+    // eslint-disable-next-line no-unreachable
     const user = await verifyToken(event);
     if (!user) return fail('Please sign in to leave a review', 401);
 

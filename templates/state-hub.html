@@ -8,8 +8,8 @@
 <script src="/site-init.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, follow">
-<title>{{STATE_NAME}} Australia Property Investment Insights — {{SUBURB_COUNT}} Featured Suburbs | EquitySight</title>
-<meta name="description" content="Explore {{SUBURB_COUNT}} featured suburbs in {{STATE_NAME}}, Australia for property investment. ABS Census population and postcode, plus investment context, for suburbs across the state.">
+<title>{{HUB_TITLE}}</title>
+<meta name="description" content="{{HUB_META_DESC}}">
 <meta name="keywords" content="{{STATE_NAME}} property investment Australia, {{STATE}} suburbs Australia, {{STATE_NAME}} real estate, best suburbs {{STATE}} Australia, {{STATE_NAME}} suburb insights">
 <link rel="canonical" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
 <link rel="alternate" hreflang="en-AU" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
@@ -17,8 +17,8 @@
 <meta name="geo.region" content="AU">
 <meta name="geo.placename" content="Australia">
 <meta property="og:type" content="website">
-<meta property="og:title" content="{{STATE_NAME}} Property Investment — Top Suburbs | EquitySight">
-<meta property="og:description" content="Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}} for property investment.">
+<meta property="og:title" content="{{HUB_TITLE}}">
+<meta property="og:description" content="{{HUB_META_DESC}}">
 <meta property="og:url" content="https://equitysight.app/invest/{{STATE_LOWER}}/">
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:image" content="https://equitysight.app/images/og-image.png">
@@ -26,8 +26,8 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{STATE_NAME}} Property Investment — Top Suburbs">
-<meta name="twitter:description" content="Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}} for property investment.">
+<meta name="twitter:title" content="{{HUB_TITLE}}">
+<meta name="twitter:description" content="{{HUB_META_DESC}}">
 <meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
@@ -39,7 +39,7 @@
 <link rel="stylesheet" href="/tools.css">
 <link rel="stylesheet" href="/suburb-insights.css">
 <script type="application/ld+json">
-[{"@context":"https://schema.org","@type":"CollectionPage","name":"{{STATE_NAME}} Property Investment Insights","description":"Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}} for property investment.","url":"https://equitysight.app/invest/{{STATE_LOWER}}/"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"{{STATE_NAME}}","item":"https://equitysight.app/invest/{{STATE_LOWER}}/"}]}]
+[{"@context":"https://schema.org","@type":"CollectionPage","name":"{{STATE_NAME}} Suburb Profiles","description":"{{HUB_META_DESC}}","url":"https://equitysight.app/invest/{{STATE_LOWER}}/"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"{{STATE_NAME}}","item":"https://equitysight.app/invest/{{STATE_LOWER}}/"}]}]
 </script>
 </head>
 <body>
@@ -49,7 +49,7 @@
     <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="/app" class="tool-header-link">Try the full calculator free →</a>
+  <a href="/journey" class="tool-header-link">Plan your first home — free →</a>
 </header>
 <script src="/auth-nav-loader.js" defer></script>
 <script src="/error-capture.js" defer></script>
@@ -59,9 +59,9 @@
     <a href="/">Home</a> <span>›</span>
     <span>{{STATE_NAME}}</span>
   </nav>
-  <div class="tool-eyebrow">Property Investment · {{STATE}}, Australia</div>
-  <h1>{{STATE_NAME}}, Australia — Property Investment Insights</h1>
-  <p>Explore the top {{SUBURB_COUNT}} suburbs in {{STATE_NAME}}, Australia for property investment. Key indicators, lifestyle data, and investment context.</p>
+  <div class="tool-eyebrow">Suburb Profiles · {{STATE}}, Australia</div>
+  <h1>{{STATE_NAME}}, Australia — Suburb Profiles</h1>
+  <p>{{HUB_HERO_TEXT}}</p>
 </section>
 
 <div class="suburb-main" role="main">
@@ -86,20 +86,17 @@
     {{STATE_STATS_HTML}}
   </section>
 
-  <!-- Major Cities -->
-  {{CITY_NAV_HTML}}
-
-  <!-- Featured Suburb List -->
+  <!-- Suburb profiles (surviving, real-data suburbs only — every card links
+       to a page that exists; there is no drawer of unpublished localities) -->
   <section class="suburb-section">
-    <h2>Featured suburbs in {{STATE_NAME}}</h2>
-    <p class="hub-list-intro">{{SUBURB_COUNT}} suburbs with enough population and data for a full property profile, ordered by population. Additional localities are listed below.</p>
-    <input type="text" id="suburb-search" class="hub-search" placeholder="Search suburbs by name or postcode..." aria-label="Search suburbs by name or postcode" autocomplete="off">
+    <h2>Suburb profiles in {{STATE_NAME}}</h2>
+    <p class="hub-list-intro">{{HUB_LIST_INTRO}}</p>
+    {{HUB_SEARCH_HTML}}
     <div id="hub-suburb-list" class="hub-suburb-list">
       {{SUBURB_LIST_HTML}}
     </div>
     <button id="hub-show-more" class="hub-show-more" style="display:none;">Show more suburbs</button>
     <p id="hub-no-results" class="hub-no-results" style="display:none;">No suburbs match your search.</p>
-    {{REFERENCE_DRAWER_HTML}}
   </section>
 
   <!-- Calculator cross-links -->
@@ -124,10 +121,10 @@
 
   <!-- CTA -->
   <section class="suburb-cta">
-    <div class="tool-cta-eye">Full Property Analysis</div>
-    <h3>Analyse any {{STATE_NAME}} property</h3>
-    <p>30-year projections, scenario comparison, cash flow analysis, and PDF export.</p>
-    <a href="/app" class="tool-cta-btn">Try it free — no signup →</a>
+    <div class="tool-cta-eye">Buying your first home in {{STATE_NAME}}?</div>
+    <h3>Walk the journey to your first home</h3>
+    <p>Seven guided stops — government schemes compared for your exact numbers, a real budget, suburb shortlisting and every contract deadline tracked. Free, no signup to start.</p>
+    <a href="/journey" class="tool-cta-btn">Start your first-home journey →</a>
   </section>
 
 </div>

@@ -290,11 +290,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
     { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/act/kingston/', label: 'Kingston ACT' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/act/belconnen/', label: 'Belconnen ACT' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/act/gungahlin/', label: 'Gungahlin ACT' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/act/canberra/', label: 'Canberra Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/act/', label: 'Australian Capital Territory Suburb Guide' }
   ]
 });

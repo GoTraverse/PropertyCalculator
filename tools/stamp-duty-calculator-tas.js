@@ -294,8 +294,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/tas/hobart/', label: 'Hobart TAS' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/tas/launceston/', label: 'Launceston TAS' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/tas/devonport/', label: 'Devonport TAS' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/tas/hobart/', label: 'Hobart Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/tas/', label: 'Tasmania Suburb Guide' }
   ]
 });

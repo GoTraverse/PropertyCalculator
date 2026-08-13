@@ -1,11 +1,25 @@
 # CLAUDE.md — Working Notes for Claude Code
 
+## Strategy (Aug 2026 — owner decision, supersedes the growth-era north star)
+**EquitySight is one product: the First Home Journey** — one person's carefully built, honestly sourced walk from "no idea" to keys for Australian first home buyers. The owner's goal is **pride, not growth**: a small site where every page is defensible line-by-line in a hostile forum thread, maintainable on a few hours a week.
+
+What this means in practice:
+- **/journey is THE product.** The 18 calculators are its toolbox (kept, near-zero maintenance). Everything else either serves the walk or is cut/parked.
+- **Suburb pages: only the ~1,475 real-data pages are generated at all** (the 13k noindexed placeholder shells were cut Aug 2026 — they 404 by design). City pages cut; state hubs are plain directories.
+- **Blog is dark** behind `BLOG_ENABLE` (unset = no blog pages render, nav/footer links removed). Infrastructure kept dormant. It returns only if the owner writes posts personally.
+- **/app investor calculator is parked**: keeps working for existing users, not promoted to new visitors. No further development.
+- **UGC submission forms are off** (no moderation time). Existing approved content may render.
+- **Stripe/Pro untouched** — payment changes remain ask-first.
+- **No posting obligation.** Growth is passive: partner-shares of journeys, the honest suburb pages, calculator long-tail. Do not push the owner toward marketing; do not add growth surfaces without an explicit ask.
+- **Maintenance contract**: quarterly market-data refresh (~2h, recipe in memory project-suburb-data-architecture), one FY rates verification a year, error-log checks. That is the whole obligation.
+- **The pride bar for all new work**: no fabricated figures ever; sources + periods on every number; the owner's plain voice (de-AI rules from #320); if a page can't be defended, it doesn't ship.
+
 ## Project Summary
-**EquitySight.app** — Australian property finance calculators + suburb data, built on verified government sources. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys to production. North star: **value a chatbot/Google/a pro-without-a-tool can't give** — verified-current rates, real sourced data, persistent scenarios (roadmap in TODO.md "PRODUCT ROADMAP" + Claude's memory project-product-roadmap).
+**EquitySight.app** — the First Home Journey (guided Australian first-home purchase planner) + its calculator toolbox, built on verified government sources. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys to production.
 
-**Australian-focused:** Designed for Australian first home buyers, investors & financial planners. All 8 Australian states, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
+**Australian-focused:** Designed for Australian first home buyers. All 8 Australian states & territories, AUD currency, Australian tax/regulatory frameworks (ATO, ASIC, RBA, APRA, state revenue offices).
 
-**~36 core HTML pages** (17 root + 18 free calculators + `/tools` landing) + **`/journey` flagship** (guided first-home journey — see section below) + **8 state-specific stamp duty pages** (generated) + **14,512 generated suburb pages** (**1,475 indexed** — real-data gate: pop ≥ 2,000 + a genuine suburb-geo CC BY 4.0 current rent/price figure; QLD 583 / VIC 516 / SA 293 / TAS 83; NSW/WA/ACT/NT 0 pending suburb-level data) + **19 city pages** + **8 state hub pages** + **human-authored blog** (Redis CMS → static HTML) + **suburb reviews & ratings** (UGC, moderated) + **blog comments** (UGC, moderated) | **15 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `blog`, `reviews`, `comments`, `seo-metrics` [MCP-facing, not web-app], `share-view`, `journey` [journey sync + share/collab + admin visibility]) + `_log.js` structured-log helper (plus a leftover `db-health.js` Phase-0 spike with no caller) | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
+**~36 core HTML pages** (17 root + 18 free calculators + `/tools` landing) + **`/journey` flagship** (guided first-home journey — see section below) + **8 state-specific stamp duty pages** (generated) + **~1,475 generated suburb pages** (ONLY suburbs passing the real-data gate are generated: pop ≥ 2,000 + a genuine suburb-geo CC BY 4.0 current rent/price figure; QLD 583 / VIC 516 / SA 293 / TAS 83; NSW/WA/ACT/NT 0 pending suburb-level data) + **8 state hub directories** + **blog (DARK — `BLOG_ENABLE` unset)** + **16 Netlify functions** (`auth`, `scenarios`, `stripe`, `contact`, `client-errors`, `growth`, `mapproxy`, `address-suggest`, `market-data`, `portfolio`, `blog` [dormant], `reviews` [submitReview gated off server-side], `comments` [dormant], `seo-metrics` [MCP-facing, not web-app], `share-view`, `journey` [journey sync + share/collab + admin visibility]) + `_log.js` structured-log helper (plus a leftover `db-health.js` Phase-0 spike with no caller) | **13 CSS files** | **5000+ lines** of calculator logic (`app.js`, parked) | **3800+ lines** of admin logic (`admin.js`) | regression tests in `tests/stamp-duty-test.js`
 
 **Current market data (Jul 2026):** suburb pages + newest tools carry REAL, CURRENT, CC BY 4.0 state-government data — `data/market-current.json` (suburb pages, folded in by `build/merge-market-current.js`) + `tools/market-medians.json` (tool pages) — QLD/SA/TAS suburb rents, VIC/SA-metro sale medians (+12-month trends), NSW postcode rents. Every figure captioned "as at [period], [source]". Pre-extracted + hand-verified quarterly (recipe in Claude's memory: project-suburb-data-architecture). Rules: strict-period only (drop suppressed suburbs — never mislabel an older quarter as current); 2021 Census figures are a clearly-dated fallback, never presented as current.
 
@@ -117,17 +131,16 @@ See **`README.md`** for feature overview and quick start guide.
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
 - **To update all calculators**: Edit `tools.css` (no need to touch individual HTML files)
 
-### Suburb Insights System (14,512 suburb pages + 19 city pages)
-- **Data pipeline**: `fetch-abs-data.js` → `data/abs-suburbs.json` → `generate-suburbs-data.js` → `data/suburbs.json` → `build-suburbs.js` → HTML pages
-- **Real data**: Suburb names + populations from ABS 2021 Census (ArcGIS FeatureServer, SAL geography); postcodes from community dataset (`au_postcodes.csv`)
-- **Placeholder data**: Income, distance to CBD, suburb type, scores — to be replaced with live data later
-- **Build output**: `/suburb/{state}/{slug}/index.html` (14,512 pages) + `/invest/{state}/{city-slug}/index.html` (19 city pages) + `/invest/{state}/index.html` (8 state hubs) + directory index + sitemap
-- **Templates**: `templates/suburb-page.html`, `templates/city-page.html`, and `templates/state-hub.html` — use `{{PLACEHOLDER}}` syntax
-- **Styling**: `suburb-insights.css` — shared styles for suburb pages, city pages + state hubs
-- **SEO**: BreadcrumbList + Place + CollectionPage schema.org JSON-LD, postcodes in titles/meta/keywords, structured data
-- **Suburb investment sections**: Each suburb page includes Investment Score (0-100), Best Investment Strategy (Buy & Hold / Rental Yield / Renovation), Risk Factors (3-4 per suburb), and 2026 Outlook — all generated with deterministic phrase variation via `seedHash()`
-- **City pages**: 19 major Australian cities (Brisbane, Sydney, Melbourne, Perth, Adelaide, Gold Coast, Newcastle, Canberra, Sunshine Coast, Wollongong, Geelong, Cairns, Townsville, Hobart, Toowoomba, Darwin, Ballarat, Bendigo, Launceston) — grouped by postcode ranges, with aggregate city investment score, strategy, risks, outlook, and top-12 suburbs ranking
-- **State hubs**: Progressive loading (100 suburbs initially, "Show more" button) + client-side search by name/postcode + major city navigation cards
+### Suburb Insights System (~1,475 real-data pages generated — Aug 2026 cut; city pages removed)
+- **Data pipeline**: `fetch-abs-data.js` → `data/abs-suburbs.json` → `generate-suburbs-data.js` → `data/suburbs.json` → (deploy-time: `apply-abs-data.js` + `merge-market-current.js`) → `build-suburbs.js` → HTML pages
+- **Real data**: Suburb names + populations from ABS 2021 Census (ArcGIS FeatureServer, SAL geography); postcodes from community dataset (`au_postcodes.csv`); current rents/sale medians from `data/market-current.json` (CC BY 4.0 state gov)
+- **Placeholder fields in data/suburbs.json** (income, transport/amenity scores, school/park counts): NEVER rendered — build-suburbs nulls income unless `income_source === 'abs2021'` and all display sites are gated. Data-absent prose branches must say "not recorded", never assert a fact.
+- **Build output (Aug 2026)**: ONLY suburbs passing `shouldNoindex()`'s real-data gate are generated — `/suburb/{state}/{slug}/index.html` (~1,475 pages: QLD 583 / VIC 516 / SA 293 / TAS 83) + `/invest/{state}/index.html` (8 state hub directories; empty-state copy for NSW/WA/ACT/NT) + directory index + sitemap. Cut pages 404 by design. City pages removed (template deleted).
+- **Templates**: `templates/suburb-page.html` and `templates/state-hub.html` — use `{{PLACEHOLDER}}` syntax
+- **Styling**: `suburb-insights.css` — shared styles for suburb pages + state hubs
+- **SEO**: BreadcrumbList + Place + CollectionPage schema.org JSON-LD, postcodes in titles/meta/keywords; every market figure carries an "as at [period], [source]" caption
+- **Suburb sections**: strategy/risks/outlook prose is rule-based over the measured fields only; no investment score, no school/park counts. Suburb CTA deep-links `/journey?near=<suburb>&st=<state>`.
+- **State hubs**: plain directories of surviving suburbs + client-side search; market blurbs (`stateMarketSummaries`) must track the FY duty engine — re-verify at each annual FY sweep
 - **Performance**: Scripts use `defer` attribute; related suburbs pre-computed (O(n) not O(n²))
 - **Build command**: `node build.js` — conditional build wrapper:
   - Normal deploys: restores cached suburb pages (instant, no rebuild)
@@ -170,7 +183,7 @@ See **`README.md`** for feature overview and quick start guide.
 - **SW rule**: bump the service-worker version whenever journey assets change
   (they're pre-cached since v30).
 
-### Blog CMS (Static-first, Redis-backed)
+### Blog CMS (DARK since Aug 2026 — build gated on BLOG_ENABLE; infrastructure dormant)
 - **Architecture**: Posts are authored in the admin UI → stored in Upstash Redis → rendered to static HTML at build time via `build/build-blog.js`. Public pages under `/blog/` are 100% static for Googlebot/AdSense.
 - **Why static**: AdSense/Google crawl pre-rendered HTML with full JSON-LD (`BlogPosting` + `BreadcrumbList` + `Person`) — no hydration required.
 - **Shared markdown parser**: `build/md.js` (CommonJS) mirrors `legal.js` rendering exactly, so browser and Node emit byte-identical HTML from the same Markdown source. Build-only helpers: `excerpt()`, `wordCount()`.
@@ -267,6 +280,13 @@ Files intentionally NOT blocked (needed at runtime):
 - Submit sitemap.xml: https://search.google.com/search-console
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
+
+## Recent Changes (Aug 2026 — Journey-only refocus)
+
+Owner strategy decision (see Strategy section at top): pride over growth, one product.
+- Pre-posting honesty+SEO audit fixed 100 verified findings (#401): placeholder income/scores/counts can no longer render on suburb pages; methodology + data-sources rewritten truthfully; FY2026-27 labels; sitemap index fixed; llms.txt rewritten; voice de-AI pass; mobile hamburger on 6 pages.
+- Journey deep links (#402): /journey?near=<suburb>&st=<state> pre-seeds a fresh visitor (never clobbers); suburb + state stamp-duty pages deep-link in; signup_prompt_accepted funnel event.
+- Journey-only refocus (this change): suburb build cut to the ~1,475 real-data pages (placeholder shells 404 by design); 19 city pages removed; state hubs are plain directories; blog dark behind BLOG_ENABLE with nav/footer/sitemap references removed; /app parked for new visitors (guest CTAs route /journey); suburb review submission form removed.
 
 ## Recent Changes (Jul 2026 — Real-data pivot + 4 new calculators, PRs #335–#348)
 

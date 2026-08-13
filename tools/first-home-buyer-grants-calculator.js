@@ -591,8 +591,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '🪙', href: '/tools/deposit-calculator', label: 'Deposit Calculator' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/springfield-lakes/', label: 'Springfield Lakes QLD' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/vic/werribee/', label: 'Werribee VIC' },
-    { group: 'Popular Suburbs', icon: '📍', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
-    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '📖', href: '/methodology', label: 'Our Methodology' }
   ]
 });
