@@ -43,7 +43,7 @@ Coverage is uneven and I say so on the pages: NSW rents exist only at postcode l
 
 ## 4. Reserve Bank of Australia — cash-rate target
 
-- **Used for:** the live cash-rate context on calculator pages (Mortgage Repayment, Loan Serviceability, Mortgage Stress Test) via the `window.MarketRate` module.
+- **Used for:** the live cash-rate context on the Loan Serviceability, Mortgage Stress Test and Property Cashflow calculators via the `window.MarketRate` module.
 - **Source:** [rba.gov.au/statistics/cash-rate](https://www.rba.gov.au/statistics/cash-rate/)
 - **Refreshed:** fetched from the RBA public feed and cached briefly. If the live feed is unavailable, the calculators simply omit the live-rate hint — they never display a stale rate as current.
 - **Attribution:** Reserve Bank of Australia. Figures are used descriptively and are not represented as RBA forecasts.
@@ -69,7 +69,7 @@ The long-form guides attached to each calculator are **drafted with AI assistanc
 
 ## 9. Independence and conflicts of interest
 
-EquitySight is run by a single solo operator. It is not owned by, licensed to, or commercially affiliated with any real-estate agency, developer, mortgage broker, buyer's agent, or data reseller. The site is supported by paid subscriptions, and may also carry contextual advertising. No advertiser has editorial access to a suburb page, and no advertiser can pay to influence a strategy verdict or a risk factor.
+EquitySight is run by a single solo operator. It is not owned by, licensed to, or commercially affiliated with any real-estate agency, developer, mortgage broker, buyer's agent, or data reseller. The site carries no advertising. A small number of paid subscriptions exist from an earlier version of the product; no advertiser or subscriber has any influence over what any page says.
 
 If this ever changes — for example if I accept investment from a party with an interest in specific suburbs — I will disclose it at the top of this page before the relationship begins.
 

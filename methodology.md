@@ -48,7 +48,7 @@ Only suburb pages that carry genuine, current, suburb-level market data are subm
 - a postcode, and
 - a current suburb-level median rent or sale price from state government open data.
 
-About 1,475 pages pass that gate today (concentrated in QLD, VIC, SA and TAS, where suburb-level open data exists). The other pages remain reachable for browsing but are marked noindex, because I would rather hold a page out of search than have it rank on numbers I cannot stand behind.
+About 1,475 pages pass that gate today (concentrated in QLD, VIC, SA and TAS, where suburb-level open data exists). Suburbs that don't pass the gate simply don't get a page any more — I removed them in August 2026 rather than keep placeholder shells online. If a suburb page doesn't exist, it's because I don't have data for it that I can stand behind.
 
 ## 5. Suburb prose and strategy text
 
@@ -61,11 +61,11 @@ The strategy verdicts, risk factors and outlook text on suburb pages are generat
 - Valuer-General sale medians lag the market by one to several quarters. The period caption next to each figure is the honest read of its age.
 - EquitySight is run by a solo, non-credentialed operator. Nothing on the site is personal financial advice. Always seek licensed, independent advice before making a property decision.
 
-## 7. Mortgage repayment formulas (main calculator)
+## 7. Mortgage repayment formulas
 
-The calculators are where my methodology is on the firmest ground: they apply standard, published formulas to the numbers you enter.
+The First Home Journey and my calculators use standard, published formulas applied to the numbers you enter — this is where my methodology is on the firmest ground.
 
-The Purchase Calculator (`/app`) uses the standard monthly amortisation formula:
+The repayment figure — used by the journey, the tool calculators and the Purchase Calculator (`/app`) — comes from the standard monthly amortisation formula:
 
 ```
 monthly = P × r / (1 − (1 + r)^−n)
@@ -91,9 +91,10 @@ The explanatory guides that accompany my calculators are drafted with AI assista
 
 ## 8. Change log
 
+- **August 2026 (later)** — Removed the ~13,000 placeholder suburb pages entirely; suburbs without verified current data no longer have pages.
 - **August 2026** — Removed the placeholder household income figure from all suburb pages. Documented the real-data indexing gate (section 4) and the current state-government market data sources.
 - **July 2026** — Integrated current suburb-level rents and sale medians from state government open data; began indexing the ~1,475 suburb pages that carry them.
-- **June 2026** — Rewrote this page to separate measured data from estimates. Removed the investment score.
+- **June 2026** — Rewrote this page to separate measured data from estimates. Removed the investment score display.
 - **April 2026** — First published methodology.
 
 ## 9. Questions?
