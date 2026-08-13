@@ -72,9 +72,9 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full buy\u2013hold\u2013sell strategy',
-    description: 'Track equity, rental yield during hold, tax implications, and compare against a buy-and-hold strategy \u2014 in EquitySight.',
-    buttonText: 'Try it free \u2014 no signup \u2192',
-    buttonHref: '/app'
+    description: 'Check the CGT on your exit, the renovation budget and the holding cashflow with the other free calculators.',
+    buttonText: 'Browse all 18 calculators →',
+    buttonHref: '/tools/'
   },
   resources: {
     groups: [

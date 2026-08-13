@@ -86,9 +86,9 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Does the renovation make financial sense?',
-    description: 'Model whether your renovation will add more value than it costs \u2014 and compare before vs after scenarios in EquitySight.',
-    buttonText: 'Try it free \u2014 no signup \u2192',
-    buttonHref: '/app'
+    description: 'Weigh the spend against a flip profit or the extra equity you could release, with the other free calculators.',
+    buttonText: 'Browse all 18 calculators →',
+    buttonHref: '/tools/'
   },
   resources: {
     groups: [

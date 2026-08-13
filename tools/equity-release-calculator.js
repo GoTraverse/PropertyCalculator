@@ -44,9 +44,9 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Plan your renovation or investment',
-    description: 'Use EquitySight to model how equity release affects your loan, plan renovations, and project rental returns.',
-    buttonText: 'Try it free \u2014 no signup \u2192',
-    buttonHref: '/app'
+    description: 'Cost the renovation, check the yield and stress-test the bigger loan with the other free calculators.',
+    buttonText: 'Browse all 18 calculators →',
+    buttonHref: '/tools/'
   },
   resources: {
     groups: [
