@@ -1,7 +1,7 @@
 /* ═══ STATE COSTS ═══
  *
  * Conveyancing band kept as-is. Stamp duty is now computed by the verified
- * cumulative-tier engine below (the same FY2025-26 schedules used in
+ * cumulative-tier engine below (the same FY2026-27 schedules used in
  * tools/stamp-duty-calculator.js + app.js, reproduced against 34/34 state
  * revenue office worked examples) rather than the old flat 2-4%-of-price
  * approximation, which was materially wrong (e.g. VIC $600k real duty ~$31k
@@ -19,7 +19,7 @@ var stateCosts = {
   NT:  { conveyancing: { min: 700, max: 1300 } }
 };
 
-/* ═══ VERIFIED STAMP-DUTY TIER ENGINE (FY2025-26) ═══
+/* ═══ VERIFIED STAMP-DUTY TIER ENGINE (FY2026-27) ═══
  * Lifted verbatim from tools/stamp-duty-calculator.js. Cumulative-marginal
  * tiers `[from, rate]`; continuous by construction (no bracket-cliff bugs).
  * FHB: full exemption below fhbFull, linear taper to fhbPartial. NEW-home-only
@@ -258,7 +258,7 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Ready to buy?',
-    description: 'Now that you know the upfront costs, use EquitySight to model your entire investment — including ongoing costs, rental income, and 30-year projections.',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },
@@ -285,7 +285,7 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFAF', title: 'First Home Buyer',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'FHSS Scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
           { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' },
           { text: 'Law Society of Australia', href: 'https://www.lawsociety.com.au/' }
@@ -365,7 +365,7 @@ ToolPage.init({
     { q: 'What hidden costs do buyers forget?',
       a: 'Common surprises: council + water rate adjustments at settlement, first-year building insurance, landlord insurance for investors, moving costs, utility connection fees, and strata/body-corp levies for apartments.' },
     { q: 'Do I need Lenders Mortgage Insurance (LMI)?',
-      a: 'LMI is required on most loans with a deposit under 20%. It can cost $8,000\u2013$25,000 depending on loan size. You can avoid it with a 20% deposit, a guarantor, or schemes like the First Home Guarantee.' },
+      a: 'LMI is required on most loans with a deposit under 20%. It can cost $8,000\u2013$25,000 depending on loan size. You can avoid it with a 20% deposit, a guarantor, or schemes like the 5% Deposit Scheme (formerly the First Home Guarantee).' },
     { q: 'How much are conveyancing and legal fees?',
       a: 'Conveyancing typically costs $1,500\u2013$3,000 depending on the state and property complexity. Solicitors charge more than licensed conveyancers but handle complex matters like deceased estates.' },
     { q: 'What about building and pest inspections?',

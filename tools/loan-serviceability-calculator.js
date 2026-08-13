@@ -86,8 +86,8 @@ ToolPage.init({
   slug: 'loan-serviceability',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full investment',
-    description: 'See how a property fits into your investment plan. Model multiple properties, rental scenarios, and track equity growth \u2014 all in EquitySight.',
+    title: 'Plan the full purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },
@@ -113,7 +113,7 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFAF', title: 'First Home Buyer',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.firsthome.gov.au/' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.firsthomebuyers.gov.au/' },
           { text: 'First Home Super Saver', href: 'https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme' },
           { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]

@@ -436,10 +436,10 @@
   var WQ = [
     { id: 'stage', kind: 'chips', cols: 2, q: 'Where are you in your home-buying journey?', help: 'Pick the closest match and we’ll take you straight to the part that helps now. You can go back over the earlier steps any time.', opts: [['start', 'Wondering if I can afford it'], ['schemes', 'Saving up and researching'], ['budget', 'Working out what I can borrow'], ['ground', 'Deciding where to buy'], ['hunt', 'Out inspecting homes'], ['deal', 'I’ve signed a contract']], store: 'profile' },
     { id: 'state', kind: 'chips', q: 'Where are you looking to buy?', help: 'Stamp duty, concessions and schemes differ by state.', opts: [['qld', 'QLD'], ['nsw', 'NSW'], ['vic', 'VIC'], ['sa', 'SA'], ['wa', 'WA'], ['tas', 'TAS'], ['act', 'ACT'], ['nt', 'NT']], store: 'numbers' },
-    { id: 'area', kind: 'chips', q: 'Capital city, or regional?', help: 'The government schemes use different price caps for capitals and the rest of the state.', opts: [['capital', 'Capital city'], ['regional', 'Regional']], store: 'profile' },
+    { id: 'area', kind: 'chips', q: 'Capital city, or regional?', help: 'The schemes\u2019 higher price cap covers capital cities and the big regional centres (Newcastle, the Gold Coast, Geelong and similar); a lower cap covers the rest of each state.', opts: [['capital', 'Capital city or major regional centre'], ['regional', 'Rest of the state']], store: 'profile' },
     { id: 'anchor', kind: 'text', optional: true, q: 'Is there a suburb or town you want to live near?', help: 'Optional. We use it to sort suburb suggestions by distance. Skip it if you have no idea yet.', store: 'profile' },
     { id: 'buyers', kind: 'chips', q: 'Buying alone or together?', help: 'Income caps for shared-equity schemes are different for joint applicants.', opts: [['single', 'Just me'], ['couple', 'Two of us']], store: 'profile' },
-    { id: 'fhb', kind: 'chips', q: 'Is this your first home?', help: 'First home buyers get stamp duty concessions and access to the federal schemes.', opts: [[true, 'Yes, first home'], [false, 'Owned before']], store: 'profile' },
+    { id: 'fhb', kind: 'chips', q: 'Is this your first home?', help: 'In most states first home buyers get stamp duty concessions, and everywhere they get access to the federal schemes.', opts: [[true, 'Yes, first home'], [false, 'Owned before']], store: 'profile' },
     { id: 'build', kind: 'chips', q: 'Established home, or a new build?', help: 'Some concessions and equity schemes are more generous for new builds.', opts: [['established', 'Established'], ['new', 'New build'], ['unsure', 'Not sure yet']], store: 'profile' },
     { id: 'income', kind: 'money', q: 'Household income, before tax?', help: 'Yearly, combined if you’re buying together. Used to check scheme eligibility and repayments against your income.', def: 95000, min: 0, store: 'profile' },
     { id: 'price', kind: 'money', q: 'What price are you aiming for?', help: 'A rough target is fine. You can change it any time.', def: 650000, min: 50000, store: 'numbers' },
@@ -449,7 +449,7 @@
     { id: 'cardLimits', kind: 'money', q: 'Total limit across your credit cards?', help: 'The limit, not the balance. Lenders assess the whole limit even at $0 owing. Zero if you have none.', def: 0, min: 0, store: 'profile' },
     { id: 'employment', kind: 'chips', q: 'How do you earn your income?', help: 'Lenders treat salaried, self-employed and casual income differently.', opts: [['payg', 'Salaried (PAYG)'], ['self', 'Self-employed'], ['casual', 'Casual / contract']], store: 'profile' },
     { id: 'dependants', kind: 'chips', q: 'Any dependants?', help: 'Kids and dependants change what lenders assume you spend.', opts: [[0, 'None'], [1, '1'], [2, '2'], [3, '3 or more']], store: 'profile' },
-    { id: 'timeframe', kind: 'chips', q: 'When do you want to be in?', help: 'We’ll flag which paths actually fit your timeframe.', opts: [['asap', 'As soon as possible'], ['6mo', 'Within 6 months'], ['12mo', 'Within a year'], ['2yr', '1–2 years plus']], store: 'profile' }
+    { id: 'timeframe', kind: 'chips', q: 'When do you want to be in?', help: 'We’ll flag which paths fit your timeframe.', opts: [['asap', 'As soon as possible'], ['6mo', 'Within 6 months'], ['12mo', 'Within a year'], ['2yr', '1–2 years plus']], store: 'profile' }
   ];
   var wStep = 0;
 
@@ -604,16 +604,18 @@
     add('10% deposit + LMI', 'Buy sooner without a scheme. LMI is added to the loan.', dep10, base10 * lmiRate(base10 / price));
     if (P.fhb) {
       var fdsCap = schemeCaps(FDS_CAPS);
-      add('5% Deposit Scheme', 'A 5% deposit and the government guarantees the rest. No LMI, no income cap.',
+      add('5% Deposit Scheme', 'A 5% deposit, with a government guarantee standing in for LMI. No income cap.',
         price * 0.05, 0, 0,
         price > fdsCap ? { warn: 'Above the ' + m$(fdsCap) + ' price cap for your area' } : null);
       var h2bCap = schemeCaps(H2B_CAPS);
-      var incCap = H2B_INCOME[P.buyers];
+      // Single parents (single + dependants) get the joint income cap \u2014 same
+      // rule as tools/first-home-buyer-grants-calculator.js.
+      var incCap = (P.buyers === 'couple' || (P.dependants || 0) > 0) ? H2B_INCOME.couple : H2B_INCOME.single;
       var eq = H2B_EQUITY[P.build] || 0.30;
       var h2bWarn = null;
       if (price > h2bCap) h2bWarn = 'Above the ' + m$(h2bCap) + ' price cap for your area';
-      else if (P.income != null && P.income > incCap) h2bWarn = 'Income above the ' + m$(incCap) + ' cap for ' + (P.buyers === 'couple' ? 'joint applicants' : 'single applicants');
-      add('Help to Buy', 'Federal shared equity. The government takes up to ' + Math.round(eq * 100) + '% (' + (P.build === 'new' ? 'new build' : 'established') + ') and you start from a 2% deposit.',
+      else if (P.income != null && P.income > incCap) h2bWarn = 'Income above the ' + m$(incCap) + ' cap for ' + (P.buyers === 'couple' ? 'joint applicants' : ((P.dependants || 0) > 0 ? 'single parents (joint cap applies)' : 'single applicants without dependants'));
+      add('Help to Buy', 'Federal shared equity. The government takes up to ' + Math.round(eq * 100) + '% (' + (P.build === 'new' ? 'new build' : (P.build === 'unsure' ? 'assumes established' : 'established')) + ') and you start from a 2% deposit.',
         price * 0.02, 0, price * eq,
         h2bWarn ? { warn: h2bWarn } : { equity: 'Gov up to ' + Math.round(eq * 100) + '%' });
     }
@@ -684,13 +686,13 @@
         'It\u2019s a guarantee, not a grant: you still borrow the other 95%' + (p20 ? ', so the repayment is <b class="mono-strong">' + m$(fds.rep) + '/mo</b> against <b class="mono-strong">' + m$(p20.rep) + '/mo</b> on a 20% deposit' : '') + '. Since 1 October 2025 there are no income caps, unlimited places and no waitlist, but the price cap for your area is <b class="mono-strong">' + m$(schemeCaps(FDS_CAPS)) + '</b>, you must live in the home, and it runs through Housing Australia\u2019s panel of participating lenders — not every bank.']);
     }
     if (h2b) {
-      qa.push(['What does Help to Buy really cost me later?',
+      qa.push(['What does Help to Buy cost me later?',
         'The government holds its share of your home. When you sell or refinance it takes the same proportion of any capital gain, and you can buy it out progressively along the way. Income caps apply ($103,000 single / $165,000 joint or single parents, from 1 July 2026), there are 10,000 places in FY2026-27, and it opened through Commonwealth Bank and Bank Australia with more lenders joining during 2026.']);
       qa.push(['Can I combine the schemes?',
         'Mostly. Your state\u2019s stamp duty concession, the First Home Owner Grant and the super saver (FHSS) all stack, and the 5% Deposit Scheme adds on top of those. The one hard rule: <strong>Help to Buy and the 5% Deposit Scheme are mutually exclusive</strong> — you pick one.']);
     }
     qa.push(['What if rates rise?',
-      'Every figure here uses today\u2019s ' + RATE.toFixed(2) + '% flat. If rates were 1% higher, \u201c' + esc(b.name) + '\u201d\u2019s repayment would be <b class="mono-strong">' + m$(payAtRate(b.loan, RATE + 1)) + '/mo</b> instead of <b class="mono-strong">' + m$(b.rep) + '/mo</b>. Step 3 tests your budget at the full 3% lender buffer.']);
+      'Every figure here uses the assumed ' + RATE.toFixed(2) + '% flat. If rates were 1% higher, \u201c' + esc(b.name) + '\u201d\u2019s repayment would be <b class="mono-strong">' + m$(payAtRate(b.loan, RATE + 1)) + '/mo</b> instead of <b class="mono-strong">' + m$(b.rep) + '/mo</b>. Step 3 tests your budget at the full 3% lender buffer.']);
     qa.push(['Where\u2019s the First Home Owner Grant?',
       'The FHOG is a state grant, mostly for new builds' + (P.build === 'new' ? ' (which you\u2019re considering, so it may apply to you)' : '') + '. It changes the cash you need rather than which path wins, so it isn\u2019t a column here. The <a href="/tools/first-home-buyer-grants-calculator">grants calculator</a> computes your exact FHOG and stamp-duty saving for ' + N.state.toUpperCase() + '.']);
     qa.push(['How do I decide?',
@@ -715,7 +717,7 @@
         '<span class="nm">' + esc(p.name) + '</span>' + cells + '</div>';
     }).join('');
     box.innerHTML = head + rows +
-      '<p class="jcaveat" style="margin-top:10px">What you would own = price paid, minus what you\u2019d still owe, minus the government\u2019s share, at today\u2019s ' + RATE.toFixed(2) + '% over 30 years, counted from the day each path buys. The home is valued flat at ' + m$(price) + ' because we don\u2019t forecast capital growth. Help to Buy\u2019s share is repayable at market value when you sell or buy it out.</p>';
+      '<p class="jcaveat" style="margin-top:10px">What you would own = price paid, minus what you\u2019d still owe, minus the government\u2019s share, at the assumed ' + RATE.toFixed(2) + '% over 30 years, counted from the day each path buys. The home is valued flat at ' + m$(price) + ' because we don\u2019t forecast capital growth. Help to Buy\u2019s share is repayable at market value when you sell or buy it out.</p>';
   }
 
   function renderProjector() {
@@ -924,7 +926,7 @@
 
     if (bStep === 0) {
       q = 'First, the costs on top of the price.';
-      help = 'These come out of your savings before the deposit does. Every number that follows includes them.';
+      help = 'These come out of your savings before the deposit does. Stamp duty and $3,500 of legals and registration are built into every number that follows — budget the inspection and loan fees on top.';
       body = '<div style="margin-top:18px">' +
         '<div class="jstat"><span class="k">Stamp duty (' + N.state.toUpperCase() + (P.fhb ? ', first home buyer' : '') + ')</span><span class="v ' + (duty < 1 ? 'good' : '') + '">' + (duty < 1 ? '$0' : m$(duty)) + '</span></div>' +
         '<div class="jstat"><span class="k">Conveyancing / solicitor</span><span class="v">$1,300–$2,200</span></div>' +
@@ -959,7 +961,7 @@
       var loan = N.price * (1 - dep) + lmi;
       var assessed = payAt(loan, RATE + 3);
       q = 'Can your income carry the repayments?';
-      help = 'Lenders don’t test you at today’s ' + RATE.toFixed(2) + '%. They add a 3% buffer.';
+      help = 'Lenders don\u2019t test you at the assumed ' + RATE.toFixed(2) + '%. They add a 3% buffer.';
       body = '<div style="margin-top:18px">' +
         '<div class="jstat"><span class="k">Loan at a ' + Math.round(dep * 100) + '% deposit' + (lmi ? ' (incl. ' + m$(lmi) + ' LMI)' : '') + '</span><span class="v">' + m$(loan) + '</span></div>' +
         '<div class="jstat"><span class="k">Repayment at ' + RATE.toFixed(2) + '%</span><span class="v">' + m$(payAt(loan, RATE)) + '/mo</span></div>' +
@@ -988,7 +990,7 @@
         (incomeCeil > 0 ? 'On your income, tested repayments pass the common 35% line at about ' + m$(incomeCeil) + '. ' : '') +
         'You can change it any time.';
       body = '<div class="jwiz-input-row"><span class="jwiz-cur">$</span>' +
-        '<input class="jwiz-input" id="jb-cap" type="text" inputmode="decimal" value="' + Number(S.budget.cap || suggest).toLocaleString('en-AU') + '" aria-label="Walk-away number"></div>';
+        '<input class="jwiz-input" id="jb-cap" type="text" inputmode="decimal" value="' + Number(S.budget.cap || suggest).toLocaleString('en-AU') + '" aria-label="Maximum price"></div>';
       nav = '<button type="button" class="jwiz-skip" id="jb-back">← Back</button><button type="button" class="jbtn" id="jb-commit">Commit to this number</button>';
     }
 
@@ -1162,7 +1164,7 @@
       }).join('') + '</div>';
       if (fits.length > top.length) html += '<p class="jhint" style="margin-top:8px">' + fits.length + ' suburbs fit your ' + m$(lo) + '\u2013' + m$(hi) + ' band. Showing the 12 ' + (resolveAnchor(j) ? 'closest to ' + esc(resolveAnchor(j)[1]) : 'closest to ' + m$(target)) + '.</p>';
     } else {
-      html += '<p class="jcaveat">No suburb in the verified dataset has a median inside ' + m$(lo) + '\u2013' + m$(hi) + ' right now. Try widening the band by adjusting your budget at stop 3, or search the dataset below.</p>';
+      html += '<p class="jcaveat">No suburb in the verified dataset has a median inside ' + m$(lo) + '\u2013' + m$(hi) + ' right now. Try widening the band by adjusting your budget at step 3, or search the dataset below.</p>';
     }
     html += '<p class="jcaveat" style="margin-top:10px">' + SUB_SRC + '</p>';
     box.innerHTML = html;
@@ -1208,7 +1210,7 @@
       '<section class="jcard jpad"><span class="jsc jblock">Suburbs inside your band</span>' +
       '<div id="jground-fits"><p class="jcaveat">Loading the verified dataset\u2026</p></div></section>' +
       '<section class="jcard jpad"><span class="jsc jblock">Search the dataset</span>' +
-      '<p class="jcaveat" style="margin:0 0 10px">1,473 suburbs with a current, licensed figure — sale medians (VIC, metro SA) or median rents (QLD, SA, TAS). Each links to its full profile.</p>' +
+      '<p class="jcaveat" style="margin:0 0 10px">Every suburb here has a current, licensed figure — sale medians (VIC, metro SA) or median rents (QLD, SA, TAS) — and links to its full profile.</p>' +
       '<input type="text" id="jsub-q" class="jsub-input" placeholder="Type a suburb name\u2026" aria-label="Search suburbs">' +
       '<div id="jsub-res"></div></section>' +
       '<section class="jcard jpad"><span class="jsc jblock">Shortlist around the places you already go</span>' +
@@ -1290,7 +1292,7 @@
       '<form id="jinsp-form" class="jinsp-form">' +
       '<input type="text" id="jinsp-addr" placeholder="12 Example St, Suburb" aria-label="Address" required>' +
       '<input type="text" id="jinsp-price" inputmode="decimal" placeholder="Asking $" aria-label="Asking price">' +
-      '<input type="text" id="jinsp-note" placeholder="One honest note (the flaw you noticed)" aria-label="Note">' +
+      '<input type="text" id="jinsp-note" placeholder="One note (the flaw you noticed)" aria-label="Note">' +
       '<button type="submit" class="jbtn">Add</button>' +
       '</form>' +
       (S.inspections.length
@@ -1539,7 +1541,7 @@
       '<div class="jcard jpad"><span class="jsc jblock">Your deadlines</span>' +
       '<div class="jdl"><div><div>Contract signed</div><div class="jwhen">' + humanDate(D.contract) + '</div></div><span class="jdays ok">done</span></div>' +
       rows +
-      '<p class="jhint">Counted from today, on this device. Email nudges before each date arrive with accounts.</p>' +
+      '<p class="jhint">Counted from today, on this device. Use the calendar button below so your phone reminds you.</p>' +
       '<div class="jwiz-nav" style="margin-top:10px"><button type="button" class="jbtn quiet" id="jd-ics">Add these dates to my calendar</button><button type="button" class="jwiz-skip" id="jd-edit">Edit my dates</button></div>' +
       '</div></section>' +
       '<section class="jcard jpad jdone-row" style="margin-top:18px">' +

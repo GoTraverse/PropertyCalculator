@@ -1,6 +1,8 @@
 # EquitySight.app — Codebase Guide
 
-**Australia's smartest property finance calculator** — Static HTML/CSS/JS site hosted on Netlify with Netlify Functions backend.
+> **Historical — largely superseded by the Aug 2026 journey-only refocus. CLAUDE.md is the authoritative, current description of the product, architecture and strategy.** Counts, feature lists and marketing claims below may be stale.
+
+Static HTML/CSS/JS site hosted on Netlify with Netlify Functions backend.
 No framework, no build step — what you see in the repo is what gets deployed.
 
 **Australian-focused:** Built specifically for Australian first home buyers, investors, and financial planners. All calculators use AUD currency, cover all 8 Australian states, and link to Australian regulatory bodies (ATO, ASIC, RBA, APRA, state revenue offices).

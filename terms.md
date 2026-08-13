@@ -1,6 +1,6 @@
 ---
 title: Terms of Service
-date: 2026-03-08
+date: 13 August 2026
 tag: Legal
 ---
 
@@ -14,7 +14,7 @@ By accessing or using the Service, you confirm that you are at least 18 years of
 
 ## 2. Service description
 
-equitysight.app provides an online property finance calculator designed to help users model and analyse property purchase scenarios, including considerations for shared equity schemes.
+equitysight.app provides a guided first-home buying planner (the First Home Journey), a suite of property finance calculators, and suburb market data pages, to help users plan and model an Australian property purchase.
 
 > ⚠ **Important:** The Service provides financial calculations and estimates for informational purposes only. It does not constitute financial, legal, tax, or investment advice. Always consult a qualified professional before making property or financial decisions. See our [Disclaimer](/disclaimer) for full details.
 
@@ -25,6 +25,8 @@ equitysight.app provides an online property finance calculator designed to help 
 - You must notify us immediately of any unauthorised access to your account.
 - One person or legal entity may not maintain more than one free account.
 - We reserve the right to suspend or terminate accounts that violate these Terms.
+
+If you create a share link for your journey or a scenario, you are responsible for who you give it to. Anyone with a view link can see the shared content; anyone you give an edit link to can change your journey. You can revoke links at any time from the journey page.
 
 ## 4. Subscriptions and billing
 
@@ -61,6 +63,8 @@ You agree not to:
 The Service and its original content (excluding user-provided data) are and remain the property of EquitySight and its licensors. The Service is protected by copyright, trademark, and other intellectual property laws.
 
 Your property scenario data remains your property. You grant us a limited licence to store and process it solely for the purpose of providing the Service to you.
+
+**Content you submitted for publication.** While review submissions were open, you could post suburb reviews. By submitting one you granted us a non-exclusive licence to publish it with your display name; we may edit for legality or remove it at any time, and you can email us to have one taken down.
 
 ## 7. Disclaimer of warranties
 

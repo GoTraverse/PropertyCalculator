@@ -80,8 +80,9 @@ var stateData = {
   },
   wa: {
     name: 'Western Australia', dutyName: 'Transfer Duty', foreignRate: 0.07,
-    // FHB thresholds raised for transactions from 7 May 2026 (2026-27 Housing
-    // Taxation Package; enabling legislation est. late Jul 2026, retrospective).
+    // FHB thresholds raised for transactions from 7 May 2026 (announced in the
+    // 2026-27 Budget, applying retrospectively — confirm legislative status
+    // with RevenueWA).
     fhbFull: 600000, fhbPartial: 800000, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0.019  },

@@ -4,8 +4,8 @@
  * state-locked version of the tool without a state selector. */
 
 // The ACT does NOT levy a one-off foreign-buyer stamp-duty surcharge (foreign
-// owners pay a separate annual land-tax surcharge instead) — so no surcharge here.
-var ACT_FOREIGN_RATE = 0;
+// owners pay a separate annual land-tax surcharge instead) — so no surcharge
+// here and no foreign-buyer input on the page.
 var ACT_FHB_FULL = Infinity;   // HBCS: no property value limit from 1 Jul 2026
 var ACT_FHB_PARTIAL = Infinity; // (and no income test)
 
@@ -48,15 +48,12 @@ function calculate() {
   var ptype = document.getElementById('ptype').value;
   var buyer = document.getElementById('buyer').value;
   var isFHB = document.getElementById('fhb').checked;
-  var foreignEl = document.getElementById('foreign');
-  var isForeign = foreignEl ? foreignEl.checked : false;
 
   var result = calcACTDuty(val, ptype, buyer, isFHB);
   var duty = result.duty;
   var note = result.note;
 
-  var foreignAmt = isForeign ? val * ACT_FOREIGN_RATE : 0;
-  var total = duty + foreignAmt;
+  var total = duty;
   var rate = val > 0 ? (total / val * 100) : 0;
 
   // ── Reg fees + LMI + total upfront ─────────────────────────────────
@@ -84,8 +81,6 @@ function calculate() {
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
-  var foreignTextEl = document.getElementById('r-foreign');
-  if (foreignTextEl) foreignTextEl.textContent = isForeign ? fmt(foreignAmt) : 'N/A';
   document.getElementById('r-total').textContent = fmt(total);
   document.getElementById('r-rate').textContent = rate.toFixed(2) + '%';
   document.getElementById('r-allin').textContent = fmt(val + total);
@@ -111,13 +106,13 @@ function calculate() {
     if (window.trackCalculatorResult) trackCalculatorResult('stamp-duty-act', {
       purchasePrice: val,
       stampDuty: duty,
-      foreignBuyerDuty: foreignAmt,
+      foreignBuyerDuty: 0,
       totalCost: total,
       effectiveRate: rate.toFixed(2),
       buyer: buyer,
       propertyType: ptype,
       isFHB: isFHB,
-      isForeign: isForeign
+      isForeign: false
     });
   }
 }
@@ -144,7 +139,7 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFAF', title: 'First Home Buyer',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
           { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
@@ -279,7 +274,7 @@ ToolPage.init({
   },
   {
     "q": "Does the ACT charge a foreign buyer surcharge?",
-    "a": "The ACT does not charge a one-off foreign buyer stamp duty surcharge. Instead, foreign owners of residential property pay an annual foreign ownership land tax surcharge of 0.75% per quarter (3% per year) of the unimproved land value. This is collected separately from stamp duty and applies for as long as the foreign person owns the property."
+    "a": "The ACT does not charge a one-off foreign buyer stamp duty surcharge. Instead, foreign owners of residential property pay an annual foreign ownership land tax surcharge of 0.75% per year of the property's average unimproved value. This is collected separately from stamp duty and applies for as long as the foreign person owns the property."
   },
   {
     "q": "Is ACT stamp duty being abolished?",

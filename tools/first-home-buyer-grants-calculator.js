@@ -110,11 +110,12 @@ const STATES = {
     name: 'Western Australia',
     tiers: [[0,0.019],[120000,0.0285],[150000,0.038],[360000,0.0475],[725000,0.0515]],
     // Exemption ≤$600k, concession to $800k for transactions from 7 May 2026
-    // (was $500k/$700k). Enabling legislation expected late Jul 2026 —
-    // retrospective refunds for the interim. Vacant land: ≤$450k / to $550k
-    // (not modelled — no land property type here).
+    // (was $500k/$700k). Announced in the 2026-27 Budget, applying
+    // retrospectively — confirm legislative status with RevenueWA.
+    // Vacant land: ≤$450k / to $550k (not modelled — no land property type
+    // here).
     fhbFull: 600000, fhbPartial: 800000,
-    fhbNote: 'Exemption up to $600k, concession to $800k for transactions from 7 May 2026 (legislation expected late Jul 2026 — duty refunded retrospectively). Vacant land: exemption to $450k, concession to $550k.',
+    fhbNote: 'Exemption up to $600k, concession to $800k announced in the 2026-27 Budget, applying retrospectively to transactions from 7 May 2026 (confirm the current legislative status with RevenueWA). Vacant land: exemption to $450k, concession to $550k.',
     // FHOG cap $800k south of the 26th parallel (transactions from 7 May
     // 2026, was $750k); $1m north. We apply the southern cap.
     fhog: { amount: 10000, propertyCap: 800000, newBuildOnly: true, note: 'New homes only — cap $800k south of the 26th parallel ($1m north), transactions from 7 May 2026' },
@@ -466,8 +467,8 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan your purchase and investment',
-    description: 'Model your full purchase costs, deposit timeline, and post-purchase cashflow — all free in EquitySight.',
+    title: 'Plan the full purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },
