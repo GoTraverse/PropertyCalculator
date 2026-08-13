@@ -54,7 +54,6 @@
 <script src="/auth-nav-loader.js" defer></script>
 <script src="/error-capture.js" defer></script>
 <script src="/suburb-insights.js" defer></script>
-<script src="/suburb-reviews.js" defer></script>
 
 <section class="tool-hero suburb-hero">
   <nav class="suburb-breadcrumb">
@@ -208,7 +207,6 @@
       <a href="/tools/stamp-duty-calculator-{{STATE_LOWER}}" class="suburb-calc-link">{{STATE}} Stamp Duty →</a>
       <a href="/tools/cost-of-purchase-calculator" class="suburb-calc-link">Cost of Purchase →</a>
     </div>
-{{BLOG_LINKS_HTML}}
   </section>
 
   <!-- CTA -->
@@ -218,8 +216,6 @@
     <p>Seven guided stops — government schemes compared for your exact numbers, a real budget, suburb shortlisting and every contract deadline tracked. Free, no signup to start.</p>
     <a href="/journey" class="tool-cta-btn">Start your first-home journey →</a>
     <div class="suburb-cta-secondary">
-      <span>Investing instead?</span>
-      <a href="/app">30-year projections in the app</a>
       <a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants</a>
     </div>
   </section>
@@ -229,16 +225,9 @@
     {{OUTLOOK_HTML}}
   </section>
 
-  <!-- Community Reviews (build-time static HTML; renders empty when count=0) -->
+  <!-- Community reviews — build-time static HTML of approved reviews;
+       renders empty when count=0. New submissions are closed. -->
 {{REVIEWS_HTML}}
-
-  <!-- Review form (login-gated; hydrated by suburb-reviews.js) -->
-  <section class="suburb-section suburb-review-form-wrap" id="review-form"
-           data-suburb-slug="{{SLUG}}" data-state="{{STATE}}" data-suburb-name="{{SUBURB}}">
-    <h2>Share your experience of {{SUBURB}}</h2>
-    <p class="suburb-review-intro">Lived in {{SUBURB}}? Help other investors with an honest 100-word review. Sign-in required; all reviews are manually moderated before they appear.</p>
-    <div id="review-form-mount"></div>
-  </section>
 
   <!-- FAQ -->
   <section class="suburb-section suburb-faq">
