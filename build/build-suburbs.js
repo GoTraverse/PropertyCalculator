@@ -2432,6 +2432,7 @@ for (const s of suburbs) {
 
   let html = SUBURB_TPL
     .replace(/\{\{ROBOTS_META\}\}/g, robotsMeta)
+    .replace(/\{\{JOURNEY_LINK\}\}/g, '/journey?near=' + encodeURIComponent(s.suburb) + '&amp;st=' + s.state.toLowerCase())
     .replace(/\{\{SUBURB\}\}/g, escHtml(s.suburb))
     .replace(/\{\{STATE\}\}/g, escHtml(s.state))
     .replace(/\{\{STATE_LOWER\}\}/g, s.state.toLowerCase())

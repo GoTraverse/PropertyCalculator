@@ -339,6 +339,8 @@
       '</div></div>';
     var d = document.getElementById('jsignup-dismiss');
     if (d) d.addEventListener('click', function () { S.signupDismissed = true; save(); renderSignupCard(); });
+    var a = slot.querySelector('a.jbtn');
+    if (a) a.addEventListener('click', function () { track('signup_prompt_accepted', { surface: 'journey' }); });
     track('signup_prompt_shown', { surface: 'journey' });
   }
 
@@ -1923,6 +1925,28 @@
     }
   }
 
+  // ── Deep link from suburb/tool pages: /journey?near=Glenelg&st=sa ────
+  // Pre-seeds the wizard's suburb + state for a FRESH visitor only — an
+  // existing journey (wizard done, or an anchor already set) is never
+  // touched, and share/collab links (?join=) take precedence.
+  function bootDeepLink() {
+    var q;
+    try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    if (q.get('join')) return;
+    var near = (q.get('near') || '').trim().slice(0, 60);
+    var st = (q.get('st') || '').trim().toLowerCase();
+    if (!near && !st) return;
+    var fresh = !S.done[1] && !(S.profile.anchor || '').trim();
+    if (fresh) {
+      if (near) S.profile.anchor = near;
+      if (st && stateData[st]) S.numbers.state = st;
+      save();
+      track('journey_deeplink', { near: near || '(none)', st: st || '(none)' });
+    }
+    try { history.replaceState(null, '', '/journey'); } catch (e) {}
+  }
+
+  bootDeepLink();
   renderTrail();
   bootRemote();
   track('journey_view', { view: 'home' });
