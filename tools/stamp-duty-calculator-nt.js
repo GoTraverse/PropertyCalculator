@@ -124,10 +124,10 @@ ToolPage.init({
   slug: 'stamp-duty-nt',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full Northern Territory investment',
-    description: 'Add rental income, body corporate fees, council rates, and 30-year growth projections — all in EquitySight.',
+    title: 'Plan the full Northern Territory purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
-    buttonHref: '/journey'
+    buttonHref: '/journey?st=nt'
   },
   resources: {
     groups: [

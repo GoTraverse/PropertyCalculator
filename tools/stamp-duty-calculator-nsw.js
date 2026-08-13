@@ -125,10 +125,10 @@ ToolPage.init({
   slug: 'stamp-duty-nsw',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full New South Wales investment',
-    description: 'Add rental income, body corporate fees, council rates, and 30-year growth projections — all in EquitySight.',
+    title: 'Plan the full New South Wales purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
-    buttonHref: '/journey'
+    buttonHref: '/journey?st=nsw'
   },
   resources: {
     groups: [
