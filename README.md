@@ -1,6 +1,8 @@
 # EquitySight.app
 
-**Australia's smartest property investment calculator** — Built for Australian first home buyers and investors. Model property purchase costs, renovation budgets, loan repayments, rental overlap, 30-year projections, and risk indicators in one integrated platform.
+> **Historical — largely superseded by the Aug 2026 journey-only refocus. CLAUDE.md is the authoritative, current description of the product, architecture and strategy.** Counts, feature lists and marketing claims below may be stale.
+
+Built for Australian first home buyers and investors. Model property purchase costs, renovation budgets, loan repayments, rental overlap, 30-year projections, and risk indicators in one integrated platform.
 
 🇦🇺 **Australian-focused:** All 8 states (NSW, VIC, QLD, SA, WA, TAS, ACT, NT), AUD currency, Australian regulatory frameworks (ATO, ASIC, RBA), and state-specific grant/duty rules.
 

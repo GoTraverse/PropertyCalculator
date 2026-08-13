@@ -1,10 +1,10 @@
 ---
 title: Cookie Policy
-date: 2026-04-18
+date: 13 August 2026
 tag: Legal
 ---
 
-> equitysight.app uses a small number of storage technologies. This page explains what we store and why. We use an essential cookie to keep you signed in, and Google Analytics, which sets its own cookies. Advertising is currently disabled, so we do not set advertising cookies at this time.
+> equitysight.app uses a small number of storage technologies. This page explains what we store and why. We use an essential cookie to keep you signed in, and Google Analytics, which sets its own cookies. We do not run advertising and set no advertising cookies.
 
 ## Cookies we set
 
@@ -27,8 +27,12 @@ We may also use **sessionStorage** for temporary in-session state. This is clear
 | Key | Purpose | Type | Expires |
 |-----|---------|------|---------|
 | `propCalc_session_v1` | Stores your display name, email, and plan type for the user interface. Does **not** contain your authentication token. | Essential | Until sign-out |
-| `propCalc_profile_v1_*` | Stores your display name, avatar colour, and profile preferences. | Functional | Until account deletion |
-| `propCalc_scenarios_*` | Cached property scenarios for offline access and faster loading. | Functional | Until cleared or replaced |
+| `propCalc_profile_v1_*` | Stores your display name, avatar colour, and profile preferences. | Functional | Until sign-out or cleared |
+| `propCalc_journey_v1` | Your in-progress First Home Journey — the answers and budget you've entered. Synced to our servers only when you're signed in. | Functional | Until cleared |
+| `propCalc_draft_v1` | Calculator draft in progress. | Functional | Until cleared |
+| `tool_inputs_v1:*` | Your saved calculator inputs. | Functional | Until cleared |
+| `equitySight_theme` | Dark/light preference. | Functional | Until cleared |
+| `es_page_trail` | Pages visited before signing up; attached to your account if you create one. | Functional | Until cleared |
 
 ## Third-party cookies
 
@@ -42,14 +46,14 @@ Google Analytics is provided by Google and processes data under Google's own ter
 
 ## Advertising
 
-Advertising is **currently disabled** on this site, so no advertising cookies are set at this time. We have a Google AdSense account and may turn ads on in the future. If we do, Google AdSense (and related Google services such as DoubleClick) may set advertising cookies in your browser. We will update this page when advertising is enabled.
+We do not run advertising and set no advertising cookies. If that ever changes we will update this page first.
 
 ## Managing storage
 
 You can clear all stored data at any time:
 
 - **In your browser:** Go to Settings → Privacy → Clear browsing data → Cookies and site data.
-- **In the app:** Sign out from your account — this removes your session cookie and clears locally stored data.
+- **In the app:** Sign out removes your session cookie and profile preferences. Your in-progress journey and calculator drafts stay on your device so you don't lose work — clear your browser's site data to remove them completely.
 - **Full deletion:** Contact us at [support@equitysight.app](mailto:support@equitysight.app) to delete your entire account and all associated data.
 
 ## Changes

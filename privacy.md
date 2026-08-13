@@ -1,6 +1,6 @@
 ---
 title: Privacy Policy
-date: 2026-03-08
+date: 13 August 2026
 tag: Legal
 ---
 
@@ -18,9 +18,11 @@ By using the Service you agree to the collection and use of information in accor
 
 ### Information you provide directly
 
-- **Account information:** Your name and email address when you create an account.
-- **Authentication credentials:** Your password, stored as a salted hash — we never store your plain-text password.
+- **Account information:** Your name and email address when you create an account. If you sign in with Google, Google shares your name and email address with us to create or access your account, and Google processes that sign-in under its own privacy policy.
+- **Authentication credentials:** Your password. Passwords are stored as salted scrypt hashes — we never store your plain-text password.
 - **Property scenarios:** The financial figures, addresses, and notes you enter into the calculator.
+- **First Home Journey data:** the answers you give in the journey — income, savings, household details, your budget and maximum price, and the places you save. If you're signed in, we store this on our servers so it follows you across devices.
+- **Reviews you submitted:** suburb reviews written while submissions were open are published on the relevant suburb page with your display name; email us to have one removed.
 - **Profile information:** Display name, optional profile photo, and colour preferences.
 - **Communications:** Any messages you send us via the contact form or email.
 
@@ -57,6 +59,10 @@ We do not sell, rent, or trade your personal information. We may share it only i
 - **Legal requirements:** Where required by law, court order, or to protect the rights and safety of our users.
 - **Business transfers:** If we merge or are acquired, your data may transfer to the new owner subject to the same privacy commitments.
 
+### Sharing you initiate
+
+If you create a journey share link, anyone who has that link can view your journey (including your first name and your financial answers) until you revoke it. An edit link lets the person you give it to change your journey. The same applies to scenario share invitations. We create these links only when you ask, and you can revoke them from the journey page.
+
 ### Bot-protection processors
 
 To distinguish humans from bots on our sign-in and sign-up pages we use **Cloudflare Turnstile**. The Turnstile widget runs invisibly in your browser and gathers signals about your browser environment (e.g. user-agent characteristics, simple proof-of-work challenges) to issue a short-lived verification token. Cloudflare may receive your IP address and limited browser metadata as part of this check. Cloudflare's processing is governed by [Cloudflare's Turnstile Privacy Addendum](https://www.cloudflare.com/application-services/products/turnstile-privacy-addendum/). The token is single-use, expires within five minutes, and is never used to track you across sessions.
@@ -66,7 +72,7 @@ To distinguish humans from bots on our sign-in and sign-up pages we use **Cloudf
 Your data is stored on servers operated by our hosting and database providers (such as Netlify and Upstash), which may be located in Australia or overseas. We use measures including:
 
 - TLS/HTTPS encryption for all data in transit.
-- Salted hashing of passwords using HMAC-SHA256 — we never store your plain-text password.
+- Passwords are stored as salted scrypt hashes — we never store your plain-text password.
 - Access to stored data limited to the operator of the Service and the service providers we rely on.
 
 No method of transmission over the Internet or electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your data, we cannot guarantee absolute security.
@@ -75,7 +81,7 @@ No method of transmission over the Internet or electronic storage is 100% secure
 
 We use one essential **HttpOnly Secure cookie** (`es_session`) to authenticate your login session. This cookie contains a random session identifier — not your email, name, or any personal information — and cannot be read by JavaScript in your browser.
 
-We also use browser **localStorage** to store non-sensitive application preferences (display name, plan type, cached scenarios) on your device. This data stays on your device and is not transmitted to third-party tracking services. Your authentication token is **not** stored in localStorage.
+We also use browser **localStorage** to store application data on your device, including your in-progress journey and calculator drafts. This data stays on your device unless you sign in, in which case your journey and scenarios sync to our servers so they follow you across devices. We also keep a short list of the pages you visited before signing up, which is attached to your account if you create one. Your authentication token is **not** stored in localStorage.
 
 We use **Google Analytics** to understand how the Service is used (for example, which calculators and features are most used). Google Analytics sets its own cookies and may receive your IP address, device and usage data, and — when you are signed in — an account identifier and email address, so that we can analyse usage across your sessions. Google processes this data under [Google's Privacy Policy](https://policies.google.com/privacy). See our [Cookie Policy](cookies.html) for full details.
 
