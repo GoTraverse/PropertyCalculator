@@ -291,7 +291,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/newtown/', label: 'Newtown NSW' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/chatswood/', label: 'Chatswood NSW' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/nsw/sydney/', label: 'Sydney Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/nsw/', label: 'New South Wales Suburb Guide' }
   ]

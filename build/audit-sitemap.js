@@ -26,7 +26,6 @@ const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1].trim())
 const BUILD_GENERATED_PREFIXES = [
   '/invest/',  // state hubs + city pages — built by build-suburbs.js
   '/suburb/',  // suburb pages — built by build-suburbs.js
-  '/blog/'     // blog index + post pages — built by build-blog.js
 ];
 
 const results = { ok: [], generated: [], missing: [], duplicate: [] };

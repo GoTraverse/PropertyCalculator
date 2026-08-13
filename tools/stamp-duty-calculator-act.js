@@ -293,7 +293,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/act/kingston/', label: 'Kingston ACT' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/act/belconnen/', label: 'Belconnen ACT' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/act/gungahlin/', label: 'Gungahlin ACT' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/act/canberra/', label: 'Canberra Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/act/', label: 'Australian Capital Territory Suburb Guide' }
   ]

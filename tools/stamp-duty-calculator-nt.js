@@ -290,7 +290,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nt/darwin-city/', label: 'Darwin City NT' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nt/palmerston/', label: 'Palmerston NT' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nt/alice-springs/', label: 'Alice Springs NT' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/nt/darwin/', label: 'Darwin Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/nt/', label: 'Northern Territory Suburb Guide' }
   ]

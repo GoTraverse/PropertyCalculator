@@ -264,7 +264,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
-    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' }
   ]
 });
 

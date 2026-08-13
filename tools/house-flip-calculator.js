@@ -131,7 +131,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD (flip-friendly)' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/vic/werribee/', label: 'Werribee VIC' },
     { group: 'Popular Suburbs', icon: '📍', href: '/invest/qld/', label: 'All QLD Investment Suburbs' },
-    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '📖', href: '/methodology', label: 'How we calculate (methodology)' }
   ]
 });

@@ -101,7 +101,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '🔨', href: '/tools/renovation-cost-calculator', label: 'Renovation Cost (use the equity for)' },
     { group: 'Other Tools', icon: '🏢', href: '/tools/rental-yield-calculator', label: 'Rental Yield (on a 2nd property)' },
     { group: 'Other Tools', icon: '⚖️', href: '/tools/interest-only-vs-principal-calculator', label: 'Interest Only vs P&I' },
-    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '📖', href: '/methodology', label: 'How we calculate (methodology)' }
   ]
 });

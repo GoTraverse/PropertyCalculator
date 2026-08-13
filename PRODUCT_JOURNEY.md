@@ -1,7 +1,14 @@
 # EquitySight — The First Home Journey (flagship product spec)
 
-**Status: proposed** — the align-before-build doc for the product pivot agreed
-July 2026. Supersedes "calculators as the product"; calculators remain as the
+**Status: shipped, and as of Aug 2026 it is the whole company.** The owner
+resolved the strategy question: EquitySight is one product — this one —
+maintained for pride on a few hours a week (full decision + operating rules in
+CLAUDE.md "Strategy"). The suburb build was cut to the ~1,475 real-data pages,
+the blog went dark, and /app was parked. Everything below remains the product
+spec and build log.
+
+Originally: the align-before-build doc for the product pivot agreed
+July 2026. Superseded "calculators as the product"; calculators remain as the
 SEO surface and as embedded tools *inside* the journey.
 
 ## Why (the founder braindump, verbatim signals)

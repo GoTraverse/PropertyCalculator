@@ -396,7 +396,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/chermside/', label: 'Chermside QLD' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/vic/werribee/', label: 'Werribee VIC' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
-    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '📖', href: '/methodology', label: 'Our Methodology' }
   ]
 });

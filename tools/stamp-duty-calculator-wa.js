@@ -291,7 +291,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/wa/subiaco/', label: 'Subiaco WA' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/wa/fremantle/', label: 'Fremantle WA' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/wa/yakamia/', label: 'Yakamia WA' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/wa/perth/', label: 'Perth Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/wa/', label: 'Western Australia Suburb Guide' }
   ]

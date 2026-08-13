@@ -141,7 +141,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '💰', href: '/tools/equity-release-calculator', label: 'Home Equity (fund the reno)' },
     { group: 'Other Tools', icon: '🏦', href: '/tools/borrowing-power-calculator', label: 'Borrowing Power' },
     { group: 'Other Tools', icon: '📉', href: '/tools/capital-gains-calculator', label: 'Capital Gains Tax' },
-    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '📖', href: '/methodology', label: 'How we calculate (methodology)' }
   ]
 });

@@ -268,7 +268,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/south-brisbane/', label: 'South Brisbane QLD' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/new-farm/', label: 'New Farm QLD' },
     { group: 'Popular Suburbs', icon: '📍', href: '/invest/qld/brisbane/', label: 'Brisbane Suburb Guide' },
-    { group: 'Guides', icon: '📖', href: '/blog/', label: 'Property Investment Blog' },
     { group: 'Guides', icon: '📖', href: '/invest/qld/', label: 'Queensland Suburb Guide' }
   ]
 });
