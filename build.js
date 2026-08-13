@@ -275,11 +275,11 @@ async function buildSuburbs() {
 }
 
 async function buildBlog() {
-  // Always rebuild the blog on every deploy — the content set is small
-  // (20-30 posts) and it's stored in Redis, so we want the latest published
-  // posts to show up without requiring a cache-bust.
-  if (process.env.SKIP_BLOG_BUILD === 'true') {
-    console.log('[build] SKIP_BLOG_BUILD=true — skipping blog build');
+  // Blog is dark by default (strategy change, Aug 2026: the site is one
+  // product — the /journey planner). The CMS infrastructure stays dormant;
+  // set BLOG_ENABLE=true in Netlify env vars to bring the blog back.
+  if (process.env.BLOG_ENABLE !== 'true') {
+    console.log('[build] blog disabled (BLOG_ENABLE not set)');
     return;
   }
   try {
