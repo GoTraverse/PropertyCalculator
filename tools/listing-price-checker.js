@@ -440,7 +440,7 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full purchase',
-    description: 'Take this listing into the full calculator — stamp duty, loan repayments, rental income and a 30-year equity projection, side by side.',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },

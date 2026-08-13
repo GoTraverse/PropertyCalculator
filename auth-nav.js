@@ -142,7 +142,7 @@ window.toggleTheme = function(){
     el.innerHTML =
       '<div id="anav-signout-modal">' +
         '<h3>Sign out?</h3>' +
-        '<p>You\u0027ll need to sign back in to access your saved scenarios.</p>' +
+        '<p>You\u0027ll need to sign back in to access your saved work.</p>' +
         '<div class="anav-signout-actions">' +
           '<button class="anav-signout-cancel" id="anav-signout-cancel-btn">Cancel</button>' +
           '<button class="anav-signout-confirm" id="anav-signout-confirm-btn">Sign out</button>' +
@@ -426,6 +426,7 @@ window.toggleTheme = function(){
               '<div style="font-family:\u0027Geist Mono\u0027,monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
             '</div>' +
             '<div style="padding:2px 0;">' +
+              '<a href="/journey" class="anav-item' + (page==='journey'?' active':'') + '">My Journey</a>' +
               '<a href="/app" class="anav-item' + (page==='app'?' active':'') + '">Open Calculator</a>' +
               '<a href="/account" class="anav-item' + (page==='account'?' active':'') + '">Account Settings</a>' +
               (session.role === 'admin' ? '<a href="/admin" class="anav-item' + (page==='admin'?' active':'') + '">Admin Dashboard</a>' : '') +

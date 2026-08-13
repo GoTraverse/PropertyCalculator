@@ -272,7 +272,7 @@ ToolPage.init({
   },
   {
     "q": "Does the NT charge a foreign buyer surcharge?",
-    "a": "No. The Northern Territory does not currently levy a foreign buyer surcharge on residential property purchases. Like Tasmania, this makes the NT notably cheaper for foreign buyers than NSW, VIC, QLD, SA, WA, or the ACT."
+    "a": "No. The Northern Territory does not currently levy a foreign buyer surcharge on residential property purchases. The NT and the ACT are the only Australian jurisdictions with no foreign purchaser duty surcharge."
   },
   {
     "q": "Why does the NT use a formula instead of brackets?",

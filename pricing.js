@@ -42,7 +42,7 @@ async function startCheckout(){
   }
 }
 
-// Pro / Adviser prices are hardcoded in pricing.html — do NOT overwrite
+// The Pro price is hardcoded in pricing.html — do NOT overwrite
 // them from localStorage. Older admin sessions still carry
 // proMonthlyPrice=2.99 from the launch promo in their cached config and
 // would clobber the post-launch $8.99 on every page load.

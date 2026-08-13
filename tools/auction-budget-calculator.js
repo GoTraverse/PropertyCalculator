@@ -283,9 +283,11 @@ function regFeesTotal(state, val) {
 /* ═══ MARKET MEDIANS (optional suburb anchor) ═══
  * Fetched from /tools/market-medians.json. Coverage is honestly partial:
  * VIC = house+unit SALE medians, QLD = weekly RENT medians only (no free
- * public sale-price data exists for QLD), SA = rent + metro-Adelaide house
- * sale medians. Other states: not in the file yet — the tool degrades
- * gracefully and the plan renders without an anchor. */
+ * public sale-price data exists for QLD), SA = weekly RENT medians +
+ * metro-Adelaide house sale medians, TAS = bond-derived weekly RENT medians
+ * (Department of Justice). Other states (NSW/WA/ACT/NT): not in the file
+ * yet — the tool degrades gracefully and the plan renders without an
+ * anchor. */
 var _medians = null;
 var _mediansFailed = false;
 var _lastWalkAway = 0;
@@ -607,7 +609,7 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full purchase before you bid',
-    description: 'Stack stamp duty, LMI, repayments and a 30-year projection for the property you’re bidding on — free in EquitySight.',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },
@@ -636,7 +638,7 @@ ToolPage.init({
         links: [
           { text: 'Moneysmart: Buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
           { text: 'Moneysmart: Home loans', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'First Home Guarantee (Housing Australia)', href: 'https://www.housingaustralia.gov.au/support-buy-home/first-home-guarantee' }
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/support-buy-home/first-home-guarantee' }
         ]
       }
     ],

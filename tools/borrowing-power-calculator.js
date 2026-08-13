@@ -287,8 +287,8 @@ ToolPage.init({
   slug: 'borrowing-power',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Compare multiple purchase scenarios side-by-side',
-    description: 'Test different deposits, rates, and properties with long-term equity, cashflow and tax modelling — free in EquitySight.',
+    title: 'Plan the full purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },
@@ -313,7 +313,7 @@ ToolPage.init({
       {
         icon: '🎯', title: 'First Home Buyer Schemes',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'Help to Buy Scheme', href: 'https://www.housingaustralia.gov.au/help-to-buy' },
           { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' }
         ]
