@@ -607,12 +607,17 @@ function generateFAQ(s, sm) {
   });
 
   // 5. Median rent
-  faqs.push({
-    q: `What is the median rent in ${s.suburb}?`,
-    a: rent
-      ? `The most recent census recorded a median weekly rent of $${fmt(rent)} in ${name}, equating to approximately $${fmt(rent * 52)}/year in gross rental income${sm.rent ? ` (state median $${fmt(sm.rent)}/week)` : ''}. Market rents have typically drifted above the recorded figure — verify against current listings on realestate.com.au and Domain before making an offer.`
-      : `A reliable median rent was not captured for ${name}. Benchmark expected weekly rent on realestate.com.au and Domain, or the state rental tribunal's rent dashboard. Most Australian investors target a 4–5% gross yield as a baseline.`,
-  });
+  {
+    const ri = rentInfo(s);
+    faqs.push({
+      q: `What is the median rent in ${s.suburb}?`,
+      a: ri && ri.isCurrent
+        ? `The median weekly rent in ${name} is $${fmt(ri.value)} (${ri.label})${ri.geoNote}, equating to approximately $${fmt(ri.value * 52)}/year in gross rental income. Confirm against current listings on realestate.com.au and Domain before making an offer.`
+        : rent
+          ? `The most recent census recorded a median weekly rent of $${fmt(rent)} in ${name}, equating to approximately $${fmt(rent * 52)}/year in gross rental income${sm.rent ? ` (state median $${fmt(sm.rent)}/week)` : ''}. Market rents have typically drifted above the recorded figure — verify against current listings on realestate.com.au and Domain before making an offer.`
+          : `A published median rent is not available for ${name}. Benchmark expected weekly rent on realestate.com.au and Domain, or the state rental tribunal's rent dashboard. Most Australian investors target a 4–5% gross yield as a baseline.`,
+    });
+  }
 
   // 6. Mortgage
   faqs.push({
@@ -889,9 +894,13 @@ function generateStrategy(s, sm) {
   } else if (rent) {
     ryIcon = '\u26A0\uFE0F';
     ryText = `Gross rent of $${fmt(rent)}/week (~$${fmt(rent * 52)}/year, 2021 Census) sets an indicative yield ceiling. Cross-check against current listings and your purchase price to confirm whether this suburb hits the 4–5% gross yield most Australian investors target.`;
+  } else if (rentInfo(s) && rentInfo(s).isCurrent) {
+    const ri = rentInfo(s);
+    ryIcon = '\u26A0\uFE0F';
+    ryText = `The current median rent is $${fmt(ri.value)}/week (${ri.label})${ri.geoNote}, ~$${fmt(ri.value * 52)}/year gross. Feed that number and your purchase price into our rental yield calculator to see whether this suburb hits the 4–5% gross yield most Australian investors target.`;
   } else {
     ryIcon = '\u26A0\uFE0F';
-    ryText = `Median rental data was not captured for ${s.suburb}. Use current realestate.com.au and Domain listings to triangulate a realistic weekly rent before committing, then feed that number into our rental yield calculator.`;
+    ryText = `A published median rent is not available for ${s.suburb}. Use current realestate.com.au and Domain listings to triangulate a realistic weekly rent before committing, then feed that number into our rental yield calculator.`;
   }
   strategies.push({ name: 'Rental Yield', icon: ryIcon, text: ryText });
 
@@ -1317,7 +1326,7 @@ function generateInvestorChecklist(s, sm) {
     const note = sm.distance != null ? ` (state suburb median ${sm.distance} km)` : '';
     items.push(`<strong>CBD access:</strong> ${dist} km straight-line from ${capital}${note}.`);
   } else {
-    items.push(`<strong>CBD access:</strong> regional location — verify driving time to the nearest major centre before committing.`);
+    items.push(`<strong>CBD access:</strong> distance not recorded for this suburb — check the driving time to your nearest major centre before committing.`);
   }
 
   // 5. Dwelling mix
@@ -1491,15 +1500,15 @@ function generateAudience(s, sm) {
     row(investorsFit, '📊', 'Investors',
         investorsFit
           ? (rent && mort ? `Rent covers a solid share of the median mortgage.` : `Affordable entry for rental-focused buyers.`)
-          : `Rental coverage trails the state average.`),
+          : (rent && mort ? `Rental coverage trails the state average.` : `Rent-to-mortgage data not recorded — run your own numbers.`)),
     row(fhbFit, '🏡', 'First-home buyers',
         fhbFit
-          ? `Entry costs sit at or below the ${s.state_name} median.`
-          : `Prices sit above the ${s.state_name} median — stretch goal.`),
+          ? (mort && sm.mortgage ? `Entry costs sit at or below the ${s.state_name} median.` : `An outer-ring area, where entry prices typically run lower.`)
+          : (mort && sm.mortgage ? `Median mortgage sits above the ${s.state_name} median.` : `An inner or middle-ring area, where entry prices typically run higher.`)),
     row(professionalsFit, '💼', 'Professionals',
         professionalsFit
           ? (dist != null ? `Around ${dist} km from the CBD with good access.` : `Inner-ring location with city access.`)
-          : `Longer commute to the CBD.`),
+          : (dist != null ? `Longer commute to the CBD.` : `Not an inner-city area — weigh the commute to your workplace.`)),
   ];
 
   return `  <section class="suburb-section suburb-audience">
@@ -1901,6 +1910,7 @@ for (const s of keptSuburbs) {
   // `$` (prices), which String.replace treats as a special pattern character.
   let html = SUBURB_TPL
     .replace(/\{\{ROBOTS_META\}\}/g, () => '')
+    .replace(/\{\{JOURNEY_LINK\}\}/g, () => '/journey?near=' + encodeURIComponent(s.suburb) + '&amp;st=' + s.state.toLowerCase())
     .replace(/\{\{SUBURB\}\}/g, () => escHtml(s.suburb))
     .replace(/\{\{STATE\}\}/g, () => escHtml(s.state))
     .replace(/\{\{STATE_LOWER\}\}/g, () => s.state.toLowerCase())
@@ -1959,18 +1969,18 @@ const allStates = Object.keys(stateNames).sort();
 
 const stateMarketSummaries = {
   QLD: {
-    body: `Queensland's property market is driven by population growth, a positive interstate migration balance, and lifestyle-led demand from Brisbane, the Gold Coast, and the Sunshine Coast. Owner-occupiers benefit from the QLD home concession (saves up to $7,175 in transfer duty) and first home buyers can claim full exemption to $500,000.`,
-    fhbThreshold: '$500,000 (full exemption)',
+    body: `Queensland's property market is driven by population growth, interstate migration and lifestyle-led demand from Brisbane, the Gold Coast and the Sunshine Coast. First home buyers pay no transfer duty on established homes up to $700,000 (phasing out at $800,000) and none at all on new homes at any price (contracts from 1 May 2025). Foreign buyers pay an 8% surcharge.`,
+    fhbThreshold: '$700,000 established (phasing to $800,000); new homes exempt, no cap',
     revenueOffice: 'Queensland Revenue Office (QRO)',
     revenueOfficeUrl: 'https://qro.qld.gov.au/',
     foreignSurcharge: '8%'
   },
   NSW: {
-    body: `New South Wales is Australia's largest property market by capital value, anchored by Sydney's tier-one global-city economy. NSW Revenue applies progressive transfer duty (1.25%–7.0%) with first home buyer exemptions up to $800,000 and concessions to $1,000,000. Foreign buyers pay an additional 8% surcharge.`,
+    body: `New South Wales is Australia's largest property market by capital value, anchored by Sydney's tier-one global-city economy. Revenue NSW applies progressive transfer duty (1.25%–7.0%) with first home buyer exemptions up to $800,000 and concessions to $1,000,000. Foreign buyers pay an additional 9% surcharge.`,
     fhbThreshold: '$800,000 (full exemption), $1,000,000 (sliding concession)',
-    revenueOffice: 'NSW Revenue',
+    revenueOffice: 'Revenue NSW',
     revenueOfficeUrl: 'https://www.revenue.nsw.gov.au/',
-    foreignSurcharge: '8%'
+    foreignSurcharge: '9%'
   },
   VIC: {
     body: `Victoria's property market is dominated by Melbourne, Australia's second-largest city, with strong satellite markets in Geelong, Ballarat, and Bendigo. The Victorian SRO charges progressive duty (1.4%–6.5%) and first home buyers are exempt up to $600,000 with concessions to $750,000. Foreign buyers pay 8% in addition.`,
@@ -1980,39 +1990,39 @@ const stateMarketSummaries = {
     foreignSurcharge: '8%'
   },
   SA: {
-    body: `South Australia's property market is centred on Adelaide, with growing regional centres along the Yorke and Fleurieu peninsulas. SA's RevenueSA charges duty from 1.5%–4.0%. First home buyers pay no stamp duty up to $575,000 with concessions to $650,000.`,
-    fhbThreshold: '$575,000 (full exemption), $650,000 (sliding concession)',
+    body: `South Australia's property market is centred on Adelaide, with growing regional centres along the Yorke and Fleurieu peninsulas. Since 6 June 2024, first home buyer duty relief applies to new homes, off-the-plan purchases and vacant land only, with no value cap — established homes get no FHB relief. Foreign buyers pay a 7% surcharge.`,
+    fhbThreshold: 'New homes and vacant land: no duty, no cap. Established homes: no FHB relief',
     revenueOffice: 'RevenueSA',
     revenueOfficeUrl: 'https://www.revenuesa.sa.gov.au/',
-    foreignSurcharge: '8%'
+    foreignSurcharge: '7%'
   },
   WA: {
-    body: `Western Australia's property market is anchored by Perth and supported by mining-driven regional centres. WA charges some of the lowest duty rates nationally (1.0%–4.75%). First home buyers are exempt up to $430,000 with concessions to $500,000. The foreign buyer surcharge is 7%, the lowest of any state with one.`,
-    fhbThreshold: '$430,000 (full exemption), $500,000 (sliding concession)',
-    revenueOffice: 'WA Department of Finance',
+    body: `Western Australia's property market is anchored by Perth and supported by mining-driven regional centres, with some of the lowest duty rates nationally. First home buyers are exempt up to $600,000 with a sliding concession to $800,000 (transactions from 7 May 2026). The foreign buyer surcharge is 7%.`,
+    fhbThreshold: '$600,000 (full exemption), $800,000 (sliding concession) — from 7 May 2026',
+    revenueOffice: 'RevenueWA',
     revenueOfficeUrl: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty',
     foreignSurcharge: '7%'
   },
   TAS: {
-    body: `Tasmania's property market is driven by Hobart and Launceston, with lifestyle-led migration from mainland states keeping demand resilient. Tasmania has higher headline duty rates (3.6%–4.75%) but no foreign buyer surcharge — the only Australian state with neither. First home buyers receive a full concession up to $400,000.`,
-    fhbThreshold: '$400,000 (full concession), $500,000 (sliding partial)',
+    body: `Tasmania's property market is driven by Hobart and Launceston, with lifestyle-led migration from mainland states keeping demand resilient. Tasmania's first home buyer duty exemption for established homes ended on 30 June 2026 — first home buyers now pay full duty, though the First Home Owner Grant still applies to new builds. Foreign buyers pay an 8% surcharge.`,
+    fhbThreshold: 'No FHB duty relief (established-home exemption ended 30 Jun 2026)',
     revenueOffice: 'State Revenue Office Tasmania',
     revenueOfficeUrl: 'https://www.sro.tas.gov.au/',
-    foreignSurcharge: '0% (no surcharge)'
+    foreignSurcharge: '8%'
   },
   ACT: {
-    body: `The Australian Capital Territory has the most generous first home buyer concession in the country — full exemption on properties up to $1,000,000. Standard duty rates (1.25%–3.5%) are also relatively low. The territory's market is dominated by Canberra, supported by stable Commonwealth Government employment.`,
-    fhbThreshold: '$1,000,000 (full exemption)',
+    body: `The Australian Capital Territory's market is dominated by Canberra, supported by stable Commonwealth Government employment. From 1 July 2026 the Home Buyer Concession Scheme has no income test and no property value limit — eligible buyers who haven't owned property in the previous five years pay no conveyance duty at any price. There is no foreign buyer surcharge.`,
+    fhbThreshold: 'No duty for eligible buyers, no value limit (HBCS, from 1 Jul 2026)',
     revenueOffice: 'ACT Revenue Office',
     revenueOfficeUrl: 'https://www.revenue.act.gov.au/',
-    foreignSurcharge: '8%'
+    foreignSurcharge: '0% (no surcharge)'
   },
   NT: {
-    body: `The Northern Territory has the lowest standard stamp duty rates in Australia (0.75%–2.5%), reflecting its smaller population and government policy to attract residents. First home buyer concessions apply up to $650,000. The market is dominated by Darwin, with regional centres in Alice Springs and Katherine.`,
-    fhbThreshold: '$650,000 (sliding concession)',
-    revenueOffice: 'NT Revenue Office',
+    body: `The Northern Territory's market is dominated by Darwin, with regional centres in Alice Springs and Katherine. There is no value-based first home buyer duty concession — relief comes through the House & Land Package Exemption (no value cap, contracts to 30 June 2027) and the $50,000 HomeGrown Territory grant for new homes. There is no foreign buyer surcharge.`,
+    fhbThreshold: 'No value-based FHB concession — house & land exemption + $50k grant instead',
+    revenueOffice: 'Territory Revenue Office',
     revenueOfficeUrl: 'https://treasury.nt.gov.au/dtf/territory-revenue-office',
-    foreignSurcharge: '8%'
+    foreignSurcharge: '0% (no surcharge)'
   }
 };
 
@@ -2114,7 +2124,7 @@ for (const state of allStates) {
   ).join('\n');
 
   const suburbListHTML = stateSuburbs.map(s =>
-    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span><span>${s.distance_to_cbd != null ? s.distance_to_cbd + ' km to CBD' : 'Regional'}</span>${s.median_household_income ? `<span>$${fmt(s.median_household_income)}/yr</span>` : ''}</div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
+    `      <a href="/suburb/${stateLower}/${s.slug}/" class="hub-suburb-card" data-search="${escHtml((s.suburb + ' ' + (s.postcode || '')).toLowerCase().trim())}">\n        <div class="hub-suburb-name">${escHtml(s.suburb)}${s.postcode ? ` <span class="hub-suburb-pc">${escHtml(s.postcode)}</span>` : ''}</div>\n        <div class="hub-suburb-meta"><span>Pop. ${fmt(s.population)}</span>${s.distance_to_cbd != null ? `<span>${s.distance_to_cbd} km to CBD</span>` : ''}${s.median_household_income ? `<span>$${fmt(s.median_household_income)}/yr</span>` : ''}</div>\n        <div class="hub-suburb-tag">${s.suburb_type}</div>\n      </a>`
   ).join('\n');
 
   // Count-dependent copy computed here so empty-state hubs stay honest.

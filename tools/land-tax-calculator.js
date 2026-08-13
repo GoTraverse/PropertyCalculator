@@ -691,8 +691,7 @@ ToolPage.init({
     { group: 'Other Tools', icon: '\uD83D\uDCB0', href: '/tools/capital-gains-calculator', label: 'Capital Gains Tax Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCD', href: '/tools/listing-price-checker', label: 'Listing Price Checker' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' }
   ]
 });
 

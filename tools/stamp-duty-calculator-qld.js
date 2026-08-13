@@ -267,7 +267,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '🏦', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/south-brisbane/', label: 'South Brisbane QLD' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/new-farm/', label: 'New Farm QLD' },
-    { group: 'Popular Suburbs', icon: '📍', href: '/invest/qld/brisbane/', label: 'Brisbane Suburb Guide' },
     { group: 'Guides', icon: '📖', href: '/invest/qld/', label: 'Queensland Suburb Guide' }
   ]
 });

@@ -306,7 +306,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/sa/adelaide/', label: 'Adelaide SA' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/sa/glenelg/', label: 'Glenelg SA' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/sa/norwood/', label: 'Norwood SA' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/sa/adelaide/', label: 'Adelaide Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/sa/', label: 'South Australia Suburb Guide' }
   ]
 });

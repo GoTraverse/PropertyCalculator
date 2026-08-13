@@ -71,7 +71,6 @@ const SUBURB_CACHE_DEPS = [
   'build/merge-market-current.js',
   'templates/suburb-page.html',
   'templates/state-hub.html',
-  'templates/city-page.html',
   'data/suburbs.json',
   'data/market-current.json',
 ];

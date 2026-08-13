@@ -713,7 +713,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '\uD83E\uDE99', href: '/tools/deposit-calculator', label: 'Deposit Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/listing-price-checker', label: 'Listing Price Checker' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/vic/', label: 'Victoria Suburb Guide' }
   ]

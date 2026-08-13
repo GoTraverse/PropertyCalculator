@@ -292,7 +292,6 @@ ToolPage.init({
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/st-kilda/', label: 'St Kilda VIC' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/carlton/', label: 'Carlton VIC' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/vic/melbourne/', label: 'Melbourne Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/vic/', label: 'Victoria Suburb Guide' }
   ]
 });

@@ -288,10 +288,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
     { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/newtown/', label: 'Newtown NSW' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/nsw/chatswood/', label: 'Chatswood NSW' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/nsw/sydney/', label: 'Sydney Suburb Guide' },
     { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/nsw/', label: 'New South Wales Suburb Guide' }
   ]
 });

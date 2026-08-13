@@ -37,7 +37,7 @@ const LMI_TIERS = [
   { maxLvr: 0.85, rate: 0.0080, label: '~0.8% of loan' },
   { maxLvr: 0.90, rate: 0.0190, label: '~1.9% of loan' },
   { maxLvr: 0.95, rate: 0.0340, label: '~3.4% of loan' },
-  { maxLvr: 1.00, rate: 0.0430, label: '~4.3% of loan (97% LVR)' },
+  { maxLvr: 1.00, rate: 0.0430, label: '~4.3% of loan (97% LVR)' }
 ];
 
 function estimateLmi(loan, propertyValue) {
@@ -466,7 +466,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '⚖️', href: '/tools/interest-only-vs-principal-calculator', label: 'Interest Only vs P&I' },
     { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/chermside/', label: 'Chermside QLD' },
-    { group: 'Popular Suburbs', icon: '📍', href: '/suburb/nsw/parramatta/', label: 'Parramatta NSW' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/vic/st-kilda/', label: 'St Kilda VIC' },
     { group: 'Guides', icon: '📖', href: '/methodology', label: 'Our Methodology' }
   ]

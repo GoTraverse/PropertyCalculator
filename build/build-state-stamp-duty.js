@@ -925,7 +925,6 @@ ToolPage.init({
     { group: 'Other Tools', icon: '\\uD83D\\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
     { group: 'Other Tools', icon: '\\uD83C\\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
 ${popularSuburbsLinks},
-    { group: 'Guides', icon: '\\uD83D\\uDCD6', href: '/invest/${stateLc}/${s.cityHub.slug}/', label: '${s.cityHub.label}' },
     { group: 'Guides', icon: '\\uD83D\\uDCD6', href: '/invest/${stateLc}/', label: '${s.stateName} Suburb Guide' }
   ]
 });
