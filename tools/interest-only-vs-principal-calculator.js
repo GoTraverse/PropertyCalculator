@@ -50,8 +50,8 @@ ToolPage.init({
   slug: 'io-vs-pi',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model tax, cash-flow and equity growth on IO vs P&I',
-    description: 'Include negative gearing, depreciation and 30-year equity projections — free in EquitySight.',
+    title: 'Plan the full purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },

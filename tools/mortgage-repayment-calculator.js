@@ -352,8 +352,8 @@ ToolPage.init({
   slug: 'mortgage-repayment',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full property investment',
-    description: 'Multi-scenario comparison, 30-year projections, tax modelling and PDF reports — all free.',
+    title: 'Plan the full purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },

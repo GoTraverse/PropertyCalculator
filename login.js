@@ -51,7 +51,7 @@ function setActiveForm(target) {
                   : 'Reset password';
   }
   if (s) {
-    s.textContent = target === 'signin' ? 'Sign in to access your property scenarios'
+    s.textContent = target === 'signin' ? 'Sign in to pick up where you left off.'
                   : target === 'signup' ? 'Start for free — no credit card required'
                   : target === 'magic'  ? 'No password needed'
                   : "We'll send a code to your email";
@@ -121,7 +121,7 @@ if (refParam) {
 // ──────────────────────────────────────────────────────────────────────
 
 const ALLOWED_NEXT = ['app', 'account', 'pricing', 'portfolio', 'journey'];
-const ALLOWED_NEXT_PREFIXES = ['suburb/', 'blog/'];
+const ALLOWED_NEXT_PREFIXES = ['suburb/'];
 function safeNextUrl(raw) {
   if (!raw) return '/app';
   const clean = raw.replace(/^\//, '').replace(/\.html$/, '');

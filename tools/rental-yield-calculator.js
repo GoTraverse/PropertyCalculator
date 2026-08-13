@@ -152,7 +152,7 @@ ToolPage.init({
     { q: 'What\u2019s the difference between gross and net yield?',
       a: 'Gross yield is annual rent \u00f7 property price. Net yield subtracts all ongoing costs (rates, insurance, management, repairs, strata) before dividing. Net yield is the more useful number for real investment decisions.' },
     { q: 'Does yield include loan repayments?',
-      a: 'No. Yield is a property-level metric that measures rental return against the full purchase price. Loan repayments affect cash-flow, which you can model in the full EquitySight calculator.' },
+      a: 'No. Yield is a property-level metric that measures rental return against the full purchase price. Loan repayments affect cash-flow, which the property cash flow calculator models.' },
     { q: 'Why is my yield lower in capital cities?',
       a: 'Higher property prices compress yield, even when rents are strong. Capital-city investors typically trade lower yield for better capital growth potential.' },
     { q: 'How often should I recalculate yield?',

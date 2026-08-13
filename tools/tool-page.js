@@ -108,7 +108,7 @@ var ToolPage = (function() {
         '<h2>' + escHtml(cfg.title) + '</h2>' +
         '<p>' + escHtml(cfg.description) + '</p>' +
         '<a href="' + escHtml(cfg.buttonHref || '/journey') + '" class="tool-cta-btn">' +
-          escHtml(cfg.buttonText || 'Try the full calculator free \u2192') +
+          escHtml(cfg.buttonText || 'Start your first-home journey \u2192') +
         '</a>' +
       '</div>';
   }
@@ -169,7 +169,7 @@ var ToolPage = (function() {
     var liSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>';
     root.innerHTML =
       '<div class="tool-share">' +
-        '<h2>Share This Calculator</h2>' +
+        '<h2>Share this calculator</h2>' +
         '<div class="tool-share-btns">' +
           '<a href="https://www.facebook.com/sharer/sharer.php?u=' + url + '" target="_blank" rel="noopener" class="tool-share-btn tool-share-facebook">' + fbSvg + ' Facebook</a>' +
           '<a href="https://twitter.com/intent/tweet?url=' + url + '&text=' + text + '" target="_blank" rel="noopener" class="tool-share-btn tool-share-x">' + xSvg + ' Post</a>' +
@@ -370,14 +370,14 @@ var ToolPage = (function() {
     el.id = 'tool-save-prompt';
     el.className = 'tool-save-prompt';
     el.setAttribute('role', 'dialog');
-    el.setAttribute('aria-label', 'Save your results');
+    el.setAttribute('aria-label', 'Keep going');
     el.innerHTML =
       '<div class="tool-save-prompt-text">' +
-        '<strong>Save these results</strong>' +
-        '<span>The calculator is free to use \u2014 create a free account to save scenarios &amp; sync across devices.</span>' +
+        '<strong>Keep going</strong>' +
+        '<span>The free First Home Journey turns these numbers into a full plan \u2014 schemes compared, a budget with a firm maximum price, and your contract deadlines tracked.</span>' +
       '</div>' +
       '<div class="tool-save-prompt-actions">' +
-        '<a href="' + escHtml(signupHref || '/login?tab=signup') + '" class="tool-save-prompt-btn">Create free account \u2192</a>' +
+        '<a href="' + escHtml(signupHref || '/journey') + '" class="tool-save-prompt-btn">Start the journey \u2192</a>' +
         '<button class="tool-save-prompt-dismiss" id="tool-save-prompt-dismiss-btn" aria-label="Dismiss">Not now</button>' +
       '</div>';
     document.body.appendChild(el);
@@ -506,11 +506,10 @@ var ToolPage = (function() {
     el = document.getElementById('tool-cta-root');
     if (el) renderCTA(el, config.cta);
 
-    // The "go deeper" CTA points to the First Home Journey for buyer tools and
-    // /app for investor tools (per-page config.cta.buttonHref),
-    // but the save-results prompt must keep driving signup (you create an account to SAVE).
-    // Decoupled so the two can differ — always send the save prompt to the signup tab.
-    _watchForResult('/login?tab=signup');
+    // The "go deeper" CTA and the post-result prompt both route to the free
+    // First Home Journey — the journey is the product; there is no signup
+    // pitch on tool pages for logged-out visitors.
+    _watchForResult('/journey');
 
     el = document.getElementById('tool-share-root');
     if (el) renderShare(el, config.share);

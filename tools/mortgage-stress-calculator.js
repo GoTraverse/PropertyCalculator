@@ -93,7 +93,7 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Plan the full property purchase',
-    description: 'Model equity buildup, offset account impact, and compare properties side by side \u2014 all free in EquitySight.',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },

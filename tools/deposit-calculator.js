@@ -1,7 +1,7 @@
 /* ═══ DEPOSIT CALCULATOR ═══ */
 
 // Cumulative-tier stamp duty engine — verified against each state revenue
-// office, FY2025-26 (34/34 worked examples reproduced within $1). This is the
+// office, FY2026-27 (34/34 worked examples reproduced within $1). This is the
 // SAME logic as tools/stamp-duty-calculator.js; ported here so the deposit
 // calculator stops under-stating cash needed (the old flat-rate-by-band
 // approximation returned $0 for non-FHB buyers below each state threshold).
@@ -58,7 +58,7 @@ function _calcDutyTiered(state, v) {
 }
 
 function stampDutyEstimate(price, state, fhb) {
-  // Owner-occupier transfer/stamp duty (FY2025-26), with first home buyer
+  // Owner-occupier transfer/stamp duty (FY2026-27), with first home buyer
   // concessions applied per state. Verified against the dedicated stamp duty
   // calculator. Use that page for foreign-buyer surcharge + land-only rules.
   var baseDuty = _calcDutyTiered(state, price);
@@ -148,8 +148,8 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full purchase — deposit, loan & 30-year projection',
-    description: 'Stack grants, stamp duty, LMI, and long-term equity growth into one view — free in EquitySight.',
+    title: 'Plan the full purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },
@@ -158,7 +158,7 @@ ToolPage.init({
       {
         icon: '🏠', title: 'First Home Buyer Support',
         links: [
-          { text: 'First Home Guarantee (Housing Australia)', href: 'https://www.housingaustralia.gov.au/support-buy-home/first-home-guarantee' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/support-buy-home/first-home-guarantee' },
           { text: 'ASIC MoneySmart: Saving for a Home', href: 'https://moneysmart.gov.au/saving/save-for-an-emergency-fund' },
           { text: 'First Home Super Saver Scheme', href: 'https://www.ato.gov.au/individuals/super/withdrawing-and-using-your-super/first-home-super-saver-scheme/' }
         ]
@@ -229,7 +229,7 @@ ToolPage.init({
       ]
     },
     {
-      label: '$500,000 VIC property with 5% deposit (First Home Guarantee)',
+      label: '$500,000 VIC property with 5% deposit (5% Deposit Scheme, formerly the First Home Guarantee)',
       inputs: [
         { k: 'Property price', v: '$500,000' },
         { k: 'Deposit', v: '5%' },
@@ -246,7 +246,7 @@ ToolPage.init({
   ],
   faq: [
     { q: 'How much deposit do I actually need to buy a home in Australia?',
-      a: 'The standard is 20% of the purchase price to avoid Lenders Mortgage Insurance (LMI). You can buy with as little as 5% through the First Home Guarantee, or 10% with LMI paid. Remember to budget 3–5% extra for stamp duty, legals, and inspections.' },
+      a: 'The standard is 20% of the purchase price to avoid Lenders Mortgage Insurance (LMI). You can buy with as little as 5% through the 5% Deposit Scheme (formerly the First Home Guarantee), or 10% with LMI paid. Remember to budget 3–5% extra for stamp duty, legals, and inspections.' },
     { q: 'What is Lenders Mortgage Insurance (LMI) and when do I pay it?',
       a: 'LMI is insurance the lender takes out (but you pay for) when your deposit is below 20%. It protects the lender if you default. Premiums range from $8,000 to $25,000+ depending on loan size and LVR. It\'s usually capitalised onto your loan.' },
     { q: 'Can I use my super for a deposit?',
