@@ -943,12 +943,9 @@
   status = 404
   force = true
 
-# ── Allow ads.txt through (must come before catch-all) ───────────────────────
-[[redirects]]
-  from = "/ads.txt"
-  to = "/ads.txt"
-  status = 200
-  force = false
+# NOTE: no ads.txt rule needed — the catch-all below is not forced, so real
+# files on the CDN (including /ads.txt) always serve first. A self-redirect
+# rule here was flagged "invalid" in every deploy log; removed Aug 2026.
 
 # ── Catch-all 404 ────────────────────────────────────────────────────────────
 [[redirects]]
