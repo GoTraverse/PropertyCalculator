@@ -358,7 +358,6 @@ window.toggleTheme = function(){
   var SITE_NAV_LINKS = [
     { href: '/journey',   label: 'Journey',     match: ['/journey'] },
     { href: '/tools/',     label: 'Calculators', match: ['/tools'] },
-    { href: '/pricing',   label: 'Pricing',     match: ['/pricing'] },
     { href: '/about',     label: 'About',       match: ['/about'] },
     { href: '/contact',   label: 'Support',     match: ['/contact'] },
   ];

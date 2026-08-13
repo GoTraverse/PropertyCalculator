@@ -57,9 +57,9 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full investment scenario',
-    description: 'Add mortgage repayments, capital growth projections, equity buildup, and compare multiple properties \u2014 free in EquitySight.',
-    buttonText: 'Try it free \u2014 no signup \u2192',
-    buttonHref: '/app'
+    description: 'Take the yield further — cashflow after tax, land tax and CGT are each a free calculator away.',
+    buttonText: 'Browse all 18 calculators →',
+    buttonHref: '/tools/'
   },
   resources: {
     groups: [

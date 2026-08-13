@@ -395,9 +395,9 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full investment — 30 years, not one',
-    description: 'Stack purchase costs, rent growth, rate changes and equity buildup into a full 30-year projection — free in EquitySight.',
-    buttonText: 'Try it free — no signup →',
-    buttonHref: '/app'
+    description: 'Stack purchase costs, yield, land tax and the eventual CGT with the other free calculators.',
+    buttonText: 'Browse all 18 calculators →',
+    buttonHref: '/tools/'
   },
   resources: {
     groups: [

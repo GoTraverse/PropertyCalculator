@@ -584,9 +584,9 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Model the full hold — rent, loan, land tax & 30-year equity',
-    description: 'Land tax is one line of the annual picture. Stack it with rental income, repayments, and long-term growth — free in EquitySight.',
-    buttonText: 'Try it free — no signup →',
-    buttonHref: '/app'
+    description: 'Land tax is one line of the annual picture. Stack it with rent, repayments and CGT using the other free calculators.',
+    buttonText: 'Browse all 18 calculators →',
+    buttonHref: '/tools/'
   },
   resources: {
     groups: [
