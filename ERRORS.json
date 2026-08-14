@@ -1,7 +1,21 @@
 {
-  "syncedAt": "2026-07-28T03:48:16.113Z",
-  "count": 8,
+  "syncedAt": "2026-08-14T16:11:20.650Z",
+  "count": 9,
   "errors": [
+    {
+      "at": 1786723879615,
+      "message": "Script error.",
+      "source": "",
+      "line": null,
+      "col": null,
+      "stack": "",
+      "url": "https://equitysight.app/",
+      "userAgent": "Mozilla/5.0 (X11; Fedora; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/68.0.3440.106 Safari/537.36",
+      "userId": "",
+      "userName": "",
+      "userEmail": "",
+      "severity": "error"
+    },
     {
       "at": 1785210494323,
       "message": "CSP violation: script-src-elem — blocked \"https://www.googletagmanager.com/gtag/js?id=G-TYQXT24670\"",
