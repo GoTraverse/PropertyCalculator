@@ -36,7 +36,6 @@ EquitySight publishes suburb profile pages built on ABS 2021 Census population d
 
 ## Other pages
 
-- [Pricing](https://equitysight.app/pricing)
 - [About](https://equitysight.app/about)
 - [Methodology](https://equitysight.app/methodology)
 - [Data Sources](https://equitysight.app/data-sources)

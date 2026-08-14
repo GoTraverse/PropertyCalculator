@@ -690,7 +690,7 @@ function renderCapNote() {
   if (!_cap || !_cap.max || _cap.plan !== 'free') { el.innerHTML = ''; return; }
   var atCap = _cap.used >= _cap.max;
   el.innerHTML = escHtml(_cap.used + ' of ' + _cap.max + ' free holdings used') +
-    (atCap ? ' — <a href="/pricing">Pro ($8.99/mo) is unlimited</a>' : '');
+    (atCap ? ' — the free plan tracks 2.' : '');
 }
 
 function render() {
@@ -810,8 +810,7 @@ function showUpgrade() {
   if (!el) return;
   el.innerHTML = '<div class="pf-upgrade-card">' +
     '<strong>You’ve reached the free limit.</strong>' +
-    '<p>Free tracks 2 holdings — Pro ($8.99/mo) is unlimited.</p>' +
-    '<a class="pf-btn pf-btn-gold" href="/pricing">See Pro →</a></div>';
+    '<p>The free plan tracks 2 holdings.</p></div>';
   el.style.display = '';
   if (window.trackPageEvent) trackPageEvent('portfolio_cap_hit', { plan: _cap ? _cap.plan : 'free' });
 }

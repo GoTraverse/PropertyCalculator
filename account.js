@@ -150,7 +150,7 @@ function renderPlan(){
 
   if(upgradeEl){
     upgradeEl.innerHTML = plan==='free'
-      ? '<a href="/pricing" class="acct-btn acct-btn-gold">Upgrade to Pro →</a>'
+      ? ''
       : '<button class="acct-btn acct-btn-outline" id="manage-billing-btn-dynamic">Manage billing</button>';
     const dynBtn = upgradeEl.querySelector('#manage-billing-btn-dynamic');
     if(dynBtn) dynBtn.addEventListener('click', openBillingPortal);

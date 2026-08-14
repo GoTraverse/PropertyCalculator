@@ -139,13 +139,7 @@
         <div class="form-field"><label class="form-label" for="su-password">Password</label><div class="form-input-wrap"><input class="form-input" id="su-password" type="password" placeholder="Min 8 characters" autocomplete="new-password"><button type="button" class="form-input-toggle" data-toggle-pw="su-password" aria-label="Show password" aria-pressed="false">Show</button></div></div>
         <div id="pw-strength-bar"><div id="pw-strength-fill"></div></div>
         <div id="pw-strength-label"></div>
-        <div class="form-field">
-          <label class="form-label" for="su-plan">Plan</label>
-          <select class="form-input" id="su-plan">
-            <option value="free">Starter — Free</option>
-            <option value="pro">Pro — A$8.99/month AUD</option>
-          </select>
-        </div>
+        <input type="hidden" id="su-plan" value="free">
         <div class="form-field form-terms">
           <label class="form-terms-label">
             <input type="checkbox" id="su-terms">

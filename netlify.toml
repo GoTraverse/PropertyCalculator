@@ -679,9 +679,16 @@
 # ── Canonicalise core page .html → clean URLs ────────────────────────────────
 # Redirects old .html links to clean URLs for consistency and SEO.
 
+# Pricing page removed Aug 2026 — the app is not sold as a paid product.
 [[redirects]]
   from = "/pricing.html"
-  to = "/pricing"
+  to = "/journey"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/pricing"
+  to = "/journey"
   status = 301
   force = true
 

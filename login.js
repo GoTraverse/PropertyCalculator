@@ -94,7 +94,6 @@ const params = new URLSearchParams(location.search);
 if (params.get('tab') === 'signup') setActiveForm('signup');
 {
   const planEl = document.getElementById('su-plan');
-  if (planEl && params.get('plan') === 'pro') planEl.value = 'pro';
 }
 const refParam = (params.get('ref') || '').trim().toUpperCase().slice(0, 16);
 if (refParam) {
@@ -120,10 +119,10 @@ if (refParam) {
 // 3. Already-logged-in redirect
 // ──────────────────────────────────────────────────────────────────────
 
-const ALLOWED_NEXT = ['app', 'account', 'pricing', 'portfolio', 'journey'];
+const ALLOWED_NEXT = ['app', 'account', 'portfolio', 'journey'];
 const ALLOWED_NEXT_PREFIXES = ['suburb/'];
 function safeNextUrl(raw) {
-  if (!raw) return '/app';
+  if (!raw) return '/journey';
   const clean = raw.replace(/^\//, '').replace(/\.html$/, '');
   // The journey's partner-invite link carries its join token through signup —
   // without this, the token is dropped and the collaborator lands on /app.
@@ -132,7 +131,7 @@ function safeNextUrl(raw) {
   for (let i = 0; i < ALLOWED_NEXT_PREFIXES.length; i++) {
     if (clean.indexOf(ALLOWED_NEXT_PREFIXES[i]) === 0 && !/[?#]/.test(clean)) return '/' + clean;
   }
-  return '/app';
+  return '/journey';
 }
 
 (function redirectIfLoggedIn() {
@@ -544,10 +543,8 @@ function postVerificationRedirect(plan) {
   // The migration hook only runs on /app. If we're routing elsewhere, clear the flag
   // so it can't get stuck and fire a stale migration on a later /app visit.
   const clearPending = function(){ try { localStorage.removeItem('propCalc_pendingSave'); } catch (e) {} };
-  if (plan === 'pro') { clearPending(); goTo('/account?checkout=1&panel=subscription'); }
-  else if (next !== '/app') { clearPending(); goTo(next); }
-  else if (pendingSave) goTo('/app');
-  else goTo('/account?panel=subscription');
+  if (pendingSave && next === '/app') { goTo('/app'); }
+  else { clearPending(); goTo(next); }
 }
 
 async function doSignin() {

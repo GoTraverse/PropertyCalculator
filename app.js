@@ -1699,7 +1699,7 @@
         );
         if(!isUpdate){
           const plural = freeLimit > 1 ? 's' : '';
-          showToast(`🔒 Free plan allows ${freeLimit} saved scenario${plural}. <a href="/pricing" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro for unlimited →</a>`, 6000);
+          showToast(`🔒 Free plan allows ${freeLimit} saved scenario${plural}.`, 6000);
           return false;
         }
       }
@@ -4768,7 +4768,7 @@
     trackUsage('pro_upgrade_prompt');
     // Track feature gating - free user attempted to access pro feature
     if(window.trackFeatureGated) trackFeatureGated(featureName, 'attempted_access');
-    showToast('🔒 ' + featureName + ' is a Pro feature — <a href="/pricing" style="color:var(--gold);text-decoration:underline;">Upgrade to Pro</a>', 5000);
+    showToast('🔒 ' + featureName + ' is a Pro feature.', 5000);
     return false;
   }
   window.requirePro = requirePro;
