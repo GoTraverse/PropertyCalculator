@@ -8,6 +8,8 @@
  * vs flat 4% = $24k). State codes here are UPPERCASE; the tier data uses the
  * stamp-duty file's lowercase keys, bridged via STATE_KEY.
  */
+// Conveyancing ranges are my rough estimates (no official source); the
+// calculator uses the mid-point of each range.
 var stateCosts = {
   NSW: { conveyancing: { min: 800, max: 1500 } },
   VIC: { conveyancing: { min: 1000, max: 1800 } },
@@ -154,13 +156,13 @@ function calc() {
   var isFhb = document.getElementById('fhb').checked;
   var isForeignBuyer = document.getElementById('foreignBuyer').checked;
   var isRenting = document.getElementById('currentlyRenting').checked;
-  var weeklyRent = getNumVal('weeklyRent');
   var leaseBreak = getNumVal('leaseBreak');
 
   var _msg = document.getElementById('calc-msg');
   function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
   if (_msg) _msg.hidden = true;
   if (!purchasePrice || purchasePrice <= 0) { _showErr('Please enter a purchase price.'); return; }
+  if (depositPct < 0 || depositPct > 100) { _showErr('Deposit must be between 0% and 100%.'); return; }
 
   var deposit = purchasePrice * (depositPct / 100);
   var calculatedLoan = purchasePrice - deposit;
@@ -175,6 +177,8 @@ function calc() {
     if (isForeignBuyer) stampDuty += purchasePrice * (stateData[sKey].foreignRate || 0);
   }
 
+  // Lender fees, inspection, insurance and moving costs below are my rough
+  // estimates, not sourced figures. The page says so.
   var bankValuation = Math.max(300, Math.min(700, purchasePrice / 1000));
   var loanFee = Math.max(150, calculatedLoan * 0.002);
   var settlementFee = 250;
@@ -222,7 +226,7 @@ function calc() {
 
   setTextContent('totalCosts', totalCosts);
   setTextContent('summaryUpfront', totalCosts);
-  setTextContent('summaryPct', totalPct.toFixed(1));
+  document.getElementById('summaryPct').textContent = totalPct.toFixed(1); // one decimal; setTextContent() would round it away
   setTextContent('summaryCashNeeded', cashNeeded);
 
   document.getElementById('cost-breakdown').style.display = '';
@@ -279,7 +283,6 @@ ToolPage.init({
           { text: 'ASIC: Mortgage Insurance', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
           { text: 'RBA: Interest Rates', href: 'https://www.rba.gov.au/education/' },
           { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Tax Info', href: 'https://www.ato.gov.au/' }
         ]
       },
       {
@@ -288,7 +291,6 @@ ToolPage.init({
           { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'FHSS Scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
           { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Law Society of Australia', href: 'https://www.lawsociety.com.au/' }
         ]
       }
     ],
@@ -313,7 +315,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'QLD first home — $580,000',
+      label: 'QLD first home — $580,000, 10% deposit',
       inputs: [
         { k: 'Property price', v: '$580,000' },
         { k: 'Deposit', v: '$58,000 (10%)' },
@@ -321,15 +323,16 @@ ToolPage.init({
         { k: 'First home buyer', v: 'Yes' }
       ],
       outputs: [
-        { k: 'Stamp duty', v: '$0 (FHB exempt, under $700k)' },
-        { k: 'Legal + conveyancing', v: '~$1,800' },
-        { k: 'Building + pest inspection', v: '~$650' },
-        { k: 'LMI (if applicable)', v: '~$11,400' },
-        { k: 'Total upfront costs', v: '~$13,850' }
+        { k: 'Stamp duty', v: '$0 (first home concession)' },
+        { k: 'Title-office registration fees', v: '$2,358' },
+        { k: 'Conveyancing/legal', v: '$900' },
+        { k: 'LMI (10% deposit)', v: '$9,918' },
+        { k: 'Total buying costs', v: '$20,870 (3.6% of price)' },
+        { k: 'Cash needed incl. deposit', v: '$78,870' }
       ]
     },
     {
-      label: 'NSW investor — $850,000',
+      label: 'NSW, not a first home buyer — $850,000, 20% deposit',
       inputs: [
         { k: 'Property price', v: '$850,000' },
         { k: 'Deposit', v: '$170,000 (20%)' },
@@ -337,39 +340,40 @@ ToolPage.init({
         { k: 'First home buyer', v: 'No' }
       ],
       outputs: [
-        { k: 'Stamp duty', v: '~$33,800' },
-        { k: 'Legal + conveyancing', v: '~$2,200' },
-        { k: 'Mortgage + title fees', v: '~$365' },
-        { k: 'Total upfront costs', v: '~$36,365' }
+        { k: 'Stamp duty', v: '$32,438' },
+        { k: 'Title-office registration fees', v: '$366' },
+        { k: 'Conveyancing/legal', v: '$1,150' },
+        { k: 'Total buying costs', v: '$43,164 (5.1% of price)' },
+        { k: 'Cash needed incl. deposit', v: '$213,164' }
       ]
     },
     {
-      label: 'VIC owner-occupier — $1,100,000',
+      label: 'VIC, not a first home buyer — $1,100,000, 20% deposit',
       inputs: [
         { k: 'Property price', v: '$1,100,000' },
         { k: 'Deposit', v: '$220,000 (20%)' },
         { k: 'State', v: 'Victoria' }
       ],
       outputs: [
-        { k: 'Stamp duty', v: '~$58,000' },
-        { k: 'Title-office reg fees', v: '~$2,810 (VIC fee scales with price)' },
-        { k: 'Legal + conveyancing', v: '~$2,300' },
-        { k: 'Inspections + searches', v: '~$900' },
-        { k: 'Total upfront costs', v: '~$64,000' }
+        { k: 'Stamp duty', v: '$60,500' },
+        { k: 'Title-office registration fees', v: '$2,808 (VIC fee scales with price)' },
+        { k: 'Conveyancing/legal', v: '$1,400' },
+        { k: 'Total buying costs', v: '$75,318 (6.8% of price)' },
+        { k: 'Cash needed incl. deposit', v: '$295,318' }
       ]
     }
   ],
   faq: [
     { q: 'What are the total upfront costs of buying a house in Australia?',
-      a: 'Expect 5\u20137% of the purchase price on top of your deposit. This covers stamp duty (the biggest), legal/conveyancing, inspections, mortgage fees, and possibly LMI if your deposit is under 20%.' },
+      a: 'It depends mostly on stamp duty. In the three examples on this page the total comes to 3.6%, 5.1% and 6.8% of the purchase price, on top of the deposit. The total covers stamp duty, registration fees, conveyancing, lender fees, an inspection, first-year insurance, moving costs, and LMI if your deposit is under 20%.' },
     { q: 'What hidden costs do buyers forget?',
       a: 'Common surprises: council + water rate adjustments at settlement, first-year building insurance, landlord insurance for investors, moving costs, utility connection fees, and strata/body-corp levies for apartments.' },
     { q: 'Do I need Lenders Mortgage Insurance (LMI)?',
-      a: 'LMI is required on most loans with a deposit under 20%. It can cost $8,000\u2013$25,000 depending on loan size. You can avoid it with a 20% deposit, a guarantor, or schemes like the 5% Deposit Scheme (formerly the First Home Guarantee).' },
+      a: 'LMI is required on most loans with a deposit under 20%. This calculator estimates it from the loan-to-value ratio: for a $650,000 purchase with a 10% deposit the estimate is $11,115. You can avoid it with a 20% deposit, a guarantor, or schemes like the 5% Deposit Scheme (formerly the First Home Guarantee).' },
     { q: 'How much are conveyancing and legal fees?',
-      a: 'Conveyancing typically costs $1,500\u2013$3,000 depending on the state and property complexity. Solicitors charge more than licensed conveyancers but handle complex matters like deceased estates.' },
+      a: 'This calculator uses the mid-point of a range for each state, from $900 in Queensland and Tasmania to $1,400 in Victoria. Those ranges are my rough estimates, so get a quote. Solicitors usually charge more than licensed conveyancers but handle complex matters like deceased estates.' },
     { q: 'What about building and pest inspections?',
-      a: 'Budget $400\u2013$800 for a combined building + pest inspection on an established home. These are optional but strongly recommended \u2014 they can reveal problems that save you tens of thousands.' }
+      a: 'This calculator allows $500 for a combined building and pest inspection on an established home, which is my rough estimate. Inspections are optional but worth having, because they can reveal problems before you are committed.' },
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
@@ -385,7 +389,7 @@ var _isInit = true;
 if(window.trackCalculatorStart) trackCalculatorStart('cost-of-purchase');
 calc();
 _isInit = false;
-['purchasePrice','depositPct','weeklyRent','leaseBreak'].forEach(function(id) {
+['purchasePrice','depositPct','leaseBreak'].forEach(function(id) {
   var el = document.getElementById(id);
   if(el) el.addEventListener('input', dCalc);
 });

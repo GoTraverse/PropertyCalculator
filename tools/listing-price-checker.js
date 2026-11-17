@@ -191,7 +191,7 @@ function updateCoverageHint() {
   } else if (STATE_COVERAGE[code]) {
     hint.textContent = STATE_COVERAGE[code];
   } else {
-    hint.textContent = 'No free, republishable government price or rent dataset for ' +
+    hint.textContent = 'I don’t have suburb-level government price or rent data I can republish for ' +
       (STATE_NAMES[code] || code) + ' yet — you’ll still get the generic checks.';
   }
 }
@@ -302,8 +302,8 @@ function calculate() {
     verdictHtml = bannerHtml('gold', 'No suburb selected',
       'Running a yield-only check from the rent you entered.');
   } else {
-    verdictHtml = bannerHtml('gold', 'No free public data for this state yet',
-      'There’s no free, republishable government sale-price or rent dataset for ' +
+    verdictHtml = bannerHtml('gold', 'No suburb data for this state yet',
+      'I don’t have suburb-level government sale-price or rent data I can republish for ' +
       (STATE_NAMES[code] || code) + ' yet, so this listing can’t be scored against a median. The sanity checks below still apply.');
   }
 
@@ -338,9 +338,12 @@ function calculate() {
     }
 
     var yieldVerdict = '';
-    if (suburbRent > 0 && entry && typeof entry.h === 'number' && entry.h > 0) {
-      // Suburb has both a median rent and a house sale median — compute the
-      // suburb's own reference yield and compare against it.
+    if (ptype === 'house' && suburbRent > 0 && entry && typeof entry.h === 'number' && entry.h > 0) {
+      // HOUSE listing in a suburb with both a median rent and a house sale
+      // median — compute the suburb's own reference yield and compare against
+      // it. Unit listings never use this path: dividing rent by the HOUSE
+      // median would make every unit look cheap. They fall through to the
+      // indicative unit band below.
       refYield = suburbRent * 52 / entry.h * 100;
       yieldRows.push(rowHtml('Suburb reference yield (median rent vs house median)', fmtPct(refYield, 2)));
       var diff = impliedYield - refYield;
@@ -356,17 +359,17 @@ function calculate() {
       // WHERE in the band the price lands rather than a mushy "within band".
       var bandLow = ptype === 'house' ? 2.5 : 4.0;
       var bandHigh = ptype === 'house' ? 4.5 : 6.0;
-      var bandLabel = ptype === 'house' ? 'houses, indicative 2.5–4.5% gross' : 'units, indicative 4–6% gross';
-      yieldRows.push(rowHtml('Typical indicative band', bandLabel));
+      var bandLabel = ptype === 'house' ? 'houses, 2.5–4.5% gross (my rule of thumb)' : 'units, 4–6% gross (my rule of thumb)';
+      yieldRows.push(rowHtml('Rule-of-thumb band', bandLabel));
       if (impliedYield < bandLow) {
-        yieldVerdict = 'The implied gross yield is below the typical band — at this asking price the property earns unusually little rent for its cost. That reads as a HIGH asking price relative to rental fundamentals (indicative), unless strong capital growth justifies it.';
+        yieldVerdict = 'The implied gross yield is below the rule-of-thumb band — at this asking price the property earns unusually little rent for its cost. That reads as a HIGH asking price relative to rental fundamentals (indicative), unless strong capital growth justifies it.';
       } else if (impliedYield <= bandHigh) {
         var midBand = (bandLow + bandHigh) / 2;
         yieldVerdict = impliedYield < midBand
-          ? 'The implied gross yield sits in the LOWER half of the typical band — the asking price is on the expensive side relative to the rent, without being an outlier (indicative).'
-          : 'The implied gross yield sits in the UPPER half of the typical band — the asking price looks reasonable against the rent this suburb actually earns (indicative).';
+          ? 'The implied gross yield sits in the LOWER half of the rule-of-thumb band — the asking price is on the expensive side relative to the rent, without being an outlier (indicative).'
+          : 'The implied gross yield sits in the UPPER half of the rule-of-thumb band — the asking price looks reasonable against the rent this suburb actually earns (indicative).';
       } else {
-        yieldVerdict = 'The implied gross yield is above the typical band — the price looks modest relative to the rent (or the advertised rent is optimistic; verify it against the suburb median).';
+        yieldVerdict = 'The implied gross yield is above the rule-of-thumb band — the price looks modest relative to the rent (or the advertised rent is optimistic; verify it against the suburb median).';
       }
     }
     // If the advertised rent is well off the suburb median, do the
@@ -452,7 +455,7 @@ ToolPage.init({
           { text: 'Valuer-General Victoria — property sales statistics', href: 'https://www.land.vic.gov.au/valuations/resources-and-reports/property-sales-statistics' },
           { text: 'Valuer-General SA — metro median house sales (data.sa.gov.au)', href: 'https://data.sa.gov.au/data/dataset/metro-median-house-sales' },
           { text: 'RTA Queensland — median rents', href: 'https://www.rta.qld.gov.au/median-rents' },
-          { text: 'CBS South Australia — private rental data', href: 'https://www.cbs.sa.gov.au/' }
+          { text: 'Consumer and Business Services (SA)', href: 'https://www.cbs.sa.gov.au/' }
         ]
       },
       {
@@ -548,7 +551,7 @@ ToolPage.init({
     { q: 'What is underquoting and how does this tool help?',
       a: 'Underquoting is advertising a price guide below the seller’s or agent’s genuine expectation, most common in auction markets like Melbourne and Sydney. If an advertised guide sits well below the suburb median (more than about 12%), that can be a signal — check recent comparable sold prices, and in Victoria the agent’s Statement of Information, before setting your budget.' },
     { q: 'What is a good gross rental yield?',
-      a: 'As a broad indicative range, metro Australian houses commonly show gross yields of roughly 2.5–4.5% and units roughly 4–6%. A very low implied yield can mean the asking price is high relative to what the property earns in rent. Gross yield ignores costs — use our rental yield calculator for the net picture.' }
+      a: 'This tool uses two rule-of-thumb ranges: gross yields of roughly 2.5–4.5% for houses and 4–6% for units. They are my own guide, not figures from a dataset. A very low implied yield can mean the asking price is high relative to what the property earns in rent. Gross yield ignores costs. The rental yield calculator gives the net picture.' },
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },

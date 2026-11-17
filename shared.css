@@ -342,8 +342,9 @@ html.dark-mode :where(a, button, input, select, textarea, summary, [role="button
 /* ── Section helpers ── */
 .section-tag {
   font-family: var(--font-body);
-  font-size: 10px;
-  letter-spacing: 0.4px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
   text-transform: none;
   font-variant-caps: all-small-caps;
   /* gold-dark gives 5.75:1+ contrast against cream/warm-white backgrounds.
@@ -572,4 +573,9 @@ html.dark-mode .tools-grid .tg-name { color: #F5F0E8; }
 
 /* Footer is injected by footer.js after first paint — reserve its space so
    the injection doesn't shift the page (Lighthouse CLS culprit on every page). */
-#site-footer-root { min-height: 150px; }
+#site-footer-root { min-height: 150px; display: flex; background: var(--charcoal); }
+/* The footer fills the reserved box, so there is never a strip of page
+   background under it when the real footer is shorter than the reserve. */
+#site-footer-root > .site-footer { flex: 1; display: flex; align-items: center; }
+#site-footer-root .site-footer-inner { width: 100%; }
+@media(min-width: 1200px) { #site-footer-root { min-height: 78px; } }

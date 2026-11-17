@@ -208,6 +208,9 @@ exports.handler = async function(event) {
 
   // ── User-facing: submit a comment ──────────────────────────────────
   if (action === 'submitComment') {
+    // The blog is dark unless BLOG_ENABLE is set, so there is nothing to
+    // comment on. Closed here as well as in the UI.
+    if (process.env.BLOG_ENABLE !== 'true') return fail('Comments are closed', 403);
     const user = await verifyToken(event);
     if (!user) return fail('Please sign in to leave a comment', 401);
 

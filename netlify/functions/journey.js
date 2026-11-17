@@ -105,10 +105,24 @@ function fail(msg, code) { return { statusCode: code || 200, headers: H, body: J
 
 const STATE_MAX_BYTES = 32000; // journey blobs are ~2 KB; 32 KB is a generous ceiling
 
+const STATE_CODES = ['qld', 'nsw', 'vic', 'sa', 'wa', 'tas', 'act', 'nt'];
+// The client normalises every field when it loads a state; this is the
+// server's own floor, so a hand-made request cannot store values of the wrong
+// type for another person (a partner, a follower, or the admin tab) to load.
 function validState(state) {
-  if (!state || typeof state !== 'object' || Array.isArray(state)) return false;
+  const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+  if (!isObj(state)) return false;
   if (state.v !== 1) return false;
   try { if (JSON.stringify(state).length > STATE_MAX_BYTES) return false; } catch (e) { return false; }
+  for (const k of ['done', 'numbers', 'profile', 'budget', 'deal', 'settle']) {
+    if (state[k] != null && !isObj(state[k])) return false;
+  }
+  if (state.numbers && state.numbers.state != null && !STATE_CODES.includes(state.numbers.state)) return false;
+  if (state.profile && state.profile.stage != null && typeof state.profile.stage !== 'string') return false;
+  for (const k of ['inspections', 'scenarios']) {
+    if (state[k] != null && (!Array.isArray(state[k]) || state[k].length > 60 || state[k].some(r => !isObj(r)))) return false;
+  }
+  if (Array.isArray(state.inspections) && state.inspections.some(r => (r.st != null && typeof r.st !== 'string') || (r.addr != null && typeof r.addr !== 'string') || (r.note != null && typeof r.note !== 'string'))) return false;
   return true;
 }
 function newShareToken() {
@@ -200,6 +214,17 @@ exports.handler = async function(event) {
     try {
       const target = await resolveTarget(user, body.collab);
       if (!target) return fail('That collaboration link is no longer active', 403);
+      const existing = await rGet('journey:' + target.email);
+      // Stale-write guard. The client sends `base`: the updatedAt of the copy
+      // its changes were made on. If the stored record is newer than that,
+      // someone else (a partner, or another device) saved in between, and
+      // writing this blob would erase their work. Refuse and hand back the
+      // current record instead. Clients that send no base (cached older
+      // script) keep the old last-write-wins behaviour.
+      if (existing && typeof body.base === 'number' && (existing.updatedAt || 0) > body.base) {
+        return ok({ ok: false, conflict: true, error: 'This journey was changed somewhere else',
+                    record: { state: existing.state, updatedAt: existing.updatedAt || 0 } });
+      }
       const rec = {
         email: target.email,
         name: target.owner ? undefined : (user.name || ''),
@@ -208,10 +233,7 @@ exports.handler = async function(event) {
         lastEditor: user.email,
       };
       // keep the owner's display name when a partner writes
-      if (target.owner) {
-        const existing = await rGet('journey:' + target.email);
-        rec.name = (existing && existing.name) || '';
-      }
+      if (target.owner) rec.name = (existing && existing.name) || '';
       await rSet('journey:' + target.email, rec);
       await redisCmd('SADD', 'journey:users', target.email);
       return ok({ ok: true, updatedAt: rec.updatedAt });
@@ -259,6 +281,19 @@ exports.handler = async function(event) {
     }
   }
 
+  // Which of the caller's links are live, so the page can offer to turn them off.
+  if (action === 'shareList') {
+    if (!user) return fail('Please sign in', 401);
+    try {
+      const map = (await rGet('journey:shares:' + user.email)) || {};
+      const live = {};
+      for (const mode of ['view', 'edit']) {
+        live[mode] = !!(map[mode] && await rGet('journey:share:' + map[mode]));
+      }
+      return ok({ ok: true, view: live.view, edit: live.edit });
+    } catch (e) { return fail('Failed to load your links. Please try again.', 500); }
+  }
+
   if (action === 'shareRevoke') {
     if (!user) return fail('Please sign in', 401);
     const mode = body.mode === 'edit' ? 'edit' : 'view';
@@ -302,7 +337,7 @@ exports.handler = async function(event) {
 
   if (action === 'adminGet') {
     const email = String(body.email || '').trim().toLowerCase();
-    if (!email) return fail('email required');
+    if (!email || !email.includes('@')) return fail('email required');
     try {
       const rec = await rGet('journey:' + email);
       if (!rec) return fail('No journey for that user', 404);
@@ -312,7 +347,9 @@ exports.handler = async function(event) {
 
   if (action === 'adminDelete') {
     const email = String(body.email || '').trim().toLowerCase();
-    if (!email) return fail('email required');
+    // Keys are built from this value. Requiring an address keeps a typo such
+    // as "users" from deleting the journey:users index.
+    if (!email || !email.includes('@')) return fail('email required');
     try {
       // revoke share/collab tokens too — otherwise they dangle and silently
       // come back to life if the user ever re-syncs

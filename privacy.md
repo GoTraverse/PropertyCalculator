@@ -1,119 +1,118 @@
 ---
 title: Privacy Policy
-date: 13 August 2026
+date: 17 November 2026
 tag: Legal
 ---
 
-> **Summary:** We collect only what we need to operate the service, we never sell your data, and you can request deletion of your account and data at any time. Read on for the full details.
+> **Summary:** I collect what I need to run the site. I don't sell your data. You can ask me to delete your account and data at any time.
 
-## 1. Who we are
+## 1. Who runs this site
 
-EquitySight is operated by Jacoby Yarrow, a sole trader based in Queensland, Australia ("EquitySight", "we", "us", or "our"). We operate the website equitysight.app and related services.
+EquitySight is operated by Jacoby Yarrow, a sole trader based in Queensland, Australia. In this policy "I", "me" and "my" mean Jacoby Yarrow trading as EquitySight. I run the website equitysight.app.
 
-This Privacy Policy explains how we collect, use, disclose, and protect your personal information when you use our property finance calculator and related services ("Service").
+This policy explains what personal information I collect when you use the First Home Journey, the calculators and the rest of the site ("Service"), and what I do with it.
 
-By using the Service you agree to the collection and use of information in accordance with this policy.
+By using the Service you agree to the collection and use of information as described here.
 
-## 2. Information we collect
+## 2. Information I collect
 
-### Information you provide directly
+### Information you give me
 
-- **Account information:** Your name and email address when you create an account. If you sign in with Google, Google shares your name and email address with us to create or access your account, and Google processes that sign-in under its own privacy policy.
-- **Authentication credentials:** Your password. Passwords are stored as salted scrypt hashes — we never store your plain-text password.
-- **Property scenarios:** The financial figures, addresses, and notes you enter into the calculator.
-- **First Home Journey data:** the answers you give in the journey — income, savings, household details, your budget and maximum price, and the places you save. If you're signed in, we store this on our servers so it follows you across devices.
-- **Reviews you submitted:** suburb reviews written while submissions were open are published on the relevant suburb page with your display name; email us to have one removed.
-- **Profile information:** Display name, optional profile photo, and colour preferences.
-- **Communications:** Any messages you send us via the contact form or email.
+- **Account information:** Your name and email address when you create an account. If you sign in with Google, Google shares your name and email address with me to create or open your account, and Google processes that sign-in under its own privacy policy.
+- **Password:** Stored as a salted hash. I never store your password in plain text.
+- **First Home Journey data:** The answers you give in the journey. This includes your income, savings, household details, your budget and maximum price, and the places you save. If you are signed in, this is stored on my servers so it follows you across devices.
+- **Property scenarios and portfolio entries:** The figures, addresses and notes you enter into the purchase calculator or the portfolio tool, if you use them.
+- **Reviews you submitted:** Suburb reviews written while submissions were open are published on the relevant suburb page with your display name. Email me to have one removed.
+- **Profile information:** Display name, optional profile photo and colour preference.
+- **Messages:** Anything you send me through the contact form or by email. If you choose "Bug report" in the help form shown to signed-in users, it also sends your account id, browser type, screen size and the address of the page you were on.
 
 ### Information collected automatically
 
-- **Usage data:** Pages visited, features used, and time spent on the Service.
-- **Device information:** Browser type, operating system, and screen resolution.
-- **Log data:** IP address, access times, and referring URLs.
+- **Usage data:** Pages visited and features used.
+- **Device information:** Browser type, operating system and screen resolution.
+- **Log data:** IP address, access times and referring pages.
+- **Error reports:** When a page throws a JavaScript error, the site records the error message, the page address without its query string, your browser type and, if you are signed in, your account id. Error reports never contain your name or email address. A copy with the account id removed is kept alongside the site's source code so I can find and fix the bug.
 
-### Information we do NOT collect
+### Information I do not collect
 
-- We do not collect payment card details (processed by our payment provider).
-- We do not purchase or import third-party marketing lists.
+- I do not collect payment card details. Paid plans are no longer sold. Cards for subscriptions bought earlier are held by the payment provider (Stripe), not by me.
+- I do not buy or import marketing lists.
 
-## 3. How we use your information
+## 3. How I use your information
 
-We use the information we collect to:
+I use the information to:
 
-- Provide, operate, and maintain the Service.
-- Authenticate you and keep your account secure.
-- Sync your saved property scenarios across devices.
-- Send you essential account communications (password resets, billing notices).
-- Respond to your support requests.
-- Improve and develop new features based on usage patterns.
-- Comply with our legal obligations.
+- Run and maintain the Service.
+- Sign you in and keep your account secure.
+- Keep your journey and saved scenarios available across your devices.
+- Send essential account emails, such as password resets and billing notices for existing subscriptions.
+- Reply to your messages.
+- Find and fix bugs, and see which parts of the site are used.
+- Meet my legal obligations.
 
-We will not use your information for purposes materially different from those described above without first obtaining your consent.
+I will not use your information for a materially different purpose without asking you first.
 
 ## 4. Sharing your information
 
-We do not sell, rent, or trade your personal information. We may share it only in these limited circumstances:
+I do not sell, rent or trade your personal information. I share it only in these cases:
 
-- **Service providers:** Hosting, database, payment processing, and analytics providers who process data on our behalf under their own privacy terms.
-- **Legal requirements:** Where required by law, court order, or to protect the rights and safety of our users.
-- **Business transfers:** If we merge or are acquired, your data may transfer to the new owner subject to the same privacy commitments.
+- **Service providers:** The companies that host the site and its database (Netlify and Upstash), send account emails, process payments for existing subscriptions (Stripe), host the site's source code (GitHub) and provide analytics (Google). They process data for me under their own privacy terms.
+- **Legal requirements:** Where the law or a court order requires it, or to protect the rights and safety of users.
+- **Business transfers:** If the site is sold or merged, your data may transfer to the new owner under the same privacy commitments.
 
-### Sharing you initiate
+### Sharing you start yourself
 
-If you create a journey share link, anyone who has that link can view your journey (including your first name and your financial answers) until you revoke it. An edit link lets the person you give it to change your journey. The same applies to scenario share invitations. We create these links only when you ask, and you can revoke them from the journey page.
+If you create a journey share link, anyone who has that link can view your journey, including your first name and your financial answers, until you revoke it. An edit link lets the person you give it to change your journey. The same applies to scenario share invitations. Links are created only when you ask, and you can revoke them from the journey page.
 
-### Bot-protection processors
+### Bot protection
 
-To distinguish humans from bots on our sign-in and sign-up pages we use **Cloudflare Turnstile**. The Turnstile widget runs invisibly in your browser and gathers signals about your browser environment (e.g. user-agent characteristics, simple proof-of-work challenges) to issue a short-lived verification token. Cloudflare may receive your IP address and limited browser metadata as part of this check. Cloudflare's processing is governed by [Cloudflare's Turnstile Privacy Addendum](https://www.cloudflare.com/application-services/products/turnstile-privacy-addendum/). The token is single-use, expires within five minutes, and is never used to track you across sessions.
+The sign-in and sign-up pages use **Cloudflare Turnstile** to tell people from bots. The Turnstile widget runs in your browser and collects signals about the browser environment to issue a short-lived verification token. Cloudflare may receive your IP address and limited browser metadata as part of this check. Cloudflare's processing is covered by [Cloudflare's Turnstile Privacy Addendum](https://www.cloudflare.com/application-services/products/turnstile-privacy-addendum/). The token is single-use and expires within five minutes.
 
 ## 5. Data storage and security
 
-Your data is stored on servers operated by our hosting and database providers (such as Netlify and Upstash), which may be located in Australia or overseas. We use measures including:
+Your data is stored on servers run by my hosting and database providers (Netlify and Upstash), which may be in Australia or overseas. Measures in place include:
 
 - TLS/HTTPS encryption for all data in transit.
-- Passwords are stored as salted scrypt hashes — we never store your plain-text password.
-- Access to stored data limited to the operator of the Service and the service providers we rely on.
+- Passwords stored as salted hashes, never in plain text.
+- Access to stored data limited to me and the service providers I rely on.
 
-No method of transmission over the Internet or electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your data, we cannot guarantee absolute security.
+No method of transmission or storage is completely secure. I take reasonable steps to protect your data but cannot guarantee absolute security.
 
-## 6. Cookies and tracking
+## 6. Cookies, browser storage and analytics
 
-We use one essential **HttpOnly Secure cookie** (`es_session`) to authenticate your login session. This cookie contains a random session identifier — not your email, name, or any personal information — and cannot be read by JavaScript in your browser.
+The site sets one essential **HttpOnly Secure cookie** (`es_session`) to keep you signed in. It holds a random session identifier. It does not hold your email, name or any other personal information, and JavaScript in your browser cannot read it.
 
-We also use browser **localStorage** to store application data on your device, including your in-progress journey and calculator drafts. This data stays on your device unless you sign in, in which case your journey and scenarios sync to our servers so they follow you across devices. We also keep a short list of the pages you visited before signing up, which is attached to your account if you create one. Your authentication token is **not** stored in localStorage.
+The site also uses browser **localStorage** to keep data on your device. This includes your in-progress journey, which holds the income and savings figures you enter, and your calculator inputs. This data stays on your device unless you sign in. If you sign in, your journey and scenarios sync to my servers so they follow you across devices. The site also keeps a short list of the pages you visited before signing up, which is attached to your account if you create one. Your sign-in token is not stored in localStorage.
 
-We use **Google Analytics** to understand how the Service is used (for example, which calculators and features are most used). Google Analytics sets its own cookies and may receive your IP address, device and usage data, and — when you are signed in — an account identifier and email address, so that we can analyse usage across your sessions. Google processes this data under [Google's Privacy Policy](https://policies.google.com/privacy). See our [Cookie Policy](cookies.html) for full details.
+The site uses **Google Analytics** to see which pages and features are used. Google Analytics sets its own cookies and may receive your IP address and device and usage data. If you are signed in it may also receive your account id. I do not send your name or email address to Google Analytics. Google processes this data under [Google's Privacy Policy](https://policies.google.com/privacy). The [Cookie Policy](/cookies) has the full list.
 
 ## 7. Your rights
 
-Depending on your jurisdiction, you may have the following rights regarding your personal data:
+Depending on where you live, you may have these rights over your personal data:
 
-- **Access:** Request a copy of the personal data we hold about you.
-- **Correction:** Request correction of inaccurate data.
-- **Deletion:** Request deletion of your account and associated data.
-- **Portability:** Request your data in a portable format.
-- **Objection:** Object to certain processing activities.
+- **Access:** Ask for a copy of the personal data I hold about you.
+- **Correction:** Ask me to correct inaccurate data.
+- **Deletion:** Ask me to delete your account and its data.
+- **Portability:** Ask for your data in a portable format.
+- **Objection:** Object to certain processing.
 
-To exercise any of these rights, please contact us at [privacy@equitysight.app](mailto:privacy@equitysight.app). We aim to respond within the timeframes required by applicable law.
+To use any of these rights, email [support@equitysight.app](mailto:support@equitysight.app). I aim to respond within the time the law requires.
 
 ## 8. Data retention
 
-We retain your account data for as long as your account is active or as needed to provide the Service. If you delete your account, we will delete or anonymise your personal data within 30 days, except where retention is required by law.
+I keep your account data while your account is active or as needed to provide the Service. If you delete your account, I delete or anonymise your personal data within 30 days, except where the law requires me to keep it.
 
-## 9. Children's privacy
+## 9. Age
 
-The Service is not directed to children under 16. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us and we will promptly delete it.
+The Service is for people aged 18 and over. I do not knowingly collect personal information from anyone under 18. If you believe someone under 18 has given me personal information, contact me and I will delete it.
 
 ## 10. Changes to this policy
 
-We may update this Privacy Policy from time to time. We will notify you of significant changes by posting a notice on the Service or by email. Your continued use of the Service after changes take effect constitutes acceptance of the revised policy.
+I may update this policy from time to time. If a change is significant I will post a notice on the site or email you. Continuing to use the Service after a change takes effect means you accept the revised policy.
 
-## 11. Contact us
+## 11. Contact
 
 > **Privacy enquiries**
->
-> For privacy-related questions or to exercise your rights, contact us.
 >
 > Email: [support@equitysight.app](mailto:support@equitysight.app)
 >

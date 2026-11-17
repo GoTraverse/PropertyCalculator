@@ -32,20 +32,34 @@
    GLOBAL UTILITIES — available immediately for oninput handlers
    ══════════════════════════════════════════════════════════════════════ */
 
-/** Format an input element's value with commas as user types (use in oninput="fmtInput(this)") */
+/** Format an input element's value with thousands separators as the user
+ *  types. Always en-AU grouping (comma thousands, dot decimal) so the text
+ *  parseVal() reads back is the same in every browser locale. One decimal
+ *  point and up to two decimal places are kept (e.g. a weekly rent of 562.50). */
 function fmtInput(el) {
-  var v = el.value.replace(/[^0-9]/g, '');
-  el.value = v ? parseInt(v).toLocaleString() : '';
+  var cleaned = String(el.value).replace(/[^0-9.]/g, '');
+  var dot = cleaned.indexOf('.');
+  var intPart = dot === -1 ? cleaned : cleaned.slice(0, dot);
+  var decPart = dot === -1 ? null : cleaned.slice(dot + 1).replace(/\./g, '').slice(0, 2);
+  intPart = intPart.replace(/^0+(?=\d)/, '');
+  var out = intPart ? Number(intPart).toLocaleString('en-AU') : (decPart !== null ? '0' : '');
+  if (decPart !== null) out += '.' + decPart;
+  el.value = out;
 }
 
-/** Parse a DOM element's value to number by ID (handles commas) */
+/** Parse a DOM element's value to number by ID (strips thousands separators
+ *  and spaces; pairs with fmtInput's en-AU formatting). */
 function parseVal(id) {
-  return parseFloat((document.getElementById(id).value || '0').replace(/,/g, '')) || 0;
+  var el = document.getElementById(id);
+  if (!el) return 0;
+  return parseFloat(String(el.value || '0').replace(/[,\s]/g, '')) || 0;
 }
 
-/** Format number as $X,XXX */
+/** Format number as $X,XXX (en-AU grouping). Negatives render as −$X,XXX. */
 function fmt(n) {
-  return '$' + Math.round(n).toLocaleString();
+  var r = Math.round(n);
+  if (!isFinite(r)) return '—';
+  return (r < 0 ? '\u2212$' : '$') + Math.abs(r).toLocaleString('en-AU');
 }
 
 /** Escape HTML to prevent XSS */
@@ -239,7 +253,7 @@ var ToolPage = (function() {
     ];
 
     var html = '<div class="tool-trust">' +
-      '<div class="tool-trust-title">Built on official Australian frameworks</div>' +
+      '<div class="tool-trust-title">Australian agencies these calculators refer to</div>' +
       '<div class="tool-trust-logos">';
     badges.forEach(function(b) {
       html += '<span class="tool-trust-logo" title="' + escHtml(b.name) + '">' +
@@ -351,7 +365,7 @@ var ToolPage = (function() {
       if (i > 0) html += ' \u00B7 ';
       html += '<a href="' + escHtml(link.href) + '">' + escHtml(link.text) + '</a>';
     });
-    html += '<div style="margin-top:8px;">\u00A9 2026 EquitySight. General information only \u2014 not financial advice.</div></footer>';
+    html += '<div style="margin-top:8px;">\u00A9 ' + new Date().getFullYear() + ' EquitySight. General information only \u2014 not financial advice.</div></footer>';
     root.innerHTML = html;
   }
 
@@ -401,14 +415,25 @@ var ToolPage = (function() {
   function _watchForResult(signupHref) {
     _injectSavePrompt(signupHref);
     var cta = document.getElementById('cta');
-    if (!cta) return;
-    var observer = new MutationObserver(function() {
-      if (cta.style.display !== 'none') {
+    var main = document.querySelector('.tool-main');
+    if (!cta || !main) return;
+    // Several calculators run once on load with their default inputs. The
+    // prompt waits until the visitor has used the calculator themselves, so
+    // it never appears over a page they have only just opened.
+    var shown = false;
+    function onAct(e) {
+      // Scripted events (restoring saved inputs, the initial auto-calculate)
+      // are not the visitor using the page.
+      if (shown || !e || !e.isTrusted) return;
+      setTimeout(function () {
+        if (shown || cta.style.display === 'none') return;
+        shown = true;
         _maybeShowSavePrompt();
-        observer.disconnect();
-      }
-    });
-    observer.observe(cta, { attributes: true, attributeFilter: ['style'] });
+      }, 400);
+    }
+    main.addEventListener('input', onAct);
+    main.addEventListener('change', onAct);
+    main.addEventListener('click', function (e) { if (e.target.closest('button')) onAct(e); });
   }
 
   /* ── Scroll the result into view after Calculate is clicked. On mobile
@@ -537,8 +562,29 @@ var ToolPage = (function() {
 
   }
 
+  /* ── Live interest-rate suggestion ──
+   * Puts the live suggested rate into a rate input, but only while the user
+   * has not chosen their own rate. "Not chosen" = the input still holds the
+   * page default, or the suggestion this helper wrote on an earlier visit
+   * (input persistence restores that old suggestion, which would otherwise
+   * sit there stale under a "Live" badge). Returns true when the input now
+   * shows the live rate, so the caller can decide whether to show the badge. */
+  function applyLiveRate(opts) {
+    var el = document.getElementById(opts.inputId);
+    if (!el || opts.rate == null || !isFinite(opts.rate)) return false;
+    var key = 'tool_live_rate_v1:' + opts.slug;
+    var last = null;
+    try { last = localStorage.getItem(key); } catch (e) {}
+    var rateStr = String(opts.rate);
+    if (el.value === opts.defaultValue || (last !== null && el.value === last)) {
+      el.value = rateStr;
+      try { localStorage.setItem(key, rateStr); } catch (e) {}
+    }
+    return el.value === rateStr;
+  }
+
   /* ── Public API ── */
 
-  return { init: init, dismissSavePrompt: dismissSavePrompt };
+  return { init: init, dismissSavePrompt: dismissSavePrompt, applyLiveRate: applyLiveRate };
 
 })();

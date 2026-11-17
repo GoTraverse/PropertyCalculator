@@ -6,43 +6,45 @@
  * Provides offline fallback for cached pages.
  */
 
-const CACHE_NAME = 'equitysight-v49';
+const CACHE_NAME = 'equitysight-v50';
 const API_CACHE_NAME = 'equitysight-api-v1';
 const STATIC_ASSETS = [
   '/offline.html',
   '/shared.css',
-  '/app.css',
   '/tools.css',
   '/index.css',
   '/about.css',
   '/contact.css',
   '/site-init.js',
   '/error-capture.js',
-  '/portfolio.js',
-  '/portfolio.css',
   '/auth-nav.js',
   '/auth-nav-loader.js',
   '/footer.js',
   '/market-rate.js',
   '/favicon.svg',
   '/manifest.json',
-  // Authenticated app bundle — pre-cache so first sign-in doesn't pay the
-  // cold-fetch cost for ~330 KB of JS + CSS. Sign-in flow on /login already
-  // has <link rel="prefetch"> hints for these, but pre-caching here covers
-  // users who arrive at /app via the sidebar nav from other pages.
-  '/app.js',
-  '/app-init.js',
-  '/app-events.js',
-  '/onboarding.js',
-  // Calculator landing + all 14 tool HTML pages — enables first-visit offline
-  // access so a user can open any calculator without a prior online visit. The
-  // HTMLs stay small (~30 KB each); install cost ~400 KB. Individual tool JS
-  // files are cached on-demand by the static-asset pattern below.
+  // The First Home Journey: page, styles, script and the suburb dataset it
+  // searches, so the journey opens and works without a connection.
   '/journey',
   '/journey.css',
   '/journey.js',
+  '/journey-suburbs.json',
+  // Calculator landing page, the shared calculator script and every calculator
+  // page (18 calculators + 8 state stamp-duty pages). Each page's own script
+  // (/tools/<name>.js) is cached the first time that calculator is opened, by
+  // the static-asset rule below. The parked /app and /portfolio bundles are
+  // deliberately NOT pre-cached; they are cached on demand like any other asset.
   '/tools/',
+  '/tools/tool-page.js',
   '/tools/stamp-duty-calculator',
+  '/tools/stamp-duty-calculator-nsw',
+  '/tools/stamp-duty-calculator-vic',
+  '/tools/stamp-duty-calculator-qld',
+  '/tools/stamp-duty-calculator-wa',
+  '/tools/stamp-duty-calculator-sa',
+  '/tools/stamp-duty-calculator-tas',
+  '/tools/stamp-duty-calculator-act',
+  '/tools/stamp-duty-calculator-nt',
   '/tools/cost-of-purchase-calculator',
   '/tools/deposit-calculator',
   '/tools/first-home-buyer-grants-calculator',
@@ -61,6 +63,11 @@ const STATIC_ASSETS = [
   '/tools/land-tax-calculator',
   '/tools/property-cashflow-calculator'
 ];
+
+// Data files served network-first with a cache fallback. JSON is not covered by
+// the cache-first static rule (it would go stale until the next version bump),
+// so without this the pre-cached copy would never be used offline.
+const NETWORK_FIRST_DATA = ['/journey-suburbs.json'];
 
 // Idempotent GET endpoints that benefit from stale-while-revalidate so the
 // page renders instantly from cache while fresh data is fetched in the
@@ -129,6 +136,22 @@ self.addEventListener('fetch', function(event) {
   // Skip all other Netlify Functions (auth, scenarios, etc.)
   if (url.pathname.startsWith('/.netlify/')) return;
 
+  // Network-first with cache fallback for whitelisted same-origin data files.
+  if (url.origin === self.location.origin && NETWORK_FIRST_DATA.indexOf(url.pathname) !== -1) {
+    event.respondWith(
+      fetch(event.request).then(function(response) {
+        if (response.ok) {
+          var clone = response.clone();
+          caches.open(CACHE_NAME).then(function(cache) { cache.put(url.pathname, clone); });
+        }
+        return response;
+      }).catch(function() {
+        return caches.match(url.pathname);
+      })
+    );
+    return;
+  }
+
   // Cache-first for static assets (CSS, JS, fonts, images, SVGs)
   if (/\.(css|js|woff2?|ttf|svg|png|jpe?g|webp|ico)$/.test(url.pathname)) {
     event.respondWith(
@@ -158,7 +181,9 @@ self.addEventListener('fetch', function(event) {
       }).catch(function() {
         // Network failed (offline). Serve the cached page if we have it,
         // otherwise the branded offline fallback (pre-cached on install).
-        return caches.match(event.request).then(function(cached) {
+        // ignoreSearch: a deep link such as /journey?near=... falls back to
+        // the cached /journey page rather than the offline notice.
+        return caches.match(event.request, { ignoreSearch: true }).then(function(cached) {
           return cached || caches.match('/offline.html');
         });
       })

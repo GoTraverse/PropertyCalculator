@@ -7,7 +7,7 @@
 <script src="tool-page.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Loan Serviceability Calculator Australia</title>
-<meta name="description" content="Free Australian loan serviceability calculator. Estimate borrowing capacity with a simplified serviceability model and APRA's 3% assessment buffer.">
+<meta name="description" content="Free Australian loan serviceability calculator. Estimate borrowing capacity from after-tax income, living expenses, existing debts and APRA's 3% assessment buffer.">
 <meta name="keywords" content="loan serviceability calculator, mortgage affordability calculator, how much can I borrow, borrowing capacity calculator, loan serviceability Australia">
 <link rel="canonical" href="https://equitysight.app/tools/loan-serviceability-calculator">
 <link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/loan-serviceability-calculator">
@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Loan Serviceability Calculator","url":"https://equitysight.app/tools/loan-serviceability-calculator","description":"Free loan serviceability calculator for Australian property buyers. Estimate borrowing capacity from income and expenses with a simplified serviceability model and APRA's 3% assessment buffer.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Loan Serviceability Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do Australian banks calculate loan serviceability?","acceptedAnswer":{"@type":"Answer","text":"Banks assess your gross income minus tax, living expenses (HEM or declared expenses, whichever is higher), existing debt commitments, and credit card limits. They apply the current interest rate plus a 3% buffer (APRA requirement) and calculate whether your net surplus income can cover the proposed repayments."}},{"@type":"Question","name":"What income do I need to borrow $1 million in Australia?","acceptedAnswer":{"@type":"Answer","text":"As a rough guide, you typically need a household income of $150,000-$200,000 to borrow $1 million, depending on your existing debts, expenses, dependents, and the interest rate. Banks assess at the rate plus a 3% buffer, so actual serviceability is tighter than the advertised rate suggests."}},{"@type":"Question","name":"What reduces your borrowing capacity in Australia?","acceptedAnswer":{"@type":"Answer","text":"Key factors that reduce borrowing capacity include existing debts (car loans, personal loans, HECS/HELP), credit card limits (even if unused — lenders assume the full limit), high living expenses, dependents, short employment history, and casual or contract employment. Reducing credit card limits and paying off debts before applying can significantly increase capacity."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Loan Serviceability Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much income do I need to borrow $1 million?","acceptedAnswer":{"@type":"Answer","text":"It depends on your expenses, debts and the rate. With no debts or credit cards and a 6.50% loan rate, this calculator gives about $1,068,000 for a single applicant on $200,000 and about $990,000 for a couple earning $100,000 each. A car loan, a credit card limit or a higher rate lowers both figures. Run your own numbers above instead of relying on one income threshold."}},{"@type":"Question","name":"Why does my credit card limit reduce my borrowing power if I pay it off?","acceptedAnswer":{"@type":"Answer","text":"Lenders assume you could draw the full limit at any time, so they include a notional monthly repayment based on the limit regardless of your current balance. Reducing or closing cards you don't need is one of the fastest ways to lift capacity."}},{"@type":"Question","name":"Does the 3% buffer ever change?","acceptedAnswer":{"@type":"Answer","text":"Yes. APRA sets the minimum buffer and reviews it over time — it was 2.5% before October 2021 and has been around 3% since. Individual lenders may also apply a minimum floor rate that is higher than rate-plus-buffer. Check current settings on the APRA website (apra.gov.au) and the consumer guidance at Moneysmart (moneysmart.gov.au)."}},{"@type":"Question","name":"Is this the same as getting pre-approved?","acceptedAnswer":{"@type":"Answer","text":"No. Pre-approval involves a lender verifying your documents and credit file and is specific to one institution's policy. This calculator is a general estimate to help you understand the levers; always confirm an exact figure with a lender or mortgage broker before house-hunting. This page is general information only and is not personal financial advice. For independent, government-backed guidance on borrowing power and home loans, see ASIC's Moneysmart service at moneysmart.gov.au, and for the prudential rules behind serviceability buffers see the Australian Prudential Regulation Authority at apra.gov.au."}}]}]}
 </script>
 </head>
 <body>
@@ -84,7 +84,7 @@
     </div>
 
     <div class="tool-field">
-      <label class="tool-label" for="other">Other income (rental, investment, etc.)</label>
+      <label class="tool-label" for="other">Other income ($/yr — rental, investment, etc. Counted at 75%)</label>
       <input class="tool-input" type="text" inputmode="decimal" id="other" placeholder="e.g. 15,000" >
     </div>
 
@@ -92,17 +92,22 @@
 
     <div class="tool-row">
       <div class="tool-field">
-        <label class="tool-label" for="expenses">Living expenses ($/mo — rent, utilities, food, transport, etc.)</label>
+        <label class="tool-label" for="expenses">Living expenses ($/mo — food, utilities, transport, insurance, etc. A floor applies if this is low)</label>
         <input class="tool-input" type="text" inputmode="decimal" id="expenses" placeholder="e.g. 4,500" >
       </div>
       <div class="tool-field">
-        <label class="tool-label" for="debt">Existing debt repayments ($/mo — credit cards, car loans, HECS)</label>
+        <label class="tool-label" for="debt">Existing debt repayments ($/mo — car loans, personal loans, HECS)</label>
         <input class="tool-input" type="text" inputmode="decimal" id="debt" placeholder="e.g. 1,200" >
       </div>
     </div>
 
+    <div class="tool-field">
+      <label class="tool-label" for="cards">Total credit card limits ($ — assessed at 3% of the limit per month, whatever the balance)</label>
+      <input class="tool-input" type="text" inputmode="decimal" id="cards" placeholder="e.g. 10,000" >
+    </div>
+
     <div class="tool-field" style="margin-top:16px;">
-      <label class="tool-label" for="base-rate">Assessment interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
+      <label class="tool-label" for="base-rate">Loan interest rate (% p.a.) — tested at this rate + 3% <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
       <input class="tool-input" type="number" id="base-rate" value="6.50" placeholder="e.g. 6.50" step="0.05" min="1" max="20">
       <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
     </div>
@@ -115,15 +120,15 @@
     <div class="tool-result-title">Your serviceability estimate</div>
     <div class="tool-grid">
       <div class="tool-stat">
-        <div class="tool-stat-label">Gross Income (adjusted)</div>
+        <div class="tool-stat-label">Net income counted (per month, after tax)</div>
         <div class="tool-stat-value" id="r-income">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Monthly Commitments</div>
+        <div class="tool-stat-label">Expenses and commitments (per month)</div>
         <div class="tool-stat-value" id="r-monthly">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Monthly Disposable</div>
+        <div class="tool-stat-label">Surplus for repayments (per month)</div>
         <div class="tool-stat-value" id="r-disposable">—</div>
       </div>
       <div class="tool-stat highlight">
@@ -132,7 +137,7 @@
       </div>
     </div>
     <div class="tool-disclaimer" id="r-note" style="display:none"></div>
-    <p class="tool-disclaimer">This is a simplified debt-service-ratio estimate (income assessed at ~45%). For a fuller figure that also models income tax, HEM living costs and HECS, use the <a href="/tools/borrowing-power-calculator">Borrowing Power calculator</a>. Estimates only — actual capacity varies by lender, product and interest-rate assumptions; get pre-approved for an exact amount.</p>
+    <p class="tool-disclaimer">This is a net-surplus estimate: after-tax income, less living expenses (your figure or my expense floor, whichever is higher), less existing repayments and 3% of credit card limits, tested at your rate + 3% over 30 years. The expense floor is my own rough stand-in for the HEM benchmark, not the lender table. It does not model dependants, income-type shading on salary, or HECS as a separate line. The <a href="/tools/borrowing-power-calculator">Borrowing Power calculator</a> covers those. Estimates only. Lenders differ, so get a pre-approval for a firm figure.</p>
   </div>
 
   <div class="ad-slot" data-ad-type="calculator"></div>
@@ -153,7 +158,7 @@
   <p>Australian lenders do not simply lend a fixed multiple of your salary. Instead they build a monthly budget for your household, strip out tax, living costs and existing commitments, and then test whether the money left over — your "net surplus" — can cover the new mortgage at a stressed interest rate. This approach is shaped by responsible-lending obligations enforced by ASIC and by prudential standards set by APRA (the Australian Prudential Regulation Authority). Understanding how that budget is built lets you see exactly where your borrowing power is won or lost.</p>
 
   <h2>How lenders calculate serviceability</h2>
-  <p>The core logic behind this calculator mirrors the way most Australian banks work through a serviceability assessment, step by step:</p>
+  <p>Most Australian lenders work through a serviceability assessment in roughly these steps, and the calculator above follows the same order in a simplified form:</p>
   <ul>
     <li><strong>Step 1 — Assessable income.</strong> Start with gross (pre-tax) income, then apply "haircuts" to less certain income. Base salary is usually taken at 100%, but lenders commonly count only 70–80% of overtime, bonuses, commissions and rental income because those streams are variable. Government benefits and some allowances may be counted in full, partially, or not at all.</li>
     <li><strong>Step 2 — Tax.</strong> Income tax and the Medicare levy are deducted to arrive at net income, since you repay a loan out of after-tax dollars.</li>
@@ -163,6 +168,8 @@
   </ul>
   <p>In words, the formula is: <strong>Net surplus = (assessable income − tax) − living expenses (HEM floor) − existing debt repayments − new loan repayment at the buffered rate.</strong> If that surplus is positive, the loan is serviceable; the maximum loan is the largest amount where the surplus stays at or above zero. Lenders also apply a debt-to-income (DTI) sanity check, and many treat a total DTI above roughly 6 times gross income as higher risk requiring extra scrutiny.</p>
 
+  <p><strong>How this calculator simplifies those steps.</strong> Salary is counted at 100% and other income at 75%. Tax uses the FY 2026-27 resident scale plus the Medicare levy. The expense floor is my own rough stand-in for HEM, based on household income and one or two adults, with no dependants. Credit cards are assessed at 3% of the total limit a month. The loan is tested over 30 years, principal and interest, at your rate plus 3%. It does not apply a debt-to-income cap.</p>
+
   <h2>Why the APRA buffer is 3%</h2>
   <p>In October 2021 APRA increased the minimum serviceability buffer banks must use from 2.5% to 3 percentage points above the loan's interest rate. The idea is to make sure borrowers can still cope if rates climb after they sign up. If your actual rate is 6.0%, the bank tests your repayments at around 9.0%. Because the buffer is applied to the whole loan, it has an outsized effect: a borrower might comfortably afford repayments at today's rate yet be declined because the stressed repayment pushes their budget into the red. The buffer is a guideline rather than a hard ceiling, and lenders may apply a higher floor rate, but you should expect roughly a 3% buffer at almost every mainstream lender.</p>
 
@@ -170,15 +177,16 @@
   <p>The <strong>Household Expenditure Measure (HEM)</strong> is a benchmark of what a household of a given size and income typically spends on essentials and modest discretionary items. It is published quarterly by the Melbourne Institute and used across the industry as a minimum living-expense floor. If you declare expenses below the HEM figure for your circumstances, the lender substitutes HEM instead — so claiming unrealistically low spending will not boost your borrowing power. HEM scales with income and household size, which is why adding a partner or a dependent child changes your result. It is a floor, not a cap: if your genuine, verified spending is higher than HEM, the lender uses your higher figure.</p>
 
   <h2>Worked example</h2>
-  <p>Assume a couple applying together. Partner A earns <strong>$120,000</strong> gross salary; Partner B earns <strong>$85,000</strong> gross salary; there is no other income. They have a car loan costing <strong>$650/month</strong> and a credit card with a <strong>$10,000</strong> limit. Their declared living expenses are <strong>$4,200/month</strong>, the lender's HEM figure for their household is <strong>$4,000/month</strong>, and the advertised rate is <strong>6.0%</strong> over a 30-year principal-and-interest term.</p>
+  <p>Assume a couple applying together. Partner A earns $120,000 and Partner B earns $85,000, with no other income. They have a car loan costing $650 a month and one credit card with a $10,000 limit. They enter living expenses of $4,200 a month and a loan rate of 6.0%. Entered into the calculator above, the result is:</p>
   <ul>
-    <li><strong>Income:</strong> combined gross of $205,000. After income tax and the Medicare levy, net income is roughly $13,400/month (illustrative — actual tax depends on the individual returns).</li>
-    <li><strong>Living expenses:</strong> declared $4,200 is higher than HEM $4,000, so the lender uses $4,200.</li>
-    <li><strong>Existing commitments:</strong> $650 car loan, plus a notional credit-card repayment of about 3% of the $10,000 limit, or roughly $300/month — even though the card is paid off in full each month.</li>
-    <li><strong>Assessment rate:</strong> 6.0% advertised plus a 3% buffer equals a 9.0% test rate.</li>
-    <li><strong>Result:</strong> after expenses and commitments the couple has a surplus that can support a buffered repayment of around $7,900/month, which at 9.0% over 30 years corresponds to a loan of roughly <strong>$980,000</strong>. At the actual 6.0% rate, that same loan would cost about $5,900/month — comfortably affordable, which is exactly the safety margin the buffer is designed to create.</li>
+    <li><strong>Net income counted:</strong> $13,197 a month, after income tax and the Medicare levy of $28,920 and $17,720 a year.</li>
+    <li><strong>Living expenses used:</strong> $4,590 a month. The expense floor for two adults on $205,000 is higher than the $4,200 entered, so the floor is used.</li>
+    <li><strong>Existing commitments:</strong> $650 for the car loan, plus $300 for the credit card (3% of the $10,000 limit) even if the card is paid off in full each month.</li>
+    <li><strong>Test rate:</strong> 6.0% plus the 3% buffer, so 9.0%.</li>
+    <li><strong>Surplus for repayments:</strong> $13,197 − $4,590 − $650 − $300 = $7,657 a month.</li>
+    <li><strong>Estimated borrowing capacity:</strong> $951,585. That is the loan $7,657 a month repays at 9.0% over 30 years. At the actual 6.0% rate the same loan would cost about $5,705 a month.</li>
   </ul>
-  <p>Every figure here is an assumption for illustration. Change the rate, the expenses or the credit-card limit and the answer moves significantly — which is the whole point of running the numbers yourself.</p>
+  <p>Change the card limit and the answer moves. With a $20,000 limit the estimate falls to $914,300. With a $5,000 limit it rises to $970,227.</p>
 
   <h2>Practical tips and common mistakes</h2>
   <ul>
@@ -191,12 +199,12 @@
   </ul>
 
   <h2>What this calculator does and doesn't cover</h2>
-  <p>This tool gives a quick, transparent estimate of borrowing capacity using the same building blocks lenders use: assessable income, a HEM-style expense floor, existing commitments and a buffered assessment rate. It is designed to show you how each input moves the result so you can plan before you apply.</p>
-  <p>It does <strong>not</strong> replicate any single lender's exact servicing model. It does not run a full Australian income-tax calculation for your specific situation, apply lender-specific income haircuts, factor in dependants individually, model lenders mortgage insurance, account for loan-to-value limits, or include stamp duty and other purchase costs. Different banks use different HEM tables, floor rates and policies, so two lenders can return materially different numbers for the same applicant. Treat the output as a planning estimate, not a pre-approval.</p>
+  <p>This tool estimates borrowing capacity from five things: after-tax income, living expenses (your figure or the expense floor, whichever is higher), existing debt repayments, credit card limits and a test rate 3% above the rate you enter. Each input changes the result, so you can see what a lower card limit or a paid-off car loan is worth.</p>
+  <p>It does not copy any lender's servicing model. The expense floor is my own rough estimate, not the HEM table lenders license. It does not model dependants, shading of bonus or casual income, HECS as a separate repayment, lenders mortgage insurance, loan-to-value limits, or stamp duty and other purchase costs. Different banks use different expense tables, floor rates and policies, so two lenders can return different numbers for the same applicant. Treat the output as a planning estimate, not a pre-approval.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>How much income do I need to borrow $1 million?</h3>
-  <p>As a rough guide, a household income in the order of $150,000–$200,000 is often needed to service a $1 million loan, but this depends heavily on your expenses, dependents, existing debts and the assessment rate. Because lenders test at the rate plus a buffer, real capacity is always tighter than the advertised rate implies. Use the calculator with your own figures rather than relying on a single income threshold.</p>
+  <p>It depends on your expenses, debts and the rate. With no debts or credit cards and a 6.50% loan rate, this calculator gives about $1,068,000 for a single applicant on $200,000 and about $990,000 for a couple earning $100,000 each. A car loan, a credit card limit or a higher rate lowers both figures. Run your own numbers above instead of relying on one income threshold.</p>
 
   <h3>Why does my credit card limit reduce my borrowing power if I pay it off?</h3>
   <p>Lenders assume you could draw the full limit at any time, so they include a notional monthly repayment based on the limit regardless of your current balance. Reducing or closing cards you don't need is one of the fastest ways to lift capacity.</p>
@@ -214,7 +222,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -225,6 +233,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -245,6 +255,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

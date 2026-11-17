@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Home Equity Calculator","url":"https://equitysight.app/tools/equity-release-calculator","description":"Free home equity calculator for Australian property owners. Work out usable equity and how much you can borrow against your home, based on LVR.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Home Equity Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much equity can I release?","acceptedAnswer":{"@type":"Answer","text":"Generally up to 80% of your property's value minus your current loan, before LMI applies. Beyond 80% you can sometimes borrow more by paying LMI, but lenders rarely release equity above 90% LVR. The amount also has to pass the lender's income and serviceability test, so the figure here is a ceiling, not a guarantee."}},{"@type":"Question","name":"Is the interest on released equity tax-deductible?","acceptedAnswer":{"@type":"Answer","text":"Deductibility depends on what the borrowed money is used for, not what it is secured against. If you use the funds to buy an income-producing asset such as a rental property or shares, the interest is generally deductible; if you use it for personal purposes such as a holiday or renovating your own home, it is not. The ATO sets the rules — see ato.gov.au and confirm your situation with a registered tax agent."}},{"@type":"Question","name":"What's the difference between redraw and equity release?","acceptedAnswer":{"@type":"Answer","text":"Redraw lets you take back extra repayments you have already made — it is your own money and usually requires no new application. Equity release is fresh borrowing against the increased value of your home, which means a new loan assessment, possibly a valuation, and potentially LMI if it pushes your LVR above 80%."}},{"@type":"Question","name":"Does releasing equity affect my repayments?","acceptedAnswer":{"@type":"Answer","text":"Yes. Releasing equity increases your loan balance, so your minimum repayments rise unless you extend the loan term. It is worth modelling the new repayment at a buffered interest rate before you commit, to make sure it remains comfortable if rates move. This page is general information only and is not personal financial advice. Consider your own circumstances and speak with a licensed mortgage broker, financial adviser or accountant before releasing equity."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Home Equity Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much equity can I release?","acceptedAnswer":{"@type":"Answer","text":"Generally up to 80% of your property's value minus your current loan, before LMI applies. Beyond 80% you can sometimes borrow more by paying LMI, but lenders rarely release equity above 90% LVR. The amount also has to pass the lender's income and serviceability test, so the figure here is a ceiling, not a guarantee."}},{"@type":"Question","name":"Is the interest on released equity tax-deductible?","acceptedAnswer":{"@type":"Answer","text":"Deductibility depends on what the borrowed money is used for, not what it is secured against. If you use the funds to buy an income-producing asset such as a rental property or shares, the interest is generally deductible; if you use it for personal purposes such as a holiday or renovating your own home, it is not. The ATO sets the rules — see ato.gov.au and confirm your situation with a registered tax agent."}},{"@type":"Question","name":"What's the difference between redraw and equity release?","acceptedAnswer":{"@type":"Answer","text":"Redraw lets you take back extra repayments you have already made — it is your own money and usually requires no new application. Equity release is fresh borrowing against the increased value of your home, which means a new loan assessment, possibly a valuation, and potentially LMI if it pushes your LVR above 80%."}},{"@type":"Question","name":"Does releasing equity affect my repayments?","acceptedAnswer":{"@type":"Answer","text":"Yes. Releasing equity increases your loan balance, so your minimum repayments rise unless you extend the loan term. It is worth modelling the new repayment at a buffered interest rate before you commit, to make sure it remains comfortable if rates move. This page is general information only and is not personal financial advice. Consider your own circumstances and speak with a licensed mortgage broker, financial adviser or accountant before releasing equity."}}]}]}
 </script>
 </head>
 <body>
@@ -77,7 +77,7 @@
         <input class="tool-input" type="text" inputmode="decimal" id="propval" value="650,000" placeholder="e.g. 650,000">
       </div>
       <div class="tool-field">
-        <label class="tool-label" for="mortgage">Outstanding mortgage</label>
+        <label class="tool-label" for="mortgage">Outstanding mortgage (enter 0 if you own the home outright)</label>
         <input class="tool-input" type="text" inputmode="decimal" id="mortgage" value="400,000" placeholder="e.g. 400,000">
       </div>
     </div>
@@ -127,7 +127,6 @@
 </div>
 
 <section class="tool-content">
-  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">Last reviewed 12 July 2026 · rates and thresholds verified against official FY2026-27 sources.</p>
   <h2>How much home equity do you have? Total vs usable equity</h2>
   <p>Your <strong>home equity</strong> is the gap between what your home is worth and what you still owe on it — and it grows as your property rises in value and you pay down the loan. This home equity calculator works out how much equity you have and, just as importantly, how much of it you can actually borrow against. Turning some of that equity into cash you can spend — by refinancing, increasing your loan, or setting up a separate facility against the same property — is what's known as releasing equity.</p>
   <p>The important distinction is between <strong>total equity</strong> and <strong>usable equity</strong>. Total equity is simply value minus your mortgage. Usable equity is the slice a lender will actually let you draw on — and in Australia that is typically capped at around 80% of the property's value before Lenders Mortgage Insurance (LMI) is triggered. This 80% threshold is a long-standing industry convention reinforced by the prudential standards the Australian Prudential Regulation Authority (APRA) sets for banks. It is why a homeowner can be "equity rich" on paper yet find the bank will only release a fraction of that figure.</p>
@@ -193,7 +192,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -204,6 +203,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -224,6 +225,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

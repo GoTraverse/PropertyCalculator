@@ -1,6 +1,6 @@
 ---
 title: Data Sources & Attribution
-date: August 2026
+date: November 2026
 tag: Transparency
 ---
 
@@ -10,7 +10,7 @@ This page is a plain account of which fields on EquitySight are sourced from a p
 
 ## 1. Australian Bureau of Statistics — 2021 Census of Population and Housing
 
-- **Used for:** the usual-resident **population** figure on each suburb page, the State Suburb (SAL) geography I build pages from, and the 2021 Census median rent and mortgage figures where they appear (always labelled as 2021).
+- **Used for:** the usual-resident **population** figure on each suburb page and the State Suburb (SAL) geography I build pages from.
 - **Source:** [abs.gov.au/census/find-census-data](https://www.abs.gov.au/census/find-census-data)
 - **Geography layer:** ABS ArcGIS FeatureServer (SAL 2021 boundaries), queried via the public REST endpoint and cached at build time.
 - **Licence:** [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Source: Australian Bureau of Statistics © Commonwealth of Australia.
@@ -37,7 +37,7 @@ The current rents and sale medians on suburb pages, and the suburb price data be
 | Rental bond data | Department of Justice (Tasmania) | Median weekly rent | May 2025 – Apr 2026 | Suburb |
 | Rent and Sales Report | NSW Communities & Justice | Median weekly rent | Jan–Mar 2026 | Postcode |
 
-All are published under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) by the respective state governments. Every figure drawn from these datasets carries an "as at" caption on the page naming the source and period. I refresh this data quarterly as new releases appear; the period captions are the honest read of each figure's age.
+All are published under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) by the respective state governments. Every figure drawn from these datasets is printed with its source and period. I aim to refresh this data each quarter by hand; the last refresh was July 2026, so check the period under each figure.
 
 Coverage is uneven and I say so on the pages: NSW rents exist only at postcode level, and Queensland has no free suburb-level sale-price dataset — where a figure doesn't exist, the page omits it rather than substituting a modelled number.
 

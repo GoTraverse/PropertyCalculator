@@ -583,7 +583,7 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full hold — rent, loan, land tax & 30-year equity',
+    title: 'Add land tax to the rest of the numbers',
     description: 'Land tax is one line of the annual picture. Stack it with rent, repayments and CGT using the other free calculators.',
     buttonText: 'Browse all 18 calculators →',
     buttonHref: '/tools/'

@@ -1,83 +1,164 @@
-function calculate() {
+/* ═══ LOAN SERVICEABILITY CALCULATOR ═══
+ *
+ * A net-surplus serviceability check:
+ *   net income (after tax)
+ *   − living expenses (the higher of what you enter or an expense floor)
+ *   − existing debt repayments
+ *   − 3% a month of total credit card limits
+ *   = monthly surplus, which is the largest repayment the loan can have at
+ *     the test rate (your rate + 3.00%) over 30 years, principal and interest.
+ *
+ * ⚠ SYNC COPY: approxTax() and hemMonthly() are copied from
+ * tools/borrowing-power-calculator.js so both tools tax income and floor
+ * expenses the same way. If you change one, change the other.
+ */
+
+// ── ATO resident individual tax (FY 2026-27) — SYNC COPY, see header ──────
+function approxTax(gross) {
+  var tax = 0;
+  if (gross <= 18200) tax = 0;
+  else if (gross <= 45000) tax = (gross - 18200) * 0.15;
+  else if (gross <= 135000) tax = 4020 + (gross - 45000) * 0.30;
+  else if (gross <= 190000) tax = 31020 + (gross - 135000) * 0.37;
+  else tax = 51370 + (gross - 190000) * 0.45;
+  // Medicare levy: 0% below $28,011; sliding 10% of excess in $28,011-$35,013;
+  // flat 2% above $35,013 (singles). FY 2025-26 thresholds (latest published).
+  if (gross > 35013) tax += gross * 0.02;
+  else if (gross > 28011) tax += (gross - 28011) * 0.10;
+  return tax;
+}
+
+// ── Living-expense floor — SYNC COPY, see header ──────────────────────────
+// My own rough stand-in for the Household Expenditure Measure. The real HEM
+// table is licensed data that I do not have, so this is not the lender figure.
+function hemMonthly(annualHouseholdGrossIncome, adults, dependants) {
+  var I = annualHouseholdGrossIncome;
+  var perAdult;
+  if (I < 50000) perAdult = 1750;
+  else if (I < 80000) perAdult = 1950;
+  else if (I < 120000) perAdult = 2150;
+  else if (I < 180000) perAdult = 2400;
+  else if (I < 250000) perAdult = 2700;
+  else if (I < 350000) perAdult = 3050;
+  else perAdult = 3400;
+  var adultsCost = adults <= 1 ? perAdult : perAdult + (adults - 1) * Math.round(perAdult * 0.70);
+  var depCost;
+  if (I < 80000) depCost = 700;
+  else if (I < 180000) depCost = 800;
+  else if (I < 350000) depCost = 880;
+  else depCost = 950;
+  return adultsCost + dependants * depCost;
+}
+
+var SVC_OTHER_INCOME_SHADING = 0.75; // rental / other income counted at 75% (same as borrowing power)
+var SVC_CARD_RATE = 0.03;            // credit cards assessed at 3% of the limit per month
+var SVC_BUFFER = 3.0;                // APRA serviceability buffer, percentage points
+var SVC_TERM_MONTHS = 360;           // 30-year principal-and-interest loan
+
+// Pure calculation, shared by the page and by anything that wants to check it.
+function serviceability(inp) {
+  var salary = inp.salary || 0, partner = inp.partner || 0, other = inp.other || 0;
+  var net1 = salary - approxTax(salary);
+  // Other income is taxed on top of your salary, then counted at 75%.
+  var net1WithOther = (salary + other) - approxTax(salary + other);
+  var otherNet = (net1WithOther - net1) * SVC_OTHER_INCOME_SHADING;
+  var net2 = partner > 0 ? partner - approxTax(partner) : 0;
+  var netMonthly = (net1 + otherNet + net2) / 12;
+
+  var adults = partner > 0 ? 2 : 1;
+  var floor = hemMonthly(salary + partner + other, adults, 0);
+  var entered = inp.expenses || 0;
+  var expensesUsed = Math.max(entered, floor);
+  var cardAssess = (inp.cards || 0) * SVC_CARD_RATE;
+  var commitments = expensesUsed + (inp.debt || 0) + cardAssess;
+  var surplus = netMonthly - commitments;
+
+  var assessmentRate = inp.rate + SVC_BUFFER;
+  var r = assessmentRate / 100 / 12;
+  var repayFactor = r > 0 ? r / (1 - Math.pow(1 + r, -SVC_TERM_MONTHS)) : 1 / SVC_TERM_MONTHS;
+  var maxLoan = surplus > 0 ? surplus / repayFactor : 0;
+  var ra = inp.rate / 100 / 12;
+  var actualFactor = ra > 0 ? ra / (1 - Math.pow(1 + ra, -SVC_TERM_MONTHS)) : 1 / SVC_TERM_MONTHS;
+
+  return {
+    netMonthly: netMonthly, floor: floor, entered: entered, expensesUsed: expensesUsed,
+    floorApplied: floor > entered, cardAssess: cardAssess, commitments: commitments,
+    surplus: surplus, assessmentRate: assessmentRate, maxLoan: maxLoan,
+    repaymentAtActualRate: maxLoan * actualFactor
+  };
+}
+
+// silent = true: recalculate without validation messages, scrolling or
+// tracking (used on first load and when the live rate arrives).
+function calculate(silent) {
+  var _msg = document.getElementById('calc-msg');
+  function _showErr(t){ if(_msg && !silent){ _msg.textContent = t; _msg.hidden = false; } }
+  if (_msg) _msg.hidden = true;
+
   var salary = parseVal('salary');
   var partner = parseVal('partner');
   var other = parseVal('other');
-  var expenses = parseVal('expenses');
+  if (!salary && !partner && !other) { _showErr('Please enter at least one income source.'); return; }
+
+  var rate = parseFloat(document.getElementById('base-rate').value);
+  if (!isFinite(rate) || rate < 0) { _showErr('Please enter the loan interest rate.'); return; }
+
+  var s = serviceability({
+    salary: salary, partner: partner, other: other,
+    expenses: parseVal('expenses'), debt: parseVal('debt'), cards: parseVal('cards'), rate: rate
+  });
   var debt = parseVal('debt');
 
-  var _msg = document.getElementById('calc-msg');
-  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
-  if (_msg) _msg.hidden = true;
+  document.getElementById('r-income').textContent = fmt(s.netMonthly);
+  document.getElementById('r-monthly').textContent = fmt(s.commitments);
+  document.getElementById('r-disposable').textContent = fmt(Math.max(0, s.surplus));
+  document.getElementById('r-borrow').textContent = fmt(s.maxLoan);
 
-  if (!salary && !partner && !other) { if (!_isInit) _showErr('Please enter at least one income source.'); return; }
-
-  // Rental / other income counted at 75% (standard big-four shading; matches the
-  // borrowing-power calculator) to allow for vacancy and ongoing costs.
-  var gross = salary + partner + (other * 0.75);
-  var monthlyIncome = gross / 12;
-  var monthlyCommitments = expenses + debt;
-  var monthlyDisposable = monthlyIncome - monthlyCommitments;
-
-  // APRA serviceability buffer (Prudential Standard APS 220, current 3.00% since
-  // Oct 2021). Verify at apra.gov.au if APRA revises.
-  var baseRateInput = parseFloat(document.getElementById('base-rate').value) || 6.50;
-  var assessmentRate = baseRateInput + 3.0;
-  var monthlyAssessmentRate = assessmentRate / 100 / 12;
-  // Monthly repayment factor for a 30-year P&I loan at the assessment rate
-  var repayFactor = monthlyAssessmentRate > 0
-    ? monthlyAssessmentRate / (1 - Math.pow(1 + monthlyAssessmentRate, -360))
-    : 1 / 360;
-
-  var maxMonthlyDebt = gross * 0.45 / 12;
-  var maxMortgagePayment = maxMonthlyDebt - debt;
-  var maxLoan = repayFactor > 0 ? maxMortgagePayment / repayFactor : 0;
-
-  document.getElementById('r-income').textContent = fmt(gross);
-  document.getElementById('r-monthly').textContent = fmt(monthlyCommitments);
-  document.getElementById('r-disposable').textContent = fmt(Math.max(0, monthlyDisposable));
-  document.getElementById('r-borrow').textContent = fmt(Math.max(0, maxLoan));
-
-  var note = '';
-  if (monthlyDisposable < 0) {
-    note = 'Your current expenses exceed income. Consider reducing expenses or increasing income before applying for a mortgage.';
-  } else if (maxLoan < 200000) {
-    note = 'Your borrowing capacity is limited. A mortgage broker can help explore options or improve your serviceability.';
+  var parts = [];
+  parts.push(s.floorApplied
+    ? 'Living expenses used: ' + fmt(s.expensesUsed) + ' a month. That is the expense floor for your household and income, because it is higher than the ' + fmt(s.entered) + ' you entered.'
+    : 'Living expenses used: ' + fmt(s.expensesUsed) + ' a month (your figure, which is above the ' + fmt(s.floor) + ' floor).');
+  if (debt > 0) parts.push('Existing repayments: ' + fmt(debt) + ' a month.');
+  if (s.cardAssess > 0) parts.push('Credit cards: ' + fmt(s.cardAssess) + ' a month (3% of the limit).');
+  parts.push('Test rate: ' + s.assessmentRate.toFixed(2) + '% (your rate + 3%), 30-year principal and interest.');
+  if (s.surplus <= 0) {
+    parts.push('Nothing is left for loan repayments after expenses and commitments, so the estimate is $0.');
+  } else {
+    parts.push('At your actual rate of ' + rate.toFixed(2) + '% that loan would cost about ' + fmt(s.repaymentAtActualRate) + ' a month.');
   }
-
-  document.getElementById('r-note').textContent = note;
-  document.getElementById('r-note').style.display = note ? '' : 'none';
+  var noteEl = document.getElementById('r-note');
+  noteEl.textContent = parts.join(' ');
+  noteEl.style.display = '';
 
   document.getElementById('result').style.display = '';
-  if (!_isInit) {
+  if (!silent) {
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    // Track calculator result
     if(window.trackCalculatorResult) trackCalculatorResult('loan-serviceability', {
-      grossIncome: gross,
-      monthlyIncome: Math.round(monthlyIncome),
-      monthlyCommitments: monthlyCommitments,
-      monthlyDisposable: Math.round(monthlyDisposable),
-      maxBorrowingCapacity: Math.round(maxLoan),
-      assessmentRate: assessmentRate.toFixed(2)
+      netMonthlyIncome: Math.round(s.netMonthly),
+      monthlyCommitments: Math.round(s.commitments),
+      monthlySurplus: Math.round(s.surplus),
+      maxBorrowingCapacity: Math.round(s.maxLoan),
+      assessmentRate: s.assessmentRate.toFixed(2)
     });
   }
 }
 
-/* ─ Hydrate assessment rate from live RBA data ─ */
+/* ─ Live RBA-based rate suggestion. The suggestion only replaces the rate
+ *   while you have not typed your own, and the result is recalculated so the
+ *   figures on screen always match the rate in the box. ─ */
 if (typeof MarketRate !== 'undefined') {
   MarketRate.onReady(function(d) {
     if (!d) return;
-    var el = document.getElementById('base-rate');
-    if (el && el.value === '6.50') {
-      el.value = d.suggestedRate;
-    }
+    var showing = ToolPage.applyLiveRate({ inputId: 'base-rate', defaultValue: '6.50', slug: 'loan-serviceability', rate: d.suggestedRate });
     var badge = document.getElementById('rate-live-badge');
     var hint  = document.getElementById('rate-live-hint');
-    if (badge) badge.style.display = '';
+    if (badge) badge.style.display = showing ? '' : 'none';
     if (hint)  hint.textContent = 'RBA cash rate ' + d.cashRate.toFixed(2) + '% + lender margin '
-      + d.lenderMargin.toFixed(2) + '% = ' + d.suggestedRate.toFixed(2) + '% (banks assess at this + 3% APRA buffer)'
-      + (d.rateDate ? ' — ' + d.rateDate : '');
+      + d.lenderMargin.toFixed(2) + '% (my assumption) = ' + d.suggestedRate.toFixed(2) + '%. The loan is tested at your rate + 3%.'
+      + (d.rateDate ? ' Cash rate as at ' + d.rateDate + '.' : '');
     if (hint) hint.style.display = '';
+    calculate(true);
   });
 }
 
@@ -99,22 +180,13 @@ ToolPage.init({
           { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
           { text: 'ASIC: Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
           { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
-          { text: 'MoneySmart: Home Loans', href: 'https://moneysmart.gov.au/home-loans' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCCA', title: 'Income & Expenses',
-        links: [
-          { text: 'ASIC: Borrowing Guidance', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ASIC: Responsible Lending', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Tax Deduction Guide', href: 'https://www.ato.gov.au/' }
         ]
       },
       {
         icon: '\uD83C\uDFAF', title: 'First Home Buyer',
         links: [
-          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.firsthomebuyers.gov.au/' },
-          { text: 'First Home Super Saver', href: 'https://www.australia.gov.au/benefits/centrelink-payments-and-services/first-home-super-saver-scheme' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
           { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       }
@@ -148,40 +220,40 @@ ToolPage.init({
         { k: 'Interest rate', v: '6.50%' }
       ],
       outputs: [
-        { k: 'Estimated borrowing power', v: '~$520,000' },
-        { k: 'Max repayment (monthly)', v: '~$3,290' }
+        { k: 'Surplus for repayments', v: '$3,373 a month' },
+        { k: 'Estimated borrowing capacity', v: '$401,179' }
       ]
     },
     {
-      label: 'Couple — $165k combined income',
+      label: 'Couple — $95k and $70k',
       inputs: [
-        { k: 'Gross income', v: '$165,000' },
+        { k: 'Gross income', v: '$95,000 + $70,000' },
         { k: 'Monthly living costs', v: '$4,100' },
         { k: 'Other debts (monthly)', v: '$600' },
         { k: 'Interest rate', v: '6.50%' }
       ],
       outputs: [
-        { k: 'Estimated borrowing power', v: '~$905,000' },
-        { k: 'Max repayment (monthly)', v: '~$5,720' }
+        { k: 'Surplus for repayments', v: '$6,230 a month' },
+        { k: 'Estimated borrowing capacity', v: '$740,913' }
       ]
     },
     {
       label: 'Investor with rental income',
       inputs: [
         { k: 'Gross income', v: '$130,000' },
-        { k: 'Rental income (75%)', v: '$22,500' },
+        { k: 'Other (rental) income', v: '$30,000, counted at 75%' },
         { k: 'Monthly living costs', v: '$3,000' },
         { k: 'Interest rate', v: '6.75%' }
       ],
       outputs: [
-        { k: 'Estimated borrowing power', v: '~$760,000' },
-        { k: 'Max repayment (monthly)', v: '~$4,930' }
+        { k: 'Surplus for repayments', v: '$6,322 a month' },
+        { k: 'Estimated borrowing capacity', v: '$735,874' }
       ]
     }
   ],
   faq: [
     { q: 'How is serviceability calculated?',
-      a: 'Lenders take your net income, subtract living expenses and existing debt repayments, and stress-test your ability to service the new loan at an interest rate 3 percentage points above the current actual rate (APRA\u2019s serviceability buffer).' },
+      a: 'Lenders take your net income, subtract living expenses and existing debt repayments, and test whether what is left covers the new loan at an interest rate 3 percentage points above the actual rate (APRA\u2019s serviceability buffer). This calculator does the same with after-tax income, an expense floor and 3% of credit card limits.' },
     { q: 'What expenses do lenders look at?',
       a: 'Lenders apply the higher of your declared expenses or the Household Expenditure Measure (HEM) for your household size and income band. HEM covers groceries, transport, utilities, insurance, childcare, and discretionary spending.' },
     { q: 'Why do banks use a stress-test rate?',
@@ -197,20 +269,18 @@ ToolPage.init({
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/toowong/', label: 'Toowong QLD' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/methodology.html', label: 'Our Methodology' }
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/methodology', label: 'Our Methodology' }
   ]
 });
 
-var _isInit = true;
 if(window.trackCalculatorStart) trackCalculatorStart('loan-serviceability');
-calculate();
-_isInit = false;
-['salary','partner','other','expenses','debt'].forEach(function(id) {
+calculate(true);
+['salary','partner','other','expenses','debt','cards'].forEach(function(id) {
   var el = document.getElementById(id);
   if(el) el.addEventListener('input', function(){ fmtInput(this); });
 });
 var calcBtn = document.getElementById('loan-calc-btn');
 if(calcBtn) calcBtn.addEventListener('click', function(){
   if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'loan-serviceability'});
-  calculate();
+  calculate(false);
 });

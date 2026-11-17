@@ -1718,6 +1718,22 @@ async function loadDatabaseBrowser(pattern,offset){
 }
 
 // ── DATABASE PURGE ─────────────────────────────────────────────
+async function revokeAllSessions(){
+  const st = document.getElementById('database-status');
+  const ok = await customConfirm('Sign everyone out',
+    'This ends every session on the site, including this one. You will be taken to the sign-in page.',
+    { icon: '⚠', confirmLabel: 'Sign everyone out', danger: true });
+  if(!ok) return;
+  st.textContent = 'Ending sessions…'; st.className = 'admin-status info';
+  const d = await callAuth('adminRevokeAllSessions');
+  if(d.ok){
+    try{ localStorage.removeItem('propCalc_session_v1'); }catch(e){}
+    window.location.href = '/login';
+  } else {
+    st.textContent = '✗ ' + (d.error||'Failed');
+    st.className = 'admin-status err';
+  }
+}
 async function purgeExpiredSessions(){
   const st = document.getElementById('database-status');
   const ok = await customConfirm('Purge Expired Sessions',

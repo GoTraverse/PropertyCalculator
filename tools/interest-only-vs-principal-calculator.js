@@ -2,10 +2,10 @@
 
 function calc() {
   var amount = parseVal('amount');
-  var ratePI = parseFloat(document.getElementById('rate-pi').value) || 0;
-  var rateIO = parseFloat(document.getElementById('rate-io').value) || 0;
-  var ioYears = parseInt(document.getElementById('io-years').value) || 0;
-  var term = parseInt(document.getElementById('term').value) || 30;
+  var ratePI = parseFloat(document.getElementById('rate-pi').value);
+  var rateIO = parseFloat(document.getElementById('rate-io').value);
+  var ioYears = parseInt(document.getElementById('io-years').value, 10) || 0;
+  var term = parseInt(document.getElementById('term').value, 10);
 
   var msgEl = document.getElementById('calc-msg');
   function showMsg(text) {
@@ -13,7 +13,10 @@ function calc() {
     if (msgEl) { msgEl.textContent = text; msgEl.hidden = false; }
   }
   if (!amount || amount <= 0) { showMsg('Enter a loan amount to compare.'); return; }
-  if (term <= 0) { showMsg('Enter a loan term (in years).'); return; }
+  // Blank or invalid inputs stop here instead of being replaced by a default.
+  if (!(term > 0)) { showMsg('Enter a loan term (in years).'); return; }
+  if (!(ratePI >= 0) || !(rateIO >= 0)) { showMsg('Enter both interest rates (0 or more).'); return; }
+  if (ioYears < 0) { showMsg('The interest-only period cannot be negative.'); return; }
   if (ioYears >= term) { showMsg('The interest-only period must be shorter than the loan term.'); return; }
   if (msgEl) msgEl.hidden = true;
 
@@ -60,7 +63,6 @@ ToolPage.init({
       {
         icon: '🏦', title: 'Lending Guidance',
         links: [
-          { text: 'APRA: Interest-Only Lending', href: 'https://www.apra.gov.au/' },
           { text: 'ASIC MoneySmart: Interest Only Loans', href: 'https://moneysmart.gov.au/home-loans/interest-only-home-loans' },
           { text: 'ASIC MoneySmart: Mortgage Calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' }
         ]
@@ -69,7 +71,6 @@ ToolPage.init({
         icon: '📊', title: 'Investor Tax',
         links: [
           { text: 'ATO: Rental Property Interest', href: 'https://www.ato.gov.au/individuals/investments-and-assets/residential-rental-properties/rental-property-expenses/interest-expenses/' },
-          { text: 'ATO: Negative Gearing', href: 'https://www.ato.gov.au/' }
         ]
       }
     ],
@@ -102,9 +103,10 @@ ToolPage.init({
         { k: 'Total term', v: '30 years' }
       ],
       outputs: [
-        { k: 'IO monthly (5 yr period)', v: '~$3,300' },
-        { k: 'P&I monthly', v: '~$3,694' },
-        { k: 'Extra interest vs P&I', v: '~$60,000+' }
+        { k: 'IO monthly (5 yr period)', v: '$3,300' },
+        { k: 'P&I monthly', v: '$3,694' },
+        { k: 'IO monthly after reverting to P&I', v: '$4,089' },
+        { k: 'Extra interest vs P&I', v: '$94,695' }
       ]
     },
     {
@@ -113,12 +115,14 @@ ToolPage.init({
         { k: 'Loan amount', v: '$850,000' },
         { k: 'P&I rate', v: '5.99%' },
         { k: 'IO rate', v: '6.25%' },
-        { k: 'IO period', v: '3 years' }
+        { k: 'IO period', v: '3 years' },
+        { k: 'Total term', v: '30 years' }
       ],
       outputs: [
-        { k: 'IO monthly', v: '~$4,427' },
-        { k: 'P&I monthly', v: '~$5,091' },
-        { k: 'Cash-flow saving/month', v: '~$664' }
+        { k: 'IO monthly', v: '$4,427' },
+        { k: 'P&I monthly', v: '$5,091' },
+        { k: 'Cash-flow saving/month', v: '$664' },
+        { k: 'Extra interest vs P&I', v: '$88,401' }
       ]
     },
     {
@@ -127,12 +131,13 @@ ToolPage.init({
         { k: 'Loan amount', v: '$400,000' },
         { k: 'P&I rate', v: '6.10%' },
         { k: 'IO rate', v: '6.35%' },
-        { k: 'IO period', v: '2 years' }
+        { k: 'IO period', v: '2 years' },
+        { k: 'Total term', v: '30 years' }
       ],
       outputs: [
-        { k: 'IO monthly', v: '~$2,117' },
-        { k: 'P&I monthly', v: '~$2,423' },
-        { k: 'Extra interest (IO path)', v: '~$18,000' }
+        { k: 'IO monthly', v: '$2,117' },
+        { k: 'P&I monthly', v: '$2,424' },
+        { k: 'Extra interest (IO path)', v: '$34,797' }
       ]
     }
   ],
@@ -142,7 +147,7 @@ ToolPage.init({
     { q: 'Can I extend the IO period beyond 5 years?',
       a: 'Investors can usually get up to 10 years of IO (sometimes split across multiple renewals). Owner-occupiers are typically capped at 5 years. Each extension requires a new serviceability assessment.' },
     { q: 'What happens when the IO period ends?',
-      a: 'The loan reverts to P&I over the remaining term. Because you have fewer years to amortise the full principal, repayments can jump 30–50%. This is called "payment shock." Plan for it — or refinance before it happens.' },
+      a: 'The loan reverts to P&I over the remaining term. Because you have fewer years to repay the full principal, the repayment rises. In this calculator, a $600,000 30-year loan at 6.60% with 5 years of IO goes from $3,300 to $4,089 a month, a 24% rise. A longer IO period or a shorter remaining term makes the rise bigger. Plan for it, or refinance before it happens.' },
     { q: 'Is IO a tax advantage for investors?',
       a: 'IO maximises deductible interest expenses against rental income (and other income if negatively geared). But it does not create a tax deduction out of thin air — you still pay the interest. IO is mainly a cash-flow and portfolio-leverage play, not a tax trick.' },
     { q: 'Should owner-occupiers ever choose IO?',

@@ -127,7 +127,7 @@ function calc() {
   var loan = price - deposit;
   var lvr = (loan / price) * 100;
   var stamp = stampDutyEstimate(price, state, fhb);
-  var legal = 2500; // Conveyancing + inspections (~$1500 + $1000 typical)
+  var legal = 2500; // Conveyancing + inspections: my rough allowance, no official source
   var lmi = lmiEstimate(loan, lvr);
   var total = deposit + stamp + legal + lmi;
 
@@ -167,7 +167,7 @@ ToolPage.init({
         icon: '💰', title: 'Lenders Mortgage Insurance',
         links: [
           { text: 'ASIC MoneySmart: LMI explained', href: 'https://moneysmart.gov.au/home-loans/lenders-mortgage-insurance' },
-          { text: 'APRA: Prudential Standards', href: 'https://www.apra.gov.au/' }
+          { text: 'APRA', href: 'https://www.apra.gov.au/' }
         ]
       },
       {
@@ -175,7 +175,7 @@ ToolPage.init({
         links: [
           { text: 'Revenue NSW', href: 'https://www.revenue.nsw.gov.au/' },
           { text: 'SRO Victoria', href: 'https://www.sro.vic.gov.au/' },
-          { text: 'QLD Office of State Revenue', href: 'https://qro.qld.gov.au/' }
+          { text: 'Queensland Revenue Office', href: 'https://qro.qld.gov.au/' }
         ]
       }
     ],
@@ -207,14 +207,15 @@ ToolPage.init({
         { k: 'First home buyer', v: 'Yes' }
       ],
       outputs: [
-        { k: 'Cash needed up-front', v: '~$77,000' },
+        { k: 'Cash needed up-front', v: '$78,615' },
         { k: 'Deposit portion', v: '$65,000' },
-        { k: 'Stamp duty (FHB concession)', v: '~$0' },
-        { k: 'LMI estimate', v: '~$10,500' }
+        { k: 'Stamp duty (first home concession)', v: '$0' },
+        { k: 'Legal + inspections', v: '$2,500' },
+        { k: 'LMI estimate', v: '$11,115' }
       ]
     },
     {
-      label: '$950,000 NSW investor purchase with 20% deposit',
+      label: '$950,000 NSW purchase with 20% deposit, not a first home buyer',
       inputs: [
         { k: 'Property price', v: '$950,000' },
         { k: 'Deposit', v: '20%' },
@@ -222,14 +223,14 @@ ToolPage.init({
         { k: 'First home buyer', v: 'No' }
       ],
       outputs: [
-        { k: 'Cash needed up-front', v: '~$228,000' },
+        { k: 'Cash needed up-front', v: '$229,438' },
         { k: 'Deposit portion', v: '$190,000' },
-        { k: 'Stamp duty', v: '~$33,250' },
-        { k: 'LMI estimate', v: 'Not required (20%)' }
+        { k: 'Stamp duty', v: '$36,938' },
+        { k: 'LMI estimate', v: 'Not required (20% deposit)' }
       ]
     },
     {
-      label: '$500,000 VIC property with 5% deposit (5% Deposit Scheme, formerly the First Home Guarantee)',
+      label: '$500,000 VIC first home with 5% deposit',
       inputs: [
         { k: 'Property price', v: '$500,000' },
         { k: 'Deposit', v: '5%' },
@@ -237,24 +238,25 @@ ToolPage.init({
         { k: 'First home buyer', v: 'Yes' }
       ],
       outputs: [
-        { k: 'Cash needed up-front', v: '~$27,500' },
+        { k: 'Cash needed up-front', v: '$43,650' },
         { k: 'Deposit portion', v: '$25,000' },
-        { k: 'Stamp duty (FHB waived)', v: '$0' },
-        { k: 'LMI (covered by FHG)', v: '$0' }
+        { k: 'Stamp duty (first home exemption)', v: '$0' },
+        { k: 'LMI estimate', v: '$16,150' },
+        { k: 'If the 5% Deposit Scheme removes the LMI', v: '$27,500 cash needed' }
       ]
     }
   ],
   faq: [
     { q: 'How much deposit do I actually need to buy a home in Australia?',
-      a: 'The standard is 20% of the purchase price to avoid Lenders Mortgage Insurance (LMI). You can buy with as little as 5% through the 5% Deposit Scheme (formerly the First Home Guarantee), or 10% with LMI paid. Remember to budget 3–5% extra for stamp duty, legals, and inspections.' },
+      a: 'The usual target is 20% of the purchase price, which avoids Lenders Mortgage Insurance (LMI). You can buy with as little as 5% through the 5% Deposit Scheme (formerly the First Home Guarantee), or with 10% and LMI paid. Stamp duty, legals and inspections come on top of the deposit, and the calculator above adds them up for your state.' },
     { q: 'What is Lenders Mortgage Insurance (LMI) and when do I pay it?',
-      a: 'LMI is insurance the lender takes out (but you pay for) when your deposit is below 20%. It protects the lender if you default. Premiums range from $8,000 to $25,000+ depending on loan size and LVR. It\'s usually capitalised onto your loan.' },
+      a: 'LMI is insurance the lender takes out (but you pay for) when your deposit is below 20%. It protects the lender if you default. In this calculator, a $650,000 purchase gives an LMI estimate of $4,420 with a 15% deposit, $11,115 with 10% and $20,995 with 5%. It\'s usually capitalised onto your loan.' },
     { q: 'Can I use my super for a deposit?',
       a: 'Yes — the First Home Super Saver Scheme lets eligible first home buyers release voluntary super contributions (plus earnings) to put toward a deposit. You can withdraw up to $50,000 of contributions, which are taxed concessionally.' },
     { q: 'Do parents\' guarantees reduce the deposit I need?',
       a: 'A family guarantee (parental guarantor loan) can reduce or eliminate the deposit by using the equity in a parent\'s home as additional security. This avoids LMI but ties the guarantor\'s property to your loan — seek legal advice first.' },
     { q: 'What upfront costs beyond the deposit should I budget for?',
-      a: 'Stamp duty (the biggest — up to 6% of price depending on state), conveyancing ($1,000–$2,000), building/pest inspections ($500–$1,000), loan application fees ($0–$800), and moving costs. Budget 3–5% of the purchase price for these.' }
+      a: 'Stamp duty is usually the largest. This calculator also allows $2,500 for conveyancing and inspections, which is my rough estimate, and adds LMI if your deposit is under 20%. Loan application fees and moving costs are not included here. The cost of purchase calculator covers those.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty' },

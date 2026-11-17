@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Interest Only vs Principal Calculator Australia","url":"https://equitysight.app/tools/interest-only-vs-principal-calculator","description":"Free Australian calculator comparing Interest Only and Principal + Interest home loans.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Interest Only vs Principal Calculator"}]}
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Interest Only vs Principal Calculator"}]}
 </script>
 </head>
 <body>
@@ -147,7 +147,6 @@
 </div>
 
 <section class="tool-content">
-  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">Last reviewed 12 July 2026 · rates and thresholds verified against official FY2026-27 sources.</p>
   <h2>Interest-only vs principal and interest</h2>
   <p>Every Australian home loan repayment is built from two parts: <strong>interest</strong> (the lender's charge for lending you the money) and <strong>principal</strong> (the actual loan balance you owe). The repayment structure you choose decides whether you pay down that balance from day one or leave it untouched for a while. A <strong>Principal &amp; Interest (P&amp;I)</strong> loan chips away at both with every repayment, so the debt steadily shrinks and your equity grows. An <strong>Interest Only (IO)</strong> loan pauses the principal portion for a set period — usually one to five years for owner-occupiers, and up to ten years for some investors — so during that window you pay only the interest and your balance stays exactly where it started.</p>
   <p>This matters in Australia because IO lending sits under close regulatory watch and almost always costs more over the full life of the loan. The trade-off is purely about timing and cash flow: IO frees up money in the short term, while P&amp;I costs more each month now but builds equity and reduces lifetime interest. This calculator puts both side by side so you can see the monthly cash-flow saving against the extra interest you pay for it.</p>
@@ -164,7 +163,7 @@
     <li><strong>P&amp;I from day one:</strong> repayments are roughly $3,694 a month for the whole 30 years.</li>
     <li><strong>Interest Only for 5 years:</strong> at 6.60% on $600,000, interest-only repayments are $600,000 × 6.60% ÷ 12 = <strong>$3,300 a month</strong> — a cash-flow saving of close to $400 each month during the IO window.</li>
     <li><strong>The reversion:</strong> after 5 years the balance is still $600,000, but it now has to be repaid over the remaining 25 years. At 6.60% that pushes repayments up to about <strong>$4,090 a month</strong> — roughly a 24% jump from the IO repayment, and higher than the original P&amp;I figure.</li>
-    <li><strong>Lifetime interest:</strong> because nothing was paid off in the first 5 years, the IO path racks up tens of thousands of dollars more in total interest than the P&amp;I-from-the-start path.</li>
+    <li><strong>Lifetime interest:</strong> the calculator shows total interest of $824,644 on the IO path against $729,949 for P&amp;I from the start, which is $94,695 more.</li>
   </ul>
   <p>These figures are illustrative and depend on the exact rate and reversion terms your lender applies — change the inputs above to model your own loan.</p>
 
@@ -190,7 +189,7 @@
   <p>The lower repayment only covers interest, so your loan balance never shrinks during the IO period. You then pay interest on that full balance for longer, and the IO rate is typically higher to begin with. The lower monthly cost now is effectively borrowed against a higher total cost later.</p>
 
   <h3>How big is the repayment jump when Interest Only ends?</h3>
-  <p>It depends on the IO length and remaining term, but a jump in the order of 20–50% is common. The full balance must be repaid over a shorter remaining term, so the principal is compressed into fewer years. The calculator's "after IO period reverts to P&amp;I" figure shows your specific increase.</p>
+  <p>It depends on the IO length and remaining term. In the worked example above the repayment rises 24%, from $3,300 to $4,089 a month. The full balance must be repaid over a shorter remaining term, so a longer IO period makes the rise bigger. The calculator's "after IO period reverts to P&amp;I" figure shows your specific increase.</p>
 
   <h3>Is the interest on an Interest Only loan tax-deductible?</h3>
   <p>For an investment property, interest is generally deductible against your assessable income whether the loan is IO or P&amp;I — the structure doesn't change deductibility, only how much interest you pay. Principal repayments are never deductible. For an owner-occupied home, neither interest nor principal is deductible. Always confirm your position with the Australian Taxation Office (<a href="https://www.ato.gov.au" rel="nofollow">ato.gov.au</a>) or a registered tax agent.</p>
@@ -203,7 +202,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -214,6 +213,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -234,6 +235,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

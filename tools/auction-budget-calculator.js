@@ -424,7 +424,7 @@ function renderMedianAnchor() {
     }
   }
   if (typeof rec.r === 'number') {
-    parts.push('Median weekly rent: $' + Math.round(rec.r).toLocaleString() + '/wk — ' + escHtml(_srcCaption(rentKey)) + '.');
+    parts.push('Median weekly rent: $' + Math.round(rec.r).toLocaleString('en-AU') + '/wk — ' + escHtml(_srcCaption(rentKey)) + '.');
   }
   if (!anchor && typeof rec.r === 'number') {
     parts.push('No free public sale-price data exists for ' + escHtml(SC) +
@@ -468,8 +468,11 @@ function renderBidPlan(W) {
   var body = document.getElementById('bid-plan-body');
   if (!body) return;
   var open = Math.max(0, Math.floor((W * 0.9) / 1000) * 1000);
-  var html = '<tr><td>Likely opening</td><td>~' + fmt(open) + '</td><td>—</td>' +
-    '<td>Auctions often open around 10% under where they finish</td></tr>';
+  // The first row is only a pacing reference set 10% below the buyer's own
+  // ceiling. The tool knows nothing about the property, so it does not
+  // predict where bidding will open.
+  var html = '<tr><td>Reference point</td><td>' + fmt(open) + '</td><td>—</td>' +
+    '<td>10% below your ceiling. Not a prediction of the opening bid</td></tr>';
   var bands = [
     { label: 'Early bidding', to: W - 50000, inc: 20000, note: 'Prompt, confident, round numbers' },
     { label: 'Mid auction', to: W - 20000, inc: 10000, note: 'Hold a steady rhythm' },

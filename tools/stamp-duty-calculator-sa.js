@@ -40,6 +40,9 @@ function calcSADuty(price, ptype, buyer, fhb) {
     var slide = (SA_FHB_PARTIAL - v) / (SA_FHB_PARTIAL - SA_FHB_FULL);
     return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
   }
+  if (fhb && ptype === 'land') {
+    return { duty: standard, note: 'SA first home relief can cover vacant land you build a home on. This page does not model it, so standard duty is shown.' };
+  }
   if (fhb) {
     return { duty: standard, note: 'SA first-home stamp-duty relief applies to new homes and vacant land only — established homes pay full duty.' };
   }
@@ -56,7 +59,8 @@ function calculate() {
   if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
   var foreignEl = document.getElementById('foreign');
   var isForeign = foreignEl ? foreignEl.checked : false;
@@ -90,10 +94,13 @@ function calculate() {
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -116,7 +123,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on South Australia 2026-27 stamp duty on conveyances. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on South Australia 2026-27 stamp duty on conveyances. LMI is a rough estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -273,32 +280,8 @@ ToolPage.init({
     ]
   }
 ],
-  faq: [
-  {
-    "q": "How does stamp duty work in South Australia?",
-    "a": "SA stamp duty on conveyances is charged by RevenueSA on the dutiable value of any property purchase. Rates step up across nine brackets: 1% up to $12,000, 2% to $30,000, 3% to $50,000, 3.5% to $100,000, 4% to $200,000, 4.25% to $250,000, 4.75% to $300,000, 5% to $500,000, and 5.5% on the portion above $500,000. Owner-occupiers and investors pay the same standard rates on established dwellings."
-  },
-  {
-    "q": "Do first home buyers pay stamp duty in SA?",
-    "a": "SA first home buyer stamp duty relief is limited to new homes and vacant land used to build a new home — there is no value-based exemption and established (existing) homes do not qualify. Because this calculator cannot tell a new build from an established dwelling, it quotes full standard duty for first home buyers; if you are buying or building a new home, check RevenueSA for the current new-build relief."
-  },
-  {
-    "q": "When is stamp duty due in SA?",
-    "a": "SA stamp duty is payable within two months of the dutiable transaction — usually two months from contract date. Your conveyancer normally pays RevenueSA at settlement. Late payment attracts interest and penalty tax under the Taxation Administration Act 1996 (SA)."
-  },
-  {
-    "q": "What is the SA foreign ownership surcharge?",
-    "a": "A 7% foreign ownership surcharge applies in addition to standard stamp duty when a foreign person acquires residential property in South Australia. The surcharge is collected by RevenueSA at the same time as the standard duty. Australian citizens and permanent residents are not foreign persons for this surcharge."
-  },
-  {
-    "q": "Why does SA not exempt established homes from FHB stamp duty?",
-    "a": "The SA government has chosen to direct first home buyer stamp duty relief at new builds and vacant land specifically to incentivise housing supply growth. Established homes remain at full standard rates for first home buyers. The First Home Owner Grant (separate from stamp duty relief) is also limited to new builds in SA."
-  },
-  {
-    "q": "Is SA stamp duty tax deductible?",
-    "a": "No. Stamp duty paid on an investment property in SA is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."
-  }
-],
+  // FAQ: shown once, as static HTML in the page (the same text is in its
+  // JSON-LD). There is no JS copy here, so the two cannot drift apart.
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },

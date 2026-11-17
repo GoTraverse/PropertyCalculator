@@ -37,17 +37,7 @@
 <link rel="stylesheet" href="../tools.css">
 <script src="../adsense.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[
-{"@type":"WebApplication","name":"Australian Mortgage Repayment Calculator","url":"https://equitysight.app/tools/mortgage-repayment-calculator","description":"Free Australian mortgage repayment calculator with true fortnightly savings, extra repayment scenarios, offset account simulation, LMI estimate and year-by-year amortisation schedule.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"},"areaServed":{"@type":"Country","name":"Australia"}},
-{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Mortgage Repayment Calculator"}]},
-{"@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"How is fortnightly different from monthly divided by 2?","acceptedAnswer":{"@type":"Answer","text":"In a true fortnightly schedule you pay half the monthly amount every 14 days. 26 fortnights per year = 13 monthly payments instead of 12. On a $600k 30-year 6.25% loan that extra month each year pays off the loan ~4-5 years earlier and saves around $110,000 in interest."}},
-{"@type":"Question","name":"How does the offset balance reduce my interest?","acceptedAnswer":{"@type":"Answer","text":"An offset account is a transaction account linked to your home loan. Interest is calculated each day on (loan balance minus offset balance). The scheduled monthly repayment stays the same, but more of it goes to principal — accelerating payoff."}},
-{"@type":"Question","name":"How accurate is the LMI estimate?","acceptedAnswer":{"@type":"Answer","text":"The LMI figure is an industry-average estimate based on tiered LVR bands. Actual quotes vary by lender, insurer, property type, and borrower profile. Use this as an upper-bound budgeting figure; get a formal quote from your lender before settlement."}},
-{"@type":"Question","name":"Should I make extra repayments?","acceptedAnswer":{"@type":"Answer","text":"On variable loans, yes — most have no break fees. Even $100/month extra on a $500,000 30-year 6% loan saves around $70,000 in interest and pays off about 3 years earlier."}},
-{"@type":"Question","name":"What happens after the interest-only period ends?","acceptedAnswer":{"@type":"Answer","text":"When IO ends, your loan reverts to principal plus interest over the REMAINING term. On a 30-year loan with 5 years IO, the P&I phase only has 25 years to repay the full principal — so your monthly payment jumps significantly."}}
-]}
-]}
+{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"Australian Mortgage Repayment Calculator","url":"https://equitysight.app/tools/mortgage-repayment-calculator","description":"Free Australian mortgage repayment calculator with true fortnightly savings, extra repayment scenarios, offset account simulation, LMI estimate and year-by-year amortisation schedule.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"},"areaServed":{"@type":"Country","name":"Australia"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Mortgage Repayment Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How is fortnightly different from \"monthly ÷ 2\"?","acceptedAnswer":{"@type":"Answer","text":"In a half-monthly fortnightly schedule you pay half the monthly amount every 14 days. There are 26 fortnights per year, which is 13 monthly payments instead of 12. On a $600,000 30-year 6.25% loan this calculator shows the loan paid off 5 years 8 months earlier and $162,171 less interest. The figure comes from simulating the schedule, not from dividing the monthly amount by two."}},{"@type":"Question","name":"How does the offset balance reduce my interest?","acceptedAnswer":{"@type":"Answer","text":"An offset account is a transaction account linked to your home loan. Interest is calculated each day on (loan balance − offset balance). The scheduled monthly repayment stays the same, but more of it goes to principal, so the loan is paid off sooner. Keeping $20,000 in an offset on a $500,000 loan means interest is charged on $480,000."}},{"@type":"Question","name":"How accurate is the LMI estimate?","acceptedAnswer":{"@type":"Answer","text":"The LMI figure is a rough estimate from tiered LVR bands (none at 80% or below, ~0.8% up to 85%, ~1.9% up to 90%, ~3.4% up to 95%, ~4.3% above). The tiers are my working figures, not an insurer rate card. Actual quotes vary by lender, insurer (Helia / QBE), property type and borrower. Use it as a rough budgeting figure and get a formal quote from your lender before settlement."}},{"@type":"Question","name":"Should I make extra repayments?","acceptedAnswer":{"@type":"Answer","text":"On variable loans you usually can without break fees. In this calculator, $100/month extra on a $500,000 30-year 6% loan saves $57,325 in interest and pays the loan off 2 years 6 months earlier. On fixed loans, check your contract, because many cap extra repayments during the fixed term."}},{"@type":"Question","name":"What happens after the interest-only period ends?","acceptedAnswer":{"@type":"Answer","text":"When IO ends, your loan reverts to principal + interest over the REMAINING term. On a 30-year loan with 5 years IO, the P&I phase only has 25 years to repay the full principal — so your monthly payment jumps significantly. This calculator shows both: IO monthly while in the IO period, and the higher post-IO P&I monthly."}},{"@type":"Question","name":"Are weekly repayments better than fortnightly?","acceptedAnswer":{"@type":"Answer","text":"Slightly. This calculator shows the weekly amount as a quarter of the monthly repayment. Paid 52 times a year that is the same annual total as the fortnightly schedule, so the saving is about the same, with weekly a little ahead because each payment lands earlier. Most people choose the frequency that matches their pay cycle."}},{"@type":"Question","name":"Why does my actual repayment from the bank differ slightly?","acceptedAnswer":{"@type":"Answer","text":"Banks round repayments and charge interest daily, so the number of days in each month and the settlement date move the figure slightly. This calculator uses the standard amortisation formula with 12 equal periods per year."}}]}]}
 </script>
 </head>
 <body>
@@ -132,16 +122,20 @@
 
     <div class="tool-grid">
       <div class="tool-stat highlight">
-        <div class="tool-stat-label">Monthly repayment</div>
+        <div class="tool-stat-label" id="r-monthly-label">Monthly repayment</div>
         <div class="tool-stat-value" id="r-monthly">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Fortnightly (half-monthly)</div>
+        <div class="tool-stat-label" id="r-fortnightly-label">Fortnightly (half-monthly)</div>
         <div class="tool-stat-value" id="r-fortnightly">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Weekly (quarter-monthly)</div>
+        <div class="tool-stat-label" id="r-weekly-label">Weekly (quarter-monthly)</div>
         <div class="tool-stat-value" id="r-weekly">—</div>
+      </div>
+      <div class="tool-stat full" id="r-postio-wrap" style="display:none;">
+        <div class="tool-stat-label">Monthly repayment after the interest-only period (P&amp;I)</div>
+        <div class="tool-stat-value" id="r-postio">—</div>
       </div>
       <div class="tool-stat">
         <div class="tool-stat-label">Total interest over term</div>
@@ -197,7 +191,7 @@
       </div>
     </div>
 
-    <p class="tool-disclaimer">Estimates only. Actual repayments depend on your lender, fees, rate changes, offset use, and rounding conventions. LMI figure is an industry-average estimate — get a formal quote before settlement.</p>
+    <p class="tool-disclaimer">Estimates only. Actual repayments depend on your lender, fees, rate changes, offset use, and rounding conventions. LMI figure is a rough estimate — get a formal quote before settlement.</p>
   </div>
 
   <div class="ad-slot" data-ad-type="calculator"></div>
@@ -236,19 +230,19 @@
   </table>
   <p class="tool-disclaimer">Principal-and-interest repayments over 30 years, before fees and offset effects. A $600,000 loan at 6.0% costs $3,597 a month — the same loan at 6.5% costs $3,792, so a half-percent rate difference is $195 a month, or about $70,238 over the life of the loan.</p>
 
-  <h2>Why true fortnightly repayments beat monthly ÷ 2</h2>
+  <h2>Why half-monthly fortnightly repayments beat monthly</h2>
   <p>Most banks let you pay half your monthly repayment every 14 days. There are <strong>26 fortnights per year</strong>, not 24, so this schedule delivers the equivalent of <strong>13 monthly payments per year instead of 12</strong>. That extra month of principal compounds over the life of the loan.</p>
-  <p>On a $600,000 30-year 6.25% mortgage, switching from monthly to true fortnightly pays the loan off approximately 4-5 years earlier and saves around $110,000 in interest. This calculator simulates the actual fortnightly schedule and shows you the real saving, not just <code>monthly ÷ 2</code>.</p>
+  <p>On a $600,000 30-year 6.25% mortgage, this calculator shows that switching from monthly to half-monthly fortnightly repayments pays the loan off 5 years 8 months earlier and saves $162,171 in interest. The figure comes from simulating the fortnightly schedule, not from <code>monthly ÷ 2</code> alone.</p>
 
-<details class="tool-content-more"><summary>Show full guide — offset, LMI, IO vs P&I, extras, 2026 context</summary>
+<details class="tool-content-more"><summary>Show full guide — offset, LMI, IO vs P&I, extras, rates</summary>
 
   <h2>How an offset account saves you interest</h2>
   <p>An offset is a transaction account linked to your home loan. Interest is calculated each day on <strong>(loan balance − offset balance)</strong>. Your scheduled repayment doesn't change, but a smaller portion goes to interest — so more goes to principal, accelerating payoff.</p>
-  <p>Keeping $20,000 in an offset on a $500,000 30-year 6.25% loan saves approximately $90,000 in interest over the life of the loan and pays it off about 1.5 years earlier — without changing your monthly cash-flow at all. It's the equivalent of a guaranteed after-tax return at your home loan rate.</p>
+  <p>Keeping $20,000 in an offset on a $500,000 30-year 6.25% loan saves $97,632 in interest over the life of the loan in this calculator and pays it off 2 years 7 months earlier, without changing the monthly repayment.</p>
 
   <h2>Lenders Mortgage Insurance (LMI) estimate</h2>
   <p>If your loan-to-value ratio (LVR) exceeds 80% you'll typically pay LMI — a one-off premium that protects the lender (not you) if you default. LMI is usually capitalised onto the loan, so you pay interest on it for the life of the loan.</p>
-  <p>This calculator uses the following industry-average tiers as a starting estimate:</p>
+  <p>This calculator uses the following tiers as a rough estimate. They are my working figures, not an insurer's rate card:</p>
   <table class="tool-table" style="width:100%;border-collapse:collapse;margin:16px 0">
     <thead>
       <tr><th style="text-align:left;padding:8px;border-bottom:2px solid currentColor">LVR band</th><th style="text-align:right;padding:8px;border-bottom:2px solid currentColor">LMI estimate</th></tr>
@@ -266,23 +260,23 @@
   <h2>Interest-only vs principal and interest</h2>
   <p><strong>Principal + Interest (P&amp;I)</strong> is standard for owner-occupiers. Every repayment reduces the loan balance.</p>
   <p><strong>Interest Only (IO)</strong> means you only pay interest for a fixed period (typically 1–5 years), then revert to P&amp;I over the remaining term. IO is popular with investors for tax purposes — the interest is fully deductible — and for short-term cash-flow management. The catch: when IO ends, the same principal must be repaid over a shorter remaining term, so the P&amp;I monthly is materially higher than if you'd been on P&amp;I from day one.</p>
-  <p>Example: $400,000 loan, 5 years IO, 30-year total term, 6.75% rate. IO monthly = $2,250. After 5 years the remaining 25 years pay off the full $400,000 — P&amp;I monthly = $2,775 (~23% higher than IO).</p>
+  <p>Example: $400,000 loan, 5 years IO, 30-year total term, 6.75% rate. The IO repayment is $2,250 a month. After 5 years the remaining 25 years pay off the full $400,000, and the P&amp;I repayment is $2,764 a month (about 23% higher than IO). Total interest over the 30 years is $564,094.</p>
 
   <h2>How much extra repayments save you</h2>
   <p>On a $500,000 30-year P&amp;I loan at 6%:</p>
   <ul>
-    <li><strong>+$100/month extra</strong> = pay off ~3 years earlier, save ~$70,000 interest</li>
-    <li><strong>+$250/month extra</strong> = pay off ~6 years earlier, save ~$140,000 interest</li>
-    <li><strong>+$500/month extra</strong> = pay off ~10 years earlier, save ~$220,000 interest</li>
+    <li><strong>+$100/month extra</strong> = paid off 2 years 6 months earlier, $57,325 less interest</li>
+    <li><strong>+$250/month extra</strong> = paid off 5 years 5 months earlier, $122,846 less interest</li>
+    <li><strong>+$500/month extra</strong> = paid off 9 years earlier, $199,501 less interest</li>
   </ul>
   <p>Variable-rate loans generally allow extra repayments without penalty. Fixed-rate loans often cap extras (commonly $10,000/year) during the fixed term — check your contract.</p>
 
   <h2>Why this differs slightly from a bank quote</h2>
-  <p>Banks usually round the monthly repayment to the nearest dollar or 10 cents. Some lenders use a 365.25/12 day convention versus 365/12, producing a daily-rate that's 0.05–0.10 bp different. ANZ, Westpac, CommBank and NAB also have slightly different "first payment" handling (interest accrual from settlement date vs first scheduled payment date). These factors typically move the monthly figure by less than $10 on a $600,000 loan.</p>
+  <p>Banks usually round the monthly repayment, and they charge interest daily, so the number of days in each month and the settlement date change the first few repayments slightly. This calculator uses twelve equal monthly periods.</p>
 
-  <h2>The 2026 Australian mortgage picture</h2>
-  <p>Variable rates in Australia are pinned to the RBA cash rate. As of early 2026, the cash rate target is in the high-3% band after the 2024-25 cutting cycle. Owner-occupier variable rates from the big four are typically <strong>cash rate + 2.0% to 2.5%</strong>, putting headline rates around 5.99–6.49%. Investor rates carry a 30-50 bp premium.</p>
-  <p>APRA's serviceability buffer (3% above the contract rate, in effect since October 2021) is the biggest single driver of how much you can borrow — see our <a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a>.</p>
+  <h2>Rates and the serviceability buffer</h2>
+  <p>Variable home loan rates move with the RBA cash rate, so the rate you enter above will not hold for the life of the loan. Re-run the numbers when your rate changes.</p>
+  <p>APRA's serviceability buffer (3% above the contract rate, in effect since October 2021) has a large effect on how much you can borrow. See the <a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a>.</p>
 
 </details>
 </section>
@@ -291,7 +285,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -302,6 +296,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -322,6 +318,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

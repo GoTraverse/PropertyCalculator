@@ -180,7 +180,7 @@ window.toggleTheme = function(){
         '<div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">' +
           '<div>' +
             '<div style="font-family:\u0027Geist Mono\u0027,monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">SUPPORT</div>' +
-            '<div style="font-family:\u0027Geist\u0027,sans-serif;font-size:17px;font-weight:700;color:#F5F0E8;">Send us a message</div>' +
+            '<div style="font-family:\u0027Geist\u0027,sans-serif;font-size:17px;font-weight:700;color:#F5F0E8;">Send me a message</div>' +
           '</div>' +
           '<button id="anav-cf-close-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>' +
         '</div>' +
@@ -202,8 +202,8 @@ window.toggleTheme = function(){
               '<option value="other">Other</option>' +
             '</select>' +
           '</div>' +
-          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" placeholder="Tell us what\u0027s on your mind..."></textarea></div>' +
-          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to our <a href="/privacy" style="color:#C9A84C;">Privacy Policy</a>. We\u0027ll only use your email to respond.</div>' +
+          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" placeholder="What do you need help with?"></textarea></div>' +
+          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to my <a href="/privacy" style="color:#C9A84C;">Privacy Policy</a>. I only use your email to reply.</div>' +
           '<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">' +
             '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:\u0027Geist Mono\u0027,monospace;"></div>' +
             '<button id="anav-cf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\u0027Geist Mono\u0027,monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
@@ -213,7 +213,7 @@ window.toggleTheme = function(){
         '<div id="anav-cf-success" style="display:none;padding:40px 22px;text-align:center;">' +
           '<div style="font-size:36px;margin-bottom:12px;">✅</div>' +
           '<div style="font-size:20px;font-weight:700;color:#1C1C1E;margin-bottom:8px;">Message sent!</div>' +
-          '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">We\u0027ll get back to you within 24 hours.</div>' +
+          '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">I read every message myself. A reply can take a few days.</div>' +
           '<button id="anav-cf-success-close-btn" style="background:#1C1C1E;color:#C9A84C;border:none;padding:11px 24px;border-radius:4px;font-family:\u0027Geist Mono\u0027,monospace;font-size:11px;cursor:pointer;font-weight:600;">Close</button>' +
         '</div>' +
       '</div>';
@@ -305,7 +305,7 @@ window.toggleTheme = function(){
       diagnostics.screen      = screen.width+'x'+screen.height;
       diagnostics.viewport    = window.innerWidth+'x'+window.innerHeight;
       diagnostics.dpr         = String(window.devicePixelRatio||1);
-      diagnostics.page        = window.location.href;
+      diagnostics.page        = window.location.origin + window.location.pathname; // no query string: it can carry a share token
       diagnostics.standalone  = String(window.matchMedia('(display-mode: standalone)').matches);
       diagnostics.darkMode    = String(document.documentElement.classList.contains('dark-mode'));
       diagnostics.online      = String(navigator.onLine);
@@ -343,6 +343,21 @@ window.toggleTheme = function(){
     if (!parts.length) return '?';
     if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  // The /app purchase calculator is parked: it keeps working for people who
+  // already use it, but is not offered to new accounts. Show its menu item only
+  // to paid subscribers, admins, anyone currently on /app, and browsers that
+  // hold a saved scenario or an in-progress draft from it.
+  function usesCalculator(session, page) {
+    if (page === 'app') return true;
+    if (session.plan === 'pro' || session.plan === 'adviser' || session.role === 'admin') return true;
+    try {
+      var saved = JSON.parse(localStorage.getItem('propCalc_v5_index') || '[]');
+      if (Array.isArray(saved) && saved.length) return true;
+      if (localStorage.getItem('propCalc_draft_v1')) return true;
+    } catch (e) {}
+    return false;
   }
 
   window.siteSignOut = function() {
@@ -408,7 +423,7 @@ window.toggleTheme = function(){
 
       actions.innerHTML =
         '<div style="display:flex;align-items:center;gap:10px;">' +
-          '<button id="anav-help-btn" title="Send us a message">?</button>' +
+          '<button id="anav-help-btn" title="Send me a message">?</button>' +
         '<div style="position:relative;" id="site-profile-wrap">' +
           '<button id="site-profile-btn"' +
           ' style="width:42px;height:42px;border-radius:50%;background:' + (photo ? 'transparent' : color) + ';' +
@@ -427,7 +442,7 @@ window.toggleTheme = function(){
             '</div>' +
             '<div style="padding:2px 0;">' +
               '<a href="/journey" class="anav-item' + (page==='journey'?' active':'') + '">My Journey</a>' +
-              '<a href="/app" class="anav-item' + (page==='app'?' active':'') + '">Open Calculator</a>' +
+              (usesCalculator(session, page) ? '<a href="/app" class="anav-item' + (page==='app'?' active':'') + '">Open Calculator</a>' : '') +
               '<a href="/account" class="anav-item' + (page==='account'?' active':'') + '">Account Settings</a>' +
               (session.role === 'admin' ? '<a href="/admin" class="anav-item' + (page==='admin'?' active':'') + '">Admin Dashboard</a>' : '') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
@@ -576,7 +591,8 @@ window.toggleTheme = function(){
     initHamburger();
   }
 })();
-// and reloads the page if needed so feature gates update without re-login.
+// Session refresh: re-verifies the session so plan/role changes show up in the
+// nav without a fresh sign-in, and clears a stale local session.
 (function() {
   function refreshSession() {
     try {

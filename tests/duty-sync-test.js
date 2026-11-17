@@ -80,9 +80,39 @@ expect('QLD $750k FHB', engines['journey'].fhb('qld', 750000), 10925);
 expect('QLD $700k FHB (full exemption)', engines['journey'].fhb('qld', 700000), 0);
 expect('VIC $600k FHB (full exemption)', engines['journey'].fhb('vic', 600000), 0);
 
+// ── Other journey sync copies ────────────────────────────────────────────
+// journey.js also carries the title-office registration fees (from
+// tools/stamp-duty-calculator.js) and the tax + living-cost functions behind
+// its borrowing estimate (from tools/borrowing-power-calculator.js).
+function between(file, startToken, endToken) {
+  const src = fs.readFileSync(path.join(root, file), 'utf8');
+  const a = src.indexOf(startToken);
+  const b = src.indexOf(endToken, a);
+  if (a === -1 || b === -1) throw new Error('anchors not found in ' + file + ': ' + startToken);
+  return src.slice(a, b);
+}
+const regSrc = new Function(between('tools/stamp-duty-calculator.js', 'var REG_FEES', 'function updateState') + '\nreturn regFeesTotal;')();
+const regJourney = new Function(between('journey.js', '  var REG_FLAT', '  // ── end registration sync copy') + '\nreturn regFeesTotal;')();
+for (const st of STATES) {
+  for (const v of PRICES.concat([4000, 15000, 35000, 60000, 90000, 150000, 180000, 185000, 205000])) {
+    const a = regSrc(st, v), b = regJourney(st, v);
+    if (!close(a, b)) { fails++; console.error('DRIFT registration fees journey', st, v, '→', b, 'vs source', a); }
+  }
+}
+const bpSrc = new Function(between('tools/borrowing-power-calculator.js', 'function approxTax', '// ── Lender-discount factor') + '\nreturn { approxTax: approxTax, hemMonthly: hemMonthly };')();
+const bpJourney = new Function(between('journey.js', '  function approxTax', '  // ── end borrowing sync copy') + '\nreturn { approxTax: approxTax, hemMonthly: hemMonthly };')();
+for (const g of [0, 18200, 20000, 28011, 30000, 35013, 45000, 60000, 95000, 135000, 160000, 190000, 250000, 400000]) {
+  if (!close(bpSrc.approxTax(g), bpJourney.approxTax(g))) { fails++; console.error('DRIFT approxTax journey', g); }
+  for (const adults of [1, 2]) for (const deps of [0, 1, 2, 3]) {
+    if (!close(bpSrc.hemMonthly(g, adults, deps), bpJourney.hemMonthly(g, adults, deps))) { fails++; console.error('DRIFT hemMonthly journey', g, adults, deps); }
+  }
+}
+
 if (fails) {
   console.error('\n' + fails + ' duty-engine drift failure(s). Update ALL sync copies together:');
   console.error('tools/stamp-duty-calculator.js → tools/auction-budget-calculator.js + journey.js');
+  console.error('tools/borrowing-power-calculator.js (approxTax, hemMonthly) → journey.js');
   process.exit(1);
 }
 console.log('duty-sync-test: all 3 engines agree across', STATES.length, 'states ×', PRICES.length, 'prices ✓');
+console.log('duty-sync-test: journey registration-fee and borrowing-estimate copies match their sources ✓');

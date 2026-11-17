@@ -118,7 +118,10 @@ button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset:
 .jduty-note b { color: var(--sage); font-family: var(--font-mono); font-size: 12.5px; }
 
 /* Pathway cards */
-.jpaths { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 14px; }
+/* Two columns: four paths sit as a 2 x 2 grid, never 3 + 1 with the recommended
+   path alone on its own row. */
+.jpaths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 560px) { .jpaths { grid-template-columns: 1fr; } }
 .jpath { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 18px; }
 .jpath.best { border-color: var(--gold); border-width: 2px; }
 .jflag { display: block; color: var(--gold-dark); font-size: 14px; margin-bottom: 2px; }
@@ -257,7 +260,7 @@ html.dark-mode .jdays.urgent { background: rgba(196,112,74,0.24); color: var(--t
 html.dark-mode .chip { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
 
 /* ── v2 additions: eligibility, inspections, signup moment ── */
-.jelig { font-size: 12px; color: var(--terracotta); margin-top: 10px; line-height: 1.5; }
+.jelig { font-size: 12.5px; color: #8F4526; margin-top: 10px; line-height: 1.5; }
 .jpath.inelig { opacity: 0.75; }
 .mono-strong { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
 
@@ -531,3 +534,26 @@ html.dark-mode .jfaq-item summary { color: var(--cream); }
 html.dark-mode .jfaq-item summary:hover { color: var(--gold); }
 html.dark-mode .jfaq-item p { color: rgba(245,240,232,0.65); }
 html.dark-mode .jfaq-item a { color: var(--gold); }
+
+/* ── Nov 2026: validation messages, sync state, focus targets ── */
+.jerr { color: #8F4526; font-size: 13.5px; line-height: 1.5; margin: 8px 0 0; font-weight: 600; }
+html.dark-mode .jerr { color: var(--terracotta-light); }
+.jwiz-input[aria-invalid="true"] { border-bottom-color: var(--terracotta) !important; }
+h3.jwiz-q { margin: 0; }
+.jwiz-q:focus, .jstephead h2:focus, .jgreet h1:focus, [tabindex="-1"]:focus { outline: none; }
+.jwiz-count { font-size: 12.5px; color: var(--slate); margin: -12px 0 10px; }
+.jwiz-note { font-size: 14px; line-height: 1.55; color: var(--charcoal); background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.35); border-radius: 8px; padding: 10px 14px; margin: 0 0 18px; }
+html.dark-mode .jwiz-note { color: var(--cream); }
+html.dark-mode .jwiz-count { color: rgba(245,240,232,0.62); }
+.jverdict-line { font-size: 14.5px; line-height: 1.55; font-weight: 600; padding: 10px 14px; border-radius: 8px; }
+.jverdict-line.good { color: #2F5A40; background: rgba(123,158,135,0.16); }
+.jverdict-line.warn { color: #8F4526; background: rgba(196,112,74,0.12); }
+html.dark-mode .jverdict-line.good { color: var(--sage-light); }
+html.dark-mode .jverdict-line.warn { color: var(--terracotta-light); }
+.jsaved.bad { color: #8F4526; font-weight: 600; }
+.jsaved.bad .jpip { background: var(--terracotta); }
+html.dark-mode .jsaved.bad { color: var(--terracotta-light); }
+.jsaved { text-align: left; }
+.jshare-live { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 13px; color: var(--slate); }
+.jshare-live:empty { display: none; }
+html.dark-mode .jshare-live { color: rgba(245,240,232,0.62); }

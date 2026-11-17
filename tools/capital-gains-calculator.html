@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Capital Gains Tax Calculator Australia","url":"https://equitysight.app/tools/capital-gains-calculator","description":"Free Australian capital gains tax calculator. Apply 50% CGT discount and calculate tax at marginal rates on property sales.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Capital Gains Tax Calculator"}]}
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Capital Gains Tax Calculator"}]}
 </script>
 </head>
 <body>
@@ -129,7 +129,7 @@
         <div class="tool-stat-value" id="r-costbase">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Discounted gain (after 50% discount)</div>
+        <div class="tool-stat-label">Taxable gain (after the 50% discount, if it applies)</div>
         <div class="tool-stat-value" id="r-discount">—</div>
       </div>
       <div class="tool-stat">
@@ -137,7 +137,7 @@
         <div class="tool-stat-value" id="r-newincome">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Net proceeds after tax</div>
+        <div class="tool-stat-label">Net gain after tax (sale price − cost base − CGT)</div>
         <div class="tool-stat-value" id="r-net">—</div>
       </div>
     </div>
@@ -172,7 +172,7 @@
     <li><strong>Discounted gain</strong> = gross gain × 50% (only if you are an individual and held the asset for more than 12 months).</li>
     <li><strong>Tax payable</strong> = (tax on [your other taxable income + discounted gain]) − (tax on your other taxable income alone), using the ATO's resident marginal rates.</li>
   </ul>
-  <p>That last step is the part people most often get wrong. Your CGT is the <em>extra</em> tax created by adding the discounted gain on top of your existing income — so the marginal rate that applies to the gain is the rate of the brackets the gain pushes you into, not your average rate. If a portion of the gain crosses into a higher bracket, only that portion is taxed at the higher rate. The Medicare levy generally applies on top of the income tax shown here.</p>
+  <p>That last step is the part people most often get wrong. Your CGT is the <em>extra</em> tax created by adding the discounted gain on top of your existing income — so the marginal rate that applies to the gain is the rate of the brackets the gain pushes you into, not your average rate. If a portion of the gain crosses into a higher bracket, only that portion is taxed at the higher rate. The CGT figure shown includes the 2% Medicare levy on the gain.</p>
 
   <h3>What counts in the cost base</h3>
   <p>The cost base is more than the price you paid. It includes incidental costs of buying and selling (stamp duty on purchase, conveyancing, agent's commission, advertising, legal fees), and the cost of capital improvements you made. It can also include certain ownership costs that were never claimed as a deduction. Keeping every receipt over the life of the investment is the simplest, most reliable way to cut a future CGT bill — improvements and costs you cannot substantiate generally cannot be added.</p>
@@ -187,7 +187,7 @@
     <li><strong>Other taxable income that year:</strong> $100,000</li>
     <li><strong>Held for more than 12 months:</strong> yes</li>
   </ul>
-  <p>The cost base is $600,000 + $45,000 = <strong>$645,000</strong>. The gross capital gain is $900,000 − $645,000 = <strong>$255,000</strong>. Because the property was held for more than 12 months by an individual, the 50% CGT discount halves the gain to a <strong>$127,500</strong> discounted gain. That $127,500 is added to the $100,000 already earned, lifting taxable income for the year to <strong>$227,500</strong>. The CGT payable is the difference between the tax on $227,500 and the tax on $100,000 — roughly the gain taxed through the upper marginal brackets. The exact dollar figure depends on the marginal rates in force for that financial year, which is why this is an estimate rather than a lodged figure. The 50% discount in this example saves tax on $127,500 of gain that would otherwise have been assessable.</p>
+  <p>The cost base is $600,000 + $45,000 = <strong>$645,000</strong>. The gross capital gain is $900,000 − $645,000 = <strong>$255,000</strong>. Because the property was held for more than 12 months by an individual, the 50% CGT discount halves the gain to a <strong>$127,500</strong> discounted gain. That $127,500 is added to the $100,000 already earned, lifting taxable income for the year to <strong>$227,500</strong>. The CGT payable is the difference between the tax on $227,500 and the tax on $100,000. On the FY 2026-27 scale, including the Medicare levy, those are $72,795 and $22,520, so the calculator shows CGT of <strong>$50,275</strong> and a net gain after tax of <strong>$204,725</strong>. The 50% discount in this example removes $127,500 of gain that would otherwise have been assessable.</p>
 
   <h2>Practical guidance and common mistakes</h2>
   <ul>
@@ -208,7 +208,7 @@
 
   <h2>What this calculator does and doesn't cover</h2>
   <p>This tool gives an <strong>estimate</strong> of CGT on a single property sale for an individual Australian resident. It applies the 50% discount when you indicate the property was held for more than 12 months, builds a simple cost base, and stacks the discounted gain on the income you enter to approximate the marginal-rate tax.</p>
-  <p>It does <strong>not</strong> model the Medicare levy or surcharge, capital losses carried forward from prior years, the partial exemption where a former home was rented out, depreciation and capital works (Division 43) adjustments that can reduce the cost base, ownership through a company, trust or self-managed super fund, or any first-home or small-business concessions. It also can't apply the main residence exemption rules to your facts — ticking the box simply signals the gain may be exempt. Treat the output as a starting point for a conversation with a professional, not a final tax figure.</p>
+  <p>It includes the 2% Medicare levy with its low-income phase-in. It does <strong>not</strong> model the Medicare levy surcharge, tax offsets such as the low income tax offset, capital losses carried forward from prior years, the partial exemption where a former home was rented out, depreciation and capital works (Division 43) adjustments that can reduce the cost base, ownership through a company, trust or self-managed super fund, or any first-home or small-business concessions. It also can't apply the main residence exemption rules to your facts — ticking the box simply signals the gain may be exempt. Treat the output as a starting point for a conversation with a professional, not a final tax figure.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>Is the 50% CGT discount automatic?</h3>
@@ -230,7 +230,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -241,6 +241,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -261,6 +263,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

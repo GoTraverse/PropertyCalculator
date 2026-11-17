@@ -6,26 +6,24 @@ Disallow: /admin
 Disallow: /admin.html
 Disallow: /account
 Disallow: /account.html
-Disallow: /app
+# /app$ and /app? rather than a bare /app prefix, which would also block
+# /apple-touch-icon.png, /app.css and /app.js.
+Disallow: /app$
+Disallow: /app?
 Disallow: /app.html
 Disallow: /login
 Disallow: /login.html
 Disallow: /.netlify/
 
-# ── Suburb pages: RE-OPENED Jul 2026. 1,475 of the ~14,500 pages now carry real,
-# current CC-BY state-government market data (QLD/VIC/SA/TAS) and are indexable +
-# listed in sitemap-suburbs-*.xml; the rest keep their noindex meta. Blocking
-# /suburb/ was silently nullifying that re-index — Googlebot could not crawl the
-# indexable pages (GSC "Sitemap contains URLs blocked by robots.txt") and could
-# not see the noindex on the placeholder pages. Crawl is now guided by the
-# sitemap, which lists only the 1,475 real-data pages. (project-seo-posture memory.)
+# ── Suburb pages ─────────────────────────────────────────────────────────────
+# /suburb/ is crawlable. Only suburbs with current state-government market data
+# (QLD, VIC, SA, TAS; about 1,475 pages) have a page at all, and those are the
+# pages listed in sitemap-suburbs-*.xml. Suburbs without that data have no page.
 #
-# /invest/ (city + state hubs) stays noindexed per posture — keep it blocked.
-Disallow: /invest/
-
-# ── Google AdSense crawler — explicit allow required for AdSense review ───────
-User-agent: Mediapartners-Google
-Allow: /
+# /invest/ holds the eight state directory pages. They carry "noindex, follow":
+# they are navigation, not search results. They are left crawlable on purpose,
+# because a crawler that is blocked from a page cannot read its noindex, and
+# every suburb page's breadcrumb points at its state directory.
 
 # ── SEO crawlers / link analysers ────────────────────────────────────────────
 User-agent: SemrushBot

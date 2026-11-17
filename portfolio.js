@@ -8,8 +8,9 @@
  *   → {ok:true, holdings:[...], cap:{max,used,plan}}
  *   → {ok:false, error:'auth'|'cap'|'validation'|...}
  * Cookie auth (es_session) is automatic (credentials same-origin); guests
- * get error:'auth'. Free = 2 holdings, Pro = unlimited — the SERVER enforces
- * the cap; this UI just renders the upgrade prompt on a 'cap' response.
+ * get error:'auth'. The SERVER enforces a 2-holding cap on free accounts
+ * (existing paid subscribers have none). The tool is parked and paid plans are
+ * no longer sold, so on a 'cap' response this UI states the limit plainly.
  *
  * All property values are the user's MANUAL entries. Government suburb
  * medians are shown as labelled CONTEXT only — never as the property's value.
@@ -689,8 +690,8 @@ function renderCapNote() {
   if (!el) return;
   if (!_cap || !_cap.max || _cap.plan !== 'free') { el.innerHTML = ''; return; }
   var atCap = _cap.used >= _cap.max;
-  el.innerHTML = escHtml(_cap.used + ' of ' + _cap.max + ' free holdings used') +
-    (atCap ? ' — the free plan tracks 2.' : '');
+  el.innerHTML = escHtml(_cap.used + ' of ' + _cap.max + ' holdings used') +
+    (atCap ? '. This tool is parked and free accounts are limited to ' + escHtml(_cap.max) + ' holdings.' : '');
 }
 
 function render() {
@@ -808,9 +809,10 @@ function readForm() {
 function showUpgrade() {
   var el = byId('pf-upgrade');
   if (!el) return;
+  var max = (_cap && _cap.max) || 2;
   el.innerHTML = '<div class="pf-upgrade-card">' +
-    '<strong>You’ve reached the free limit.</strong>' +
-    '<p>The free plan tracks 2 holdings.</p></div>';
+    '<strong>This account already has ' + escHtml(max) + ' holdings.</strong>' +
+    '<p>The portfolio tool is parked, and free accounts are limited to ' + escHtml(max) + ' holdings. Delete one to add another.</p></div>';
   el.style.display = '';
   if (window.trackPageEvent) trackPageEvent('portfolio_cap_hit', { plan: _cap ? _cap.plan : 'free' });
 }
@@ -883,9 +885,10 @@ function submitDelete() {
    ══════════════════════════════════════════════════════════════════════ */
 
 function showGuest(msg) {
-  var g = byId('pf-guest'), a = byId('pf-app');
+  var g = byId('pf-guest'), a = byId('pf-app'), l = byId('pf-link-app');
   if (a) a.style.display = 'none';
   if (g) g.style.display = '';
+  if (l) l.style.display = 'none';
   if (msg) {
     var m = byId('pf-guest-msg');
     if (m) { m.textContent = msg; m.style.display = ''; }
@@ -893,9 +896,10 @@ function showGuest(msg) {
 }
 
 function showApp() {
-  var g = byId('pf-guest'), a = byId('pf-app');
+  var g = byId('pf-guest'), a = byId('pf-app'), l = byId('pf-link-app');
   if (g) g.style.display = 'none';
   if (a) a.style.display = '';
+  if (l) l.style.display = '';
 }
 
 /* 401 mid-session: server says the cookie is gone — the localStorage session
@@ -984,11 +988,6 @@ function wireEvents() {
     }
   });
 
-  /* Guest CTA analytics (guarded, like other pages). */
-  var cta = byId('pf-signup-cta');
-  if (cta) cta.addEventListener('click', function () {
-    if (window.trackGuest) trackGuest('portfolio_signup_cta', {});
-  });
 }
 
 /* ══════════════════════════════════════════════════════════════════════

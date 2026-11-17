@@ -47,7 +47,8 @@ function calculate() {
   if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
   var foreignEl = document.getElementById('foreign');
   var isForeign = foreignEl ? foreignEl.checked : false;
@@ -78,10 +79,13 @@ function calculate() {
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -104,7 +108,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Tasmania 2026-27 property transfer duty (FHB exemption ended 30 June 2026). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Tasmania 2026-27 property transfer duty (FHB exemption ended 30 June 2026). LMI is a rough estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -261,32 +265,8 @@ ToolPage.init({
     ]
   }
 ],
-  faq: [
-  {
-    "q": "How does stamp duty work in Tasmania?",
-    "a": "Tasmanian property transfer duty is charged by the State Revenue Office Tasmania (SRO Tas) on the dutiable value of any property purchase. It is calculated as a flat $50 up to $3,000, then a tiered set of marginal rates on the value above $3,000: 1.75% to $25,000, 2.25% to $75,000, 3.5% to $200,000, 4% to $375,000, 4.25% to $725,000, and 4.5% on the portion above $725,000 (with the $50 base carried through). Owner-occupiers and investors pay the same standard rates."
-  },
-  {
-    "q": "Do first home buyers pay stamp duty in Tasmania?",
-    "a": "Not any more on established homes. Tasmania's temporary full duty exemption for first home buyers of established homes up to $750,000 ended on 30 June 2026 and was not extended — transactions settling after that date pay full standard duty. The separate First Home Owner Grant still applies to NEW builds: $20,000 from 1 July 2026 ($10,000 base plus $10,000 additional, subject to legislation)."
-  },
-  {
-    "q": "When is stamp duty due in Tasmania?",
-    "a": "Tasmanian property transfer duty is payable within three months of the dutiable transaction. Your conveyancer normally pays SRO Tas at settlement using funds from your loan and deposit. Late payment attracts interest at the rate published by SRO Tas."
-  },
-  {
-    "q": "Does Tasmania charge a foreign buyer surcharge?",
-    "a": "Yes. Tasmania levies a Foreign Investor Duty Surcharge (FIDS) of 8% of the dutiable value on residential property acquired by a foreign person (in force since 1 April 2020). It is charged on top of the standard transfer duty and collected by the State Revenue Office Tasmania. Australian citizens and permanent residents are not foreign persons for this surcharge."
-  },
-  {
-    "q": "Why is Tasmanian stamp duty cheaper than other states?",
-    "a": "Tasmania's top transfer duty rate is 4.5% (on the value above $725,000). Combined with lower median property prices, the absolute dollar amount of duty for ordinary buyers is generally less than in the larger mainland states. The first home buyer exemption (full $0 duty on established homes up to $750,000) removes duty entirely for eligible owner-occupier first-time buyers under that cap. (Foreign buyers do pay an additional 8% Foreign Investor Duty Surcharge.)"
-  },
-  {
-    "q": "Is Tasmanian stamp duty tax deductible?",
-    "a": "No. Stamp duty paid on an investment property in Tasmania is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."
-  }
-],
+  // FAQ: shown once, as static HTML in the page (the same text is in its
+  // JSON-LD). There is no JS copy here, so the two cannot drift apart.
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },

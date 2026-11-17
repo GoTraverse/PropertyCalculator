@@ -1,3 +1,5 @@
+> **Historical — superseded by the Aug 2026 strategy in CLAUDE.md.** Kept for reference only; do not act on it.
+
 # App Engagement Audit — Round 1
 
 **Goal:** grow **free signups** · **Persona:** first home buyers · **Focus:** the

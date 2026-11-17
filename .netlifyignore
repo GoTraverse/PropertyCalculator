@@ -12,10 +12,7 @@ ARCHITECTURE.md
 APP_AUDIT.md
 PRODUCT_JOURNEY.md
 HANDOFF.md
-LINK_AUDIT_REPORT.md
 TRACKING_GUIDE.md
-BROKEN_LINKS_QUICK_REFERENCE.txt
-EQUITYSIGHT_NOTION_BUNDLE.md
 
 # Platform DB migrations (server-side only, never served)
 db/
@@ -24,14 +21,17 @@ db/
 reset-admin-pw.js
 
 # Node regression tests (dev-only; never needed at runtime).
-# NOTE: shared/ is deliberately NOT listed — shared/scenario-schema.js will be
-# loaded by the browser after the v2 scenario cutover and must stay servable.
 tests/
+
+# Scenario v2 schema: used by tests only today. No page or function loads it,
+# so it is not served. Remove this line if a page ever needs it in the browser.
+shared/scenario-schema.js
 
 # Dev tooling: Lighthouse CI config
 .lighthouserc.json
 
-# Internal audit notes (mention dev tooling; never public)
+# Lighthouse report output (bin/lighthouse-summarise.js writes here; the
+# directory is not kept in the repo). Listed so a fresh report is never served.
 docs/
 
 # Dormant-feature frontends: no live page loads these while the blog is dark
@@ -70,9 +70,6 @@ ERRORS.json
 # Build scripts (server-side only, not needed on CDN)
 build.js
 build/
-
-# Build-adjacent scripts still at root
-fetch-overpass-amenities.js
 
 # Raw / fetched source data (large intermediate files, not needed at runtime)
 data/abs-suburbs.json

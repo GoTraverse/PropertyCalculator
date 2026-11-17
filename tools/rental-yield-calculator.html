@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Rental Yield Calculator Australia","url":"https://equitysight.app/tools/rental-yield-calculator","description":"Free rental yield calculator for Australian investment properties. Calculate gross and net yield instantly.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Rental Yield Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is gross or net yield more important?","acceptedAnswer":{"@type":"Answer","text":"Use gross yield for a fast comparison between listings, because it is easy to calculate from the advertised price and rent. Use net yield to decide whether a property works, because it reflects the costs you'll pay. Net yield is what tells you if the property is heading toward positive or negative cashflow."}},{"@type":"Question","name":"What's a realistic vacancy allowance to use?","acceptedAnswer":{"@type":"Answer","text":"For a well-located property in a tight rental market, one to two weeks a year is reasonable. In areas with high supply, seasonal demand or older stock, allow three to four weeks or more. It's better to be conservative — overestimating vacancy protects you from a nasty surprise in your cashflow."}},{"@type":"Question","name":"Does a higher yield always mean a better investment?","acceptedAnswer":{"@type":"Answer","text":"No. A high yield can be a reward for taking on more risk — weaker capital growth, higher vacancy, thinner buyer demand, or location-specific issues. The strongest strategies weigh yield against the likely capital growth and the reliability of tenant demand, rather than chasing the biggest percentage."}},{"@type":"Question","name":"Should I use the purchase price or current value?","acceptedAnswer":{"@type":"Answer","text":"For assessing a deal you're considering, use the likely purchase price. For tracking the performance of a property you already own, use its current market value — as the property appreciates, the same rent represents a lower yield on today's value, which is one reason long-held properties often show modest yields on paper."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Rental Yield Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is gross or net yield more important?","acceptedAnswer":{"@type":"Answer","text":"Use gross yield for a fast comparison between listings, because it is easy to calculate from the advertised price and rent. Use net yield to decide whether a property works, because it reflects the costs you'll pay. Net yield is what tells you if the property is heading toward positive or negative cashflow."}},{"@type":"Question","name":"What's a realistic vacancy allowance to use?","acceptedAnswer":{"@type":"Answer","text":"For a well-located property in a tight rental market, one to two weeks a year is reasonable. In areas with high supply, seasonal demand or older stock, allow three to four weeks or more. It's better to be conservative — overestimating vacancy protects you from a nasty surprise in your cashflow."}},{"@type":"Question","name":"Does a higher yield always mean a better investment?","acceptedAnswer":{"@type":"Answer","text":"No. A high yield can be a reward for taking on more risk — weaker capital growth, higher vacancy, thinner buyer demand, or location-specific issues. The strongest strategies weigh yield against the likely capital growth and the reliability of tenant demand, rather than chasing the biggest percentage."}},{"@type":"Question","name":"Should I use the purchase price or current value?","acceptedAnswer":{"@type":"Answer","text":"For assessing a deal you're considering, use the likely purchase price. For tracking the performance of a property you already own, use its current market value — as the property appreciates, the same rent represents a lower yield on today's value, which is one reason long-held properties often show modest yields on paper."}}]}]}
 </script>
 </head>
 <body>
@@ -135,7 +135,7 @@
         <div class="tool-stat-value" id="r-expenses">—</div>
       </div>
       <div class="tool-stat full" id="r-verdict-wrap">
-        <div class="tool-stat-label">Verdict</div>
+        <div class="tool-stat-label">How to read this</div>
         <div style="font-size:14px;color:var(--slate);margin-top:4px;" id="r-verdict">—</div>
       </div>
     </div>
@@ -153,7 +153,6 @@
 </div>
 
 <section class="tool-content">
-  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">Last reviewed 12 July 2026 · rates and thresholds verified against official FY2026-27 sources.</p>
   <h2>What is rental yield?</h2>
   <p>Rental yield is the annual rental income from an investment property expressed as a percentage of what the property is worth. It is the single most-quoted measure of how hard your money is working as income, and it lets you compare wildly different properties on a level footing. A $450,000 unit and a $1.2 million house tell you nothing about return until you convert each to a yield — at which point you can see, instantly, which one pays you back faster in rent.</p>
   <p>Yield matters in Australia for one big reason: it is the income half of a two-part return. Property investors earn from rent (yield) and from the property rising in value over time (capital growth). The two tend to pull against each other, which is why understanding yield is the starting point for almost every investment decision — from whether a deal is positively or negatively geared, to how much of your own cash you'll need to feed the property each month.</p>
@@ -247,7 +246,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -258,6 +257,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -278,6 +279,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

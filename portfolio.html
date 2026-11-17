@@ -8,7 +8,7 @@
 <script src="/site-init.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Property Portfolio Tracker | EquitySight</title>
-<meta name="description" content="Track every property across all 8 Australian states — multi-state land tax rollup, equity, LVR &amp; cash flow in one dashboard. Free for 2 holdings.">
+<meta name="description" content="The portfolio tracker is parked. It still works for people who already use it.">
 <meta name="robots" content="noindex,follow">
 <link rel="canonical" href="https://equitysight.app/portfolio">
 <meta name="geo.region" content="AU">
@@ -17,7 +17,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:title" content="Property Portfolio Tracker | EquitySight">
-<meta property="og:description" content="Track every property across all 8 Australian states — multi-state land tax rollup, equity, LVR &amp; cash flow in one dashboard. Free for 2 holdings.">
+<meta property="og:description" content="The portfolio tracker is parked. It still works for people who already use it.">
 <meta property="og:url" content="https://equitysight.app/portfolio">
 <meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -25,10 +25,10 @@
 <meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Property Portfolio Tracker | EquitySight">
-<meta name="twitter:description" content="Track every property across all 8 Australian states — multi-state land tax rollup, equity, LVR &amp; cash flow in one dashboard. Free for 2 holdings.">
+<meta name="twitter:description" content="The portfolio tracker is parked. It still works for people who already use it.">
 <meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"EquitySight Portfolio Tracker","url":"https://equitysight.app/portfolio","description":"Track every investment property across all 8 Australian states — multi-state land tax rollup, equity, LVR and cash flow in one dashboard. Values are your own entries; free for 2 holdings.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Portfolio Tracker","item":"https://equitysight.app/portfolio"}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"EquitySight Portfolio Tracker","url":"https://equitysight.app/portfolio","description":"A property portfolio tracker. It is parked: it still works for people who already use it, and is not being developed further.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Portfolio Tracker","item":"https://equitysight.app/portfolio"}]}]}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,37 +66,18 @@
 
 <main id="main-content">
 
-<!-- ══ GUEST STATE — the logged-out marketing surface (visible by default) ══ -->
+<!-- ══ GUEST STATE — the tool is parked, so logged-out visitors get a short
+     note and a link to the journey (visible by default) ══ -->
 <section class="pf-guest" id="pf-guest">
   <div class="pf-wrap">
     <div id="pf-guest-msg" class="pf-guest-msg" style="display:none;" role="status"></div>
     <div class="pf-hero">
       <div class="pf-kicker">Portfolio Tracker</div>
-      <h1 class="pf-hero-h1">Every property. Every state.<br>One land tax picture.</h1>
-      <p class="pf-hero-sub">Keep all your properties in one place — Portfolio stores them, and Scenarios (in the calculator) is where you visualise a property and try new things. Values are your own entries; government suburb medians appear as labelled context only.</p>
-
-      <div class="pf-hero-bullets">
-        <div class="pf-bullet">
-          <svg class="pf-bullet-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.4 3 9.4h18"/><path d="M5 9.6v9M9.5 9.6v9M14.5 9.6v9M19 9.6v9"/><path d="M3.5 18.6h17M4 21h16"/></svg>
-          <h2 class="pf-bullet-title">Multi-state land tax rollup</h2>
-          <p class="pf-bullet-text">Aggregated per state and owner type on schedules verified against every revenue office — the number most spreadsheets get wrong.</p>
-        </div>
-        <div class="pf-bullet">
-          <svg class="pf-bullet-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20.5h16"/><rect x="5.4" y="12" width="3" height="6.6" rx=".6"/><rect x="10.5" y="8" width="3" height="10.6" rx=".6"/><rect x="15.6" y="4.4" width="3" height="14.2" rx=".6"/></svg>
-          <h2 class="pf-bullet-title">Equity, LVR &amp; cash-flow dashboard</h2>
-          <p class="pf-bullet-text">Total value, total debt, equity, portfolio LVR and pre-tax weekly cash flow — big numbers from your own entries, updated as you edit.</p>
-        </div>
-        <div class="pf-bullet">
-          <svg class="pf-bullet-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"/><path d="M8 13h2M14 13h2M8 16.8h2"/></svg>
-          <h2 class="pf-bullet-title">IO-expiry &amp; lease dates in one panel</h2>
-          <p class="pf-bullet-text">Interest-only expiries (with the estimated repayment jump), fixed-rate ends, lease expiries and each state's land tax assessment date — sorted, with anything inside 90 days highlighted.</p>
-        </div>
-      </div>
-
+      <h1 class="pf-hero-h1">This tool is parked.</h1>
+      <p class="pf-hero-sub">The portfolio tracker still works for people who already use it, but I am not developing it further. If you have holdings saved here, <a href="/login?next=/portfolio">sign in</a> to see them. If you are buying your first home, the First Home Journey is the part of the site I maintain.</p>
       <div class="pf-hero-ctas">
-        <a href="/login?tab=signup&amp;next=/portfolio" class="pf-btn pf-btn-gold pf-btn-lg" id="pf-signup-cta">Create a free account — track 2 properties free</a>
+        <a href="/journey" class="pf-btn pf-btn-gold pf-btn-lg">Go to the First Home Journey →</a>
       </div>
-      <p class="pf-honest">Your data: manual entries, stored in your account, never shown publicly.</p>
     </div>
   </div>
 </section>
@@ -327,7 +308,7 @@
         <span class="pf-link-name">Listing Price Checker</span>
         <span class="pf-link-desc">Sanity-check an asking price against government suburb medians.</span>
       </a>
-      <a class="pf-link-card" href="/app">
+      <a class="pf-link-card" href="/app" id="pf-link-app" style="display:none;">
         <span class="pf-link-name">Scenarios</span>
         <span class="pf-link-desc">Model changes to a property in Scenarios — rates, rent, renovations, 30 years out.</span>
       </a>

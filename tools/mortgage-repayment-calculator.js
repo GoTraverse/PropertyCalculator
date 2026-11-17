@@ -1,43 +1,33 @@
 /* ═══ MORTGAGE REPAYMENT CALCULATOR ═══
  *
- * Best-in-market Australian mortgage repayment calculator. Features that
- * differentiate this from Domain / realestate.com.au / MoneySmart:
- *
- *   • Truly periodic fortnightly/weekly calculation (not just monthly/2 ÷ 4)
- *     so the "extra month of repayments per year" saving is visible.
- *   • Extra-repayment scenario simulation (month-by-month amortisation,
- *     showing months saved + interest saved).
- *   • Offset-account impact projection (offset balance reduces interest
- *     base each month).
- *   • LMI estimate when LVR > 80%, using industry-standard tiered rates.
- *   • Year-by-year amortisation table (opening balance, interest paid,
- *     principal paid, closing balance) — competitors hide this behind
- *     paywalls.
- *   • Inline SVG donut chart (no Chart.js / no CSP exception) showing
- *     interest vs principal split.
+ * What it does:
+ *   • Simulates a half-monthly fortnightly schedule (26 payments a year) and
+ *     shows the interest and time saved against strict monthly repayments.
+ *   • Simulates extra repayments and an offset balance month by month.
+ *   • Interest-only mode: IO repayment during the IO period, then the P&I
+ *     repayment over the remaining term.
+ *   • LMI estimate when LVR > 80%, from a tiered table.
+ *   • Year-by-year amortisation table and an inline SVG donut chart.
  *
  * Math:
  *   monthly P&I = P · (r/12) / (1 − (1 + r/12)^−n)        where n = years·12
  *   monthly IO  = P · r / 12
- *   Fortnightly payment under "half-monthly" lender offer = monthly/2 paid
- *     every 14 days. 26 fortnights × monthly/2 = 13 monthly equivalents per
- *     year (vs 12 strict monthly), so an extra month of principal per year.
- *   Weekly equivalent uses monthly/4 paid every 7 days, similar logic.
- *
- * Rate constants: existing FY 2025-26 values, unchanged this session.
+ *   Fortnightly payment under the "half-monthly" lender offer = monthly/2
+ *     paid every 14 days. 26 fortnights × monthly/2 = 13 monthly equivalents
+ *     per year (vs 12 strict monthly), so an extra month of principal a year.
  */
 
 // ── LMI tier table ────────────────────────────────────────────────────────
 //
-// Approximate industry-average LMI rates (Genworth / QBE basis points of
-// loan amount). Source: ASIC MoneySmart 2024 industry summary. Real LMI
-// quote varies by lender and borrower profile.
+// Rough LMI rates as a share of the loan amount. These are my working
+// estimates with no single published source or period. A real LMI quote
+// varies by lender, insurer and borrower profile.
 const LMI_TIERS = [
   { maxLvr: 0.80, rate: 0,      label: 'No LMI (LVR ≤ 80%)' },
   { maxLvr: 0.85, rate: 0.0080, label: '~0.8% of loan' },
   { maxLvr: 0.90, rate: 0.0190, label: '~1.9% of loan' },
   { maxLvr: 0.95, rate: 0.0340, label: '~3.4% of loan' },
-  { maxLvr: 1.00, rate: 0.0430, label: '~4.3% of loan (97% LVR)' }
+  { maxLvr: 1.00, rate: 0.0430, label: '~4.3% of loan (above 95% LVR)' }
 ];
 
 function estimateLmi(loan, propertyValue) {
@@ -63,7 +53,7 @@ function ioMonthly(P, annualRate) {
 // ── Amortisation simulation ───────────────────────────────────────────────
 //
 // Walks the loan month-by-month, applying optional extras and offset.
-// Returns: { monthsToPayoff, totalInterest, schedule[{year,openBal,interest,principal,closeBal}], paidOffEarly }
+// Returns: { monthsToPayoff, totalInterest, schedule[{year,openBal,interest,principal,closeBal}], paidOffEarly, postIoPayment }
 //
 // Offset balance reduces the principal that interest accrues on, but the
 // scheduled monthly payment stays the same (lender doesn't recalculate),
@@ -91,8 +81,10 @@ function simulateAmortisation({ principal, annualRate, years, repayMonthly, extr
     // portion is 0. After IO ends, switch to full P&I repayment.
     let principalPaid;
     if (m <= ioMonths) {
-      payment = balance * r; // raw interest, ignoring offset for IO calc
-      principalPaid = 0;
+      // Interest-only period: the required payment is interest only. Any
+      // extra repayment you choose to make still comes off the principal.
+      principalPaid = Math.min(balance, extraMonthly || 0);
+      payment = interest + principalPaid;
     } else {
       // When the IO period ends, AU lenders revert the loan to full P&I over the
       // REMAINING term. Recompute that payment once (the passed-in repayMonthly is
@@ -135,10 +127,11 @@ function simulateAmortisation({ principal, annualRate, years, repayMonthly, extr
         totalInterest: cumInterest,
         schedule,
         paidOffEarly: m < totalMonths,
+        postIoPayment,
       };
     }
   }
-  return { monthsToPayoff: totalMonths, totalInterest: cumInterest, schedule, paidOffEarly: false };
+  return { monthsToPayoff: totalMonths, totalInterest: cumInterest, schedule, paidOffEarly: false, postIoPayment };
 }
 
 // True fortnightly comparison: same dollar amount paid as monthly/2 every
@@ -234,8 +227,9 @@ function renderSchedule(schedule, propertyValue) {
 function calc() {
   const amount = parseVal('amount');
   const propertyValue = parseVal('propvalue') || (amount / 0.8); // sensible default
-  const rate = parseFloat(document.getElementById('rate').value) || 0;
-  const term = parseInt(document.getElementById('term').value) || 30;
+  const rateRaw = parseFloat(document.getElementById('rate').value);
+  const rate = isFinite(rateRaw) ? rateRaw : NaN;
+  const term = parseInt(document.getElementById('term').value, 10);
   const type = document.getElementById('type').value;
   const ioYearsEl = document.getElementById('io-years');
   const ioYears = ioYearsEl ? (parseInt(ioYearsEl.value) || 0) : 0;
@@ -247,9 +241,21 @@ function calc() {
   const _showErr = (t) => { if (_msg) { _msg.textContent = t; _msg.hidden = false; } };
   if (_msg) _msg.hidden = true;
 
-  if (!amount || term <= 0) {
+  const _blank = () => ['r-monthly','r-fortnightly','r-weekly','r-interest','r-total','r-ftn-saving','r-payoff','r-lmi','r-lvr','r-postio'].forEach(id => setText(id, '—'));
+  // A blank or zero term used to fall back to 30 years without saying so.
+  if (!amount || !(term > 0)) {
     _showErr('Please enter a loan amount and a loan term.');
-    ['r-monthly','r-fortnightly','r-weekly','r-interest','r-total','r-ftn-saving','r-payoff','r-lmi','r-lvr'].forEach(id => setText(id, '—'));
+    _blank();
+    return;
+  }
+  if (!(rate >= 0)) {
+    _showErr('Please enter an interest rate (0 or more).');
+    _blank();
+    return;
+  }
+  if (type === 'io' && ioYears >= term) {
+    _showErr('The interest-only period must be shorter than the loan term.');
+    _blank();
     return;
   }
 
@@ -258,13 +264,15 @@ function calc() {
   const monthlyPI = piMonthly(amount, annualRate, term);
 
   // Display "current" monthly: IO during IO years, else P&I.
-  const currentMonthly = (type === 'io' && ioYears > 0) ? ioMonthly(amount, annualRate) : monthlyPI;
+  const isIO = type === 'io' && ioYears > 0;
+  const currentMonthly = isIO ? ioMonthly(amount, annualRate) : monthlyPI;
 
-  // True fortnightly + weekly under the standard "half-monthly fortnightly"
-  // lender offer. We display the per-period payment AND compute interest
-  // saved vs strict-monthly via simulation.
-  const fortnightlyPayment = monthlyPI / 2;
-  const weeklyPayment = monthlyPI / 4;
+  // P&I: fortnightly + weekly under the standard "half-monthly fortnightly"
+  // lender offer (monthly/2 and monthly/4), with the saving vs strict monthly
+  // computed by simulation. Interest-only: the same annual interest spread
+  // over 26 or 52 payments (paying more than that would not be interest-only).
+  const fortnightlyPayment = isIO ? currentMonthly * 12 / 26 : monthlyPI / 2;
+  const weeklyPayment = isIO ? currentMonthly * 12 / 52 : monthlyPI / 4;
 
   // Simulate base scenario (monthly + extras + offset + IO period)
   const sim = simulateAmortisation({
@@ -297,8 +305,17 @@ function calc() {
   const interestSavedFortnightly = baselineSim.totalInterest - fortnightlySim.totalInterest;
   const monthsSavedFortnightly = baselineSim.monthsToPayoff - (fortnightlySim.fortnights / (26/12));
 
-  // LMI estimate
-  const lmi = estimateLmi(amount, propertyValue);
+  // What extras + offset save is measured against the same loan structure
+  // without them (so an IO loan is compared with an IO loan).
+  const extrasBaseline = isIO ? simulateAmortisation({
+    principal: amount, annualRate, years: term, repayMonthly: monthlyPI,
+    extraMonthly: 0, offsetBalance: 0, ioYears: ioYears,
+  }) : baselineSim;
+
+  // LMI estimate. Not estimated when the loan is larger than the property value.
+  const lmiRaw = estimateLmi(amount, propertyValue);
+  const overValue = lmiRaw.lvr > 1;
+  const lmi = overValue ? { amount: 0, lvr: lmiRaw.lvr, tier: lmiRaw.tier } : lmiRaw;
 
   // Update DOM
   setText('r-monthly', fmt(currentMonthly));
@@ -308,10 +325,20 @@ function calc() {
   setText('r-total', fmt(amount + sim.totalInterest + lmi.amount));
   setText('r-payoff', monthsToYearsMonths(sim.monthsToPayoff) + ' (' + payoffDate(sim.monthsToPayoff) + ')');
   setText('r-lvr', (lmi.lvr * 100).toFixed(1) + '%');
-  setText('r-lmi', lmi.amount > 0 ? fmt(lmi.amount) + ' (' + lmi.tier.label + ')' : '$0 (no LMI)');
+  setText('r-lmi', overValue ? 'not estimated (loan is larger than the property value)'
+    : lmi.amount > 0 ? fmt(lmi.amount) + ' (' + lmi.tier.label + ')' : '$0 (no LMI)');
 
-  // Fortnightly saving callout — only show if non-trivial
-  if (fortnightlySim.willPayOff && interestSavedFortnightly > 100) {
+  // Labels follow the repayment type, and the post-IO repayment is shown.
+  setText('r-monthly-label', isIO ? 'Monthly repayment (interest-only period)' : 'Monthly repayment');
+  setText('r-fortnightly-label', isIO ? 'Fortnightly (interest only)' : 'Fortnightly (half-monthly)');
+  setText('r-weekly-label', isIO ? 'Weekly (interest only)' : 'Weekly (quarter-monthly)');
+  const postIoWrap = document.getElementById('r-postio-wrap');
+  if (postIoWrap) postIoWrap.style.display = isIO ? '' : 'none';
+  setText('r-postio', (isIO && sim.postIoPayment) ? fmt(sim.postIoPayment) + ' for the remaining ' + (term - ioYears) + ' years' : '—');
+
+  // Fortnightly saving callout — P&I only (it compares P&I schedules), and
+  // only when non-trivial
+  if (!isIO && fortnightlySim.willPayOff && interestSavedFortnightly > 100) {
     setText('r-ftn-saving', fmt(interestSavedFortnightly) + ' interest saved · ' + monthsToYearsMonths(Math.round(monthsSavedFortnightly)) + ' earlier payoff');
     const el = document.getElementById('r-ftn-saving-wrap');
     if (el) el.style.display = '';
@@ -321,12 +348,11 @@ function calc() {
   }
 
   // Extras / offset / IO impact summary
-  const extrasActive = (extra > 0) || (offset > 0) || (type === 'io' && ioYears > 0);
   const extrasWrap = document.getElementById('r-extras-wrap');
   if (extrasWrap) {
-    if (extrasActive && (extra > 0 || offset > 0)) {
-      const interestSavedByExtras = baselineSim.totalInterest - sim.totalInterest;
-      const monthsSavedByExtras = baselineSim.monthsToPayoff - sim.monthsToPayoff;
+    if (extra > 0 || offset > 0) {
+      const interestSavedByExtras = extrasBaseline.totalInterest - sim.totalInterest;
+      const monthsSavedByExtras = extrasBaseline.monthsToPayoff - sim.monthsToPayoff;
       if (interestSavedByExtras > 100) {
         setText('r-extras-saving', fmt(interestSavedByExtras) + ' interest saved · ' + monthsToYearsMonths(Math.max(0, monthsSavedByExtras)) + ' earlier payoff');
         extrasWrap.style.display = '';
@@ -381,11 +407,10 @@ ToolPage.init({
         links: [
           { text: 'RBA: How Monetary Policy Works', href: 'https://www.rba.gov.au/education/resources/explainers/how-monetary-policy-works.html' },
           { text: 'ASIC: Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
-          { text: 'ASIC: Fixed vs Variable Rates', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' }
         ]
       }
     ],
-    disclaimer: 'Estimates only. Actual repayments depend on your lender, fees, rate changes, and offset account use. LMI quotes vary by lender — the figure shown is an industry-average estimate.'
+    disclaimer: 'Estimates only. Actual repayments depend on your lender, fees, rate changes, and offset account use. LMI quotes vary by lender — the figure shown is a rough estimate.'
   },
   share: {
     url: 'https://equitysight.app/tools/mortgage-repayment-calculator',
@@ -413,22 +438,22 @@ ToolPage.init({
         { k: 'Type', v: 'Principal + Interest' }
       ],
       outputs: [
-        { k: 'Monthly repayment', v: '~$3,694' },
-        { k: 'Fortnightly (half-monthly)', v: '~$1,847' },
-        { k: 'Total interest paid', v: '~$730,000' },
-        { k: 'Fortnightly saving', v: '~$110,000 + 4y 8m earlier' }
+        { k: 'Monthly repayment', v: '$3,694' },
+        { k: 'Fortnightly (half-monthly)', v: '$1,847' },
+        { k: 'Total interest paid', v: '$729,949' },
+        { k: 'Fortnightly saving', v: '$162,171 interest, paid off 5 years 8 months earlier' }
       ]
     },
     {
-      label: '$850k loan + $50k offset + $200/month extra',
+      label: '$850k loan over 30 years + $50k offset + $200/month extra',
       inputs: [
         { k: 'Loan', v: '$850,000' }, { k: 'Rate', v: '5.99%' },
         { k: 'Offset', v: '$50,000' }, { k: 'Extra repayment', v: '$200/month' }
       ],
       outputs: [
-        { k: 'Monthly', v: '~$5,091' },
-        { k: 'Interest saved vs base', v: '~$160,000' },
-        { k: 'Earlier payoff', v: '~4y 2m' }
+        { k: 'Monthly', v: '$5,091' },
+        { k: 'Interest saved vs no offset or extras', v: '$289,126' },
+        { k: 'Earlier payoff', v: '5 years 8 months' }
       ]
     },
     {
@@ -438,27 +463,27 @@ ToolPage.init({
         { k: 'IO period', v: '5 years' }, { k: 'Term', v: '30 years total' }
       ],
       outputs: [
-        { k: 'IO monthly (yr 1–5)', v: '~$2,250' },
-        { k: 'P&I monthly (yr 6+)', v: '~$2,775' },
-        { k: 'Total interest', v: '~$580,000' }
+        { k: 'IO monthly (yr 1–5)', v: '$2,250' },
+        { k: 'P&I monthly (yr 6+)', v: '$2,764' },
+        { k: 'Total interest', v: '$564,094' }
       ]
     }
   ],
   faq: [
     { q: 'How is fortnightly different from "monthly ÷ 2"?',
-      a: 'In a true fortnightly schedule you pay half the monthly amount every 14 days. There are 26 fortnights per year — equivalent to 13 monthly payments instead of 12. That extra month of principal each year compounds: on a $600k 30-year 6.25% loan you pay off the loan ~4-5 years earlier and save around $110,000 in interest. This calculator shows the actual saving, not just monthly÷2.' },
+      a: 'In a half-monthly fortnightly schedule you pay half the monthly amount every 14 days. There are 26 fortnights per year, which is 13 monthly payments instead of 12. On a $600,000 30-year 6.25% loan this calculator shows the loan paid off 5 years 8 months earlier and $162,171 less interest. The figure comes from simulating the schedule, not from dividing the monthly amount by two.' },
     { q: 'How does the offset balance reduce my interest?',
-      a: 'An offset account is a transaction account linked to your home loan. Interest is calculated each day on (loan balance − offset balance). The scheduled monthly repayment stays the same, but more of it goes to principal — accelerating payoff. Keeping $20,000 in an offset on a $500,000 loan saves the equivalent of after-tax interest on $480,000.' },
+      a: 'An offset account is a transaction account linked to your home loan. Interest is calculated each day on (loan balance − offset balance). The scheduled monthly repayment stays the same, but more of it goes to principal, so the loan is paid off sooner. Keeping $20,000 in an offset on a $500,000 loan means interest is charged on $480,000.' },
     { q: 'How accurate is the LMI estimate?',
-      a: 'The LMI figure is an industry-average estimate based on tiered LVR bands (≤80% none, ~0.8% at 85%, ~1.9% at 90%, ~3.4% at 95%). Actual quotes vary by lender, insurer (Helia / QBE), property type, and your borrower profile. Use this as an upper-bound budgeting figure; get a formal quote from your lender before settlement.' },
+      a: 'The LMI figure is a rough estimate from tiered LVR bands (none at 80% or below, ~0.8% up to 85%, ~1.9% up to 90%, ~3.4% up to 95%, ~4.3% above). The tiers are my working figures, not an insurer rate card. Actual quotes vary by lender, insurer (Helia / QBE), property type and borrower. Use it as a rough budgeting figure and get a formal quote from your lender before settlement.' },
     { q: 'Should I make extra repayments?',
-      a: 'On variable loans, yes (no break fees). Even $100/month extra on a $500,000 30-year 6% loan saves ~$70,000 in interest and pays off ~3 years earlier. On fixed loans, check your contract — most allow extra repayments up to $10k/year without penalty during the fixed term.' },
+      a: 'On variable loans you usually can without break fees. In this calculator, $100/month extra on a $500,000 30-year 6% loan saves $57,325 in interest and pays the loan off 2 years 6 months earlier. On fixed loans, check your contract, because many cap extra repayments during the fixed term.' },
     { q: 'What happens after the interest-only period ends?',
       a: 'When IO ends, your loan reverts to principal + interest over the REMAINING term. On a 30-year loan with 5 years IO, the P&I phase only has 25 years to repay the full principal — so your monthly payment jumps significantly. This calculator shows both: IO monthly while in the IO period, and the higher post-IO P&I monthly.' },
     { q: 'Are weekly repayments better than fortnightly?',
-      a: 'Marginally, yes — weekly schedules compound slightly faster. Practical saving over fortnightly is usually under $5,000 on a 30-year loan. Most people choose fortnightly because pay cycles align. Either beats strict monthly substantially.' },
+      a: 'Slightly. This calculator shows the weekly amount as a quarter of the monthly repayment. Paid 52 times a year that is the same annual total as the fortnightly schedule, so the saving is about the same, with weekly a little ahead because each payment lands earlier. Most people choose the frequency that matches their pay cycle.' },
     { q: 'Why does my actual repayment from the bank differ slightly?',
-      a: 'Banks round monthly repayments to the nearest dollar (sometimes 10c). Some lenders also use 365/12 month conventions vs 365.25/12 — produces small daily-rate differences. The figures here use the standard amortisation formula at 12 equal periods per year.' }
+      a: 'Banks round repayments and charge interest daily, so the number of days in each month and the settlement date move the figure slightly. This calculator uses the standard amortisation formula with 12 equal periods per year.' },
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏦', href: '/tools/borrowing-power-calculator', label: 'Borrowing Power' },
@@ -473,6 +498,14 @@ ToolPage.init({
 
 // ── Input wiring ──────────────────────────────────────────────────────────
 if (window.trackCalculatorStart) trackCalculatorStart('mortgage-repayment');
+// Show the IO-period field whenever "Interest Only" is selected, including
+// when that choice was restored from saved inputs on page load.
+function syncIoWrap() {
+  const t = document.getElementById('type');
+  const ioWrap = document.getElementById('io-years-wrap');
+  if (t && ioWrap) ioWrap.style.display = t.value === 'io' ? '' : 'none';
+}
+syncIoWrap();
 calc();
 
 // Currency-formatted inputs: re-format on input, then recalc
@@ -489,8 +522,7 @@ calc();
 
 const typeEl = document.getElementById('type');
 if (typeEl) typeEl.addEventListener('change', function() {
-  const ioWrap = document.getElementById('io-years-wrap');
-  if (ioWrap) ioWrap.style.display = typeEl.value === 'io' ? '' : 'none';
+  syncIoWrap();
   calc();
 });
 

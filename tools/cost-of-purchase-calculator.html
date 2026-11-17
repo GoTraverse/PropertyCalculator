@@ -32,7 +32,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Cost of Purchase Calculator Australia","description":"Calculate all costs when buying property in Australia — stamp duty, legal fees, bank charges, inspections, insurance, and moving costs.","url":"https://equitysight.app/tools/cost-of-purchase-calculator","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Cost of Purchase Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What are the total costs of buying a house in Australia?","acceptedAnswer":{"@type":"Answer","text":"Beyond the purchase price, expect to pay stamp duty (1-6% depending on state), conveyancing or legal fees ($1,000-$3,000), building and pest inspections ($400-$800), loan application fees ($0-$600), lenders mortgage insurance if deposit is under 20%, and moving costs. Total buying costs typically add 4-7% on top of the purchase price."}},{"@type":"Question","name":"What fees do I pay when buying a property in Australia?","acceptedAnswer":{"@type":"Answer","text":"Key fees include stamp duty (state government tax), conveyancing/solicitor fees, building and pest inspection fees, loan establishment fees, title search fees, mortgage registration fees, and home and contents insurance. First home buyers may qualify for stamp duty exemptions or concessions."}},{"@type":"Question","name":"How much deposit do I need to buy a house in Australia?","acceptedAnswer":{"@type":"Answer","text":"Most lenders require a minimum 5-20% deposit. A 20% deposit avoids Lenders Mortgage Insurance (LMI). First home buyers may access government schemes like the 5% Deposit Scheme (formerly the First Home Guarantee) with as little as 5% deposit without paying LMI."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Cost of Purchase Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much should I budget for buying costs on top of the price?","acceptedAnswer":{"@type":"Answer","text":"As a rule of thumb, allow roughly 4–7% of the purchase price for total buying costs, with stamp duty driving most of the variation. The figure is lower for first home buyers who qualify for a duty exemption and higher where LMI or a foreign-buyer surcharge applies. Always confirm with your state revenue office and lender."}},{"@type":"Question","name":"Do first home buyers always pay no stamp duty?","acceptedAnswer":{"@type":"Answer","text":"Sometimes. Many states fully waive transfer duty for eligible first home buyers under a price threshold, then taper a concession above it. Eligibility usually depends on price, residency and whether you have owned property before. Check the current rules with your state revenue office, as thresholds change between state budgets."}},{"@type":"Question","name":"Can I avoid Lenders Mortgage Insurance with a small deposit?","acceptedAnswer":{"@type":"Answer","text":"Yes, in some cases. LMI normally applies once your LVR is above 80% (a deposit under 20%). Eligible first home buyers can use the 5% Deposit Scheme (formerly the First Home Guarantee) to buy with around a 5% deposit without paying LMI, subject to eligibility rules and property price caps set under the scheme. Some buyers also avoid LMI with a family guarantor."}},{"@type":"Question","name":"Where can I get the exact stamp duty for my purchase?","acceptedAnswer":{"@type":"Answer","text":"Use the official calculator published by your state or territory revenue office — Revenue NSW, the State Revenue Office Victoria, the Queensland Revenue Office, RevenueSA, RevenueWA, the State Revenue Office Tasmania, the ACT Revenue Office or the Territory Revenue Office. For general consumer guidance on home loans and buying, the federal Moneysmart website (moneysmart.gov.au), run by ASIC, is a reliable starting point."}}]}]}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -116,10 +116,6 @@
     </div>
 
     <div id="rentGroup" style="display: none;">
-      <div class="tool-field">
-        <label class="tool-label" for="weeklyRent">Weekly Rent</label>
-        <input type="number" id="weeklyRent" class="tool-input" value="500" min="0" step="10">
-      </div>
       <div class="tool-field">
         <label class="tool-label" for="leaseBreak">Lease Break Cost</label>
         <input type="number" id="leaseBreak" class="tool-input" value="2000" min="0" step="100">
@@ -258,27 +254,28 @@
     <tr><td>NSW</td><td>Revenue NSW</td><td>Full exemption then phased concession under a price threshold</td></tr>
     <tr><td>VIC</td><td>State Revenue Office Victoria</td><td>Full exemption then sliding concession under a price threshold</td></tr>
     <tr><td>QLD</td><td>Queensland Revenue Office</td><td>First home concession under a price threshold</td></tr>
-    <tr><td>SA</td><td>RevenueSA</td><td>Relief targeted at first home buyers (often new builds)</td></tr>
+    <tr><td>SA</td><td>RevenueSA</td><td>Relief for first home buyers on new homes and vacant land only</td></tr>
     <tr><td>WA</td><td>RevenueWA</td><td>First home owner rate of duty under a price threshold</td></tr>
-    <tr><td>TAS</td><td>State Revenue Office Tasmania</td><td>Concession for eligible first home buyers</td></tr>
-    <tr><td>ACT</td><td>ACT Revenue Office</td><td>Income-tested duty concession scheme</td></tr>
+    <tr><td>TAS</td><td>State Revenue Office Tasmania</td><td>No first home buyer duty relief (the established-home exemption ended 30 June 2026)</td></tr>
+    <tr><td>ACT</td><td>ACT Revenue Office</td><td>Home Buyer Concession Scheme: no duty for eligible buyers, with no income test or price cap from 1 July 2026</td></tr>
     <tr><td>NT</td><td>Territory Revenue Office</td><td>House-and-land and first home incentives</td></tr>
   </table>
   <p>Buyer type also matters. First home buyers may pay little or no stamp duty under a threshold, and may be eligible for the 5% Deposit Scheme, formerly the First Home Guarantee (buy with as little as a 5% deposit and no LMI, subject to eligibility and property price caps), the First Home Super Saver scheme (withdraw eligible voluntary super contributions toward a deposit), or shared-equity programs such as Help to Buy. Foreign buyers, by contrast, typically pay a foreign-purchaser stamp duty surcharge on top of standard duty.</p>
 
   <h3>Worked example</h3>
-  <p>Assume a non-first-home buyer purchasing an established home in New South Wales for <strong>$650,000</strong> with a <strong>10% deposit</strong> ($65,000), so the loan is $585,000 and the LVR is 90%. Because the deposit is under 20% and no no-LMI scheme is used, LMI applies. Using typical, illustrative figures:</p>
+  <p>Assume a buyer who is not a first home buyer purchasing an established home in New South Wales for <strong>$650,000</strong> with a <strong>10% deposit</strong> ($65,000), so the loan is $585,000 and the LVR is 90%. Entered into the calculator above, the breakdown is:</p>
   <ul>
-    <li>Stamp duty (transfer duty): roughly <strong>$24,500</strong></li>
-    <li>Conveyancing and disbursements: about <strong>$1,800</strong></li>
-    <li>Lender fees (valuation, application, settlement): about <strong>$700</strong></li>
-    <li>Mortgage registration and transfer fees: about <strong>$365</strong></li>
-    <li>Building and pest inspection: about <strong>$600</strong></li>
-    <li>First-year building and contents insurance: about <strong>$1,600</strong></li>
-    <li>LMI at ~90% LVR (around 1.2% of the loan): about <strong>$7,000</strong></li>
-    <li>Moving costs: about <strong>$2,000</strong></li>
+    <li>Stamp duty (transfer duty): <strong>$23,438</strong></li>
+    <li>Title-office registration fees: <strong>$366</strong></li>
+    <li>Conveyancing/legal: <strong>$1,150</strong></li>
+    <li>Lender fees: bank valuation <strong>$650</strong>, loan application fee <strong>$1,170</strong>, settlement fee <strong>$250</strong></li>
+    <li>Building and pest inspection: <strong>$500</strong></li>
+    <li>First-year insurance: building <strong>$2,600</strong>, contents <strong>$500</strong></li>
+    <li>LMI at 90% LVR (1.9% of the loan): <strong>$11,115</strong></li>
+    <li>Moving costs: <strong>$2,500</strong></li>
   </ul>
-  <p>That gives total buying costs of roughly <strong>$38,565</strong>, or about <strong>5.9%</strong> of the price. Add the $65,000 deposit and the cash needed is approximately <strong>$103,565</strong>. The same purchase by an eligible first home buyer under a state stamp duty exemption — and using the 5% Deposit Scheme to avoid LMI — could cut the upfront cash by more than $30,000. These figures are illustrative; your actual duty, LMI and fees will differ.</p>
+  <p>That gives total buying costs of <strong>$44,239</strong>, or <strong>6.8%</strong> of the price. Add the $65,000 deposit and the cash needed is <strong>$109,239</strong>. Stamp duty and registration fees come from the state schedules. The other lines are my rough estimates, so replace them with quotes as you get them.</p>
+  <p>An eligible first home buyer would pay no stamp duty on this purchase in NSW, which removes the $23,438. The calculator still shows LMI when the first home buyer box is ticked. The 5% Deposit Scheme can remove it if you and the property qualify.</p>
 
   <h3>Practical tips and common mistakes</h3>
   <ul>
@@ -322,7 +319,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -333,6 +330,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -353,6 +352,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

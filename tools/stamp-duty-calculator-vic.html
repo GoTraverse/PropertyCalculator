@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"VIC Stamp Duty Calculator","url":"https://equitysight.app/tools/stamp-duty-calculator-vic","description":"Free Victoria land transfer duty calculator. Calculate duty for owner-occupiers, investors, and first home buyers using current State Revenue Office Victoria rates.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"},"areaServed":{"@type":"State","name":"Victoria"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"VIC Stamp Duty Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does stamp duty work in Victoria?","acceptedAnswer":{"@type":"Answer","text":"Victorian stamp duty (officially \"land transfer duty\") is charged by the State Revenue Office Victoria (SRO) on the dutiable value of any property purchase. Duty is 1.4% up to $25,000, 2.4% on the portion from $25,000 to $130,000, and 6% on the portion from $130,000 to $960,000. From $960,000 to $2 million duty is a flat 5.5% of the whole price, and above $2 million it is $110,000 plus 6.5% of the amount over $2 million."}},{"@type":"Question","name":"Do first home buyers pay stamp duty in Victoria?","acceptedAnswer":{"@type":"Answer","text":"Eligible first home buyers pay no land transfer duty on properties up to $600,000, with a sliding partial concession from $600,000 to $750,000. Above $750,000 the standard rates apply. The exemption applies to both new and established homes used as a principal place of residence."}},{"@type":"Question","name":"What is the Victorian PPR concession?","acceptedAnswer":{"@type":"Answer","text":"The State Revenue Office offers a principal place of residence (PPR) concession for some owner-occupiers buying a home as their principal residence, separate from the first home buyer exemption. This calculator does not model the PPR concession — its owner-occupier figure uses the standard land transfer duty rates, so treat the owner-occupier result as the duty before any PPR concession you may separately qualify for. Confirm your eligibility and the current value limits with the SRO."}},{"@type":"Question","name":"When is stamp duty due in Victoria?","acceptedAnswer":{"@type":"Answer","text":"Land transfer duty in Victoria is payable within 30 days of settlement. In practice, your conveyancer pays the SRO at settlement using funds drawn from your loan and deposit. Late payment attracts interest at the rate published by the SRO, plus penalty tax in some circumstances."}},{"@type":"Question","name":"What is the foreign purchaser additional duty in Victoria?","acceptedAnswer":{"@type":"Answer","text":"Foreign purchasers pay an additional 8% foreign purchaser duty on top of standard land transfer duty when buying residential property in Victoria. The surcharge is collected by the SRO at the same time as the standard duty. Australian citizens, permanent residents (including New Zealand citizens with a Special Category Visa who satisfy the residency test) are not foreign purchasers."}},{"@type":"Question","name":"Is Victorian stamp duty tax deductible?","acceptedAnswer":{"@type":"Answer","text":"No. Stamp duty paid by a Victorian property investor is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"VIC Stamp Duty Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does stamp duty work in Victoria?","acceptedAnswer":{"@type":"Answer","text":"Victorian stamp duty (officially \"land transfer duty\") is charged by the State Revenue Office Victoria (SRO) on the dutiable value of any property purchase. Duty is 1.4% up to $25,000, 2.4% on the portion from $25,000 to $130,000, and 6% on the portion from $130,000 to $960,000. From $960,000 to $2 million duty is a flat 5.5% of the whole price, and above $2 million it is $110,000 plus 6.5% of the amount over $2 million."}},{"@type":"Question","name":"Do first home buyers pay stamp duty in Victoria?","acceptedAnswer":{"@type":"Answer","text":"Eligible first home buyers pay no land transfer duty on properties up to $600,000, with a sliding partial concession from $600,000 to $750,000. Above $750,000 the standard rates apply. The exemption applies to both new and established homes used as a principal place of residence."}},{"@type":"Question","name":"What is the Victorian PPR concession?","acceptedAnswer":{"@type":"Answer","text":"The State Revenue Office offers a principal place of residence (PPR) concession for some owner-occupiers buying a home as their principal residence, separate from the first home buyer exemption. This calculator does not model the PPR concession. It shows the standard land transfer duty rates, which investors also pay, so treat the result as the duty before any PPR concession you may separately qualify for. Confirm your eligibility and the current value limits with the SRO."}},{"@type":"Question","name":"When is stamp duty due in Victoria?","acceptedAnswer":{"@type":"Answer","text":"Land transfer duty in Victoria is payable within 30 days of settlement. In practice, your conveyancer pays the SRO at settlement using funds drawn from your loan and deposit. Late payment attracts interest at the rate published by the SRO, plus penalty tax in some circumstances."}},{"@type":"Question","name":"What is the foreign purchaser additional duty in Victoria?","acceptedAnswer":{"@type":"Answer","text":"Foreign purchasers pay an additional 8% foreign purchaser duty on top of standard land transfer duty when buying residential property in Victoria. The surcharge is collected by the SRO at the same time as the standard duty. Australian citizens, permanent residents (including New Zealand citizens with a Special Category Visa who satisfy the residency test) are not foreign purchasers."}},{"@type":"Question","name":"Is Victorian stamp duty tax deductible?","acceptedAnswer":{"@type":"Answer","text":"No. Stamp duty paid by a Victorian property investor is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."}}]}]}
 </script>
 </head>
 <body>
@@ -81,14 +81,6 @@
       <select class="tool-input tool-select" id="ptype">
         <option value="home">Residential dwelling</option>
         <option value="land">Vacant land</option>
-      </select>
-    </div>
-
-    <div class="tool-field">
-      <label class="tool-label" for="buyer">Buyer profile</label>
-      <select class="tool-input tool-select" id="buyer">
-        <option value="owner">Owner-occupier</option>
-        <option value="investor">Investor</option>
       </select>
     </div>
 
@@ -194,7 +186,7 @@
   </table>
 
   <h2>Owner-occupier vs investor in VIC</h2>
-  <p>The State Revenue Office offers a <strong>principal place of residence (PPR) concession</strong> for some owner-occupiers buying a home as their principal residence. This calculator does not model the PPR concession — its owner-occupier figure uses the standard land transfer duty rates, the same as for investors, so treat the owner-occupier result as the duty before any PPR concession you may separately qualify for. Investors pay the standard rates with no concession. Confirm your PPR eligibility and the current value limits with the SRO.</p>
+  <p>The State Revenue Office offers a <strong>principal place of residence (PPR) concession</strong> for some owner-occupiers buying a home as their principal residence. This calculator does not model the PPR concession. It shows the standard land transfer duty rates, which investors also pay, so treat the result as the duty before any PPR concession you may separately qualify for. Investors pay the standard rates with no concession. Confirm your PPR eligibility and the current value limits with the SRO.</p>
 
 <details class="tool-content-more"><summary>Show FHB concessions, foreign-buyer surcharge, worked examples & state comparison</summary>
 
@@ -242,7 +234,7 @@
   <h3>Do first home buyers pay stamp duty in Victoria?</h3>
   <p>Eligible first home buyers pay no land transfer duty on properties up to $600,000, with a sliding partial concession from $600,000 to $750,000. Above $750,000 the standard rates apply. The exemption applies to both new and established homes used as a principal place of residence.</p>
   <h3>What is the Victorian PPR concession?</h3>
-  <p>The State Revenue Office offers a principal place of residence (PPR) concession for some owner-occupiers buying a home as their principal residence, separate from the first home buyer exemption. This calculator does not model the PPR concession — its owner-occupier figure uses the standard land transfer duty rates, so treat the owner-occupier result as the duty before any PPR concession you may separately qualify for. Confirm your eligibility and the current value limits with the SRO.</p>
+  <p>The State Revenue Office offers a principal place of residence (PPR) concession for some owner-occupiers buying a home as their principal residence, separate from the first home buyer exemption. This calculator does not model the PPR concession. It shows the standard land transfer duty rates, which investors also pay, so treat the result as the duty before any PPR concession you may separately qualify for. Confirm your eligibility and the current value limits with the SRO.</p>
   <h3>When is stamp duty due in Victoria?</h3>
   <p>Land transfer duty in Victoria is payable within 30 days of settlement. In practice, your conveyancer pays the SRO at settlement using funds drawn from your loan and deposit. Late payment attracts interest at the rate published by the SRO, plus penalty tax in some circumstances.</p>
   <h3>What is the foreign purchaser additional duty in Victoria?</h3>
@@ -257,7 +249,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -268,6 +260,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -288,6 +282,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

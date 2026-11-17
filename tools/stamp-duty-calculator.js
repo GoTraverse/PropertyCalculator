@@ -186,7 +186,7 @@ var REG_FEES = {
   nt:  { mortgage: 181, transfer: 181 }   // NT LTO flat per dealing
 };
 
-// LMI tier table (industry-average; see mortgage-repayment-calculator.js
+// LMI tier table (rough; see mortgage-repayment-calculator.js
 // for the same table). Real LMI varies by lender + insurer + borrower.
 function estimateLmiTier(lvr) {
   if (lvr <= 0.80) return { rate: 0, label: 'No LMI (LVR ≤ 80%)' };
@@ -329,7 +329,9 @@ function calculate() {
     // split, so the buyer profile changes nothing elsewhere.
     dutyResult = { duty: qldHomeDuty(val), note: 'QLD home concession applied (owner-occupier).' };
   } else {
-    dutyResult = { duty: baseDuty, note: '' };
+    dutyResult = { duty: baseDuty, note: (isFHB && isLand)
+      ? 'First home buyer relief for vacant land has different rules that this calculator does not model, so standard duty is shown.'
+      : '' };
   }
   var duty = dutyResult.duty;
   var note = dutyResult.note;
@@ -344,12 +346,13 @@ function calculate() {
   // Conveyancing / legal: industry-typical $1,500-$2,500 \u2014 use mid-point
   var conveyancing = 1800;
   var lmiTier = estimateLmiTier(lvr);
-  // FHBG eligibility shortcut: if FHB + LVR > 80%, assume FHBG removes LMI
-  // (full eligibility check is in the FHB grants calculator)
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiTier.rate);
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed \u2014 check FHB grants calc)'
-    : lmi > 0 ? (fmt(lmi) + ' \u00b7 ' + lmiTier.label) : '$0 (no LMI)';
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility (checked in the FHB grants calculator, not here).
+  var lmi = Math.round(loanAmount * lmiTier.rate);
+  var lmiLabel = lmi > 0
+    ? (fmt(lmi) + ' \u00b7 ' + lmiTier.label + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : ''))
+    : '$0 (no LMI)';
 
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
@@ -405,7 +408,7 @@ function calculate() {
     fhbCols.forEach(function(el) { el.style.display = isFHB ? '' : 'none'; });
   }
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2026-27 thresholds (verified 5 July 2026). LMI is an industry-average estimate \u2014 get a formal quote. Verify all figures with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2026-27 thresholds (verified 5 July 2026). LMI is a rough estimate \u2014 get a formal quote. Verify all figures with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -431,8 +434,8 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full property investment',
-    description: 'Add rental income, renovation costs, equity projections, and compare multiple properties side by side — all in EquitySight.',
+    title: 'Plan the full purchase',
+    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
     buttonText: 'Start your first-home journey — free \u2192',
     buttonHref: '/journey'
   },
@@ -457,7 +460,6 @@ ToolPage.init({
           { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
           { text: 'ASIC Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Law Society Australia', href: 'https://www.lawsociety.com.au/' },
           { text: 'RBA Housing Guide', href: 'https://www.rba.gov.au/education/resources/explainers/' }
         ]
       },
@@ -467,7 +469,6 @@ ToolPage.init({
           { text: 'ATO: Shared Equity Schemes', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
           { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
           { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
-          { text: 'MoneySmart Comparison', href: 'https://moneysmart.gov.au/' }
         ]
       }
     ],
@@ -537,7 +538,7 @@ ToolPage.init({
     { q: 'Do first home buyers pay less stamp duty?',
       a: 'Mostly, but it now varies sharply by state. The ACT charges eligible home buyers no duty at all from 1 July 2026 (no price cap or income test). NSW exempts first home buyers to $800,000, VIC to $600,000, QLD to $700,000 (and new homes at any price), WA to $600,000 from 7 May 2026. SA waives duty on new builds only. Tasmania\u2019s established-home exemption expired on 30 June 2026, so TAS first home buyers now pay full duty. Check your state\u2019s current threshold before you commit.' },
     { q: 'When do I have to pay stamp duty?',
-      a: 'Most states require payment within 30 days of settlement. In NSW and VIC, duty can be deferred in limited circumstances. Unpaid duty accrues interest, so arrange funds as part of your settlement budget.' },
+      a: 'It varies by state. Duty is usually paid at or shortly after settlement, and many revenue offices set the deadline from the date the liability arises, which is often the contract date. Your conveyancer or solicitor usually arranges payment as part of settlement. Check the deadline for your state so you do not pay penalty interest.' },
     { q: 'Is stamp duty tax deductible?',
       a: 'For investors, stamp duty is generally not immediately deductible — it forms part of the cost base of the property and reduces future capital gains tax when you sell. Owner-occupiers cannot claim it at all.' },
     { q: 'Does stamp duty apply to new builds?',
@@ -565,7 +566,7 @@ window.addEventListener('DOMContentLoaded', function() {
   if(stateEl) stateEl.addEventListener('change', function(){ updateState(); calculate(); });
   if(priceEl) priceEl.addEventListener('input', function(){ fmtInput(this); calculate(); });
   // Recompute on every input change so the comparison table stays in sync
-  ['ptype','deposit-pct'].forEach(function(id){
+  ['ptype','buyer','deposit-pct'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.addEventListener('input', calculate);
     if (el) el.addEventListener('change', calculate);

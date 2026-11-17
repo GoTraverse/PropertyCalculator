@@ -357,6 +357,10 @@ exports.handler = async (event) => {
 
   // ── POST suburb insights ─────────────────────────────────────────────────────
   if (action === 'suburbInsights') {
+    // Retired Nov 2026: suburb pages no longer show third-party listing data,
+    // so nothing calls this. It stays closed so an anonymous caller cannot
+    // spend Domain API quota.
+    return fail('This endpoint has been retired', 410);
     const clientIp = (event.headers?.['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
     if (await checkRateLimit(clientIp)) return fail('Too many requests', 429);
     if (!suburb || !state) return fail('suburb and state required');

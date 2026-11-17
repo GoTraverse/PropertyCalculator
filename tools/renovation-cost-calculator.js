@@ -1,4 +1,6 @@
-/* ═══ RATE DATA ═══ */
+/* ═══ RATE DATA ═══
+ * These per-m² rates and room allowances are my own rough estimates. They
+ * have no official or industry source and no stated period. The page says so. */
 var RATES = {
   cosmetic: { budget: [200, 400],  mid: [400, 700],   premium: [700, 1200] },
   mid:      { budget: [600, 1000], mid: [1000, 1600],  premium: [1600, 2500] },
@@ -96,7 +98,6 @@ ToolPage.init({
         icon: '\uD83C\uDFE2', title: 'Building & Construction',
         links: [
           { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'ASIC: Building Inspections', href: 'https://moneysmart.gov.au/buying-a-house' },
           { text: 'Consumer Affairs: Building Info', href: 'https://www.consumer.vic.gov.au/housing' }
         ]
       },
@@ -111,13 +112,12 @@ ToolPage.init({
       {
         icon: '\uD83D\uDCCB', title: 'Legal & Compliance',
         links: [
-          { text: 'Law Society Australia', href: 'https://www.lawsociety.com.au/' },
           { text: 'Master Builders Australia', href: 'https://www.masterbuilders.com.au/' },
           { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' }
         ]
       }
     ],
-    disclaimer: 'This is general information only. Renovation costs vary significantly by location, complexity, and contractor. Always get multiple quotes and consult a quantity surveyor and accountant before proceeding.'
+    disclaimer: 'This is general information only. The rates behind this calculator are my own rough estimates with no official source. Renovation costs vary significantly by location, complexity, and contractor. Always get multiple quotes and consult a quantity surveyor and accountant before proceeding.'
   },
   share: {
     url: 'https://equitysight.app/tools/renovation-cost-calculator',
@@ -131,7 +131,7 @@ ToolPage.init({
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools', text: 'All Calculators' },
+    { href: '/tools/', text: 'All Calculators' },
     { href: '/tools/house-flip-calculator', text: 'House Flip' },
     { href: '/tools/equity-release-calculator', text: 'Home Equity' },
     { href: '/privacy', text: 'Privacy' }

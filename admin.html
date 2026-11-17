@@ -831,6 +831,11 @@
             <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Remove all login tokens that have expired. Active users won't be affected — only stale sessions older than the TTL are removed.</div>
             <button class="btn-admin-outline" id="purge-sessions-btn">Purge Expired Sessions</button>
           </div>
+          <div style="background:rgba(196,90,90,0.08);border:1px solid rgba(196,90,90,0.25);border-radius:var(--radius-sm);padding:16px 20px;">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--risk-red);">Sign everyone out</div>
+            <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Ends every session on the site, including yours. Everyone signs in again. Use this after any doubt about who is signed in. Guest journeys are not affected.</div>
+            <button class="btn-admin-outline" id="revoke-all-sessions-btn">Sign everyone out</button>
+          </div>
           <div style="background:rgba(196,90,90,0.06);border:1px solid rgba(196,90,90,0.15);border-radius:var(--radius-sm);padding:16px 20px;">
             <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;color:var(--charcoal);">🗑 Purge Orphaned Profiles</div>
             <div style="font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.7;">Remove profile data for accounts that no longer exist. Safe to run — only deletes profiles with no matching user account.</div>

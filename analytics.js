@@ -2,7 +2,7 @@
 // Provides calculator interaction, conversion, and user behavior tracking
 // Call gtag() functions from this file to log structured events
 
-// Safety shim — if gtag-init.js didn't load (blocked by ad blocker, CSP, network),
+// Safety shim — if gtag-loader.js didn't load (blocked by ad blocker, CSP, network),
 // avoid ReferenceError that would abort page scripts. All tracking becomes a no-op.
 if (typeof window.gtag !== 'function') {
   window.dataLayer = window.dataLayer || [];
@@ -19,9 +19,9 @@ function initAnalytics() {
   }
 
   if (session && session.id) {
+    // Account id only. Never send a name or email address to Google Analytics.
     gtag('config', 'G-TYQXT24670', {
-      'user_id': session.id,
-      'user_email': session.email || null
+      'user_id': session.id
     });
 
     // Custom user properties
@@ -95,20 +95,6 @@ window.trackCalculatorResult = function(calculatorName, resultData) {
 };
 
 // ── Conversion Tracking ──────────────────────────────────────────────────
-window.trackProUpgrade = function(plan) {
-  gtag('event', 'purchase', {
-    'value': plan === 'pro' ? 4.99 : 0,
-    'currency': 'AUD',
-    'transaction_id': 'upgrade_' + Date.now(),
-    'plan_type': plan,
-    'event_category': 'conversion'
-  });
-
-  gtag('event', 'upgrade_to_pro', {
-    'plan': plan
-  });
-};
-
 window.trackPDFExport = function(pageContext) {
   gtag('event', 'pdf_export', {
     'page_context': pageContext || 'app',
@@ -319,35 +305,11 @@ window.addEventListener('storage', function(e) {
   }
 });
 
-// ── Churn & Subscription Analytics ───────────────────────────────────────
+// ── Subscription cancellation (existing subscribers only) ────────────────
 window.trackChurn = function(reason, plan) {
   gtag('event', 'subscription_cancel', {
     'reason': reason || 'unknown',
     'plan': plan || 'unknown',
-    'event_category': 'conversion'
-  });
-};
-
-window.trackTrialEvent = function(action, daysRemaining) {
-  gtag('event', 'trial_' + action, {
-    'action': action, // 'started', 'ending_soon', 'ended', 'converted', 'expired'
-    'days_remaining': daysRemaining || 0,
-    'event_category': 'conversion'
-  });
-};
-
-window.trackTrialFeatureAccess = function(featureName) {
-  // Track when trial user accesses a pro feature during trial period
-  gtag('event', 'trial_feature_access', {
-    'feature_name': featureName,
-    'event_category': 'engagement'
-  });
-};
-
-window.trackTrialConversion = function(planSelected) {
-  // Track trial user converting to paid plan
-  gtag('event', 'trial_converted', {
-    'plan': planSelected || 'pro',
     'event_category': 'conversion'
   });
 };
@@ -444,28 +406,11 @@ window.trackFeatureDiscovery = function(featureName, section) {
   });
 };
 
-window.trackFeatureGateCTA = function(featureName, ctaType) {
-  // Track clicks on 'Upgrade' CTAs from feature gates
-  gtag('event', 'feature_gate_cta_click', {
-    'feature_name': featureName,
-    'cta_type': ctaType, // 'upgrade', 'learn_more', 'close'
-    'event_category': 'conversion'
-  });
-};
-
 // ── Help & Support Engagement ──────────────────────────────────────────
 window.trackHelpEngagement = function(action, context) {
   gtag('event', 'help_engagement', {
     'action': action, // 'help_modal_opened', 'faq_clicked', 'support_contacted', 'video_watched', 'doc_viewed'
     'context': context || 'unknown', // 'app', 'scenario', 'calculation', 'feature'
-    'event_category': 'engagement'
-  });
-};
-
-// ── Free Trial Feature Usage ───────────────────────────────────────────
-window.trackTrialFeatureUsage = function(featureName) {
-  gtag('event', 'trial_feature_used', {
-    'feature_name': featureName,
     'event_category': 'engagement'
   });
 };

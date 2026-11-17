@@ -298,7 +298,8 @@ html.dark-mode .suburb-amenity-list li {
 /* ── State hub: nav ── */
 .state-nav { display: flex; flex-wrap: wrap; gap: 8px; }
 .state-nav a { display: inline-block; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.5px; padding: 7px 14px; border-radius: 4px; text-decoration: none; color: var(--charcoal); background: var(--warm-white); border: 1px solid rgba(28,28,30,0.1); transition: border-color 0.15s, background 0.15s; }
-.state-nav a:hover, .state-nav a.active { border-color: var(--gold); background: rgba(201,168,76,0.08); color: var(--gold); }
+.state-nav a:hover, .state-nav a.active { border-color: var(--gold); background: rgba(201,168,76,0.08); color: var(--gold-dark); }
+html.dark-mode .state-nav a:hover, html.dark-mode .state-nav a.active { color: var(--gold); }
 
 /* ── State hub: suburb list ── */
 .hub-suburb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
@@ -804,3 +805,44 @@ html.dark-mode .suburb-calc-link{background:rgba(255,255,255,0.06);color:#F5F0E8
 .suburb-proscons-cons h3 { color: #B0454F; }
 html.dark-mode .suburb-proscons-pros h3 { color: var(--reward-green-bright); }
 html.dark-mode .suburb-proscons-cons h3 { color: var(--risk-red-bright); }
+
+/* ── Nov 2026 suburb page: figures with their source printed under them ── */
+.suburb-hero-line { font-size: 15px; color: rgba(245,240,232,0.72); margin-top: 10px; line-height: 1.6; }
+.suburb-figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.suburb-fig { background: var(--warm-white); border: 1px solid rgba(28,28,30,0.08); border-radius: 8px; padding: 14px 16px; }
+.suburb-fig-label { font-size: 12.5px; font-weight: 600; color: var(--slate); margin-bottom: 4px; }
+.suburb-fig-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--charcoal); line-height: 1.15; }
+.suburb-fig-cap { font-size: 12px; line-height: 1.45; color: var(--slate); margin-top: 6px; }
+.suburb-fig-note { font-size: 12.5px !important; color: var(--slate); margin-top: 10px; }
+.suburb-section p a, .suburb-methodology a, .suburb-faq-detail a { color: var(--gold-dark); text-decoration: underline; text-underline-offset: 2px; }
+.suburb-resources a { color: var(--gold-dark); }
+.suburb-table-wrap { overflow-x: auto; margin: 12px 0 4px; }
+.suburb-dep-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; }
+.suburb-dep-table th, .suburb-dep-table td { padding: 9px 10px; border-bottom: 1px solid rgba(28,28,30,0.1); text-align: right; white-space: nowrap; }
+.suburb-dep-table th:first-child { text-align: left; }
+.suburb-dep-table thead th { font-size: 12px; font-weight: 600; color: var(--slate); }
+.suburb-dep-table tbody th { font-weight: 600; color: var(--charcoal); }
+.suburb-dep-table td { font-family: var(--font-mono); font-size: 13px; color: var(--charcoal); }
+.suburb-related .sr-fig { font-size: 13px; color: var(--charcoal); margin-top: 2px; }
+.suburb-related .sr-km { font-size: 12px; color: var(--slate); margin-top: 3px; }
+.suburb-cta-secondary { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; }
+.suburb-cta-secondary a { font-size: 12px; }
+.state-stats-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 14px; }
+.state-stats-table th, .state-stats-table td { padding: 10px 8px; border-bottom: 1px solid rgba(28,28,30,0.1); vertical-align: top; }
+.state-stats-table th { text-align: left; font-weight: 500; color: var(--slate); width: 42%; }
+.state-stats-table td { text-align: right; color: var(--charcoal); }
+.state-stats-table a { color: var(--gold-dark); }
+.suburb-h2-link { color: inherit; text-decoration: none; }
+.suburb-h2-count { font-family: var(--font-mono); font-size: 13px; color: var(--slate); font-weight: 400; margin-left: 6px; }
+.hub-suburb-meta { font-size: 12px; }
+
+html.dark-mode .suburb-fig { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+html.dark-mode .suburb-fig-value, html.dark-mode .suburb-dep-table td, html.dark-mode .suburb-dep-table tbody th,
+html.dark-mode .suburb-related .sr-fig, html.dark-mode .state-stats-table td { color: var(--cream); }
+html.dark-mode .suburb-fig-label, html.dark-mode .suburb-fig-cap, html.dark-mode .suburb-fig-note,
+html.dark-mode .suburb-dep-table thead th, html.dark-mode .suburb-related .sr-km, html.dark-mode .state-stats-table th,
+html.dark-mode .suburb-h2-count { color: rgba(245,240,232,0.62); }
+html.dark-mode .suburb-dep-table th, html.dark-mode .suburb-dep-table td,
+html.dark-mode .state-stats-table th, html.dark-mode .state-stats-table td { border-color: rgba(255,255,255,0.1); }
+html.dark-mode .suburb-section p a, html.dark-mode .suburb-methodology a, html.dark-mode .suburb-faq-detail a,
+html.dark-mode .suburb-resources a, html.dark-mode .state-stats-table a { color: var(--gold); }

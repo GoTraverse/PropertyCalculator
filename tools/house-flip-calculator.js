@@ -1,7 +1,7 @@
 function updateContingency() {
   var reno = parseVal('reno');
   var cont = Math.round(reno * 0.15);
-  document.getElementById('renocontingency').value = cont > 0 ? cont.toLocaleString() : '';
+  document.getElementById('renocontingency').value = cont > 0 ? cont.toLocaleString('en-AU') : '';
 }
 
 function calculate() {
@@ -38,6 +38,7 @@ function calculate() {
 
   var verdict = '';
   if (netProfit <= 0) verdict = '\u26A0\uFE0F This flip appears unprofitable at these figures. Review costs or target a higher sale price.';
+  else if (months <= 0) verdict = 'Profit of ' + fmt(netProfit) + ' before tax, a ' + roi.toFixed(1) + '% return on total cost. Enter a hold period and holding costs to see the annualised return.';
   else if (annualised >= 20) verdict = '\u2713 Strong projected return. Ensure your renovation and sale price estimates are realistic.';
   else if (annualised >= 10) verdict = '\u2713 Reasonable return. Verify renovation costs and allow for contingency.';
   else verdict = 'Marginal return. Consider whether the risk justifies the effort compared to other strategies.';
@@ -84,7 +85,6 @@ ToolPage.init({
           { text: 'ATO: Capital Gains Tax Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
           { text: 'ATO: GST for Developers', href: 'https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst' },
           { text: 'ATO: Income Deductions', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ATO: Property Tax Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' }
         ]
       },
       {
@@ -92,7 +92,6 @@ ToolPage.init({
         links: [
           { text: 'Building Inspections Info', href: 'https://www.consumer.vic.gov.au/housing' },
           { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Law Society Australia', href: 'https://www.lawsociety.com.au/' }
         ]
       },
       {
@@ -100,7 +99,6 @@ ToolPage.init({
         links: [
           { text: 'MoneySmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' },
           { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
-          { text: 'ASIC: Investment Loans', href: 'https://moneysmart.gov.au/property-investment' }
         ]
       }
     ],
@@ -118,7 +116,7 @@ ToolPage.init({
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools', text: 'All Calculators' },
+    { href: '/tools/', text: 'All Calculators' },
     { href: '/tools/renovation-cost-calculator', text: 'Reno Cost' },
     { href: '/tools/capital-gains-calculator', text: 'CGT' },
     { href: '/privacy', text: 'Privacy' }
@@ -128,9 +126,9 @@ ToolPage.init({
     { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '💵', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase' },
     { group: 'Other Tools', icon: '📉', href: '/tools/capital-gains-calculator', label: 'Capital Gains Tax (on the resale)' },
-    { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD (flip-friendly)' },
+    { group: 'Popular Suburbs', icon: '📍', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD' },
     { group: 'Popular Suburbs', icon: '📍', href: '/suburb/vic/werribee/', label: 'Werribee VIC' },
-    { group: 'Popular Suburbs', icon: '📍', href: '/invest/qld/', label: 'All QLD Investment Suburbs' },
+    { group: 'Popular Suburbs', icon: '📍', href: '/invest/qld/', label: 'Queensland suburb directory' },
     { group: 'Guides', icon: '📖', href: '/methodology', label: 'How we calculate (methodology)' }
   ]
 });

@@ -56,7 +56,7 @@ function bandLabel(taxable) {
 /* Signed currency — fmt() renders -8595 as "$-8,595"; this renders −$8,595. */
 function fmtS(n) {
   var r = Math.round(n);
-  return (r < 0 ? '−$' : '$') + Math.abs(r).toLocaleString();
+  return (r < 0 ? '−$' : '$') + Math.abs(r).toLocaleString('en-AU');
 }
 
 /* ═══ SUBURB MEDIAN RENT PREFILL (optional) ═══
@@ -166,8 +166,8 @@ function applyMedian() {
     return;
   }
   var rentEl = document.getElementById('rent');
-  if (rentEl) rentEl.value = Math.round(rec.r).toLocaleString();
-  _captionSay('Median weekly rent for ' + _titleCase(typed) + ': $' + Math.round(rec.r).toLocaleString() +
+  if (rentEl) rentEl.value = Math.round(rec.r).toLocaleString('en-AU');
+  _captionSay('Median weekly rent for ' + _titleCase(typed) + ': $' + Math.round(rec.r).toLocaleString('en-AU') +
     ' — ' + _srcCaption(SC + '_rent'));
   calculate(false);
 }
@@ -370,14 +370,16 @@ function calculate(showErrors) {
 if (typeof MarketRate !== 'undefined') {
   MarketRate.onReady(function (d) {
     if (!d) return;
-    var el = document.getElementById('rate');
-    if (el && el.value === '6.50') el.value = d.suggestedRate;
+    // Only replaces the rate while you have not typed your own (including a
+    // suggestion restored from an earlier visit), so "Live" is never shown
+    // beside a stale rate.
+    var showing = ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.50', slug: 'property-cashflow', rate: d.suggestedRate });
     var badge = document.getElementById('rate-live-badge');
     var hint = document.getElementById('rate-live-hint');
-    if (badge) badge.style.display = '';
+    if (badge) badge.style.display = showing ? '' : 'none';
     if (hint) {
       hint.textContent = 'Live RBA-based suggestion: cash rate ' + d.cashRate.toFixed(2) +
-        '% + typical lender margin ' + d.lenderMargin.toFixed(2) + '% = ' + d.suggestedRate.toFixed(2) + '%' +
+        '% + lender margin ' + d.lenderMargin.toFixed(2) + '% (my assumption) = ' + d.suggestedRate.toFixed(2) + '%' +
         (d.rateDate ? ' — ' + d.rateDate : '');
       hint.style.display = '';
     }
@@ -394,7 +396,7 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full investment — 30 years, not one',
+    title: 'Work through the rest of the numbers',
     description: 'Stack purchase costs, yield, land tax and the eventual CGT with the other free calculators.',
     buttonText: 'Browse all 18 calculators →',
     buttonHref: '/tools/'
@@ -513,9 +515,9 @@ ToolPage.init({
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/land-tax-calculator', label: 'Land Tax Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCC9', href: '/tools/capital-gains-calculator', label: 'Capital Gains Tax Calculator' },
     { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/borrowing-power-calculator', label: 'Borrowing Power Calculator' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD (high yield)' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Best QLD Investment Suburbs' }
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Queensland suburb directory' }
   ]
 });
 

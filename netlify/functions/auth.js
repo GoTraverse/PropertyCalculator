@@ -330,6 +330,24 @@ async function deleteUserKeys(userData, opts){
     }
   }catch(e){ /* non-fatal */ }
   delOps.push(rDel('journey:shares:'+email));
+  // The admin Journeys list is built from this set; leaving the address in it
+  // keeps a deleted person's email on file.
+  delOps.push(redisCmd('SREM','journey:users',email));
+  // Parked-tool and usage data keyed by user id.
+  delOps.push(rDel('portfolio:'+uid));
+  delOps.push(rDel('usage:'+uid));
+  delOps.push(rDel('sharedwith:'+uid));
+  // Public scenario share links (/s/<token>) must stop working too.
+  try{
+    const psRaw = await redisCmd('GET','pubshares:'+uid);
+    const ps = psRaw ? (()=>{ try{return JSON.parse(psRaw);}catch(e){return null;} })() : null;
+    const tokens = Array.isArray(ps) ? ps : (ps && typeof ps === 'object' ? Object.values(ps) : []);
+    for(const t of tokens){
+      const tok = typeof t === 'string' ? t : (t && t.token);
+      if(tok) delOps.push(rDel('pubshare:'+tok));
+    }
+  }catch(e){ /* non-fatal */ }
+  delOps.push(rDel('pubshares:'+uid));
   // Delete all scenarios for this user
   try{
     const raw = await redisCmd('GET','scenarios:'+uid+':index');
@@ -1405,6 +1423,19 @@ exports.handler = async function(event){
       try{ await rSet(HIST_CACHE_KEY,resp,HIST_CACHE_TTL); }catch(e){}
       return ok(resp);
     }catch(e){ return fail('History error: '+e.message); }
+  }
+
+  // Ends every session on the site, the caller's included. For use after any
+  // doubt about who holds a session: everyone signs in again.
+  if(action==='adminRevokeAllSessions'){
+    const user=await verifyToken(event);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const keys=await scanAll('token:*');
+    for(let i=0;i<keys.length;i+=50){
+      await Promise.all(keys.slice(i,i+50).map(k=>rDel(k)));
+    }
+    await logEvent(user.userId,'admin_revoked_all_sessions',{count:keys.length});
+    return ok({ok:true,count:keys.length}, buildSessionCookie('', 0));
   }
 
   if(action==='adminPurgeExpiredSessions'){

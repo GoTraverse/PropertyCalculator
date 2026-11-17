@@ -236,6 +236,8 @@ document.querySelectorAll('[data-db-filter]').forEach(function(btn){
 });
 
 // ── Database maintenance ─────────────────────────────────────────────────────
+var revokeAllBtn = document.getElementById('revoke-all-sessions-btn');
+if(revokeAllBtn) revokeAllBtn.addEventListener('click', revokeAllSessions);
 var purgeSessionsBtn = document.getElementById('purge-sessions-btn');
 if(purgeSessionsBtn) purgeSessionsBtn.addEventListener('click', purgeExpiredSessions);
 var purgeProfilesBtn = document.getElementById('purge-profiles-btn');

@@ -17,7 +17,7 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 
 /* ── Hero ── */
 .tool-hero { background: var(--charcoal); color: var(--cream); padding: 44px 20px 52px; text-align: center; }
-.tool-eyebrow { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.4px; text-transform: none;
+.tool-eyebrow { font-family: var(--font-body); font-size: 14px; font-weight: 600; letter-spacing: 0.8px; text-transform: none;
   font-variant-caps: all-small-caps; color: var(--gold); margin-bottom: 10px; }
 .tool-hero h1 { font-family: var(--font-display); font-size: clamp(24px, 5vw, 38px); font-weight: 700; line-height: 1.2; margin-bottom: 12px; }
 .tool-hero p { font-size: 15px; color: rgba(245,240,232,0.68); max-width: 520px; margin: 0 auto; }
@@ -32,8 +32,10 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 
 /* ── Form fields ── */
 .tool-field { margin-bottom: 14px; }
-.tool-label { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.4px; text-transform: none;
-  font-variant-caps: all-small-caps; color: var(--slate); display: block; margin-bottom: 5px; }
+/* Field labels are plain sentence-case text at a readable size. They were
+   10px small caps, which rendered at about 7px tall. */
+.tool-label { font-family: var(--font-body); font-size: 13px; font-weight: 600; line-height: 1.35; letter-spacing: 0; text-transform: none;
+  font-variant-caps: normal; color: var(--slate); display: block; margin-bottom: 5px; }
 .tool-input, .tool-select { width: 100%; padding: 10px 13px; border: 1.5px solid rgba(28,28,30,0.14); border-radius: 5px; font-family: var(--font-body); font-size: 15px; color: var(--charcoal); background: white; outline: none; transition: border-color 0.15s; }
 .tool-input:focus, .tool-select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
 .tool-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 4.5L11 1' stroke='%234A4A52' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
@@ -66,7 +68,7 @@ body { font-family: var(--font-body); background: var(--warm-white); color: var(
 .tool-stat.full { grid-column: 1 / -1; }
 .tool-stat.good { background: rgba(90,158,123,0.08); border: 1px solid rgba(90,158,123,0.2); }
 .tool-stat.bad { background: rgba(196,90,90,0.07); border: 1px solid rgba(196,90,90,0.18); }
-.tool-stat-label { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.4px; text-transform: none;
+.tool-stat-label { font-family: var(--font-body); font-size: 13px; letter-spacing: 0.4px; text-transform: none;
   font-variant-caps: all-small-caps; color: var(--slate); margin-bottom: 3px; }
 .tool-stat-value { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--charcoal); }
 .tool-stat-value.green { color: var(--reward-green); }

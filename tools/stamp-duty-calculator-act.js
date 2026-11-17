@@ -26,6 +26,12 @@ function calcACTDuty(price, ptype, buyer, fhb) {
   var v = price;
   var standard = calcACTStandard(v);
 
+  // Vacant land: same treatment as tools/stamp-duty-calculator.js, which only
+  // applies first home buyer relief to dwellings (QLD land aside).
+  if (fhb && ptype === 'land') {
+    return { duty: standard, note: 'First home buyer relief for vacant land has different rules that this page does not model, so standard duty is shown.' };
+  }
+
   if (fhb && v <= ACT_FHB_FULL) {
     return { duty: 0, note: 'Home Buyer Concession applied — $0 duty (no income test or property value limit from 1 July 2026).' };
   }
@@ -46,7 +52,8 @@ function calculate() {
   if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
 
   var result = calcACTDuty(val, ptype, buyer, isFHB);
@@ -74,10 +81,13 @@ function calculate() {
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -98,7 +108,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Australian Capital Territory 2026-27 conveyance duty (HBCS uncapped from 1 July 2026). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Australian Capital Territory 2026-27 conveyance duty (HBCS uncapped from 1 July 2026). LMI is a rough estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -169,7 +179,6 @@ ToolPage.init({
     { href: '/', text: 'EquitySight.app' },
     { href: '/tools/stamp-duty-calculator', text: 'All States' },
     { href: '/tools/cost-of-purchase-calculator', text: 'Cost of Purchase' },
-    { href: '/invest/act/', text: 'ACT Suburb Guide' },
     { href: '/privacy', text: 'Privacy' }
   ],
   examples: [
@@ -255,37 +264,12 @@ ToolPage.init({
     ]
   }
 ],
-  faq: [
-  {
-    "q": "How does stamp duty work in the ACT?",
-    "a": "ACT conveyance duty is charged by the ACT Revenue Office on the dutiable value of any property purchase. Rates step up across multiple brackets: 0.28% up to $260,000, 2.2% to $300,000, 3.4% to $500,000, 4.32% to $750,000, 5.9% to $1,000,000, and 6.4% to $1,455,000. Above $1,455,000 a flat rate of 4.54% applies to the whole purchase price. From 1 July 2026, eligible home buyers (no property owned in the previous 5 years) pay no conveyance duty at all under the Home Buyer Concession Scheme — the income test and the $1,020,000 property value limit were both removed."
-  },
-  {
-    "q": "Do first home buyers pay stamp duty in the ACT?",
-    "a": "The ACT Home Buyer Concession Scheme (HBCS) is more generous than other states — from 1 July 2026 it covers all eligible buyers (no property owned in the previous 5 years) with NO income test and NO property value limit. Eligible ACT buyers pay no conveyance duty at any price."
-  },
-  {
-    "q": "What is the ACT Home Buyer Concession Scheme?",
-    "a": "From 1 July 2026 the HBCS provides full duty exemption for eligible owner-occupiers (not just first home buyers) with no income test and no property value limit. The scheme replaced the previous First Home Owner Grant + duty concession in 2019 and is materially more generous. To qualify you must occupy the property as your principal residence for at least 12 months continuously starting within 12 months of settlement."
-  },
-  {
-    "q": "When is stamp duty due in the ACT?",
-    "a": "ACT conveyance duty is payable within 14 days of receiving the assessment notice from the ACT Revenue Office — typically within 28 days of registration. Most buyers pay duty at settlement through their solicitor or conveyancer. Late payment attracts interest at the rate published by the ACT Revenue Office."
-  },
-  {
-    "q": "Does the ACT charge a foreign buyer surcharge?",
-    "a": "The ACT does not charge a one-off foreign buyer stamp duty surcharge. Instead, foreign owners of residential property pay an annual foreign ownership land tax surcharge of 0.75% per year of the property's average unimproved value. This is collected separately from stamp duty and applies for as long as the foreign person owns the property."
-  },
-  {
-    "q": "Is ACT stamp duty being abolished?",
-    "a": "The ACT government has been progressively reducing residential conveyance duty rates as part of a long-running tax reform. Duty rates today are materially lower than they were a decade ago, and the trade-off has been a gradual increase in general rates (council rates) on residential property. There is no firm date for full abolition, but the trend is downward."
-  }
-],
+  // FAQ: shown once, as static HTML in the page (the same text is in its
+  // JSON-LD). There is no JS copy here, so the two cannot drift apart.
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
-    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/act/', label: 'Australian Capital Territory Suburb Guide' }
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' }
   ]
 });
 

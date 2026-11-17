@@ -120,33 +120,14 @@ function renderPlan(){
     }
   }
 
-  const features = {
-    free: [
-      {ok:true, text:'Calculator with all core features'},
-      {ok:true, text:'1 saved property scenario'},
-      {ok:false, text:'30-year projection chart (Pro)'},
-      {ok:false, text:'PDF export (Pro)'},
-      {ok:false, text:'Unlimited library &amp; cloud sync (Pro)'},
-    ],
-    pro: [
-      {ok:true, text:'All calculator features'},
-      {ok:true, text:'Unlimited saved properties'},
-      {ok:true, text:'30-year projection chart'},
-      {ok:true, text:'PDF export'},
-      {ok:true, text:'Cloud sync across devices'},
-      {ok:true, text:'Priority email support'},
-    ],
-    adviser: [
-      {ok:true, text:'Everything in Pro'},
-      {ok:true, text:'Up to 5 client accounts'},
-      {ok:true, text:'White-label PDF reports'},
-      {ok:true, text:'Phone + email priority support'},
-    ]
-  };
-  const fList = features[plan] || features.free;
-  if(featEl) featEl.innerHTML = statusHtml.join('') + fList.map(function(f){
-    return '<div class="plan-feature"><span class="'+(f.ok?'pf-check':'pf-lock')+'">'+(f.ok?'✓':'—')+'</span>'+f.text+'</div>';
-  }).join('');
+  // Paid plans are no longer sold. Free accounts get a plain note instead of a
+  // plan card; existing subscribers see their plan, its status and the billing
+  // portal button. No feature comparison or upsell list is shown to anyone.
+  const planCard = document.getElementById('plan-card');
+  const freeNote = document.getElementById('plan-free-note');
+  if(planCard) planCard.style.display = (plan==='free') ? 'none' : '';
+  if(freeNote) freeNote.style.display = (plan==='free') ? '' : 'none';
+  if(featEl) featEl.innerHTML = (plan==='free') ? '' : statusHtml.join('');
 
   if(upgradeEl){
     upgradeEl.innerHTML = plan==='free'

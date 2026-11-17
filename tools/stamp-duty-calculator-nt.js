@@ -43,7 +43,8 @@ function calculate() {
   if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
   var foreignEl = document.getElementById('foreign');
   var isForeign = foreignEl ? foreignEl.checked : false;
@@ -74,10 +75,13 @@ function calculate() {
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -100,7 +104,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Northern Territory 2026-27 stamp duty on conveyances. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Northern Territory 2026-27 stamp duty on conveyances. LMI is a rough estimate. Verify with a solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -135,7 +139,6 @@ ToolPage.init({
         icon: '\uD83C\uDFDB\uFE0F', title: 'Territory Revenue Office',
         links: [
           { text: 'NT Stamp Duty on Conveyances', href: 'https://nt.gov.au/property/buying-and-selling-a-home/settle-the-sale/stamp-duty-buying-or-selling-a-home' },
-          { text: 'House and Land Package Stamp Duty Discount', href: 'https://nt.gov.au/property/buying-and-selling-a-home/settle-the-sale/stamp-duty-buying-or-selling-a-home' }
         ]
       },
       {
@@ -171,7 +174,6 @@ ToolPage.init({
     { href: '/', text: 'EquitySight.app' },
     { href: '/tools/stamp-duty-calculator', text: 'All States' },
     { href: '/tools/cost-of-purchase-calculator', text: 'Cost of Purchase' },
-    { href: '/invest/nt/', text: 'NT Suburb Guide' },
     { href: '/privacy', text: 'Privacy' }
   ],
   examples: [
@@ -257,37 +259,12 @@ ToolPage.init({
     ]
   }
 ],
-  faq: [
-  {
-    "q": "How does stamp duty work in the Northern Territory?",
-    "a": "NT stamp duty on conveyances is charged by the Territory Revenue Office on the dutiable value of any property purchase. For values under $525,000 the NT uses a graduated formula rather than discrete brackets, so duty rises smoothly with the price. From $525,000 to $3 million duty is a flat 4.95% of the whole price; from $3 million to $5 million it is 5.75%; and above $5 million it is 5.95%. Owner-occupiers and investors pay the same standard rates on established dwellings."
-  },
-  {
-    "q": "Do first home buyers pay stamp duty in the NT?",
-    "a": "The NT's House and Land Package Exemption gives a FULL stamp duty exemption (no value cap, not means-tested) when you buy a house-and-land package from a building contractor in a single transaction — contracts signed 1 July 2022 to 30 June 2027. It is not limited to first home buyers. For established homes there is no duty concession; first home buyers of NEW homes may also qualify for the $50,000 HomeGrown Territory grant (a cash grant, separate from duty)."
-  },
-  {
-    "q": "When is stamp duty due in the NT?",
-    "a": "NT stamp duty is payable within 60 days of the dutiable transaction. Your conveyancer normally pays the Territory Revenue Office at settlement using funds drawn from your loan and deposit. Late payment attracts interest and penalty tax under the Taxation Administration Act (NT)."
-  },
-  {
-    "q": "Does the NT charge a foreign buyer surcharge?",
-    "a": "No. The Northern Territory does not currently levy a foreign buyer surcharge on residential property purchases. The NT and the ACT are the only Australian jurisdictions with no foreign purchaser duty surcharge."
-  },
-  {
-    "q": "Why does the NT use a formula instead of brackets?",
-    "a": "For purchases under $525,000 the NT formula (D = 0.06571441 × V² + 15V, where V is the dutiable value in thousands of dollars) produces a smooth graduated curve rather than the bracket-based steps used in other states. The practical effect is similar to a tiered system, but below $525,000 the duty changes by cents (not dollars) as the price changes — eliminating the small jumps at bracket boundaries that other states have. At $525,000 and above the NT switches to flat percentage rates (4.95% up to $3 million, then 5.75% and 5.95%)."
-  },
-  {
-    "q": "Is NT stamp duty tax deductible?",
-    "a": "No. Stamp duty paid on an investment property in the NT is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."
-  }
-],
+  // FAQ: shown once, as static HTML in the page (the same text is in its
+  // JSON-LD). There is no JS copy here, so the two cannot drift apart.
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
-    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/nt/', label: 'Northern Territory Suburb Guide' }
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' }
   ]
 });
 

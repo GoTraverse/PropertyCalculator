@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Deposit Calculator Australia","url":"https://equitysight.app/tools/deposit-calculator","description":"Free Australian deposit calculator. Work out how much deposit you need to buy a home, including LMI and upfront costs.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Deposit Calculator"}]}
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Deposit Calculator"}]}
 </script>
 </head>
 <body>
@@ -79,7 +79,7 @@
     <div class="tool-field">
       <label class="tool-label" for="dep-pct">Deposit %</label>
       <select class="tool-input tool-select" id="dep-pct">
-        <option value="5">5% (minimum with LMI / 5% Deposit Scheme)</option>
+        <option value="5">5% (LMI is shown; the 5% Deposit Scheme can remove it)</option>
         <option value="10">10% (most common with LMI)</option>
         <option value="15">15%</option>
         <option value="20" selected>20% (standard — no LMI)</option>
@@ -103,7 +103,7 @@
 
     <div class="tool-check">
       <input type="checkbox" id="fhb">
-      <label for="fhb">First home buyer (applies stamp duty concession)</label>
+      <label for="fhb">First home buyer (applies the stamp duty concession; LMI is still shown)</label>
     </div>
 
     <button class="tool-btn" id="calc-btn" aria-label="Calculate deposit">Calculate Deposit</button>
@@ -171,11 +171,11 @@
   <p>LMI premiums are not legislated — they are set by the insurers (such as Helia or QBE) and passed on by the lender, so two banks can quote different figures on the same loan. Stamp duty rates and thresholds are set by each state and territory revenue office and change periodically. Treat both as solid estimates for planning, then confirm the exact numbers with the relevant authority before you commit.</p>
 
   <h2>Worked example: a $650,000 purchase in Queensland</h2>
-  <p>Assume a first home buyer targeting a $650,000 property in Queensland. Here is how the three common deposit levels compare. (Figures are illustrative; stamp duty and LMI vary with your state, lender, and eligibility.)</p>
+  <p>Assume a first home buyer targeting a $650,000 property in Queensland. Here is how the three common deposit levels compare. (The figures are this calculator's output for these inputs. Stamp duty and LMI vary with your state, lender and eligibility.)</p>
   <ul>
-    <li><strong>20% deposit:</strong> $130,000 deposit, a $520,000 loan, and an LVR of 80%. No LMI is payable. For an eligible first home buyer at this price, stamp duty in Queensland may be reduced or nil under the first home concessions (a buyer who does not qualify could instead face several thousand to low tens of thousands in duty), plus allow around $2,000–$3,000 for conveyancing and inspections — check Queensland Revenue Office for the figure that applies to you.</li>
-    <li><strong>10% deposit:</strong> $65,000 deposit, a $585,000 loan, and a 90% LVR. LMI now applies and could add roughly $10,000–$15,000, which many buyers capitalise onto the loan rather than pay in cash.</li>
-    <li><strong>5% deposit:</strong> $32,500 deposit, a $617,500 loan, and a 95% LVR. Without help, LMI on a 95% loan can run well into the tens of thousands. Under the 5% Deposit Scheme (formerly the First Home Guarantee), an eligible buyer can purchase at 5% with the LMI waived entirely — a substantial saving.</li>
+    <li><strong>20% deposit:</strong> $130,000 deposit, a $520,000 loan, and an LVR of 80%. No LMI is payable. For an eligible first home buyer at this price the calculator shows $0 stamp duty, so with $2,500 for legal and inspections the cash needed is $132,500. For a buyer who is not a first home buyer it shows $22,275 of duty. That is Queensland's standard rate. An owner-occupier pays less under the home concession, which the <a href="/tools/stamp-duty-calculator-qld">Queensland stamp duty calculator</a> shows.</li>
+    <li><strong>10% deposit:</strong> $65,000 deposit, a $585,000 loan, and a 90% LVR. LMI now applies. The calculator estimates it at $11,115, which many buyers add to the loan instead of paying in cash. Cash needed for a first home buyer: $78,615.</li>
+    <li><strong>5% deposit:</strong> $32,500 deposit, a $617,500 loan, and a 95% LVR. The calculator estimates LMI at $20,995, so cash needed for a first home buyer is $55,995. Under the 5% Deposit Scheme (formerly the First Home Guarantee), an eligible buyer pays no LMI, which would bring that down to $35,000. The calculator does not check scheme eligibility, so it always shows the LMI.</li>
   </ul>
   <p>The pattern is clear: a smaller deposit lowers the savings hurdle but increases the loan, the interest paid over time, and the LMI cost. A larger deposit costs more up-front but reduces lifetime interest and removes LMI. The right balance depends on how quickly you can save versus how fast prices are moving in your target area.</p>
 
@@ -221,7 +221,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -232,6 +232,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -252,6 +254,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

@@ -5,11 +5,13 @@ function calculate() {
 
   var propVal = parseVal('propval');
   var mortgage = parseVal('mortgage');
-  var lvr = parseFloat(document.getElementById('lvr').value) / 100;
+  var lvrPct = parseFloat(document.getElementById('lvr').value);
 
   if (!propVal || propVal <= 0) { if (!_isInit) _showErr('Please enter the property value.'); return; }
-  if (!mortgage || mortgage < 0) { if (!_isInit) _showErr('Please enter the outstanding mortgage.'); return; }
+  // A blank or $0 mortgage is valid: the home is owned outright.
   if (mortgage > propVal) { if (!_isInit) _showErr('Mortgage cannot exceed property value.'); return; }
+  if (!isFinite(lvrPct) || lvrPct <= 0 || lvrPct > 100) { if (!_isInit) _showErr('Please enter a maximum LVR between 1 and 100.'); return; }
+  var lvr = lvrPct / 100;
 
   var equity = propVal - mortgage;
   var currentLvr = mortgage / propVal;
@@ -56,7 +58,6 @@ ToolPage.init({
           { text: 'ASIC: Lenders Mortgage Insurance', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
           { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
           { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
-          { text: 'MoneySmart: Compare Lenders', href: 'https://moneysmart.gov.au/' }
         ]
       },
       {
@@ -71,7 +72,6 @@ ToolPage.init({
         icon: '\uD83D\uDCB0', title: 'Tax & Investment',
         links: [
           { text: 'ATO: Rental Property Tax Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ATO: Shared Equity Schemes', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
           { text: 'ASIC: Financial Adviser Directory', href: 'https://moneysmart.gov.au/financial-advice' }
         ]
       }
@@ -90,7 +90,7 @@ ToolPage.init({
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools', text: 'All Calculators' },
+    { href: '/tools/', text: 'All Calculators' },
     { href: '/tools/borrowing-power-calculator', text: 'Borrowing Power' },
     { href: '/tools/deposit-calculator', text: 'Deposit' },
     { href: '/privacy', text: 'Privacy' }

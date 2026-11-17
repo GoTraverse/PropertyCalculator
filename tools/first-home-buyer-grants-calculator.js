@@ -1,19 +1,15 @@
 /* ═══ FHB GRANTS & CONCESSIONS CALCULATOR ═══
  *
- * Best-in-market Australian First Home Buyer assistance calculator.
- * What competitors don't do that this does:
- *
- *   • Computes the ACTUAL dollar saving per program for the user's
- *     specific situation, not just "Full exemption / Reduces with price".
- *     We compute baseline stamp duty for the price + state, then subtract
- *     concession, so the user sees "you save $24,757".
- *   • Federal schemes overlaid in the same view: the 5% Deposit Scheme
+ * What it does:
+ *   • Computes the dollar duty saving for the entered price and state:
+ *     the duty an owner-occupier who is not a first home buyer would pay,
+ *     minus the first home buyer duty.
+ *   • Shows the federal schemes in the same view: the 5% Deposit Scheme
  *     (formerly First Home Guarantee — 5% deposit, no LMI), Help to Buy
- *     (2% shared-equity), First Home Super Saver ($50k withdrawal).
- *   • Separate price-cap tables for the 5% Deposit Scheme and Help to Buy
- *     (they differ per state) — most calculators use one table for both.
- *   • Total-assistance figure at the top: one clear number for "your
- *     household gets $X in first-home-buyer help on this purchase".
+ *     (2% deposit, shared equity) and First Home Super Saver.
+ *   • Keeps separate price-cap tables for the 5% Deposit Scheme and Help
+ *     to Buy, because they differ per state.
+ *   • Adds duty saving + FHOG + estimated LMI avoided into one total.
  *
  * Federal program settings (verified July 2026):
  *   • 5% Deposit Scheme: from 1 Oct 2025 there are NO income caps,
@@ -226,6 +222,22 @@ function calcDuty(stateCode, v) {
   return duty;
 }
 
+// Duty a NON-first-home owner-occupier pays — the baseline the first home
+// saving is measured against. Queensland charges owner-occupiers its lower
+// home-concession rate (the same qHome schedule fhbDuty() uses below), so
+// measuring the saving against the investor rate would overstate it by up
+// to $7,175 and exceed QRO's own maximum first home concession. No other
+// state has an owner-occupier rate, so standard duty is the baseline there.
+function ownerOccupierDuty(stateCode, price) {
+  if (stateCode === 'qld') {
+    return price <= 350000 ? price * 0.01
+      : price <= 540000 ? 3500 + (price - 350000) * 0.035
+      : price <= 1000000 ? 10150 + (price - 540000) * 0.045
+      : 30850 + (price - 1000000) * 0.0575;
+  }
+  return calcDuty(stateCode, price);
+}
+
 // FHB stamp-duty payable (after concession), state-specific
 function fhbDuty(stateData, stateCode, price, isNewBuild) {
   const stdDuty = calcDuty(stateCode, price);
@@ -327,7 +339,8 @@ function calculate() {
   const isNewBuild = ptype === 'new' || ptype === 'offplan';
 
   // ── Stamp duty (without FHB) vs with FHB ───────────────────────────────
-  const stdDuty = calcDuty(stateCode, price);
+  // Baseline = what an owner-occupier who is not a first home buyer pays.
+  const stdDuty = ownerOccupierDuty(stateCode, price);
   const fhbDutyPayable = fhbDuty(data, stateCode, price, isNewBuild);
   const sdSaving = stdDuty - fhbDutyPayable;
 
@@ -384,7 +397,7 @@ function calculate() {
   // Stamp duty section
   html += '<div class="fhb-section">' +
     '<div class="fhb-section-title">' + escHtml(data.name) + ' Stamp Duty</div>' +
-    '<div class="fhb-row"><span>Standard duty payable</span><span class="fhb-row-val">' + fmt(stdDuty) + '</span></div>' +
+    '<div class="fhb-row"><span>' + (stateCode === 'qld' ? 'Duty for an owner-occupier who is not a first home buyer (QLD home concession rate)' : 'Standard duty payable') + '</span><span class="fhb-row-val">' + fmt(stdDuty) + '</span></div>' +
     '<div class="fhb-row"><span>Your duty as a first home buyer</span><span class="fhb-row-val">' + fmt(fhbDutyPayable) + '</span></div>' +
     '<div class="fhb-row fhb-row-save"><span>Stamp duty saving</span><span class="fhb-row-val">' + fmt(sdSaving) + '</span></div>' +
     (data.fhbNote ? '<div class="fhb-row-note">' + escHtml(data.fhbNote) + '</div>' : '') +
@@ -421,7 +434,7 @@ function calculate() {
       '<div class="fhb-row"><span>Property price cap (' + (isCapitalCity ? 'capital city / regional centre' : 'rest of state') + ')</span><span class="fhb-row-val">' + fmt(helpToBuy.propertyCap) + '</span></div>' +
       (helpToBuy.eligible
         ? '<div class="fhb-row"><span>Government equity (' + Math.round(helpToBuy.equityShare * 100) + '% — ' + (isNewBuild ? 'new build' : 'established') + ')</span><span class="fhb-row-val">' + fmt(helpToBuy.governmentEquity) + '</span></div>' +
-          '<div class="fhb-row fhb-row-save"><span>Your borrowing required (2% deposit + loan)</span><span class="fhb-row-val">' + fmt(helpToBuy.yourBorrowingRequired) + '</span></div>' +
+          '<div class="fhb-row"><span>Your loan (price less the government share and a 2% deposit)</span><span class="fhb-row-val">' + fmt(helpToBuy.yourBorrowingRequired) + '</span></div>' +
           '<div class="fhb-row-note">Eligible. Applications open since 5 Dec 2025 via Commonwealth Bank and Bank Australia (more lenders during 2026); 10,000 places in FY2026-27. Income caps from 1 Jul 2026: $103,000 single / $165,000 joint or single-parent. The government takes its proportional share of any gain when you sell or refinance. Cannot be combined with the 5% Deposit Scheme — pick one.</div>'
         : '<div class="fhb-row fhb-row-na"><span>Help to Buy status</span><span class="fhb-row-val">Not eligible</span></div>' +
           '<div class="fhb-row-note">' + (!helpToBuy.incomeOk ? 'Income exceeds the ' + fmt(helpToBuy.incomeCap) + ' ' + (isCouple ? 'joint / single-parent' : 'single') + ' cap (from 1 Jul 2026). ' : '') +
@@ -532,10 +545,10 @@ ToolPage.init({
         { k: 'Couple income', v: '$210,000 combined' }
       ],
       outputs: [
-        { k: 'Stamp duty saving', v: '$22,275 (new-home duty nil, no value cap)' },
+        { k: 'Stamp duty saving', v: '$15,100 (new-home duty nil, measured against the owner-occupier rate)' },
         { k: 'FHOG (new builds)', v: '$30,000' },
         { k: '5% Deposit Scheme', v: 'Eligible — no income caps since Oct 2025' },
-        { k: 'Total cash assistance', v: '~$73,270 (incl. ~$21,000 LMI avoided)' }
+        { k: 'Total cash assistance', v: '$66,095 (incl. $20,995 estimated LMI avoided)' }
       ]
     },
     {
@@ -550,7 +563,7 @@ ToolPage.init({
         { k: 'Stamp duty saving', v: '$29,870 (full exemption ≤ $600k)' },
         { k: 'FHOG', v: '$0 (established homes not eligible)' },
         { k: '5% Deposit Scheme', v: 'Eligible — also under the $103k Help to Buy cap' },
-        { k: 'Total cash assistance', v: '~$48,600 (incl. ~$18,700 LMI avoided)' }
+        { k: 'Total cash assistance', v: '$48,604 (incl. $18,734 estimated LMI avoided)' }
       ]
     },
     {
@@ -562,10 +575,10 @@ ToolPage.init({
         { k: 'Couple income', v: '$185,000 combined' }
       ],
       outputs: [
-        { k: 'Stamp duty saving', v: '~$14,235 (sliding concession $800k–$1m)' },
+        { k: 'Stamp duty saving', v: '$14,235 (sliding concession $800k–$1m)' },
         { k: 'FHOG', v: '$0 (established)' },
         { k: '5% Deposit Scheme', v: 'Eligible — under the $1.5m Sydney cap, no income test' },
-        { k: 'Total cash assistance', v: '~$43,950 (incl. ~$29,700 LMI avoided)' }
+        { k: 'Total cash assistance', v: '$43,951 (incl. $29,716 estimated LMI avoided)' }
       ]
     }
   ],

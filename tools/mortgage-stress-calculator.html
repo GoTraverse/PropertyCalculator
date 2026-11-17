@@ -40,7 +40,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Mortgage Stress Calculator Australia","url":"https://equitysight.app/tools/mortgage-stress-calculator","description":"Free Australian mortgage stress calculator. Calculate repayments, stress test against rate rises, and check debt-to-income ratio.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Mortgage Stress Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What percentage of income is considered mortgage stress in Australia?","acceptedAnswer":{"@type":"Answer","text":"In Australia, mortgage stress is generally defined as spending more than 30% of gross household income on mortgage repayments. Severe mortgage stress is when repayments exceed 50% of income. This 30% threshold is used by bodies like the RBA and housing affordability researchers."}},{"@type":"Question","name":"What is the APRA serviceability buffer?","acceptedAnswer":{"@type":"Answer","text":"APRA requires Australian banks to assess loan applications at the current interest rate plus a 3% buffer. This means if the current rate is 6%, the bank tests whether you can afford repayments at 9%. This buffer protects borrowers against future rate rises."}},{"@type":"Question","name":"How can I reduce mortgage stress?","acceptedAnswer":{"@type":"Answer","text":"Key strategies include making extra repayments when possible, refinancing to a lower rate, extending the loan term to reduce monthly payments, switching to an offset account to reduce interest, or increasing household income. Reviewing your budget and reducing discretionary spending can also free up cash flow."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Mortgage Stress Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What percentage of income is mortgage stress in Australia?","acceptedAnswer":{"@type":"Answer","text":"The widely used threshold is repayments above 30% of gross household income, with severe stress above 50%. It's a rule of thumb rather than a legal definition, so use it alongside your actual dollar surplus and your total debt commitments."}},{"@type":"Question","name":"Should I stress test with gross or net income?","acceptedAnswer":{"@type":"Answer","text":"This calculator uses gross (before-tax) income because that's the basis for the traditional 30% rule and how lenders frame serviceability. For your own household budgeting it's wise to also check the repayment against your net (take-home) pay, since that's the money actually available — the stress will look more pronounced."}},{"@type":"Question","name":"Why test at the current rate plus 3%?","acceptedAnswer":{"@type":"Answer","text":"Because APRA expects lenders to assess loans at roughly 3 percentage points above the offered rate, and because most Australian mortgages are variable and move with the RBA cash rate. A +3% test shows whether you could still cope if rates rose to levels seen in recent cycles."}},{"@type":"Question","name":"Does fixing my rate remove mortgage stress?","acceptedAnswer":{"@type":"Answer","text":"A fixed rate gives certainty for the fixed period (commonly one to five years), which can be valuable if you're worried about rises. But fixed loans often limit extra repayments and offset features, and you face the prevailing rate when the fixed term ends — so it manages risk for a window rather than removing it. This page is general information only and is not personal financial advice. Figures such as the APRA buffer and prevailing rates can change — confirm current details with the RBA, APRA or ASIC's Moneysmart, and seek advice from a licensed mortgage broker or financial adviser before making decisions."}}]}]}
 </script>
 </head>
 <body>
@@ -147,11 +147,11 @@
         <div class="tool-stat-value" id="r-dsr-stress">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Total DSR (incl. other debt)</div>
+        <div class="tool-stat-label">Total debt ratio at current rate (incl. other debt)</div>
         <div class="tool-stat-value" id="r-tdsr">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Monthly Surplus</div>
+        <div class="tool-stat-label">Monthly surplus at current rate (gross income)</div>
         <div class="tool-stat-value" id="r-surplus">—</div>
       </div>
       <div class="tool-stat full" id="r-verdict-wrap">
@@ -181,7 +181,7 @@
   <p>This tool runs three connected calculations.</p>
   <p><strong>1. The repayment.</strong> For a principal-and-interest (P&amp;I) loan, the monthly repayment uses the standard amortisation formula: <strong>Repayment = P × r × (1 + r)<sup>n</sup> ÷ ((1 + r)<sup>n</sup> − 1)</strong>, where <strong>P</strong> is the loan amount, <strong>r</strong> is the monthly interest rate (annual rate ÷ 12), and <strong>n</strong> is the number of monthly payments (years × 12). For an interest-only (IO) loan, the repayment is simply <strong>P × r</strong> — you pay the interest but the balance doesn't fall.</p>
   <p><strong>2. The stress test.</strong> The calculator repeats the repayment formula using your interest rate <strong>plus the chosen buffer</strong> (the default is +3%, which matches the buffer the Australian Prudential Regulation Authority, APRA, expects lenders to use). This "stressed repayment" shows what you would pay if rates climbed to that higher level.</p>
-  <p><strong>3. The stress ratios.</strong> Each repayment is divided by your gross monthly income to give a <strong>repayment-to-income ratio</strong>. Anything above 30% lands in the stress zone. The <strong>total debt-servicing ratio (DSR)</strong> adds your other monthly debt commitments — car loans, personal loans, credit-card minimums, HECS-HELP, buy-now-pay-later — on top of the mortgage, because lenders assess your <em>whole</em> debt picture, not the home loan in isolation. Finally, <strong>monthly surplus</strong> is your gross income minus the stressed repayment and other debts, giving a dollar figure for the cushion you'd have left if rates rose.</p>
+  <p><strong>3. The stress ratios.</strong> Each repayment is divided by your gross monthly income to give a <strong>repayment-to-income ratio</strong>. Anything above 30% lands in the stress zone. The <strong>total debt-servicing ratio (DSR)</strong> adds your other monthly debt commitments — car loans, personal loans, credit-card minimums, HECS-HELP, buy-now-pay-later — on top of the mortgage, because lenders assess your <em>whole</em> debt picture, not the home loan in isolation. The total DSR and the <strong>monthly surplus</strong> (gross income minus the repayment and other debts) both use the repayment at your current rate. The stressed repayment and its ratio are shown beside them so you can see what a rate rise would add.</p>
 
   <h2>Worked example</h2>
   <p>Assume a household with a <strong>$580,000</strong> loan over a <strong>30-year</strong> term on a P&amp;I basis, a current variable rate of <strong>6.25%</strong>, gross monthly household income of <strong>$12,500</strong>, and <strong>$800</strong> of other monthly debt (a car loan). We'll apply the standard <strong>+3% APRA buffer</strong> for the stress test.</p>
@@ -190,14 +190,14 @@
     <li><strong>Repayment-to-income:</strong> $3,571 ÷ $12,500 ≈ <strong>29%</strong> — just under the 30% stress threshold.</li>
     <li><strong>Stressed repayment:</strong> at 9.25% (6.25% + 3%) the repayment jumps to about <strong>$4,772 a month</strong>.</li>
     <li><strong>Stressed repayment-to-income:</strong> $4,772 ÷ $12,500 ≈ <strong>38%</strong> — comfortably into the stress zone.</li>
-    <li><strong>Total DSR (stressed):</strong> ($4,772 + $800) ÷ $12,500 ≈ <strong>45%</strong>.</li>
-    <li><strong>Monthly surplus (stressed):</strong> $12,500 − $4,772 − $800 = <strong>$6,928</strong> before tax and living costs.</li>
+    <li><strong>Total DSR (current rate):</strong> ($3,571 + $800) ÷ $12,500 = <strong>35.0%</strong>.</li>
+    <li><strong>Monthly surplus (current rate):</strong> $12,500 − $3,571 − $800 = <strong>$8,129</strong> before tax and living costs. At the stressed repayment the same sum is $12,500 − $4,772 − $800 = $6,928.</li>
   </ul>
-  <p>The takeaway: this household looks fine today but would feel real pressure if rates rose by 3%. Note the surplus is calculated on <em>gross</em> income — once income tax and ordinary living expenses are deducted, the genuine buffer is far smaller. These figures are illustrative; your own result depends on the inputs you enter.</p>
+  <p>This household is just under the 30% threshold today and would be well over it if rates rose by 3%, so the calculator returns a caution. The surplus is calculated on <em>gross</em> income. Once income tax and living expenses are deducted, the buffer is much smaller.</p>
 
   <h2>APRA's serviceability buffer and the RBA cash rate</h2>
   <p>APRA requires authorised deposit-taking institutions (banks, credit unions and building societies) to assess whether you could still afford a loan at an interest rate above the rate you're actually offered. Since late 2021 the expected buffer has been <strong>3 percentage points</strong> (raised from 2.5%). So if a bank quotes you 6%, it tests your budget at 9%. This is why your borrowing capacity can feel lower than you expect — and why running your own +3% stress test mirrors what the lender already does behind the scenes.</p>
-  <p>The buffer exists because Australian repayments track the RBA cash rate so closely. When the RBA's monthly board meeting moves the cash rate, variable-rate borrowers usually see the change passed through within weeks. Stress testing at +3% (or even +4% if you want to be conservative) is simply acknowledging that the rate on your loan today is not guaranteed for the life of a 25- or 30-year mortgage.</p>
+  <p>The buffer exists because Australian repayments track the RBA cash rate so closely. When the RBA changes the cash rate, variable-rate borrowers usually see the change passed through within weeks. Stress testing at +3% (or even +4% if you want to be conservative) is simply acknowledging that the rate on your loan today is not guaranteed for the life of a 25- or 30-year mortgage.</p>
 
   <h2>Debt-to-income ratio</h2>
   <p>Separate from the repayment ratios above, lenders watch your <strong>debt-to-income (DTI) ratio</strong> — total debt divided by gross annual income. APRA monitors banks' exposure to high-DTI lending, and most lenders apply extra scrutiny above 6×.</p>
@@ -248,7 +248,7 @@
 <div id="tool-trust-root"></div>
 <!-- Static internal links: crawlable <a> to every calculator so Googlebot can
      discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
+     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
 <nav class="tool-resources" aria-label="All EquitySight calculators">
   <div class="tool-resources-title">Explore all our free Australian property calculators</div>
   <div class="tool-resources-grid">
@@ -259,6 +259,8 @@
         <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
         <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
         <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
+        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
       </ul>
     </div>
     <div>
@@ -279,6 +281,8 @@
         <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
         <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
         <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
+        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
       </ul>
     </div>
   </div>

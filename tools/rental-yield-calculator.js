@@ -7,6 +7,7 @@ function calculate() {
   if (!propVal || !weekly) { if (!_isInit) _showErr('Please enter property value and weekly rent.'); return; }
 
   var vacancy = parseFloat(document.getElementById('vacancy').value) || 0;
+  if (vacancy < 0 || vacancy > 52) { if (!_isInit) _showErr('Vacancy must be between 0 and 52 weeks a year.'); return; }
   var mgmtPct = parseFloat(document.getElementById('mgmt').value) || 0;
   var rates = parseVal('rates');
   var insurance = parseVal('insurance');
@@ -20,15 +21,16 @@ function calculate() {
   var grossYield = (weekly * 52 / propVal) * 100;
   var netYield = (netRent / propVal) * 100;
 
-  var verdict = '';
-  if (netYield >= 6) verdict = 'Strong yield \u2014 this property is likely positively geared.';
-  else if (netYield >= 4) verdict = 'Healthy yield \u2014 approaching cash-flow neutral.';
-  else if (netYield >= 2) verdict = 'Moderate yield \u2014 likely negatively geared. Factor in tax benefits and capital growth.';
-  else verdict = 'Low yield \u2014 significant negative gearing. Ensure capital growth outlook justifies the shortfall.';
+  // No loan is entered here, so the verdict does not claim the property is
+  // positively or negatively geared. It states the test instead.
+  var verdict = (totalExpenses > 0 ? '' : 'No expenses entered, so net yield equals gross yield. ') +
+    'This calculator has no loan input, so it cannot say whether the property is positively or negatively geared. ' +
+    'Rent covers the loan interest when the net yield (' + netYield.toFixed(2) + '%) is higher than your interest rate multiplied by the share of the price you borrow. ' +
+    'For example, a 6% rate on an 80% loan needs a net yield above 4.8%.';
 
   var netEl = document.getElementById('r-net');
   netEl.textContent = netYield.toFixed(2) + '%';
-  netEl.className = 'tool-stat-value ' + (netYield >= 4 ? 'green' : netYield < 2 ? 'red' : '');
+  netEl.className = 'tool-stat-value' + (netYield < 0 ? ' red' : '');
 
   document.getElementById('r-gross').textContent = grossYield.toFixed(2) + '%';
   document.getElementById('r-annualrent').textContent = fmt(annualRent);
@@ -76,7 +78,6 @@ ToolPage.init({
         icon: '\uD83D\uDCB0', title: 'Investment & Finance',
         links: [
           { text: 'ASIC: Investment Loans', href: 'https://moneysmart.gov.au/property-investment' },
-          { text: 'MoneySmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' },
           { text: 'ASIC: Saving & Investing', href: 'https://moneysmart.gov.au/how-to-invest' }
         ]
       },
@@ -85,7 +86,6 @@ ToolPage.init({
         links: [
           { text: 'NSW Fair Trading: Renting', href: 'https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live' },
           { text: 'Consumer Affairs: Rental Law', href: 'https://www.consumer.vic.gov.au/housing' },
-          { text: 'Tenants Union of Australia', href: 'https://www.tenants.org.au/' }
         ]
       }
     ],
@@ -110,7 +110,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'Brisbane unit — $520,000',
+      label: 'Unit \u2014 $520,000 at $510 a week',
       inputs: [
         { k: 'Property price', v: '$520,000' },
         { k: 'Weekly rent', v: '$510' },
@@ -122,7 +122,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'Sydney house — $1,250,000',
+      label: 'House \u2014 $1,250,000 at $780 a week',
       inputs: [
         { k: 'Property price', v: '$1,250,000' },
         { k: 'Weekly rent', v: '$780' },
@@ -134,7 +134,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'Ipswich townhouse — $395,000',
+      label: 'Townhouse \u2014 $395,000 at $445 a week',
       inputs: [
         { k: 'Property price', v: '$395,000' },
         { k: 'Weekly rent', v: '$445' },
@@ -142,7 +142,7 @@ ToolPage.init({
       ],
       outputs: [
         { k: 'Gross yield', v: '5.86%' },
-        { k: 'Net yield', v: '4.99%' }
+        { k: 'Net yield', v: '5.00%' }
       ]
     }
   ],
@@ -162,10 +162,10 @@ ToolPage.init({
     { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCB5', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD (high yield)' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/logan-central/', label: 'Logan Central QLD' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/werribee/', label: 'Werribee VIC' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Best QLD Investment Suburbs' }
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Queensland suburb directory' }
   ]
 });
 

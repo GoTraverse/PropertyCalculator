@@ -42,17 +42,33 @@ function calc() {
   }
 
   var costBase = purchase + costs + improvements;
-  var grossGain = Math.max(0, sale - costBase);
+  var rawGain = sale - costBase;          // negative = sold below cost base
+  var grossGain = Math.max(0, rawGain);
 
   if (ppor) {
     setText('r-cgt', '$0 (PPOR exempt)');
-    setText('r-gross', fmt(grossGain));
+    setText('r-gross', rawGain < 0 ? fmt(rawGain) + ' (a loss)' : fmt(grossGain));
     setText('r-costbase', fmt(costBase));
     setText('r-discount', '—');
     setText('r-newincome', fmt(income));
-    setText('r-net', fmt(sale - costBase));
+    setText('r-net', fmt(rawGain));
     var cta = document.getElementById('cta');
     if (cta) cta.style.display = 'block';
+    return;
+  }
+
+  // Sold below the cost base: show the loss instead of a $0 "gain". A capital
+  // loss creates no CGT and cannot reduce other income; it offsets capital
+  // gains now or in later years, which this calculator does not model.
+  if (rawGain < 0) {
+    setText('r-cgt', '$0 (capital loss)');
+    setText('r-gross', fmt(rawGain) + ' (capital loss)');
+    setText('r-costbase', fmt(costBase));
+    setText('r-discount', '—');
+    setText('r-newincome', fmt(income));
+    setText('r-net', fmt(rawGain));
+    var ctaL = document.getElementById('cta');
+    if (ctaL) ctaL.style.display = 'block';
     return;
   }
 
@@ -63,7 +79,7 @@ function calc() {
   var taxAfter = calcTax(newIncome);
   var cgt = taxAfter - taxBefore;
 
-  var netProceeds = grossGain - cgt;
+  var netProceeds = grossGain - cgt; // net GAIN after tax (sale − cost base − CGT), not sale proceeds
 
   setText('r-cgt', fmt(cgt));
   setText('r-gross', fmt(grossGain));
@@ -81,7 +97,7 @@ ToolPage.init({
   slug: 'capital-gains',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the tax impact across your entire portfolio',
+    title: 'Work through the rest of the numbers',
     description: 'Stack CGT with land tax, cashflow and yield — the other calculators cover the rest of the hold.',
     buttonText: 'Browse all 18 calculators →',
     buttonHref: '/tools/'
@@ -136,7 +152,8 @@ ToolPage.init({
       outputs: [
         { k: 'Gross gain', v: '$255,000' },
         { k: 'Discounted gain', v: '$127,500' },
-        { k: 'CGT payable', v: '~$50,300' }
+        { k: 'CGT payable', v: '$50,275 (includes Medicare levy)' },
+        { k: 'Net gain after tax', v: '$204,725' }
       ]
     },
     {
@@ -150,7 +167,8 @@ ToolPage.init({
       ],
       outputs: [
         { k: 'Gross gain', v: '$70,000' },
-        { k: 'CGT payable', v: '~$25,000' }
+        { k: 'CGT payable', v: '$23,450' },
+        { k: 'Net gain after tax', v: '$46,550' }
       ]
     },
     {
@@ -158,11 +176,12 @@ ToolPage.init({
       inputs: [
         { k: 'Sale price', v: '$1,400,000' },
         { k: 'Purchase price', v: '$700,000' },
+        { k: 'Costs and improvements', v: '$0' },
         { k: 'PPOR exemption', v: 'Yes' }
       ],
       outputs: [
         { k: 'CGT payable', v: '$0 (PPOR exempt)' },
-        { k: 'Net proceeds', v: '$700,000' }
+        { k: 'Net gain after tax', v: '$700,000' }
       ]
     }
   ],

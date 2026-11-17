@@ -10,7 +10,6 @@
 <meta name="robots" content="noindex, follow">
 <title>{{HUB_TITLE}}</title>
 <meta name="description" content="{{HUB_META_DESC}}">
-<meta name="keywords" content="{{STATE_NAME}} property investment Australia, {{STATE}} suburbs Australia, {{STATE_NAME}} real estate, best suburbs {{STATE}} Australia, {{STATE_NAME}} suburb insights">
 <link rel="canonical" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
 <link rel="alternate" hreflang="en-AU" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
 <link rel="alternate" hreflang="x-default" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
@@ -24,7 +23,7 @@
 <meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta property="og:image:alt" content="EquitySight: the First Home Journey and free Australian property calculators.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{HUB_TITLE}}">
 <meta name="twitter:description" content="{{HUB_META_DESC}}">
@@ -49,18 +48,18 @@
     <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="/journey" class="tool-header-link">Plan your first home — free →</a>
+  <a href="/journey" class="tool-header-link">Plan your first home →</a>
 </header>
 <script src="/auth-nav-loader.js" defer></script>
 <script src="/error-capture.js" defer></script>
 
 <section class="tool-hero">
-  <nav class="suburb-breadcrumb">
+  <nav class="suburb-breadcrumb" aria-label="Breadcrumb">
     <a href="/">Home</a> <span>›</span>
     <span>{{STATE_NAME}}</span>
   </nav>
-  <div class="tool-eyebrow">Suburb Profiles · {{STATE}}, Australia</div>
-  <h1>{{STATE_NAME}}, Australia — Suburb Profiles</h1>
+  <div class="tool-eyebrow">Suburb profiles · {{STATE}}</div>
+  <h1>{{STATE_NAME}} suburb profiles</h1>
   <p>{{HUB_HERO_TEXT}}</p>
 </section>
 
@@ -74,9 +73,9 @@
     </div>
   </section>
 
-  <!-- State market overview prose -->
+  <!-- Coverage and duty rules -->
   <section class="suburb-section">
-    <h2>{{STATE_NAME}} property market overview</h2>
+    <h2>Buying in {{STATE_NAME}}</h2>
     {{STATE_OVERVIEW_HTML}}
   </section>
 
@@ -101,30 +100,29 @@
 
   <!-- Calculator cross-links -->
   <section class="suburb-section">
-    <h2>Free property calculators for {{STATE_NAME}}</h2>
-    <p>Use these free tools to calculate your costs and returns when buying or investing in {{STATE_NAME}}.</p>
+    <h2>Calculators for {{STATE_NAME}} buyers</h2>
+    <p>Each one works on its own, with no signup.</p>
     <div class="state-nav" style="margin-top:12px;">
       <a href="/tools/stamp-duty-calculator-{{STATE_LOWER}}">{{STATE}} Stamp Duty Calculator</a>
-      <a href="/tools/rental-yield-calculator">Rental Yield Calculator</a>
-      <a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants — {{STATE}}</a>
+      <a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants ({{STATE}})</a>
       <a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a>
-      <a href="/tools/loan-serviceability-calculator">Loan Serviceability Calculator</a>
-      <a href="/tools/mortgage-stress-calculator">Mortgage Stress Test</a>
+      <a href="/tools/deposit-calculator">Deposit Calculator</a>
+      <a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a>
     </div>
   </section>
 
   <!-- State-specific FAQ -->
   <section class="suburb-section suburb-faq">
-    <h2>{{STATE_NAME}} property FAQ</h2>
+    <h2>Common questions</h2>
     {{STATE_FAQ_HTML}}
   </section>
 
   <!-- CTA -->
   <section class="suburb-cta">
     <div class="tool-cta-eye">Buying your first home in {{STATE_NAME}}?</div>
-    <h3>Walk the journey to your first home</h3>
-    <p>Seven guided stops — government schemes compared for your exact numbers, a real budget, suburb shortlisting and every contract deadline tracked. Free, no signup to start.</p>
-    <a href="/journey" class="tool-cta-btn">Start your first-home journey →</a>
+    <h3>Turn a suburb into a plan</h3>
+    <p>The First Home Journey takes your savings and income and works out which government schemes fit, a maximum price and your contract deadlines. Free, and no signup to start.</p>
+    <a href="/journey?st={{STATE_LOWER}}" class="tool-cta-btn">Start the First Home Journey →</a>
   </section>
 
 </div>

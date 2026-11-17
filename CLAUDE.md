@@ -33,6 +33,7 @@ See **`README.md`** for feature overview and quick start guide.
 - **PR target** — **open PRs directly to `main` and squash-merge immediately** (user-granted auto-merge policy, April 2026). No Staging intermediary, no waiting for review, no required CI gates.
 - **Exception** — if a change is genuinely risky (schema migration, payment-flow refactor, broad refactor that can't be rolled back with a single revert), ask the user before auto-merging. Default is merge.
 - **Never push directly to `main`**; always via a PR + `mcp__github__merge_pull_request` even when self-merging. This preserves a clean PR audit trail.
+- **Merging is not the same as live.** Netlify only serves a new build if auto-publishing is on. On 17 Nov 2026 the site was locked to a deploy from 14 Aug 2026, so merges were building but not going live. After merging, check the published deploy (Netlify → Deploys) and tell the owner if it is still locked; only they can publish or unlock.
 
 ## Task Tracking
 **`TODO.md`** is the source of truth. After completing a task, **remove its line** from the file.
@@ -57,7 +58,6 @@ See **`README.md`** for feature overview and quick start guide.
 | `admin.js` | 3816 | `loadUsers()`, `openUserDetails(email)`, `showAdminTab()`, `callAuth(action, payload)`, admin dashboard logic |
 | `admin-events.js` | — | Admin page event listener wiring + WAI-ARIA arrow-key tab nav |
 | `auth-nav.js` | 606 | Source of truth for the site nav link set (`SITE_NAV_LINKS`) — renders `<ul class="site-nav-links">` on every page + profile dropdown + help modal. `window.renderSiteNav()` re-renders after profile changes. |
-| `account-panel.js` | 488 | Standalone account panel with profile pic upload, color theme selection, plan display |
 | `account.js` | 612 | Account page logic — subscription status, plan display, Stripe portal |
 
 ### Styling & Injection
@@ -68,21 +68,16 @@ See **`README.md`** for feature overview and quick start guide.
 | `error-capture.js` | 118 | Global error handler — POSTs errors to `client-errors` function. SUPPRESS list for network noise + third-party `@context` parser errors. |
 | `site-init.js` | 21 | Dark-mode theme application + pre-signup page-trail recording (loaded with `defer`) |
 | `adsense.js` | 35 | Google AdSense integration |
-| `gtag-init.js` | 4 | Google Analytics (gtag) initialization |
 
 ### Supporting Scripts
 | File | Purpose |
 |------|---------|
-| `stripe-config.js` | Exports `STRIPE_PUBLISHABLE_KEY` and `STRIPE_PRICES` for client use |
 | `legal.js` | Markdown → HTML parser for legal pages (frontmatter, TOC, safe links) |
 | `tools/tool-page.js` | Shared calculator engine (init, input persistence, scroll-to-result) + the calc utilities (`fmtNum()`, `parseNum()`, `monthlyRepayment()`, etc.) that the tool pages actually load. (The old `shared-calcs.js` was unused and was deleted.) |
 | `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` for calculators |
 | `index-init.js` / `index-events.js` | Landing page init and event wiring |
 | `login.js` | Login/signup page logic |
-| `pricing.js` | Pricing page logic |
-| `about-init.js` | About page init |
 | `contact.js` | Contact page form handling |
-| `suburb-insights.js` | Suburb insights page JS |
 | `state-hub-search.js` | State hub client-side search by name/postcode |
 
 ## Critical Patterns & Conventions
@@ -134,24 +129,20 @@ See **`README.md`** for feature overview and quick start guide.
 - **Cross-linking**: Each tool config has `related[]` (4-card grid), `footer[]` (small link row), and `usefulLinks[]` (grouped sidebar: Other Tools / Popular Suburbs / Guides). Every tool links to `/tools` from its footer.
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
 - **To update all calculators**: Edit `tools.css` (no need to touch individual HTML files)
+- **Worked examples must come from the code.** Every figure in a calculator's prose, examples, FAQ and FAQ JSON-LD is the tool's own output for those inputs (regenerated Nov 2026 after most of them had drifted). Change the code → re-run the example. `node tests/faq-jsonld-sync-test.js` checks FAQ JSON-LD against the visible FAQ.
+- **The 8 state stamp-duty pages are hand-maintained.** `build/build-state-stamp-duty.js` is disabled (its config is stale); fix the state files directly and run `tests/state-duty-sync-test.js`.
+- **The "Keep going" journey prompt** only appears after a real (trusted) user interaction, never on page load.
 
-### Suburb Insights System (~1,475 real-data pages generated — Aug 2026 cut; city pages removed)
-- **Data pipeline**: `fetch-abs-data.js` → `data/abs-suburbs.json` → `generate-suburbs-data.js` → `data/suburbs.json` → (deploy-time: `apply-abs-data.js` + `merge-market-current.js`) → `build-suburbs.js` → HTML pages
-- **Real data**: Suburb names + populations from ABS 2021 Census (ArcGIS FeatureServer, SAL geography); postcodes from community dataset (`au_postcodes.csv`); current rents/sale medians from `data/market-current.json` (CC BY 4.0 state gov)
-- **Placeholder fields in data/suburbs.json** (income, transport/amenity scores, school/park counts): NEVER rendered — build-suburbs nulls income unless `income_source === 'abs2021'` and all display sites are gated. Data-absent prose branches must say "not recorded", never assert a fact.
-- **Build output (Aug 2026)**: ONLY suburbs passing `shouldNoindex()`'s real-data gate are generated — `/suburb/{state}/{slug}/index.html` (~1,475 pages: QLD 583 / VIC 516 / SA 293 / TAS 83) + `/invest/{state}/index.html` (8 state hub directories; empty-state copy for NSW/WA/ACT/NT) + directory index + sitemap. Cut pages 404 by design. City pages removed (template deleted).
-- **Templates**: `templates/suburb-page.html` and `templates/state-hub.html` — use `{{PLACEHOLDER}}` syntax
-- **Styling**: `suburb-insights.css` — shared styles for suburb pages + state hubs
-- **SEO**: BreadcrumbList + Place + CollectionPage schema.org JSON-LD, postcodes in titles/meta/keywords; every market figure carries an "as at [period], [source]" caption
-- **Suburb sections**: strategy/risks/outlook prose is rule-based over the measured fields only; no investment score, no school/park counts. Suburb CTA deep-links `/journey?near=<suburb>&st=<state>`.
-- **State hubs**: plain directories of surviving suburbs + client-side search; market blurbs (`stateMarketSummaries`) must track the FY duty engine — re-verify at each annual FY sweep
-- **Performance**: Scripts use `defer` attribute; related suburbs pre-computed (O(n) not O(n²))
-- **Build command**: `node build.js` — conditional build wrapper:
-  - Normal deploys: restores cached suburb pages (instant, no rebuild)
-  - Suburb rebuild: only when triggered by admin "Rebuild Suburb Pages" button (or REBUILD_SUBURBS=true env var)
-  - Uses Netlify build cache to persist pages between deploys
-- **Admin tab**: Admin → Suburbs — browse/search suburbs, state breakdown, trigger rebuilds via Netlify deploy hook
-- **To regenerate data**: `node fetch-abs-data.js` then `node generate-suburbs-data.js`
+### Suburb pages (~1,475 generated; rebuilt Nov 2026 to show sourced figures only)
+- **What a suburb page may contain** (enforced by the header comment in `build/build-suburbs.js`): postcode, ABS 2021 Census population, the current median rent and/or sale medians from `data/market-current.json` with period and source printed under each number, plain arithmetic on those figures (5/10/20% deposit at the median; weekly rent per month and year), and the nearest other profiled suburbs with their own figures. **Nothing else.**
+- **Never render**: `suburb_type` (a class guessed from the postcode), `transport_score`, `amenity_score`, `school_count`, `park_count`, `median_household_income` (name-seeded placeholders in `data/suburbs.json`), or any strategy / outlook / sentiment / "who it suits" / pros-and-cons / yield text. All of that was removed in Nov 2026 because it read as analysis and had no data behind it. Do not bring it back in any form.
+- **Pipeline**: `data/suburbs.json` → (deploy-time: `apply-abs-data.js` + `merge-market-current.js`) → `build-suburbs.js` → `/suburb/{state}/{slug}/index.html` + `/invest/{state}/index.html` (8 state directories; NSW/WA/ACT/NT say they have no profiles) + `/suburb/index.html` + suburb sitemaps. The build fails on any unfilled `{{PLACEHOLDER}}`.
+- **Gate**: `shouldNoindex()` — postcode, population ≥ 2,000, and a current suburb-level CC BY rent or sale median. Postcode-level figures (NSW rents) do not count. Gate-failing suburbs get no page (404 by design).
+- **Nearby suburbs** use `data/suburb-coords.json` (postcode-centre coordinates, MIT). Distances are rough and labelled so; two suburbs in one postcode show "under 2 km".
+- **State hubs**: `stateDuty` in `build-suburbs.js` holds the per-state first-home duty facts. They must track the FY duty engine — re-check at each annual FY sweep. No market commentary.
+- **Templates**: `templates/suburb-page.html`, `templates/state-hub.html`. Styling: `suburb-insights.css` (the older rules for removed sections are still in the file and unused).
+- **Build**: `node build.js` restores cached pages unless a dependency's content hash changed (`SUBURB_CACHE_DEPS`) or `REBUILD_SUBURBS=true` / the admin "Rebuild Suburb Pages" hook. Running it locally rewrites `data/suburbs.json`: `git checkout data/suburbs.json` afterwards.
+- **Quarterly refresh**: update `data/market-current.json` by hand from the state government releases, then `node build/make-journey-suburbs.js` (period captions in the journey are read from the JSON, so they update themselves), then rebuild. The government hosts are not reachable from Claude Code cloud sessions unless added to the session's allowed network domains.
 
 ### The First Home Journey (flagship, /journey — Jul 2026)
 - **The product**: 7 guided stops (bearings wizard → scheme projector → budget
@@ -175,10 +166,28 @@ See **`README.md`** for feature overview and quick start guide.
   `journey?join=<token>` — don't break that allowlist.
 - **Admin → Journeys tab**: list + read-only detail + delete (delete also
   revokes the user's share tokens).
-- **⚠ SYNC COPIES**: journey.js embeds the duty engine (from
-  tools/stamp-duty-calculator.js) and scheme caps (from
-  first-home-buyer-grants-calculator.js). `node tests/duty-sync-test.js`
-  asserts the three duty copies agree — run it after ANY duty change.
+- **Sync rules (Nov 2026)**: nothing is pushed until the account copy has been
+  read and reconciled (`_remoteReady`); every sync sends `base` (the server
+  timestamp the copy was built on) and the server refuses a write built on an
+  older copy (`conflict: true`), so a stale tab or a blank new device cannot
+  overwrite newer work. A device journey that was never linked to the account
+  (`propCalc_journey_owner`) prompts before replacing the account copy. Leaving
+  a shared journey clears the local copy.
+- **One affordability test**: `borrowLimit()` (after-tax income, living-cost
+  floor by household, 3% of card limits, rate + 3%). Step 2 flags paths whose
+  loan exceeds it; step 3 sizes the maximum price with it. Do not add a second
+  rule of thumb anywhere.
+- **Steps 2–7 need step 1**: `show()` routes to the wizard until `done[1]`, so
+  example figures are never shown as the visitor's.
+- **`normalizeState()` whitelists every field** (types, enums, lengths). A new
+  state field must be added there or it will be dropped on load.
+- **⚠ SYNC COPIES**: journey.js embeds the duty engine and registration fees
+  (from tools/stamp-duty-calculator.js), scheme caps (from
+  first-home-buyer-grants-calculator.js) and `approxTax` / `hemMonthly` (from
+  tools/borrowing-power-calculator.js). `node tests/duty-sync-test.js` asserts
+  the duty, registration-fee and borrowing copies agree;
+  `node tests/state-duty-sync-test.js` covers the 8 state pages and the other
+  calculator copies. Run both after ANY duty, fee or tax change.
 - **Verification**: `tests/journey-browser-harness.html` (dev-only) seeds a
   rich journey and drives any view for headless-Chrome screenshots — use it
   before merging journey UI changes (a CSS [hidden] conflict once shipped a
@@ -284,6 +293,17 @@ Files intentionally NOT blocked (needed at runtime):
 - Submit sitemap.xml: https://search.google.com/search-console
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
+
+## Recent Changes (Nov 2026 — full-site review)
+
+Owner asked for a full review. What changed, in the order it mattered:
+- **Security (#408)**: `verifyEmail` was returning a session for any already-verified account without checking the code. Fixed; all sessions issued before the fix are rejected (`_session.js`); password change/reset end other sessions; the error log no longer carries names, emails or query strings and syncs to GitHub at most daily; Admin → Database Maintenance has "Sign everyone out".
+- **Suburb pages**: rebuilt to sourced figures only (see the Suburb pages section). Strategy, outlook, sentiment, audience, pros/cons, yield and the third-party listing call are gone.
+- **Homepage**: rewritten around the Journey. The parked-app mock-up with invented figures, the app gallery and the "all 8 states" suburb claim are gone. `showcase.html` and `screenshots/` deleted (/showcase → /journey).
+- **Journey**: one borrowing estimate drives steps 2 and 3 (they used to contradict each other); registration fees by state replace the flat $3,500; QLD non-first-home duty, the 5% scheme cap in step 3, LMI tier rounding, $0-a-month saving, the QLD cooling-off count, skip-able deadlines, calendar reminders; step 4 lists only the buyer's own state; sync can no longer overwrite newer work; share links can be turned off; state is whitelisted on load; focus moves with each step; real validation messages.
+- **Calculators**: loan serviceability now runs the model its page describes; vacant land + first home buyer fixed on the state pages; a dozen display/logic bugs; every worked example regenerated from the code; unsupported claims and padded links removed; field labels made readable.
+- **Hygiene**: dead files removed, terms/privacy/cookies match the free product, service worker pre-caches the journey instead of the parked app, share images regenerated at the right size (`bin/make-og-images.js`).
+- **Not done / needs the owner**: see TODO.md items 37–44.
 
 ## Recent Changes (Aug 2026 — Journey-only refocus)
 
