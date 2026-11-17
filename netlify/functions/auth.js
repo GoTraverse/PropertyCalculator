@@ -87,17 +87,17 @@ const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight
 const DEFAULT_TEMPLATES = {
   verification: {
     subject: 'Verify your EquitySight account',
-    html: '<p>Your verification code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 15 minutes.</p>',
+    html: '<p>Your EquitySight verification code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 15 minutes. If you didn\'t create an EquitySight account, ignore this email.</p>',
     variables: ['{{code}}'],
   },
   welcome: {
-    subject: 'Welcome to EquitySight!',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Welcome, {{firstName}}! 🎉</h2><p>Your EquitySight account is verified and ready to go.</p><p>Your First Home Journey now syncs to your account, so it follows you across devices — and you can share it with a partner from the journey page.</p><a href="https://equitysight.app/journey" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open your journey</a><p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p></div>',
+    subject: 'Your EquitySight account is verified',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Hi {{firstName}}</h2><p>Your EquitySight account is verified.</p><p>Your First Home Journey is now saved to your account, so you can open it on another device or share it with a partner from the journey page.</p><a href="https://equitysight.app/journey" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open your journey</a><p style="margin-top:24px;font-size:12px;color:#888;">Questions go to support@equitysight.app.</p></div>',
     variables: ['{{firstName}}', '{{name}}'],
   },
   password_reset: {
     subject: 'Reset your EquitySight password',
-    html: '<p>Your password reset code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 30 minutes. If you did not request this, you can ignore this email.</p>',
+    html: '<p>Your EquitySight password reset code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 30 minutes. If you didn\'t ask for it, ignore this email.</p>',
     variables: ['{{code}}'],
   },
   magic_link: {
@@ -107,32 +107,32 @@ const DEFAULT_TEMPLATES = {
     // URLs to scan for malware, which can consume single-use magic-link
     // tokens before the legitimate user clicks them. The 6-digit code
     // can't be auto-extracted from prose, so it survives prefetch.
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;margin:0 0 12px;">Sign in to EquitySight</h2><p style="font-size:14px;line-height:1.6;">Click the button below to sign in. The link expires in 15 minutes and can only be used once.</p><p style="text-align:center;margin:24px 0;"><a href="{{link}}" style="display:inline-block;padding:14px 32px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:4px;font-size:14px;font-weight:600;">Sign in to EquitySight</a></p><p style="font-size:14px;line-height:1.6;color:#4A4A52;">Or, if your email client blocks the link, enter this 6-digit code on the sign-in page:</p><p style="text-align:center;font-size:28px;font-weight:700;letter-spacing:6px;color:#1C1C1E;margin:8px 0 24px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">{{code}}</p><p style="font-size:12px;color:#9CA3AF;line-height:1.6;">If you did not request this, you can safely ignore this email — your account stays secure.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;margin:0 0 12px;">Sign in to EquitySight</h2><p style="font-size:14px;line-height:1.6;">Use the button to sign in. The link expires in 15 minutes and works once.</p><p style="text-align:center;margin:24px 0;"><a href="{{link}}" style="display:inline-block;padding:14px 32px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:4px;font-size:14px;font-weight:600;">Sign in</a></p><p style="font-size:14px;line-height:1.6;color:#4A4A52;">If your email client blocks the link, enter this 6-digit code on the sign-in page:</p><p style="text-align:center;font-size:28px;font-weight:700;letter-spacing:6px;color:#1C1C1E;margin:8px 0 24px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">{{code}}</p><p style="font-size:12px;color:#9CA3AF;line-height:1.6;">If you didn\'t ask for this, ignore this email.</p></div>',
     variables: ['{{link}}', '{{code}}'],
   },
   subscription: {
     subject: 'Your EquitySight plan has been updated',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Plan updated</h2><p>Hi {{firstName}},</p><p>Your plan has been updated to <strong>{{plan}}</strong>.</p><p>You now have access to all features included in your new plan.</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Plan updated</h2><p>Hi {{firstName}},</p><p>Your plan has been updated to <strong>{{plan}}</strong>.</p><p>Your account page shows your current plan.</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open calculator</a></div>',
     variables: ['{{firstName}}', '{{name}}', '{{plan}}'],
   },
   security_alert: {
-    subject: 'Security alert — EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C45A5A;">⚠ Security alert</h2><p>Hi {{firstName}},</p><p>We detected the following activity on your account: <strong>{{event}}</strong>.</p><p>If this was you, no action is needed. If you did not do this, please reset your password immediately.</p><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 24px;background:#1C1C1E;color:#F5F0E8;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Reset Password</a></div>',
+    subject: 'EquitySight security alert',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C45A5A;">Security alert</h2><p>Hi {{firstName}},</p><p>This happened on your EquitySight account: <strong>{{event}}</strong>.</p><p>If that was you, there\'s nothing to do. If it wasn\'t, reset your password now.</p><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 24px;background:#1C1C1E;color:#F5F0E8;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Reset password</a></div>',
     variables: ['{{firstName}}', '{{name}}', '{{event}}'],
   },
   promotional: {
     subject: 'What\'s new at EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">What\'s new</h2><p>Hi {{firstName}},</p><p>We\'ve been working hard on new features for EquitySight. Here\'s what\'s new:</p><p style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:12px 16px;border-radius:0 4px 4px 0;">Your message here...</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:16px;">Open Calculator</a><p style="margin-top:24px;font-size:11px;color:#9CA3AF;">You\'re receiving this because you have an EquitySight account.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">What\'s new</h2><p>Hi {{firstName}},</p><p>Something has changed on EquitySight:</p><p style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:12px 16px;border-radius:0 4px 4px 0;">Your message here...</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:16px;">Open calculator</a><p style="margin-top:24px;font-size:11px;color:#9CA3AF;">You\'re receiving this because you have an EquitySight account.</p></div>',
     variables: ['{{firstName}}', '{{name}}'],
   },
   scenario_shared: {
     subject: '{{senderName}} shared a property scenario with you',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open your calculator to view the shared scenario:</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View Scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">You can find shared scenarios in your Saved Library.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open the calculator to see it:</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">Shared scenarios are in your Saved Library.</p></div>',
     variables: ['{{firstName}}', '{{senderName}}', '{{address}}'],
   },
   scenario_invite: {
     subject: '{{senderName}} shared a property with you on EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">You\'ve been invited to EquitySight</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Sign up for a free EquitySight account to view it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a></p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">A property scenario was shared with you</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Create an EquitySight account to see it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create account</a></p></div>',
     variables: ['{{senderName}}', '{{address}}'],
   },
 };
@@ -152,7 +152,7 @@ async function notifyAdminsNewUser(email, name, plan){
     const users=await Promise.all(keys.map(k=>rGet(k)));
     const admins=users.filter(u=>u&&u.role==='admin'&&u.email);
     if(!admins.length) return;
-    const subject='New user signed up — EquitySight';
+    const subject='EquitySight: new user signed up';
     const html='<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">New user signed up</h2><p><strong>Name:</strong> '+escHtml(name)+'</p><p><strong>Email:</strong> '+escHtml(email)+'</p><p><strong>Plan:</strong> '+escHtml(plan)+'</p><p><strong>Time:</strong> '+new Date().toISOString()+'</p><a href="https://equitysight.app/admin" style="display:inline-block;padding:10px 20px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View in Admin</a></div>';
     await Promise.all(admins.map(a=>sendResend(a.email,subject,html)));
   }catch(e){ console.warn('[auth] Admin new-user notification failed:',e.message); }
@@ -513,7 +513,7 @@ exports.handler = async function(event){
     const ipCount=await rRateInc('authReq:'+reqIp, 60);
     if(ipCount>30){
       const maybeAdmin=await verifyToken(event);
-      if(!maybeAdmin || maybeAdmin.role!=='admin') return fail('Too many requests — please slow down', 429);
+      if(!maybeAdmin || maybeAdmin.role!=='admin') return fail('Too many requests. Slow down and try again.', 429);
     }
   }catch(e){ /* non-fatal — don't block if Redis hiccups */ }
 
@@ -526,13 +526,13 @@ exports.handler = async function(event){
     if(!email||!password) return fail('Email and password required');
     // Turnstile CAPTCHA verification
     const clientIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
-    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, clientIp)) return fail('Security check failed — please try again', 403);
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, clientIp)) return fail('The security check failed. Try again.', 403);
     // Rate limit signups per IP to prevent email-bombing the transactional email service
     const signupRateKey='signup:'+clientIp;
     const signupCount=await rRateInc(signupRateKey,3600); // 1-hour window
-    if(signupCount>10) return fail('Too many signups from this IP — please try again later');
+    if(signupCount>10) return fail('Too many signups from this IP address. Try again later.');
     const siteCfgSu=await rGet('config:site')||{};
-    if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
+    if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Email support@equitysight.app.');
     const pwMin=parseInt(siteCfgSu.minPasswordLength)||8;
     if(password.length<pwMin) return fail('Password must be at least '+pwMin+' characters');
     const normalizedEmail=email.toLowerCase().trim();
@@ -588,17 +588,17 @@ exports.handler = async function(event){
     if(!email||!password) return fail('Email and password required');
     // Turnstile CAPTCHA verification
     const signinIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
-    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, signinIp)) return fail('Security check failed — please try again', 403);
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, signinIp)) return fail('The security check failed. Try again.', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Rate limit — per-email cap prevents credential stuffing on a single
     // account; per-IP cap prevents low-and-slow attacks hitting many accounts
     // from one source.
     const failKey='loginFail:'+normalizedEmail;
     const failCount=Number(await rGet(failKey)||0);
-    if(failCount>=10) return fail('Too many failed sign-in attempts. Please wait 15 minutes or reset your password.');
+    if(failCount>=10) return fail('Too many failed sign-in attempts. Wait 15 minutes or reset your password.');
     const ipKey='loginFailIp:'+signinIp;
     const ipFailCount=Number(await rGet(ipKey)||0);
-    if(ipFailCount>=30) return fail('Too many failed sign-in attempts from your network. Please wait 15 minutes.');
+    if(ipFailCount>=30) return fail('Too many failed sign-in attempts from your network. Wait 15 minutes.');
     const user=await rGet('user:'+normalizedEmail);
     if(!user){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
     if(!verifyPw(password,user.hash)){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
@@ -606,7 +606,7 @@ exports.handler = async function(event){
                         // its window — legitimate users rarely exceed 30/15min)
     if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
     if(user.emailVerified===false){
-      return ok({ok:false,error:'Please verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
+      return ok({ok:false,error:'Verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
     }
     // Upgrade a legacy HMAC hash to scrypt now that we have the plaintext (persisted by the rSet below).
     if(isLegacyHash(user.hash)) user.hash=hashPwScrypt(password);
@@ -652,12 +652,12 @@ exports.handler = async function(event){
     // An already-verified account must sign in with its password, Google or a
     // magic link. This branch never issues a session: the code has not been
     // checked at this point, so the caller has proved nothing.
-    if(user.emailVerified) return fail('This email is already verified. Please sign in.');
+    if(user.emailVerified) return fail('This email is already verified. Sign in.');
     if(!user.emailVerificationCodeHash||!user.emailVerificationExpiresAt||Date.now()>user.emailVerificationExpiresAt){
-      return fail('Verification code expired. Please request a new code.');
+      return fail('That verification code has expired. Ask for a new one.');
     }
     user.emailVerificationAttempts=(user.emailVerificationAttempts||0)+1;
-    if(user.emailVerificationAttempts>8) return fail('Too many attempts. Please request a new code.');
+    if(user.emailVerificationAttempts>8) return fail('Too many attempts. Ask for a new code.');
     if(user.emailVerificationCodeHash!==hashEmailCode(code)){
       await rSet('user:'+normalizedEmail,user);
       return fail('Incorrect verification code.');
@@ -693,17 +693,17 @@ exports.handler = async function(event){
     try{
       const res=await fetch('https://oauth2.googleapis.com/tokeninfo?id_token='+encodeURIComponent(credential));
       tokenData=await res.json();
-    }catch(e){ return fail('Could not verify Google credential — please try again'); }
+    }catch(e){ return fail('Couldn\'t verify the Google sign-in. Try again.'); }
 
     if(tokenData.error||!tokenData.email||tokenData.email_verified==='false'){
-      return fail('Google sign-in failed — unverified credential');
+      return fail('Google sign-in failed. The Google credential could not be verified.');
     }
 
     // Validate audience matches our client ID — mandatory.
     // Falls back to Redis config so the env var is optional (but recommended).
     const GOOGLE_CLIENT_ID=((process.env.GOOGLE_CLIENT_ID||'').trim())||((await rGet('config:site'))||{}).googleClientId||'';
     if(!GOOGLE_CLIENT_ID) return fail('Google Sign-In is not configured — add your Client ID in Admin → Configuration');
-    if(tokenData.aud!==GOOGLE_CLIENT_ID) return fail('Google sign-in failed — client ID mismatch');
+    if(tokenData.aud!==GOOGLE_CLIENT_ID) return fail('Google sign-in failed (client ID mismatch).');
 
     const email=tokenData.email.toLowerCase().trim();
     const name=tokenData.name||tokenData.given_name||email.split('@')[0];
@@ -714,7 +714,7 @@ exports.handler = async function(event){
     if(!user){
       // New user — create account (no password, no email verification needed)
       const siteCfg=await rGet('config:site')||{};
-      if(siteCfg.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
+      if(siteCfg.allowSignups===false) return fail('New signups are currently disabled. Email support@equitysight.app.');
       const userId=Date.now().toString(36)+crypto.randomBytes(4).toString('hex');
       const refCode=userId.slice(0,8).toUpperCase();
       user={
@@ -871,7 +871,7 @@ exports.handler = async function(event){
       const m=/^data:image\/(jpeg|png|webp|gif);base64,([A-Za-z0-9+/]+={0,2})$/.exec(s);
       if(!m) return fail('Invalid photo format');
       // Cap at ~800 KB (base64 of ~600 KB image) to prevent Redis abuse.
-      if(s.length>1100000) return fail('Photo too large — maximum ~800 KB');
+      if(s.length>1100000) return fail('Photo too large. The maximum is about 800 KB.');
       const declaredType=m[1];
       let buf;
       try{ buf=Buffer.from(m[2],'base64'); }catch(e){ return fail('Invalid photo encoding'); }
@@ -918,7 +918,7 @@ exports.handler = async function(event){
     if(!email) return fail('Email required');
     // Turnstile CAPTCHA verification
     const resetIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
-    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, resetIp)) return fail('Security check failed — please try again', 403);
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, resetIp)) return fail('The security check failed. Try again.', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Rate limit: max 3 reset emails per email per hour (prevent email bombing)
     const rrKey='pwResetReq:'+normalizedEmail;
@@ -951,7 +951,7 @@ exports.handler = async function(event){
       const attempts=(resetData.attempts||0)+1;
       if(attempts>=5){
         await rDel('pwreset:'+normalizedEmail);
-        return fail('Too many incorrect attempts — request a new reset code.');
+        return fail('Too many incorrect attempts. Ask for a new reset code.');
       }
       await rSet('pwreset:'+normalizedEmail,{...resetData,attempts},1800);
       return fail('Invalid or expired reset code');
@@ -977,7 +977,7 @@ exports.handler = async function(event){
     const {email,turnstileToken}=body;
     if(!email) return fail('Email required');
     const mlIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
-    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, mlIp)) return fail('Security check failed — please try again', 403);
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, mlIp)) return fail('The security check failed. Try again.', 403);
     const normalizedEmail=email.toLowerCase().trim();
     // Per-email rate limit: 5 magic-link requests per hour.
     const mlEmailKey='magicLinkReq:'+normalizedEmail;
@@ -1014,7 +1014,7 @@ exports.handler = async function(event){
     const {token}=body;
     if(!token) return fail('Token required');
     const data=await rGet('magic:'+token);
-    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('Sign-in link is invalid or has expired. Please request a new one.');
+    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('That sign-in link is invalid or has expired. Ask for a new one.');
     const user=await rGet('user:'+data.email);
     if(!user) return fail('Account not found');
     // Single-use: delete BOTH keys atomically so a leaked link can't be
@@ -1030,9 +1030,9 @@ exports.handler = async function(event){
     if(!email||!code) return fail('Email and code required');
     const normalizedEmail=email.toLowerCase().trim();
     const token=await rGet('magicEmail:'+normalizedEmail);
-    if(!token) return fail('Sign-in code is invalid or has expired. Please request a new one.');
+    if(!token) return fail('That sign-in code is invalid or has expired. Ask for a new one.');
     const data=await rGet('magic:'+token);
-    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('Sign-in code is invalid or has expired. Please request a new one.');
+    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('That sign-in code is invalid or has expired. Ask for a new one.');
     const submittedHash=crypto.createHmac('sha256',SALT).update('magic-code:'+String(code).trim()).digest('hex');
     if(!safeEqual(data.codeHash, submittedHash)){
       // Burn the token after 5 wrong attempts so an attacker can't keep
@@ -1041,10 +1041,10 @@ exports.handler = async function(event){
       if(attempts>=5){
         await rDel('magic:'+token);
         await rDel('magicEmail:'+normalizedEmail);
-        return fail('Too many incorrect attempts — request a new sign-in link.');
+        return fail('Too many incorrect attempts. Ask for a new sign-in link.');
       }
       await rSet('magic:'+token,{...data,attempts},15*60);
-      return fail('Sign-in code is invalid or has expired. Please request a new one.');
+      return fail('That sign-in code is invalid or has expired. Ask for a new one.');
     }
     const user=await rGet('user:'+normalizedEmail);
     if(!user) return fail('Account not found');

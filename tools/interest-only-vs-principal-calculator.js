@@ -16,7 +16,7 @@ function calc() {
   // Blank or invalid inputs stop here instead of being replaced by a default.
   if (!(term > 0)) { showMsg('Enter a loan term (in years).'); return; }
   if (!(ratePI >= 0) || !(rateIO >= 0)) { showMsg('Enter both interest rates (0 or more).'); return; }
-  if (ioYears < 0) { showMsg('The interest-only period cannot be negative.'); return; }
+  if (ioYears < 0) { showMsg('The interest-only period can\'t be negative.'); return; }
   if (ioYears >= term) { showMsg('The interest-only period must be shorter than the loan term.'); return; }
   if (msgEl) msgEl.hidden = true;
 
@@ -53,28 +53,28 @@ ToolPage.init({
   slug: 'io-vs-pi',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Buying a first home',
+    description: 'The First Home Journey compares the government schemes on your figures and builds a budget that includes every upfront cost.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '🏦', title: 'Lending Guidance',
+        icon: '🏦', title: 'Interest-only loans',
         links: [
-          { text: 'ASIC MoneySmart: Interest Only Loans', href: 'https://moneysmart.gov.au/home-loans/interest-only-home-loans' },
-          { text: 'ASIC MoneySmart: Mortgage Calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' }
+          { text: 'ASIC Moneysmart: interest-only home loans', href: 'https://moneysmart.gov.au/home-loans/interest-only-home-loans' },
+          { text: 'ASIC Moneysmart: mortgage calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' }
         ]
       },
       {
-        icon: '📊', title: 'Investor Tax',
+        icon: '📊', title: 'Tax for investors',
         links: [
-          { text: 'ATO: Rental Property Interest', href: 'https://www.ato.gov.au/individuals/investments-and-assets/residential-rental-properties/rental-property-expenses/interest-expenses/' },
+          { text: 'ATO: interest expenses on a rental property', href: 'https://www.ato.gov.au/individuals/investments-and-assets/residential-rental-properties/rental-property-expenses/interest-expenses/' },
         ]
       }
     ],
-    disclaimer: 'Estimates only. Assumes IO reverts to P&I at the same IO rate. Real lender behaviour, re-negotiation and refinancing change outcomes substantially.'
+    disclaimer: 'General information, not financial advice. The tool assumes the loan reverts to P&I at the IO rate. Refinancing, or a different revert rate from your lender, changes the result.'
   },
   share: {
     url: 'https://equitysight.app/tools/interest-only-vs-principal-calculator',
@@ -143,15 +143,13 @@ ToolPage.init({
   ],
   faq: [
     { q: 'Why is the IO rate higher than the P&I rate?',
-      a: 'APRA classifies IO loans as higher-risk (no amortisation buffer if values fall), so lenders add a premium — typically 0.15–0.40% — on top of the P&I rate. The gap is larger for investors than owner-occupiers.' },
+      a: 'APRA treats IO loans as higher risk, because the balance isn\'t being paid down if values fall. Lenders add a premium on top of the P&I rate, usually 0.15–0.40%. The gap is larger for investors than for owner-occupiers.' },
     { q: 'Can I extend the IO period beyond 5 years?',
-      a: 'Investors can usually get up to 10 years of IO (sometimes split across multiple renewals). Owner-occupiers are typically capped at 5 years. Each extension requires a new serviceability assessment.' },
+      a: 'Investors can usually get up to 10 years of IO, sometimes split across more than one renewal. Owner-occupiers are usually capped at 5 years. Each extension is a new credit decision with a new serviceability assessment, so approval isn\'t automatic.' },
     { q: 'What happens when the IO period ends?',
-      a: 'The loan reverts to P&I over the remaining term. Because you have fewer years to repay the full principal, the repayment rises. In this calculator, a $600,000 30-year loan at 6.60% with 5 years of IO goes from $3,300 to $4,089 a month, a 24% rise. A longer IO period or a shorter remaining term makes the rise bigger. Plan for it, or refinance before it happens.' },
-    { q: 'Is IO a tax advantage for investors?',
-      a: 'IO maximises deductible interest expenses against rental income (and other income if negatively geared). But it does not create a tax deduction out of thin air — you still pay the interest. IO is mainly a cash-flow and portfolio-leverage play, not a tax trick.' },
-    { q: 'Should owner-occupiers ever choose IO?',
-      a: 'Rarely. IO can help during temporary income drops (parental leave, redundancy), construction periods, or bridging purchases. Beyond those, P&I almost always wins because you\'re building equity and paying less interest over time.' }
+      a: 'The loan reverts to P&I over the remaining term. You have fewer years to repay the full principal, so the repayment rises. In this calculator, a $600,000 30-year loan at 6.60% with 5 years of IO goes from $3,300 to $4,089 a month, a 24% rise. A longer IO period or a shorter remaining term makes the rise bigger.' },
+    { q: 'Is the interest on an IO loan tax-deductible?',
+      a: 'On an investment property the interest is generally deductible whether the loan is IO or P&I. Principal repayments are never deductible. On your own home, neither is. The ATO or a registered tax agent can confirm your position.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '📊', href: '/tools/mortgage-repayment-calculator', label: 'Mortgage Repayment' },

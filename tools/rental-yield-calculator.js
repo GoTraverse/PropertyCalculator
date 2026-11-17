@@ -4,7 +4,7 @@ function calculate() {
   if (_msg) _msg.hidden = true;
   var propVal = parseVal('propval');
   var weekly = parseVal('weekly');
-  if (!propVal || !weekly) { if (!_isInit) _showErr('Please enter property value and weekly rent.'); return; }
+  if (!propVal || !weekly) { if (!_isInit) _showErr('Enter the property value and the weekly rent.'); return; }
 
   var vacancy = parseFloat(document.getElementById('vacancy').value) || 0;
   if (vacancy < 0 || vacancy > 52) { if (!_isInit) _showErr('Vacancy must be between 0 and 52 weeks a year.'); return; }
@@ -24,7 +24,7 @@ function calculate() {
   // No loan is entered here, so the verdict does not claim the property is
   // positively or negatively geared. It states the test instead.
   var verdict = (totalExpenses > 0 ? '' : 'No expenses entered, so net yield equals gross yield. ') +
-    'This calculator has no loan input, so it cannot say whether the property is positively or negatively geared. ' +
+    'This calculator has no loan input, so it can\'t say whether the property is positively or negatively geared. ' +
     'Rent covers the loan interest when the net yield (' + netYield.toFixed(2) + '%) is higher than your interest rate multiplied by the share of the price you borrow. ' +
     'For example, a 6% rate on an 80% loan needs a net yield above 4.8%.';
 
@@ -58,38 +58,38 @@ ToolPage.init({
   slug: 'rental-yield',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full investment scenario',
-    description: 'Take the yield further — cashflow after tax, land tax and CGT are each a free calculator away.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'Cash flow, land tax and CGT',
+    description: 'Yield stops before the loan and tax. The property cash flow, land tax and capital gains calculators cover those.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE2', title: 'Investment Property Tax',
+        icon: '\uD83C\uDFE2', title: 'Tax on a rental property',
         links: [
-          { text: 'ATO: Rental Property Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ATO: Deductible Expenses', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/how-to-claim-rental-expenses' },
-          { text: 'ATO: Capital Gains Tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
-          { text: 'ATO: Negative Gearing', href: 'https://www.ato.gov.au/forms-and-instructions/rental-properties-2025/other-tax-considerations' }
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'ATO: how to claim rental expenses', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/how-to-claim-rental-expenses' },
+          { text: 'ATO: capital gains tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
+          { text: 'ATO: negative gearing', href: 'https://www.ato.gov.au/forms-and-instructions/rental-properties-2025/other-tax-considerations' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Investment & Finance',
+        icon: '\uD83D\uDCB0', title: 'Investing',
         links: [
-          { text: 'ASIC: Investment Loans', href: 'https://moneysmart.gov.au/property-investment' },
-          { text: 'ASIC: Saving & Investing', href: 'https://moneysmart.gov.au/how-to-invest' }
+          { text: 'ASIC Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' },
+          { text: 'ASIC Moneysmart: how to invest', href: 'https://moneysmart.gov.au/how-to-invest' }
         ]
       },
       {
-        icon: '\uD83D\uDCCB', title: 'Landlord & Tenant Law',
+        icon: '\uD83D\uDCCB', title: 'Renting rules',
         links: [
-          { text: 'NSW Fair Trading: Renting', href: 'https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live' },
-          { text: 'Consumer Affairs: Rental Law', href: 'https://www.consumer.vic.gov.au/housing' },
+          { text: 'NSW Government: renting', href: 'https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live' },
+          { text: 'Consumer Affairs Victoria: housing', href: 'https://www.consumer.vic.gov.au/housing' },
         ]
       }
     ],
-    disclaimer: 'This is general information only. Tax treatment of rental properties varies by circumstances. Always consult a tax accountant and financial adviser before investing.'
+    disclaimer: 'General information, not tax or financial advice. How a rental property is taxed depends on your circumstances.'
   },
   share: {
     url: 'https://equitysight.app/tools/rental-yield-calculator',
@@ -110,7 +110,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'Unit \u2014 $520,000 at $510 a week',
+      label: 'Unit, $520,000 at $510 a week',
       inputs: [
         { k: 'Property price', v: '$520,000' },
         { k: 'Weekly rent', v: '$510' },
@@ -122,7 +122,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'House \u2014 $1,250,000 at $780 a week',
+      label: 'House, $1,250,000 at $780 a week',
       inputs: [
         { k: 'Property price', v: '$1,250,000' },
         { k: 'Weekly rent', v: '$780' },
@@ -134,7 +134,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'Townhouse \u2014 $395,000 at $445 a week',
+      label: 'Townhouse, $395,000 at $445 a week',
       inputs: [
         { k: 'Property price', v: '$395,000' },
         { k: 'Weekly rent', v: '$445' },
@@ -147,16 +147,14 @@ ToolPage.init({
     }
   ],
   faq: [
-    { q: 'What is a good rental yield in Australia?',
-      a: 'Gross yields typically sit between 3% and 6% across Australian capital cities. Inner-city apartments tend to deliver 3\u20134%, middle-ring houses 4\u20135%, and outer-metro or regional properties 5\u20136%+. Net yield (after costs) is usually about 1 percentage point lower.' },
-    { q: 'What\u2019s the difference between gross and net yield?',
-      a: 'Gross yield is annual rent \u00f7 property price. Net yield subtracts all ongoing costs (rates, insurance, management, repairs, strata) before dividing. Net yield is the more useful number for real investment decisions.' },
+    { q: 'What is a good rental yield?',
+      a: 'The useful test is whether rent covers your loan interest. It does when the net yield is higher than your interest rate multiplied by the share of the price you borrow. A 6% rate on an 80% loan needs a net yield above 4.8%.' },
+    { q: 'Should I use the purchase price or the current value?',
+      a: 'For a property you\'re thinking of buying, use the price you expect to pay. For one you already own, use its current market value. As the value rises the same rent is a lower yield, which is one reason a property held for a long time can show a low yield.' },
     { q: 'Does yield include loan repayments?',
-      a: 'No. Yield is a property-level metric that measures rental return against the full purchase price. Loan repayments affect cash-flow, which the property cash flow calculator models.' },
-    { q: 'Why is my yield lower in capital cities?',
-      a: 'Higher property prices compress yield, even when rents are strong. Capital-city investors typically trade lower yield for better capital growth potential.' },
-    { q: 'How often should I recalculate yield?',
-      a: 'Annually, or whenever rents or major expenses change. Most landlords review rent at lease renewal \u2014 that\u2019s the right moment to recheck yield.' }
+      a: 'No. Yield compares the rent with the full price of the property, whatever you borrowed. Loan repayments affect cash flow, which the property cash flow calculator works out.' },
+    { q: 'What vacancy allowance should I use?',
+      a: 'A rule of thumb is one to two weeks a year for a well-located property in a tight rental market, and three to four weeks or more where there is high supply, seasonal demand or older stock.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },

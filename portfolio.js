@@ -396,7 +396,7 @@ function medianLines(h) {
     var cap = medianCaption(SC + '_rent');
     out += '<div class="pf-median">Suburb median rent ' + fmt(rec.r) + '/wk' +
       (cap ? ' (' + escHtml(cap) + ')' : '') +
-      ' — your rent is ' + signedPct((rent - rec.r) / rec.r * 100) + ' vs the median.</div>';
+      '. Your rent is ' + signedPct((rent - rec.r) / rec.r * 100) + ' vs the median.</div>';
   }
   var pv = num(h.currentValue);
   var pMedian = null, pLabel = '';
@@ -406,9 +406,9 @@ function medianLines(h) {
     var cap2 = medianCaption(SC + '_price');
     out += '<div class="pf-median">Suburb median ' + pLabel + ' price ' + fmt(pMedian) +
       (cap2 ? ' (' + escHtml(cap2) + ')' : '') +
-      ' — your value entry is ' + signedPct((pv - pMedian) / pMedian * 100) + ' vs the median.</div>';
+      '. Your value entry is ' + signedPct((pv - pMedian) / pMedian * 100) + ' vs the median.</div>';
   }
-  if (out) out += '<div class="pf-median-note">Suburb medians shown for context only — not a valuation of this property.</div>';
+  if (out) out += '<div class="pf-median-note">Suburb medians are shown for context. They are not a valuation of this property.</div>';
   return out;
 }
 
@@ -492,7 +492,7 @@ function renderLandTax() {
         var vres = actValuation(it.auv);
         var sub = ACT_FIXED_CHARGE + vres.tax;
         gTax += sub;
-        rows += ltRow(escHtml(it.label) + ' — AUV share ' + fmt(it.auv), fmt(sub));
+        rows += ltRow(escHtml(it.label) + ', AUV share ' + fmt(it.auv), fmt(sub));
       });
       rows += ltRow('Fixed charge per property (2026-27)', fmt(ACT_FIXED_CHARGE));
       rows += ltRow('Estimated annual land tax', fmt(gTax), true);
@@ -500,9 +500,9 @@ function renderLandTax() {
         var edgeA = nextStep('act', 'general', g.items[0].auv);
         rows += ltRow('Distance to next bracket', edgeA
           ? fmt(edgeA - g.items[0].auv) + ' more land value before the next rate step'
-          : 'Top band — the rate no longer steps up');
+          : 'Top band. The rate no longer steps up.');
       }
-      rows += '<div class="pf-lt-note">Assessed per property on AUV (no aggregation) — billed quarterly, about ' +
+      rows += '<div class="pf-lt-note">Assessed per property on AUV (no aggregation) and billed quarterly, about ' +
         fmt(gTax / 4) + ' per instalment. Applies to rentals only; an owner-occupied ACT home is out of scope.</div>';
 
     } else {
@@ -516,7 +516,7 @@ function renderLandTax() {
       var edge = nextStep(g.state, otype, g.V);
       rows += ltRow('Distance to next bracket', edge
         ? fmt(edge - g.V) + ' more land value before the next rate step'
-        : 'Top band — the rate no longer steps up');
+        : 'Top band. The rate no longer steps up.');
     }
 
     total += gTax;
@@ -527,18 +527,18 @@ function renderLandTax() {
     '<div class="pf-lt-total-num">' + fmt(total) + '</div></div>';
 
   if (!order.length) {
-    html = '<p class="pf-empty">No taxable holdings yet — add an investment property with a land value to see the rollup.</p>';
+    html = '<p class="pf-empty">No taxable holdings yet. Add an investment property with a land value to see the rollup.</p>';
     head = '';
   }
 
   var notes = '';
   if (pprCount > 0) {
     notes += '<div class="pf-lt-note">' + pprCount + (pprCount === 1 ? ' holding' : ' holdings') +
-      ' marked PPR excluded — your principal place of residence is exempt from land tax.</div>';
+      ' marked PPR excluded. Your principal place of residence is exempt from land tax.</div>';
   }
   if (missingLand > 0) {
     notes += '<div class="pf-lt-note">' + missingLand + (missingLand === 1 ? ' holding has' : ' holdings have') +
-      ' no land value entered — add the unimproved/site value from the valuation notice to include ' +
+      ' no land value entered. Add the unimproved/site value from the valuation notice to include ' +
       (missingLand === 1 ? 'it' : 'them') + '.</div>';
   }
 
@@ -573,18 +573,18 @@ function buildDateItems() {
           var jump = Math.max(0, piWk - ioWk);
           detail = 'Repayments jump ~' + fmt(jump) + '/wk at P&I (est., ' + remaining + '-yr term remaining).';
         }
-        items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ' — interest-only expiry', detail: detail });
+        items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ': interest-only expiry', detail: detail });
       }
     }
 
     if (h.fixedExpiry) {
       d = parseMonth(h.fixedExpiry);
-      if (d) items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ' — fixed rate ends', detail: 'The revert rate applies from here — reprice or refinance before it does.' });
+      if (d) items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ': fixed rate ends', detail: 'The revert rate applies from here.' });
     }
 
     if (h.leaseExpiry) {
       d = parseMonth(h.leaseExpiry);
-      if (d) items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ' — lease expires', detail: 'Plan the renewal or relisting early to avoid a vacancy gap.' });
+      if (d) items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ': lease expires', detail: '' });
     }
   }
 
@@ -599,10 +599,10 @@ function buildDateItems() {
     seen[st] = true;
     if (LT_ASSESS[st]) {
       d = nextAnnual(LT_ASSESS[st].m, LT_ASSESS[st].d);
-      items.push({ t: d.getTime(), when: dayLabel(d), date: d, label: st.toUpperCase() + ' land tax assessment date', detail: 'Holdings assessed at ' + LT_ASSESS[st].txt + ' — selling the day after still leaves the full year payable in most states.' });
+      items.push({ t: d.getTime(), when: dayLabel(d), date: d, label: st.toUpperCase() + ' land tax assessment date', detail: 'Holdings assessed at ' + LT_ASSESS[st].txt + '. Selling the day after still leaves the full year payable in most states.' });
     } else if (st === 'act') {
       d = nextQuarterStart();
-      items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: 'ACT land tax — billed quarterly', detail: 'Assessed per rented property each quarter; next instalment period shown.' });
+      items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: 'ACT land tax, billed quarterly', detail: 'Assessed per rented property each quarter; next instalment period shown.' });
     }
     /* NT: no land tax — no assessment date. */
   }
@@ -616,7 +616,7 @@ function renderDates() {
   if (!el) return;
   var items = buildDateItems();
   if (!items.length) {
-    el.innerHTML = '<li class="pf-empty">No upcoming dates — add interest-only, fixed-rate or lease expiry dates to your holdings to see them here.</li>';
+    el.innerHTML = '<li class="pf-empty">No upcoming dates. Add interest-only, fixed-rate or lease expiry dates to your holdings to see them here.</li>';
     return;
   }
   var now = new Date();
@@ -649,7 +649,7 @@ function renderHoldings() {
   var el = byId('pf-holdings');
   if (!el) return;
   if (!_holdings.length) {
-    el.innerHTML = '<p class="pf-empty">No properties yet. Add your first holding — it takes about a minute, and everything stays private to your account.</p>';
+    el.innerHTML = '<p class="pf-empty">No properties yet. What you add is private to your account.</p>';
     return;
   }
   var html = '';
@@ -843,13 +843,13 @@ function submitSave() {
     } else if (res && res.error === 'auth') {
       sessionExpired();
     } else if (res && res.error === 'validation') {
-      formMsg('The server rejected the entry — check the fields and try again.');
+      formMsg('The server rejected the entry. Check the fields and try again.');
     } else {
-      formMsg('Could not save — try again in a moment.');
+      formMsg("Couldn't save. Try again in a moment.");
     }
   }).catch(function () {
     if (btn) btn.disabled = false;
-    formMsg('Network error — check your connection and try again.');
+    formMsg('Network error. Check your connection and try again.');
   });
 }
 
@@ -857,7 +857,7 @@ function submitDelete() {
   if (_editingId === null || _editingId === undefined) return;
   var h = findHolding(_editingId);
   var name = h && h.label ? h.label : 'this property';
-  if (!window.confirm('Delete "' + name + '" from your portfolio? This cannot be undone.')) return;
+  if (!window.confirm('Delete "' + name + '" from your portfolio? This can\'t be undone.')) return;
   var btn = byId('pf-delete-btn');
   if (btn) btn.disabled = true;
   formMsg('Deleting…');
@@ -872,11 +872,11 @@ function submitDelete() {
     } else if (res && res.error === 'auth') {
       sessionExpired();
     } else {
-      formMsg('Could not delete — try again in a moment.');
+      formMsg("Couldn't delete. Try again in a moment.");
     }
   }).catch(function () {
     if (btn) btn.disabled = false;
-    formMsg('Network error — check your connection and try again.');
+    formMsg('Network error. Check your connection and try again.');
   });
 }
 
@@ -906,7 +906,7 @@ function showApp() {
  * blob is stale. Show the guest surface with an explanation. */
 function sessionExpired() {
   hideForm();
-  showGuest('Your session has expired — sign in again to view your portfolio.');
+  showGuest('Your session has expired. Sign in again to see your portfolio.');
   if (window.trackPageEvent) trackPageEvent('portfolio_session_expired', {});
 }
 
@@ -961,7 +961,7 @@ function wireEvents() {
   var sugBtn = byId('pf-suggest-land');
   if (sugBtn) sugBtn.addEventListener('click', function () {
     var cv = parseVal('pf-f-current-value');
-    if (cv <= 0) { formMsg('Enter the current value first — the suggestion works off it.'); return; }
+    if (cv <= 0) { formMsg('Enter the current value first. The suggestion is worked out from it.'); return; }
     var land = Math.round(cv * 0.55 / 10000) * 10000;
     setCurrencyField('pf-f-land-value', land);
     var hint = byId('pf-suggest-hint');

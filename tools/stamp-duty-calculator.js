@@ -27,7 +27,7 @@ var stateData = {
   // NOTE: VIC ($960k-$2M), ACT (>$1.455M) and NT use flat-of-total or quadratic
   // bands that the simple cumulative-tier model can't express — see calcDuty().
   nsw: {
-    name: 'New South Wales', dutyName: 'Transfer Duty', foreignRate: 0.09,
+    name: 'New South Wales', dutyName: 'Transfer duty', foreignRate: 0.09,
     fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
     // Brackets CPI-indexed 1 Jul 2026 (FY2026-27; premium threshold $3,870,000).
     tiers: [
@@ -41,7 +41,7 @@ var stateData = {
     ]
   },
   vic: {
-    name: 'Victoria', dutyName: 'Land Transfer Duty', foreignRate: 0.08,
+    name: 'Victoria', dutyName: 'Land transfer duty', foreignRate: 0.08,
     fhbFull: 600000, fhbPartial: 750000, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0.014 },
@@ -50,7 +50,7 @@ var stateData = {
     ]
   },
   qld: {
-    name: 'Queensland', dutyName: 'Transfer Duty', foreignRate: 0.08,
+    name: 'Queensland', dutyName: 'Transfer duty', foreignRate: 0.08,
     fhbFull: 700000, fhbPartial: 800000, fhbExemption: Infinity,
     // First home vacant land: NO duty at any value (contracts from 1 May 2025).
     tiers: [
@@ -62,7 +62,7 @@ var stateData = {
     ]
   },
   sa: {
-    name: 'South Australia', dutyName: 'Stamp Duty', foreignRate: 0.07,
+    name: 'South Australia', dutyName: 'Stamp duty', foreignRate: 0.07,
     // SA first-home relief is for NEW homes / vacant land only (no value taper),
     // so no automatic value-based FHB exemption is applied here.
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
@@ -79,7 +79,7 @@ var stateData = {
     ]
   },
   wa: {
-    name: 'Western Australia', dutyName: 'Transfer Duty', foreignRate: 0.07,
+    name: 'Western Australia', dutyName: 'Transfer duty', foreignRate: 0.07,
     // FHB thresholds raised for transactions from 7 May 2026 (announced in the
     // 2026-27 Budget, applying retrospectively — confirm legislative status
     // with RevenueWA).
@@ -93,7 +93,7 @@ var stateData = {
     ]
   },
   tas: {
-    name: 'Tasmania', dutyName: 'Property Transfer Duty', foreignRate: 0.08,
+    name: 'Tasmania', dutyName: 'Property transfer duty', foreignRate: 0.08,
     // FHB established-home exemption EXPIRED 30 Jun 2026 (SRO: "not available for
     // transactions settling after 30 June 2026") — no FHB duty relief in TAS now.
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
@@ -108,7 +108,7 @@ var stateData = {
     ]
   },
   act: {
-    name: 'Australian Capital Territory', dutyName: 'Conveyance Duty', foreignRate: 0,
+    name: 'Australian Capital Territory', dutyName: 'Conveyance duty', foreignRate: 0,
     // HBCS from 1 Jul 2026: NO income test, NO property value limit — eligible
     // buyers (no property owned in prior 5 yrs) pay $0 duty at any price.
     fhbFull: Infinity, fhbPartial: Infinity, fhbExemption: Infinity,
@@ -122,7 +122,7 @@ var stateData = {
     ]
   },
   nt: {
-    name: 'Northern Territory', dutyName: 'Stamp Duty', foreignRate: 0,
+    name: 'Northern Territory', dutyName: 'Stamp duty', foreignRate: 0,
     // NT has no value-based FHB duty concession (relief is new-build exemption / grants).
     // Duty is a quadratic under $525k and a flat % of total above — see calcDuty().
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
@@ -283,7 +283,7 @@ function updateState() {
   var state = document.getElementById('state').value;
   var data = stateData[state];
   document.getElementById('r-duty-label').textContent = data.dutyName;
-  document.getElementById('r-foreign-label').textContent = 'Foreign Surcharge (' + Math.round(data.foreignRate * 100) + '%)';
+  document.getElementById('r-foreign-label').textContent = 'Foreign surcharge (' + Math.round(data.foreignRate * 100) + '%)';
   var foreignCheck = document.getElementById('foreign-check');
   if (data.foreignRate > 0) {
     foreignCheck.style.display = '';
@@ -302,7 +302,7 @@ function calculate() {
   var state = document.getElementById('state').value;
   var data = stateData[state];
   var val = parseVal('price');
-  if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
+  if (!val || val <= 0) { if (!_isInit) _showErr('Enter the purchase price.'); return; }
 
   var isFHB = document.getElementById('fhb').checked;
   var isForeign = document.getElementById('foreign').checked;
@@ -320,7 +320,7 @@ function calculate() {
     // QLD first home vacant land concession: NO duty at any land value for
     // agreements from 1 May 2025 (QRO). Other states' land FHB rules are not
     // modelled — they fall through to standard duty (conservative).
-    dutyResult = { duty: 0, note: 'First home vacant land concession — no duty at any value (contracts from 1 May 2025).' };
+    dutyResult = { duty: 0, note: 'First home vacant land concession: no duty at any value (contracts from 1 May 2025).' };
   } else if (isFHB && !isLand) {
     dutyResult = applyFhbConcession(state, val, baseDuty);
   } else if (isOwner && !isLand && state === 'qld') {
@@ -330,7 +330,7 @@ function calculate() {
     dutyResult = { duty: qldHomeDuty(val), note: 'QLD home concession applied (owner-occupier).' };
   } else {
     dutyResult = { duty: baseDuty, note: (isFHB && isLand)
-      ? 'First home buyer relief for vacant land has different rules that this calculator does not model, so standard duty is shown.'
+      ? 'First home buyer relief for vacant land has different rules that this calculator doesn\u2019t model, so standard duty is shown.'
       : '' };
   }
   var duty = dutyResult.duty;
@@ -351,7 +351,7 @@ function calculate() {
   // price cap and eligibility (checked in the FHB grants calculator, not here).
   var lmi = Math.round(loanAmount * lmiTier.rate);
   var lmiLabel = lmi > 0
-    ? (fmt(lmi) + ' \u00b7 ' + lmiTier.label + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : ''))
+    ? (fmt(lmi) + ', ' + lmiTier.label + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : ''))
     : '$0 (no LMI)';
 
   var upfrontTotal = total + lmi + regTotal + conveyancing;
@@ -372,10 +372,10 @@ function calculate() {
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
   if (regEl) regEl.textContent = SCALED_REG[state]
-    ? fmt(regTotal) + ' (' + SCALED_REG[state] + ' — transfer fee scales with price)'
+    ? fmt(regTotal) + ' (' + SCALED_REG[state] + ', transfer fee scales with price)'
     : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500\u2013$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; quotes usually run $1,500\u2013$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
@@ -398,7 +398,7 @@ function calculate() {
     rows.forEach(function(r) {
       var saving = r.std - r.fhb;
       html += '<tr class="' + (r.current ? 'sd-current' : '') + '">' +
-        '<td>' + escHtml(r.code) + ' \u2014 ' + escHtml(r.name) + '</td>' +
+        '<td>' + escHtml(r.code) + ' (' + escHtml(r.name) + ')</td>' +
         '<td>' + fmt(r.std) + '</td>' +
         (isFHB ? '<td>' + fmt(r.fhb) + '</td><td class="' + (saving > 0 ? 'sd-save' : '') + '">' + (saving > 0 ? fmt(saving) : '\u2014') + '</td>' : '') +
         '</tr>';
@@ -408,7 +408,7 @@ function calculate() {
     fhbCols.forEach(function(el) { el.style.display = isFHB ? '' : 'none'; });
   }
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on ' + data.name + ' 2026-27 thresholds (verified 5 July 2026). LMI is a rough estimate \u2014 get a formal quote. Verify all figures with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates are the ' + data.name + ' 2026-27 schedule (verified 5 July 2026). LMI is a rough estimate, so get a quote from the lender. Check the figures with your solicitor or conveyancer before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -434,45 +434,36 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Work out the rest of the purchase',
+    description: 'The First Home Journey uses the same duty tables, then builds the rest of your budget around them and tracks your contract deadlines.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Offices',
+        icon: '\uD83C\uDFDB\uFE0F', title: 'State revenue offices',
         links: [
-          { text: 'NSW Stamp Duty Guide', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
-          { text: 'VIC Land Transfer Duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
-          { text: 'QLD Transfer Duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
-          { text: 'SA Stamp Duty', href: 'https://www.revenuesa.sa.gov.au/stampduty' },
-          { text: 'WA Land Titles Office', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' },
-          { text: 'TAS: State Revenue Office', href: 'https://www.sro.tas.gov.au/property-transfer-duties' },
-          { text: 'ACT Stamp Duty', href: 'https://www.revenue.act.gov.au/duties/conveyance-duty' },
-          { text: 'NT Land Titles Office', href: 'https://nt.gov.au/property/buying-and-selling-a-home/settle-the-sale/stamp-duty-buying-or-selling-a-home' }
+          { text: 'Revenue NSW: transfer duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
+          { text: 'State Revenue Office Victoria: land transfer duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
+          { text: 'Queensland Revenue Office: transfer duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
+          { text: 'RevenueSA: stamp duty', href: 'https://www.revenuesa.sa.gov.au/stampduty' },
+          { text: 'WA Government: transfer duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' },
+          { text: 'State Revenue Office Tasmania: property transfer duties', href: 'https://www.sro.tas.gov.au/property-transfer-duties' },
+          { text: 'ACT Revenue Office: conveyance duty', href: 'https://www.revenue.act.gov.au/duties/conveyance-duty' },
+          { text: 'NT Government: stamp duty', href: 'https://nt.gov.au/property/buying-and-selling-a-home/settle-the-sale/stamp-duty-buying-or-selling-a-home' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyers',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'RBA Housing Guide', href: 'https://www.rba.gov.au/education/resources/explainers/' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
-        links: [
-          { text: 'ATO: Shared Equity Schemes', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
+          { text: 'Housing Australia: First Home Guarantee', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'ATO: First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Rates change regularly \u2014 verify current rates with your state revenue office.'
+    disclaimer: 'General information, not advice. Rates change, so check the current schedule with your state revenue office before you sign.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator',
@@ -493,7 +484,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'QLD — First home buyer, $750,000',
+      label: 'QLD first home buyer, $750,000',
       inputs: [
         { k: 'Property price', v: '$750,000' },
         { k: 'State', v: 'Queensland' },
@@ -502,11 +493,11 @@ ToolPage.init({
       ],
       outputs: [
         { k: 'Estimated stamp duty', v: '~$10,925' },
-        { k: 'Includes FHB concession', v: 'Yes (QRO band concession — full exemption ends at $700k)' }
+        { k: 'Includes FHB concession', v: 'Yes (QRO band concession; the full exemption ends at $700k)' }
       ]
     },
     {
-      label: 'NSW — Investor, $950,000',
+      label: 'NSW investor, $950,000',
       inputs: [
         { k: 'Property price', v: '$950,000' },
         { k: 'State', v: 'New South Wales' },
@@ -519,7 +510,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'VIC — Owner-occupier, $1,200,000',
+      label: 'VIC owner-occupier, $1,200,000',
       inputs: [
         { k: 'Property price', v: '$1,200,000' },
         { k: 'State', v: 'Victoria' },
@@ -533,16 +524,12 @@ ToolPage.init({
     }
   ],
   faq: [
-    { q: 'How is stamp duty calculated?',
-      a: 'Stamp duty is a state tax based on the property purchase price and the state you buy in. Each state uses tiered brackets — higher prices attract a higher percentage. First home buyers, pensioners, and certain property types can attract concessions.' },
-    { q: 'Do first home buyers pay less stamp duty?',
-      a: 'Mostly, but it now varies sharply by state. The ACT charges eligible home buyers no duty at all from 1 July 2026 (no price cap or income test). NSW exempts first home buyers to $800,000, VIC to $600,000, QLD to $700,000 (and new homes at any price), WA to $600,000 from 7 May 2026. SA waives duty on new builds only. Tasmania\u2019s established-home exemption expired on 30 June 2026, so TAS first home buyers now pay full duty. Check your state\u2019s current threshold before you commit.' },
-    { q: 'When do I have to pay stamp duty?',
-      a: 'It varies by state. Duty is usually paid at or shortly after settlement, and many revenue offices set the deadline from the date the liability arises, which is often the contract date. Your conveyancer or solicitor usually arranges payment as part of settlement. Check the deadline for your state so you do not pay penalty interest.' },
+    { q: 'When is stamp duty due?',
+      a: 'Usually at or shortly after settlement. Many revenue offices want it within around 30 days of the liability arising, which is often the contract date. Your conveyancer or solicitor normally arranges payment as part of settlement. Paying late attracts penalty interest.' },
+    { q: 'Can I add stamp duty to my home loan?',
+      a: 'Not directly. The bank lends against the property\u2019s value and expects you to fund the duty yourself. Some buyers borrow a little more (a higher LVR) to keep cash free for duty, but going over 80% LVR brings in lenders mortgage insurance.' },
     { q: 'Is stamp duty tax deductible?',
-      a: 'For investors, stamp duty is generally not immediately deductible — it forms part of the cost base of the property and reduces future capital gains tax when you sell. Owner-occupiers cannot claim it at all.' },
-    { q: 'Does stamp duty apply to new builds?',
-      a: 'New builds are taxed on the land value only in some states (e.g., ACT off-the-plan concession), while others tax the full contract price. Several states offer additional grants for new homes — check the First Home Owner Grant in your state.' }
+      a: 'For an investor it is generally not deductible when you pay it. It forms part of the property\u2019s cost base, which reduces capital gains tax when you sell. Owner-occupiers can\u2019t claim it at all.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },

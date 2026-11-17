@@ -244,12 +244,12 @@ function calc() {
   const _blank = () => ['r-monthly','r-fortnightly','r-weekly','r-interest','r-total','r-ftn-saving','r-payoff','r-lmi','r-lvr','r-postio'].forEach(id => setText(id, '—'));
   // A blank or zero term used to fall back to 30 years without saying so.
   if (!amount || !(term > 0)) {
-    _showErr('Please enter a loan amount and a loan term.');
+    _showErr('Enter a loan amount and a loan term.');
     _blank();
     return;
   }
   if (!(rate >= 0)) {
-    _showErr('Please enter an interest rate (0 or more).');
+    _showErr('Enter an interest rate (0 or more).');
     _blank();
     return;
   }
@@ -339,7 +339,7 @@ function calc() {
   // Fortnightly saving callout — P&I only (it compares P&I schedules), and
   // only when non-trivial
   if (!isIO && fortnightlySim.willPayOff && interestSavedFortnightly > 100) {
-    setText('r-ftn-saving', fmt(interestSavedFortnightly) + ' interest saved · ' + monthsToYearsMonths(Math.round(monthsSavedFortnightly)) + ' earlier payoff');
+    setText('r-ftn-saving', fmt(interestSavedFortnightly) + ' less interest, paid off ' + monthsToYearsMonths(Math.round(monthsSavedFortnightly)) + ' earlier');
     const el = document.getElementById('r-ftn-saving-wrap');
     if (el) el.style.display = '';
   } else {
@@ -354,7 +354,7 @@ function calc() {
       const interestSavedByExtras = extrasBaseline.totalInterest - sim.totalInterest;
       const monthsSavedByExtras = extrasBaseline.monthsToPayoff - sim.monthsToPayoff;
       if (interestSavedByExtras > 100) {
-        setText('r-extras-saving', fmt(interestSavedByExtras) + ' interest saved · ' + monthsToYearsMonths(Math.max(0, monthsSavedByExtras)) + ' earlier payoff');
+        setText('r-extras-saving', fmt(interestSavedByExtras) + ' less interest, paid off ' + monthsToYearsMonths(Math.max(0, monthsSavedByExtras)) + ' earlier');
         extrasWrap.style.display = '';
       } else {
         extrasWrap.style.display = 'none';
@@ -378,39 +378,31 @@ ToolPage.init({
   slug: 'mortgage-repayment',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Plan the whole purchase',
+    description: 'The First Home Journey compares the government schemes for your savings and income, then sets a budget with a maximum price.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '🏦', title: 'Official Lending Guidance',
+        icon: '🏦', title: 'Home loans',
         links: [
-          { text: 'ASIC MoneySmart: Home Loans', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ASIC: Mortgage Calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
-          { text: 'RBA: Cash Rate History', href: 'https://www.rba.gov.au/statistics/cash-rate/' },
-          { text: 'APRA: Prudential Standards APS 220', href: 'https://www.apra.gov.au/sites/default/files/prudential_standard_aps_220_credit_risk_management.pdf' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'Moneysmart: mortgage calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
+          { text: 'RBA: cash rate', href: 'https://www.rba.gov.au/statistics/cash-rate/' }
         ]
       },
       {
-        icon: '💰', title: 'Lenders Mortgage Insurance',
+        icon: '💰', title: 'Lenders mortgage insurance',
         links: [
-          { text: 'ASIC MoneySmart: LMI', href: 'https://moneysmart.gov.au/home-loans/lenders-mortgage-insurance' },
-          { text: 'Helia (formerly Genworth) LMI', href: 'https://www.helia.com.au/' },
-          { text: 'QBE LMI', href: 'https://www.qbe.com/au/' }
-        ]
-      },
-      {
-        icon: '📊', title: 'Rates & Monetary Policy',
-        links: [
-          { text: 'RBA: How Monetary Policy Works', href: 'https://www.rba.gov.au/education/resources/explainers/how-monetary-policy-works.html' },
-          { text: 'ASIC: Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
+          { text: 'Moneysmart: lenders mortgage insurance', href: 'https://moneysmart.gov.au/home-loans/lenders-mortgage-insurance' },
+          { text: 'Helia (LMI insurer, formerly Genworth)', href: 'https://www.helia.com.au/' },
+          { text: 'QBE (LMI insurer)', href: 'https://www.qbe.com/au/' }
         ]
       }
     ],
-    disclaimer: 'Estimates only. Actual repayments depend on your lender, fees, rate changes, and offset account use. LMI quotes vary by lender — the figure shown is a rough estimate.'
+    disclaimer: 'Estimates only. Repayments depend on your lender, its fees and rate changes. The LMI figure is a rough estimate.'
   },
   share: {
     url: 'https://equitysight.app/tools/mortgage-repayment-calculator',
@@ -435,7 +427,7 @@ ToolPage.init({
         { k: 'Loan amount', v: '$600,000' },
         { k: 'Interest rate', v: '6.25%' },
         { k: 'Term', v: '30 years' },
-        { k: 'Type', v: 'Principal + Interest' }
+        { k: 'Type', v: 'Principal and interest' }
       ],
       outputs: [
         { k: 'Monthly repayment', v: '$3,694' },
@@ -445,7 +437,7 @@ ToolPage.init({
       ]
     },
     {
-      label: '$850k loan over 30 years + $50k offset + $200/month extra',
+      label: '$850,000 loan over 30 years with a $50,000 offset and $200/month extra',
       inputs: [
         { k: 'Loan', v: '$850,000' }, { k: 'Rate', v: '5.99%' },
         { k: 'Offset', v: '$50,000' }, { k: 'Extra repayment', v: '$200/month' }
@@ -457,7 +449,7 @@ ToolPage.init({
       ]
     },
     {
-      label: '$400,000 interest-only for 5 years at 6.75%',
+      label: '$400,000 loan, interest only for 5 years, at 6.75%',
       inputs: [
         { k: 'Loan', v: '$400,000' }, { k: 'Rate', v: '6.75%' },
         { k: 'IO period', v: '5 years' }, { k: 'Term', v: '30 years total' }
@@ -470,20 +462,10 @@ ToolPage.init({
     }
   ],
   faq: [
-    { q: 'How is fortnightly different from "monthly ÷ 2"?',
-      a: 'In a half-monthly fortnightly schedule you pay half the monthly amount every 14 days. There are 26 fortnights per year, which is 13 monthly payments instead of 12. On a $600,000 30-year 6.25% loan this calculator shows the loan paid off 5 years 8 months earlier and $162,171 less interest. The figure comes from simulating the schedule, not from dividing the monthly amount by two.' },
-    { q: 'How does the offset balance reduce my interest?',
-      a: 'An offset account is a transaction account linked to your home loan. Interest is calculated each day on (loan balance − offset balance). The scheduled monthly repayment stays the same, but more of it goes to principal, so the loan is paid off sooner. Keeping $20,000 in an offset on a $500,000 loan means interest is charged on $480,000.' },
-    { q: 'How accurate is the LMI estimate?',
-      a: 'The LMI figure is a rough estimate from tiered LVR bands (none at 80% or below, ~0.8% up to 85%, ~1.9% up to 90%, ~3.4% up to 95%, ~4.3% above). The tiers are my working figures, not an insurer rate card. Actual quotes vary by lender, insurer (Helia / QBE), property type and borrower. Use it as a rough budgeting figure and get a formal quote from your lender before settlement.' },
-    { q: 'Should I make extra repayments?',
-      a: 'On variable loans you usually can without break fees. In this calculator, $100/month extra on a $500,000 30-year 6% loan saves $57,325 in interest and pays the loan off 2 years 6 months earlier. On fixed loans, check your contract, because many cap extra repayments during the fixed term.' },
     { q: 'What happens after the interest-only period ends?',
-      a: 'When IO ends, your loan reverts to principal + interest over the REMAINING term. On a 30-year loan with 5 years IO, the P&I phase only has 25 years to repay the full principal — so your monthly payment jumps significantly. This calculator shows both: IO monthly while in the IO period, and the higher post-IO P&I monthly.' },
-    { q: 'Are weekly repayments better than fortnightly?',
-      a: 'Slightly. This calculator shows the weekly amount as a quarter of the monthly repayment. Paid 52 times a year that is the same annual total as the fortnightly schedule, so the saving is about the same, with weekly a little ahead because each payment lands earlier. Most people choose the frequency that matches their pay cycle.' },
+      a: 'The loan reverts to principal and interest over the years that are left, so the whole principal is repaid in less time and the repayment goes up. On a $400,000 loan at 6.75% with 5 years interest only in a 30-year term, the repayment is $2,250 a month during the interest-only period and $2,764 a month for the remaining 25 years. Total interest over the 30 years is $564,094. This calculator shows both repayments.' },
     { q: 'Why does my actual repayment from the bank differ slightly?',
-      a: 'Banks round repayments and charge interest daily, so the number of days in each month and the settlement date move the figure slightly. This calculator uses the standard amortisation formula with 12 equal periods per year.' },
+      a: 'Banks round repayments and charge interest daily, so the number of days in each month and the settlement date move the figure slightly. This calculator uses the standard amortisation formula with 12 equal periods per year.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏦', href: '/tools/borrowing-power-calculator', label: 'Borrowing Power' },

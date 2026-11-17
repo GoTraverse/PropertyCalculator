@@ -7,7 +7,7 @@
 <script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
 <script src="/site-init.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Property Portfolio Tracker | EquitySight</title>
+<title>Property Portfolio Tracker on EquitySight.app</title>
 <meta name="description" content="The portfolio tracker is parked. It still works for people who already use it.">
 <meta name="robots" content="noindex,follow">
 <link rel="canonical" href="https://equitysight.app/portfolio">
@@ -16,24 +16,20 @@
 <meta name="theme-color" content="#1C1C1E">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="EquitySight.app">
-<meta property="og:title" content="Property Portfolio Tracker | EquitySight">
+<meta property="og:title" content="Property Portfolio Tracker on EquitySight.app">
 <meta property="og:description" content="The portfolio tracker is parked. It still works for people who already use it.">
 <meta property="og:url" content="https://equitysight.app/portfolio">
 <meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta property="og:image:alt" content="EquitySight.app">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Property Portfolio Tracker | EquitySight">
+<meta name="twitter:title" content="Property Portfolio Tracker on EquitySight.app">
 <meta name="twitter:description" content="The portfolio tracker is parked. It still works for people who already use it.">
 <meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"EquitySight Portfolio Tracker","url":"https://equitysight.app/portfolio","description":"A property portfolio tracker. It is parked: it still works for people who already use it, and is not being developed further.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Portfolio Tracker","item":"https://equitysight.app/portfolio"}]}]}
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="portfolio.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -55,7 +51,7 @@
       <li><a href="/journey">Journey</a></li>
       <li><a href="/tools/">Calculators</a></li>
       <li><a href="/about">About</a></li>
-      <li><a href="/contact">Support</a></li>
+      <li><a href="/contact">Contact</a></li>
     </ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
@@ -72,11 +68,10 @@
   <div class="pf-wrap">
     <div id="pf-guest-msg" class="pf-guest-msg" style="display:none;" role="status"></div>
     <div class="pf-hero">
-      <div class="pf-kicker">Portfolio Tracker</div>
-      <h1 class="pf-hero-h1">This tool is parked.</h1>
-      <p class="pf-hero-sub">The portfolio tracker still works for people who already use it, but I am not developing it further. If you have holdings saved here, <a href="/login?next=/portfolio">sign in</a> to see them. If you are buying your first home, the First Home Journey is the part of the site I maintain.</p>
+      <h1 class="pf-hero-h1">The portfolio tracker is parked</h1>
+      <p class="pf-hero-sub">It still works for people who already use it, but I'm not developing it further. If you have holdings saved here, <a href="/login?next=/portfolio">sign in</a> to see them. If you're buying your first home, the First Home Journey is the part of the site I maintain.</p>
       <div class="pf-hero-ctas">
-        <a href="/journey" class="pf-btn pf-btn-gold pf-btn-lg">Go to the First Home Journey →</a>
+        <a href="/journey" class="pf-btn pf-btn-gold pf-btn-lg">Go to the First Home Journey</a>
       </div>
     </div>
   </div>
@@ -88,9 +83,8 @@
 
     <header class="pf-page-head">
       <div>
-        <div class="pf-kicker">Portfolio</div>
         <h1 class="pf-title">Your property portfolio</h1>
-        <p class="pf-sub">Portfolio stores all your properties; Scenarios (in the calculator) is where you visualise one and try new things.</p>
+        <p class="pf-sub">This page lists your properties. Scenarios, in the calculator, is where you model changes to one.</p>
       </div>
       <button class="pf-btn pf-btn-gold" id="pf-add-btn" type="button">+ Add property</button>
     </header>
@@ -142,9 +136,9 @@
           <div class="pf-field">
             <label class="pf-label" for="pf-f-land-value">Land value</label>
             <input class="pf-input" type="text" inputmode="decimal" id="pf-f-land-value" data-pf-currency placeholder="e.g. 400,000">
-            <div class="pf-hint">The UNIMPROVED/site value from your valuation notice — much lower than market value.</div>
+            <div class="pf-hint">The unimproved or site value from your valuation notice. It is much lower than market value.</div>
             <button type="button" class="pf-btn pf-btn-outline pf-btn-sm" id="pf-suggest-land">Suggest from current value</button>
-            <div class="pf-hint" id="pf-suggest-hint" style="display:none;">Rough heuristic (55% of current value, rounded to $10k) — edit to match your notice.</div>
+            <div class="pf-hint" id="pf-suggest-hint" style="display:none;">A rough guess: 55% of current value, rounded to $10k. Edit it to match your notice.</div>
           </div>
           <div class="pf-field pf-field-wide">
             <label class="pf-label" for="pf-f-notes">Notes <span class="pf-hint-inline">(optional, 280 max)</span></label>
@@ -173,7 +167,7 @@
           <div class="pf-field pf-field-wide">
             <label class="pf-check-row" for="pf-f-ppr">
               <input type="checkbox" id="pf-f-ppr">
-              <span><strong>This is my PPR</strong><span class="pf-hint" style="display:block;">Your home — exempt from land tax, excluded from cash flow.</span></span>
+              <span><strong>This is my PPR</strong><span class="pf-hint" style="display:block;">Your home. It is exempt from land tax and left out of cash flow.</span></span>
             </label>
           </div>
         </div>
@@ -214,7 +208,7 @@
           <div class="pf-field">
             <label class="pf-label" for="pf-f-expenses">Annual expenses</label>
             <input class="pf-input" type="text" inputmode="decimal" id="pf-f-expenses" data-pf-currency placeholder="e.g. 8,500">
-            <div class="pf-hint">Rates, insurance, management, maintenance, strata, land tax — everything except the loan.</div>
+            <div class="pf-hint">Rates, insurance, management, maintenance, strata and land tax. Everything except the loan.</div>
           </div>
         </div>
       </fieldset>
@@ -247,7 +241,7 @@
 
     <div id="pf-loading" class="pf-loading">Loading your portfolio…</div>
     <div id="pf-error" class="pf-error" style="display:none;">
-      <p>Couldn't load your portfolio — check your connection and try again.</p>
+      <p>Couldn't load your portfolio. Check your connection and try again.</p>
       <button class="pf-btn pf-btn-outline" id="pf-retry-btn" type="button">Retry</button>
     </div>
 
@@ -264,7 +258,7 @@
           <h2 id="pf-lt-heading">Land tax by state &amp; owner</h2>
         </div>
         <div id="pf-landtax" aria-live="polite"></div>
-        <p class="pf-caption">Estimates from FY2026-27 schedules, verified against each revenue office 5 Jul 2026 — assessment basis varies by state; land values are your entries.</p>
+        <p class="pf-caption">Estimates from FY2026-27 schedules, checked against each revenue office on 5 Jul 2026. The assessment basis varies by state. Land values are your entries.</p>
         <p class="pf-caption">Simplifications: joint holdings are grouped as one individual owner; SMSF holdings use each state's general/company scale; foreign-owner surcharges and WA's metro MRIT are not applied here. For a single owner group with surcharges, use the <a href="/tools/land-tax-calculator">Land Tax Calculator</a>.</p>
       </section>
 
@@ -284,7 +278,7 @@
           <h2 id="pf-holdings-heading">Holdings</h2>
         </div>
         <div id="pf-holdings"></div>
-        <p class="pf-caption">Net cash flow is pre-tax with 2 weeks vacancy assumed (weekly rent × 50, minus annual expenses and loan cost). For the after-tax picture, use the <a href="/tools/property-cashflow-calculator">Cash Flow Calculator</a>. Suburb medians, where shown, are government data for context — never a valuation of your property.</p>
+        <p class="pf-caption">Net cash flow is pre-tax with 2 weeks vacancy assumed (weekly rent × 50, minus annual expenses and loan cost). For the after-tax picture, use the <a href="/tools/property-cashflow-calculator">Cash Flow Calculator</a>. Suburb medians, where shown, are government data for context. They are not a valuation of your property.</p>
       </section>
 
     </div>
@@ -294,11 +288,11 @@
 <!-- ══ Cross-links (both states) ══ -->
 <section class="pf-links">
   <div class="pf-wrap">
-    <h2 class="pf-links-title">Keep going</h2>
+    <h2 class="pf-links-title">Related tools</h2>
     <div class="pf-links-grid">
       <a class="pf-link-card" href="/tools/land-tax-calculator">
         <span class="pf-link-name">Land Tax Calculator</span>
-        <span class="pf-link-desc">All 8 states, verified schedules — model surcharges and owner types.</span>
+        <span class="pf-link-desc">All 8 states, with surcharges and owner types.</span>
       </a>
       <a class="pf-link-card" href="/tools/property-cashflow-calculator">
         <span class="pf-link-name">Cash Flow Calculator</span>
@@ -306,11 +300,11 @@
       </a>
       <a class="pf-link-card" href="/tools/listing-price-checker">
         <span class="pf-link-name">Listing Price Checker</span>
-        <span class="pf-link-desc">Sanity-check an asking price against government suburb medians.</span>
+        <span class="pf-link-desc">Compare an asking price with government suburb medians.</span>
       </a>
       <a class="pf-link-card" href="/app" id="pf-link-app" style="display:none;">
         <span class="pf-link-name">Scenarios</span>
-        <span class="pf-link-desc">Model changes to a property in Scenarios — rates, rent, renovations, 30 years out.</span>
+        <span class="pf-link-desc">Model changes to a property: rates, rent and renovations over 30 years.</span>
       </a>
     </div>
   </div>

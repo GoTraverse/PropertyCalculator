@@ -113,7 +113,7 @@ function calc() {
   if (_msg) _msg.hidden = true;
 
   if (!price) {
-    _showErr('Please enter a property price.');
+    _showErr('Enter a property price.');
     setText('r-total', '—');
     setText('r-deposit', '—');
     setText('r-stamp', '—');
@@ -148,30 +148,28 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Compare the schemes on your own numbers',
+    description: 'Step 2 of the First Home Journey compares the government schemes against buying without one, using your savings and income.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '🏠', title: 'First Home Buyer Support',
+        icon: '🏠', title: 'First home buyers',
         links: [
-          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/support-buy-home/first-home-guarantee' },
-          { text: 'ASIC MoneySmart: Saving for a Home', href: 'https://moneysmart.gov.au/saving/save-for-an-emergency-fund' },
-          { text: 'First Home Super Saver Scheme', href: 'https://www.ato.gov.au/individuals/super/withdrawing-and-using-your-super/first-home-super-saver-scheme/' }
+          { text: 'Housing Australia: First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/support-buy-home/first-home-guarantee' },
+          { text: 'ATO: First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals/super/withdrawing-and-using-your-super/first-home-super-saver-scheme/' }
         ]
       },
       {
-        icon: '💰', title: 'Lenders Mortgage Insurance',
+        icon: '💰', title: 'Lenders mortgage insurance',
         links: [
-          { text: 'ASIC MoneySmart: LMI explained', href: 'https://moneysmart.gov.au/home-loans/lenders-mortgage-insurance' },
-          { text: 'APRA', href: 'https://www.apra.gov.au/' }
+          { text: 'Moneysmart: lenders mortgage insurance', href: 'https://moneysmart.gov.au/home-loans/lenders-mortgage-insurance' }
         ]
       },
       {
-        icon: '🏛️', title: 'State Stamp Duty Offices',
+        icon: '🏛️', title: 'State revenue offices',
         links: [
           { text: 'Revenue NSW', href: 'https://www.revenue.nsw.gov.au/' },
           { text: 'SRO Victoria', href: 'https://www.sro.vic.gov.au/' },
@@ -179,7 +177,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'Estimates only. LMI premiums vary by lender. Stamp duty thresholds and concessions change — confirm with your state revenue office.'
+    disclaimer: 'Estimates only. LMI premiums vary by lender. Stamp duty thresholds and concessions change, so confirm them with your state revenue office.'
   },
   share: {
     url: 'https://equitysight.app/tools/deposit-calculator',
@@ -210,7 +208,7 @@ ToolPage.init({
         { k: 'Cash needed up-front', v: '$78,615' },
         { k: 'Deposit portion', v: '$65,000' },
         { k: 'Stamp duty (first home concession)', v: '$0' },
-        { k: 'Legal + inspections', v: '$2,500' },
+        { k: 'Legal and inspections', v: '$2,500' },
         { k: 'LMI estimate', v: '$11,115' }
       ]
     },
@@ -247,16 +245,14 @@ ToolPage.init({
     }
   ],
   faq: [
-    { q: 'How much deposit do I actually need to buy a home in Australia?',
-      a: 'The usual target is 20% of the purchase price, which avoids Lenders Mortgage Insurance (LMI). You can buy with as little as 5% through the 5% Deposit Scheme (formerly the First Home Guarantee), or with 10% and LMI paid. Stamp duty, legals and inspections come on top of the deposit, and the calculator above adds them up for your state.' },
+    { q: 'Do I need a 20% deposit to buy a home in Australia?',
+      a: 'No. 20% is the usual target because it avoids Lenders Mortgage Insurance (LMI). You can buy with 10% and pay LMI, or with as little as 5% through the 5% Deposit Scheme (formerly the First Home Guarantee). A smaller deposit means a larger loan and more interest over the life of the mortgage.' },
     { q: 'What is Lenders Mortgage Insurance (LMI) and when do I pay it?',
-      a: 'LMI is insurance the lender takes out (but you pay for) when your deposit is below 20%. It protects the lender if you default. In this calculator, a $650,000 purchase gives an LMI estimate of $4,420 with a 15% deposit, $11,115 with 10% and $20,995 with 5%. It\'s usually capitalised onto your loan.' },
+      a: 'LMI is insurance the lender takes out, and you pay for, when your deposit is below 20%. It protects the lender if you default. In this calculator, a $650,000 purchase gives an LMI estimate of $4,420 with a 15% deposit, $11,115 with 10% and $20,995 with 5%. It\'s usually added to the loan.' },
     { q: 'Can I use my super for a deposit?',
-      a: 'Yes — the First Home Super Saver Scheme lets eligible first home buyers release voluntary super contributions (plus earnings) to put toward a deposit. You can withdraw up to $50,000 of contributions, which are taxed concessionally.' },
+      a: 'Yes. The First Home Super Saver Scheme lets eligible first home buyers release voluntary super contributions (plus earnings) to put toward a deposit. You can withdraw up to $50,000 of contributions, which are taxed concessionally.' },
     { q: 'Do parents\' guarantees reduce the deposit I need?',
-      a: 'A family guarantee (parental guarantor loan) can reduce or eliminate the deposit by using the equity in a parent\'s home as additional security. This avoids LMI but ties the guarantor\'s property to your loan — seek legal advice first.' },
-    { q: 'What upfront costs beyond the deposit should I budget for?',
-      a: 'Stamp duty is usually the largest. This calculator also allows $2,500 for conveyancing and inspections, which is my rough estimate, and adds LMI if your deposit is under 20%. Loan application fees and moving costs are not included here. The cost of purchase calculator covers those.' }
+      a: 'A family guarantee (parental guarantor loan) uses the equity in a parent\'s home as additional security, which can reduce or remove the deposit and avoids LMI. It ties the guarantor\'s property to your loan, so get legal advice first. This calculator doesn\'t model one.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty' },

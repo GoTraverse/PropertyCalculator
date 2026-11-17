@@ -7,13 +7,9 @@
 <script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
 <script src="/site-init.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Account — EquitySight.app</title>
-<meta name="description" content="Manage your EquitySight account, subscription, and profile settings.">
+<title>Your EquitySight.app account</title>
+<meta name="description" content="Your EquitySight profile, subscription, preferences and password.">
 <meta name="robots" content="noindex,nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="shared.css">
 <style>
   .site-nav-links, .nav-hamburger { display: none !important; }
@@ -152,7 +148,7 @@
       <li><a href="/journey">Journey</a></li>
       <li><a href="/tools/">Calculators</a></li>
       <li><a href="/about">About</a></li>
-      <li><a href="/contact">Support</a></li>
+      <li><a href="/contact">Contact</a></li>
     </ul>
     <div class="site-nav-actions" id="nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
@@ -162,9 +158,7 @@
 <main id="main-content"></main>
 <!-- Not logged in -->
 <div id="gate-view" style="display:none;" class="gate-msg">
-  <div style="font-size:48px;margin-bottom:16px;">🔒</div>
-  <h2>Sign in to view your account</h2>
-  <p>You need to be signed in to access account settings.</p>
+  <h2>Sign in to see your account</h2>
   <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
     <button class="acct-btn acct-btn-primary" id="gate-signin-btn">Sign in</button>
     <button class="acct-btn acct-btn-outline" id="gate-signup-btn">Create account</button>
@@ -177,15 +171,15 @@
   <!-- Sidebar nav -->
   <nav class="acct-nav">
     <div class="acct-nav-title">Account</div>
-    <button class="acct-nav-item active" data-panel="profile"><span class="ni">👤</span> Profile</button>
-    <button class="acct-nav-item" data-panel="subscription"><span class="ni">💳</span> Subscription</button>
-    <button class="acct-nav-item" data-panel="preferences"><span class="ni">⚙️</span> Preferences</button>
+    <button class="acct-nav-item active" data-panel="profile">Profile</button>
+    <button class="acct-nav-item" data-panel="subscription">Subscription</button>
+    <button class="acct-nav-item" data-panel="preferences">Preferences</button>
     <div class="acct-nav-divider"></div>
-    <button class="acct-nav-item" data-panel="security"><span class="ni">🔒</span> Security</button>
+    <button class="acct-nav-item" data-panel="security">Security</button>
     <div class="acct-nav-divider"></div>
-    <button class="acct-nav-item" data-panel="tools"><span class="ni">🛠</span> Tools</button>
+    <button class="acct-nav-item" data-panel="tools">Calculators</button>
     <div class="acct-nav-divider"></div>
-    <button class="acct-nav-item" id="nav-signout-btn" style="color:#C45A5A;"><span class="ni">↩</span> Sign Out</button>
+    <button class="acct-nav-item" id="nav-signout-btn" style="color:#C45A5A;">Sign out</button>
   </nav>
 
   <!-- Panels -->
@@ -196,7 +190,7 @@
       <div class="acct-card">
         <div class="acct-card-head">
           <h3>Profile</h3>
-          <p>Your name, photo, and display preferences.</p>
+          <p>Your name, photo and profile colour.</p>
         </div>
         <div class="acct-card-body">
 
@@ -248,7 +242,7 @@
       <div class="acct-card" id="plan-free-note" style="display:none;">
         <div class="acct-card-head">
           <h3>Subscription</h3>
-          <p>EquitySight is free. Paid plans are no longer sold, so there is nothing to manage here.</p>
+          <p>EquitySight is free and I no longer sell paid plans, so there's nothing to manage here.</p>
         </div>
       </div>
 
@@ -272,7 +266,7 @@
       <div class="acct-card" id="billing-card" style="display:none;">
         <div class="acct-card-head">
           <h3>Billing</h3>
-          <p>Manage your payment method and billing details.</p>
+          <p>Your payment method and next billing date.</p>
         </div>
         <div class="acct-card-body">
           <div class="security-row">
@@ -308,7 +302,7 @@
       <div class="acct-card">
         <div class="acct-card-head">
           <h3>Appearance</h3>
-          <p>Customise how the app looks and behaves.</p>
+          <p>Light or dark theme.</p>
         </div>
         <div class="acct-card-body">
           <div class="acct-field">
@@ -333,15 +327,15 @@
 
       <div class="acct-card">
         <div class="acct-card-head">
-          <h3>Calculator Defaults</h3>
-          <p>Pre-fill common values when starting a new scenario.</p>
+          <h3>Calculator defaults</h3>
+          <p>Filled in for you when you start a new scenario.</p>
         </div>
         <div class="acct-card-body">
           <div class="acct-row">
             <div class="acct-field">
-              <label class="acct-label">Default State</label>
+              <label class="acct-label">Default state</label>
               <select class="acct-input" id="pref-state">
-                <option value="">— none —</option>
+                <option value="">None</option>
                 <option value="QLD">QLD</option>
                 <option value="NSW">NSW</option>
                 <option value="VIC">VIC</option>
@@ -354,9 +348,9 @@
               <div style="font-size:11px;color:var(--slate);margin-top:4px;">Used for suburb growth lookups</div>
             </div>
             <div class="acct-field">
-              <label class="acct-label">Default Loan Term (years)</label>
+              <label class="acct-label">Default loan term (years)</label>
               <select class="acct-input" id="pref-loan-term">
-                <option value="">— none —</option>
+                <option value="">None</option>
                 <option value="20">20</option>
                 <option value="25">25</option>
                 <option value="30">30</option>
@@ -370,7 +364,7 @@
       <div class="acct-card">
         <div class="acct-card-head">
           <h3>Notifications</h3>
-          <p>Control what emails you receive from EquitySight.</p>
+          <p>Which emails EquitySight sends you.</p>
         </div>
         <div class="acct-card-body">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(28,28,30,0.07);">
@@ -407,7 +401,7 @@
       <div class="acct-card">
         <div class="acct-card-head">
           <h3>Security</h3>
-          <p>Manage your password and account access.</p>
+          <p>Change your password.</p>
         </div>
         <div class="acct-card-body">
           <div class="security-row">
@@ -444,13 +438,12 @@
       <div class="acct-card">
         <div class="acct-card-head">
           <h3>Sessions</h3>
-          <p>Sign out of all devices.</p>
         </div>
         <div class="acct-card-body">
           <div class="security-row">
             <div>
               <div class="security-label">Active session</div>
-              <div class="security-meta">This device — signed in now</div>
+              <div class="security-meta">This device, signed in now</div>
             </div>
             <button class="acct-btn acct-btn-outline" id="security-signout-btn">Sign out</button>
           </div>
@@ -458,8 +451,8 @@
       </div>
 
       <div class="danger-zone">
-        <h4>⚠️ Danger zone</h4>
-        <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+        <h4>Delete account</h4>
+        <p>This permanently deletes your account and the data saved in it. It can't be undone.</p>
         <button class="acct-btn acct-btn-danger" id="delete-account-btn">Delete account</button>
         <div id="delete-status" class="acct-status-msg" style="margin-top:10px;"></div>
       </div>
@@ -469,75 +462,8 @@
     <div class="acct-panel" id="panel-tools">
       <div class="acct-card">
         <div class="acct-card-head">
-          <h3>Tools & Calculators</h3>
-          <p>Access additional property analysis tools.</p>
-        </div>
-        <div class="acct-card-body">
-          <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-            <a href="/tools/stamp-duty-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">🏛️</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">Stamp Duty</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Calculate transfer duty for all Australian states</div>
-              </div>
-            </a>
-            <a href="/tools/cost-of-purchase-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">💵</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">Cost of Purchase</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Full buying cost breakdown with state-specific fees</div>
-              </div>
-            </a>
-            <a href="/tools/equity-release-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">💰</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">Home Equity</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Calculate available equity based on LVR limits</div>
-              </div>
-            </a>
-            <a href="/tools/loan-serviceability-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">📊</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">Loan Serviceability</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Estimate borrowing capacity from income and expenses</div>
-              </div>
-            </a>
-            <a href="/tools/first-home-buyer-grants-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">🎁</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">FHB Grants</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Check first home buyer grants and concessions by state</div>
-              </div>
-            </a>
-            <a href="/tools/rental-yield-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">🏢</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">Rental Yield</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Calculate gross and net rental yields</div>
-              </div>
-            </a>
-            <a href="/tools/house-flip-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">🔨</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">House Flip</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Analyse property flip projects and profits</div>
-              </div>
-            </a>
-            <a href="/tools/renovation-cost-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">🛠️</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">Renovation Cost</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Budget and itemise renovation expenses</div>
-              </div>
-            </a>
-            <a href="/tools/mortgage-stress-calculator" style="padding: 16px 14px; background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; text-decoration: none; color: var(--charcoal); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s;">
-              <span style="font-size: 20px;">📈</span>
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">Mortgage Stress</div>
-                <div style="font-size: 12px; color: var(--slate); margin-top: 2px;">Test affordability under interest rate stress</div>
-              </div>
-            </a>
-          </div>
+          <h3>Calculators</h3>
+          <p>The calculators are on the <a href="/tools/" style="color:inherit;text-decoration:underline;">calculators page</a>. They work without an account.</p>
         </div>
       </div>
     </div>

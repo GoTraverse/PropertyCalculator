@@ -11,15 +11,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="google" content="notranslate">
-<title>Sign in — EquitySight.app</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Sign in to EquitySight.app</title>
 <!-- Preconnect ahead of the lazily-injected widget scripts so their TLS/DNS
      handshake happens in the background while the user reads the form. -->
 <link rel="preconnect" href="https://accounts.google.com" crossorigin>
 <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="login.css">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -40,8 +36,8 @@
 <main class="login-wrap" id="main-content">
   <div class="login-box">
     <div style="text-align:center;">
-      <div class="login-heading" id="login-heading">Welcome back</div>
-      <div class="login-sub" id="login-sub">Sign in to pick up where you left off.</div>
+      <div class="login-heading" id="login-heading">Sign in</div>
+      <div class="login-sub" id="login-sub"></div>
     </div>
     <!-- Google Sign-In. The skeleton is a fully styled button that
          exactly matches the dimensions and visual of the final GSI
@@ -68,8 +64,8 @@
       </div>
     </div>
     <div class="login-tabs" role="tablist">
-      <button class="login-tab active" id="tab-signin" role="tab" aria-selected="true" aria-controls="form-signin">Sign In</button>
-      <button class="login-tab" id="tab-signup" role="tab" aria-selected="false" aria-controls="form-signup">Create Account</button>
+      <button class="login-tab active" id="tab-signin" role="tab" aria-selected="true" aria-controls="form-signin">Sign in</button>
+      <button class="login-tab" id="tab-signup" role="tab" aria-selected="false" aria-controls="form-signup">Create account</button>
     </div>
     <!-- All three forms occupy the same grid cell. Tab switching just flips
          data-active on the wrapper — no display toggle, no reflow, no scroll
@@ -80,7 +76,7 @@
         <div class="form-field"><label class="form-label" for="si-email">Email</label><input class="form-input" id="si-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
         <div class="form-field"><label class="form-label" for="si-password">Password</label><div class="form-input-wrap"><input class="form-input" id="si-password" type="password" placeholder="••••••••" autocomplete="current-password"><button type="button" class="form-input-toggle" data-toggle-pw="si-password" aria-label="Show password" aria-pressed="false">Show</button></div></div>
         <div class="form-error" id="si-error"></div>
-        <button class="form-submit" id="si-btn">Sign In →</button>
+        <button class="form-submit" id="si-btn">Sign in</button>
         <div class="login-divider" aria-hidden="true"><span>or</span></div>
         <button class="form-secondary" id="magic-link-btn" type="button">Email me a sign-in link</button>
         <div style="text-align:center;margin-top:12px;">
@@ -94,16 +90,16 @@
                 detection on this same page). -->
       <div id="form-magic" class="login-form" role="tabpanel">
         <div id="magic-step-request">
-          <div class="form-note">We'll email you a one-tap sign-in link plus a 6-digit code. No password needed.</div>
+          <div class="form-note">I'll email you a sign-in link and a 6-digit code. Either one signs you in.</div>
           <div class="form-field"><label class="form-label" for="ml-email">Email</label><input class="form-input" id="ml-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
           <div class="form-error" id="ml-error"></div>
-          <button class="form-submit" id="ml-send-btn">Send sign-in link →</button>
+          <button class="form-submit" id="ml-send-btn">Send sign-in link</button>
         </div>
         <div id="magic-step-verify" style="display:none;">
-          <div class="form-note" id="ml-verify-note">We sent a sign-in link and 6-digit code to your email. Click the link or enter the code below.</div>
+          <div class="form-note" id="ml-verify-note">I sent a sign-in link and a 6-digit code to your email. Open the link or enter the code here.</div>
           <div class="form-field"><label class="form-label" for="ml-code">6-digit code</label><input class="form-input form-input-code" id="ml-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" placeholder="123456"></div>
           <div class="form-error" id="ml-verify-error"></div>
-          <button class="form-submit" id="ml-verify-btn">Verify code →</button>
+          <button class="form-submit" id="ml-verify-btn">Verify code</button>
           <button class="form-secondary" id="ml-resend-btn" type="button" style="margin-top:8px;">Resend</button>
         </div>
         <div style="text-align:center;margin-top:12px;">
@@ -113,20 +109,20 @@
       <!-- Forgot Password Flow -->
       <div id="form-forgot" class="login-form" role="tabpanel">
         <div id="forgot-step-request">
-          <div class="form-note">Enter your email and we'll send a reset code.</div>
+          <div class="form-note">Enter your email and I'll send a reset code.</div>
           <div class="form-field"><label class="form-label" for="fp-email">Email</label><input class="form-input" id="fp-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
           <div class="form-error" id="fp-error"></div>
-          <button class="form-submit" id="fp-btn">Send Reset Code →</button>
+          <button class="form-submit" id="fp-btn">Send reset code</button>
         </div>
         <div id="forgot-step-reset" style="display:none;">
-          <div class="form-note">Enter the 8-character code we sent to your email, then choose a new password.</div>
-          <div class="form-field"><label class="form-label" for="fp-code">Reset Code</label><input class="form-input form-input-code" id="fp-code" type="text" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="ABCDE234"></div>
-          <div class="form-field"><label class="form-label" for="fp-newpw">New Password</label><div class="form-input-wrap"><input class="form-input" id="fp-newpw" type="password" placeholder="Min 8 characters" autocomplete="new-password"><button type="button" class="form-input-toggle" data-toggle-pw="fp-newpw" aria-label="Show password" aria-pressed="false">Show</button></div></div>
+          <div class="form-note">Enter the 8-character code from the email, then choose a new password.</div>
+          <div class="form-field"><label class="form-label" for="fp-code">Reset code</label><input class="form-input form-input-code" id="fp-code" type="text" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="ABCDE234"></div>
+          <div class="form-field"><label class="form-label" for="fp-newpw">New password</label><div class="form-input-wrap"><input class="form-input" id="fp-newpw" type="password" placeholder="Min 8 characters" autocomplete="new-password"><button type="button" class="form-input-toggle" data-toggle-pw="fp-newpw" aria-label="Show password" aria-pressed="false">Show</button></div></div>
           <div class="form-error" id="fp-reset-error"></div>
-          <button class="form-submit" id="fp-reset-btn">Set New Password →</button>
+          <button class="form-submit" id="fp-reset-btn">Set new password</button>
         </div>
         <div style="text-align:center;margin-top:12px;">
-          <button id="back-to-signin-btn" class="login-link-btn">← Back to Sign In</button>
+          <button id="back-to-signin-btn" class="login-link-btn">← Back to sign in</button>
         </div>
       </div>
       <div id="form-signup" class="login-form" role="tabpanel" aria-labelledby="tab-signup">
@@ -143,21 +139,20 @@
           </label>
         </div>
         <div class="form-error" id="su-error"></div>
-        <button class="form-submit" id="su-btn">Create Account →</button>
-        <p class="form-fineprint">Free — no credit card.</p>
+        <button class="form-submit" id="su-btn">Create account</button>
 
         <div id="signup-verify-step" style="display:none;">
-          <div class="form-label">Step 2 — Verify email</div>
-          <div class="verify-note" id="verify-note">Enter the 8-character code we sent to your email.</div>
+          <div class="form-label">Step 2: verify your email</div>
+          <div class="verify-note" id="verify-note">Enter the 8-character code from the email.</div>
           <div class="form-field"><label class="form-label" for="su-verify-code">Verification code</label><input class="form-input form-input-code" id="su-verify-code" type="text" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="ABCDE234"></div>
           <div class="form-error" id="verify-error"></div>
-          <button class="form-submit" id="verify-btn">Verify Email →</button>
+          <button class="form-submit" id="verify-btn">Verify email</button>
           <button class="btn-guest" id="resend-code-btn">Resend code</button>
         </div>
       </div>
     </div>
     <div class="login-guest" style="text-align:center;margin-top:18px;">
-      <a href="/journey" class="login-link-btn">Plan your first home free — no account needed →</a>
+      <a href="/journey" class="login-link-btn">Use the First Home Journey without an account</a>
     </div>
   </div>
 </main>
@@ -167,7 +162,7 @@
      doesn't affect the widget. -->
 <div id="turnstile-host" aria-hidden="true"></div>
 <div class="login-footer">
-  <a href="/contact">Support</a> &nbsp;·&nbsp; <a href="mailto:support@equitysight.app">support@equitysight.app</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/terms">Terms</a>
+  <a href="/contact">Contact</a> &nbsp;·&nbsp; <a href="mailto:support@equitysight.app">support@equitysight.app</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/terms">Terms</a>
 </div>
 <script src="login.js" defer></script>
 <!-- Error capture loaded after main script so login.js parses first. -->

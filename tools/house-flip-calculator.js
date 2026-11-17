@@ -11,7 +11,7 @@ function calculate() {
 
   var purchase = parseVal('purchase');
   var sale = parseVal('saleprice');
-  if (!purchase || !sale) { if (!_isInit) _showErr('Please enter purchase price and expected sale price.'); return; }
+  if (!purchase || !sale) { if (!_isInit) _showErr('Enter the purchase price and the expected sale price.'); return; }
 
   var stamp = parseVal('stamp');
   var buyconvey = parseVal('buyconvey');
@@ -37,11 +37,11 @@ function calculate() {
   profitEl.className = 'tool-stat-value ' + (netProfit > 0 ? 'green' : 'red');
 
   var verdict = '';
-  if (netProfit <= 0) verdict = '\u26A0\uFE0F This flip appears unprofitable at these figures. Review costs or target a higher sale price.';
+  if (netProfit <= 0) verdict = 'This flip makes no profit at these figures.';
   else if (months <= 0) verdict = 'Profit of ' + fmt(netProfit) + ' before tax, a ' + roi.toFixed(1) + '% return on total cost. Enter a hold period and holding costs to see the annualised return.';
-  else if (annualised >= 20) verdict = '\u2713 Strong projected return. Ensure your renovation and sale price estimates are realistic.';
-  else if (annualised >= 10) verdict = '\u2713 Reasonable return. Verify renovation costs and allow for contingency.';
-  else verdict = 'Marginal return. Consider whether the risk justifies the effort compared to other strategies.';
+  else if (annualised >= 20) verdict = 'Strong return on these figures (20% a year or more before tax). It rests on your renovation and sale price estimates.';
+  else if (annualised >= 10) verdict = 'Reasonable return on these figures (10% to 20% a year before tax).';
+  else verdict = 'Marginal return (under 10% a year before tax) for the risk and the work involved.';
 
   document.getElementById('r-cost').textContent = fmt(totalCost);
   document.getElementById('r-proceeds').textContent = fmt(netProceeds);
@@ -72,37 +72,37 @@ ToolPage.init({
   slug: 'house-flip',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full buy\u2013hold\u2013sell strategy',
-    description: 'Check the CGT on your exit, the renovation budget and the holding cashflow with the other free calculators.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'Tax on the sale and the renovation budget',
+    description: 'The capital gains tax calculator works out the tax on the sale. The renovation cost calculator estimates the budget.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83D\uDCB0', title: 'Tax & Capital Gains',
+        icon: '\uD83D\uDCB0', title: 'Tax',
         links: [
-          { text: 'ATO: Capital Gains Tax Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
-          { text: 'ATO: GST for Developers', href: 'https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst' },
-          { text: 'ATO: Income Deductions', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'ATO: capital gains tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
+          { text: 'ATO: GST', href: 'https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
         ]
       },
       {
-        icon: '\uD83C\uDFE2', title: 'Renovation & Building',
+        icon: '\uD83C\uDFE2', title: 'Buying',
         links: [
-          { text: 'Building Inspections Info', href: 'https://www.consumer.vic.gov.au/housing' },
-          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Consumer Affairs Victoria: housing', href: 'https://www.consumer.vic.gov.au/housing' },
+          { text: 'ASIC Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
         ]
       },
       {
-        icon: '\uD83D\uDCCB', title: 'Investment & Finance',
+        icon: '\uD83D\uDCCB', title: 'Investing',
         links: [
-          { text: 'MoneySmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
+          { text: 'ASIC Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' },
+          { text: 'RBA: explainers', href: 'https://www.rba.gov.au/education/resources/explainers/' },
         ]
       }
     ],
-    disclaimer: 'This is general information only. House flipping involves significant tax and financial complexity. Always consult a tax accountant, financial adviser, and lawyer before proceeding.'
+    disclaimer: 'General information, not tax or financial advice. How a flip is taxed depends on whether the ATO sees you as an investor or as running a business.'
   },
   share: {
     url: 'https://equitysight.app/tools/house-flip-calculator',

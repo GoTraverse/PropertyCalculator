@@ -58,7 +58,7 @@ window.toggleTheme = function(){
   try{ localStorage.setItem('equitySight_theme', isDark ? 'dark' : 'light'); }catch(e){}
   // Update all toggle button labels on the page
   document.querySelectorAll('[data-theme-toggle]').forEach(function(b){
-    b.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
+    b.textContent = isDark ? 'Light mode' : 'Dark mode';
   });
 };
 
@@ -82,7 +82,7 @@ window.toggleTheme = function(){
     s.id = 'anav-css';
     s.textContent = [
       '#site-profile-menu.open{display:block!important;}',
-      '#site-profile-btn:hover{transform:scale(1.05);box-shadow:0 0 0 3px rgba(201,168,76,0.25);}',
+      '#site-profile-btn:hover{box-shadow:0 0 0 3px rgba(201,168,76,0.25);}',
       '.anav-item{display:flex;align-items:center;gap:10px;padding:11px 14px;',
         'color:rgba(245,240,232,0.75);font-size:14px;border-radius:5px;',
         'text-decoration:none;background:transparent;border:none;',
@@ -102,13 +102,13 @@ window.toggleTheme = function(){
       '#anav-help-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.65);',
         'align-items:center;justify-content:center;padding:16px;}',
       '#anav-help-overlay.open{display:flex!important;}',
-      '#anav-help-modal{background:#F5F0E8;border-radius:8px;width:min(520px,96vw);',
+      '#anav-help-modal{background:#fff;border-radius:8px;width:min(520px,96vw);',
         'max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.55);}',
-      '.anav-cf-label{font-family:\u0027Geist Mono\u0027,monospace;font-size:10px;letter-spacing:1px;',
-        'text-transform:uppercase;color:#4A4A52;display:block;margin-bottom:5px;}',
+      '.anav-cf-label{font-family:inherit;font-size:14px;font-weight:600;',
+        'color:#1C1C1E;display:block;margin-bottom:5px;}',
       '.anav-cf-input,.anav-cf-select,.anav-cf-textarea{width:100%;padding:9px 10px;',
         'border:1px solid rgba(28,28,30,0.15);border-radius:4px;',
-        'font-family:inherit;font-size:13px;background:white;color:#1C1C1E;',
+        'font-family:inherit;font-size:16px;background:white;color:#1C1C1E;',
         'box-sizing:border-box;outline:none;}',
       '.anav-cf-input:focus,.anav-cf-select:focus,.anav-cf-textarea:focus{',
         'border-color:#C9A84C;box-shadow:0 0 0 2px rgba(201,168,76,0.15);}',
@@ -117,7 +117,7 @@ window.toggleTheme = function(){
       '#anav-signout-overlay{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.65);',
         'align-items:center;justify-content:center;padding:16px;}',
       '#anav-signout-overlay.open{display:flex!important;}',
-      '#anav-signout-modal{background:#F5F0E8;border-radius:8px;width:min(360px,96vw);',
+      '#anav-signout-modal{background:#fff;border-radius:8px;width:min(360px,96vw);',
         'box-shadow:0 24px 80px rgba(0,0,0,0.55);padding:28px 24px 20px;}',
       '#anav-signout-modal h3{margin:0 0 8px;font-size:17px;color:#1C1C1E;font-weight:600;}',
       '#anav-signout-modal p{margin:0 0 20px;font-size:14px;color:#4A4A52;line-height:1.5;}',
@@ -127,9 +127,9 @@ window.toggleTheme = function(){
         'transition:background 0.12s;}',
       '.anav-signout-cancel:hover{background:rgba(28,28,30,0.06);}',
       '.anav-signout-confirm{padding:9px 18px;border-radius:5px;border:none;',
-        'background:#C9A84C;color:#fff;font-size:14px;cursor:pointer;font-family:inherit;font-weight:600;',
+        'background:#1C1C1E;color:#fff;font-size:14px;cursor:pointer;font-family:inherit;font-weight:600;',
         'transition:background 0.12s;}',
-      '.anav-signout-confirm:hover{background:#b8963e;}'
+      '.anav-signout-confirm:hover{background:#3A3A3C;}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -142,7 +142,7 @@ window.toggleTheme = function(){
     el.innerHTML =
       '<div id="anav-signout-modal">' +
         '<h3>Sign out?</h3>' +
-        '<p>You\u0027ll need to sign back in to access your saved work.</p>' +
+        '<p>Your journey stays saved to your account.</p>' +
         '<div class="anav-signout-actions">' +
           '<button class="anav-signout-cancel" id="anav-signout-cancel-btn">Cancel</button>' +
           '<button class="anav-signout-confirm" id="anav-signout-confirm-btn">Sign out</button>' +
@@ -179,42 +179,40 @@ window.toggleTheme = function(){
       '<div id="anav-help-modal">' +
         '<div style="background:#1C1C1E;padding:18px 22px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">' +
           '<div>' +
-            '<div style="font-family:\u0027Geist Mono\u0027,monospace;font-size:10px;letter-spacing:3px;color:#C9A84C;margin-bottom:3px;">SUPPORT</div>' +
-            '<div style="font-family:\u0027Geist\u0027,sans-serif;font-size:17px;font-weight:700;color:#F5F0E8;">Send me a message</div>' +
+            '<div style="font-family:inherit;font-size:17px;font-weight:700;color:#F5F0E8;">Send me a message</div>' +
           '</div>' +
           '<button id="anav-cf-close-btn" style="width:32px;height:32px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#F5F0E8;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>' +
         '</div>' +
         '<div style="padding:22px;">' +
           '<div id="anav-cf-name-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">' +
-            '<div><label class="anav-cf-label">First name</label><input class="anav-cf-input" id="anav-cf-fname" type="text" placeholder="Jamie"></div>' +
-            '<div><label class="anav-cf-label">Last name</label><input class="anav-cf-input" id="anav-cf-lname" type="text" placeholder="Smith"></div>' +
+            '<div><label class="anav-cf-label">First name</label><input class="anav-cf-input" id="anav-cf-fname" type="text" ></div>' +
+            '<div><label class="anav-cf-label">Last name</label><input class="anav-cf-input" id="anav-cf-lname" type="text" ></div>' +
           '</div>' +
-          '<div id="anav-cf-email-row" style="margin-bottom:14px;"><label class="anav-cf-label">Email</label><input class="anav-cf-input" id="anav-cf-email" type="email" placeholder="you@email.com"></div>' +
-          '<div id="anav-cf-sending-as" style="display:none;margin-bottom:14px;font-size:12px;color:#6B7280;font-family:\u0027Geist Mono\u0027,monospace;padding:8px 10px;background:rgba(28,28,30,0.05);border-radius:4px;"></div>' +
+          '<div id="anav-cf-email-row" style="margin-bottom:14px;"><label class="anav-cf-label">Email</label><input class="anav-cf-input" id="anav-cf-email" type="email" ></div>' +
+          '<div id="anav-cf-sending-as" style="display:none;margin-bottom:14px;font-size:12px;color:#6B7280;font-family:inherit;padding:8px 10px;background:rgba(28,28,30,0.05);border-radius:4px;"></div>' +
           '<div style="margin-bottom:14px;"><label class="anav-cf-label">Subject</label>' +
             '<select class="anav-cf-select" id="anav-cf-subject">' +
-              '<option value="">Select a topic...</option>' +
+              '<option value="">Choose one</option>' +
               '<option value="general">General question</option>' +
               '<option value="bug">Bug report</option>' +
               '<option value="feature">Feature request</option>' +
-              '<option value="billing">Billing / subscription</option>' +
+              '<option value="billing">Billing</option>' +
               '<option value="calculator">Calculator question</option>' +
               '<option value="other">Other</option>' +
             '</select>' +
           '</div>' +
-          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" placeholder="What do you need help with?"></textarea></div>' +
-          '<div style="font-size:11px;color:#6B7280;margin-bottom:14px;line-height:1.5;">By submitting you agree to my <a href="/privacy" style="color:#C9A84C;">Privacy Policy</a>. I only use your email to reply.</div>' +
+          '<div style="margin-bottom:14px;"><label class="anav-cf-label">Message</label><textarea class="anav-cf-textarea" id="anav-cf-message" ></textarea></div>' +
+          '<div style="font-size:13px;color:#55555C;margin-bottom:14px;line-height:1.5;">I only use your email address to reply. The <a href="/privacy" style="color:#0B4F9E;text-decoration:underline;">privacy policy</a> has the detail.</div>' +
           '<div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">' +
-            '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:\u0027Geist Mono\u0027,monospace;"></div>' +
-            '<button id="anav-cf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:\u0027Geist Mono\u0027,monospace;font-size:11px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
-            '<button id="anav-cf-submit" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:\u0027Geist Mono\u0027,monospace;font-size:11px;cursor:pointer;color:#C9A84C;font-weight:600;letter-spacing:0.5px;">Send Message →</button>' +
+            '<div id="anav-cf-error" style="font-size:12px;color:#C45A5A;flex:1;font-family:inherit;"></div>' +
+            '<button id="anav-cf-cancel-btn" style="padding:10px 18px;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.15);border-radius:4px;font-family:inherit;font-size:15px;cursor:pointer;color:#1C1C1E;">Cancel</button>' +
+            '<button id="anav-cf-submit" style="padding:10px 22px;background:#1C1C1E;border:none;border-radius:4px;font-family:inherit;font-size:15px;cursor:pointer;color:#fff;font-weight:600;">Send</button>' +
           '</div>' +
         '</div>' +
         '<div id="anav-cf-success" style="display:none;padding:40px 22px;text-align:center;">' +
-          '<div style="font-size:36px;margin-bottom:12px;">✅</div>' +
-          '<div style="font-size:20px;font-weight:700;color:#1C1C1E;margin-bottom:8px;">Message sent!</div>' +
-          '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">I read every message myself. A reply can take a few days.</div>' +
-          '<button id="anav-cf-success-close-btn" style="background:#1C1C1E;color:#C9A84C;border:none;padding:11px 24px;border-radius:4px;font-family:\u0027Geist Mono\u0027,monospace;font-size:11px;cursor:pointer;font-weight:600;">Close</button>' +
+                    '<div style="font-size:20px;font-weight:700;color:#1C1C1E;margin-bottom:8px;">Message sent</div>' +
+          '<div style="color:#6B7280;font-size:14px;margin-bottom:20px;">I read these myself. A reply can take a few days.</div>' +
+          '<button id="anav-cf-success-close-btn" style="background:#1C1C1E;color:#fff;border:none;padding:11px 24px;border-radius:4px;font-family:inherit;font-size:15px;cursor:pointer;font-weight:600;">Close</button>' +
         '</div>' +
       '</div>';
     el.addEventListener('click', function(e){ if(e.target===el) window.closeHelpModal(); });
@@ -271,7 +269,7 @@ window.toggleTheme = function(){
     if(success) success.style.display = 'none';
     if(form) form.style.display = '';
     var btn = document.getElementById('anav-cf-submit');
-    if(btn){ btn.disabled=false; btn.textContent='Send Message →'; }
+    if(btn){ btn.disabled=false; btn.textContent='Send'; }
     document.getElementById('anav-help-overlay').classList.add('open');
   };
 
@@ -319,8 +317,8 @@ window.toggleTheme = function(){
         body:JSON.stringify({name:(fname+' '+lname).trim(),email,subject,message,diagnostics:diagnostics})
       });
       var d=await r.json();
-      if(!d.ok){ if(errEl)errEl.textContent=d.error||'Failed to send — please try again.'; btn.disabled=false; btn.textContent='Send Message →'; return; }
-    }catch(e){ if(errEl)errEl.textContent='Network error — please try again.'; btn.disabled=false; btn.textContent='Send Message →'; return; }
+      if(!d.ok){ if(errEl)errEl.textContent=d.error||'That did not send. Please try again.'; btn.disabled=false; btn.textContent='Send'; return; }
+    }catch(e){ if(errEl)errEl.textContent='Could not reach the server. Check your connection and try again.'; btn.disabled=false; btn.textContent='Send'; return; }
     var success=document.getElementById('anav-cf-success');
     var form=document.querySelector('#anav-help-modal > div:nth-child(2)');
     if(form)form.style.display='none';
@@ -374,7 +372,7 @@ window.toggleTheme = function(){
     { href: '/journey',   label: 'Journey',     match: ['/journey'] },
     { href: '/tools/',     label: 'Calculators', match: ['/tools'] },
     { href: '/about',     label: 'About',       match: ['/about'] },
-    { href: '/contact',   label: 'Support',     match: ['/contact'] },
+    { href: '/contact',   label: 'Contact',     match: ['/contact'] },
   ];
 
   function activeMatch(currentPath, link) {
@@ -428,7 +426,7 @@ window.toggleTheme = function(){
           '<button id="site-profile-btn"' +
           ' style="width:42px;height:42px;border-radius:50%;background:' + (photo ? 'transparent' : color) + ';' +
           'border:2px solid rgba(201,168,76,0.5);cursor:pointer;display:flex;align-items:center;' +
-          'justify-content:center;font-family:\u0027Geist Mono\u0027,monospace;font-size:15px;font-weight:700;' +
+          'justify-content:center;font-family:inherit;font-size:15px;font-weight:700;' +
           'color:#1C1C1E;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;' +
           'box-shadow:0 3px 16px rgba(0,0,0,0.35);" title="' + name + '">' +
           avatarHTML +
@@ -438,18 +436,18 @@ window.toggleTheme = function(){
           'min-width:240px;box-shadow:0 16px 48px rgba(0,0,0,0.65);z-index:9999;">' +
             '<div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:6px;">' +
               '<div style="font-size:15px;font-weight:600;color:#F5F0E8;">' + name + '</div>' +
-              '<div style="font-family:\u0027Geist Mono\u0027,monospace;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
+              '<div style="font-family:inherit;font-size:11px;color:rgba(245,240,232,0.4);margin-top:3px;">' + email + '</div>' +
             '</div>' +
             '<div style="padding:2px 0;">' +
-              '<a href="/journey" class="anav-item' + (page==='journey'?' active':'') + '">My Journey</a>' +
-              (usesCalculator(session, page) ? '<a href="/app" class="anav-item' + (page==='app'?' active':'') + '">Open Calculator</a>' : '') +
-              '<a href="/account" class="anav-item' + (page==='account'?' active':'') + '">Account Settings</a>' +
-              (session.role === 'admin' ? '<a href="/admin" class="anav-item' + (page==='admin'?' active':'') + '">Admin Dashboard</a>' : '') +
+              '<a href="/journey" class="anav-item' + (page==='journey'?' active':'') + '">My journey</a>' +
+              (usesCalculator(session, page) ? '<a href="/app" class="anav-item' + (page==='app'?' active':'') + '">Investor calculator</a>' : '') +
+              '<a href="/account" class="anav-item' + (page==='account'?' active':'') + '">Account</a>' +
+              (session.role === 'admin' ? '<a href="/admin" class="anav-item' + (page==='admin'?' active':'') + '">Admin</a>' : '') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
-              '<button data-theme-toggle id="anav-theme-btn" class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? '☀️ Light mode' : '🌙 Dark mode') + '</button>' +
+              '<button data-theme-toggle id="anav-theme-btn" class="anav-item" style="justify-content:space-between;">' + (document.documentElement.classList.contains('dark-mode') ? 'Light mode' : 'Dark mode') + '</button>' +
               (_isPWAStandalone ? '' : '<button id="anav-install-btn" class="anav-item" style="' + (_deferredInstallPrompt ? '' : (/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1) ? '' : 'display:none;')) + '">📲 Install App</button>') +
               '<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 0;"></div>' +
-              '<button id="anav-signout-btn" class="anav-item anav-item-danger">→ Sign Out</button>' +
+              '<button id="anav-signout-btn" class="anav-item anav-item-danger">Sign out</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -490,8 +488,7 @@ window.toggleTheme = function(){
 
     } else {
       actions.innerHTML =
-        '<a href="/login" class="btn-ghost">Sign in</a>' +
-        '<a href="/journey" class="btn-gold"><span class="nav-btn-full">Try it free</span><span class="nav-btn-short">Try free</span></a>';
+        '<a href="/login" class="btn-ghost">Sign in</a>';
     }
   }
 

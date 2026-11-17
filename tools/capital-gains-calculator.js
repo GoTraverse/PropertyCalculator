@@ -31,7 +31,7 @@ function calc() {
   if (_msg) _msg.hidden = true;
 
   if (!sale || !purchase) {
-    _showErr('Please enter both the sale price and the purchase price.');
+    _showErr('Enter the sale price and the purchase price.');
     setText('r-cgt', '—');
     setText('r-gross', '—');
     setText('r-costbase', '—');
@@ -46,7 +46,7 @@ function calc() {
   var grossGain = Math.max(0, rawGain);
 
   if (ppor) {
-    setText('r-cgt', '$0 (PPOR exempt)');
+    setText('r-cgt', '$0 (main residence exempt)');
     setText('r-gross', rawGain < 0 ? fmt(rawGain) + ' (a loss)' : fmt(grossGain));
     setText('r-costbase', fmt(costBase));
     setText('r-discount', '—');
@@ -97,31 +97,31 @@ ToolPage.init({
   slug: 'capital-gains',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Work through the rest of the numbers',
-    description: 'Stack CGT with land tax, cashflow and yield — the other calculators cover the rest of the hold.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'The years before the sale',
+    description: 'CGT comes at the end. The land tax, property cash flow and rental yield calculators cover the years you hold the property.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '🏛️', title: 'Official ATO Guidance',
+        icon: '🏛️', title: 'ATO on capital gains tax',
         links: [
-          { text: 'ATO: Capital Gains Tax', href: 'https://www.ato.gov.au/individuals/capital-gains-tax/' },
-          { text: 'ATO: CGT on Real Estate', href: 'https://www.ato.gov.au/individuals/capital-gains-tax/property-and-capital-gains-tax/' },
-          { text: 'ATO: Main Residence Exemption', href: 'https://www.ato.gov.au/individuals/capital-gains-tax/property-and-capital-gains-tax/your-main-residence---home/' },
-          { text: 'ATO: Individual Tax Rates', href: 'https://www.ato.gov.au/rates/individual-income-tax-rates/' }
+          { text: 'Capital gains tax', href: 'https://www.ato.gov.au/individuals/capital-gains-tax/' },
+          { text: 'Property and capital gains tax', href: 'https://www.ato.gov.au/individuals/capital-gains-tax/property-and-capital-gains-tax/' },
+          { text: 'Your main residence', href: 'https://www.ato.gov.au/individuals/capital-gains-tax/property-and-capital-gains-tax/your-main-residence---home/' },
+          { text: 'Individual income tax rates', href: 'https://www.ato.gov.au/rates/individual-income-tax-rates/' }
         ]
       },
       {
-        icon: '📊', title: 'Property Tax Strategy',
+        icon: '📊', title: 'ATO on rental properties',
         links: [
-          { text: 'ATO: Rental Properties Guide', href: 'https://www.ato.gov.au/individuals/investments-and-assets/residential-rental-properties/' },
-          { text: 'ATO: Capital Works Deductions', href: 'https://www.ato.gov.au/individuals/investments-and-assets/residential-rental-properties/rental-property-expenses/capital-works-deductions/' }
+          { text: 'Residential rental properties', href: 'https://www.ato.gov.au/individuals/investments-and-assets/residential-rental-properties/' },
+          { text: 'Capital works deductions', href: 'https://www.ato.gov.au/individuals/investments-and-assets/residential-rental-properties/rental-property-expenses/capital-works-deductions/' }
         ]
       }
     ],
-    disclaimer: 'Simplified estimate. Your actual CGT depends on partial-year holding periods, offset losses, main-residence absences, and other ATO rules. This calculator applies current FY2026-27 law (50% discount); from 1 July 2027 legislated reforms (Treasury Laws Amendment (Tax Reform No. 1) Act 2026) replace the discount with cost-base indexation plus a 30% minimum tax rate on gains that accrue after that date. Always consult a registered tax agent.'
+    disclaimer: 'A simplified estimate under FY2026-27 law. It doesn\'t model partial-year holding periods, offset losses or absences from a main residence. General information, not tax advice.'
   },
   share: {
     url: 'https://equitysight.app/tools/capital-gains-calculator',
@@ -177,27 +177,21 @@ ToolPage.init({
         { k: 'Sale price', v: '$1,400,000' },
         { k: 'Purchase price', v: '$700,000' },
         { k: 'Costs and improvements', v: '$0' },
-        { k: 'PPOR exemption', v: 'Yes' }
+        { k: 'Main residence', v: 'Yes' }
       ],
       outputs: [
-        { k: 'CGT payable', v: '$0 (PPOR exempt)' },
+        { k: 'CGT payable', v: '$0 (main residence exempt)' },
         { k: 'Net gain after tax', v: '$700,000' }
       ]
     }
   ],
   faq: [
-    { q: 'How is capital gains tax calculated in Australia?',
-      a: 'Sale price minus cost base (purchase + stamp duty + legal fees + capital improvements + selling costs) equals your gross gain. If held over 12 months, apply a 50% discount. Add the discounted gain to your taxable income and pay tax at your marginal rate.' },
-    { q: 'Is my main residence (PPOR) exempt from CGT?',
-      a: 'Yes, generally. Your principal place of residence is CGT-exempt if it was your home for the whole ownership period. Partial exemptions apply if you used part as a rental or home office, or lived away for extended periods.' },
-    { q: 'What is the 6-year rule for rental properties?',
-      a: 'If you move out of your main residence and rent it out, you can treat it as your PPOR for CGT purposes for up to 6 years while renting — provided you don\'t nominate another property as your PPOR. This can completely eliminate CGT.' },
-    { q: 'Can I reduce CGT by timing the sale?',
-      a: 'Yes. Because CGT is taxed at your marginal rate, selling in a low-income year (e.g. during retirement, parental leave, or a sabbatical) can drop you into lower brackets and dramatically reduce the tax bill.' },
+    { q: 'When do I pay the CGT?',
+      a: 'There is no separate CGT bill. The net gain is reported in your income tax return for the financial year the sale contract was signed, and it is assessed with the rest of your income for that year.' },
+    { q: 'Can renovations reduce my CGT?',
+      a: 'Yes. The cost of capital improvements is added to your cost base, which lowers the taxable gain. You need the invoices and receipts. Amounts already claimed as deductions, such as some capital works, may have to be taken back out of the cost base.' },
     { q: 'Do capital losses reduce my CGT?',
-      a: 'Yes. Capital losses from other investments (shares, another property) can offset capital gains in the same year. Unused losses carry forward indefinitely. Only capital losses — not ordinary income losses — can offset capital gains.' },
-    { q: 'Is the 50% CGT discount changing?',
-      a: 'Yes — from 1 July 2027. The 2026-27 Federal Budget reforms are now law (Treasury Laws Amendment (Tax Reform No. 1) Act 2026): for individuals, trusts and partnerships, the 50% CGT discount will be replaced by cost-base indexation plus a 30% minimum tax rate on gains that accrue after 1 July 2027. Gains accrued before that date keep the current treatment. This calculator applies current FY2026-27 law, so the 50% discount still applies in full to sales this financial year.' }
+      a: 'Yes. Capital losses from other investments (shares, another property) can offset capital gains in the same year, and unused losses carry forward indefinitely. They can\'t reduce your salary or rental income. This calculator doesn\'t model losses.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '📈', href: '/tools/rental-yield-calculator', label: 'Rental Yield' },

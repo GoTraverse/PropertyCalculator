@@ -30,10 +30,6 @@
 <meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="/shared.css">
 <link rel="stylesheet" href="/tools.css">
 <link rel="stylesheet" href="/suburb-insights.css">
@@ -48,7 +44,7 @@
     <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="/journey" class="tool-header-link">Plan your first home →</a>
+  <a href="/journey" class="tool-header-link">First Home Journey</a>
 </header>
 <script src="/auth-nav-loader.js" defer></script>
 <script src="/error-capture.js" defer></script>
@@ -58,7 +54,6 @@
     <a href="/">Home</a> <span>›</span>
     <span>{{STATE_NAME}}</span>
   </nav>
-  <div class="tool-eyebrow">Suburb profiles · {{STATE}}</div>
   <h1>{{STATE_NAME}} suburb profiles</h1>
   <p>{{HUB_HERO_TEXT}}</p>
 </section>
@@ -67,7 +62,7 @@
 
   <!-- All States Navigation -->
   <section class="suburb-section">
-    <h2>All states &amp; territories</h2>
+    <h2>All states and territories</h2>
     <div class="state-nav">
       {{STATE_NAV_HTML}}
     </div>
@@ -81,12 +76,11 @@
 
   <!-- State stats summary -->
   <section class="suburb-section">
-    <h2>{{STATE_NAME}} at a glance</h2>
+    <h2>{{STATE_NAME}} summary</h2>
     {{STATE_STATS_HTML}}
   </section>
 
-  <!-- Suburb profiles (surviving, real-data suburbs only — every card links
-       to a page that exists; there is no drawer of unpublished localities) -->
+  <!-- Suburb profiles: every card links to a page that exists. -->
   <section class="suburb-section">
     <h2>Suburb profiles in {{STATE_NAME}}</h2>
     <p class="hub-list-intro">{{HUB_LIST_INTRO}}</p>
@@ -101,13 +95,12 @@
   <!-- Calculator cross-links -->
   <section class="suburb-section">
     <h2>Calculators for {{STATE_NAME}} buyers</h2>
-    <p>Each one works on its own, with no signup.</p>
     <div class="state-nav" style="margin-top:12px;">
-      <a href="/tools/stamp-duty-calculator-{{STATE_LOWER}}">{{STATE}} Stamp Duty Calculator</a>
-      <a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants ({{STATE}})</a>
-      <a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a>
-      <a href="/tools/deposit-calculator">Deposit Calculator</a>
-      <a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a>
+      <a href="/tools/stamp-duty-calculator-{{STATE_LOWER}}">{{STATE}} stamp duty calculator</a>
+      <a href="/tools/first-home-buyer-grants-calculator">First home buyer grants calculator</a>
+      <a href="/tools/cost-of-purchase-calculator">Cost of purchase calculator</a>
+      <a href="/tools/deposit-calculator">Deposit calculator</a>
+      <a href="/tools/borrowing-power-calculator">Borrowing power calculator</a>
     </div>
   </section>
 
@@ -119,10 +112,9 @@
 
   <!-- CTA -->
   <section class="suburb-cta">
-    <div class="tool-cta-eye">Buying your first home in {{STATE_NAME}}?</div>
-    <h3>Turn a suburb into a plan</h3>
-    <p>The First Home Journey takes your savings and income and works out which government schemes fit, a maximum price and your contract deadlines. Free, and no signup to start.</p>
-    <a href="/journey?st={{STATE_LOWER}}" class="tool-cta-btn">Start the First Home Journey →</a>
+    <h3>First Home Journey</h3>
+    <p>It takes your savings and income and works out which government schemes fit, a maximum price and your contract deadlines.</p>
+    <a href="/journey?st={{STATE_LOWER}}" class="tool-cta-btn">Open the First Home Journey</a>
   </section>
 
 </div>

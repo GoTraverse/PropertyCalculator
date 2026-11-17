@@ -7,10 +7,10 @@ function calculate() {
   var mortgage = parseVal('mortgage');
   var lvrPct = parseFloat(document.getElementById('lvr').value);
 
-  if (!propVal || propVal <= 0) { if (!_isInit) _showErr('Please enter the property value.'); return; }
+  if (!propVal || propVal <= 0) { if (!_isInit) _showErr('Enter the property value.'); return; }
   // A blank or $0 mortgage is valid: the home is owned outright.
-  if (mortgage > propVal) { if (!_isInit) _showErr('Mortgage cannot exceed property value.'); return; }
-  if (!isFinite(lvrPct) || lvrPct <= 0 || lvrPct > 100) { if (!_isInit) _showErr('Please enter a maximum LVR between 1 and 100.'); return; }
+  if (mortgage > propVal) { if (!_isInit) _showErr('The mortgage can\'t be more than the property value.'); return; }
+  if (!isFinite(lvrPct) || lvrPct <= 0 || lvrPct > 100) { if (!_isInit) _showErr('Enter a maximum LVR between 1 and 100.'); return; }
   var lvr = lvrPct / 100;
 
   var equity = propVal - mortgage;
@@ -45,38 +45,38 @@ ToolPage.init({
   slug: 'equity-release',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan your renovation or investment',
-    description: 'Cost the renovation, check the yield and stress-test the bigger loan with the other free calculators.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'Renovation cost, yield and mortgage stress',
+    description: 'The renovation cost and rental yield calculators cover what the money is for. The mortgage stress calculator tests the bigger loan.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE6', title: 'Borrowing & LVR',
+        icon: '\uD83C\uDFE6', title: 'Borrowing',
         links: [
-          { text: 'ASIC: Lenders Mortgage Insurance', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
+          { text: 'ASIC Moneysmart: mortgage calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
+          { text: 'ASIC Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'RBA: explainers', href: 'https://www.rba.gov.au/education/resources/explainers/' },
         ]
       },
       {
-        icon: '\uD83C\uDFE0', title: 'Property & Renovation',
+        icon: '\uD83C\uDFE0', title: 'Buying and housing',
         links: [
-          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Consumer Affairs: Housing Info', href: 'https://www.consumer.vic.gov.au/housing' },
-          { text: 'ASIC: Building Inspections', href: 'https://moneysmart.gov.au/home-loans/buying-a-house' }
+          { text: 'ASIC Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Consumer Affairs Victoria: housing', href: 'https://www.consumer.vic.gov.au/housing' },
+          { text: 'ASIC Moneysmart: home loans when buying a house', href: 'https://moneysmart.gov.au/home-loans/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Tax & Investment',
+        icon: '\uD83D\uDCB0', title: 'Tax and advice',
         links: [
-          { text: 'ATO: Rental Property Tax Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ASIC: Financial Adviser Directory', href: 'https://moneysmart.gov.au/financial-advice' }
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'ASIC Moneysmart: financial advice', href: 'https://moneysmart.gov.au/financial-advice' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed financial adviser, accountant, and bank before using equity release for investment or renovation.'
+    disclaimer: 'General information, not financial advice. Anything you release is secured against your home.'
   },
   share: {
     url: 'https://equitysight.app/tools/equity-release-calculator',

@@ -7,7 +7,7 @@
 <script src="tool-page.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Interest Only vs P&I Calculator Australia</title>
-<meta name="description" content="Free Australian calculator comparing Interest Only and Principal + Interest home loans side-by-side. See repayment difference and total cost over the loan term.">
+<meta name="description" content="Compare an Interest Only home loan with Principal + Interest on the same amount and term: repayments, the rise when IO ends, and total interest.">
 <meta name="keywords" content="interest only vs principal calculator, IO vs P&I Australia, interest only loan calculator, home loan comparison calculator, investment loan calculator">
 <link rel="canonical" href="https://equitysight.app/tools/interest-only-vs-principal-calculator">
 <link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/interest-only-vs-principal-calculator">
@@ -15,32 +15,28 @@
 <meta name="geo.region" content="AU">
 <meta name="geo.placename" content="Australia">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Interest Only vs Principal + Interest Calculator Australia 2026 | EquitySight">
-<meta property="og:description" content="Free Australian IO vs P&I calculator — compare repayment and total cost side-by-side.">
+<meta property="og:title" content="Interest Only vs Principal + Interest Calculator Australia">
+<meta property="og:description" content="Compare repayments and total interest on an Interest Only loan and a P&amp;I loan of the same amount and term.">
 <meta property="og:url" content="https://equitysight.app/tools/interest-only-vs-principal-calculator">
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:image" content="https://equitysight.app/images/og/interest-only-vs-principal-calculator.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta property="og:image:alt" content="EquitySight Interest Only vs Principal + Interest calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Interest Only vs Principal + Interest Calculator Australia 2026">
-<meta name="twitter:description" content="Side-by-side comparison of IO vs P&I Australian home loans.">
+<meta name="twitter:title" content="Interest Only vs Principal + Interest Calculator Australia">
+<meta name="twitter:description" content="Repayments and total interest on an Interest Only loan next to a P&amp;I loan of the same amount and term.">
 <meta name="twitter:image" content="https://equitysight.app/images/og/interest-only-vs-principal-calculator.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
 <script src="../adsense.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"Interest Only vs Principal Calculator Australia","url":"https://equitysight.app/tools/interest-only-vs-principal-calculator","description":"Free Australian calculator comparing Interest Only and Principal + Interest home loans.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"Interest Only vs Principal Calculator Australia","url":"https://equitysight.app/tools/interest-only-vs-principal-calculator","description":"Compares an Interest Only home loan with a Principal + Interest loan of the same amount and term: monthly repayments, the repayment after the IO period ends, and total interest.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Interest Only vs Principal Calculator"}]}
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Interest Only vs Principal Calculator"}]}
 </script>
 </head>
 <body>
@@ -61,9 +57,8 @@
 <script src="../error-capture.js" defer></script>
 
 <section class="tool-hero" id="main-content">
-  <div class="tool-eyebrow">Free Tool · Australia</div>
   <h1>Interest Only vs Principal + Interest</h1>
-  <p>Compare the repayment and total cost of an Interest Only loan against a standard Principal + Interest loan over the same term.</p>
+  <p>Puts an Interest Only loan next to a Principal + Interest loan of the same amount and term, and shows the repayments and total interest on each.</p>
 </section>
 
 <div class="tool-main" role="main">
@@ -82,7 +77,7 @@
     </div>
 
     <div class="tool-field">
-      <label class="tool-label" for="rate-io">Interest Only rate (%) — usually ~0.25% higher</label>
+      <label class="tool-label" for="rate-io">Interest Only rate (%), usually about 0.25% above the P&amp;I rate</label>
       <input class="tool-input" type="number" id="rate-io" value="6.60" step="0.01" min="0">
     </div>
 
@@ -96,7 +91,7 @@
       <input class="tool-input" type="number" id="term" value="30" step="1" min="5" max="40">
     </div>
 
-    <button class="tool-btn" id="calc-btn" aria-label="Compare interest-only versus principal and interest loans">Compare Loans</button>
+    <button class="tool-btn" id="calc-btn" aria-label="Compare interest-only versus principal and interest loans">Compare loans</button>
     <p class="tool-validation-msg" id="calc-msg" role="alert" hidden></p>
   </div>
 
@@ -112,7 +107,7 @@
         <div class="tool-stat-value" id="r-pi-monthly">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">IO monthly (after IO period reverts to P&amp;I)</div>
+        <div class="tool-stat-label">IO monthly (after the loan reverts to P&amp;I)</div>
         <div class="tool-stat-value" id="r-io-revert">—</div>
       </div>
       <div class="tool-stat">
@@ -120,11 +115,11 @@
         <div class="tool-stat-value" id="r-saving">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Total interest — IO path</div>
+        <div class="tool-stat-label">Total interest, IO path</div>
         <div class="tool-stat-value" id="r-io-total">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Total interest — P&amp;I path</div>
+        <div class="tool-stat-label">Total interest, P&amp;I path</div>
         <div class="tool-stat-value" id="r-pi-total">—</div>
       </div>
       <div class="tool-stat full">
@@ -132,7 +127,7 @@
         <div class="tool-stat-value" id="r-extra">—</div>
       </div>
     </div>
-    <p class="tool-disclaimer">Estimates only. Assumes loan reverts to P&amp;I at the same IO rate after IO period. Actual lender terms, reverting rates, and eligibility differ.</p>
+    <p class="tool-disclaimer">An estimate. It assumes the loan reverts to P&amp;I at the IO rate when the IO period ends. Your lender may use a different revert rate.</p>
   </div>
 
   <div class="ad-slot" data-ad-type="calculator"></div>
@@ -147,101 +142,34 @@
 </div>
 
 <section class="tool-content">
-  <h2>Interest-only vs principal and interest</h2>
-  <p>Every Australian home loan repayment is built from two parts: <strong>interest</strong> (the lender's charge for lending you the money) and <strong>principal</strong> (the actual loan balance you owe). The repayment structure you choose decides whether you pay down that balance from day one or leave it untouched for a while. A <strong>Principal &amp; Interest (P&amp;I)</strong> loan chips away at both with every repayment, so the debt steadily shrinks and your equity grows. An <strong>Interest Only (IO)</strong> loan pauses the principal portion for a set period — usually one to five years for owner-occupiers, and up to ten years for some investors — so during that window you pay only the interest and your balance stays exactly where it started.</p>
-  <p>This matters in Australia because IO lending sits under close regulatory watch and almost always costs more over the full life of the loan. The trade-off is purely about timing and cash flow: IO frees up money in the short term, while P&amp;I costs more each month now but builds equity and reduces lifetime interest. This calculator puts both side by side so you can see the monthly cash-flow saving against the extra interest you pay for it.</p>
-
-  <h2>How the calculation works</h2>
-  <p>The tool runs two separate amortisation paths on the same loan amount and term, then compares them.</p>
-  <p><strong>Interest Only repayment</strong> is the simplest: monthly repayment equals the loan balance multiplied by the annual rate, divided by 12. Because no principal is repaid, the balance is unchanged at the end of the IO period — you still owe the full original amount.</p>
-  <p><strong>Principal &amp; Interest repayment</strong> uses the standard amortisation formula. The monthly repayment equals <strong>P × r × (1 + r)^n ÷ ((1 + r)^n − 1)</strong>, where <strong>P</strong> is the loan amount, <strong>r</strong> is the monthly interest rate (annual rate divided by 12), and <strong>n</strong> is the total number of monthly repayments (years × 12). This produces a fixed repayment that fully clears the debt by the end of the term.</p>
-  <p>For the IO path, the calculator models what most lenders actually do: after the IO period ends, the loan <em>reverts</em> to P&amp;I but over the <strong>remaining</strong> term only. So a 30-year loan with a 5-year IO period must repay the full balance over the leftover 25 years — squeezing the same principal into fewer years, which is what drives the repayment jump. The "extra interest" figure is the difference in total interest between taking the IO path and choosing P&amp;I from the start.</p>
+  <h2>How the comparison is worked out</h2>
+  <p>The tool runs the same loan amount and term down two paths.</p>
+  <p>On the P&amp;I path the monthly repayment is <strong>P × r × (1 + r)^n ÷ ((1 + r)^n − 1)</strong>, where P is the loan amount, r is the monthly interest rate (annual rate divided by 12) and n is the number of monthly repayments (years × 12).</p>
+  <p>On the IO path the repayment during the IO period is the loan balance multiplied by the annual IO rate, divided by 12. Nothing comes off the balance, so when the IO period ends you still owe the full amount and have fewer years to repay it. A 30-year loan with a 5-year IO period is repaid over the remaining 25 years, which is why the repayment jumps. The "extra interest" figure is total interest on the IO path minus total interest on P&amp;I from the start.</p>
 
   <h2>Worked example</h2>
-  <p>Assume a <strong>$600,000</strong> loan over a <strong>30-year</strong> term. The P&amp;I rate is <strong>6.25%</strong> and the IO rate is <strong>6.60%</strong> (lenders typically price IO around 0.15–0.40% higher). The investor chooses a <strong>5-year</strong> IO period.</p>
+  <p>A $600,000 loan over 30 years, with a P&amp;I rate of 6.25%, an IO rate of 6.60% and a 5-year IO period.</p>
   <ul>
-    <li><strong>P&amp;I from day one:</strong> repayments are roughly $3,694 a month for the whole 30 years.</li>
-    <li><strong>Interest Only for 5 years:</strong> at 6.60% on $600,000, interest-only repayments are $600,000 × 6.60% ÷ 12 = <strong>$3,300 a month</strong> — a cash-flow saving of close to $400 each month during the IO window.</li>
-    <li><strong>The reversion:</strong> after 5 years the balance is still $600,000, but it now has to be repaid over the remaining 25 years. At 6.60% that pushes repayments up to about <strong>$4,090 a month</strong> — roughly a 24% jump from the IO repayment, and higher than the original P&amp;I figure.</li>
-    <li><strong>Lifetime interest:</strong> the calculator shows total interest of $824,644 on the IO path against $729,949 for P&amp;I from the start, which is $94,695 more.</li>
-  </ul>
-  <p>These figures are illustrative and depend on the exact rate and reversion terms your lender applies — change the inputs above to model your own loan.</p>
-
-  <h2>When interest-only makes sense, and the risks</h2>
-  <p>IO is most commonly used by <strong>property investors</strong>. Because interest on an investment loan is generally tax-deductible while principal repayments are not, some investors prefer to keep deductible interest high and direct spare cash toward non-deductible debt (such as their own home loan) instead. IO can also suit borrowers expecting a temporary income drop — parental leave, a career break, or a renovation period — or those building a new home who don't want full repayments until construction finishes.</p>
-  <p>The headline risk is <strong>repayment shock</strong>. When the IO period ends, repayments can rise sharply because the same principal is compressed into a shorter remaining term, on top of the higher balance you never reduced. Borrowers who didn't plan for this can find the new repayment uncomfortable. There's also the matter of <strong>building no equity</strong> during the IO years — if property values stall or fall, an IO borrower has a thinner buffer than a P&amp;I borrower who has been paying the loan down.</p>
-  <ul>
-    <li><strong>Common mistake:</strong> assuming the IO rate is the same as the P&amp;I rate. It's usually higher, which eats into the apparent saving.</li>
-    <li><strong>Common mistake:</strong> treating the IO saving as free money rather than budgeting for the much larger repayment that arrives on reversion.</li>
-    <li><strong>Common mistake:</strong> stacking IO on an owner-occupier loan with no tax benefit — here you get the higher rate and higher lifetime cost without the deductibility upside.</li>
-    <li><strong>Tip:</strong> if you want lower repayments but still want flexibility, an <strong>offset account</strong> on a P&amp;I loan can reduce interest while keeping your savings accessible.</li>
+    <li>P&amp;I from day one is $3,694 a month for the whole 30 years.</li>
+    <li>Interest Only for 5 years is $600,000 × 6.60% ÷ 12 = $3,300 a month, close to $400 a month less.</li>
+    <li>After 5 years the balance is still $600,000 and has to be repaid over 25 years. At 6.60% that is $4,089 a month, a 24% rise on the IO repayment and more than the P&amp;I repayment would have been.</li>
+    <li>Total interest is $824,644 on the IO path and $729,949 on P&amp;I from the start, which is $94,695 more.</li>
   </ul>
 
-  <h2>APRA scrutiny and lender eligibility</h2>
-  <p>Interest Only lending in Australia is regulated more tightly than standard P&amp;I borrowing. The Australian Prudential Regulation Authority (<strong>APRA</strong>) has historically applied caps and heightened oversight to the share of new IO lending, and lenders assess IO applications carefully. A key part of that assessment is the <strong>serviceability buffer</strong>: APRA expects lenders to test whether you could still afford the loan at an interest rate around <strong>3 percentage points</strong> above the actual rate. Critically, for IO loans this serviceability test is usually run on the <em>P&amp;I repayment over the remaining term after IO ends</em> — not the lower IO repayment — so qualifying for IO is often harder, not easier, than it first appears. Banks also apply the Household Expenditure Measure (HEM) as a benchmark for your living costs when checking serviceability.</p>
+  <h2>Who uses interest-only, and the risks</h2>
+  <p>Mostly property investors. Interest on an investment loan is generally tax-deductible and principal repayments aren't, so some investors keep the investment loan on IO and put their spare cash into a non-deductible debt such as their own home loan. IO is also used to get through a temporary drop in income (parental leave, a career break) or while a new home is being built.</p>
+  <p>The main risk is the repayment after the IO period ends, as in the example above. The other is that you build no equity during the IO years, so if prices stall or fall you have a thinner buffer than someone who has been paying the loan down. On an owner-occupied loan there's no tax deduction, so IO costs you the higher rate and the extra interest with nothing coming back.</p>
 
-  <h2>What this calculator does and doesn't cover</h2>
-  <p>This tool estimates and compares monthly repayments and total interest for an IO loan (with a reversion to P&amp;I) against a P&amp;I loan over the same amount and term. It is designed to make the cash-flow saving and the lifetime cost difference clear at a glance.</p>
-  <p>It does <strong>not</strong> account for: changes to interest rates over time (it assumes the IO rate continues after reversion, which is a simplification — your lender may apply a different revert rate), fees and charges, Lenders Mortgage Insurance, offset or redraw balances, tax deductions or your marginal tax rate, or your individual eligibility. It is general information only and not personal financial advice. For repayment and structure guidance specific to your situation, speak to a licensed mortgage broker or financial adviser, and use the federal government's <strong>Moneysmart</strong> resources at <a href="https://moneysmart.gov.au" rel="nofollow">moneysmart.gov.au</a> as an independent starting point.</p>
+  <h2>How lenders assess an IO loan</h2>
+  <p>APRA expects lenders to test whether you could still afford the loan at an interest rate around 3 percentage points above the actual rate. For an IO loan that test is usually run on the P&amp;I repayment over the term left after IO ends, which is higher than the IO repayment, so qualifying for IO is often harder than for P&amp;I.</p>
 
-  <h2>Frequently asked questions</h2>
-  <h3>Why does Interest Only cost more overall if the repayments are lower?</h3>
-  <p>The lower repayment only covers interest, so your loan balance never shrinks during the IO period. You then pay interest on that full balance for longer, and the IO rate is typically higher to begin with. The lower monthly cost now is effectively borrowed against a higher total cost later.</p>
-
-  <h3>How big is the repayment jump when Interest Only ends?</h3>
-  <p>It depends on the IO length and remaining term. In the worked example above the repayment rises 24%, from $3,300 to $4,089 a month. The full balance must be repaid over a shorter remaining term, so a longer IO period makes the rise bigger. The calculator's "after IO period reverts to P&amp;I" figure shows your specific increase.</p>
-
-  <h3>Is the interest on an Interest Only loan tax-deductible?</h3>
-  <p>For an investment property, interest is generally deductible against your assessable income whether the loan is IO or P&amp;I — the structure doesn't change deductibility, only how much interest you pay. Principal repayments are never deductible. For an owner-occupied home, neither interest nor principal is deductible. Always confirm your position with the Australian Taxation Office (<a href="https://www.ato.gov.au" rel="nofollow">ato.gov.au</a>) or a registered tax agent.</p>
-
-  <h3>Can I extend the Interest Only period when it ends?</h3>
-  <p>Sometimes, but it's not automatic. Extending IO is a new credit decision and the lender must re-assess your serviceability under APRA's rules, often at the higher buffered P&amp;I repayment. Approval isn't guaranteed, and extending further increases the total interest you'll pay.</p>
+  <h2>What this calculator leaves out</h2>
+  <p>Changes to interest rates over time (it assumes the IO rate carries on after the loan reverts, and your lender may apply a different revert rate), fees and charges, Lenders Mortgage Insurance, offset or redraw balances, and tax deductions. It is general information, not personal financial advice.</p>
 </section>
 
 <div id="tool-resources-root"></div>
 <div id="tool-trust-root"></div>
-<!-- Static internal links: crawlable <a> to every calculator so Googlebot can
-     discover the full suite without executing the JS-injected related grid/nav.
-     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
-<nav class="tool-resources" aria-label="All EquitySight calculators">
-  <div class="tool-resources-title">Explore all our free Australian property calculators</div>
-  <div class="tool-resources-grid">
-    <div>
-      <h3>Buying &amp; upfront costs</h3>
-      <ul>
-        <li><a href="/tools/stamp-duty-calculator">Stamp Duty Calculator</a></li>
-        <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
-        <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
-        <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
-        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
-        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3>Borrowing &amp; repayments</h3>
-      <ul>
-        <li><a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a></li>
-        <li><a href="/tools/loan-serviceability-calculator">Loan Serviceability Calculator</a></li>
-        <li><a href="/tools/mortgage-repayment-calculator">Mortgage Repayment Calculator</a></li>
-        <li><a href="/tools/mortgage-stress-calculator">Mortgage Stress Calculator</a></li>
-        <li><a href="/tools/interest-only-vs-principal-calculator">Interest-Only vs Principal Calculator</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3>Investment &amp; returns</h3>
-      <ul>
-        <li><a href="/tools/rental-yield-calculator">Rental Yield Calculator</a></li>
-        <li><a href="/tools/capital-gains-calculator">Capital Gains Tax Calculator</a></li>
-        <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
-        <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
-        <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
-        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
-        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="tool-resources-disclaimer"><a href="/tools/">View all Australian property calculators &rarr;</a></div>
-</nav>
+<p class="tool-all-link"><a href="/tools/">All 18 calculators</a></p>
 
 <div id="tool-footer-root"></div>
 

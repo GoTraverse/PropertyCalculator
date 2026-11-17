@@ -8,7 +8,7 @@ tag: Legal
 
 ## General information only
 
-The information and calculations on equitysight.app are for general information and education only. They are not a substitute for professional financial advice tailored to your circumstances.
+The information and calculations on equitysight.app are for general information and education only. They are not a substitute for professional financial advice that takes your circumstances into account.
 
 equitysight.app does not hold an Australian Financial Services Licence (AFSL) or any equivalent licence in any jurisdiction, and is not authorised to provide personal financial advice. I am not a financial adviser.
 

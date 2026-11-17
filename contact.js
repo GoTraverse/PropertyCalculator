@@ -8,8 +8,8 @@ async function submitForm(){
   const msg = document.getElementById('cf-message').value.trim();
   const errEl = document.getElementById('cf-error');
   const btn = document.getElementById('cf-submit');
-  if(!fname||!email||!subject||!msg){ errEl.textContent='Please fill in all required fields.'; return; }
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errEl.textContent='Please enter a valid email address.'; return; }
+  if(!fname||!email||!subject||!msg){ errEl.textContent='Fill in your first name, email, a topic and a message.'; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errEl.textContent='Enter a valid email address.'; return; }
   errEl.textContent='';
   btn.disabled=true; btn.textContent='Sending\u2026';
   try{
@@ -18,8 +18,8 @@ async function submitForm(){
       body:JSON.stringify({name:(fname+' '+lname).trim(),email:email,subject:subject,message:msg})
     });
     const d=await r.json();
-    if(!d.ok){ errEl.textContent=d.error||'Failed to send \u2014 please try again.'; btn.disabled=false; btn.textContent='Send Message \u2192'; return; }
-  }catch(e){ errEl.textContent='Network error \u2014 please try again.'; btn.disabled=false; btn.textContent='Send Message \u2192'; return; }
+    if(!d.ok){ errEl.textContent=d.error||"Couldn't send. Try again."; btn.disabled=false; btn.textContent='Send message'; return; }
+  }catch(e){ errEl.textContent='Network error. Try again.'; btn.disabled=false; btn.textContent='Send message'; return; }
   // Track form submission
   if(window.trackFormSubmission) trackFormSubmission('contact_form', true);
   document.getElementById('contact-form').style.display='none';

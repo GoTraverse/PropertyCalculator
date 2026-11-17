@@ -23,7 +23,7 @@ function calculate() {
   var landscape = document.getElementById('landscaping').checked;
   var addCont = document.getElementById('contingency').checked;
 
-  if (!area || area < 10) { if (!_isInit) _showErr('Please enter a floor area.'); return; }
+  if (!area || area < 10) { if (!_isInit) _showErr('Enter a floor area.'); return; }
 
   var r = RATES[scope][finish];
   var baseLow = area * r[0];
@@ -87,37 +87,37 @@ ToolPage.init({
   slug: 'renovation-cost',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Does the renovation make financial sense?',
-    description: 'Weigh the spend against a flip profit or the extra equity you could release, with the other free calculators.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'House flip and home equity calculators',
+    description: 'The house flip calculator sets this cost against a sale price. The home equity calculator shows how much you could borrow against the house to pay for it.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE2', title: 'Building & Construction',
+        icon: '\uD83C\uDFE2', title: 'Building',
         links: [
-          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Consumer Affairs: Building Info', href: 'https://www.consumer.vic.gov.au/housing' }
+          { text: 'ASIC Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Consumer Affairs Victoria: housing', href: 'https://www.consumer.vic.gov.au/housing' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Tax & Finance',
+        icon: '\uD83D\uDCB0', title: 'Tax and investing',
         links: [
-          { text: 'ATO: Capital Gains Tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
-          { text: 'ATO: Property Tax Deductions', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'MoneySmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' }
+          { text: 'ATO: capital gains tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'ASIC Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' }
         ]
       },
       {
-        icon: '\uD83D\uDCCB', title: 'Legal & Compliance',
+        icon: '\uD83D\uDCCB', title: 'Other',
         links: [
           { text: 'Master Builders Australia', href: 'https://www.masterbuilders.com.au/' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' }
+          { text: 'RBA: explainers', href: 'https://www.rba.gov.au/education/resources/explainers/' }
         ]
       }
     ],
-    disclaimer: 'This is general information only. The rates behind this calculator are my own rough estimates with no official source. Renovation costs vary significantly by location, complexity, and contractor. Always get multiple quotes and consult a quantity surveyor and accountant before proceeding.'
+    disclaimer: 'The rates behind this calculator are my own rough estimates with no official source. Costs vary by location, complexity and contractor, so get several quotes. General information, not financial advice.'
   },
   share: {
     url: 'https://equitysight.app/tools/renovation-cost-calculator',

@@ -12,7 +12,25 @@ What this means in practice:
 - **Not a paid app** (owner call, 14 Aug 2026): the pricing page is deleted (/pricing 301s to /journey), Pro is not offered at signup and no upgrade CTAs exist anywhere. Existing subscribers keep working and can manage/cancel billing via /account (Stripe backend + webhooks intact — payment-flow CODE changes remain ask-first). Default post-login/post-signup landing is /journey.
 - **No posting obligation.** Growth is passive: partner-shares of journeys, the honest suburb pages, calculator long-tail. Do not push the owner toward marketing; do not add growth surfaces without an explicit ask.
 - **Maintenance contract**: quarterly market-data refresh (~2h, recipe in memory project-suburb-data-architecture), one FY rates verification a year, error-log checks. That is the whole obligation.
-- **The pride bar for all new work**: no fabricated figures ever; sources + periods on every number; the owner's plain voice (de-AI rules from #320); if a page can't be defended, it doesn't ship.
+- **The pride bar for all new work**: no fabricated figures ever; sources + periods on every number; the owner's plain voice (see "Voice and design" below); if a page can't be defended, it doesn't ship.
+
+## Voice and design (Nov 2026 de-AI pass — owner's top priority)
+The owner was told on a forum the site read as "AI slop". Every page was cut and rewritten, and the design was stripped back. Keep it that way. The full rubric used for the pass (20 writing tells, sources) is summarised here; apply it to any new text.
+
+**Writing**
+- First person singular ("I"), Australian English, contractions are fine. Never "we/our/the team".
+- Say what the thing does, once, with the specific fact. If a sentence could sit unchanged on any other finance site, cut it.
+- Banned: em dashes and spaced en dashes as pauses; "not X, but Y" / "X, not Y" flourishes; groups of three for rhythm; quotable closing lines; slogan or title-case headings; "Here's how / Let's / Think of it as"; stock words (seamless, powerful, comprehensive, unlock, empower, navigate, crucial, essential, ensure, peace of mind, everything you need, in one place, whether you're X or Y, take the guesswork out, honest, real numbers, simply, just, actually, genuinely); "Ready to…?", "Try it free", "Get started" CTAs; arrows/ticks/emoji in links and buttons (a "← Back" control may keep its arrow); bold lead-ins on every bullet; "This page shows…".
+- Buttons and links name the action or destination ("Open the First Home Journey", "Save", "Turn off this link").
+- Keep every source, period, assumption and limit. Cutting filler is fine; cutting a caveat is not.
+- No SEO filler: no "What is X?" definitions, no "why use this calculator", no padded government-link lists, no badge rows.
+
+**Design**
+- System font only (`--font-body` in shared.css; `--font-display`/`--font-mono` are aliases kept for old rules). No web fonts; `font-loader.js` is a no-op stub for cached pages.
+- White page, dark text, one column about 720px wide. Section headings sit under a thin rule. Links in running text are blue and underlined (`--link`). Primary buttons are dark (charcoal), not gold. Gold is only for the current journey step and selected options.
+- Not allowed back: eyebrow/kicker labels above headings, small caps, mono buttons, dark heroes with glows or grid overlays, card grids of icon + title + blurb, coloured side-stripe callouts, gradients, glassmorphism, share-button rows, agency "trust badge" rows, pop-up promo bars, "Useful links" blocks.
+- Calculator pages: `.tool-hero` (h1 + one line), the form in a light grey box, the result in a box with a dark border, then plain text sections. `tool-page.js` no longer renders share, trust, useful-links, the "Keep going" bar or a per-tool footer (the site footer is used).
+- Share images: `node bin/make-og-images.js` renders plain title cards (title, one line, address).
 
 ## Project Summary
 **EquitySight.app** — the First Home Journey (guided Australian first-home purchase planner) + its calculator toolbox, built on verified government sources. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys to production.
@@ -116,7 +134,7 @@ See **`README.md`** for feature overview and quick start guide.
 
 ### Calculator Architecture (Unified Pattern)
 - **18 free calculators** in `/tools/` plus `/tools/index.html` landing page that groups them (Buying / Borrowing / Investment). All share identical HTML/CSS structure via `tools.css` (no duplication).
-- **Template pattern**: `<nav class="site-nav">` (full site nav) → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (aria-live polite) → `.tool-cta` → `.tool-resources` → footer div
+- **Template pattern**: `<nav class="site-nav">` (full site nav) → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (aria-live polite) → `.tool-cta` (h2 + one sentence ending in a link) → examples, written guide, questions → `.tool-resources` (sources) → `<p class="tool-all-link">` → site footer
 - **Currency inputs** use `type="text" inputmode="decimal"` with `fmtInput()` thousands-separator formatting. Pure numeric inputs (rate, term) use `type="number"`.
 - **Shared utilities**: `tools/tool-page.js` provides the shared calc helpers (`fmtNum()`, `parseNum()`, `monthlyRepayment()`, etc.) loaded by every tool page (`shared-calcs.js` was removed — it was dead code).
 - **Live market data**: `market-rate.js` provides `window.MarketRate` (RBA cash rate, ABS state medians) — included in calculators that need current rates
@@ -126,12 +144,11 @@ See **`README.md`** for feature overview and quick start guide.
   - `auth-nav.js` — injects full site-nav link list (`SITE_NAV_LINKS`) + auth controls
   - `footer.js` — injects footer into `#site-footer-root` div
   - `error-capture.js` — global error handler POSTs to `client-errors` function
-- **Cross-linking**: Each tool config has `related[]` (4-card grid), `footer[]` (small link row), and `usefulLinks[]` (grouped sidebar: Other Tools / Popular Suburbs / Guides). Every tool links to `/tools` from its footer.
+- **Cross-linking**: `related[]` renders as a plain link list. `footer[]`, `usefulLinks[]` and `share` remain in the configs but are no longer rendered (Nov 2026). Every tool page ends with a link to `/tools/`.
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
 - **To update all calculators**: Edit `tools.css` (no need to touch individual HTML files)
 - **Worked examples must come from the code.** Every figure in a calculator's prose, examples, FAQ and FAQ JSON-LD is the tool's own output for those inputs (regenerated Nov 2026 after most of them had drifted). Change the code → re-run the example. `node tests/faq-jsonld-sync-test.js` checks FAQ JSON-LD against the visible FAQ.
 - **The 8 state stamp-duty pages are hand-maintained.** `build/build-state-stamp-duty.js` is disabled (its config is stale); fix the state files directly and run `tests/state-duty-sync-test.js`.
-- **The "Keep going" journey prompt** only appears after a real (trusted) user interaction, never on page load.
 
 ### Suburb pages (~1,475 generated; rebuilt Nov 2026 to show sourced figures only)
 - **What a suburb page may contain** (enforced by the header comment in `build/build-suburbs.js`): postcode, ABS 2021 Census population, the current median rent and/or sale medians from `data/market-current.json` with period and source printed under each number, plain arithmetic on those figures (5/10/20% deposit at the median; weekly rent per month and year), and the nearest other profiled suburbs with their own figures. **Nothing else.**

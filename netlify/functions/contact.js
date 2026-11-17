@@ -61,7 +61,7 @@ exports.handler = async function(event) {
         if (n === 1) await fetch(REDIS_URL, { method:'POST', headers:{ Authorization:'Bearer '+REDIS_TOKEN, 'Content-Type':'application/json' }, body: JSON.stringify(['EXPIRE', rateKey, '3600']) });
         return n;
       })();
-      if (count > 5) return fail('Too many messages — please try again later');
+      if (count > 5) return fail('Too many messages. Try again later.');
     } catch(e) { /* don't block on rate limit errors */ }
   }
 
@@ -124,12 +124,12 @@ exports.handler = async function(event) {
         from: VERIFY_EMAIL_FROM,
         to: [toEmail],
         reply_to: [email],
-        subject: '[EquitySight] ' + subjectLabel + ' — from ' + name,
+        subject: '[EquitySight] ' + subjectLabel + ' from ' + name,
         html,
       }),
     });
     if (!r.ok) {
-      let errMsg = 'Failed to send message — please try again';
+      let errMsg = "Couldn't send the message. Try again.";
       try {
         const errBody = await r.json();
         console.warn('[contact] Resend error %s: %j', r.status, errBody);
@@ -143,6 +143,6 @@ exports.handler = async function(event) {
     return ok({ ok: true });
   } catch(e) {
     console.warn('[contact] Send error:', e.message);
-    return fail('Failed to send message — please try again');
+    return fail("Couldn't send the message. Try again.");
   }
 };

@@ -34,10 +34,6 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Cost of Purchase Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much should I budget for buying costs on top of the price?","acceptedAnswer":{"@type":"Answer","text":"As a rule of thumb, allow roughly 4–7% of the purchase price for total buying costs, with stamp duty driving most of the variation. The figure is lower for first home buyers who qualify for a duty exemption and higher where LMI or a foreign-buyer surcharge applies. Always confirm with your state revenue office and lender."}},{"@type":"Question","name":"Do first home buyers always pay no stamp duty?","acceptedAnswer":{"@type":"Answer","text":"Sometimes. Many states fully waive transfer duty for eligible first home buyers under a price threshold, then taper a concession above it. Eligibility usually depends on price, residency and whether you have owned property before. Check the current rules with your state revenue office, as thresholds change between state budgets."}},{"@type":"Question","name":"Can I avoid Lenders Mortgage Insurance with a small deposit?","acceptedAnswer":{"@type":"Answer","text":"Yes, in some cases. LMI normally applies once your LVR is above 80% (a deposit under 20%). Eligible first home buyers can use the 5% Deposit Scheme (formerly the First Home Guarantee) to buy with around a 5% deposit without paying LMI, subject to eligibility rules and property price caps set under the scheme. Some buyers also avoid LMI with a family guarantor."}},{"@type":"Question","name":"Where can I get the exact stamp duty for my purchase?","acceptedAnswer":{"@type":"Answer","text":"Use the official calculator published by your state or territory revenue office — Revenue NSW, the State Revenue Office Victoria, the Queensland Revenue Office, RevenueSA, RevenueWA, the State Revenue Office Tasmania, the ACT Revenue Office or the Territory Revenue Office. For general consumer guidance on home loans and buying, the federal Moneysmart website (moneysmart.gov.au), run by ASIC, is a reliable starting point."}}]}]}
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
 <script src="../adsense.js" defer></script>
@@ -62,7 +58,6 @@
 <script src="../error-capture.js" defer></script>
 
 <section class="tool-hero" id="main-content">
-  <div class="tool-eyebrow">Free Tool · Buying Costs</div>
   <h1>Cost of Purchase Breakdown</h1>
   <p>See all costs when buying a property in Australia — stamp duty, legal fees, bank charges, inspections, insurance, and moving costs. State-specific estimates.</p>
 </section>
@@ -317,48 +312,7 @@
 
 <div id="tool-resources-root"></div>
 <div id="tool-trust-root"></div>
-<!-- Static internal links: crawlable <a> to every calculator so Googlebot can
-     discover the full suite without executing the JS-injected related grid/nav.
-     Identical on every tool page (all 18 calculators); reuses .tool-resources styling (tools.css). -->
-<nav class="tool-resources" aria-label="All EquitySight calculators">
-  <div class="tool-resources-title">Explore all our free Australian property calculators</div>
-  <div class="tool-resources-grid">
-    <div>
-      <h3>Buying &amp; upfront costs</h3>
-      <ul>
-        <li><a href="/tools/stamp-duty-calculator">Stamp Duty Calculator</a></li>
-        <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
-        <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
-        <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
-        <li><a href="/tools/listing-price-checker">Listing Price Checker</a></li>
-        <li><a href="/tools/auction-budget-calculator">Auction Budget Calculator</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3>Borrowing &amp; repayments</h3>
-      <ul>
-        <li><a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a></li>
-        <li><a href="/tools/loan-serviceability-calculator">Loan Serviceability Calculator</a></li>
-        <li><a href="/tools/mortgage-repayment-calculator">Mortgage Repayment Calculator</a></li>
-        <li><a href="/tools/mortgage-stress-calculator">Mortgage Stress Calculator</a></li>
-        <li><a href="/tools/interest-only-vs-principal-calculator">Interest-Only vs Principal Calculator</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3>Investment &amp; returns</h3>
-      <ul>
-        <li><a href="/tools/rental-yield-calculator">Rental Yield Calculator</a></li>
-        <li><a href="/tools/capital-gains-calculator">Capital Gains Tax Calculator</a></li>
-        <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
-        <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
-        <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
-        <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a></li>
-        <li><a href="/tools/property-cashflow-calculator">Property Cash Flow Calculator</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="tool-resources-disclaimer"><a href="/tools/">View all Australian property calculators &rarr;</a></div>
-</nav>
+<p class="tool-all-link"><a href="/tools/">All 18 calculators</a></p>
 
 <div id="tool-footer-root"></div>
 

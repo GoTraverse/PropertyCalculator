@@ -42,7 +42,7 @@ var stateData = {
   // NOTE: VIC ($960k-$2M), ACT (>$1.455M) and NT use flat-of-total or quadratic
   // bands that the simple cumulative-tier model can't express — see calcDuty().
   nsw: {
-    name: 'New South Wales', dutyName: 'Transfer Duty', foreignRate: 0.09,
+    name: 'New South Wales', dutyName: 'Transfer duty', foreignRate: 0.09,
     fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
     // Brackets CPI-indexed 1 Jul 2026 (FY2026-27; premium threshold $3,870,000).
     tiers: [
@@ -56,7 +56,7 @@ var stateData = {
     ]
   },
   vic: {
-    name: 'Victoria', dutyName: 'Land Transfer Duty', foreignRate: 0.08,
+    name: 'Victoria', dutyName: 'Land transfer duty', foreignRate: 0.08,
     fhbFull: 600000, fhbPartial: 750000, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0.014 },
@@ -65,7 +65,7 @@ var stateData = {
     ]
   },
   qld: {
-    name: 'Queensland', dutyName: 'Transfer Duty', foreignRate: 0.08,
+    name: 'Queensland', dutyName: 'Transfer duty', foreignRate: 0.08,
     fhbFull: 700000, fhbPartial: 800000, fhbExemption: Infinity,
     // First home vacant land: NO duty at any value (contracts from 1 May 2025).
     tiers: [
@@ -77,7 +77,7 @@ var stateData = {
     ]
   },
   sa: {
-    name: 'South Australia', dutyName: 'Stamp Duty', foreignRate: 0.07,
+    name: 'South Australia', dutyName: 'Stamp duty', foreignRate: 0.07,
     // SA first-home relief is for NEW homes / vacant land only (no value taper),
     // so no automatic value-based FHB exemption is applied here.
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
@@ -94,7 +94,7 @@ var stateData = {
     ]
   },
   wa: {
-    name: 'Western Australia', dutyName: 'Transfer Duty', foreignRate: 0.07,
+    name: 'Western Australia', dutyName: 'Transfer duty', foreignRate: 0.07,
     fhbFull: 600000, fhbPartial: 800000, fhbExemption: Infinity, // WA thresholds raised 7 May 2026
     tiers: [
       { from: 0,       rate: 0.019  },
@@ -105,7 +105,7 @@ var stateData = {
     ]
   },
   tas: {
-    name: 'Tasmania', dutyName: 'Property Transfer Duty', foreignRate: 0.08,
+    name: 'Tasmania', dutyName: 'Property transfer duty', foreignRate: 0.08,
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity, // TAS FHB exemption EXPIRED 30 Jun 2026
     tiers: [
       { from: 0,       rate: 0      },
@@ -118,7 +118,7 @@ var stateData = {
     ]
   },
   act: {
-    name: 'Australian Capital Territory', dutyName: 'Conveyance Duty', foreignRate: 0,
+    name: 'Australian Capital Territory', dutyName: 'Conveyance duty', foreignRate: 0,
     fhbFull: Infinity, fhbPartial: Infinity, fhbExemption: Infinity, // ACT HBCS uncapped from 1 Jul 2026
     tiers: [
       { from: 0,       rate: 0.0028 },
@@ -130,7 +130,7 @@ var stateData = {
     ]
   },
   nt: {
-    name: 'Northern Territory', dutyName: 'Stamp Duty', foreignRate: 0,
+    name: 'Northern Territory', dutyName: 'Stamp duty', foreignRate: 0,
     // NT has no value-based FHB duty concession (relief is new-build exemption / grants).
     // Duty is a quadratic under $525k and a flat % of total above — see calcDuty().
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
