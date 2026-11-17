@@ -2307,7 +2307,7 @@ function renderClientErrors(errors){
     const pagePath = pageUrl ? pageUrl.replace(/^https?:\/\/[^/]+/,'').split('?')[0] : '';
     const isInline = srcPath && pagePath && (srcPath === pagePath || srcPath.endsWith(pagePath));
     const srcLabel = isInline ? `[inline] ${escHtml(srcPath)}` : (srcPath ? escHtml(srcPath) : '');
-    const src     = [srcLabel, e.line ? `line ${e.line}` : '', e.col ? `col ${e.col}` : ''].filter(Boolean).join(' · ');
+    const src     = [srcLabel, Number(e.line) ? `line ${Number(e.line)}` : '', Number(e.col) ? `col ${Number(e.col)}` : ''].filter(Boolean).join(' · ');
     const page    = pageUrl ? escHtml(pagePath.slice(0,60)) : '';
     const user    = e.userEmail ? escHtml(e.userEmail) : (e.userName ? escHtml(e.userName) : '<span style="color:rgba(245,240,232,0.5)">guest</span>');
     const stack   = e.stack ? `<details style="margin-top:4px;"><summary style="font-size:10px;color:var(--slate);cursor:pointer;">Stack trace</summary><pre style="font-size:10px;white-space:pre-wrap;word-break:break-all;color:var(--slate);margin:4px 0 0;line-height:1.4;background:rgba(28,28,30,0.04);padding:6px;border-radius:3px;">${escHtml(e.stack.slice(0,800))}</pre></details>` : '';
@@ -3828,7 +3828,7 @@ async function loadJourneys() {
       '<td style="word-break:break-all;">' + escHtml(it.email) + (it.name ? '<br><span style="color:var(--slate);font-size:10px;">' + escHtml(it.name) + '</span>' : '') + '</td>' +
       '<td>' + escHtml(JOURNEY_STAGES[it.stage] || '—') + '</td>' +
       '<td><span style="font-family:var(--font-mono);font-size:11px;">' + it.doneCount + '/7</span> <span style="display:inline-block;width:56px;height:5px;border-radius:3px;background:rgba(28,28,30,0.1);vertical-align:middle;margin-left:4px;"><span style="display:block;width:' + prog + '%;height:100%;border-radius:3px;background:var(--gold);"></span></span>' + (it.signedContract ? ' <span style="font-size:10px;color:var(--sage);">✓ contract</span>' : '') + '</td>' +
-      '<td>' + (it.state ? it.state.toUpperCase() : '—') + '</td>' +
+      '<td>' + (it.state ? escHtml(String(it.state).toUpperCase()) : '—') + '</td>' +
       '<td style="font-family:var(--font-mono);font-size:11px;">' + jFmtMoney(it.price) + '</td>' +
       '<td style="font-family:var(--font-mono);font-size:11px;">' + jFmtMoney(it.cap) + '</td>' +
       '<td style="font-family:var(--font-mono);font-size:11px;">' + it.inspections + '</td>' +
@@ -3864,7 +3864,7 @@ async function openJourneyDetail(email) {
   let h = '';
   h += '<div style="margin-bottom:14px;">' +
     chip('Stage: ' + escHtml(JOURNEY_STAGES[P.stage] || '—')) +
-    chip((N.state || '—').toUpperCase() + ' · ' + escHtml(P.area === 'regional' ? 'regional' : 'capital')) +
+    chip(escHtml(String(N.state || '—').toUpperCase()) + ' · ' + escHtml(P.area === 'regional' ? 'regional' : 'capital')) +
     chip(P.fhb ? 'First home buyer' : 'Owned before') +
     chip(P.buyers === 'couple' ? 'Couple' : 'Single') +
     chip('Income ' + jFmtMoney(P.income)) +

@@ -8,6 +8,7 @@
  *   growth:index              → [{suburb, state, rate, note, fetchedAt}] (full list for admin)
  */
 
+const { isStaleSession } = require('./_session');
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 const GROWTH_TTL  = 30 * 24 * 60 * 60; // 30 days in seconds
@@ -72,6 +73,7 @@ async function verifyAdmin(event){
   let data;
   try{data=JSON.parse(raw);}catch(e){return false;}
   if(data.expires&&Date.now()>data.expires) return false;
+  if(isStaleSession(data)) return false;
   if(data.role!=='admin') return false;
   // Check user still exists — deleted users should not retain access
   if(data.email){ const u=await redisCmd('GET','user:'+data.email); if(!u) return false; }

@@ -29,6 +29,7 @@
  */
 
 const log = require('./_log');
+const { isStaleSession } = require('./_session');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
@@ -91,6 +92,7 @@ async function verifyToken(event) {
   let data;
   try { data = JSON.parse(raw); } catch(e) { return null; }
   if (data.expires && Date.now() > data.expires) { await redisCmd('DEL', 'token:' + token); return null; }
+  if (isStaleSession(data)) return null;
   // Check user still exists — deleted users must not retain access. While we
   // have the record, refresh plan from it: the token snapshot goes stale after
   // Stripe upgrades / admin plan changes (same freshness rule as auth.js verify).

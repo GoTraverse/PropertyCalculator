@@ -22,6 +22,7 @@
  *     title, body, created_at, status: 'pending'|'approved'|'rejected' }
  */
 
+const { isStaleSession } = require('./_session');
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 
@@ -108,6 +109,7 @@ async function verifyToken(event) {
   let data;
   try { data = JSON.parse(raw); } catch(e) { return null; }
   if (data.expires && Date.now() > data.expires) { await redisCmd('DEL', 'token:' + token); return null; }
+  if (isStaleSession(data)) return null;
   if (data.email) { const u = await redisCmd('GET', 'user:' + data.email); if (!u) return null; }
   return data;
 }

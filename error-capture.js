@@ -20,6 +20,9 @@
     'The network connection was lost',
     'cancelled',
     'fetch is aborted',
+    // A cross-origin script threw; the browser withholds every detail, so
+    // there is nothing to act on.
+    'Script error.',
   ];
 
   // Substring match — suppress anywhere in the message. Used for third-party /
@@ -28,6 +31,10 @@
   var SUPPRESS_CONTAINS = [
     '["@context"]',
     "['@context']",
+    // Injected by in-app browsers and wallet extensions (Brave/Firefox iOS
+    // reader hooks, crypto wallets). This site never references either.
+    '__firefox__',
+    'window.ethereum',
   ];
 
   function shouldSuppress(msg) {
@@ -39,7 +46,7 @@
   function getUser() {
     try {
       var s = JSON.parse(localStorage.getItem('propCalc_session_v1') || 'null');
-      return s ? { userId: s.id || s.userId || '', userName: s.name || '', userEmail: s.email || '' } : {};
+      return s ? { userId: s.id || s.userId || '' } : {};
     } catch(e) { return {}; }
   }
 
@@ -53,12 +60,11 @@
     if (sent.length > 30) sent.shift(); // cap dedup list
 
     try {
-      entry.url       = window.location.href;
+      // Path only. The query string can carry a magic-link or journey share
+      // token, and the name and email are not needed to fix a bug.
+      entry.url       = window.location.origin + window.location.pathname;
       entry.userAgent = navigator.userAgent;
-      var u = getUser();
-      entry.userId    = u.userId    || '';
-      entry.userName  = u.userName  || '';
-      entry.userEmail = u.userEmail || '';
+      entry.userId    = getUser().userId || '';
       navigator.sendBeacon
         ? navigator.sendBeacon(ENDPOINT, JSON.stringify({ action: 'logError', error: entry }))
         : fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'logError', error: entry }), keepalive: true }).catch(function(){});

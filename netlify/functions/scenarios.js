@@ -13,6 +13,7 @@
  */
 
 const log = require('./_log');
+const { isStaleSession } = require('./_session');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
@@ -76,7 +77,7 @@ async function logEvent(userId,type,extra){
   if(!userId) return;
   try{
     await redisCmd('RPUSH','events:'+userId, JSON.stringify({type,at:Date.now(),...extra}));
-    await redisCmd('LTRIM','events:'+userId,'0','199');
+    await redisCmd('LTRIM','events:'+userId,'-200','-1'); // keep the newest 200
   }catch(e){ console.warn('[scenarios] logEvent failed:',e.message); }
 }
 
@@ -143,6 +144,7 @@ async function verifyToken(event){
   let data;
   try{data=JSON.parse(raw);}catch(e){return null;}
   if(data.expires&&Date.now()>data.expires){ await redisCmd('DEL','token:'+token); return null; }
+  if(isStaleSession(data)) return null;
   // Check user still exists — deleted users should not retain access. While we
   // have the record, refresh plan from it: the token snapshot goes stale after
   // Stripe upgrades / admin plan changes (same freshness rule as portfolio.js —
@@ -365,7 +367,9 @@ exports.handler = async function(event){
       if(!id) return fail('id required');
       if(photo){
         const ps = String(photo);
-        if(!/^data:image\/(jpeg|png|webp|gif);base64,/.test(ps)) return fail('Invalid photo format');
+        // Anchored at both ends: the value is later placed in an <img src>, so
+        // nothing but base64 may follow the prefix.
+        if(!/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(ps)) return fail('Invalid photo format');
         if(ps.length > 1100000) return fail('Photo too large — maximum ~800 KB');
         await rSet(photoKey(uid,id), ps);
         const index=await readIndex(uid);
