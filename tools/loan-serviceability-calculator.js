@@ -98,10 +98,10 @@ function calculate(silent) {
   var salary = parseVal('salary');
   var partner = parseVal('partner');
   var other = parseVal('other');
-  if (!salary && !partner && !other) { _showErr('Please enter at least one income source.'); return; }
+  if (!salary && !partner && !other) { _showErr('Enter at least one income.'); return; }
 
   var rate = parseFloat(document.getElementById('base-rate').value);
-  if (!isFinite(rate) || rate < 0) { _showErr('Please enter the loan interest rate.'); return; }
+  if (!isFinite(rate) || rate < 0) { _showErr('Enter the loan interest rate.'); return; }
 
   var s = serviceability({
     salary: salary, partner: partner, other: other,
@@ -167,31 +167,22 @@ ToolPage.init({
   slug: 'loan-serviceability',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Turn the estimate into a budget',
+    description: 'Step 3 of the First Home Journey runs a similar borrowing test, takes stamp duty and the other upfront costs out of your savings, and sets a maximum price.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE6', title: 'Borrowing & Affordability',
+        icon: '\uD83C\uDFE6', title: 'Home loans',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ASIC: Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
-        ]
-      },
-      {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
-        links: [
-          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This is general information only. Always consult with a financial adviser and your lender about your specific borrowing capacity, as calculations vary by circumstance.'
+    disclaimer: 'General information, not financial advice.'
   },
   share: {
     url: 'https://equitysight.app/tools/loan-serviceability-calculator',
@@ -212,7 +203,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'Single applicant — $95k income',
+      label: 'Single applicant on $95k',
       inputs: [
         { k: 'Gross income', v: '$95,000' },
         { k: 'Monthly living costs', v: '$2,400' },
@@ -225,7 +216,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'Couple — $95k and $70k',
+      label: 'Couple on $95k and $70k',
       inputs: [
         { k: 'Gross income', v: '$95,000 + $70,000' },
         { k: 'Monthly living costs', v: '$4,100' },
@@ -252,16 +243,14 @@ ToolPage.init({
     }
   ],
   faq: [
-    { q: 'How is serviceability calculated?',
-      a: 'Lenders take your net income, subtract living expenses and existing debt repayments, and test whether what is left covers the new loan at an interest rate 3 percentage points above the actual rate (APRA\u2019s serviceability buffer). This calculator does the same with after-tax income, an expense floor and 3% of credit card limits.' },
-    { q: 'What expenses do lenders look at?',
-      a: 'Lenders apply the higher of your declared expenses or the Household Expenditure Measure (HEM) for your household size and income band. HEM covers groceries, transport, utilities, insurance, childcare, and discretionary spending.' },
-    { q: 'Why do banks use a stress-test rate?',
-      a: 'APRA requires lenders to assess loans at the current rate plus a 3% buffer. This ensures you can keep servicing the loan if rates rise \u2014 a real-world risk most Australian borrowers have faced in recent years.' },
+    { q: 'How much income do I need to borrow $1 million?',
+      a: 'It depends on your expenses, debts and the rate. With no debts or credit cards and a 6.50% loan rate, this calculator gives about $1,068,000 for a single applicant on $200,000 and about $990,000 for a couple earning $100,000 each. A car loan, a credit card limit or a higher rate lowers both figures.' },
+    { q: 'Why does my credit card limit reduce my borrowing power if I pay it off?',
+      a: 'Lenders assume you could draw the full limit at any time, so they count a notional monthly repayment on the limit whatever the balance. This calculator uses 3% of the limit a month. Cutting or closing cards you don\u2019t need is one of the quickest ways to lift your borrowing capacity.' },
     { q: 'Does rental income count?',
-      a: 'Yes, but lenders usually discount it by 20\u201330% to account for vacancy and ongoing costs. A property expected to earn $500/week might be counted as ~$375/week (75%) for serviceability.' },
-    { q: 'How can I improve my borrowing power?',
-      a: 'Reduce credit-card limits (even unused limits reduce capacity), pay down personal loans, increase declared income (bonus/overtime history helps), and reduce declared expenses by closing subscriptions you don\u2019t use.' }
+      a: 'Yes, but lenders usually discount it by 20\u201330% to allow for vacancy and ongoing costs, so a property earning $500/week might count as about $375/week. This calculator counts 75% of other income, after tax.' },
+    { q: 'Does the 3% buffer ever change?',
+      a: 'Yes. APRA sets the minimum buffer and reviews it. It was 2.5% before October 2021 and has been 3% since. Some lenders also use a minimum floor rate that is higher than your rate plus the buffer.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83D\uDCC8', href: '/tools/mortgage-stress-calculator', label: 'Mortgage Stress Calculator' },

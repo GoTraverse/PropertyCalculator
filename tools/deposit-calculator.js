@@ -148,7 +148,7 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Compare the schemes on your own numbers',
+    title: 'Compare the deposit schemes',
     description: 'Step 2 of the First Home Journey compares the government schemes against buying without one, using your savings and income.',
     buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
@@ -246,13 +246,11 @@ ToolPage.init({
   ],
   faq: [
     { q: 'Do I need a 20% deposit to buy a home in Australia?',
-      a: 'No. 20% is the usual target because it avoids Lenders Mortgage Insurance (LMI). You can buy with 10% and pay LMI, or with as little as 5% through the 5% Deposit Scheme (formerly the First Home Guarantee). A smaller deposit means a larger loan and more interest over the life of the mortgage.' },
+      a: 'No. 20% is the usual target because it avoids Lenders Mortgage Insurance (LMI). You can buy with 10% and pay LMI, or with as little as 5% through the 5% Deposit Scheme (formerly the First Home Guarantee).' },
     { q: 'What is Lenders Mortgage Insurance (LMI) and when do I pay it?',
       a: 'LMI is insurance the lender takes out, and you pay for, when your deposit is below 20%. It protects the lender if you default. In this calculator, a $650,000 purchase gives an LMI estimate of $4,420 with a 15% deposit, $11,115 with 10% and $20,995 with 5%. It\'s usually added to the loan.' },
     { q: 'Can I use my super for a deposit?',
-      a: 'Yes. The First Home Super Saver Scheme lets eligible first home buyers release voluntary super contributions (plus earnings) to put toward a deposit. You can withdraw up to $50,000 of contributions, which are taxed concessionally.' },
-    { q: 'Do parents\' guarantees reduce the deposit I need?',
-      a: 'A family guarantee (parental guarantor loan) uses the equity in a parent\'s home as additional security, which can reduce or remove the deposit and avoids LMI. It ties the guarantor\'s property to your loan, so get legal advice first. This calculator doesn\'t model one.' }
+      a: 'Yes. The First Home Super Saver Scheme lets eligible first home buyers release voluntary super contributions (plus earnings) to put toward a deposit. You can withdraw up to $50,000 of contributions, which are taxed concessionally.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty' },

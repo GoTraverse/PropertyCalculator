@@ -375,7 +375,7 @@ function calculate() {
     ? fmt(regTotal) + ' (' + SCALED_REG[state] + ', transfer fee scales with price)'
     : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; quotes usually run $1,500\u2013$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my flat estimate; I\u2019d expect quotes of $1,500\u2013$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
@@ -434,8 +434,8 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Work out the rest of the purchase',
-    description: 'The First Home Journey uses the same duty tables, then builds the rest of your budget around them and tracks your contract deadlines.',
+    title: 'Budget the rest of the purchase',
+    description: 'The First Home Journey uses these duty tables in a budget for the whole purchase, then tracks your contract deadlines.',
     buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },

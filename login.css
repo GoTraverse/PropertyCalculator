@@ -1,65 +1,72 @@
 /* EquitySight.app — Login / Sign-up page styles
  *
- * Design goals (April 2026 perf rewrite):
- *   1. Zero CLS during load. Every dynamically-rendered chunk (Google
- *      Sign-In button, Turnstile widget, font swap) lands in pre-reserved
- *      space so nothing pushes content around.
- *   2. Tab switching is a single attribute flip. All three forms share one
- *      grid cell; we toggle visibility/opacity instead of display, so the
- *      browser does no layout work on switch.
- *   3. No animated scroll on this page. The global `scroll-behavior: smooth`
- *      from shared.css combined with iOS keyboard focus-scroll caused a
- *      visible "scroll up/down for a second" glitch on initial paint.
- *   4. No nested scroll container. Body owns the scroll; `.login-wrap`
- *      doesn't fight the body for it.
- *   5. No backdrop-filter on the login nav (cheap GPU + no flicker).
+ * Nov 2026: plain light form in the page column, like the calculators
+ * (white page, dark text, system font, charcoal primary button, blue
+ * underlined text links). Dark mode is handled at the bottom.
+ *
+ * Layout rules kept from the April 2026 perf rewrite:
+ *   1. Zero CLS during load. The Google button and the Turnstile widget
+ *      land in pre-reserved space so nothing pushes content around.
+ *   2. Tab switching is a single attribute flip. All forms share one grid
+ *      cell; visibility/opacity change, not display, so a switch does no
+ *      layout work.
+ *   3. No animated scroll on this page (smooth scroll plus iOS keyboard
+ *      focus-scroll made the page jump on first paint).
+ *   4. No nested scroll container. Body owns the scroll.
+ *   5. No backdrop-filter on the login nav.
  */
 
-/* Override smooth scrolling on the login page only — animated scroll
-   triggered by font swap / iframe instantiation looked like a glitch. */
-html { scroll-behavior: auto; }
-
-html { height: 100%; }
+html { scroll-behavior: auto; height: 100%; }
 body {
-  background: var(--charcoal);
+  background: var(--warm-white);
   min-height: 100dvh;
   overscroll-behavior: none;     /* no iOS rubber-band on body */
   display: flex;
   flex-direction: column;
 }
 
-/* No nested scroll container, no flex-center re-positioning. The login
-   box gets viewport-relative top padding (40px on short screens, up to
-   120px on tall ones) so the form sits at a comfortable position
-   without depending on flex-centering — which would re-position the
-   box on every dynamic height change. Body scrolls naturally if
-   content exceeds viewport. */
+/* ── Page column ──
+   Same 720px column and gutters as the calculator pages. The form itself
+   is narrower and sits on the left edge of the column. */
 .login-wrap {
   flex: 1;
   display: block;
-  padding: 56px 24px 32px;                          /* fallback for old Safari */
-  padding: clamp(40px, 8dvh, 120px) 24px 32px;       /* dvh-aware modern */
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px 56px;
   contain: layout;
 }
 .login-box {
   width: min(420px, 100%);
-  margin: 0 auto;
   contain: layout style;
 }
 
-/* Logo / heading */
-.login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; justify-content: center; }
-.login-heading { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--cream); margin-bottom: 6px; }
-.login-sub { font-size: 14px; color: rgba(245,240,232,0.55); margin-bottom: 28px; }
+/* Heading */
+.login-heading {
+  font-size: clamp(28px, 4.2vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-align: left;
+  margin-bottom: 10px;
+}
+.login-sub {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-align: left;
+  margin-bottom: 24px;
+}
 
-/* Google Sign-In wrapper. Skeleton is a fully styled mock of the
-   real GSI button (filled_black, size: 'large', width: 320). When
-   GSI renders into the host div, it visually replaces our skeleton
-   with an identical-looking iframe — no layout shift, no flicker. */
-#google-signin-wrap { margin-bottom: 18px; text-align: center; }
+/* ── Google Sign-In ──
+   The skeleton is a copy of Google's light-theme button (white, grey
+   border, the logo, 320 x 40) so the space is reserved before the GSI
+   script renders its own button into #google-signin-btn. */
+#google-signin-wrap { margin-bottom: 24px; text-align: left; }
 #google-signin-btn {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   min-height: 40px;              /* matches GSI 'large' button height */
 }
@@ -68,21 +75,20 @@ body {
   height: 40px;
   display: flex;
   align-items: center;
-  background: #131314;
-  border: 1px solid #5F6368;
+  background: #FFFFFF;
+  border: 1px solid #747775;
   border-radius: 4px;
   padding: 0 12px;
   gap: 12px;
   cursor: default;
   user-select: none;
   -webkit-user-select: none;
-  /* Subtle pulse so the user knows it's loading — but stays in the
-     same dimensions throughout. */
+  /* Slow fade so it reads as loading; size never changes. */
   animation: gbtnPulse 1.6s ease-in-out infinite;
 }
 @keyframes gbtnPulse {
   0%, 100% { opacity: 1; }
-  50%      { opacity: 0.78; }
+  50%      { opacity: 0.7; }
 }
 @media (prefers-reduced-motion: reduce) {
   .google-btn-skeleton { animation: none; }
@@ -95,53 +101,54 @@ body {
 .google-btn-text {
   flex: 1;
   text-align: center;
-  padding-right: 18px;            /* visually balance the 18px logo on the left */
-  color: #E3E3E3;
-  font-family: 'Roboto', 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding-right: 18px;            /* balance the 18px logo on the left */
+  color: #1F1F1F;
+  font-family: 'Roboto', var(--font-body);
   font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.25px;
+  letter-spacing: 0.25px;         /* Google's own button spec */
   white-space: nowrap;
 }
 .google-divider {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 8px;               /* the error slot above already reserves 24px */
 }
-.google-divider-line { flex: 1; height: 1px; background: rgba(245,240,232,0.1); }
-.google-divider-text { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; color: rgba(245,240,232,0.28); }
+.google-divider-line { flex: 1; height: 1px; background: var(--rule); }
+.google-divider-text { font-size: 14px; color: var(--ink-soft); }
 
-/* Tabs */
+/* ── Sign in / Create account switch ──
+   Two plain tabs on a rule. The selected one is dark with a 2px underline.
+   (.active only sets colours here; switching is done by data-active below.) */
 .login-tabs {
   display: flex;
-  gap: 0;
+  gap: 28px;
   margin-bottom: 24px;
-  border-radius: 3px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid var(--rule);
 }
 .login-tab {
-  flex: 1;
-  padding: 10px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 1px;
-  background: rgba(255,255,255,0.03);
-  color: rgba(245,240,232,0.55);
+  flex: 0 0 auto;
+  padding: 10px 0 9px;
+  margin-bottom: -1px;            /* underline sits on the rule */
+  font-size: 16px;
+  font-weight: 600;
+  background: none;
+  color: var(--ink-soft);
   border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
 }
-.login-tab.active { background: rgba(201,168,76,0.15); color: var(--gold); }
+.login-tab:hover { color: inherit; }
+.login-tab.active { color: inherit; border-bottom-color: currentColor; }
 
 /* ── Form stack ──
-   All three forms occupy the same grid cell. Switching active form
-   is a single CSS attribute change with zero layout work. */
+   All forms occupy the same grid cell. Switching the active form is one
+   attribute change with no layout work. */
 .login-forms {
   display: grid;
   grid-template-columns: 1fr;
-  /* All children land in the same implicit grid track */
 }
 .login-form {
   grid-column: 1;
@@ -160,83 +167,143 @@ body {
   visibility: visible;
   pointer-events: auto;
 }
-/* `inert` (set by JS on inactive forms) removes them from focus order
-   and screen-reader output. Modern browsers respect it; older fall
-   back to the visibility/pointer-events combo above. */
+/* `inert` (set by JS on inactive forms) removes them from the focus order
+   and screen-reader output. Older browsers fall back to the
+   visibility/pointer-events combination above. */
 
-/* ── Form fields ── */
+/* ── Fields ── */
 .form-field { margin-bottom: 16px; }
 .form-label {
-  font-family: var(--font-body);
-  font-size: 9px;
-  letter-spacing: 0.4px;
-  text-transform: none;
-  font-variant-caps: all-small-caps;
-  color: rgba(245,240,232,0.55);
-  margin-bottom: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 5px;
   display: block;
 }
 .form-input {
   width: 100%;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 3px;
-  padding: 12px 14px;
-  font-family: var(--font-body);
-  font-size: 16px;               /* 16px stops iOS from auto-zooming on focus */
-  color: var(--cream);
+  background: #FFFFFF;
+  border: 1px solid #8C8C92;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 16px;               /* 16px stops iOS from zooming on focus */
+  color: var(--charcoal);
   outline: none;
-  transition: border-color 0.15s, background-color 0.15s;
   box-sizing: border-box;
 }
 .form-input:focus {
-  border-color: rgba(201,168,76,0.6);
-  background: rgba(255,255,255,0.07);
+  border-color: var(--link);
+  box-shadow: 0 0 0 3px rgba(11,79,158,0.2);
 }
 .form-input-code {
-  letter-spacing: 2px;
+  letter-spacing: 2px;           /* easier to read a code back */
   text-transform: uppercase;
 }
 .form-note {
-  font-size: 13px;
-  color: rgba(245,240,232,0.65);
-  margin-bottom: 14px;
+  font-size: 16px;
   line-height: 1.5;
+  margin-bottom: 14px;
 }
-select.form-input { background: rgba(255,255,255,0.05); }
 
+/* ── Buttons ── */
 .form-submit {
   width: 100%;
-  background: var(--gold);
-  color: var(--charcoal);
+  background: var(--charcoal);
+  color: #FFFFFF;
   border: none;
-  border-radius: 3px;
-  padding: 14px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
+  border-radius: 4px;
+  padding: 12px 22px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  letter-spacing: 0.5px;
-  margin-top: 8px;
-  transition: opacity 0.15s;
-}
-.form-submit:hover { opacity: 0.88; }
-.form-submit:disabled { opacity: 0.4; cursor: default; }
-.form-error {
-  font-size: 12px;
-  color: #E8956A;
-  min-height: 18px;
-  font-family: var(--font-mono);
   margin-top: 6px;
 }
-.form-fineprint {
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 1px;
-  color: rgba(245,240,232,0.45);
-  margin-top: 10px;
+.form-submit:hover { background: var(--charcoal-mid); }
+.form-submit:disabled { opacity: 0.5; cursor: default; }
+.form-submit:disabled:hover { background: var(--charcoal); }
+
+/* Secondary: "Email me a sign-in link", "Resend", "Resend code". */
+.form-secondary,
+.btn-guest {
+  width: 100%;
+  background: transparent;
+  color: inherit;
+  border: 1px solid #8C8C92;
+  border-radius: 4px;
+  padding: 11px 18px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
 }
+.btn-guest { margin-top: 10px; }
+.form-secondary:hover,
+.btn-guest:hover { background: var(--cream); }
+.form-secondary:disabled,
+.btn-guest:disabled { opacity: 0.5; cursor: default; }
+
+/* Text-style buttons and links: Forgot password, Back to sign in, the
+   journey link. They sit on the left edge whatever their wrapper's
+   alignment is. */
+.login-link-btn {
+  display: block;
+  width: fit-content;
+  margin-right: auto;
+  background: none;
+  border: none;
+  color: var(--link);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  padding: 6px 0;                /* taller hit target on mobile */
+  cursor: pointer;
+}
+.login-link-btn:hover { text-decoration-thickness: 2px; }
+.login-guest {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+/* "or" between Sign in and the email-link button */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+.login-divider span { flex-shrink: 0; }
+
+/* ── Messages ── */
+.form-error {
+  font-size: 15px;
+  line-height: 1.4;
+  color: #B03A3A;
+  min-height: 18px;              /* reserved so a message doesn't shift the form */
+  margin-top: 6px;
+}
+/* login.js colours a few messages inline in shades picked for the old dark
+   page (pale yellow notice, mid green success). On white those are too
+   faint, so the light theme swaps them for darker shades of the same
+   colour. Dark mode keeps the inline colours. */
+html:not(.dark-mode) .form-error[style*="rgb(232, 208, 128)"] { color: #7A5B00 !important; }
+html:not(.dark-mode) .form-error[style*="rgb(90, 158, 122)"],
+html:not(.dark-mode) .login-sub[style*="rgb(90, 158, 122)"] { color: #2F7350 !important; }
 
 /* Terms checkbox row */
 .form-terms { margin-top: 10px; }
@@ -245,25 +312,29 @@ select.form-input { background: rgba(255,255,255,0.05); }
   align-items: flex-start;
   gap: 10px;
   cursor: pointer;
-  font-size: 13px;
-  color: rgba(245,240,232,0.75);
+  font-size: 15px;
   line-height: 1.5;
 }
 .form-terms-label input[type="checkbox"] {
   margin-top: 2px;
-  accent-color: #C9A84C;
+  accent-color: var(--charcoal);
   flex-shrink: 0;
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
 }
-.form-terms-label a { color: #C9A84C; }
+.form-terms-label a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
-/* Password strength meter */
+/* Password strength meter. The bar keeps login.js's colour; the word
+   (Weak / Fair / Strong) is plain text so it stays readable. */
 #pw-strength-bar {
-  height: 3px;
+  height: 4px;
   border-radius: 2px;
-  margin-top: 5px;
-  background: rgba(255,255,255,0.06);
+  margin-top: 6px;
+  background: var(--rule);
   overflow: hidden;
 }
 #pw-strength-fill {
@@ -273,89 +344,27 @@ select.form-input { background: rgba(255,255,255,0.05); }
   transition: width 0.25s, background-color 0.25s;
 }
 #pw-strength-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 1px;
-  color: rgba(245,240,232,0.45);
-  margin-top: 3px;
-  min-height: 13px;
+  font-size: 14px;
+  color: var(--ink-soft) !important;
+  margin-top: 4px;
+  min-height: 20px;
 }
 
 /* Verify-email step */
 #signup-verify-step {
   margin-top: 18px;
-  border-top: 1px solid rgba(255,255,255,0.09);
+  border-top: 1px solid var(--rule);
   padding-top: 18px;
 }
 .verify-note {
-  font-size: 12px;
-  color: rgba(245,240,232,0.6);
+  font-size: 15px;
   line-height: 1.5;
-  margin: 6px 0 14px;
+  margin: 4px 0 14px;
 }
-
-/* Inline OR divider that sits between the password Sign In and the
-   secondary magic-link button. */
-.login-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 16px 0 12px;
-  color: rgba(245,240,232,0.45);
-  font-family: var(--font-body);
-  font-size: 10px;
-  letter-spacing: 0.4px;
-  text-transform: none;
-  font-variant-caps: all-small-caps;
-}
-.login-divider::before,
-.login-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255,255,255,0.08);
-}
-.login-divider span { flex-shrink: 0; }
-
-/* Secondary action button — used for "Email me a sign-in link" and
-   "Resend". Bordered, neutral; visually distinct from the gold primary. */
-.form-secondary {
-  width: 100%;
-  background: rgba(255,255,255,0.04);
-  color: var(--cream);
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 3px;
-  padding: 12px 14px;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  text-transform: none;
-  font-variant-caps: all-small-caps;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
-}
-.form-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.28); }
-.form-secondary:disabled { opacity: 0.4; cursor: default; }
-
-/* Tertiary text-style buttons (Forgot password / Back to sign in). */
-.login-link-btn {
-  background: none;
-  border: none;
-  color: rgba(245,240,232,0.55);
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  text-decoration: underline;
-  padding: 4px 8px;             /* easier hit target on mobile */
-}
-.login-link-btn:hover { color: var(--cream); }
 
 /* ── Invisible Turnstile host ──
-   Lives outside the form stack and renders no UI. The challenge runs
-   as background JavaScript; we just need a DOM target for
-   turnstile.render() to attach to. Pulled fully off-flow so it can't
-   contribute to layout, scroll, or accidental focus. */
+   Renders no UI; it only gives turnstile.render() a DOM target. Pulled
+   fully out of flow so it can't affect layout, scroll or focus. */
 #turnstile-host {
   position: absolute;
   width: 0;
@@ -366,79 +375,94 @@ select.form-input { background: rgba(255,255,255,0.05); }
 }
 
 /* ── Password show/hide toggle ──
-   The wrap is `position: relative` so the toggle button can sit on
-   the right edge of the input. The input gets right-padding so
-   typed characters don't run under the button. */
+   Sits on the right edge of the input; the input gets right padding so
+   typed characters don't run under it. */
 .form-input-wrap {
   position: relative;
 }
 .form-input-wrap .form-input {
-  padding-right: 60px;             /* room for the Show/Hide button */
+  padding-right: 64px;
 }
 .form-input-toggle {
   position: absolute;
   top: 50%;
-  right: 6px;
+  right: 4px;
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: rgba(245,240,232,0.65);
-  font-family: var(--font-body);
-  font-size: 10px;
-  letter-spacing: 0.4px;
-  text-transform: none;
-  font-variant-caps: all-small-caps;
+  color: var(--charcoal);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
   padding: 8px 10px;               /* generous mobile hit target */
   cursor: pointer;
   border-radius: 3px;
 }
-.form-input-toggle:hover { color: var(--cream); background: rgba(255,255,255,0.05); }
-.form-input-toggle:focus-visible {
-  outline: 2px solid rgba(201,168,76,0.6);
-  outline-offset: 1px;
-}
+.form-input-toggle:hover { background: var(--cream); }
 
-/* Guest button */
-.btn-guest {
-  width: 100%;
-  background: rgba(255,255,255,0.04);
-  color: rgba(245,240,232,0.55);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 3px;
-  padding: 12px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background-color 0.15s, color 0.15s;
-}
-.btn-guest:hover { background: rgba(255,255,255,0.07); color: rgba(245,240,232,0.9); }
-
-/* Footer */
+/* ── Footer ── */
 .login-footer {
-  padding: 20px;
+  padding: 20px 24px;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   text-align: center;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: rgba(245,240,232,0.35);
-  border-top: 1px solid rgba(255,255,255,0.05);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--rule);
 }
-.login-footer a { color: rgba(201,168,76,0.65); text-decoration: none; }
-.login-footer a:hover { color: var(--gold); }
+.login-footer a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.login-footer a:hover { text-decoration-thickness: 2px; }
 
-/* ── Login-page nav: skip the expensive backdrop-filter ──
-   The login nav is a static logo bar with no scrolling links underneath.
-   Backdrop-filter is GPU-heavy and was causing repaint flicker on iOS
-   while the form's iframes were instantiating. We keep sticky positioning
-   but use a solid background instead. */
+/* ── Login-page nav: no backdrop-filter ──
+   Backdrop-filter caused repaint flicker on iOS while the form's iframes
+   were instantiating, so the nav gets a solid background instead. */
 body > .site-nav {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  background: rgba(28,28,30,1);
+  background: var(--charcoal);
+}
+
+@media (max-width: 600px) {
+  .login-wrap { padding: 28px 18px 48px; }
+  .login-footer { padding-left: 18px; padding-right: 18px; }
 }
 
 /* Reduced-motion users get instant tab switches (no fade). */
 @media (prefers-reduced-motion: reduce) {
   .login-form { transition: none; }
 }
+
+/* ── Dark mode ──
+   shared.css already darkens the page and the inputs (with !important).
+   The #main-content selectors below outrank those rules so the inputs keep
+   a visible border and the labels stay full-strength text. The Google
+   skeleton stays white: Google's light button is fine on a dark page. */
+html.dark-mode .login-tab { color: var(--ink-soft); }
+html.dark-mode .login-tab:hover,
+html.dark-mode .login-tab.active { color: #F5F0E8; }
+html.dark-mode #main-content .form-label { color: #F5F0E8 !important; }
+html.dark-mode #main-content .form-input { border-color: #8C8C92 !important; }
+html.dark-mode #main-content .form-input:focus {
+  border-color: var(--link) !important;
+  box-shadow: 0 0 0 3px rgba(138,180,248,0.3);
+}
+html.dark-mode .form-submit { background: #F3F3F0; color: #111113; }
+html.dark-mode .form-submit:hover { background: #FFFFFF; }
+html.dark-mode .form-submit:disabled:hover { background: #F3F3F0; }
+html.dark-mode .form-secondary:hover,
+html.dark-mode .btn-guest:hover,
+html.dark-mode .form-input-toggle:hover { background: rgba(255,255,255,0.08); }
+html.dark-mode .form-input-toggle { color: #F5F0E8; }
+html.dark-mode .form-error { color: var(--risk-red-bright); }
+html.dark-mode .form-terms-label input[type="checkbox"] { accent-color: #F3F3F0; }
+html.dark-mode .google-btn-skeleton { border-color: #8E918F; }
+html.dark-mode body > .site-nav { background: rgba(8,8,10,0.98); }
+
+/* Checker fixes (Nov 2026): readable placeholder in dark mode; busy buttons
+   stay legible while a request runs. */
+html.dark-mode #main-content .form-input::placeholder { color: rgba(245,240,232,0.55); }
+.form-submit:disabled, .form-secondary:disabled, .btn-guest:disabled { opacity: 0.7; cursor: progress; }

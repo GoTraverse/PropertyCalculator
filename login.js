@@ -349,7 +349,7 @@ async function initGoogleSignIn() {
   if (btnHost) {
     btnHost.innerHTML = '';
     google.accounts.id.renderButton(btnHost, {
-      theme: 'filled_black',
+      theme: 'outline',
       size: 'large',
       shape: 'rectangular',
       width: 320,

@@ -161,7 +161,7 @@ function calc() {
   var _msg = document.getElementById('calc-msg');
   function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
   if (_msg) _msg.hidden = true;
-  if (!purchasePrice || purchasePrice <= 0) { _showErr('Please enter a purchase price.'); return; }
+  if (!purchasePrice || purchasePrice <= 0) { _showErr('Enter a purchase price.'); return; }
   if (depositPct < 0 || depositPct > 100) { _showErr('Deposit must be between 0% and 100%.'); return; }
 
   var deposit = purchasePrice * (depositPct / 100);
@@ -261,40 +261,37 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Ready to buy?',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Set a maximum price',
+    description: 'Step 3 of the First Home Journey takes these costs out of your savings, checks the repayment against your income and gives you a maximum price to stick to.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83D\uDCB0', title: 'Stamp Duty',
+        icon: '\uD83D\uDCB0', title: 'Stamp duty',
         links: [
-          { text: 'NSW Revenue: Stamp Duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
-          { text: 'VIC: Land Transfer Duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
-          { text: 'QLD: Transfer Duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
-          { text: 'ATO: Shared Equity Schemes', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' }
+          { text: 'Revenue NSW: transfer duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
+          { text: 'SRO Victoria: land transfer duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
+          { text: 'QRO: transfer duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' }
         ]
       },
       {
-        icon: '\uD83C\uDFE6', title: 'Borrowing & LMI',
+        icon: '\uD83C\uDFE6', title: 'Home loans',
         links: [
-          { text: 'ASIC: Mortgage Insurance', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
-          { text: 'RBA: Interest Rates', href: 'https://www.rba.gov.au/education/' },
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyers',
         links: [
-          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'FHSS Scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Housing Australia: 5% Deposit Scheme (First Home Guarantee)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'ATO: First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       }
     ],
-    disclaimer: 'These are 2026 estimates based on typical costs. Actual costs vary by location, property, lender, and circumstance. Consult your lender, lawyer, and financial adviser before purchasing.'
+    disclaimer: 'Duty rates, concessions and registration fees change with state budgets, so check the figures with your state revenue office before you sign.'
   },
   share: {
     url: 'https://equitysight.app/tools/cost-of-purchase-calculator',
@@ -315,7 +312,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'QLD first home — $580,000, 10% deposit',
+      label: 'QLD first home buyer, $580,000, 10% deposit',
       inputs: [
         { k: 'Property price', v: '$580,000' },
         { k: 'Deposit', v: '$58,000 (10%)' },
@@ -324,15 +321,15 @@ ToolPage.init({
       ],
       outputs: [
         { k: 'Stamp duty', v: '$0 (first home concession)' },
-        { k: 'Title-office registration fees', v: '$2,358' },
-        { k: 'Conveyancing/legal', v: '$900' },
+        { k: 'Title office registration fees', v: '$2,358' },
+        { k: 'Conveyancing and legal', v: '$900' },
         { k: 'LMI (10% deposit)', v: '$9,918' },
         { k: 'Total buying costs', v: '$20,870 (3.6% of price)' },
         { k: 'Cash needed incl. deposit', v: '$78,870' }
       ]
     },
     {
-      label: 'NSW, not a first home buyer — $850,000, 20% deposit',
+      label: 'NSW, not a first home buyer, $850,000, 20% deposit',
       inputs: [
         { k: 'Property price', v: '$850,000' },
         { k: 'Deposit', v: '$170,000 (20%)' },
@@ -341,14 +338,14 @@ ToolPage.init({
       ],
       outputs: [
         { k: 'Stamp duty', v: '$32,438' },
-        { k: 'Title-office registration fees', v: '$366' },
-        { k: 'Conveyancing/legal', v: '$1,150' },
+        { k: 'Title office registration fees', v: '$366' },
+        { k: 'Conveyancing and legal', v: '$1,150' },
         { k: 'Total buying costs', v: '$43,164 (5.1% of price)' },
         { k: 'Cash needed incl. deposit', v: '$213,164' }
       ]
     },
     {
-      label: 'VIC, not a first home buyer — $1,100,000, 20% deposit',
+      label: 'VIC, not a first home buyer, $1,100,000, 20% deposit',
       inputs: [
         { k: 'Property price', v: '$1,100,000' },
         { k: 'Deposit', v: '$220,000 (20%)' },
@@ -356,8 +353,8 @@ ToolPage.init({
       ],
       outputs: [
         { k: 'Stamp duty', v: '$60,500' },
-        { k: 'Title-office registration fees', v: '$2,808 (VIC fee scales with price)' },
-        { k: 'Conveyancing/legal', v: '$1,400' },
+        { k: 'Title office registration fees', v: '$2,808 (VIC fee scales with price)' },
+        { k: 'Conveyancing and legal', v: '$1,400' },
         { k: 'Total buying costs', v: '$75,318 (6.8% of price)' },
         { k: 'Cash needed incl. deposit', v: '$295,318' }
       ]
@@ -365,15 +362,13 @@ ToolPage.init({
   ],
   faq: [
     { q: 'What are the total upfront costs of buying a house in Australia?',
-      a: 'It depends mostly on stamp duty. In the three examples on this page the total comes to 3.6%, 5.1% and 6.8% of the purchase price, on top of the deposit. The total covers stamp duty, registration fees, conveyancing, lender fees, an inspection, first-year insurance, moving costs, and LMI if your deposit is under 20%.' },
-    { q: 'What hidden costs do buyers forget?',
-      a: 'Common surprises: council + water rate adjustments at settlement, first-year building insurance, landlord insurance for investors, moving costs, utility connection fees, and strata/body-corp levies for apartments.' },
+      a: 'Mostly it depends on stamp duty. In the three examples on this page the total is 3.6%, 5.1% and 6.8% of the purchase price, on top of the deposit. That covers stamp duty, registration fees, conveyancing, lender fees, an inspection, first-year insurance, moving costs, and LMI if your deposit is under 20%.' },
     { q: 'Do I need Lenders Mortgage Insurance (LMI)?',
-      a: 'LMI is required on most loans with a deposit under 20%. This calculator estimates it from the loan-to-value ratio: for a $650,000 purchase with a 10% deposit the estimate is $11,115. You can avoid it with a 20% deposit, a guarantor, or schemes like the 5% Deposit Scheme (formerly the First Home Guarantee).' },
+      a: 'LMI applies to most loans with a deposit under 20%. This calculator estimates it from the loan-to-value ratio: for a $650,000 purchase with a 10% deposit the estimate is $11,115. A 20% deposit, a guarantor or the 5% Deposit Scheme (formerly the First Home Guarantee) avoids it, and the scheme has its own eligibility rules and price caps.' },
     { q: 'How much are conveyancing and legal fees?',
-      a: 'This calculator uses the mid-point of a range for each state, from $900 in Queensland and Tasmania to $1,400 in Victoria. Those ranges are my rough estimates, so get a quote. Solicitors usually charge more than licensed conveyancers but handle complex matters like deceased estates.' },
+      a: 'This calculator uses the middle of a range for each state, from $900 in Queensland and Tasmania to $1,400 in Victoria. Those ranges are my rough estimates, so get a quote. Solicitors usually charge more than licensed conveyancers but handle complex matters like deceased estates.' },
     { q: 'What about building and pest inspections?',
-      a: 'This calculator allows $500 for a combined building and pest inspection on an established home, which is my rough estimate. Inspections are optional but worth having, because they can reveal problems before you are committed.' },
+      a: 'This calculator allows $500 for a combined building and pest inspection on an established home, which is my rough estimate. Inspections are optional, but they can show up problems before you\'re committed.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },

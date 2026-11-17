@@ -13,7 +13,7 @@ function calculate(silent) {
   function _showErr(t){ if(_msg && !silent){ _msg.textContent = t; _msg.hidden = false; } }
   if (_msg) _msg.hidden = true;
 
-  if (!loan || !rate || !income) { _showErr('Please enter loan amount, interest rate, and monthly income.'); return; }
+  if (!loan || !rate || !income) { _showErr('Enter the loan amount, interest rate and monthly income.'); return; }
 
   var repay = monthlyRepayment(loan, rate, term, io);
   var stressed = monthlyRepayment(loan, rate + bufferPct, term, io);
@@ -32,12 +32,12 @@ function calculate(silent) {
   // high as the current one, so testing it first would hide the "already in
   // stress" cases behind the "a rate rise would push you there" wording.
   var verdict = '';
-  if (dsrCurrent >= 50) verdict = '\u26A0\uFE0F Severe stress. Repayments already take ' + dsrCurrent.toFixed(1) + '% of gross income at the current rate, above the 50% severe-stress line.';
-  else if (dsrCurrent >= 30) verdict = '\u26A0\uFE0F Already in mortgage stress. Repayments take ' + dsrCurrent.toFixed(1) + '% of gross income at the current rate (the threshold is 30%). A ' + bufferPct + '% rate rise would lift that to ' + dsrStress.toFixed(1) + '%.';
-  else if (dsrStress >= 50) verdict = '\u26A0\uFE0F High risk. Repayments are under 30% of gross income now, but a ' + bufferPct + '% rate rise would take them over 50%.';
-  else if (dsrStress >= 30) verdict = '\u26A0\uFE0F Caution. Repayments are under 30% of gross income now, but a ' + bufferPct + '% rate rise would push them to ' + dsrStress.toFixed(1) + '%, past the 30% stress threshold.';
-  else if (dsrStress < 25) verdict = '\u2713 Comfortable. Even with a ' + bufferPct + '% rate rise, repayments stay under 25% of gross income.';
-  else verdict = '\u2713 Manageable. Repayments stay under the 30% threshold even with a ' + bufferPct + '% rate rise.';
+  if (dsrCurrent >= 50) verdict = 'Severe stress. Repayments already take ' + dsrCurrent.toFixed(1) + '% of gross income at the current rate, above the 50% severe-stress line.';
+  else if (dsrCurrent >= 30) verdict = 'Already in mortgage stress. Repayments take ' + dsrCurrent.toFixed(1) + '% of gross income at the current rate (the threshold is 30%). A ' + bufferPct + '% rate rise would lift that to ' + dsrStress.toFixed(1) + '%.';
+  else if (dsrStress >= 50) verdict = 'High risk. Repayments are under 30% of gross income now, but a ' + bufferPct + '% rate rise would take them over 50%.';
+  else if (dsrStress >= 30) verdict = 'Caution. Repayments are under 30% of gross income now, but a ' + bufferPct + '% rate rise would push them to ' + dsrStress.toFixed(1) + '%, past the 30% stress threshold.';
+  else if (dsrStress < 25) verdict = 'Comfortable. Even with a ' + bufferPct + '% rate rise, repayments stay under 25% of gross income.';
+  else verdict = 'Manageable. Repayments stay under the 30% threshold even with a ' + bufferPct + '% rate rise.';
 
   var dsrEl = document.getElementById('r-dsr');
   dsrEl.textContent = dsrCurrent.toFixed(1) + '%';
@@ -98,38 +98,32 @@ ToolPage.init({
   slug: 'mortgage-stress',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full property purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Turn the repayment into a price limit',
+    description: 'The budget step of the First Home Journey tests the loan with the APRA buffer, then works out the most you can pay once stamp duty and the other upfront costs come out of your savings.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE6', title: 'Interest Rates & Policy',
+        icon: '\uD83C\uDFE6', title: 'Rates and lending rules',
         links: [
           { text: 'Reserve Bank of Australia (RBA)', href: 'https://www.rba.gov.au/' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
-          { text: 'APRA', href: 'https://www.apra.gov.au/' },
-          { text: 'MoneySmart: Home Loans', href: 'https://moneysmart.gov.au/home-loans' }
+          { text: 'RBA: explainers', href: 'https://www.rba.gov.au/education/resources/explainers/' },
+          { text: 'APRA', href: 'https://www.apra.gov.au/' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Borrowing Capacity',
+        icon: '\uD83D\uDCB0', title: 'Home loans and budgeting',
         links: [
-          { text: 'ASIC: Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
-        ]
-      },
-      {
-        icon: '\uD83D\uDCCA', title: 'Financial Management',
-        links: [
-          { text: 'ASIC: Budgeting Tools', href: 'https://moneysmart.gov.au/budgeting' },
-          { text: 'Moneysmart (ASIC)', href: 'https://moneysmart.gov.au/' },
-          { text: 'ASIC: Financial Difficulty Help', href: 'https://moneysmart.gov.au/justask' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
+          { text: 'Moneysmart: budgeting', href: 'https://moneysmart.gov.au/budgeting' },
+          { text: 'Moneysmart: help with financial difficulty', href: 'https://moneysmart.gov.au/justask' }
         ]
       }
     ],
-    disclaimer: 'This is general information only. Interest rates, serviceability criteria, and lending standards change over time. Always consult your lender and a financial adviser about your situation.'
+    disclaimer: 'General information, not financial advice. Rates and lending rules change, so check the current settings with your lender.'
   },
   share: {
     url: 'https://equitysight.app/tools/mortgage-stress-calculator',

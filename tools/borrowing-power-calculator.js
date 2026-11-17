@@ -224,7 +224,7 @@ function calc() {
   if (warnEl) {
     if (lvr > 80) {
       warnEl.style.display = '';
-      warnEl.innerHTML = '<strong>LMI applies at ' + lvr + '% LVR.</strong> About ' + fmt(maxLoan * (lvr <= 85 ? 0.008 : lvr <= 90 ? 0.019 : lvr <= 95 ? 0.034 : 0.043)) + ' in LMI, usually added to the loan. <a href="/tools/mortgage-repayment-calculator">The mortgage repayment calculator shows how it adds up.</a>';
+      warnEl.innerHTML = '<strong>LMI applies at ' + lvr + '% LVR.</strong> About ' + fmt(maxLoan * (lvr <= 85 ? 0.008 : lvr <= 90 ? 0.019 : lvr <= 95 ? 0.034 : 0.043)) + ' in LMI on my rough table, usually added to the loan. The <a href="/tools/mortgage-repayment-calculator">mortgage repayment calculator</a> shows it in the total cost.';
     } else {
       warnEl.style.display = 'none';
     }
@@ -286,8 +286,8 @@ ToolPage.init({
   slug: 'borrowing-power',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Turn the loan into a maximum price',
-    description: 'The First Home Journey runs the same borrowing test, then works out a maximum price once stamp duty and fees have come out of your savings.',
+    title: 'Turn the loan into a budget',
+    description: 'The First Home Journey runs the same borrowing test, then takes stamp duty and the other upfront costs out of your savings and sets a maximum price.',
     buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
