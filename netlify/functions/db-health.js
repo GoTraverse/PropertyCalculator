@@ -17,6 +17,7 @@
 
 'use strict';
 
+const { isStaleSession } = require('./_session');
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g, '').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g, '').trim();
 const DATABASE_URL = (process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL || '').trim();
@@ -51,6 +52,7 @@ async function verifyAdmin(event) {
   if (!token) return false;
   const session = await redisGet('token:' + token);
   if (!session || (session.expires && session.expires < Date.now())) return false;
+  if (isStaleSession(session)) return false;
   return session.role === 'admin';
 }
 

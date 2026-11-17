@@ -24,6 +24,7 @@
 'use strict';
 
 const log = require('./_log');
+const { isStaleSession } = require('./_session');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g, '').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g, '').trim();
@@ -89,6 +90,7 @@ async function verifyAdmin(event) {
   if (!token) return null;
   const session = await rGet('token:' + token);
   if (!session || session.expires < Date.now()) return null;
+  if (isStaleSession(session)) return null;
   if (session.role !== 'admin') return null;
   return session;
 }

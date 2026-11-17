@@ -17,6 +17,7 @@
  */
 
 const crypto = require('crypto');
+const { isStaleSession } = require('./_session');
 const log    = require('./_log');
 
 const STRIPE_SECRET_KEY    = (process.env.STRIPE_SECRET_KEY    || '').trim();
@@ -115,6 +116,7 @@ async function verifyToken(event) {
     await redisCmd('DEL', 'token:' + token);
     return null;
   }
+  if (isStaleSession(data)) return null;
   return data;
 }
 

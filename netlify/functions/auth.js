@@ -11,6 +11,7 @@
  */
 
 const crypto = require('crypto');
+const { isStaleSession } = require('./_session');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
@@ -250,11 +251,11 @@ async function rSet(key,val,ttl){
   return ttl ? redisCmd('SETEX',key,String(ttl),s) : redisCmd('SET',key,s);
 }
 async function rDel(key){ return redisCmd('DEL',key); }
-// Push to a Redis list (RPUSH) and cap at 200 entries (LTRIM 0 199)
+// Push to a Redis list (RPUSH) and keep the newest 200 entries
 async function rListPush(key,val){
   const s=typeof val==='string'?val:JSON.stringify(val);
   await redisCmd('RPUSH',key,s);
-  await redisCmd('LTRIM',key,'0','199');
+  await redisCmd('LTRIM',key,'-200','-1'); // RPUSH appends, so the newest 200 are the tail
 }
 async function rListRange(key,start,stop){ return redisCmd('LRANGE',key,String(start),String(stop)); }
 
@@ -461,6 +462,7 @@ async function verifyToken(event){
   const data=await rGet('token:'+token);
   if(!data) return null;
   if(data.expires&&Date.now()>data.expires){ await rDel('token:'+token); return null; }
+  if(isStaleSession(data)){ await rDel('token:'+token); return null; }
   return data;
 }
 
@@ -629,11 +631,10 @@ exports.handler = async function(event){
     if(!normalizedEmail||!code) return fail('Email and code required');
     const user=await rGet('user:'+normalizedEmail);
     if(!user) return fail('No account found for this email');
-    if(user.emailVerified){
-      const token=makeToken();
-      await rSet('token:'+token,{userId:user.id,email:user.email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-      return ok({ok:true,id:user.id,name:user.name,email:user.email,plan:user.plan||'free',role:user.role||'user',alreadyVerified:true}, buildSessionCookie(token, TOKEN_TTL));
-    }
+    // An already-verified account must sign in with its password, Google or a
+    // magic link. This branch never issues a session: the code has not been
+    // checked at this point, so the caller has proved nothing.
+    if(user.emailVerified) return fail('This email is already verified. Please sign in.');
     if(!user.emailVerificationCodeHash||!user.emailVerificationExpiresAt||Date.now()>user.emailVerificationExpiresAt){
       return fail('Verification code expired. Please request a new code.');
     }
@@ -753,7 +754,7 @@ exports.handler = async function(event){
     const token = readCookieToken(event);
     if(!token) return fail('Token required');
     const data=await rGet('token:'+token);
-    if(!data||(data.expires&&Date.now()>data.expires)) return fail('Invalid or expired session');
+    if(!data||(data.expires&&Date.now()>data.expires)||isStaleSession(data)) return fail('Invalid or expired session');
     // Check if user still exists (deleted users should be logged out)
     const userData=await rGet('user:'+data.email);
     if(!userData) return fail('User account has been deleted');
@@ -886,7 +887,12 @@ exports.handler = async function(event){
     userData.hash=hashPwScrypt(newPassword);
     await rSet('user:'+user.email,userData);
     await logEvent(userData.id,'password_changed',{});
-    return ok({ok:true});
+    // A password change signs out every other device. This device gets a new
+    // session so the person changing the password stays signed in.
+    await revokeAllTokensForUser(userData.id);
+    const freshToken=makeToken();
+    await rSet('token:'+freshToken,{userId:userData.id,email:userData.email||user.email,name:userData.name,plan:userData.plan||'free',role:userData.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
+    return ok({ok:true}, buildSessionCookie(freshToken, TOKEN_TTL));
   }
 
   if(action==='requestPasswordReset'){
@@ -938,6 +944,9 @@ exports.handler = async function(event){
     await rSet('user:'+normalizedEmail,userData);
     await rDel('pwreset:'+normalizedEmail);
     await logEvent(userData.id,'password_reset',{});
+    // A reset is what someone does when they think the account is compromised,
+    // so it must end every existing session.
+    await revokeAllTokensForUser(userData.id);
     return ok({ok:true});
   }
 
@@ -1067,6 +1076,7 @@ exports.handler = async function(event){
     userData.hash=hashPwScrypt(newPassword);
     await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
     await logEvent(userData.id,'admin_password_reset',{by:user.email});
+    await revokeAllTokensForUser(userData.id);
     return ok({ok:true});
   }
 

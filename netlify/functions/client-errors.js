@@ -7,6 +7,7 @@
  * POST { action:'adminGetClientErrors' }  — admin only, requires Bearer token
  */
 
+const { isStaleSession } = require('./_session');
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
 const RESEND_API_KEY    = (process.env.RESEND_API_KEY    || '').trim();
@@ -76,6 +77,7 @@ async function verifyToken(event) {
     const data = await rGet('token:' + token);
     if (!data) return null;
     if (data.expires && Date.now() > data.expires) return null;
+    if (isStaleSession(data)) return null;
     // Check user still exists — deleted users should not retain access
     if (data.email) { const u = await rGet('user:' + data.email); if (!u) return null; }
     return data;
@@ -85,7 +87,10 @@ async function verifyToken(event) {
 const ok  = (b) => ({ statusCode: 200, headers: H, body: JSON.stringify(b) });
 const fail = (msg, code) => ({ statusCode: code || 400, headers: H, body: JSON.stringify({ ok: false, error: msg }) });
 
-const SYNC_THROTTLE_MS  = 5 * 60 * 1000;        // 5 minutes
+// Automatic sync commits ERRORS.json to main, and every commit to main starts
+// a production build. logError is anonymous, so the throttle is the only bound
+// on how many builds a stranger can start: one a day.
+const SYNC_THROTTLE_MS  = 24 * 60 * 60 * 1000;  // 24 hours
 const ALERT_THROTTLE_MS = 24 * 60 * 60 * 1000; // 24 hours per alert type
 
 // Critical integration patterns — fires an email alert the moment one is detected.
@@ -134,9 +139,9 @@ async function maybeSendCriticalAlert(entry) {
   <p style="color:#6B7280;margin-top:0;font-size:13px;">EquitySight.app — automated alert</p>
   <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">
     <tr><td style="padding:6px 0;color:#6B7280;width:110px;">Integration</td><td style="padding:6px 0;font-weight:600;">${pattern.label}</td></tr>
-    <tr><td style="padding:6px 0;color:#6B7280;">Error</td><td style="padding:6px 0;word-break:break-all;">${String(msg).slice(0, 300)}</td></tr>
-    <tr><td style="padding:6px 0;color:#6B7280;">Page</td><td style="padding:6px 0;">${String(entry.url || 'unknown').slice(0, 200)}</td></tr>
-    <tr><td style="padding:6px 0;color:#6B7280;">Browser</td><td style="padding:6px 0;font-size:12px;color:#6B7280;">${String(entry.userAgent || '').slice(0, 120)}</td></tr>
+    <tr><td style="padding:6px 0;color:#6B7280;">Error</td><td style="padding:6px 0;word-break:break-all;">${escHtml(String(msg).slice(0, 300))}</td></tr>
+    <tr><td style="padding:6px 0;color:#6B7280;">Page</td><td style="padding:6px 0;">${escHtml(String(entry.url || 'unknown').slice(0, 200))}</td></tr>
+    <tr><td style="padding:6px 0;color:#6B7280;">Browser</td><td style="padding:6px 0;font-size:12px;color:#6B7280;">${escHtml(String(entry.userAgent || '').slice(0, 120))}</td></tr>
   </table>
   <p style="font-size:13px;color:#374151;">This is typically a CSP misconfiguration in <code>netlify.toml</code>. Check the <code>connect-src</code> or <code>script-src</code> directives and ensure the blocked domain is whitelisted.</p>
   <p style="font-size:12px;color:#9CA3AF;margin-top:24px;">Next alert for this integration suppressed for 24 hours. View the <a href="https://equitysight.app/admin">admin error log</a> for the full list.</p>
@@ -157,10 +162,23 @@ async function maybeSendCriticalAlert(entry) {
   }
 }
 
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+// Line/column numbers arrive from the browser, i.e. from anyone. Keep them
+// only when they are small non-negative integers.
+function toLineNo(v) {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 0 && n < 1e7 ? n : null;
+}
+function stripQuery(u) {
+  return String(u == null ? '' : u).split('?')[0].split('#')[0];
+}
+
 async function syncToGitHubThrottled() {
   const ghToken = (process.env.GITHUB_TOKEN || '').trim();
   if (!ghToken) return; // silently skip if not configured
-  // Check throttle: only sync if last sync was >5 min ago
+  // Check throttle: only sync if the last sync was more than a day ago
   const lastSync = await rGet('client-errors:lastSync');
   if (lastSync && (Date.now() - lastSync) < SYNC_THROTTLE_MS) return;
   await redisCmd('SET', 'client-errors:lastSync', String(Date.now()));
@@ -176,7 +194,17 @@ async function pushErrorsToGitHub(ghToken) {
 
   // Get all errors from Redis
   const raw = await redisCmd('LRANGE', 'client-errors', '0', '-1');
-  const errors = (raw || []).map(s => { try { return JSON.parse(s); } catch (e) { return { message: s, at: 0 }; } });
+  // ERRORS.json lives in the repository, so it must never carry who hit the
+  // error: no name, email or account id leaves Redis.
+  const errors = (raw || []).map(s => {
+    let e;
+    try { e = JSON.parse(s); } catch (err) { return { message: String(s).slice(0, 500), at: 0 }; }
+    if (!e || typeof e !== 'object') return { message: '', at: 0 };
+    delete e.userId; delete e.userName; delete e.userEmail;
+    e.url = stripQuery(e.url);
+    e.source = stripQuery(e.source);
+    return e;
+  });
   errors.reverse(); // newest first
   const content = JSON.stringify({ syncedAt: new Date().toISOString(), count: errors.length, errors }, null, 2);
   const encoded = Buffer.from(content).toString('base64');
@@ -229,10 +257,11 @@ exports.handler = async function (event) {
       at:        Date.now(),
       message:   String(err.message || '').slice(0, 500),
       source:    String(err.source  || '').slice(0, 300),
-      line:      err.line  || null,
-      col:       err.col   || null,
+      line:      toLineNo(err.line),
+      col:       toLineNo(err.col),
       stack:     String(err.stack   || '').slice(0, 1500),
-      url:       String(err.url     || '').slice(0, 300),
+      // Path only: a query string can carry a magic-link or share token.
+      url:       stripQuery(String(err.url || '')).slice(0, 300),
       userAgent: String(err.userAgent || '').slice(0, 250),
       userId:    String(err.userId    || '').slice(0, 100),
       userName:  String(err.userName  || '').slice(0, 100),
@@ -241,7 +270,7 @@ exports.handler = async function (event) {
     };
     try {
       await redisCmd('RPUSH', 'client-errors', JSON.stringify(entry));
-      await redisCmd('LTRIM', 'client-errors', '0', '499'); // keep last 500
+      await redisCmd('LTRIM', 'client-errors', '-500', '-1'); // keep the newest 500
     } catch (e) {
       console.warn('[client-errors] Failed to store error:', e.message);
     }
@@ -249,7 +278,7 @@ exports.handler = async function (event) {
     try { await maybeSendCriticalAlert(entry); } catch (e) {
       console.warn('[client-errors] Alert check failed:', e.message);
     }
-    // Auto-sync to GitHub (throttled: max once per 5 minutes)
+    // Auto-sync to GitHub (throttled: at most once a day)
     try { await syncToGitHubThrottled(); } catch (e) {
       console.warn('[client-errors] GitHub sync failed:', e.message);
     }
