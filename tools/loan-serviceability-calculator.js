@@ -120,11 +120,11 @@ function calculate(silent) {
     : 'Living expenses used: ' + fmt(s.expensesUsed) + ' a month (your figure, which is above the ' + fmt(s.floor) + ' floor).');
   if (debt > 0) parts.push('Existing repayments: ' + fmt(debt) + ' a month.');
   if (s.cardAssess > 0) parts.push('Credit cards: ' + fmt(s.cardAssess) + ' a month (3% of the limit).');
-  parts.push('Test rate: ' + s.assessmentRate.toFixed(2) + '% (your rate + 3%), 30-year principal and interest.');
+  parts.push('Test rate: ' + s.assessmentRate.toFixed(2) + '% (the rate above + 3%), 30-year principal and interest.');
   if (s.surplus <= 0) {
     parts.push('Nothing is left for loan repayments after expenses and commitments, so the estimate is $0.');
   } else {
-    parts.push('At your actual rate of ' + rate.toFixed(2) + '% that loan would cost about ' + fmt(s.repaymentAtActualRate) + ' a month.');
+    parts.push('At ' + rate.toFixed(2) + '% that loan would cost about ' + fmt(s.repaymentAtActualRate) + ' a month.');
   }
   var noteEl = document.getElementById('r-note');
   noteEl.textContent = parts.join(' ');
@@ -152,14 +152,20 @@ function calculate(silent) {
  *   in the box. ─ */
 if (typeof MarketRate !== 'undefined') {
   MarketRate.onReady(function(d) {
-    if (!d) return;
-    var showing = ToolPage.applyLiveRate({ inputId: 'base-rate', defaultValue: '6.25', slug: 'loan-serviceability', rate: d.suggestedRate });
-    var badge = document.getElementById('rate-live-badge');
-    var hint  = document.getElementById('rate-live-hint');
-    if (badge) badge.style.display = showing ? '' : 'none';
-    if (hint)  hint.textContent = MarketRate.rateNote(showing);
-    if (hint) hint.style.display = '';
+    // An older cached market-rate.js has no bindRateNote, so there would be
+    // no note saying what the suggestion is: keep the default instead.
+    if (!d || typeof MarketRate.bindRateNote !== 'function') return;
+    var rateEl = document.getElementById('base-rate');
+    // 6.50 was the default before Nov 2026, and back then a saved 6.50 was
+    // always replaced by the suggestion. If no suggestion has been stored for
+    // this visitor, a saved 6.50 is that old default, so treat it as the
+    // new one.
+    try {
+      if (rateEl && rateEl.value === '6.50' && localStorage.getItem('tool_live_rate_v1:loan-serviceability') === null) rateEl.value = '6.25';
+    } catch (e) {}
+    ToolPage.applyLiveRate({ inputId: 'base-rate', defaultValue: '6.25', slug: 'loan-serviceability', rate: d.suggestedRate });
     calculate(true);
+    MarketRate.bindRateNote(rateEl, document.getElementById('rate-live-badge'), document.getElementById('rate-live-hint'));
   });
 }
 

@@ -190,6 +190,9 @@ var REG_FEES = {
 // table behind them (same tiers as mortgage-repayment-calculator.js and
 // lmiRate() in journey.js). Real LMI varies by lender, insurer and borrower.
 function estimateLmiTier(lvr) {
+  // Rounded first, as lmiRate() in journey.js does: price × 0.8 ÷ price
+  // can come out as 0.8000000000000002 and land in the next tier.
+  lvr = Math.round(lvr * 10000) / 10000;
   if (lvr <= 0.80) return { rate: 0, label: 'No LMI (LVR ≤ 80%)' };
   if (lvr <= 0.85) return { rate: 0.0080, label: '~0.8% of loan' };
   if (lvr <= 0.90) return { rate: 0.0190, label: '~1.9% of loan' };

@@ -5,16 +5,19 @@
  *
  * The suggested rate is NOT a quoted rate. It is the RBA cash rate plus
  * LENDER_MARGIN, and the margin is my own estimate. Any page that shows the
- * suggested rate must show MarketRate.rateNote() with it, so the visitor is
- * told where the figure comes from.
+ * suggested rate must show MarketRate.rateNote() with it (bindRateNote does
+ * that and keeps it current), so the visitor is told where the figure comes
+ * from.
  *
  * Usage:
  *   <script src="../market-rate.js" defer></script>
  *   Then in calculator JS:
  *     MarketRate.onReady(function(data) {
- *       if (!data) return;                       // no live rate: keep the default
- *       var showing = ToolPage.applyLiveRate({ ..., rate: data.suggestedRate });
- *       hintEl.textContent = MarketRate.rateNote(showing);
+ *       // No live rate, or an older cached copy of this file: keep the default.
+ *       if (!data || typeof MarketRate.bindRateNote !== 'function') return;
+ *       ToolPage.applyLiveRate({ ..., rate: data.suggestedRate });
+ *       calculate(true);                          // the result matches the box
+ *       MarketRate.bindRateNote(inputEl, badgeEl, hintEl);
  *     });
  */
 (function (w) {
@@ -78,6 +81,32 @@
         + ' The ' + pts + ' points is my estimate of the margin on a typical variable owner-occupier loan.'
         + ' No lender has quoted this rate' + (prefilled ? ', so type your own if you have one.' : '.')
         + (d.rateDate ? ' Cash rate as at ' + plainDate(d.rateDate) + '.' : '');
+    },
+
+    /**
+     * Shows rateNote() under a rate field and keeps it, and the label badge,
+     * in step with the field as the visitor types: the badge and the
+     * "I've filled in" wording only show while the field holds the suggested
+     * rate (the same test ToolPage.applyLiveRate uses). Call it once, after
+     * applyLiveRate. badge and hint may be null. Does nothing without a live
+     * rate. A tool should check this function exists before it prefills a
+     * rate, so a page with an older cached copy of this file keeps its
+     * default instead of showing a suggestion with no note.
+     */
+    bindRateNote: function (input, badge, hint) {
+      var d = _data;
+      if (!d || !input) return;
+      var sugg = String(d.suggestedRate);
+      function show() {
+        var prefilled = input.value === sugg;
+        if (badge) badge.style.display = prefilled ? '' : 'none';
+        if (hint) {
+          hint.textContent = w.MarketRate.rateNote(prefilled);
+          hint.style.display = '';
+        }
+      }
+      show();
+      input.addEventListener('input', show);
     },
   };
 

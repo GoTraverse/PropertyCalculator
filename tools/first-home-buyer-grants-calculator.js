@@ -291,7 +291,9 @@ function fdsEligibility(stateData, price, isCapitalCity) {
 // at a 5% deposit, so the loan passed in is 95% of the price.
 function estimateLmi(loan, propertyValue) {
   if (!loan || !propertyValue) return 0;
-  const lvr = loan / propertyValue;
+  // Rounded first, as lmiRate() in journey.js does: price × 0.95 ÷ price
+  // can come out as 0.9500000000000001 and land in the next tier.
+  const lvr = Math.round(loan / propertyValue * 10000) / 10000;
   if (lvr <= 0.80) return 0;
   if (lvr <= 0.85) return Math.round(loan * 0.0080);
   if (lvr <= 0.90) return Math.round(loan * 0.0190);

@@ -76,6 +76,9 @@ function calculate() {
   var regTotal = Math.round(regMortgage + regTransfer);
   var conveyancing = 1800;
   function lmiRate(lvr) {
+    // Rounded first, as lmiRate() in journey.js does: price × 0.8 ÷ price
+    // can come out as 0.8000000000000002 and land in the next tier.
+    lvr = Math.round(lvr * 10000) / 10000;
     if (lvr <= 0.80) return 0;
     if (lvr <= 0.85) return 0.0080;
     if (lvr <= 0.90) return 0.0190;

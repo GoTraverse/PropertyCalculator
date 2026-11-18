@@ -34,7 +34,11 @@ const LMI_TIERS = [
 function estimateLmi(loan, propertyValue) {
   if (!loan || !propertyValue || propertyValue <= 0) return { amount: 0, lvr: 0, tier: LMI_TIERS[0] };
   const lvr = loan / propertyValue;
-  const tier = LMI_TIERS.find(t => lvr <= t.maxLvr) || LMI_TIERS[LMI_TIERS.length - 1];
+  // The tier is picked on the LVR rounded to 4 places, as lmiRate() in
+  // journey.js does, so floating-point error can't push a loan of exactly
+  // 80% into the next tier.
+  const lvrKey = Math.round(lvr * 10000) / 10000;
+  const tier = LMI_TIERS.find(t => lvrKey <= t.maxLvr) || LMI_TIERS[LMI_TIERS.length - 1];
   return { amount: Math.round(loan * tier.rate), lvr, tier };
 }
 
