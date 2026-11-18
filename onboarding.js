@@ -204,11 +204,10 @@
     try { localStorage.setItem(FLAG, '1'); } catch (e) {}
     close();
     // Once recalc has applied the numbers, size the deposit to their savings and
-    // reveal the Costs tab so a coherent, personalised result is the payoff — then,
-    // for a guest, surface the soft signup nudge at this high-intent value moment.
+    // reveal the Costs tab so a coherent, personalised result is the payoff.
+    // No signup prompt follows (the guest banner was removed in phase 1).
     deriveDeposit(function(){
       gotoCosts();
-      setTimeout(function(){ try { if (typeof window.maybeShowGuestBanner === 'function') window.maybeShowGuestBanner(); } catch (e) {} }, 650);
     });
   }
 

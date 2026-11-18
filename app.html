@@ -23,6 +23,13 @@
 <script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="app.css">
+<style>
+  /* Phase 1 stop-gap notice (#app-rebuild-note, top of <main>). */
+  #app-rebuild-note{margin:0 0 18px;max-width:72ch;font-size:14px;line-height:1.5;}
+  #app-rebuild-note a{color:var(--link);text-decoration:underline;}
+  .app-body > #app-rebuild-note{grid-column:1/-1;max-width:none;margin:0;padding:14px 20px;}
+  @media(max-width:600px){#app-rebuild-note{font-size:13px;margin-bottom:14px;}}
+</style>
 <script src="/error-capture.js" defer></script>
 <script src="auth-nav.js" defer></script>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -486,6 +493,12 @@
   </div>
 
   <main id="main-content">
+
+    <!-- Phase 1 stop-gap notice (plan section 7); /app is rebuilt in phase 5.
+         First thing in the scrolling content so it scrolls away with it.
+         setAppHeight() in app.js moves it above the calculator form at tablet
+         widths, where the form is stacked above the tabs. -->
+    <p id="app-rebuild-note">I'm rebuilding this page. Until then its stamp duty, grant and borrowing figures can differ from the <a href="/tools/">calculators</a>, which are up to date.</p>
 
     <!-- TAB 0: PROPERTY DETAILS -->
     <div class="section active" id="property">

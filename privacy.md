@@ -1,6 +1,6 @@
 ---
 title: Privacy Policy
-date: 17 November 2026
+date: 18 November 2026
 tag: Legal
 ---
 
@@ -21,6 +21,7 @@ By using the Service you agree to the collection and use of information as descr
 - Account information: Your name and email address when you create an account. If you sign in with Google, Google shares your name and email address with me to create or open your account, and Google processes that sign-in under its own privacy policy.
 - Password: Stored as a salted hash. I never store your password in plain text.
 - First Home Journey data: The answers you give in the journey. This includes your income, savings, household details, your budget and maximum price, and the places you save. If you are signed in, this is stored on my servers so it follows you across devices.
+- Your details: The facts about you that the journey, the calculators and the purchase calculator share, so you enter each one once. These are the state you're buying in, whether it's your first home, whether you're buying alone or with someone, each income and its type, HELP debts, dependants, credit card limits, other loan repayments, living costs, savings, what you save each month, your rent, and the price, deposit, scheme, interest rate and loan term you're working with. Each one is kept with the date you entered it and the page you entered it on. Section 6 says where they're kept and how to clear them.
 - Property scenarios and portfolio entries: The figures, addresses and notes you enter into the purchase calculator or the portfolio tool, if you use them.
 - Reviews you submitted: Suburb reviews written while submissions were open are published on the relevant suburb page with your display name. Email me to have one removed.
 - Profile information: Display name, optional profile photo and colour preference.
@@ -62,7 +63,7 @@ I do not sell, rent or trade your personal information. I share it only in these
 
 ### Sharing you start yourself
 
-If you create a journey share link, anyone who has that link can view your journey, including your first name and your financial answers, until you revoke it. An edit link lets the person you give it to change your journey. The same applies to scenario share invitations. Links are created only when you ask, and you can revoke them from the journey page.
+If you create a journey share link, anyone who has that link can view your journey, including your first name and the figures in it, such as your income, savings and any debts you've entered, until you revoke it. An edit link lets the person you give it to change your journey. The same applies to scenario share invitations. Links are created only when you ask, and you can revoke them from the journey page.
 
 ### Bot protection
 
@@ -83,6 +84,10 @@ No method of transmission or storage is completely secure. I take reasonable ste
 The site sets one essential HttpOnly Secure cookie (`es_session`) to keep you signed in. It holds a random session identifier. It does not hold your email, name or any other personal information, and JavaScript in your browser cannot read it.
 
 The site also uses browser localStorage to keep data on your device. This includes your in-progress journey, which holds the income and savings figures you enter, and your calculator inputs. This data stays on your device unless you sign in. If you sign in, your journey and scenarios sync to my servers so they follow you across devices. The site also keeps a short list of the pages you visited before signing up, which is attached to your account if you create one. Your sign-in token is not stored in localStorage.
+
+Your details (section 2) are kept in localStorage under `propCalc_details_v1`. If you aren't signed in, they stay in that browser. When you sign in there, the ones in that browser are added to your account. While you're signed in they're stored with your account, so the same figures appear on your other devices. I don't put them in page addresses, analytics or error reports, and my servers' logs don't record them. A journey you share includes most of these figures. The last price you typed into a calculator, and whether you plan to live in the home or rent it out, aren't in it.
+
+To clear your details, sign out: that removes the ones that belong to your account from that browser. Clearing this site's data in your browser's settings removes them from that browser whether you're signed in or not. Deleting your account removes the copy stored with your account. You can also email me to have that copy deleted without closing your account.
 
 The site uses Google Analytics to see which pages and features are used. Google Analytics sets its own cookies and may receive your IP address and device and usage data. If you are signed in it may also receive your account id. I do not send your name or email address to Google Analytics. Google processes this data under [Google's Privacy Policy](https://policies.google.com/privacy). The [Cookie Policy](/cookies) has the full list.
 
