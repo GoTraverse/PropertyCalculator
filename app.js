@@ -27,9 +27,14 @@
  */
 
 // ── PWA: Prevent iOS back-swipe from leaving the app ──────────────────
-  // PWA back-swipe trap — prevent iOS edge swipe from leaving the app
+  // PWA back-swipe trap — prevent iOS edge swipe from leaving the app.
+  // Installed app only: in a normal browser tab, Back must leave /app in one
+  // press (plan phase 1), so the trap never runs there.
   (function(){
     if(!window.history || !window.history.pushState) return;
+    var standalone = false;
+    try{ standalone = !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }catch(e){}
+    if(!standalone) return;
     // Push two entries so there's always a forward state to return to
     history.pushState({pwa:1}, '');
     history.pushState({pwa:2}, '');
@@ -200,12 +205,12 @@
     var grants = {
       nsw: {amount: 10000, note: 'NSW FHOG for new homes', urgent: false},
       vic: {amount: 10000, note: 'VIC FHOG for new homes', urgent: false},
-      qld: {amount: 30000, note: 'QLD FHOG — new homes only', urgent: true},
+      qld: {amount: 30000, note: 'QLD FHOG — new homes only', urgent: false},
       sa:  {amount: 15000, note: 'SA FHOG for new homes', urgent: false},
       wa:  {amount: 10000, note: 'WA FHOG for new homes', urgent: false},
       tas: {amount: 20000, note: 'TAS FHOG for new homes', urgent: false},
       act: {amount: 0,     note: 'ACT has no FHOG (land tax alternative scheme applies)', urgent: false},
-      nt:  {amount: 10000, note: 'NT FHOG + HomeGrown up to $60,000 total', urgent: false},
+      nt:  {amount: 10000, note: 'NT grant for new homes (see the <a href="/tools/first-home-buyer-grants-calculator" style="color:inherit;text-decoration:underline;">grants calculator</a>)', urgent: false},
     };
     var g = grants[state];
     if (!g || g.amount === 0) return {amount: 0, note: g ? g.note : '', urgent: false};
@@ -775,8 +780,7 @@
         }
         // FHOG
         if (fhog.amount > 0) {
-          const urgentTag = fhog.urgent ? ' <span style="color:var(--terracotta);font-weight:700;">— expires June 2026!</span>' : '';
-          html += `<div class="cr"><span class="nm">${fhog.note}${urgentTag}</span><span class="am" style="color:var(--sage)">+${fmt(fhog.amount)}</span></div>`;
+          html += `<div class="cr"><span class="nm">${fhog.note}</span><span class="am" style="color:var(--sage)">+${fmt(fhog.amount)}</span></div>`;
         } else if (fhog.note && isFHB && state) {
           html += `<div style="font-size:10px;color:var(--slate);padding:2px 0 4px;line-height:1.5;">${fhog.note}</div>`;
         }
@@ -4070,6 +4074,16 @@
     const navEl   = document.querySelector('nav');
     if(!header || !appBody) return;
 
+    // Phase 1 notice: it sits at the top of <main> so it scrolls away. From
+    // 601px to 820px the calculator form is stacked above <main>, so there it
+    // goes at the top of .app-body instead, above the form.
+    const note   = document.getElementById('app-rebuild-note');
+    const mainEl = document.getElementById('main-content');
+    if(note && mainEl){
+      const host = (window.innerWidth > 600 && window.innerWidth <= 820) ? appBody : mainEl;
+      if(note.parentNode !== host) host.insertBefore(note, host.firstChild);
+    }
+
     const headerH = header.offsetHeight;
     const navH    = navEl ? (navEl.offsetHeight || 44) : 44;
 
@@ -4805,33 +4819,10 @@
   }
   window.requireAccount = requireAccount;
 
-  // Soft, dismissible signup nudge shown to guests after meaningful engagement
-  // (a 45s timer or several edits, whichever first). Dismissal is remembered.
-  var _guestBannerShown = false;
-  function maybeShowGuestBanner(){
-    if(_guestBannerShown || isLoggedIn()) return;
-    try{ if(localStorage.getItem('propCalc_guest_banner_dismissed')) return; }catch(e){}
-    if(!document.body) return;
-    _guestBannerShown = true;
-    var bar = document.createElement('div');
-    bar.id = 'guest-signup-banner';
-    bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:8500;display:flex;align-items:center;gap:12px;max-width:min(560px,calc(100vw - 24px));background:var(--charcoal,#1C1C1E);color:var(--cream,#F5F0E8);border:1px solid rgba(201,168,76,0.4);border-radius:8px;padding:10px 12px;box-shadow:0 8px 30px rgba(0,0,0,0.35);font-size:13px;line-height:1.35;';
-    var msg = document.createElement('span');
-    msg.style.flex = '1';
-    msg.textContent = '💡 Create a free account to save this scenario and pick up where you left off.';
-    var cta = document.createElement('button');
-    cta.textContent = 'Create free account';
-    cta.style.cssText = 'flex-shrink:0;background:var(--gold,#C9A84C);color:var(--charcoal,#1C1C1E);border:none;border-radius:5px;padding:7px 12px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;';
-    cta.addEventListener('click', function(){ _goToSignup('save your work', 'banner'); });
-    var x = document.createElement('button');
-    x.setAttribute('aria-label','Dismiss');
-    x.textContent = '✕';
-    x.style.cssText = 'flex-shrink:0;background:transparent;border:none;color:inherit;opacity:0.6;font-size:15px;cursor:pointer;padding:2px 4px;';
-    x.addEventListener('click', function(){ bar.remove(); try{ localStorage.setItem('propCalc_guest_banner_dismissed','1'); }catch(e){} });
-    bar.appendChild(msg); bar.appendChild(cta); bar.appendChild(x);
-    document.body.appendChild(bar);
-    if(window.trackGuest) trackGuest('signup_prompt_shown', {source: 'banner'});
-  }
+  // The soft signup banner (after 45s, several edits or the wizard) is gone:
+  // the site doesn't push signup. Kept as a no-op because the 45s timer and
+  // the edit counter still call it; /app is rebuilt in phase 5.
+  function maybeShowGuestBanner(){}
   window.maybeShowGuestBanner = maybeShowGuestBanner;
 
   // Returns current user ID for body-fallback auth (works even without token)
@@ -5041,6 +5032,17 @@
   async function signOut(){
     var ok = await appConfirm('Sign Out', 'Are you sure you want to sign out?', {icon:'→', confirmLabel:'Sign Out'});
     if(!ok) return;
+    // A pending draft autosave would write the draft back after the device
+    // has been cleared, so cancel it first.
+    clearTimeout(_draftTimer);
+    // esForgetDevice() (auth-nav.js) removes this account's data from the
+    // browser. It may ask first when changes haven't reached the account, and
+    // gives false when the visitor chooses to stay signed in.
+    if(typeof window.esForgetDevice === 'function'){
+      var forgot;
+      try{ forgot = await window.esForgetDevice(); }catch(e){ forgot = undefined; }
+      if(forgot === false){ autosaveDraft(); return; }
+    }
     showPageSpinner();
     callAuthFn('signout', {}).catch(function(){});
     lsDel(SESSION_KEY);

@@ -119,14 +119,15 @@ window.toggleTheme = function(){
       '#anav-signout-overlay.open{display:flex!important;}',
       '#anav-signout-modal{background:#fff;border-radius:8px;width:min(360px,96vw);',
         'box-shadow:0 24px 80px rgba(0,0,0,0.55);padding:28px 24px 20px;}',
+      '#anav-signout-modal:focus{outline:none;}',
       '#anav-signout-modal h3{margin:0 0 8px;font-size:17px;color:#1C1C1E;font-weight:600;}',
       '#anav-signout-modal p{margin:0 0 20px;font-size:14px;color:#4A4A52;line-height:1.5;}',
       '.anav-signout-actions{display:flex;gap:10px;justify-content:flex-end;}',
-      '.anav-signout-cancel{padding:9px 18px;border-radius:5px;border:1.5px solid rgba(28,28,30,0.2);',
+      '.anav-signout-cancel{min-height:44px;padding:9px 18px;border-radius:5px;border:1.5px solid rgba(28,28,30,0.2);',
         'background:transparent;color:#4A4A52;font-size:14px;cursor:pointer;font-family:inherit;',
         'transition:background 0.12s;}',
       '.anav-signout-cancel:hover{background:rgba(28,28,30,0.06);}',
-      '.anav-signout-confirm{padding:9px 18px;border-radius:5px;border:none;',
+      '.anav-signout-confirm{min-height:44px;padding:9px 18px;border-radius:5px;border:none;',
         'background:#1C1C1E;color:#fff;font-size:14px;cursor:pointer;font-family:inherit;font-weight:600;',
         'transition:background 0.12s;}',
       '.anav-signout-confirm:hover{background:#3A3A3C;}'
@@ -134,41 +135,441 @@ window.toggleTheme = function(){
     document.head.appendChild(s);
   }
 
-  // Inject sign-out confirm modal HTML into body once
+  // ── Sign-out dialog ────────────────────────────────────────────────
+  // One small two-button dialog, used by "Sign out?" and by the warning
+  // about changes that haven't reached the account. ask() resolves true for
+  // the confirm button and false for the other button, Escape or a click
+  // outside the box. The box itself takes focus when clicked (tabindex -1),
+  // and the keys are read on the document while it is open, so Escape and
+  // the Tab loop work wherever focus ends up.
+  var _askResolve = null, _askReturnFocus = null;
   function injectSignOutModal() {
     if (document.getElementById('anav-signout-overlay')) return;
+    injectCSS();
     var el = document.createElement('div');
     el.id = 'anav-signout-overlay';
     el.innerHTML =
-      '<div id="anav-signout-modal">' +
-        '<h3>Sign out?</h3>' +
-        '<p>Your journey stays saved to your account.</p>' +
+      '<div id="anav-signout-modal" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="anav-signout-title" aria-describedby="anav-signout-body">' +
+        '<h3 id="anav-signout-title"></h3>' +
+        '<p id="anav-signout-body"></p>' +
         '<div class="anav-signout-actions">' +
-          '<button class="anav-signout-cancel" id="anav-signout-cancel-btn">Cancel</button>' +
-          '<button class="anav-signout-confirm" id="anav-signout-confirm-btn">Sign out</button>' +
+          '<button type="button" class="anav-signout-cancel" id="anav-signout-cancel-btn"></button>' +
+          '<button type="button" class="anav-signout-confirm" id="anav-signout-confirm-btn"></button>' +
         '</div>' +
       '</div>';
-    el.addEventListener('click', function(e) { if (e.target === el) window.closeSignOutModal(); });
+    el.addEventListener('click', function(e) { if (e.target === el) answerAsk(false); });
     document.body.appendChild(el);
-    document.getElementById('anav-signout-cancel-btn').addEventListener('click', window.closeSignOutModal);
-    document.getElementById('anav-signout-confirm-btn').addEventListener('click', window.confirmSignOut);
+    document.getElementById('anav-signout-cancel-btn').addEventListener('click', function() { answerAsk(false); });
+    document.getElementById('anav-signout-confirm-btn').addEventListener('click', function() { answerAsk(true); });
   }
-
-  window.closeSignOutModal = function() {
+  // Escape answers "stay"; Tab and Shift+Tab move between the two buttons
+  // and never leave the box.
+  function onAskKey(e) {
+    if (!_askResolve) return;
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); answerAsk(false); return; }
+    if (e.key !== 'Tab') return;
+    e.preventDefault();
+    var btns = [document.getElementById('anav-signout-cancel-btn'), document.getElementById('anav-signout-confirm-btn')];
+    var i = btns.indexOf(document.activeElement);
+    var to = i === -1 ? btns[e.shiftKey ? 1 : 0] : btns[1 - i];
+    if (to) to.focus();
+  }
+  function answerAsk(yes) {
+    document.removeEventListener('keydown', onAskKey, true);
     var el = document.getElementById('anav-signout-overlay');
     if (el) el.classList.remove('open');
-  };
+    // Focus goes back where it was, or to the profile button when that was
+    // the Sign out item in the (now closed) menu.
+    var back = _askReturnFocus; _askReturnFocus = null;
+    if (back && (!document.contains(back) || back.offsetParent === null)) back = document.getElementById('site-profile-btn');
+    if (back && back.focus) { try { back.focus(); } catch (e) {} }
+    var r = _askResolve; _askResolve = null;
+    if (r) r(!!yes);
+  }
+  function ask(o) {
+    injectSignOutModal();
+    if (_askResolve) answerAsk(false);
+    hidePageSpinner();
+    document.getElementById('anav-signout-title').textContent = o.title;
+    document.getElementById('anav-signout-body').textContent = o.body;
+    var cancel = document.getElementById('anav-signout-cancel-btn');
+    var ok = document.getElementById('anav-signout-confirm-btn');
+    cancel.textContent = o.cancel;
+    ok.textContent = o.ok;
+    _askReturnFocus = document.activeElement;
+    document.getElementById('anav-signout-overlay').classList.add('open');
+    document.addEventListener('keydown', onAskKey, true);
+    (o.focusCancel ? cancel : ok).focus();
+    return new Promise(function(resolve) { _askResolve = resolve; });
+  }
+  function hidePageSpinner() {
+    var s = document.getElementById('page-spinner');
+    if (s) s.classList.remove('show');
+  }
 
-  window.confirmSignOut = function() {
-    window.closeSignOutModal();
-    var sess = getSession();
-    fetch('/.netlify/functions/auth', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({action:'signout'})
-    }).catch(function(){});
-    localStorage.removeItem(SESSION_KEY);
-    window.goTo('/');
+  // ── Forget this device (sign-out) ──────────────────────────────────
+  // window.esForgetDevice(opts) signs out and removes what this browser
+  // holds for the account, so the next person at the computer sees none of
+  // it. Used by the nav, /account and /app. Returns a promise: true once
+  // signed out, false if the visitor chose to stay signed in.
+  //   opts.confirm    ask "Sign out?" first
+  //   opts.next       page to open afterwards (without it the page stays and
+  //                   the nav re-renders)
+  //   opts.onSignOut  called once the visitor has said yes and the session
+  //                   has ended, just before the page moves on (analytics)
+  // Order: push any pending "your details" fields while the session still
+  // works (window.Details.flush(), when the page has it) and compare the
+  // journey in this browser with the account's copy (journeyCheck); ask
+  // once: about changes that still haven't reached the account, or a
+  // journey that couldn't be checked, or else (with opts.confirm) "Sign
+  // out?"; end the server session; remove the keys; then the session.
+  //
+  // Removed: "your details" when an account owns it; the journey when its
+  // owner key is this account, or the shared copy plus the partner keys on a
+  // partner's device; a remembered partner invite; the return path kept for
+  // an emailed sign-in link; the unsent-change flag; /app's working copy, old
+  // draft, pending save, saved-list mirror and photos; every calculator's
+  // saved inputs and live-rate cache; cached profiles. Kept: the theme, site
+  // config caches, and a journey that was never linked to this account (a
+  // guest's, or another account's).
+  // Some of these keys only appear in later builds; they are listed now so
+  // sign-out never lags behind the pages that write them.
+  var DETAILS_KEY        = 'propCalc_details_v1';
+  var JOURNEY_KEY        = 'propCalc_journey_v1';
+  var JOURNEY_OWNER_KEY  = 'propCalc_journey_owner';
+  var JOURNEY_COLLAB_KEY = 'propCalc_journey_collab';
+  var JOURNEY_UNSENT_KEY = 'propCalc_journey_unsent';
+  var FORGET_KEYS = [
+    'propCalc_journey_pendingJoin', JOURNEY_UNSENT_KEY, 'propCalc_login_next',
+    'propCalc_workup_v2', 'propCalc_draft_v1', 'propCalc_pendingSave', 'propCalc_v5_index'
+  ];
+  // Set and removed at once by a sign-out, so other open tabs reload
+  // (localStorage only; never holds anything).
+  var SIGNED_OUT_SIGNAL = 'propCalc_signed_out';
+  // sessionStorage, this tab only: the history entries that were open when
+  // this tab signed out (Navigation API keys).
+  var FORGOT_ENTRIES_KEY = 'propCalc_forgot_entries';
+  var FORGET_PREFIXES = ['propCalc_v5_ph_', 'tool_inputs_v1:', 'tool_live_rate_v1:'];
+  var PROFILE_PREFIX = PK_BASE + '_';
+
+  function sessionUserId() {
+    var s = getSession();
+    return s && s.id ? String(s.id) : '';
+  }
+  function storageKeys() {
+    var out = [];
+    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k != null) out.push(k); } } catch (e) {}
+    return out;
+  }
+  function storageGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  // Which keys go, for the signed-in id `sid`. Pure apart from reading
+  // storage, so a test can check the list without a browser.
+  //   journey: 'own' | 'shared' | ''  (what happens to the journey)
+  //   unsent:  a change that hasn't reached the account yet
+  //   shared:  this device is working on someone else's journey
+  function forgetPlan(sid) {
+    var keys = storageKeys();
+    var plan = { remove: [], journey: '', unsent: false, shared: false };
+    function has(k) { return keys.indexOf(k) !== -1; }
+    function drop(k) { if (has(k) && plan.remove.indexOf(k) === -1) plan.remove.push(k); }
+
+    // "Your details": a record an account owns goes (this account's, or a
+    // stale one from another account, which details.js would drop on its
+    // next load anyway). A guest record (owner '') stays, like a guest journey.
+    if (has(DETAILS_KEY)) {
+      var det;
+      try { det = JSON.parse(storageGet(DETAILS_KEY)); } catch (e) { det = undefined; }
+      if (!det || typeof det !== 'object') drop(DETAILS_KEY); // unreadable: can't tell whose it is
+      else if (typeof det.owner === 'string' && det.owner) {
+        drop(DETAILS_KEY);
+        if (sid && det.owner === sid && Array.isArray(det.dirty) && det.dirty.length) plan.unsent = true;
+      }
+    }
+
+    var jOwner = storageGet(JOURNEY_OWNER_KEY) || '';
+    if (storageGet(JOURNEY_COLLAB_KEY)) {
+      // A partner's device: the journey here is the shared copy.
+      plan.shared = true;
+      if (has(JOURNEY_KEY)) plan.journey = 'shared';
+      drop(JOURNEY_KEY); drop(JOURNEY_COLLAB_KEY);
+      if (sid && jOwner === sid) drop(JOURNEY_OWNER_KEY);
+    } else if (sid && jOwner === sid) {
+      if (has(JOURNEY_KEY)) plan.journey = 'own';
+      drop(JOURNEY_KEY); drop(JOURNEY_OWNER_KEY);
+    }
+    if (storageGet(JOURNEY_UNSENT_KEY)) plan.unsent = true;
+
+    FORGET_KEYS.forEach(drop);
+    keys.forEach(function(k) {
+      for (var i = 0; i < FORGET_PREFIXES.length; i++) if (k.indexOf(FORGET_PREFIXES[i]) === 0) return drop(k);
+      if (k.indexOf(PROFILE_PREFIX) === 0 && k !== PROFILE_PREFIX + 'guest') drop(k);
+    });
+    drop(SESSION_KEY);
+    return plan;
+  }
+  function forgetNow(sid, first) {
+    // details.js keeps a copy in memory and may have a push waiting; its
+    // forget() drops both (and removes the record when an account owns it).
+    try { if (window.Details && typeof window.Details.forget === 'function') window.Details.forget(); } catch (e) {}
+    var plan = forgetPlan(sid);
+    plan.remove.forEach(function(k) { try { localStorage.removeItem(k); } catch (e) {} });
+    try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    if (first) {
+      try { localStorage.setItem(SIGNED_OUT_SIGNAL, String(Date.now())); localStorage.removeItem(SIGNED_OUT_SIGNAL); } catch (e) {}
+      notePagesBeforeSignOut();
+    }
+    return plan;
+  }
+
+  // ── What the browser keeps for Back and Forward ──
+  // The browser refills form fields when the visitor goes Back to a page
+  // (and may bring a whole page back from memory), so figures typed before
+  // sign-out could show again. At sign-out: fields on this page are marked
+  // autocomplete="off", which stops the browser saving them for Back; and
+  // the keys of this tab's history entries are noted. A page reached by Back
+  // or Forward from that list is loaded again from scratch (once), and so is
+  // this page if it comes back from memory.
+  function allFields() {
+    try { return Array.prototype.slice.call(document.querySelectorAll('input, select, textarea')); } catch (e) { return []; }
+  }
+  function notePagesBeforeSignOut() {
+    allFields().forEach(function(el) { try { el.setAttribute('autocomplete', 'off'); } catch (e) {} });
+    try {
+      var nav = window.navigation;
+      if (!nav || typeof nav.entries !== 'function') return;
+      var list = JSON.parse(sessionStorage.getItem(FORGOT_ENTRIES_KEY) || '[]');
+      if (!Array.isArray(list)) list = [];
+      nav.entries().forEach(function(en) { if (en && en.key && list.indexOf(en.key) === -1) list.push(en.key); });
+      sessionStorage.setItem(FORGOT_ENTRIES_KEY, JSON.stringify(list.slice(-200)));
+    } catch (e) {}
+  }
+  // True (and the entry is taken off the list) when this page is one of the
+  // entries noted at a sign-out in this tab.
+  function takeEntryFromBeforeSignOut() {
+    try {
+      var cur = window.navigation && window.navigation.currentEntry;
+      if (!cur || !cur.key) return false;
+      var list = JSON.parse(sessionStorage.getItem(FORGOT_ENTRIES_KEY) || '[]');
+      var i = Array.isArray(list) ? list.indexOf(cur.key) : -1;
+      if (i === -1) return false;
+      list.splice(i, 1);
+      sessionStorage.setItem(FORGOT_ENTRIES_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) { return false; }
+  }
+  // Load the page again with nothing the browser kept. Firefox refills
+  // fields on reload too, unless they are autocomplete="off".
+  function reloadClean() {
+    allFields().forEach(function(el) { try { el.setAttribute('autocomplete', 'off'); } catch (e) {} });
+    location.reload();
+  }
+
+  function wait(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+  // Push pending "your details" fields (shared/details.js, when the page
+  // loads it). Never waits more than 4 seconds.
+  function flushPending() {
+    var D = window.Details;
+    if (!D || typeof D.flush !== 'function') return Promise.resolve();
+    var p;
+    try { p = Promise.resolve(D.flush()); } catch (e) { return Promise.resolve(); }
+    return Promise.race([p.catch(function() {}), wait(4000)]);
+  }
+  // End the server session and clear the cookie. keepalive lets the request
+  // finish if the page is already moving on; never waits more than 3 seconds.
+  function serverSignOut() {
+    var req;
+    try {
+      req = fetch('/.netlify/functions/auth', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({action:'signout'}), keepalive: true, credentials: 'same-origin'
+      }).catch(function() {});
+    } catch (e) { req = Promise.resolve(); }
+    return Promise.race([req, wait(3000)]);
+  }
+
+  // ── Has the journey reached the account? ──
+  // journey.js saves to this browser at once and to the account a moment
+  // later, so a change made offline, or one whose save failed, is only here.
+  // Before the journey is removed, the copy here is compared with the
+  // account's (the shared journey's, on a partner's device). Resolves:
+  //   'saved'    nothing here that the account lacks (or no journey to lose)
+  //   'unsent'   this browser has changes the account doesn't
+  //   'unknown'  the account couldn't be reached
+  // Never takes more than about 4 seconds after the last journey save has
+  // had its 2.5 seconds to go out (journey.js sends 1.5 s after a change).
+  function localJourney() {
+    try { var j = JSON.parse(storageGet(JOURNEY_KEY)); return j && typeof j === 'object' ? j : null; } catch (e) { return null; }
+  }
+  // The same journey apart from when it was saved. Key order can differ.
+  function canon(v) {
+    if (Array.isArray(v)) return '[' + v.map(canon).join(',') + ']';
+    if (v && typeof v === 'object') {
+      return '{' + Object.keys(v).sort().map(function(k) { return JSON.stringify(k) + ':' + canon(v[k]); }).join(',') + '}';
+    }
+    return JSON.stringify(v === undefined ? null : v);
+  }
+  function sameJourney(a, b) {
+    var x = Object.assign({}, a), y = Object.assign({}, b);
+    delete x.updatedAt; delete y.updatedAt;
+    return canon(x) === canon(y);
+  }
+  function journeyCheck(plan) {
+    if (plan.journey !== 'own' && plan.journey !== 'shared') return Promise.resolve('saved');
+    var first = localJourney();
+    if (!first) return Promise.resolve('saved');   // unreadable here: the journey page couldn't load it either
+    var age = Date.now() - (Number(first.updatedAt) || 0);
+    var payload = { action: 'get' };
+    if (plan.shared) payload.collab = storageGet(JOURNEY_COLLAB_KEY);
+    return (age >= 0 && age < 2500 ? wait(2500 - age) : Promise.resolve()).then(function() {
+      var req;
+      try {
+        req = fetch('/.netlify/functions/journey', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload), credentials: 'same-origin'
+        }).then(function(r) { return r.json(); });
+      } catch (e) { req = Promise.reject(e); }
+      return Promise.race([req, wait(4000).then(function() { return null; })]);
+    }).then(function(r) {
+      if (!r) return 'unknown';
+      // A shared journey whose link was turned off can't take changes anyway.
+      if (!r.ok) return /no longer active/i.test(String(r.error || '')) ? 'saved' : 'unknown';
+      var local = localJourney();
+      if (!local) return 'saved';
+      var acct = r.record && r.record.state && typeof r.record.state === 'object' ? r.record.state : null;
+      // Nothing in the account: only a journey past step 1 is worth keeping
+      // (journey.js doesn't send one that isn't).
+      if (!acct) return local.done && local.done[1] ? 'unsent' : 'saved';
+      // The account copy is this save or a later one: nothing to lose here.
+      if ((Number(local.updatedAt) || 0) <= (Number(acct.updatedAt) || 0)) return 'saved';
+      return sameJourney(local, acct) ? 'saved' : 'unsent';
+    }, function() { return 'unknown'; });
+  }
+
+  function signOutQuestion(plan) {
+    var calcs = 'any figures typed into the calculators';
+    var body = plan.journey === 'own'
+      ? 'Your journey stays saved in your account. Signing out removes it from this browser, along with ' + calcs + '.'
+      : plan.journey === 'shared'
+        ? 'The shared journey stays saved. Signing out removes it from this browser, along with ' + calcs + '.'
+        : 'Signing out removes ' + calcs + ' from this browser.';
+    return { title: 'Sign out?', body: body, ok: 'Sign out', cancel: 'Stay signed in' };
+  }
+  function unsentQuestion(plan) {
+    return {
+      title: plan.shared ? 'Some changes haven’t reached the shared journey yet' : 'Some changes haven’t reached your account yet',
+      body: 'If you sign out now, this browser loses them.',
+      ok: 'Sign out anyway', cancel: 'Stay signed in', focusCancel: true
+    };
+  }
+  function uncheckedQuestion(plan) {
+    return {
+      title: plan.shared ? 'I couldn’t reach the shared journey' : 'I couldn’t reach your account',
+      body: 'So I can’t tell whether your latest journey changes are saved there. If they aren’t, signing out now loses them.',
+      ok: 'Sign out anyway', cancel: 'Stay signed in', focusCancel: true
+    };
+  }
+  // The question to ask, or null when nothing needs asking.
+  //   j: journeyCheck's answer; plan.unsent: "your details" still to send
+  //   or the journey's unsent flag
+  function warning(plan, j) {
+    if (plan.unsent || j === 'unsent') return unsentQuestion(plan);
+    if (j === 'unknown') return uncheckedQuestion(plan);
+    return null;
+  }
+  // The spinner only for a check that takes a moment.
+  function spinnerWhile(p) {
+    var t = setTimeout(function() { if (window.showPageSpinner) window.showPageSpinner(); }, 300);
+    return p.then(function(v) { clearTimeout(t); hidePageSpinner(); return v; });
+  }
+
+  var _forgetting = null, _forgotten = false;
+  window.esForgetDevice = function(opts) {
+    if (_forgetting) return _forgetting;
+    opts = opts || {};
+    var sid = sessionUserId();
+    var warned = false;     // the visitor has already chosen "Sign out anyway"
+    var check = journeyCheck(forgetPlan(sid));
+    var run;
+    if (opts.confirm) {
+      // One question: the warning when there is one, else "Sign out?". The
+      // push and the check run first so the question says what is true.
+      run = spinnerWhile(Promise.all([flushPending(), check])).then(function(res) {
+        var plan = forgetPlan(sid);
+        var w = warning(plan, res[1]);
+        if (w) warned = true;
+        return ask(w || signOutQuestion(plan));
+      });
+    } else {
+      run = Promise.resolve(true);
+    }
+    run = run
+      .then(function(go) {
+        if (!go) return false;
+        if (window.showPageSpinner) window.showPageSpinner();
+        return Promise.all([flushPending(), check]).then(function(res) {
+          if (warned) return true;
+          var w = warning(forgetPlan(sid), res[1]);
+          return w ? ask(w) : true;
+        });
+      })
+      .then(function(go) {
+        if (!go) { hidePageSpinner(); return false; }
+        if (window.showPageSpinner) window.showPageSpinner();
+        return serverSignOut().then(function() {
+          forgetNow(sid, true);
+          _forgotten = true;
+          // A page script can still write between here and the next page
+          // (a sync reply, a debounced save), so forget once more as the
+          // page goes.
+          if (opts.next) window.addEventListener('pagehide', function() { forgetNow(sid); });
+          if (typeof opts.onSignOut === 'function') { try { opts.onSignOut(); } catch (e) {} }
+          if (opts.next) {
+            location.href = opts.next;
+          } else {
+            hidePageSpinner();
+            if (window.renderSiteNav) window.renderSiteNav();
+          }
+          return true;
+        });
+      });
+    _forgetting = run.then(function(v) { _forgetting = null; return v; },
+                           function(e) { _forgetting = null; hidePageSpinner(); throw e; });
+    return _forgetting;
   };
+  // For tests and checks: what sign-out would remove right now. Reads only.
+  window.esForgetDevice.plan = function() { return forgetPlan(sessionUserId()); };
+
+  // A page from before a sign-out in this tab, reached by Back or Forward:
+  // load it again from scratch. performance tells a fresh load's kind;
+  // pageshow with persisted covers a page brought back from memory.
+  (function() {
+    try {
+      var nt = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      if (nt && nt.type === 'back_forward' && takeEntryFromBeforeSignOut()) reloadClean();
+    } catch (e) {}
+  })();
+  window.addEventListener('pageshow', function(e) {
+    if (!e.persisted) return;
+    if (takeEntryFromBeforeSignOut() || _forgotten) reloadClean();
+  });
+  // Signed out (or the account deleted) in another tab: this tab still holds
+  // the account's figures in memory and on screen, and would write them back
+  // on the next change. Reload it. A session dropped for another reason
+  // (it expired) only redraws the nav, so nothing typed here is lost.
+  window.addEventListener('storage', function(e) {
+    if (e.key === null || (e.key === SIGNED_OUT_SIGNAL && e.newValue)) { reloadClean(); return; }
+    if (e.key === SESSION_KEY && e.oldValue && !e.newValue && window.renderSiteNav) window.renderSiteNav();
+  });
+
+  // The nav's Sign in link brings the visitor back to this page.
+  // login.js checks `next` against its allowlist.
+  function signInHref() {
+    var path = location.pathname || '/';
+    if (path === '/' || /^\/(index|login)(\.html)?\/?$/.test(path)) return '/login';
+    var hash = /^#step-[1-7]$/.test(location.hash) ? location.hash : '';
+    return '/login?next=' + encodeURIComponent(path + location.search + hash);
+  }
 
   // Inject help modal HTML into body once
   function injectHelpModal() {
@@ -359,9 +760,9 @@ window.toggleTheme = function(){
   }
 
   window.siteSignOut = function() {
-    injectSignOutModal();
-    var el = document.getElementById('anav-signout-overlay');
-    if (el) el.classList.add('open');
+    var menu = document.getElementById('site-profile-menu');
+    if (menu) menu.classList.remove('open');
+    return window.esForgetDevice({ confirm: true, next: '/' });
   };
 
   // Canonical site-wide nav link set. One source of truth — every page that
@@ -488,7 +889,11 @@ window.toggleTheme = function(){
 
     } else {
       actions.innerHTML =
-        '<a href="/login" class="btn-ghost">Sign in</a>';
+        '<a href="' + _esc(signInHref()) + '" class="btn-ghost" id="anav-signin-link">Sign in</a>';
+      // The address can change after the nav is drawn (a journey step), so
+      // the link is brought up to date when it is used.
+      var signInLink = document.getElementById('anav-signin-link');
+      if (signInLink) signInLink.addEventListener('click', function() { signInLink.setAttribute('href', signInHref()); });
     }
   }
 

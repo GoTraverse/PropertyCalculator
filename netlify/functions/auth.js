@@ -339,6 +339,9 @@ async function deleteUserKeys(userData, opts){
   const journeyKeysAreOwn = email.includes('@') && !email.includes(':');
   if(journeyKeysAreOwn){
     delOps.push(rDel('journey:'+email));
+    // "Your details" (shared/details.js): the incomes, savings and debts the
+    // Journey, the calculators and /app share. Same key rule as the journey.
+    delOps.push(rDel('details:'+email));
     try{
       // Shape: journey:shares:<email> → { view: <token>, edit: <token> }
       const shRaw = await redisCmd('GET','journey:shares:'+email);
@@ -1725,6 +1728,15 @@ exports.handler = async function(event){
       // Fetch values for the page (skip large photo keys — just show metadata)
       const entries=await Promise.all(page.map(async k=>{
         if(k.includes(':photo:')) return {key:k,value:'[base64 photo data]',type:'photo'};
+        // A person's own figures (income, savings, debts). The admin pages
+        // never show them: only how many fields the record holds.
+        if(k.startsWith('details:')){
+          try{
+            const v=await rGet(k);
+            const n=v&&v.f&&typeof v.f==='object'?Object.keys(v.f).length:0;
+            return {key:k,value:'[not shown: '+n+' fields]',type:'details'};
+          }catch(e){ return {key:k,value:'[not shown]',type:'details'}; }
+        }
         try{
           const v=await rGet(k);
           // Redact sensitive fields

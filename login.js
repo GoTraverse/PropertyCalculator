@@ -119,26 +119,90 @@ if (refParam) {
 // 3. Already-logged-in redirect
 // ──────────────────────────────────────────────────────────────────────
 
-const ALLOWED_NEXT = ['app', 'account', 'portfolio', 'journey'];
-const ALLOWED_NEXT_PREFIXES = ['suburb/'];
+// Where sign-in may send the visitor afterwards. `next` comes from the
+// address bar, so it is checked against this list: a page on this site,
+// written in plain path characters. Anything else (another site, a
+// protocol-relative //host, a backslash, a percent escape, markup) goes to
+// /journey. A listed page with a query or #step it doesn't allow keeps the
+// page and drops the rest.
+const NEXT_DEFAULT = '/journey';
+const NEXT_SLUG = '[a-z]+(?:-[a-z]+)*';          // tool slugs: letters and dashes
+const NEXT_PAGES = [
+  /^(?:journey|app|account|portfolio|pricing|admin)$/,
+  /^tools\/?$/,
+  new RegExp('^tools/' + NEXT_SLUG + '/?$'),
+  /^suburb\/[a-z]{2,3}\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/,
+];
+const NEXT_FROM = 'from=(?:step[2-7]|app|journey|' + NEXT_SLUG + ')';
+const NEXT_QUERIES = {
+  // The journey's partner-invite link carries its join token through signup.
+  journey: /^join=[A-Za-z0-9_-]{6,64}$/,
+  // Saving a workup after sign-up, a Journey place, a saved workup.
+  app: new RegExp('^(?:save=1|place=[A-Za-z0-9_-]{8}|w=[A-Za-z0-9_-]{1,64}|' + NEXT_FROM + ')$'),
+  tools: new RegExp('^' + NEXT_FROM + '$'),
+};
+const NEXT_HASHES = { journey: /^step-[1-7]$/ };
 function safeNextUrl(raw) {
-  if (!raw) return '/journey';
-  const clean = raw.replace(/^\//, '').replace(/\.html$/, '');
-  // The journey's partner-invite link carries its join token through signup —
-  // without this, the token is dropped and the collaborator lands on /app.
-  if (/^journey\?join=[A-Za-z0-9_-]{6,64}$/.test(clean)) return '/' + clean;
-  if (ALLOWED_NEXT.includes(clean)) return '/' + clean;
-  for (let i = 0; i < ALLOWED_NEXT_PREFIXES.length; i++) {
-    if (clean.indexOf(ALLOWED_NEXT_PREFIXES[i]) === 0 && !/[?#]/.test(clean)) return '/' + clean;
-  }
-  return '/journey';
+  if (typeof raw !== 'string' || !raw || raw.length > 200) return NEXT_DEFAULT;
+  // One optional leading slash, then a letter or digit, then only plain
+  // path characters. This alone refuses //host, /\host, https:, javascript:,
+  // %2F escapes, spaces, tabs, quotes and angle brackets.
+  if (!/^\/?[A-Za-z0-9][A-Za-z0-9/_.=&?#-]*$/.test(raw)) return NEXT_DEFAULT;
+  let rest = raw.replace(/^\//, '');
+  let hash = '', query = '';
+  const h = rest.indexOf('#');
+  if (h !== -1) { hash = rest.slice(h + 1); rest = rest.slice(0, h); }
+  const q = rest.indexOf('?');
+  if (q !== -1) { query = rest.slice(q + 1); rest = rest.slice(0, q); }
+  const path = rest.replace(/\.html$/, '');
+  if (!NEXT_PAGES.some(function (re) { return re.test(path); })) return NEXT_DEFAULT;
+  const section = path.split('/')[0];
+  const queryOk = query && NEXT_QUERIES[section] && NEXT_QUERIES[section].test(query);
+  const hashOk = hash && NEXT_HASHES[path] && NEXT_HASHES[path].test(hash);
+  return '/' + path + (queryOk ? '?' + query : '') + (hashOk ? '#' + hash : '');
+}
+
+// The page the visitor came from, when it is on this site. Covers a Sign in
+// link that didn't carry `next` (the nav's first-paint stub, older pages).
+function referrerNext() {
+  try {
+    if (!document.referrer) return '';
+    const u = new URL(document.referrer);
+    if (u.origin !== location.origin || /^\/login(\.html)?\/?$/.test(u.pathname)) return '';
+    return u.pathname + u.search;
+  } catch (e) { return ''; }
+}
+
+// The emailed sign-in link comes back as /login?magic=… with no `next`, often
+// in a new tab. The return path chosen when the link was asked for is kept
+// here for an hour (a page address only, checked again by safeNextUrl). It
+// can hold a partner invite, so every sign-in removes it, whichever way it
+// went, and so does sign-out (auth-nav.js).
+const LOGIN_NEXT_KEY = 'propCalc_login_next';
+function rememberNext(path) {
+  try {
+    if (path && path !== NEXT_DEFAULT) localStorage.setItem(LOGIN_NEXT_KEY, JSON.stringify({ p: path, at: Date.now() }));
+    else localStorage.removeItem(LOGIN_NEXT_KEY);
+  } catch (e) {}
+}
+function forgetRememberedNext() {
+  try { localStorage.removeItem(LOGIN_NEXT_KEY); } catch (e) {}
+}
+// Reads the remembered path once and removes it.
+function rememberedNext() {
+  let r = null;
+  try { r = JSON.parse(localStorage.getItem(LOGIN_NEXT_KEY) || 'null'); } catch (e) {}
+  forgetRememberedNext();
+  const age = r && typeof r.at === 'number' ? Date.now() - r.at : -1;
+  if (r && typeof r.p === 'string' && age >= 0 && age < 3600000) return r.p;
+  return '';
 }
 
 // A partner invite (/journey?join=<token>) that was opened in this browser
 // before signing in. journey.js stores it for a day and removes it once the
 // invite is accepted, declined or switched off. The emailed sign-in link
-// comes back as /login?magic=… with no `next`, and so does the Sign in link
-// in the menu, so without this the invite is lost on the way back.
+// comes back as /login?magic=… with no `next`, so without this the invite is
+// lost on the way back.
 function pendingJoinNext() {
   try {
     const p = JSON.parse(localStorage.getItem('propCalc_journey_pendingJoin') || 'null');
@@ -148,15 +212,17 @@ function pendingJoinNext() {
   return '';
 }
 // Where to go once signed in: the page's own `next`, or else a waiting
-// invite. Both go through safeNextUrl, so the same allowlist applies.
+// invite, or else the page the visitor came from. All go through
+// safeNextUrl, so the same allowlist applies.
 function nextAfterSignIn() {
-  return safeNextUrl(params.get('next') || pendingJoinNext());
+  return safeNextUrl(params.get('next') || pendingJoinNext() || referrerNext());
 }
 
 (function redirectIfLoggedIn() {
   try {
     const s = JSON.parse(localStorage.getItem('propCalc_session_v1'));
     if (s && (s.id || s.email)) {
+      forgetRememberedNext();
       location.href = nextAfterSignIn();
     }
   } catch (e) {}
@@ -196,7 +262,10 @@ function nextAfterSignIn() {
       if (res.expiresAt) session.expiresAt = res.expiresAt;
       if (res.renewsAt) session.renewsAt = res.renewsAt;
       try { localStorage.setItem('propCalc_session_v1', JSON.stringify(session)); } catch (e) {}
-      location.href = nextAfterSignIn();
+      // Read (and so remove) the remembered path even when `next` or an
+      // invite wins.
+      const remembered = rememberedNext();
+      location.href = safeNextUrl(params.get('next') || pendingJoinNext() || remembered);
     } else {
       document.getElementById('page-spinner').classList.remove('show');
       setActiveForm('magic');
@@ -459,6 +528,7 @@ function persistSession(res, fallback) {
   if (res.expiresAt) session.expiresAt = res.expiresAt;
   if (res.renewsAt) session.renewsAt = res.renewsAt;
   localStorage.setItem('propCalc_session_v1', JSON.stringify(session));
+  forgetRememberedNext();
 }
 
 function updatePwStrength(pw) {
@@ -562,7 +632,7 @@ function postVerificationRedirect(plan) {
   // The migration hook only runs on /app. If we're routing elsewhere, clear the flag
   // so it can't get stuck and fire a stale migration on a later /app visit.
   const clearPending = function(){ try { localStorage.removeItem('propCalc_pendingSave'); } catch (e) {} };
-  if (pendingSave && next === '/app') { goTo('/app'); }
+  if (pendingSave && /^\/app(\?|$)/.test(next)) { goTo(next); }
   else { clearPending(); goTo(next); }
 }
 
@@ -729,6 +799,7 @@ async function requestMagicLink() {
   const res = await callAuth('sendMagicLink', { email: email, turnstileToken: token });
   btn.disabled = false; btn.textContent = 'Send sign-in link';
   if (res && res.ok) {
+    rememberNext(nextAfterSignIn());
     _mlEmail = email;
     showMagicLinkVerify(email);
   } else {

@@ -434,11 +434,24 @@ async function confirmDeleteAccount(){
 }
 
 function doSignOut(){
-  // Track logout/sign out
-  if(window.trackPageEvent) trackPageEvent('user_signout', {});
-  fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'signout'})}).catch(()=>{});
+  function track(){ if(window.trackPageEvent) trackPageEvent('user_signout', {}); }
+  // auth-nav.js asks first, then signs out and removes this account's
+  // figures from the browser (esForgetDevice). The sign-out is counted only
+  // once the visitor has said yes.
+  if(typeof window.esForgetDevice === 'function'){
+    window.esForgetDevice({confirm:true, next:'/', onSignOut:track});
+    return;
+  }
+  // auth-nav.js didn't load: end the session at least.
+  track();
+  fetch('/.netlify/functions/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'signout'}),keepalive:true}).catch(()=>{});
   localStorage.removeItem(SK);
   location.href='/';
+}
+
+// Sign in from this page comes back to it (login.js checks the address).
+function loginHref(tab){
+  return '/login?'+(tab?'tab='+tab+'&':'')+'next='+encodeURIComponent(location.pathname+location.search);
 }
 
 function applyTheme(theme){
@@ -517,9 +530,9 @@ document.getElementById('acct-dialog-confirm').addEventListener('click', functio
 
 // Gate view buttons
 var signInGateBtn = document.getElementById('gate-signin-btn');
-if(signInGateBtn) signInGateBtn.addEventListener('click', function(){ location.href='/login'; });
+if(signInGateBtn) signInGateBtn.addEventListener('click', function(){ location.href=loginHref(''); });
 var signUpGateBtn = document.getElementById('gate-signup-btn');
-if(signUpGateBtn) signUpGateBtn.addEventListener('click', function(){ location.href='/login?tab=signup'; });
+if(signUpGateBtn) signUpGateBtn.addEventListener('click', function(){ location.href=loginHref('signup'); });
 
 // Nav panel switching (event delegation)
 document.querySelectorAll('.acct-nav-item[data-panel]').forEach(function(btn){
