@@ -20,6 +20,16 @@
  *   seo:metrics:latest         — pointer to most recent snapshot
  *
  * All endpoints require admin role (verified via es_session cookie + Redis).
+ *
+ * Methods (Nov 2026):
+ *   - `import` and `pull` write a snapshot (and `pull` calls Google), so they
+ *     are POST only. A GET for either answers 405. Before this, a GET such as
+ *     ?action=pull ran the action, so a link the admin followed could trigger a
+ *     write: the session cookie is SameSite=Lax, which is sent on a top-level
+ *     GET from another site but not on a POST.
+ *   - `latest`, `trend`, `compare` and `list` only read. They work on GET (with
+ *     from / to / limit in the query string) and still work on POST with a JSON
+ *     body, as before.
  */
 'use strict';
 
@@ -38,11 +48,13 @@ const GSC_SA_PRIVATE_KEY = (process.env.GSC_SA_PRIVATE_KEY || '').replace(/\\n/g
 const SNAPSHOT_TTL_SEC = 60 * 60 * 24 * 30 * 18;
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// Only this site's own Netlify deploy and preview hosts, never any *.netlify.app.
+const OWN_NETLIFY_ORIGIN = /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$/;
 
 function corsHeaders(event) {
   const reqOrigin = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
-    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : OWN_NETLIFY_ORIGIN.test(reqOrigin) ? reqOrigin
     : ALLOWED_ORIGINS[0];
   return {
     'Content-Type': 'application/json',
@@ -325,16 +337,37 @@ async function pullFromGsc() {
 
 // ── Handler ────────────────────────────────────────────────────────────────
 
+// Actions that change stored data. POST only: see "Methods" in the header.
+const WRITE_ACTIONS = ['import', 'pull'];
+
 exports.handler = async (event) => {
   const headers = corsHeaders(event);
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
+  if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers: Object.assign({}, headers, { Allow: 'GET, POST, OPTIONS' }),
+      body: JSON.stringify({ ok: false, error: 'Method not allowed' }) };
+  }
 
   let payload = {};
   try { payload = event.body ? JSON.parse(event.body) : {}; }
   catch (e) { return { statusCode: 400, headers, body: JSON.stringify({ ok: false, error: 'invalid JSON' }) }; }
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) payload = {};
 
-  const action = payload.action || event.queryStringParameters?.action;
+  const qs = event.queryStringParameters || {};
+  const action = payload.action || qs.action;
   if (!action) return { statusCode: 400, headers, body: JSON.stringify({ ok: false, error: 'action required' }) };
+
+  // Refused before the session lookup, so a GET never reaches a write.
+  if (WRITE_ACTIONS.includes(action) && event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers: Object.assign({}, headers, { Allow: 'POST, OPTIONS' }),
+      body: JSON.stringify({ ok: false, error: action + ' must be sent as a POST' }) };
+  }
+
+  // Read actions take their parameters from the JSON body or, on a plain GET,
+  // from the query string.
+  for (const k of ['from', 'to', 'limit']) {
+    if (payload[k] == null && typeof qs[k] === 'string' && qs[k]) payload[k] = qs[k];
+  }
 
   const session = await verifyAdmin(event);
   if (!session) return { statusCode: 401, headers, body: JSON.stringify({ ok: false, error: 'admin only' }) };

@@ -1,4 +1,6 @@
-/* ═══ RATE DATA ═══ */
+/* ═══ RATE DATA ═══
+ * These per-m² rates and room allowances are my own rough estimates. They
+ * have no official or industry source and no stated period. The page says so. */
 var RATES = {
   cosmetic: { budget: [200, 400],  mid: [400, 700],   premium: [700, 1200] },
   mid:      { budget: [600, 1000], mid: [1000, 1600],  premium: [1600, 2500] },
@@ -21,7 +23,7 @@ function calculate() {
   var landscape = document.getElementById('landscaping').checked;
   var addCont = document.getElementById('contingency').checked;
 
-  if (!area || area < 10) { if (!_isInit) _showErr('Please enter a floor area.'); return; }
+  if (!area || area < 10) { if (!_isInit) _showErr('Enter a floor area.'); return; }
 
   var r = RATES[scope][finish];
   var baseLow = area * r[0];
@@ -85,39 +87,29 @@ ToolPage.init({
   slug: 'renovation-cost',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Does the renovation make financial sense?',
-    description: 'Weigh the spend against a flip profit or the extra equity you could release, with the other free calculators.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'Home equity and house flip calculators',
+    description: 'The home equity calculator shows how much you could borrow against your house to pay for the work, and the house flip calculator sets the cost against a sale price.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE2', title: 'Building & Construction',
+        icon: '\uD83C\uDFE2', title: 'Building',
         links: [
-          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'ASIC: Building Inspections', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Consumer Affairs: Building Info', href: 'https://www.consumer.vic.gov.au/housing' }
+          { text: 'Master Builders Australia', href: 'https://www.masterbuilders.com.au/' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Tax & Finance',
+        icon: '\uD83D\uDCB0', title: 'Tax and investing',
         links: [
-          { text: 'ATO: Capital Gains Tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
-          { text: 'ATO: Property Tax Deductions', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'MoneySmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCCB', title: 'Legal & Compliance',
-        links: [
-          { text: 'Law Society Australia', href: 'https://www.lawsociety.com.au/' },
-          { text: 'Master Builders Australia', href: 'https://www.masterbuilders.com.au/' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' }
+          { text: 'ATO: capital gains tax', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'ASIC Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' }
         ]
       }
     ],
-    disclaimer: 'This is general information only. Renovation costs vary significantly by location, complexity, and contractor. Always get multiple quotes and consult a quantity surveyor and accountant before proceeding.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/renovation-cost-calculator',
@@ -131,7 +123,7 @@ ToolPage.init({
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools', text: 'All Calculators' },
+    { href: '/tools/', text: 'All Calculators' },
     { href: '/tools/house-flip-calculator', text: 'House Flip' },
     { href: '/tools/equity-release-calculator', text: 'Home Equity' },
     { href: '/privacy', text: 'Privacy' }

@@ -26,8 +26,14 @@ function calcACTDuty(price, ptype, buyer, fhb) {
   var v = price;
   var standard = calcACTStandard(v);
 
+  // Vacant land: same treatment as tools/stamp-duty-calculator.js, which only
+  // applies first home buyer relief to dwellings (QLD land aside).
+  if (fhb && ptype === 'land') {
+    return { duty: standard, note: 'The concession for vacant land has different rules that this page does not model, so standard duty is shown.' };
+  }
+
   if (fhb && v <= ACT_FHB_FULL) {
-    return { duty: 0, note: 'Home Buyer Concession applied — $0 duty (no income test or property value limit from 1 July 2026).' };
+    return { duty: 0, note: 'Home Buyer Concession Scheme applied, so no duty. From 1 July 2026 the scheme has no income test or property value limit.' };
   }
   if (fhb && v <= ACT_FHB_PARTIAL && ACT_FHB_PARTIAL > ACT_FHB_FULL) {
     var slide = (ACT_FHB_PARTIAL - v) / (ACT_FHB_PARTIAL - ACT_FHB_FULL);
@@ -43,10 +49,11 @@ function calculate() {
   if (_msg) _msg.hidden = true;
 
   var val = parseVal('price');
-  if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
+  if (!val || val <= 0) { if (!_isInit) _showErr('Enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
 
   var result = calcACTDuty(val, ptype, buyer, isFHB);
@@ -68,16 +75,22 @@ function calculate() {
   var regTotal = regMortgage + regTransfer;
   var conveyancing = 1800;
   function lmiRate(lvr) {
+    // Rounded first, as lmiRate() in journey.js does: price × 0.8 ÷ price
+    // can come out as 0.8000000000000002 and land in the next tier.
+    lvr = Math.round(lvr * 10000) / 10000;
     if (lvr <= 0.80) return 0;
     if (lvr <= 0.85) return 0.0080;
     if (lvr <= 0.90) return 0.0190;
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -86,6 +99,8 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
@@ -94,11 +109,11 @@ function calculate() {
   var regEl = document.getElementById('r-reg');
   if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Australian Capital Territory 2026-27 conveyance duty (HBCS uncapped from 1 July 2026). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate only, at the ACT\'s 2026-27 conveyance duty rates (HBCS uncapped from 1 July 2026). The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium. Check the figures with your solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -122,9 +137,9 @@ ToolPage.init({
   slug: 'stamp-duty-act',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full ACT purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Plan the rest of the ACT purchase',
+    description: 'The First Home Journey builds a budget from your income and savings that includes the duty, the deposit and the other upfront costs.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=act'
   },
   resources: {
@@ -132,28 +147,28 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFDB\uFE0F', title: 'ACT Revenue Office',
         links: [
-          { text: 'ACT Conveyance Duty', href: 'https://www.revenue.act.gov.au/duties/conveyance-duty' },
-          { text: 'Home Buyer Concession Scheme (HBCS)', href: 'https://www.revenue.act.gov.au/home-buyer-assistance/home-buyer-concession-scheme' }
+          { text: 'Conveyance duty', href: 'https://www.revenue.act.gov.au/duties/conveyance-duty' },
+          { text: 'Home Buyer Concession Scheme', href: 'https://www.revenue.act.gov.au/home-buyer-assistance/home-buyer-concession-scheme' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyer schemes',
         links: [
           { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        icon: '\uD83D\uDCB0', title: 'Home loans and tax',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with ACT Revenue Office.'
+    disclaimer: 'Check the current rates and the HBCS rules with the ACT Revenue Office before you sign.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-act',
@@ -169,12 +184,11 @@ ToolPage.init({
     { href: '/', text: 'EquitySight.app' },
     { href: '/tools/stamp-duty-calculator', text: 'All States' },
     { href: '/tools/cost-of-purchase-calculator', text: 'Cost of Purchase' },
-    { href: '/invest/act/', text: 'ACT Suburb Guide' },
     { href: '/privacy', text: 'Privacy' }
   ],
   examples: [
   {
-    "label": "ACT — $800,000 property",
+    "label": "ACT, $800,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -195,13 +209,13 @@ ToolPage.init({
         "v": "$22,158"
       },
       {
-        "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "k": "HBCS buyer duty",
+        "v": "$0 (HBCS exemption)"
       }
     ]
   },
   {
-    "label": "ACT — $1,050,000 property",
+    "label": "ACT, $1,050,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -222,13 +236,13 @@ ToolPage.init({
         "v": "$37,158"
       },
       {
-        "k": "First home buyer duty",
-        "v": "$0 (HBCS — no price cap from 1 Jul 2026)"
+        "k": "HBCS buyer duty",
+        "v": "$0 (HBCS, no price cap from 1 Jul 2026)"
       }
     ]
   },
   {
-    "label": "ACT — $1,200,000 property",
+    "label": "ACT, $1,200,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -249,43 +263,18 @@ ToolPage.init({
         "v": "$46,758"
       },
       {
-        "k": "First home buyer duty",
-        "v": "$0 (HBCS — no price cap from 1 Jul 2026)"
+        "k": "HBCS buyer duty",
+        "v": "$0 (HBCS, no price cap from 1 Jul 2026)"
       }
     ]
   }
 ],
-  faq: [
-  {
-    "q": "How does stamp duty work in the ACT?",
-    "a": "ACT conveyance duty is charged by the ACT Revenue Office on the dutiable value of any property purchase. Rates step up across multiple brackets: 0.28% up to $260,000, 2.2% to $300,000, 3.4% to $500,000, 4.32% to $750,000, 5.9% to $1,000,000, and 6.4% to $1,455,000. Above $1,455,000 a flat rate of 4.54% applies to the whole purchase price. From 1 July 2026, eligible home buyers (no property owned in the previous 5 years) pay no conveyance duty at all under the Home Buyer Concession Scheme — the income test and the $1,020,000 property value limit were both removed."
-  },
-  {
-    "q": "Do first home buyers pay stamp duty in the ACT?",
-    "a": "The ACT Home Buyer Concession Scheme (HBCS) is more generous than other states — from 1 July 2026 it covers all eligible buyers (no property owned in the previous 5 years) with NO income test and NO property value limit. Eligible ACT buyers pay no conveyance duty at any price."
-  },
-  {
-    "q": "What is the ACT Home Buyer Concession Scheme?",
-    "a": "From 1 July 2026 the HBCS provides full duty exemption for eligible owner-occupiers (not just first home buyers) with no income test and no property value limit. The scheme replaced the previous First Home Owner Grant + duty concession in 2019 and is materially more generous. To qualify you must occupy the property as your principal residence for at least 12 months continuously starting within 12 months of settlement."
-  },
-  {
-    "q": "When is stamp duty due in the ACT?",
-    "a": "ACT conveyance duty is payable within 14 days of receiving the assessment notice from the ACT Revenue Office — typically within 28 days of registration. Most buyers pay duty at settlement through their solicitor or conveyancer. Late payment attracts interest at the rate published by the ACT Revenue Office."
-  },
-  {
-    "q": "Does the ACT charge a foreign buyer surcharge?",
-    "a": "The ACT does not charge a one-off foreign buyer stamp duty surcharge. Instead, foreign owners of residential property pay an annual foreign ownership land tax surcharge of 0.75% per year of the property's average unimproved value. This is collected separately from stamp duty and applies for as long as the foreign person owns the property."
-  },
-  {
-    "q": "Is ACT stamp duty being abolished?",
-    "a": "The ACT government has been progressively reducing residential conveyance duty rates as part of a long-running tax reform. Duty rates today are materially lower than they were a decade ago, and the trade-off has been a gradual increase in general rates (council rates) on residential property. There is no firm date for full abolition, but the trend is downward."
-  }
-],
+  // FAQ: shown once, as static HTML in the page (the same text is in its
+  // JSON-LD). There is no JS copy here, so the two cannot drift apart.
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
-    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/act/', label: 'Australian Capital Territory Suburb Guide' }
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' }
   ]
 });
 

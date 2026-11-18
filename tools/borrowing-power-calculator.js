@@ -1,24 +1,20 @@
 /* ═══ BORROWING POWER CALCULATOR ═══
  *
- * Best-in-market Australian borrowing-power calculator. Improvements vs
- * Domain / realestate.com.au / canstar / MoneySmart:
- *
- *   • Joint applicants (sole / couple) with separate income types per
- *     applicant (PAYG, casual, self-employed, rental). Casual income is
- *     counted at 80% and rental at 75% — matching big-four lender policy.
- *   • Tiered HEM by household-income band × adults × dependants — closer
- *     to what lenders actually use than the flat 2200+800 rule.
- *   • Credit-card limits assessed at 3.0% per month of total LIMIT, not
- *     balance — same as APRA-compliant lenders.
- *   • HECS/HELP cost computed from the marginal repayment schedule
- *     (FY 2026-27 rates) rather than a flat percentage.
- *   • Adjustable LVR (60-97%) so the indicative property price reflects
- *     actual deposit. Above 80% the calc warns about LMI.
- *   • "Borrowing capacity breakdown" — shows how each input reduces your
- *     borrowing power vs the no-deductions baseline. Most calculators
- *     don't surface this.
+ * What it models:
+ *   • Single or joint applicants, each with an income type. Casual and
+ *     self-employed income is counted at 80%, rental at 75%, PAYG with
+ *     variable pay at 90% (my assumptions about common lender policy).
+ *   • A living-expense floor by household income, adults and dependants.
+ *     This is my own rough stand-in for HEM, not the licensed table.
+ *   • Credit-card limits assessed at 3.0% per month of the total limit.
+ *   • HECS/HELP from the marginal repayment schedule (FY 2026-27).
+ *   • Adjustable LVR (60-97%), with an LMI estimate above 80%.
+ *   • A breakdown showing how each deduction reduces the maximum loan.
  *
  * Rate constants: FY 2026-27 tax + HELP schedules, verified 5 Jul 2026.
+ *
+ * ⚠ SYNC COPY: approxTax() and hemMonthly() are copied into
+ * tools/loan-serviceability-calculator.js. Change both together.
  */
 
 // ── ATO resident individual tax (FY 2026-27) ──────────────────────────────
@@ -45,8 +41,9 @@ function approxTax(gross) {
 //   repayment income ≤ $69,528: nil
 //   $69,529–$129,717: 15c per $1 over $69,528
 //   $129,718–$186,050: $9,028 + 17c per $1 over $129,717
-//   $186,051+: 10% of TOTAL repayment income — a CLIFF, not a marginal step
-//     (the flat 10% applies to the whole income, confirmed by ATO Example 3).
+//   $186,051+: 10% of TOTAL repayment income (the flat 10% applies to the
+//     whole income, confirmed by ATO Example 3). The two formulas meet at
+//     $186,050 ($18,604.61 vs $18,605.00), so the repayment does not jump.
 // Source: ATO study loan rates, FY2026-27, verified 5 Jul 2026.
 // Repayment income (HRI) ≈ gross + reportable fringe benefits; here we use
 // gross as a close approximation.
@@ -64,9 +61,9 @@ function hecsAnnual(gross) {
 //   • household income (postcode-blended)
 //   • "modest" or "low-cost" basket
 //
-// The exact 36-bucket table is paywalled (HEM Pro). What follows is a
-// faithful approximation that lenders' published serviceability calcs
-// converge on — within ~$200/month of the real figure across the band.
+// The real table is licensed data (HEM Pro) that I do not have. What
+// follows is my own rough estimate, so the lender figure may be higher or
+// lower than this.
 function hemMonthly(annualHouseholdGrossIncome, adults, dependants) {
   // Base monthly cost per adult, scaled with income (more income = more
   // spending — Engel-curve style). Income brackets here are household-
@@ -166,7 +163,7 @@ function calc() {
   if (_msg) _msg.hidden = true;
 
   if (!income1 && !income2) {
-    _showErr('Please enter at least one income.');
+    _showErr('Enter at least one income.');
     ['r-loan','r-price','r-assess','r-actual','r-buffer','r-net','r-deposit','r-warning'].forEach(function(id){ setText(id, '—'); });
     return;
   }
@@ -227,7 +224,7 @@ function calc() {
   if (warnEl) {
     if (lvr > 80) {
       warnEl.style.display = '';
-      warnEl.innerHTML = '<strong>LMI applies at ' + lvr + '% LVR.</strong> An additional ~' + fmt(maxLoan * (lvr <= 85 ? 0.008 : lvr <= 90 ? 0.019 : lvr <= 95 ? 0.034 : 0.043)) + ' in LMI premium will typically be capitalised onto your loan. <a href="/tools/mortgage-repayment-calculator">See full breakdown →</a>';
+      warnEl.innerHTML = '<strong>LMI applies at ' + lvr + '% LVR.</strong> About ' + fmt(maxLoan * (lvr <= 85 ? 0.008 : lvr <= 90 ? 0.019 : lvr <= 95 ? 0.034 : 0.043)) + ' in LMI on my rough table, usually added to the loan. The <a href="/tools/mortgage-repayment-calculator">mortgage repayment calculator</a> shows it in the total cost.';
     } else {
       warnEl.style.display = 'none';
     }
@@ -243,16 +240,16 @@ function calc() {
   }
   var baseline = maxLoanWith(0);
   var rows = [
-    { label: 'No deductions (theoretical maximum)', loan: baseline, isBase: true },
-    { label: 'Living expenses ($' + fmt(effectiveExpenses) + '/mo' + (effectiveExpenses === hem ? ' — HEM floor applied' : '') + ')',
+    { label: 'Net income only, no deductions (at the ' + assessRate.toFixed(2) + '% test rate)', loan: baseline, isBase: true },
+    { label: 'Living expenses (' + fmt(effectiveExpenses) + '/mo' + (effectiveExpenses === hem ? ', expense floor applied' : '') + ')',
       loan: maxLoanWith(effectiveExpenses) },
-    { label: 'Credit card limit ($' + fmt(cardLimit) + ' assessed at 3%/mo)',
+    { label: 'Credit card limit (' + fmt(cardLimit) + ' assessed at 3%/mo)',
       loan: cardLimit > 0 ? maxLoanWith(effectiveExpenses + cardMonthlyAssess) : null },
-    { label: 'HECS/HELP repayments ($' + fmt(hecsMonthly) + '/mo)',
+    { label: 'HECS/HELP repayments (' + fmt(hecsMonthly) + '/mo)',
       loan: hecsMonthly > 0 ? maxLoanWith(effectiveExpenses + cardMonthlyAssess + hecsMonthly) : null },
-    { label: 'Other monthly debts ($' + fmt(otherDebt) + '/mo)',
+    { label: 'Other monthly debts (' + fmt(otherDebt) + '/mo)',
       loan: otherDebt > 0 ? maxLoanWith(effectiveExpenses + cardMonthlyAssess + hecsMonthly + otherDebt) : null },
-    { label: 'Final borrowing capacity (after APRA 3% buffer)', loan: maxLoan, isFinal: true }
+    { label: 'Your borrowing capacity', loan: maxLoan, isFinal: true }
   ].filter(function(r){ return r.loan !== null; });
 
   var bodyEl = document.getElementById('bp-breakdown-body');
@@ -260,7 +257,9 @@ function calc() {
     var html = '';
     var prev = baseline;
     rows.forEach(function(r, i) {
-      var delta = i === 0 ? null : (r.loan - prev);
+      // The first row is the starting point and the last row repeats the
+      // running total, so neither has a change of its own.
+      var delta = (i === 0 || r.isFinal) ? null : (r.loan - prev);
       var deltaCell = delta !== null ? '<td class="' + (delta < 0 ? 'bp-neg' : 'bp-pos') + '">' + (delta >= 0 ? '+' : '') + fmt(delta) + '</td>' : '<td>—</td>';
       var cls = r.isBase ? 'bp-base' : r.isFinal ? 'bp-final' : '';
       html += '<tr class="' + cls + '"><td>' + r.label + '</td><td>' + fmt(r.loan) + '</td>' + deltaCell + '</tr>';
@@ -287,39 +286,38 @@ ToolPage.init({
   slug: 'borrowing-power',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Turn the loan into a budget',
+    description: 'The First Home Journey runs a simpler version of this test (it leaves out HECS and other debts), then takes stamp duty and the other upfront costs out of your savings and sets a maximum price.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '🏦', title: 'Lending Standards',
+        icon: '🏦', title: 'Lending standards',
         links: [
           { text: 'APRA: Prudential Practice Guide APG 223', href: 'https://www.apra.gov.au/sites/default/files/apg_223.pdf' },
-          { text: 'APRA: Macroprudential Tools (3% buffer)', href: 'https://www.apra.gov.au/news-and-publications' },
-          { text: 'ASIC MoneySmart: Home Loans', href: 'https://moneysmart.gov.au/home-loans' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' }
         ]
       },
       {
-        icon: '💳', title: 'Debt & Living Expenses',
+        icon: '💳', title: 'Debt and living expenses',
         links: [
-          { text: 'ASIC: Managing Debt', href: 'https://moneysmart.gov.au/managing-debt' },
-          { text: 'ATO: HECS/HELP Repayments', href: 'https://www.ato.gov.au/individuals/study-and-training-support-loans/' },
-          { text: 'Melbourne Institute: HEM', href: 'https://melbourneinstitute.unimelb.edu.au/research/hem' }
+          { text: 'Moneysmart: managing debt', href: 'https://moneysmart.gov.au/managing-debt' },
+          { text: 'ATO: study and training support loans', href: 'https://www.ato.gov.au/individuals/study-and-training-support-loans/' },
+          { text: 'Melbourne Institute: Household Expenditure Measure', href: 'https://melbourneinstitute.unimelb.edu.au/research/hem' }
         ]
       },
       {
-        icon: '🎯', title: 'First Home Buyer Schemes',
+        icon: '🎯', title: 'First home buyer schemes',
         links: [
-          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'Help to Buy Scheme', href: 'https://www.housingaustralia.gov.au/help-to-buy' },
-          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' }
+          { text: 'Housing Australia: First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'Housing Australia: Help to Buy', href: 'https://www.housingaustralia.gov.au/help-to-buy' },
+          { text: 'ATO: First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' }
         ]
       }
     ],
-    disclaimer: 'Indicative only. Each lender applies different HEM benchmarks, credit-scoring rules, and negative-gearing allowances. Foreign-currency income, bonuses, commission, and second-job income all get treated differently. Get a formal pre-approval for the figure your specific lender will actually offer.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/borrowing-power-calculator',
@@ -342,51 +340,50 @@ ToolPage.init({
       label: 'Single PAYG on $90k, no kids, no debt',
       inputs: [
         { k: 'Income', v: '$90,000 PAYG' }, { k: 'Dependants', v: '0' },
-        { k: 'Card limit', v: '$0' }, { k: 'HECS', v: 'No' }
+        { k: 'Living expenses', v: '$3,000/mo' },
+        { k: 'Card limit / HECS', v: '$0 / No' }, { k: 'Rate', v: '6.25%' }
       ],
       outputs: [
-        { k: 'Max loan', v: '~$485,000' }, { k: 'Property @ 80% LVR', v: '~$606,000' }
+        { k: 'Max loan', v: '$351,293' }, { k: 'Property at 80% LVR', v: '$439,116' }
       ]
     },
     {
       label: 'Couple PAYG $180k combined, 2 kids, $15k card, both HECS',
       inputs: [
         { k: 'Income', v: '$110k + $70k PAYG' }, { k: 'Dependants', v: '2' },
+        { k: 'Living expenses', v: '$3,000/mo entered, $6,350 floor used' },
         { k: 'Card limit', v: '$15,000' }, { k: 'HECS', v: 'Both applicants' }
       ],
       outputs: [
-        { k: 'Max loan', v: '~$720,000' },
-        { k: 'Card cost on borrowing power', v: '~$60,000 reduction' },
-        { k: 'HECS cost on borrowing power', v: '~$62,000 reduction' }
+        { k: 'Max loan', v: '$543,130' },
+        { k: 'Card cost on borrowing power', v: '$54,700 reduction' },
+        { k: 'HECS cost on borrowing power', v: '$62,212 reduction' }
       ]
     },
     {
-      label: 'Investor with PAYG + rental, single, no kids',
+      label: 'Couple, $130k PAYG + $35k rental income, no kids',
       inputs: [
-        { k: 'Income', v: '$130k PAYG + $35k rental' }, { k: 'Dependants', v: '0' },
-        { k: 'Rental haircut', v: '75% (lender policy)' }
+        { k: 'Applicant 1', v: '$130,000 PAYG' },
+        { k: 'Applicant 2', v: '$35,000 rental income, counted at 75%' },
+        { k: 'Living expenses', v: '$3,000/mo entered, $4,080 floor used' }
       ],
       outputs: [
-        { k: 'Effective income', v: '$130k + $26,250 rental' },
-        { k: 'Max loan', v: '~$770,000' }
+        { k: 'Max loan', v: '$736,984' },
+        { k: 'Property at 80% LVR', v: '$921,230' }
       ]
     }
   ],
   faq: [
-    { q: 'Why does my casual income only count for 80%?',
-      a: 'Big-four lenders haircut variable income to manage risk. Casual / contract / commission income is typically counted at 80%, rental at 75%, bonuses 50-100% depending on consistency. PAYG salary is the only income type counted at 100%. If you have a stable casual role with 2+ years of payslips, some lenders will count it at 100% — worth asking.' },
     { q: 'Why does my credit card limit reduce borrowing power even if I pay it off each month?',
-      a: 'APRA requires lenders to assess credit cards at 3.0% per month of the FULL LIMIT — not the balance. A $20,000 limit you never use reduces your borrowing power by approximately $60,000-$80,000. Reduce or close unused cards at least 30 days before applying.' },
+      a: 'APRA requires lenders to assess credit cards at 3.0% per month of the full limit, not the balance. A $20,000 limit you never use reduces your borrowing power by about $72,900 in this calculator (at a 6.25% loan rate). Reduce or close cards you don\'t need at least 30 days before applying.' },
     { q: 'How does HECS/HELP debt affect borrowing power?',
-      a: 'Since 1 July 2025 HELP repayments are marginal, like income tax. For FY 2026-27: nil up to $69,528, then 15c per $1 between $69,529 and $129,717, then $9,028 plus 17c per $1 up to $186,050 — and above $186,050 a flat 10% of your ENTIRE repayment income applies (a cliff, not a marginal step). On a $110,000 income that is about $6,071 a year (~$506 a month), translating to roughly $60,000 less borrowing power. The debt size itself does not matter — only the repayment on your income.' },
-    { q: 'What is HEM and why is it sometimes higher than my real expenses?',
-      a: 'The Household Expenditure Measure is a Melbourne Institute benchmark of minimum reasonable living expenses, tiered by household size and income. Lenders apply whichever is HIGHER — your declared expenses or HEM — to stop borrowers understating spending. If your real expenses are well above HEM, the lender uses your actual figure. If below, the lender uses HEM.' },
-    { q: 'Does APRA\'s 3% serviceability buffer ever change?',
-      a: 'It was raised from 2.5% to 3.0% in October 2021 and has been at 3.0% since. APRA reviews it periodically. The buffer is the SINGLE biggest factor reducing borrowing power — without it, the average buyer could borrow 20-30% more. Whether that would be wise is a separate question.' },
-    { q: 'Why does this differ from my lender\'s pre-approval?',
-      a: 'Lenders use their own proprietary HEM tables (often 36+ buckets), apply different income haircuts for non-PAYG income, run credit scoring, and may negative-gear differently for investors. This calculator is an indicative figure within ±5-15% of a typical big-four pre-approval. For an exact number, apply for pre-approval with your chosen lender or broker.' },
+      a: 'Since 1 July 2025 HELP repayments are marginal, like income tax. For FY 2026-27: nil up to $69,528, then 15c per $1 between $69,529 and $129,717, then $9,028 plus 17c per $1 up to $186,050. Above $186,050 the repayment is a flat 10% of your entire repayment income. The two formulas meet at $186,050, so the repayment does not jump there. On a $110,000 income that is $6,071 a year ($506 a month), which is about $61,500 less borrowing power in this calculator at a 6.25% loan rate. The repayment is set by your income, whatever the size of the debt. APRA changed its guidance to banks in 2025, in effect from 30 September 2025. A bank may now leave the HELP repayment out if it expects you to pay the debt off within 12 months. If yours is that close, untick the HECS/HELP box to see the figure without it and ask the lender whether they will leave it out.' },
+    { q: 'Why does my casual income only count for 80%?',
+      a: 'This calculator counts casual, contract and self-employed income at 80%, rental income at 75% and PAYG with bonus or commission at 90%. Only PAYG salary counts at 100%. The percentages are my assumptions about common lender policy. Some lenders will count a stable casual role with 2+ years of payslips at 100%, so ask.' },
     { q: 'Can I borrow more on a 40-year loan term?',
-      a: 'Marginally. Extending from 30 to 40 years increases borrowing power by approximately 8-10% but costs substantially more in interest over the life of the loan ($150,000+ on a $600,000 loan). Most lenders cap at 30 years for owner-occupiers; only a handful offer 35-40 (and often at premium rates).' }
+      a: 'A little. Extending from 30 to 40 years increases borrowing power by about 4% in this calculator at a 6.25% loan rate, and costs about $305,000 more in interest over the life of a $600,000 loan at that rate. Check that your lender offers a term over 30 years before counting on it.' },
+    { q: 'Why does this differ from my lender\'s pre-approval?',
+      a: 'Lenders use the licensed HEM tables, their own percentages for non-PAYG income, credit scoring and their own treatment of investment debt. This calculator uses my expense floor and my income percentages, so the result is indicative. For a firm number, apply for pre-approval with a lender or broker.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏦', href: '/tools/mortgage-repayment-calculator', label: 'Mortgage Repayment' },

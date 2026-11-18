@@ -6,8 +6,8 @@
 <meta charset="UTF-8">
 <script src="tool-page.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>CGT Calculator Australia — Property Capital Gains Tax</title>
-<meta name="description" content="Free Australian capital gains tax calculator for property. Apply the 50% CGT discount, calculate tax at your marginal rate, and see your net profit after sale.">
+<title>Property Capital Gains Tax (CGT) Calculator Australia</title>
+<meta name="description" content="Estimate capital gains tax on an Australian property sale. Applies the 50% CGT discount and taxes the gain at your marginal rate for FY2026-27.">
 <meta name="keywords" content="capital gains tax calculator Australia, CGT calculator property, 50% CGT discount, property tax calculator, investment property tax">
 <link rel="canonical" href="https://equitysight.app/tools/capital-gains-calculator">
 <link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/capital-gains-calculator">
@@ -15,32 +15,27 @@
 <meta name="geo.region" content="AU">
 <meta name="geo.placename" content="Australia">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Australian Capital Gains Tax Calculator 2026 — Property CGT | EquitySight">
-<meta property="og:description" content="Free Australian capital gains tax calculator for property. Apply 50% CGT discount and calculate tax at marginal rates.">
+<meta property="og:title" content="Property Capital Gains Tax (CGT) Calculator Australia">
+<meta property="og:description" content="Estimate capital gains tax on an Australian property sale. Applies the 50% CGT discount and taxes the gain at your marginal rate for FY2026-27.">
 <meta property="og:url" content="https://equitysight.app/tools/capital-gains-calculator">
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:image" content="https://equitysight.app/images/og/capital-gains-calculator.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta property="og:image:alt" content="EquitySight capital gains tax calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Australian Capital Gains Tax Calculator 2026 — Property CGT">
-<meta name="twitter:description" content="Free CGT calculator for Australian property investors.">
+<meta name="twitter:title" content="Property Capital Gains Tax (CGT) Calculator Australia">
+<meta name="twitter:description" content="Estimate capital gains tax on an Australian property sale. Applies the 50% CGT discount and taxes the gain at your marginal rate for FY2026-27.">
 <meta name="twitter:image" content="https://equitysight.app/images/og/capital-gains-calculator.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
-<script src="../adsense.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"Capital Gains Tax Calculator Australia","url":"https://equitysight.app/tools/capital-gains-calculator","description":"Free Australian capital gains tax calculator. Apply 50% CGT discount and calculate tax at marginal rates on property sales.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"Capital Gains Tax Calculator Australia","url":"https://equitysight.app/tools/capital-gains-calculator","description":"Estimates capital gains tax on an Australian property sale. Applies the 50% CGT discount where the property was held for more than 12 months and taxes the gain at resident marginal rates.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Free Calculators","item":"https://equitysight.app/#tools"},{"@type":"ListItem","position":3,"name":"Capital Gains Tax Calculator"}]}
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Capital Gains Tax Calculator"}]}
 </script>
 </head>
 <body>
@@ -52,7 +47,7 @@
       <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
-    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Support</a></li></ul>
+    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Contact</a></li></ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
   </div>
@@ -61,9 +56,8 @@
 <script src="../error-capture.js" defer></script>
 
 <section class="tool-hero" id="main-content">
-  <div class="tool-eyebrow">Free Tool · Australia</div>
   <h1>Capital Gains Tax Calculator</h1>
-  <p>Work out your CGT on an Australian property sale — with the 50% discount applied if held over 12 months, and tax at your marginal ATO rate.</p>
+  <p>Estimates the capital gains tax on an Australian property sale. It applies the 50% discount if you held the property for more than 12 months, then taxes the gain on top of your other income at FY2026-27 rates.</p>
 </section>
 
 <div class="tool-main" role="main">
@@ -99,14 +93,14 @@
     <div class="tool-field">
       <label class="tool-label" for="held">Held for more than 12 months?</label>
       <select class="tool-input tool-select" id="held">
-        <option value="yes" selected>Yes — 50% CGT discount applies</option>
-        <option value="no">No — full gain is taxable</option>
+        <option value="yes" selected>Yes, the 50% CGT discount applies</option>
+        <option value="no">No, the full gain is taxable</option>
       </select>
     </div>
 
     <div class="tool-check">
       <input type="checkbox" id="ppor">
-      <label for="ppor">Main residence (principal place of residence — may be CGT exempt)</label>
+      <label for="ppor">This was my main residence (it may be CGT exempt)</label>
     </div>
 
     <button class="tool-btn" id="calc-btn" aria-label="Calculate capital gains tax">Calculate CGT</button>
@@ -129,7 +123,7 @@
         <div class="tool-stat-value" id="r-costbase">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Discounted gain (after 50% discount)</div>
+        <div class="tool-stat-label">Taxable gain (after the 50% discount, if it applies)</div>
         <div class="tool-stat-value" id="r-discount">—</div>
       </div>
       <div class="tool-stat">
@@ -137,14 +131,13 @@
         <div class="tool-stat-value" id="r-newincome">—</div>
       </div>
       <div class="tool-stat">
-        <div class="tool-stat-label">Net proceeds after tax</div>
+        <div class="tool-stat-label">Net gain after tax (sale price − cost base − CGT)</div>
         <div class="tool-stat-value" id="r-net">—</div>
       </div>
     </div>
-    <p class="tool-disclaimer">Estimates only. CGT depends on your individual tax situation, main residence status, and the year of sale. This calculator applies current FY2026-27 law (50% discount); from 1 July 2027 legislated reforms replace the discount with cost-base indexation plus a 30% minimum tax rate on gains that accrue after that date. Always confirm with a registered tax agent.</p>
+    <p class="tool-disclaimer">An estimate under FY2026-27 law, including the 50% discount. From 1 July 2027 the discount is replaced by cost-base indexation plus a 30% minimum tax rate on gains that accrue after that date.</p>
   </div>
 
-  <div class="ad-slot" data-ad-type="calculator"></div>
 
   <div id="tool-cta-root"></div>
   <div id="tool-share-root"></div>
@@ -156,116 +149,48 @@
 </div>
 
 <section class="tool-content">
-  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">Last reviewed 12 July 2026 · rates and thresholds verified against official FY2026-27 sources.</p>
-  <h2>How capital gains tax works on Australian property</h2>
-  <p>Capital gains tax (CGT) is the tax you pay on the profit you make when you sell an asset — including an investment property — for more than it cost you. In Australia, CGT is not a separate tax with its own rate. Instead, your net capital gain is <strong>added to your assessable income</strong> in the financial year a contract of sale is signed, and the whole lot is then taxed at your <strong>marginal income tax rate</strong>. That means the same gain can cost one person far more tax than another, depending on what else they earn that year.</p>
-  <p>The Australian Taxation Office (ATO) administers CGT under the income tax law. For property investors it is often the single largest tax event of the whole investment, so understanding how the gain is calculated — and the legitimate ways it is reduced — matters as much as the headline sale price. This calculator estimates the tax on a property sale by working out your gain, applying the 50% discount where it qualifies, and stacking the result on top of the income you tell it you already earn.</p>
-
-  <h3>Why the timing of a sale matters in Australia</h3>
-  <p>Because the gain is taxed at your marginal rate in the year you sell, the same property can produce very different tax outcomes from one year to the next. Selling in a year when you also earn a high salary pushes more of the gain into the top tax brackets. Selling in a low-income year — for example after retirement, during parental leave, or in a year of reduced trading — can keep more of the gain in lower brackets. CGT therefore sits at the intersection of tax planning and timing, not just price.</p>
-
-  <h2>The formula, step by step</h2>
-  <p>At its core, a capital gain on property is built up in a few clear steps. The arithmetic this calculator follows is:</p>
+  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">I checked the FY2026-27 tax rates and Medicare levy thresholds this calculator uses on 18 November 2026.</p>
+  <h2>How the tax is worked out</h2>
+  <p>CGT has no rate of its own. Your net capital gain is added to your assessable income in the financial year the contract of sale is signed, and taxed at your marginal income tax rate. The calculator follows these steps:</p>
   <ul>
-    <li><strong>Cost base</strong> = purchase price + buying and selling costs (stamp duty, conveyancing, agent commission, legal fees) + capital improvements (renovations, extensions, a new kitchen).</li>
-    <li><strong>Gross capital gain</strong> = sale price − cost base.</li>
-    <li><strong>Discounted gain</strong> = gross gain × 50% (only if you are an individual and held the asset for more than 12 months).</li>
-    <li><strong>Tax payable</strong> = (tax on [your other taxable income + discounted gain]) − (tax on your other taxable income alone), using the ATO's resident marginal rates.</li>
+    <li>Cost base = purchase price + buying and selling costs (stamp duty, conveyancing, agent commission, legal fees) + capital improvements (renovations, extensions, a new kitchen).</li>
+    <li>Gross capital gain = sale price − cost base.</li>
+    <li>Discounted gain = gross gain × 50%, only if you are an individual and held the asset for more than 12 months.</li>
+    <li>Tax payable = (tax on [your other taxable income + discounted gain]) − (tax on your other taxable income alone), using the ATO's resident marginal rates.</li>
   </ul>
-  <p>That last step is the part people most often get wrong. Your CGT is the <em>extra</em> tax created by adding the discounted gain on top of your existing income — so the marginal rate that applies to the gain is the rate of the brackets the gain pushes you into, not your average rate. If a portion of the gain crosses into a higher bracket, only that portion is taxed at the higher rate. The Medicare levy generally applies on top of the income tax shown here.</p>
-
-  <h3>What counts in the cost base</h3>
-  <p>The cost base is more than the price you paid. It includes incidental costs of buying and selling (stamp duty on purchase, conveyancing, agent's commission, advertising, legal fees), and the cost of capital improvements you made. It can also include certain ownership costs that were never claimed as a deduction. Keeping every receipt over the life of the investment is the simplest, most reliable way to cut a future CGT bill — improvements and costs you cannot substantiate generally cannot be added.</p>
+  <p>Any part of the gain that pushes you into a higher bracket is taxed at that bracket's rate, so the same gain costs less tax in a year when your other income is low. The figure includes the 2% Medicare levy on the gain.</p>
+  <p>The cost base can also include some ownership costs that were never claimed as a deduction. You need records for anything you add to it.</p>
 
   <h2>Worked example</h2>
-  <p>Assume an individual Australian resident sells an investment property with the following details:</p>
+  <p>An individual Australian resident sells an investment property for $900,000. They paid $600,000, spent $45,000 on buying and selling costs (purchase stamp duty, conveyancing, and agent commission on sale) and $0 on capital improvements, held it for more than 12 months, and have $100,000 of other taxable income that year.</p>
   <ul>
-    <li><strong>Sale price:</strong> $900,000</li>
-    <li><strong>Purchase price:</strong> $600,000</li>
-    <li><strong>Buying and selling costs:</strong> $45,000 (purchase stamp duty, conveyancing, and agent commission on sale)</li>
-    <li><strong>Capital improvements:</strong> $0</li>
-    <li><strong>Other taxable income that year:</strong> $100,000</li>
-    <li><strong>Held for more than 12 months:</strong> yes</li>
+    <li>Cost base: $600,000 + $45,000 = $645,000</li>
+    <li>Gross capital gain: $900,000 − $645,000 = $255,000</li>
+    <li>Discounted gain: $127,500, which lifts taxable income for the year to $227,500</li>
+    <li>On the FY 2026-27 scale, including the Medicare levy, tax on $227,500 is $72,795 and tax on $100,000 is $22,520, so the CGT is <strong>$50,275</strong></li>
+    <li>Net gain after tax: $204,725</li>
   </ul>
-  <p>The cost base is $600,000 + $45,000 = <strong>$645,000</strong>. The gross capital gain is $900,000 − $645,000 = <strong>$255,000</strong>. Because the property was held for more than 12 months by an individual, the 50% CGT discount halves the gain to a <strong>$127,500</strong> discounted gain. That $127,500 is added to the $100,000 already earned, lifting taxable income for the year to <strong>$227,500</strong>. The CGT payable is the difference between the tax on $227,500 and the tax on $100,000 — roughly the gain taxed through the upper marginal brackets. The exact dollar figure depends on the marginal rates in force for that financial year, which is why this is an estimate rather than a lodged figure. The 50% discount in this example saves tax on $127,500 of gain that would otherwise have been assessable.</p>
 
-  <h2>Practical guidance and common mistakes</h2>
-  <ul>
-    <li><strong>Use the contract date, not settlement.</strong> A CGT event happens when you sign the contract of sale, not when the money settles. A late-June contract falls in a different financial year to an early-July one, which can change your marginal rate.</li>
-    <li><strong>Don't forget the 12-month rule is "more than" 12 months.</strong> The discount needs ownership for longer than 12 months — count from the day after you acquired the asset. Selling just under the line forfeits the entire 50% discount.</li>
-    <li><strong>Companies don't get the 50% discount.</strong> The discount is for individuals and trusts (and a partial discount for complying super funds). A property held in a company is taxed on the full gain.</li>
-    <li><strong>Capital losses offset gains, not income.</strong> A capital loss from another asset (such as shares) can be used to reduce a capital gain, and unused losses carry forward — but they cannot reduce your salary or rental income.</li>
-    <li><strong>Keep records for the life of the asset.</strong> Renovation invoices, the original purchase statement and agent records can all add to your cost base years later. Missing paperwork usually means a larger gain.</li>
-    <li><strong>Foreign residents face different rules.</strong> Non-residents generally cannot claim the 50% discount on gains accrued while a foreign resident, and the main residence exemption is largely unavailable to them.</li>
-  </ul>
+  <h2>Dates that change the result</h2>
+  <p>The CGT event is the day you sign the contract of sale, not settlement. A late-June contract falls in a different financial year to an early-July one, which can change your marginal rate.</p>
+  <p>The discount needs ownership for longer than 12 months, counted from the day after you acquired the property. Selling before then loses the whole 50% discount.</p>
 
   <h2>The main residence exemption</h2>
-  <p>Your home — your principal place of residence — is generally exempt from CGT, which is why the calculator lets you flag a main residence. The exemption has conditions: broadly, the dwelling must have been your home, you must not have used it to produce income beyond limited circumstances, and it sits on land of two hectares or less. The "six-year rule" can extend the exemption: if you move out and rent the property, it can remain CGT-exempt for up to six years, provided you don't treat another property as your main residence at the same time. These rules are detailed and easy to get wrong, so confirm your specific situation with the ATO or a registered tax agent.</p>
+  <p>Your home is generally exempt from CGT. Broadly, the dwelling must have been your home, you must not have used it to produce income beyond limited circumstances, and it must sit on land of two hectares or less. Under the six-year rule, if you move out and rent the property it can remain CGT-exempt for up to six years, provided you don't treat another property as your main residence at the same time. Ticking the main residence box sets the CGT to $0. The calculator can't check these conditions against your facts.</p>
 
-  <h2>Legislated changes from 1 July 2027: the 50% discount is being replaced</h2>
-  <p>The capital gains tax reforms announced in the 2026-27 Federal Budget are <strong>now law</strong> (Treasury Laws Amendment (Tax Reform No. 1) Act 2026) and apply from <strong>1 July 2027</strong>. From that date, the 50% CGT discount for individuals, trusts and partnerships will be <strong>replaced</strong> by cost-base indexation plus a 30% minimum tax rate on gains that <em>accrue after</em> 1 July 2027. Gains accrued before that date keep the current treatment, so long-held assets are effectively split between the old and new rules at the transition.</p>
-  <p>This calculator applies current FY2026-27 law — the full 50% discount where the 12-month rule is met. If you are planning a sale around the transition, the accrual-based split makes professional advice especially valuable; see the ATO's new-legislation guidance for the detail of how pre- and post-1 July 2027 gains are apportioned.</p>
+  <h2>The 50% discount is replaced from 1 July 2027</h2>
+  <p>The capital gains tax reforms announced in the 2026-27 Federal Budget are now law (Treasury Laws Amendment (Tax Reform No. 1) Act 2026). From 1 July 2027, the 50% CGT discount for individuals, trusts and partnerships is replaced by cost-base indexation plus a 30% minimum tax rate on gains that accrue after that date. Gains accrued before it keep the current treatment, so a property held across the date is split between the old and new rules. The ATO's new-legislation guidance explains the split.</p>
+  <p>This calculator applies FY2026-27 law, with the full 50% discount where the 12-month rule is met.</p>
 
-  <h2>What this calculator does and doesn't cover</h2>
-  <p>This tool gives an <strong>estimate</strong> of CGT on a single property sale for an individual Australian resident. It applies the 50% discount when you indicate the property was held for more than 12 months, builds a simple cost base, and stacks the discounted gain on the income you enter to approximate the marginal-rate tax.</p>
-  <p>It does <strong>not</strong> model the Medicare levy or surcharge, capital losses carried forward from prior years, the partial exemption where a former home was rented out, depreciation and capital works (Division 43) adjustments that can reduce the cost base, ownership through a company, trust or self-managed super fund, or any first-home or small-business concessions. It also can't apply the main residence exemption rules to your facts — ticking the box simply signals the gain may be exempt. Treat the output as a starting point for a conversation with a professional, not a final tax figure.</p>
-
-  <h2>Frequently asked questions</h2>
-  <h3>Is the 50% CGT discount automatic?</h3>
-  <p>It applies automatically if you qualify — you must be an individual (or trust) and have owned the asset for more than 12 months before the CGT event. You don't apply to anyone for it; you simply calculate your net gain with the discount included when you lodge your return. Companies do not receive it.</p>
-
-  <h3>When do I pay the CGT?</h3>
-  <p>There is no separate CGT bill. The net gain is reported in your income tax return for the financial year the sale contract was signed, and it forms part of your overall tax assessment for that year. Many investors set aside an estimate of the tax at settlement so they aren't caught short when the return is lodged.</p>
-
-  <h3>Does selling my own home trigger CGT?</h3>
-  <p>Generally no. The main residence exemption usually means there is no CGT on the sale of the home you live in, provided it has genuinely been your residence and meets the ATO's conditions. Complications arise if you rented it out, ran a business from it, or it sits on a large parcel of land.</p>
-
-  <h3>Can renovations reduce my CGT?</h3>
-  <p>Yes — the cost of genuine capital improvements is added to your cost base, which lowers the taxable gain. The key is documentation: keep invoices and receipts. Note that amounts already claimed as deductions (such as some capital works) may need to be adjusted out of the cost base, so the interaction with past deductions matters.</p>
-
-  <p>This page is general information, not personal financial or tax advice. Rates, thresholds and concessions change between financial years. For the current rules and your individual circumstances, consult the ATO at <a href="https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax" rel="nofollow noopener" target="_blank">ato.gov.au</a> or the Australian Government's Moneysmart service at <a href="https://moneysmart.gov.au" rel="nofollow noopener" target="_blank">moneysmart.gov.au</a>, and speak with a registered tax agent.</p>
+  <h2>What this calculator leaves out</h2>
+  <p>It covers one property sold by an individual Australian resident, and includes the 2% Medicare levy with its low-income phase-in. It doesn't handle ownership through a company, trust or self-managed super fund (companies get no 50% discount, and complying super funds get a partial one). Nor does it handle a non-resident seller. Non-residents generally can't claim the discount on gains accrued while a foreign resident, and the main residence exemption is largely unavailable to them.</p>
+  <p>It also leaves out the Medicare levy surcharge, tax offsets such as the low income tax offset, capital losses carried forward from prior years, the partial exemption where a former home was rented out, depreciation and capital works (Division 43) adjustments that can reduce the cost base, and first-home or small-business concessions.</p>
+  <p>This page is general information, not personal tax advice. The current rules are on the ATO's <a href="https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax" rel="nofollow noopener" target="_blank">capital gains tax pages</a>.</p>
 </section>
 
 <div id="tool-resources-root"></div>
 <div id="tool-trust-root"></div>
-<!-- Static internal links: crawlable <a> to every calculator so Googlebot can
-     discover the full suite without executing the JS-injected related grid/nav.
-     Identical on all 22 tool pages; reuses .tool-resources styling (tools.css). -->
-<nav class="tool-resources" aria-label="All EquitySight calculators">
-  <div class="tool-resources-title">Explore all our free Australian property calculators</div>
-  <div class="tool-resources-grid">
-    <div>
-      <h3>Buying &amp; upfront costs</h3>
-      <ul>
-        <li><a href="/tools/stamp-duty-calculator">Stamp Duty Calculator</a></li>
-        <li><a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a></li>
-        <li><a href="/tools/deposit-calculator">Deposit Calculator</a></li>
-        <li><a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants Calculator</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3>Borrowing &amp; repayments</h3>
-      <ul>
-        <li><a href="/tools/borrowing-power-calculator">Borrowing Power Calculator</a></li>
-        <li><a href="/tools/loan-serviceability-calculator">Loan Serviceability Calculator</a></li>
-        <li><a href="/tools/mortgage-repayment-calculator">Mortgage Repayment Calculator</a></li>
-        <li><a href="/tools/mortgage-stress-calculator">Mortgage Stress Calculator</a></li>
-        <li><a href="/tools/interest-only-vs-principal-calculator">Interest-Only vs Principal Calculator</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3>Investment &amp; returns</h3>
-      <ul>
-        <li><a href="/tools/rental-yield-calculator">Rental Yield Calculator</a></li>
-        <li><a href="/tools/capital-gains-calculator">Capital Gains Tax Calculator</a></li>
-        <li><a href="/tools/equity-release-calculator">Equity Release Calculator</a></li>
-        <li><a href="/tools/house-flip-calculator">House Flip Calculator</a></li>
-        <li><a href="/tools/renovation-cost-calculator">Renovation Cost Calculator</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="tool-resources-disclaimer"><a href="/tools/">View all Australian property calculators &rarr;</a></div>
-</nav>
+<p class="tool-all-link"><a href="/tools/">All 18 calculators</a></p>
 
 <div id="tool-footer-root"></div>
 

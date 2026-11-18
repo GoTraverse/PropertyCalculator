@@ -21,16 +21,35 @@
  *   $135,001–$190,000: 37% | $190,001+: 45%
  * The 15% band applies from 1 Jul 2026 and is legislated to drop to 14%
  * from 1 Jul 2027 — update TAX_BRACKETS then.
- * Medicare levy is applied as a FLAT 2% of taxable income — a stated
- * simplification (ignores the low-income phase-in, offsets, and the
- * Medicare levy surcharge). */
+ * The Medicare levy is added on top, phased in for low incomes (see
+ * medicareLevy below). Still ignored, and stated on the page: the family and
+ * seniors thresholds, tax offsets and the Medicare levy surcharge. */
 var TAX_BRACKETS = [
   [18200, 0.15],
   [45000, 0.30],
   [135000, 0.37],
   [190000, 0.45]
 ];
+
+/* ── Medicare levy (singles) ──
+ * Nil up to $28,011; 10% of the excess over $28,011 until that reaches the
+ * full levy at $35,013; 2% of taxable income above that. FY2025-26 thresholds
+ * (the latest published; each year's are legislated retrospectively).
+ *
+ * ⚠ SYNC COPY: the rule and both thresholds are copied from approxTax() in
+ * tools/borrowing-power-calculator.js, which is the source copy (the same
+ * lines are in tools/capital-gains-calculator.js). Change them together. */
 var MEDICARE_RATE = 0.02;
+var MEDICARE_LOWER = 28011;      // no levy at or below this
+var MEDICARE_UPPER = 35013;      // full 2% above this
+var MEDICARE_SHADE_RATE = 0.10;  // of the excess over MEDICARE_LOWER
+
+function medicareLevy(taxable) {
+  var x = Math.max(0, taxable);
+  if (x > MEDICARE_UPPER) return x * MEDICARE_RATE;
+  if (x > MEDICARE_LOWER) return (x - MEDICARE_LOWER) * MEDICARE_SHADE_RATE;
+  return 0;
+}
 
 function incomeTax(taxable) {
   var x = Math.max(0, taxable);
@@ -41,13 +60,18 @@ function incomeTax(taxable) {
     var to = (i + 1 < TAX_BRACKETS.length) ? TAX_BRACKETS[i + 1][0] : Infinity;
     t += (Math.min(x, to) - from) * TAX_BRACKETS[i][1];
   }
-  return t + x * MEDICARE_RATE;
+  return t + medicareLevy(x);
 }
 
+/* The rate on the next dollar of taxable income. Between the two Medicare
+ * thresholds the levy itself rises by 10c in the dollar, so the 15% band
+ * is split into three rows. */
 function bandLabel(taxable) {
   var x = Math.max(0, taxable);
-  if (x <= 18200) return '0% (tax-free threshold) + 2% Medicare';
-  if (x <= 45000) return '15% + 2% Medicare ($18,201–$45,000)';
+  if (x <= 18200) return '0% (tax-free threshold), no Medicare levy';
+  if (x <= MEDICARE_LOWER) return '15%, no Medicare levy ($18,201–$28,011)';
+  if (x <= MEDICARE_UPPER) return '15% + 10% Medicare phase-in ($28,012–$35,013)';
+  if (x <= 45000) return '15% + 2% Medicare ($35,014–$45,000)';
   if (x <= 135000) return '30% + 2% Medicare ($45,001–$135,000)';
   if (x <= 190000) return '37% + 2% Medicare ($135,001–$190,000)';
   return '45% + 2% Medicare ($190,001+)';
@@ -56,7 +80,7 @@ function bandLabel(taxable) {
 /* Signed currency — fmt() renders -8595 as "$-8,595"; this renders −$8,595. */
 function fmtS(n) {
   var r = Math.round(n);
-  return (r < 0 ? '−$' : '$') + Math.abs(r).toLocaleString();
+  return (r < 0 ? '−$' : '$') + Math.abs(r).toLocaleString('en-AU');
 }
 
 /* ═══ SUBURB MEDIAN RENT PREFILL (optional) ═══
@@ -105,21 +129,21 @@ function populateSuburbList() {
 }
 
 var _RENT_HINTS = {
-  qld: 'QLD: suburb median weekly rents available (Residential Tenancies Authority bond data) — pick a suburb and use the button below.',
-  sa: 'SA: suburb median weekly rents available (Consumer & Business Services bond data) — pick a suburb and use the button below.',
-  tas: 'TAS: suburb median weekly rents available (rental bond lodgements) — pick a suburb and use the button below.',
-  vic: 'VIC publishes sale medians but no rent medians — enter the advertised or appraised rent.',
-  nsw: 'NSW: no free public suburb rent medians in our data yet — enter the advertised or appraised weekly rent.',
-  wa: 'WA: no free public suburb rent medians in our data yet — enter the advertised or appraised weekly rent.',
-  act: 'ACT: no free public suburb rent medians in our data yet — enter the advertised or appraised weekly rent.',
-  nt: 'NT: no free public suburb rent medians in our data yet — enter the advertised or appraised weekly rent.'
+  qld: 'QLD: suburb median weekly rents are available (Residential Tenancies Authority bond data). Pick a suburb and use the button below.',
+  sa: 'SA: suburb median weekly rents are available (Consumer & Business Services bond data). Pick a suburb and use the button below.',
+  tas: 'TAS: suburb median weekly rents are available (rental bond lodgements). Pick a suburb and use the button below.',
+  vic: 'VIC publishes sale medians but no rent medians, so enter the advertised or appraised rent.',
+  nsw: 'NSW: I don’t have free public suburb rent medians yet, so enter the advertised or appraised weekly rent.',
+  wa: 'WA: I don’t have free public suburb rent medians yet, so enter the advertised or appraised weekly rent.',
+  act: 'ACT: I don’t have free public suburb rent medians yet, so enter the advertised or appraised weekly rent.',
+  nt: 'NT: I don’t have free public suburb rent medians yet, so enter the advertised or appraised weekly rent.'
 };
 
 function updateRentHint() {
   var el = document.getElementById('suburb-hint');
   if (!el) return;
   if (_mediansFailed) {
-    el.textContent = 'Market medians are unavailable right now — enter the rent manually; the calculator works without them.';
+    el.textContent = 'Market medians aren’t loading right now. Enter the rent yourself. The calculator works without them.';
     return;
   }
   var st = document.getElementById('state').value;
@@ -149,26 +173,26 @@ function _captionSay(t) {
 }
 
 function applyMedian() {
-  if (_mediansFailed) { _captionSay('Market medians are unavailable right now — enter the rent manually.'); return; }
-  if (!_medians || !_medians.states) { _captionSay('Still loading market medians — try again in a moment.'); return; }
+  if (_mediansFailed) { _captionSay('Market medians aren’t loading right now. Enter the rent yourself.'); return; }
+  if (!_medians || !_medians.states) { _captionSay('Still loading market medians. Try again in a moment.'); return; }
   var subEl = document.getElementById('suburb');
   var typed = subEl ? subEl.value.replace(/\s+/g, ' ').trim() : '';
   if (!typed) { _captionSay('Type a suburb first, or pick one from the list.'); return; }
   var SC = _stateCode();
   var map = _medians.states[SC];
   if (!map) {
-    _captionSay('No free public suburb rent medians for ' + SC + ' in our data — enter the advertised or appraised rent.');
+    _captionSay('I don’t have free public suburb rent medians for ' + SC + ', so enter the advertised or appraised rent.');
     return;
   }
   var rec = map[_normSuburb(typed)];
   if (!rec || typeof rec.r !== 'number') {
-    _captionSay('We don’t have a rent median for ' + _titleCase(typed) + ' (' + SC + ') — pick a suggestion from the list, or enter the rent manually.');
+    _captionSay('I don’t have a rent median for ' + _titleCase(typed) + ' (' + SC + '). Pick a suburb from the list, or enter the rent yourself.');
     return;
   }
   var rentEl = document.getElementById('rent');
-  if (rentEl) rentEl.value = Math.round(rec.r).toLocaleString();
-  _captionSay('Median weekly rent for ' + _titleCase(typed) + ': $' + Math.round(rec.r).toLocaleString() +
-    ' — ' + _srcCaption(SC + '_rent'));
+  if (rentEl) rentEl.value = Math.round(rec.r).toLocaleString('en-AU');
+  _captionSay('Median weekly rent for ' + _titleCase(typed) + ': $' + Math.round(rec.r).toLocaleString('en-AU') +
+    ', ' + _srcCaption(SC + '_rent'));
   calculate(false);
 }
 
@@ -210,7 +234,7 @@ function calculate(showErrors) {
   var depreciation = parseVal('depreciation');
 
   if (!value || !weeklyRent) {
-    if (showErrors) _showErr('Please enter the property value and the weekly rent.');
+    if (showErrors) _showErr('Enter the property value and the weekly rent.');
     return;
   }
 
@@ -273,7 +297,7 @@ function calculate(showErrors) {
   var loanLabelEl = document.getElementById('r-loanpay-label');
   if (loanLabelEl) loanLabelEl.textContent = (repayType === 'io')
     ? 'Loan interest (interest-only)'
-    : 'Loan repayments (P&I, cash incl. principal)';
+    : 'Loan repayments (P&I, including principal)';
   setText('r-loanpay', fmtS(-s.loanPayment));
   setText('r-pretax', fmtS(s.preTax) + ' /yr');
   setText('r-pretax-wk', fmtS(s.preTax / 52) + ' /wk');
@@ -310,26 +334,25 @@ function calculate(showErrors) {
       var cents = Math.round((s.taxEffect / Math.abs(s.taxableResult)) * 100);
       if (income <= 0) {
         txt = 'This property runs at a taxable loss of ' + fmt(Math.abs(s.taxableResult)) +
-          ' a year, but with no taxable income entered there is nothing to deduct it against — no refund this year (rental losses carry forward). The shortfall is entirely real cash.';
+          ' a year, but with no taxable income entered there’s nothing to deduct it against, so there’s no refund this year (rental losses carry forward). The whole shortfall comes out of your pocket.';
       } else if (s.preTax >= 0) {
         txt = 'On paper this property makes a taxable loss of ' + fmt(Math.abs(s.taxableResult)) +
-          ' a year, yet the cash position is positive — the loss comes from non-cash depreciation. That is the best-case version of gearing: a refund of about ' +
-          fmt(s.taxEffect) + ' without a weekly out-of-pocket cost. Verify the depreciation figure against a real quantity surveyor schedule.';
+          ' a year, but the cash position is positive because the loss comes from depreciation, which costs no cash. You get a refund of about ' +
+          fmt(s.taxEffect) + ' without a weekly out-of-pocket cost. Check the depreciation figure against a quantity surveyor’s schedule.';
       } else {
         txt = 'This property runs at a taxable loss of ' + fmt(Math.abs(s.taxableResult)) +
-          ' a year. Negative gearing refunds only your marginal slice — here about ' + cents +
-          'c per $1 of loss (' + fmt(s.taxEffect) + ' back at tax time). You spend $1 to get back ' + cents +
-          'c; the rest is a real cash loss unless depreciation covers it. The investment must grow in value by more than the accumulated after-tax shortfall (plus buying, selling and CGT costs) to come out ahead.';
+          ' a year. Negative gearing gives back only your marginal rate, here about ' + cents +
+          'c per $1 of loss (' + fmt(s.taxEffect) + ' back at tax time). The rest is a cash loss unless depreciation covers it. To come out ahead, the property has to grow in value by more than the after-tax shortfall you build up, plus buying, selling and CGT costs.';
       }
       verdict.innerHTML = _callout('mort-callout mort-callout-gold', 'Negatively geared', escHtml(txt));
     } else if (s.taxableResult > 0) {
       txt = 'This property adds ' + fmt(s.taxableResult) + ' a year to your taxable income. Extra tax of about ' +
         fmt(Math.abs(s.taxEffect)) + ' applies, leaving ' + fmtS(s.afterTax) + ' a year (' + fmtS(s.afterTax / 52) +
-        ' a week) in your pocket after tax. No growth assumptions needed to hold it — but check the +1% stress-test below.';
+        ' a week) in your pocket after tax. It pays its way without relying on growth. Check the +1% stress test below.';
       verdict.innerHTML = _callout('mort-callout', 'Positively geared', escHtml(txt));
     } else {
       verdict.innerHTML = _callout('mort-callout', 'Neutrally geared',
-        escHtml('Rent exactly covers the deductible costs — no tax effect either way this year.'));
+        escHtml('Rent exactly covers the deductible costs, so there’s no tax effect either way this year.'));
     }
   }
 
@@ -340,8 +363,8 @@ function calculate(showErrors) {
       var delta = stress.afterTax - s.afterTax;
       stressEl.innerHTML = _callout('mort-callout', 'Rate stress-test', escHtml(
         'At ' + (rate + 1).toFixed(2) + '% (your rate + 1%), after-tax cash flow becomes ' +
-        fmtS(stress.afterTax / 52) + ' a week (' + fmtS(stress.afterTax) + ' a year) — a change of ' +
-        fmtS(delta / 52) + ' a week. If that number breaks your budget, the deal has no buffer.'));
+        fmtS(stress.afterTax / 52) + ' a week (' + fmtS(stress.afterTax) + ' a year), a change of ' +
+        fmtS(delta / 52) + ' a week.'));
       stressEl.style.display = '';
     } else {
       stressEl.innerHTML = '';
@@ -365,22 +388,32 @@ function calculate(showErrors) {
   }
 }
 
-/* ─ Hydrate interest rate from live RBA data (same pattern as
- *   loan-serviceability). Only replaces the untouched default. ─ */
+/* ─ Rate suggestion: the RBA cash rate plus my estimated lender margin (see
+ *   market-rate.js), the same pattern as loan-serviceability. It is not a
+ *   quoted rate, so the note under the field, which market-rate.js words,
+ *   always says what it is made of. The suggestion only replaces the rate
+ *   while you have not typed your own (including a suggestion restored from
+ *   an earlier visit), and the label note shows only while the field holds
+ *   the suggestion. ─ */
 if (typeof MarketRate !== 'undefined') {
   MarketRate.onReady(function (d) {
-    if (!d) return;
-    var el = document.getElementById('rate');
-    if (el && el.value === '6.50') el.value = d.suggestedRate;
-    var badge = document.getElementById('rate-live-badge');
-    var hint = document.getElementById('rate-live-hint');
-    if (badge) badge.style.display = '';
-    if (hint) {
-      hint.textContent = 'Live RBA-based suggestion: cash rate ' + d.cashRate.toFixed(2) +
-        '% + typical lender margin ' + d.lenderMargin.toFixed(2) + '% = ' + d.suggestedRate.toFixed(2) + '%' +
-        (d.rateDate ? ' — ' + d.rateDate : '');
-      hint.style.display = '';
-    }
+    // An older cached market-rate.js has no bindRateNote, so there would be
+    // no note saying what the suggestion is: keep the default instead.
+    if (!d || typeof MarketRate.bindRateNote !== 'function') return;
+    var rateEl = document.getElementById('rate');
+    // 6.50 was the default before Nov 2026, and back then a saved 6.50 was
+    // always replaced by the suggestion. If no suggestion has been stored for
+    // this visitor, a saved 6.50 is that old default, so treat it as the
+    // new one.
+    try {
+      if (rateEl && rateEl.value === '6.50' && localStorage.getItem('tool_live_rate_v1:property-cashflow') === null) rateEl.value = '6.25';
+    } catch (e) {}
+    ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.25', slug: 'property-cashflow', rate: d.suggestedRate });
+    MarketRate.bindRateNote(rateEl, document.getElementById('rate-live-badge'), document.getElementById('rate-live-hint'));
+    // The note describes an owner-occupier margin, and this page is for
+    // investors, so the line saying investor rates run higher shows with it.
+    var invHint = document.getElementById('rate-investor-hint');
+    if (invHint) invHint.style.display = '';
     // Refresh only if a result is already on screen (avoids surfacing a
     // validation state the user never asked for).
     var res = document.getElementById('result');
@@ -394,39 +427,39 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full investment — 30 years, not one',
-    description: 'Stack purchase costs, yield, land tax and the eventual CGT with the other free calculators.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'Land tax and capital gains',
+    description: 'The land tax calculator works out the figure for the land tax line above, and the capital gains calculator covers the sale.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE2', title: 'ATO: Rental Property Tax',
+        icon: '\uD83C\uDFE2', title: 'Rental property tax',
         links: [
-          { text: 'ATO: Residential Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ATO: How to Claim Rental Expenses', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/how-to-claim-rental-expenses' },
-          { text: 'ATO: Tax Rates for Australian Residents', href: 'https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents' }
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'ATO: how to claim rental expenses', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties/rental-expenses/how-to-claim-rental-expenses' },
+          { text: 'ATO: tax rates for Australian residents', href: 'https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Investment Guidance',
+        icon: '\uD83D\uDCB0', title: 'Investing and interest rates',
         links: [
-          { text: 'Moneysmart: Property Investment', href: 'https://moneysmart.gov.au/property-investment' },
-          { text: 'Moneysmart: Borrowing to Invest', href: 'https://moneysmart.gov.au/how-to-invest/borrowing-to-invest' },
-          { text: 'RBA: Cash Rate', href: 'https://www.rba.gov.au/statistics/cash-rate/' }
+          { text: 'Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' },
+          { text: 'Moneysmart: borrowing to invest', href: 'https://moneysmart.gov.au/how-to-invest/borrowing-to-invest' },
+          { text: 'RBA: cash rate', href: 'https://www.rba.gov.au/statistics/cash-rate/' }
         ]
       },
       {
-        icon: '\uD83C\uDFDB\uFE0F', title: 'State Land Tax',
+        icon: '\uD83C\uDFDB\uFE0F', title: 'Land tax',
         links: [
-          { text: 'Revenue NSW: Land Tax', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax' },
-          { text: 'SRO Victoria: Land Tax', href: 'https://www.sro.vic.gov.au/land-tax' },
-          { text: 'QLD Revenue Office: Land Tax', href: 'https://qro.qld.gov.au/land-tax/' }
+          { text: 'Revenue NSW: land tax', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax' },
+          { text: 'SRO Victoria: land tax', href: 'https://www.sro.vic.gov.au/land-tax' },
+          { text: 'Queensland Revenue Office: land tax', href: 'https://qro.qld.gov.au/land-tax/' }
         ]
       }
     ],
-    disclaimer: 'General information only — not tax advice. Deductibility depends on your circumstances; FY2026-27 rates apply to Australian residents. Confirm with a registered tax agent and the ATO.'
+    disclaimer: 'The FY2026-27 rates are for Australian residents. Rules and rates change, so check the current settings with the ATO.'
   },
   share: {
     url: 'https://equitysight.app/tools/property-cashflow-calculator',
@@ -493,29 +526,21 @@ ToolPage.init({
     }
   ],
   faq: [
-    { q: 'What is negative gearing and how does the refund actually work?',
-      a: 'A property is negatively geared when its deductible costs (loan interest, cash expenses, depreciation) exceed the rent. The loss reduces your taxable income, so the ATO effectively refunds it at your marginal rate. On a $16,595 loss in the 30% band (+2% Medicare), that is about $5,310 back at tax time — but you still wore the other $11,285. The refund softens a loss; it never turns a loss into a profit on its own.' },
-    { q: 'Which tax rates does this calculator use?',
-      a: 'FY2026-27 Australian resident rates: 0% to $18,200, 15% to $45,000, 30% to $135,000, 37% to $190,000 and 45% above, plus a flat 2% Medicare levy. The 15% band applies from 1 July 2026 and is legislated to fall to 14% from 1 July 2027. The tax effect is computed exactly across brackets, not with a single marginal-rate shortcut.' },
+    { q: 'What is negative gearing and how does the refund work?',
+      a: 'A property is negatively geared when its deductible costs (loan interest, cash expenses, depreciation) are more than the rent. The loss reduces your taxable income, so in effect the ATO refunds it at your marginal rate. On a $16,595 loss in the 30% band (plus 2% Medicare), that’s about $5,310 back at tax time, and you still carry the other $11,285 yourself.' },
     { q: 'Why is my pre-tax cash flow different from my taxable result?',
-      a: 'They are two different ledgers. Cash flow counts actual money movements, including the principal portion of P&I repayments (cash out, but not deductible). The taxable result counts only deductible items, including depreciation (deductible, but no cash leaves your pocket). A property can be cash-flow positive yet show a taxable loss — or the reverse.' },
+      a: 'They’re two different ledgers. Cash flow counts money that moves, including the principal part of P&I repayments (cash out, but not deductible). The taxable result counts only deductible items, including depreciation (deductible, but no cash leaves your account). A property can be cash-flow positive and still show a taxable loss, or the other way round.' },
     { q: 'Do I need a quantity surveyor to claim depreciation?',
-      a: 'In practice, yes. The ATO accepts construction-cost estimates from a qualified quantity surveyor where the actual costs are unknown; a schedule typically costs a few hundred dollars and is itself deductible. Note that for established homes bought after 9 May 2017 you generally cannot claim depreciation on second-hand plant and equipment — capital works (Division 43) deductions may still apply for buildings constructed after September 1987.' },
-    { q: 'What doesn’t this calculator cover?',
-      a: 'Capital gains tax on sale (use our Capital Gains Calculator for that), LMI, borrowing-cost amortisation, PAYG withholding variations, Medicare levy fine print (the low-income phase-in, surcharge and offsets), and ownership through trusts or companies, which are taxed differently. It models one full year at a fixed rate and rent.' },
-    { q: 'Is a negatively geared property a bad investment?',
-      a: 'Not automatically — but the shortfall is real cash until growth exceeds it. A negatively geared property is a bet that capital growth will outrun the accumulated after-tax losses plus buying costs, selling costs and CGT. Run the +1% rate stress-test before you rely on the weekly figure, and make sure you can hold through a vacancy or a rate rise.' },
-    { q: 'Do the legislated negative gearing changes affect this calculator?',
-      a: 'Not for FY2026-27 — and not for grandfathered or new-build properties after that. The negative gearing reform is now law: from 1 July 2027, negative gearing deductions for residential property are limited to new builds. Properties held at 7:30pm AEST on 12 May 2026 are grandfathered, so existing holdings keep negative gearing. An established home purchased after that cut-off cannot be negatively geared from 1 July 2027. Separately, the 50% CGT discount is replaced by cost-base indexation plus a 30% minimum tax rate on gains that accrue after 1 July 2027 — that affects the exit, not the yearly cash flow modelled here. This calculator’s tax benefit computation remains correct for FY2026-27, and beyond that for grandfathered and new-build properties. Source: ATO new-legislation guidance on the Treasury Laws Amendment (Tax Reform No. 1) Act 2026.' }
+      a: 'In practice, yes. Where the actual construction costs aren’t known, the ATO accepts estimates from a qualified quantity surveyor. A schedule usually costs a few hundred dollars and is itself deductible.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83D\uDCC8', href: '/tools/rental-yield-calculator', label: 'Rental Yield Calculator' },
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/land-tax-calculator', label: 'Land Tax Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCC9', href: '/tools/capital-gains-calculator', label: 'Capital Gains Tax Calculator' },
     { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/borrowing-power-calculator', label: 'Borrowing Power Calculator' },
-    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD (high yield)' },
+    { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/qld/redbank-plains/', label: 'Redbank Plains QLD' },
     { group: 'Popular Suburbs', icon: '\uD83D\uDCCD', href: '/suburb/vic/point-cook/', label: 'Point Cook VIC' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Best QLD Investment Suburbs' }
+    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/qld/', label: 'Queensland suburb directory' }
   ]
 });
 

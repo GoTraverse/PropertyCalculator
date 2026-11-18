@@ -1,102 +1,151 @@
 ---
 title: EquitySight Methodology
-date: August 2026
-tag: Transparency
+date: November 2026
+tag: Reference
 ---
 
-## 1. Why I publish my methodology
+## 1. What a suburb page shows
 
-This page documents how EquitySight produces the numbers you see on the site, and which of those numbers are measured data versus estimates. You deserve to know the difference before you rely on anything here.
+A suburb page shows only these figures:
 
-I publish the methodology because:
+- the postcode
+- the population at the 2021 Census
+- the current median weekly rent, median sale price, or both, depending on what the state government publishes for that suburb
+- a 5%, 10% and 20% deposit at the median sale price
+- the weekly rent as a monthly and a yearly amount
+- the nearest other suburbs that have a page, with their own figures and a distance
 
-- Nobody should rely on opaque property numbers without knowing what they measure and where the inputs come from.
-- Australia's property industry has a long history of undisclosed conflicts and paid placements. I want mine out in the open.
-- Saying plainly what is estimated is more useful than a confident-sounding number with no basis.
+Each rent and price has its period and source printed under it. The datasets and their licences are on the [data sources](/data-sources) page. The deposits and the monthly and yearly rent are plain arithmetic on those medians. Distances are measured between postcode centres, so they are rough.
 
-EquitySight is built and maintained by one person — Jacoby, a solo operator. There is no in-house valuation team and no certified valuer on staff. I do not collect any paid data from agents or developers, and I do not accept sponsored content.
+A suburb page can also carry reviews that visitors wrote before I closed submissions in August 2026, with the average of their star ratings. Those are opinions, and the [data sources](/data-sources) page says what they are.
 
-## 2. What suburb pages show, and where each number comes from
+## 2. Which suburbs get a page
 
-Every figure displayed on a suburb page today comes from one of these sources:
+A suburb gets a page only when it has all of:
 
-| Field | Source | Status |
-|-------|--------|--------|
-| Usual-resident population | ABS 2021 Census (SAL geography) | Measured |
-| Postcode | Community postcode dataset, cross-checked against the Australia Post postcode finder | Measured |
-| Current median weekly rent | State government open data (QLD RTA, SA CBS, TAS rental bonds; NSW at postcode level) | Measured, with the period shown next to the figure |
-| Current median sale price | Valuer-General Victoria and Valuer-General SA | Measured, with the period shown next to the figure |
-| 2021 Census median rent / mortgage | ABS 2021 Census | Measured but five years old — labelled as 2021 wherever it appears |
-
-Every current rent and price figure carries an "as at" caption naming the source and period. The [data sources](/data-sources) page lists each dataset, its licence and its refresh cadence.
-
-## 3. Figures I removed rather than estimate
-
-Earlier versions of the suburb pages displayed fields I could not verify. Rather than label them and hope readers notice the label, I removed them:
-
-- **Median household income** — the build previously generated a placeholder income figure that was not an ABS number. It was removed from all suburb pages in August 2026. Income will return if and when I can source it properly from ABS Census data.
-- **Investment score** — removed. A 0–100 score computed partly from estimated inputs is not a measurement, so I no longer publish one anywhere on the site.
-- **School and park counts** — never verified against a real facilities dataset, so they are not published.
-
-Some internal fields (a postcode-derived suburb-type classification, and rough transport/amenity weightings) still exist in the build and can influence which sentence variant a page uses. They never appear as displayed figures.
-
-## 4. Which suburb pages are indexed for search
-
-Only suburb pages that carry genuine, current, suburb-level market data are submitted to search engines. The gate requires all of:
-
-- population of at least 2,000 (ABS 2021 Census),
+- a population of at least 2,000 (ABS 2021 Census),
 - a postcode, and
 - a current suburb-level median rent or sale price from state government open data.
 
-About 1,475 pages pass that gate today (concentrated in QLD, VIC, SA and TAS, where suburb-level open data exists). Suburbs that don't pass the gate simply don't get a page any more — I removed them in August 2026 rather than keep placeholder shells online. If a suburb page doesn't exist, it's because I don't have data for it that I can stand behind.
+About 1,475 suburbs pass, all in Queensland, Victoria, South Australia and Tasmania, where suburb-level open data exists. A suburb that doesn't pass has no page.
 
-## 5. Suburb prose and strategy text
+## 3. What I removed from suburb pages
 
-The strategy verdicts, risk factors and outlook text on suburb pages are generated by rule-based logic over the measured fields — gross yield where both rent and price exist, price relative to state medians, population size and suburb type. Every dollar figure or percentage quoted in that text is computed from a measured input; the logic never invents a number. Where a page lacks a field, the sentences that depend on it are omitted rather than filled with a guess.
+Earlier versions of the suburb pages carried content I couldn't source. All of it is gone:
 
-## 6. Known limitations
+- Strategy verdicts, risk factors, outlooks and "sentiment" tags (removed November 2026). These were generated by rules over the population figure and a suburb class guessed from the postcode. They read as analysis and weren't.
+- "Who this suburb suits", pros and cons, and lifestyle text (removed November 2026). There was no data behind these either.
+- Indicative gross yield (removed November 2026). It divided a median rent for all dwellings by a median price for houses only, sometimes from a single quarter with few sales.
+- Median household income (removed August 2026). The figure was a placeholder, not an ABS number.
+- The investment score (removed June 2026), and the school and park counts, which were never verified.
+- Third-party listing data (removed November 2026). Pages used to request extra figures from a commercial listing API when one was configured. They no longer do.
 
-- ABS 2021 Census population data is five years old at the time of writing. Census 2026 data will be incorporated once the ABS releases it.
-- Current market coverage is uneven by state: NSW rents exist only at postcode level, and no free suburb-level sale-price dataset exists for Queensland. Pages say so rather than substituting a modelled figure.
-- Valuer-General sale medians lag the market by one to several quarters. The period caption next to each figure is the honest read of its age.
-- EquitySight is run by a solo, non-credentialed operator. Nothing on the site is personal financial advice. Always seek licensed, independent advice before making a property decision.
+## 4. Repayments
 
-## 7. Mortgage repayment formulas
+The First Home Journey and the calculators work out a monthly repayment from the numbers you enter, using the standard amortisation formula:
 
-The First Home Journey and my calculators use standard, published formulas applied to the numbers you enter — this is where my methodology is on the firmest ground.
+`monthly = P × r / (1 − (1 + r)^−n)`
 
-The repayment figure — used by the journey, the tool calculators and the Purchase Calculator (`/app`) — comes from the standard monthly amortisation formula:
+`P` is the loan amount, `r` is the monthly rate (annual rate ÷ 12 ÷ 100) and `n` is the number of months (term × 12). Total interest is `monthly × n − P`.
 
-```
-monthly = P × r / (1 − (1 + r)^−n)
-```
+### Fortnightly repayments
 
-where `P` is the loan amount, `r` is the **monthly** rate (annual rate ÷ 12 ÷ 100), and `n` is the number of monthly periods (term × 12). Total interest is `monthly × n − P`.
+The "switching to fortnightly saves X years and $Y in interest" figure comes from running the loan fortnight by fortnight:
 
-### Fortnightly-benefit figure
+- The payment is half the monthly repayment, paid every 14 days. A year has 26 fortnights, so that adds up to 13 monthly repayments a year instead of 12.
+- The rate for each fortnight is the annual rate ÷ 26.
+- Each fortnight the interest is added to the balance and the payment taken off, until the balance reaches zero.
 
-The "switching to fortnightly saves X years and $Y in interest" number is computed by full amortisation, not a closed form. Specifically:
+The years saved are the loan term minus the time the fortnightly schedule takes to clear the loan. The interest saved is the total interest on the monthly schedule minus the total interest on the fortnightly one.
 
-- **Payment**: `monthly / 2` paid every 14 days. Because there are 26 fortnights per year (not 24), this is the equivalent of 13 monthly payments per year — an extra monthly payment vs. the strict 12-per-year schedule.
-- **Periodic rate**: annual rate ÷ 26 (applied once per fortnight).
-- **Loop**: I iterate fortnight-by-fortnight, applying interest then reducing the balance, until the balance hits zero. `yearsLess` = (term × 12 − monthsEquivalent) ÷ 12 and `interestSaved` = monthlyInterestTotal − fortnightlyInterestTotal.
+Paying a twenty-sixth of the yearly repayments every fortnight is a different arrangement. That's the monthly repayments relabelled, and it saves nothing.
 
-This matches the "pay half the monthly amount every fortnight" offer most Australian lenders advertise. It is **not** the same as paying `annual / 26` every fortnight (which would just be monthly repayments relabelled and would save nothing).
+## 5. The borrowing estimate in the First Home Journey
 
-Stamp duty, LMI and scheme rules in the calculators and the First Home Journey follow the published FY2026-27 state revenue office schedules and Housing Australia program settings, with the verification date noted on each tool page.
+Steps 2 and 3 of the [First Home Journey](/journey) use one estimate of the largest loan a lender might approve. Step 2 flags any path whose loan is over it. Step 3 uses it to find the highest price whose loan fits at the deposit you choose. It is my simplified version of the test a lender runs. Every lender runs its own, so the amount you're approved for will differ.
 
-### A note on the written guides
+The estimate is worked out from your step 1 answers, in this order:
 
-The explanatory guides that accompany my calculators are drafted with AI assistance and then reviewed and edited by a human for accuracy before publishing. I mention this so the AI assistance is disclosed rather than implied to be otherwise.
+1. It starts with your household income before tax. If two of you are buying, that is split into two equal incomes.
+2. Income tax comes off each income at the FY2026-27 resident rates, with no tax offsets. The 2% Medicare levy comes off too, phased in between $28,011 and $35,013 (the single thresholds for FY2025-26, the latest published).
+3. All of the after-tax income counts if you're salaried. 80% of it counts if you're self-employed, casual or on contract, which is my assumption about common lender policy.
+4. A monthly living-cost floor comes off. The amounts are in the tables below.
+5. Each month, 3% of your total credit card limits comes off, whether or not you owe anything on the cards.
+6. What's left is taken as the highest monthly repayment you could make. The estimate is the loan that repayment clears over 30 years at 9.00%, using the formula in section 4. The 9.00% is the 6.00% the journey assumes for every loan plus the 3% serviceability buffer APRA sets for lenders.
 
-## 8. Change log
+The living-cost floor is a monthly amount set by household income before tax, the number of adults and the number of dependants. For the adults it is:
 
-- **August 2026 (later)** — Removed the ~13,000 placeholder suburb pages entirely; suburbs without verified current data no longer have pages.
-- **August 2026** — Removed the placeholder household income figure from all suburb pages. Documented the real-data indexing gate (section 4) and the current state-government market data sources.
-- **July 2026** — Integrated current suburb-level rents and sale medians from state government open data; began indexing the ~1,475 suburb pages that carry them.
-- **June 2026** — Rewrote this page to separate measured data from estimates. Removed the investment score display.
-- **April 2026** — First published methodology.
+| Income before tax | 1 adult | 2 adults |
+|-------------------|---------|----------|
+| Under $50,000 | $1,750 | $2,975 |
+| $50,000 to under $80,000 | $1,950 | $3,315 |
+| $80,000 to under $120,000 | $2,150 | $3,655 |
+| $120,000 to under $180,000 | $2,400 | $4,080 |
+| $180,000 to under $250,000 | $2,700 | $4,590 |
+| $250,000 to under $350,000 | $3,050 | $5,185 |
+| $350,000 or more | $3,400 | $5,780 |
 
-## 9. Questions?
+Each dependant adds this much a month:
 
-If anything on this page is unclear, or you find a calculation error, email me at [support@equitysight.app](mailto:support@equitysight.app). I would genuinely rather hear about it.
+| Income before tax | Each dependant |
+|-------------------|----------------|
+| Under $80,000 | $700 |
+| $80,000 to under $180,000 | $800 |
+| $180,000 to under $350,000 | $880 |
+| $350,000 or more | $950 |
+
+The second adult is counted at 70% of the first. At most three dependants are counted, so "3 or more" counts as three. These amounts are my own approximation of the Household Expenditure Measure (HEM), the living-cost benchmark lenders use. The HEM table is licensed data that I don't have, so a lender's floor may be higher or lower.
+
+The estimate leaves out:
+
+- other debts, such as a car loan or a HELP debt
+- what you spend, because only the floor above is used
+- how a couple's income is split between the two of you, and whether you each earn it in a different way
+
+The [borrowing power calculator](/tools/borrowing-power-calculator) uses the same tax rates and living-cost floor. In it you can add a HELP debt, other loan repayments and your own living costs, enter two incomes separately, and set the rate and term. A lender or broker can give you a firm figure.
+
+## 6. Duty, LMI and scheme rules
+
+Stamp duty and scheme rules in the calculators and the First Home Journey follow the published FY2026-27 state revenue office schedules and Housing Australia program settings. LMI is my own estimate from a table of rough premiums by LVR band, so a lender's quote will differ. The [data sources](/data-sources) page lists where each kind of rate comes from.
+
+### The LMI table
+
+Every LMI figure in the First Home Journey and the calculators comes from the same table. It takes the loan before LMI as a share of the price (the LVR) and applies a percentage to that loan:
+
+| LVR | LMI estimate |
+|-----|--------------|
+| 80% or under | None |
+| Over 80% and up to 85% | 0.8% of the loan |
+| Over 85% and up to 90% | 1.9% of the loan |
+| Over 90% and up to 95% | 3.4% of the loan |
+| Over 95% | 4.3% of the loan |
+
+Mortgage insurers publish premium estimators and no rate table, so these percentages have no published schedule behind them. They are my own rough estimates. A real premium varies with the insurer, the lender and the borrower, and my table has one rate per band for everyone. Ask your lender for the premium.
+
+The journey and the auction budget calculator add the estimate to the loan. The deposit, cost of purchase and stamp duty calculators count it as an upfront cost. In the journey there is no LMI on a 20% deposit, on the Help to Buy path, or on a 5% deposit when you're a first home buyer and the price is within the 5% Deposit Scheme cap for your area.
+
+## 7. The written guides
+
+The written guides on the calculator pages are drafted with AI assistance, then reviewed and edited by me for accuracy before they go up.
+
+## 8. Known limitations
+
+- The population figures are from the 2021 Census, five years old at the time of writing.
+- Coverage is uneven, because not every state publishes suburb-level figures. The [data sources](/data-sources) page lists the datasets that exist and their gaps.
+- Valuer-General sale medians lag the market by one to several quarters. A small suburb can have only a few sales in a quarter, so its median can move a lot from one quarter to the next.
+- I refresh the rent and price figures by hand. Go by the period printed under each figure.
+- I'm Jacoby, and I build and maintain EquitySight on my own. There's no valuation team and no certified valuer, and I hold no professional credentials. Nothing on the site is personal financial advice. Get licensed, independent advice before you make a property decision.
+
+## 9. Change log
+
+- November 2026 (later): Added how the First Home Journey estimates borrowing (section 5) and the LMI table (section 6).
+- November 2026: Rebuilt the suburb pages to show sourced figures only, and removed the strategy, risk, outlook, sentiment, audience, pros-and-cons and yield content (section 3).
+- August 2026 (later): Removed the ~13,000 placeholder suburb pages. Suburbs without verified current data no longer have pages.
+- August 2026: Removed the placeholder household income figure from all suburb pages. Documented the rule for which suburbs get a page (section 2) and the current state government market data sources.
+- July 2026: Added current suburb-level rents and sale medians from state government open data, and began indexing the ~1,475 suburb pages that carry them.
+- June 2026: Rewrote this page to separate measured data from estimates. Removed the investment score display.
+- April 2026: First published this page.
+
+## 10. Corrections
+
+If you find a calculation error, or something on this page is unclear, email me at [support@equitysight.app](mailto:support@equitysight.app).

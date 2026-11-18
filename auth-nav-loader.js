@@ -16,11 +16,7 @@
   var actions = document.querySelector('.site-nav-actions');
   if (actions && !actions.firstChild) {
     actions.innerHTML =
-      '<a href="/login" class="btn-ghost">Sign in</a>' +
-      '<a href="/app" class="btn-gold">' +
-        '<span class="nav-btn-full">Try it free</span>' +
-        '<span class="nav-btn-short">Try free</span>' +
-      '</a>';
+      '<a href="/login" class="btn-ghost">Sign in</a>';
   }
 
   // 2) Wire the mobile hamburger immediately. This is the only way to

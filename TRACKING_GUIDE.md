@@ -1,3 +1,5 @@
+> **Historical — superseded by the Aug 2026 strategy in CLAUDE.md.** Kept for reference only; do not act on it.
+
 # 📊 EquitySight Tracking Guide
 
 ## Overview

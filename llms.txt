@@ -1,29 +1,29 @@
 # EquitySight.app
 
-> Free Australian property finance calculators and a guided First Home Journey for first home buyers.
+> A guided First Home Journey for Australian first home buyers, with free property finance calculators.
 
-EquitySight is a web-based property finance site built for the Australian market. It offers 18 free calculators plus 8 state-specific stamp duty calculators, a guided First Home Journey planner, and suburb profiles built on government open data. Stamp duty, tax and scheme figures follow the published FY2026-27 schedules from state revenue offices, the ATO, APRA and Housing Australia, with verification dates noted on each tool page. Formulas and data provenance are documented at https://equitysight.app/methodology and https://equitysight.app/data-sources.
+EquitySight is a free website for Australian home buyers, built and run by one person. It has a guided First Home Journey planner, 18 calculators plus 8 state-specific stamp duty calculators, and suburb profiles built on government open data. Stamp duty, tax and scheme figures follow the published FY2026-27 schedules from state revenue offices, the ATO, APRA and Housing Australia, with verification dates noted on each tool page. Formulas and data sources are documented at https://equitysight.app/methodology and https://equitysight.app/data-sources.
 
 ## First Home Journey
 
-- [First Home Journey](https://equitysight.app/journey): A free step-by-step planner for Australian first home buyers — compares the 5% Deposit Scheme, Help to Buy, FHSS and no-scheme paths, builds a full purchase budget with stamp duty and LMI, and tracks the search through to settlement.
+- [First Home Journey](https://equitysight.app/journey): A step-by-step planner for Australian first home buyers. It compares the 5% Deposit Scheme, Help to Buy, a 10% deposit with LMI and a 20% deposit, works out a budget and maximum price with stamp duty included, and tracks the purchase through to settlement.
 
-## Free calculator tools
+## Calculators
 
 - [All calculators](https://equitysight.app/tools/): The full list, grouped by buying, borrowing and investment.
 - [Stamp Duty Calculator](https://equitysight.app/tools/stamp-duty-calculator): FY2026-27 transfer duty for all 8 states and territories, with first home buyer concessions and foreign buyer surcharges. State-specific versions exist for NSW, VIC, QLD, SA, WA, TAS, ACT and NT (e.g. https://equitysight.app/tools/stamp-duty-calculator-nsw).
-- [Deposit Calculator](https://equitysight.app/tools/deposit-calculator): How long to save a deposit, including the 5% Deposit Scheme and FHSS.
+- [Deposit Calculator](https://equitysight.app/tools/deposit-calculator): The deposit at 5% to 25%, with stamp duty, LMI and legal costs added.
 - [Borrowing Power Calculator](https://equitysight.app/tools/borrowing-power-calculator): Joint applicants, income-type haircuts, tiered HEM, HECS and APRA's 3% buffer.
 - [First Home Buyer Grants Calculator](https://equitysight.app/tools/first-home-buyer-grants-calculator): Total assistance from state duty concessions, FHOG, the 5% Deposit Scheme, Help to Buy and FHSS.
 - [Mortgage Repayment Calculator](https://equitysight.app/tools/mortgage-repayment-calculator): Repayments, fortnightly savings, extra repayments, offset impact and amortisation schedule.
-- [Cost of Purchase Calculator](https://equitysight.app/tools/cost-of-purchase-calculator): Every upfront cost — duty, legal, bank, inspections, insurance, moving.
-- [Auction Budget Calculator](https://equitysight.app/tools/auction-budget-calculator): A walk-in auction plan with a firm maximum price.
+- [Cost of Purchase Calculator](https://equitysight.app/tools/cost-of-purchase-calculator): Upfront costs: duty, legal, bank, inspections, insurance and moving.
+- [Auction Budget Calculator](https://equitysight.app/tools/auction-budget-calculator): An auction plan with a maximum price.
 - [Listing Price Checker](https://equitysight.app/tools/listing-price-checker): Checks an asking price against government suburb medians where they exist.
 - [Mortgage Stress Calculator](https://equitysight.app/tools/mortgage-stress-calculator): Repayment share of income, debt-to-income ratio and rate-rise buffer.
 - [Loan Serviceability Calculator](https://equitysight.app/tools/loan-serviceability-calculator): A simplified serviceability estimate with APRA's 3% assessment buffer.
 - [Interest-Only vs Principal Calculator](https://equitysight.app/tools/interest-only-vs-principal-calculator): The long-run cost of an interest-only period.
 - [Equity Release Calculator](https://equitysight.app/tools/equity-release-calculator): Usable equity from property value, mortgage balance and LVR limits.
-- [Rental Yield Calculator](https://equitysight.app/tools/rental-yield-calculator): Gross and net yield for any Australian investment property.
+- [Rental Yield Calculator](https://equitysight.app/tools/rental-yield-calculator): Gross and net yield for an investment property.
 - [Property Cashflow Calculator](https://equitysight.app/tools/property-cashflow-calculator): Weekly cashflow with FY2026-27 negative gearing treatment.
 - [Capital Gains Calculator](https://equitysight.app/tools/capital-gains-calculator): CGT on an Australian property sale with the 50% discount and FY2026-27 marginal rates.
 - [Land Tax Calculator](https://equitysight.app/tools/land-tax-calculator): State land tax on investment holdings.
@@ -32,13 +32,13 @@ EquitySight is a web-based property finance site built for the Australian market
 
 ## Suburb profiles
 
-EquitySight publishes suburb profile pages built on ABS 2021 Census population data and current state-government market data (CC BY 4.0). About 1,475 pages — in Queensland, Victoria, South Australia and Tasmania, where suburb-level open data exists — carry current median rents or sale prices with source and period captions, and only those pages are submitted for search indexing. Example: https://equitysight.app/suburb/qld/paddington/
+EquitySight publishes about 1,475 suburb profile pages, in Queensland, Victoria, South Australia and Tasmania, where suburb-level open data exists. Each shows the ABS 2021 Census population and a current median rent or sale price from state government data (CC BY 4.0), with its source and period. Example: https://equitysight.app/suburb/qld/paddington/
 
 ## Other pages
 
 - [About](https://equitysight.app/about)
 - [Methodology](https://equitysight.app/methodology)
 - [Data Sources](https://equitysight.app/data-sources)
-- [Contact / Support](https://equitysight.app/contact)
+- [Contact](https://equitysight.app/contact)
 - [Privacy Policy](https://equitysight.app/privacy)
 - [Terms of Service](https://equitysight.app/terms)

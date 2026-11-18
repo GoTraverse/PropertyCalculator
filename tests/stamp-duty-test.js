@@ -93,11 +93,13 @@ const t = (label, ok, extra) => {
 console.log('\nSpot values vs official schedules ($400k / $700k / $1.2M standard duty):');
 const EXPECTED = {
   // NSW (Revenue NSW, brackets CPI-indexed 1 Jul 2026: 1.25% to 18k; 1.5% to
-  // 38k; 1.75% to 103k; 3.5% to 387k; 4.5% to 1.29M):
-  //   400k: 225 + 300 + 1,137.50 + 9,940 + 13,000*4.5% = 12,187.50
-  //   700k: 11,602.50 (base at 387k) + 313,000*4.5%     = 25,687.50
-  //   1.2M: 11,602.50 + 813,000*4.5%                     = 48,187.50
-  nsw: { 400000: 12187.50, 700000: 25687.50, 1200000: 48187.50 },
+  // 38k; 1.75% to 103k; 3.5% to 387k; 4.5% to 1.29M). Revenue NSW states the
+  // bracket bases in whole dollars: $1,662 at 103k (the rates add up to
+  // $1,662.50), $11,602 at 387k, $52,237 at 1.29M:
+  //   400k: 11,602 (base at 387k) + 13,000*4.5%  = 12,187
+  //   700k: 11,602 + 313,000*4.5%                = 25,687
+  //   1.2M: 11,602 + 813,000*4.5%                = 48,187
+  nsw: { 400000: 12187, 700000: 25687, 1200000: 48187 },
   // VIC (SRO: 1.4% to 25k; 2.4% to 130k; $2,870 + 6% over 130k; $960,001-$2M
   // is 5.5% OF TOTAL value):
   //   400k: 2,870 + 270,000*6% = 19,070
@@ -169,6 +171,64 @@ for (const [price, expected] of QLD_FHB) {
     Math.abs(got - expected) < 0.51, 'got ' + got);
 }
 t('QLD owner-occupier home duty($750k) = $19,600', Math.abs(qldHomeDuty(750000) - 19600) < 0.01, 'got ' + qldHomeDuty(750000));
+
+// ── Suite 2b — NSW, WA and VIC first home buyer bands (hand-derived) ───────
+// Each state has its own rule between the exemption ceiling and the upper
+// limit. Checked against the 18 Nov 2026 fact-check of the revenue offices.
+//
+// NSW (Duties Act 1997 s 78A, FHBAS): $800,000 < V < $1,000,000 pays
+//   N - (1,000,000 - V) / 200,000 x D, where N = standard duty at V and
+//   D = standard duty at $800,000, both on Revenue NSW's whole-dollar
+//   bracket bases:
+//   D = 11,602 + 413,000 x 4.5% = 30,187
+//   N(1M) = 11,602 + 613,000 x 4.5% = 39,187
+//   One 4.5% bracket covers the band, so duty = (V - 800,000) / 200,000 x 39,187.
+//   This matches Revenue NSW's FHBAS table for 2026-27 to the cent
+//   ($9,796.75, $19,593.50, $29,390.25, $37,227.65).
+// WA (RevenueWA first home owner rate for a home, agreements from 7 May
+//   2026): nil to $600,000; $16.15 per $100 or part of $100 over $600,000
+//   up to $800,000; the general rate above $800,000:
+//   general at 800,001 = 28,452.50 + 75,001 x 5.15% = 32,315.0515.
+// VIC (s 57JA): standard duty x (V - 600,000) / 150,000. SRO: $24,713 at
+//   $700,000 = 37,070 x 100/150 = 24,713.33.
+console.log('\nNSW, WA and VIC first home buyer bands:');
+const FHB_BANDS = [
+  ['nsw', 800000, 0],             // exemption ceiling
+  ['nsw', 800001, 0.195935],      // 1 / 200,000 x 39,187
+  ['nsw', 850000, 9796.75],       // 50/200 x 39,187 (Revenue NSW table)
+  ['nsw', 900000, 19593.50],      // 100/200 x 39,187 (Revenue NSW table)
+  ['nsw', 920000, 23512.20],      // 120/200 x 39,187
+  ['nsw', 950000, 29390.25],      // 150/200 x 39,187 (Revenue NSW table)
+  ['nsw', 990000, 37227.65],      // 190/200 x 39,187 (Revenue NSW table)
+  ['nsw', 999999, 39186.804065],  // 199,999/200,000 x 39,187
+  ['nsw', 1000000, 39187],        // = standard duty, no concession
+  ['nsw', 1000001, 39187.045],    // standard duty
+  ['wa', 600000, 0],              // exemption ceiling
+  ['wa', 600001, 16.15],          // 1 (part of) $100 x 16.15
+  ['wa', 600100, 16.15],          // 1 x 16.15
+  ['wa', 600101, 32.30],          // 2 x 16.15
+  ['wa', 650000, 8075],           // 500 x 16.15
+  ['wa', 700000, 16150],          // 1,000 x 16.15
+  ['wa', 725050, 20203.65],       // 1,251 x 16.15
+  ['wa', 750000, 24225],          // 1,500 x 16.15
+  ['wa', 800000, 32300],          // 2,000 x 16.15
+  ['wa', 800001, 32315.0515],     // general rate
+  ['vic', 700000, 24713.333333],  // 37,070 x 100/150
+];
+for (const [state, price, expected] of FHB_BANDS) {
+  const got = applyFhbConcession(state, price, calcDuty(state, price)).duty;
+  t(`${state.toUpperCase()} FHB duty($${price.toLocaleString('en-AU')}) = $${got.toFixed(4)} (hand-derived: $${expected.toFixed(4)})`,
+    Math.abs(got - expected) < 0.001, 'got ' + got);
+}
+for (const [state, lo, hi] of [['nsw', 800000, 1000000], ['wa', 600000, 800000]]) {
+  let ok = true, prev = -1, at = -1;
+  for (let v = lo; v <= hi; v += 50) {
+    const d = applyFhbConcession(state, v, calcDuty(state, v)).duty;
+    if (d < prev - 1e-9) { ok = false; at = v; break; }
+    prev = d;
+  }
+  t(`${state.toUpperCase()} FHB duty never falls as the price rises ($${lo.toLocaleString('en-AU')} to $${hi.toLocaleString('en-AU')})`, ok, at >= 0 ? 'falls at $' + at : null);
+}
 
 // ── Suite 3 — title-office registration fees (FY2026-27, verified 6 Jul) ───
 console.log('\nRegistration fees (regFeesTotal):');

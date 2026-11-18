@@ -5,7 +5,9 @@
 
 var WA_FOREIGN_RATE = 0.07;
 var WA_FHB_FULL = 600000;   // raised from $500k for transactions from 7 May 2026
-var WA_FHB_PARTIAL = 800000; // raised from $700k (2026-27 Budget; retrospective to 7 May 2026 — confirm status with RevenueWA)
+var WA_FHB_PARTIAL = 800000; // raised from $700k for agreements from 7 May 2026 (RevenueWA has assessed at the new rates since July 2026)
+// Between the two: $16.15 for every $100, or part of $100, over $600,000 (RevenueWA first home owner rate).
+var WA_FHB_CENTS_PER_100 = 1615;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcWAStandard(v) {
@@ -22,12 +24,19 @@ function calcWADuty(price, ptype, buyer, fhb) {
   var v = price;
   var standard = calcWAStandard(v);
 
+  // Vacant land: same treatment as tools/stamp-duty-calculator.js, which only
+  // applies first home buyer relief to dwellings (QLD land aside).
+  if (fhb && ptype === 'land') {
+    return { duty: standard, note: 'First home buyer relief on vacant land has different rules that this page doesn’t model, so this is standard duty.' };
+  }
+
   if (fhb && v <= WA_FHB_FULL) {
     return { duty: 0, note: 'First home buyer exemption applied.' };
   }
   if (fhb && v <= WA_FHB_PARTIAL && WA_FHB_PARTIAL > WA_FHB_FULL) {
-    var slide = (WA_FHB_PARTIAL - v) / (WA_FHB_PARTIAL - WA_FHB_FULL);
-    return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
+    // First home owner rate: a flat amount per $100 over $600,000, not a
+    // share of the general rate. Worked in cents to avoid floating-point drift.
+    return { duty: Math.round(Math.ceil((v - WA_FHB_FULL) / 100) * WA_FHB_CENTS_PER_100) / 100, note: 'First home buyer partial concession applied.' };
   }
 
   return { duty: standard, note: '' };
@@ -42,7 +51,8 @@ function calculate() {
   if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
   var foreignEl = document.getElementById('foreign');
   var isForeign = foreignEl ? foreignEl.checked : false;
@@ -69,16 +79,22 @@ function calculate() {
   var regTotal = Math.round(regMortgage + regTransfer);
   var conveyancing = 1800;
   function lmiRate(lvr) {
+    // Rounded first, as lmiRate() in journey.js does: price × 0.8 ÷ price
+    // can come out as 0.8000000000000002 and land in the next tier.
+    lvr = Math.round(lvr * 10000) / 10000;
     if (lvr <= 0.80) return 0;
     if (lvr <= 0.85) return 0.0080;
     if (lvr <= 0.90) return 0.0190;
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -89,19 +105,21 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (Landgate — transfer fee scales with price)';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Landgate, transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Western Australia 2026-27 transfer duty (FHB thresholds announced in the 2026-27 Budget, applying retrospectively to transactions from 7 May 2026 — confirm the current legislative status with RevenueWA). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate at RevenueWA’s 2026-27 rates. The first home buyer thresholds apply to agreements signed from 7 May 2026. The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -125,9 +143,9 @@ ToolPage.init({
   slug: 'stamp-duty-wa',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full Western Australia purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Buying your first home in Western Australia',
+    description: 'The First Home Journey adds this duty to a budget for the whole purchase and tracks your contract dates through to settlement.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=wa'
   },
   resources: {
@@ -135,28 +153,28 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFDB\uFE0F', title: 'RevenueWA',
         links: [
-          { text: 'WA Transfer Duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' },
+          { text: 'Transfer duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' },
           { text: 'First Home Owner Rate of Duty', href: 'https://www.wa.gov.au/government/publications/duties-fact-sheet-first-home-owner-rate' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyers',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'First Home Guarantee', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        icon: '\uD83D\uDCB0', title: 'Home loans and rental property',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with RevenueWA.'
+    disclaimer: 'This is general information, not advice. RevenueWA or your settlement agent can confirm the duty on your contract.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-wa',
@@ -172,12 +190,11 @@ ToolPage.init({
     { href: '/', text: 'EquitySight.app' },
     { href: '/tools/stamp-duty-calculator', text: 'All States' },
     { href: '/tools/cost-of-purchase-calculator', text: 'Cost of Purchase' },
-    { href: '/invest/wa/', text: 'WA Suburb Guide' },
     { href: '/privacy', text: 'Privacy' }
   ],
   examples: [
   {
-    "label": "WA — $340,000 property",
+    "label": "$340,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -199,12 +216,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "v": "$0 (first home buyer exemption)"
       }
     ]
   },
   {
-    "label": "WA — $470,000 property",
+    "label": "$470,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -226,12 +243,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "v": "$0 (first home buyer exemption)"
       }
     ]
   },
   {
-    "label": "WA — $1,000,000 property",
+    "label": "$1,000,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -253,42 +270,17 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$42,615 (over cap)"
+        "v": "$42,615 (over the concession limit)"
       }
     ]
   }
 ],
-  faq: [
-  {
-    "q": "How does stamp duty work in Western Australia?",
-    "a": "WA transfer duty is charged by RevenueWA on the dutiable value of any property purchase. Under the general (residential) rate, duty steps up across five brackets: 1.9% up to $120,000, 2.85% on the portion to $150,000, 3.8% to $360,000, 4.75% to $725,000, and 5.15% on any portion above $725,000. Owner-occupiers and investors pay the same general rate; there is no separate owner-occupier concession in WA outside the first home buyer scheme."
-  },
-  {
-    "q": "Do first home buyers pay stamp duty in WA?",
-    "a": "Eligible first home buyers pay no transfer duty under the First Home Owner Rate of Duty (FHOR) on homes up to $600,000, with a sliding partial concession from $600,000 to $800,000 — thresholds announced in the 2026-27 Budget and applying retrospectively to transactions from 7 May 2026 (confirm the current legislative status with RevenueWA). Vacant land: exemption to $450,000, concession to $550,000. Above the caps the standard general rates apply."
-  },
-  {
-    "q": "When is WA transfer duty due?",
-    "a": "WA transfer duty is generally payable within two months of the dutiable transaction — usually two months from contract date. Your settlement agent normally pays RevenueWA at settlement using funds from your loan and deposit. Late payment attracts penalty tax and interest at the rate published by RevenueWA."
-  },
-  {
-    "q": "Why is the WA foreign buyers duty 7% and not 8%?",
-    "a": "WA introduced its 7% foreign buyers duty in 2019 — slightly lower than the 8% surcharge applied in most other states. The lower rate reflects WA government policy to maintain inbound investment in Perth and regional WA. The duty applies on top of the standard transfer duty whenever a foreign person acquires residential property."
-  },
-  {
-    "q": "Is WA stamp duty tax deductible for investors?",
-    "a": "No. Stamp duty paid on an investment property in WA is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."
-  },
-  {
-    "q": "How is \"stamp duty\" different from \"transfer duty\" in WA?",
-    "a": "There is no difference — they are the same tax. WA formally calls it \"transfer duty\" in the Duties Act 2008, but everyday speech still uses \"stamp duty\". RevenueWA forms, settlement statements, and contract documents use \"transfer duty\"; lender quotes and buyer guides usually use \"stamp duty\"."
-  }
-],
+  // FAQ: shown once, as static HTML in the page (the same text is in its
+  // JSON-LD). There is no JS copy here, so the two cannot drift apart.
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
-    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/wa/', label: 'Western Australia Suburb Guide' }
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' }
   ]
 });
 

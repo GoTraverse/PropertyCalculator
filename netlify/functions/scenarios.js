@@ -21,16 +21,18 @@ const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
 const EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight.app').trim();
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// Only this site's own Netlify deploy and preview hosts, never any *.netlify.app.
+const OWN_NETLIFY_ORIGIN = /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$/;
 // CSRF defense-in-depth. See auth.js for the rationale.
 function isAllowedOrigin(event){
   const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
   if(!o) return true;
-  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+  return ALLOWED_ORIGINS.includes(o) || OWN_NETLIFY_ORIGIN.test(o);
 }
 function getCorsHeaders(event) {
   const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
-    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : OWN_NETLIFY_ORIGIN.test(reqOrigin) ? reqOrigin
     : ALLOWED_ORIGINS[0];
   return {
     'Content-Type':'application/json',
@@ -85,11 +87,11 @@ async function logEvent(userId,type,extra){
 const SHARE_DEFAULTS = {
   scenario_shared: {
     subject: '{{senderName}} shared a property scenario with you',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open your calculator to view the shared scenario:</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View Scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">You can find shared scenarios in your Saved Library.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open the calculator to see it:</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">Shared scenarios are in your Saved Library.</p></div>',
   },
   scenario_invite: {
     subject: '{{senderName}} shared a property with you on EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">You\'ve been invited to EquitySight</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Sign up for a free EquitySight account to view it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a></p><p style="font-size:12px;color:#999;line-height:1.6;">EquitySight offers free Australian property finance calculators for all 8 states. Free to use, no credit card required.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">A property scenario was shared with you</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Create an EquitySight account to see it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create account</a></p></div>',
   },
 };
 

@@ -1,48 +1,51 @@
-/* journey.css — the First Home Journey (Phase 1a scaffold)
-   Design locked from the approved v3 mockup (PRODUCT_JOURNEY.md):
-   stepping stones with NO drawn path, house rebrand styling —
-   small-caps labels, sentence-case headings, thin line icons. */
+/* journey.css: the First Home Journey.
+   Plain app styling: system font, numbered steps in one column, dark primary
+   buttons, blue links. Gold marks the current step and selected options. */
 
 .journey-page { background: var(--warm-white); }
 
-.jwrap { max-width: 920px; margin: 0 auto; padding: 26px 20px 90px; }
+.jwrap { max-width: 760px; margin: 0 auto; padding: 26px 24px 90px; }
 
 /* ── Type helpers (house style) ─────────────────────────── */
-.jsc {
-  font-family: var(--font-body);
-  font-variant-caps: all-small-caps;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-  color: var(--slate);
-}
-.jsc-gold { color: var(--gold-dark); font-size: 16px; }
+/* .jsc is a small label above a block of figures. */
+.jsc { font-size: 15.5px; font-weight: 700; color: var(--slate); }
+.jsc-gold { color: var(--slate); }
+.jgreet > .jsc { display: none; }
 .jsc-sage { color: var(--sage-dark); }
 .jblock { display: block; margin-bottom: 6px; }
 .jwrap h1, .jwrap h2, .jwrap h3 {
-  font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.01em;
   color: var(--charcoal);
-  text-wrap: balance;
 }
 
 /* ── Greeting + progress ────────────────────────────────── */
 .jgreet { margin: 14px 0 4px; }
 .jgreet h1 { font-size: clamp(27px, 4.6vw, 38px); line-height: 1.12; margin-top: 4px; }
-.jgreet p { color: var(--slate); margin-top: 8px; max-width: 58ch; font-size: 15.5px; line-height: 1.6; }
-.jprogress { display: flex; align-items: center; gap: 10px; margin: 18px 0 8px; font-size: 13.5px; color: var(--slate); }
+.jgreet p { color: var(--slate); margin-top: 8px; max-width: 58ch; font-size: 16px; line-height: 1.6; }
+.jprogress { display: flex; align-items: center; gap: 10px; margin: 18px 0 8px; font-size: 15px; color: var(--slate); }
 .jprog-rail { flex: 1; max-width: 220px; height: 6px; border-radius: 3px; background: rgba(28,28,30,0.08); overflow: hidden; }
 .jprog-fill { display: block; width: 0%; height: 100%; background: var(--gold); border-radius: 3px; transition: width .4s; }
-.jprog-pct { font-family: var(--font-mono); font-size: 12px; }
+.jprog-pct { font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .jprog-fill { transition: none; } }
 
-/* ── The trail: stepping stones, no drawn path ──────────── */
-.jtrail { margin-top: 26px; display: flex; flex-direction: column; gap: 26px; }
-.jstop { display: grid; align-items: center; gap: 18px; }
-.jstop.left  { grid-template-columns: 64px minmax(0, 460px); justify-content: start; }
-.jstop.right { grid-template-columns: minmax(0, 460px) 64px; justify-content: end; }
-.jstop.right .jnode { order: 2; }
-.jstop.right .jstopcard { order: 1; }
+/* ── The seven steps: one column, each marked with its number ── */
+.jtrail { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; counter-reset: jstep; }
+.jstop { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 14px; counter-increment: jstep; }
+.jnode {
+  width: 36px; height: 36px; border-radius: 50%; margin-top: 12px;
+  display: grid; place-items: center; flex: none;
+  border: 2px solid var(--rule); background: var(--card); color: var(--slate);
+  font-weight: 700; font-size: 16px;
+}
+.jnode svg { display: none; }
+.jnode::before { content: counter(jstep); }
+.jstop.done .jnode { background: var(--sage-dark); border-color: var(--sage-dark); color: #fff; }
+.jstop.done .jnode::before { content: none; }
+.jstop.done .jnode svg { display: block; width: 18px; height: 18px; }
+.jstop.current .jnode { background: var(--gold); border-color: var(--gold); color: var(--charcoal); }
+
+.jstopcard { order: 1; }
 
 .jnode {
   width: 56px; height: 56px; border-radius: 50%;
@@ -59,46 +62,48 @@
   text-align: left; font: inherit; color: inherit;
 }
 button.jstopcard { cursor: pointer; }
-button.jstopcard:hover { border-color: var(--gold); }
+button.jstopcard:hover { border-color: var(--charcoal); }
 button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.jstate { display: block; margin-bottom: 2px; font-size: 14px; }
+.jstate { display: block; margin-bottom: 2px; font-size: 15.5px; }
 .jstate.here { color: var(--gold-dark); }
 .jstate.done-t { color: var(--sage-dark); }
 .jstopcard h2 { font-size: 17px; }
-.jstopcard p { font-size: 13.5px; color: var(--slate); margin-top: 4px; line-height: 1.55; }
-.jstop.ahead .jstopcard { box-shadow: none; background: transparent; }
+.jstopcard p { font-size: 15px; color: var(--slate); margin-top: 4px; line-height: 1.55; }
+.jstop.ahead .jstopcard { background: transparent; }
 .jstop.ahead .jstopcard h2 { color: var(--slate); }
 
-.jstop.current .jstopcard { border-color: var(--gold); padding: 20px 22px; }
+.jstop.current .jstopcard { border: 2px solid var(--charcoal); padding: 18px 20px; }
 .jstop.current .jstopcard h2 { font-size: 20px; }
-.jbody { margin-top: 8px; font-size: 14.5px; color: var(--slate); line-height: 1.6; }
+.jbody { margin-top: 8px; font-size: 16px; color: var(--slate); line-height: 1.6; }
 .jbody strong { color: var(--charcoal); }
 .jcta-row { display: flex; align-items: center; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
-.jmins { font-size: 12.5px; color: var(--slate); }
-.jmilestone { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: var(--sage-dark); font-size: 13.5px; font-weight: 600; }
+.jmins { font-size: 14px; color: var(--slate); }
+.jmilestone { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: var(--sage-dark); font-size: 15px; font-weight: 600; }
 .jmilestone svg { width: 16px; height: 16px; flex: none; }
 
-.jsaved { display: flex; align-items: center; gap: 8px; margin-top: 30px; font-size: 13px; color: var(--slate); justify-content: center; }
+.jsaved { display: flex; align-items: center; gap: 8px; margin-top: 30px; font-size: 14.5px; color: var(--slate); justify-content: center; }
 .jpip { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); flex: none; }
 
-/* ── Buttons (house: mono, small, gold primary) ─────────── */
+/* ── Buttons ─────────── */
 .jbtn {
-  font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.5px; font-weight: 500;
-  border: none; cursor: pointer; padding: 12px 22px; border-radius: var(--radius-sm);
-  background: var(--gold); color: var(--charcoal);
+  font-family: inherit; font-size: 16px; font-weight: 600;
+  border: 1px solid var(--charcoal); cursor: pointer; padding: 11px 20px; border-radius: 4px;
+  background: var(--charcoal); color: #fff; display: inline-block;
 }
-.jbtn.quiet { background: transparent; color: var(--charcoal); border: 1px solid var(--border); }
+.jbtn:hover { background: var(--charcoal-mid); }
+.jbtn.quiet { background: transparent; color: var(--charcoal); border: 1px solid #8C8C92; }
+.jbtn.quiet:hover { background: var(--cream); }
 .jbtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .jbtn[disabled] { opacity: 0.55; cursor: default; }
 
 /* ── Detail views ───────────────────────────────────────── */
 .jview { display: none; }
 .jview.active { display: block; }
-.jback { background: none; border: none; cursor: pointer; color: var(--slate); font: inherit; font-size: 13.5px; padding: 0; margin: 14px 0 16px; }
+.jback { background: none; border: none; cursor: pointer; color: var(--slate); font: inherit; font-size: 15px; padding: 0; margin: 14px 0 16px; }
 .jback:hover { color: var(--charcoal); }
 .jstephead h2 { font-size: clamp(23px, 3.8vw, 31px); margin-top: 4px; }
-.jstephead .jsc { color: var(--gold-dark); font-size: 15px; }
-.jstephead p { color: var(--slate); margin-top: 6px; max-width: 60ch; font-size: 15px; line-height: 1.6; }
+.jstephead .jsc { color: var(--gold-dark); font-size: 16px; }
+.jstephead p { color: var(--slate); margin-top: 6px; max-width: 60ch; font-size: 16px; line-height: 1.6; }
 .jcard { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
 .jpad { padding: 20px 22px; }
 .jgrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
@@ -106,29 +111,32 @@ button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset:
 
 /* Your numbers */
 .jnumbers { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin: 16px 0 6px; }
-.jnumbers label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--slate); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; }
+.jnumbers label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--slate);   font-weight: 600; }
 .jnumbers input, .jnumbers select {
-  font-family: var(--font-mono); font-size: 13.5px; color: var(--charcoal);
+  font-size: 15px; color: var(--charcoal);
   background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
   padding: 9px 11px; width: 122px;
 }
 .jnumbers select { width: 96px; }
 .jnumbers input:focus-visible, .jnumbers select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
-.jduty-note { font-size: 13px; color: var(--slate); margin: 4px 0 18px; }
-.jduty-note b { color: var(--sage); font-family: var(--font-mono); font-size: 12.5px; }
+.jduty-note { font-size: 14.5px; color: var(--slate); margin: 4px 0 18px; }
+.jduty-note b { color: var(--sage); font-size: 14px; }
 
 /* Pathway cards */
-.jpaths { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 14px; }
+/* Two columns: four paths sit as a 2 x 2 grid, never 3 + 1 with the recommended
+   path alone on its own row. */
+.jpaths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 560px) { .jpaths { grid-template-columns: 1fr; } }
 .jpath { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 18px; }
 .jpath.best { border-color: var(--gold); border-width: 2px; }
-.jflag { display: block; color: var(--gold-dark); font-size: 14px; margin-bottom: 2px; }
+.jflag { display: block; color: var(--gold-dark); font-size: 15.5px; margin-bottom: 2px; }
 .jpath h3 { font-size: 16px; }
-.jwhy { font-size: 12.5px; color: var(--slate); margin: 4px 0 12px; min-height: 34px; line-height: 1.5; }
-.jbuyby { font-family: var(--font-mono); font-size: 20px; font-weight: 600; margin: 1px 0 10px; color: var(--charcoal); }
+.jwhy { font-size: 14px; color: var(--slate); margin: 4px 0 12px; min-height: 34px; line-height: 1.5; }
+.jbuyby { font-size: 20px; font-weight: 600; margin: 1px 0 10px; color: var(--charcoal); }
 .jbuyby.now { color: var(--sage); }
-.jstat { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 7px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.jstat { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 7px 0; border-top: 1px solid var(--border); font-size: 14.5px; }
 .jstat .k { color: var(--slate); }
-.jstat .v { font-family: var(--font-mono); font-weight: 600; font-size: 13px; color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.jstat .v { font-weight: 600; font-size: 14.5px; color: var(--charcoal); font-variant-numeric: tabular-nums; }
 .jstat .v.good { color: var(--sage); }
 .jstat .v.warn { color: var(--terracotta); }
 
@@ -136,11 +144,11 @@ button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset:
 .jbars { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
 
 /* Our read + caveat */
-.jread { background: rgba(28,28,30,0.045); border-radius: var(--radius-md); padding: 16px 20px; font-size: 14.5px; line-height: 1.6; color: var(--charcoal); }
+.jread { background: rgba(28,28,30,0.045); border-radius: var(--radius-md); padding: 16px 20px; font-size: 16px; line-height: 1.6; color: var(--charcoal); }
 .jread .jsc { color: var(--gold-dark); display: block; margin-bottom: 4px; }
-.jcaveat { font-size: 12px; color: var(--slate); margin-top: 12px; line-height: 1.6; }
+.jcaveat { font-size: 14px; color: var(--slate); margin-top: 12px; line-height: 1.6; }
 .jdone-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-.jdone-t { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--charcoal); }
+.jdone-t { font-weight: 700; font-size: 17px; color: var(--charcoal); }
 
 /* Checklist + deadlines */
 .jcheck { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-top: 1px solid var(--border); cursor: pointer; background: none; width: 100%; text-align: left; font: inherit; color: inherit; border-left: none; border-right: none; border-bottom: none; }
@@ -150,17 +158,17 @@ button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset:
 .jcheck.on .jbox { background: var(--sage); border-color: var(--sage); }
 .jcheck.on .jbox svg { display: block; }
 .jcheck.on .t { text-decoration: line-through; color: var(--slate); }
-.jcheck .t { font-size: 14.5px; color: var(--charcoal); }
-.jcheck .d { font-size: 12.5px; color: var(--slate); margin-top: 1px; }
+.jcheck .t { font-size: 16px; color: var(--charcoal); }
+.jcheck .d { font-size: 14px; color: var(--slate); margin-top: 1px; }
 .jcheck:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
-.jdl { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--border); font-size: 14px; color: var(--charcoal); }
+.jdl { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--border); font-size: 15.5px; color: var(--charcoal); }
 .jdl:first-of-type { border-top: none; }
-.jwhen { font-family: var(--font-mono); font-size: 12px; color: var(--slate); }
-.jdays { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 12px; flex: none; }
+.jwhen { font-size: 14px; color: var(--slate); }
+.jdays { font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 12px; flex: none; }
 .jdays.ok { background: rgba(123,158,135,0.16); color: var(--sage); }
 .jdays.soon { background: rgba(201,168,76,0.2); color: var(--gold-dark); }
 .jdays.urgent { background: rgba(196,112,74,0.18); color: var(--terracotta); }
-.jhint { font-size: 12.5px; color: var(--slate); margin-top: 12px; }
+.jhint { font-size: 14px; color: var(--slate); margin-top: 12px; }
 
 /* ── Stop 1 wizard (native, one question at a time) ─────── */
 .jwizard { max-width: 560px; margin: 10px auto 0; }
@@ -168,19 +176,19 @@ button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset:
 .jwiz-dots { display: flex; gap: 7px; margin-bottom: 22px; }
 .jwiz-dot { width: 26px; height: 5px; border-radius: 3px; background: rgba(28,28,30,0.1); }
 .jwiz-dot.on { background: var(--gold); }
-.jwiz-q { font-family: var(--font-display); font-weight: 700; font-size: clamp(21px, 3.4vw, 26px); color: var(--charcoal); letter-spacing: -0.3px; text-wrap: balance; }
-.jwiz-help { font-size: 13.5px; color: var(--slate); margin-top: 6px; line-height: 1.55; }
+.jwiz-q { font-weight: 700; font-size: clamp(21px, 3.4vw, 26px); color: var(--charcoal);   }
+.jwiz-help { font-size: 15px; color: var(--slate); margin-top: 6px; line-height: 1.55; }
 .jwiz-input-row { display: flex; align-items: center; gap: 10px; margin-top: 22px; }
-.jwiz-cur { font-family: var(--font-mono); font-size: 22px; color: var(--slate); }
+.jwiz-cur { font-size: 22px; color: var(--slate); }
 .jwiz-input {
-  font-family: var(--font-mono); font-size: 26px; font-weight: 500; color: var(--charcoal);
+  font-size: 26px; font-weight: 500; color: var(--charcoal);
   background: transparent; border: none; border-bottom: 2px solid var(--border);
   padding: 6px 2px; width: 100%; max-width: 260px; font-variant-numeric: tabular-nums;
 }
 .jwiz-input:focus-visible { outline: none; border-bottom-color: var(--gold); }
 .jwiz-states { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; margin-top: 22px; }
 .jwiz-state {
-  font-family: var(--font-mono); font-size: 14px; font-weight: 500; letter-spacing: 0.5px;
+  font-size: 15.5px; font-weight: 500;
   padding: 14px 0; border-radius: var(--radius-md); border: 1.5px solid var(--border);
   background: var(--card); color: var(--charcoal); cursor: pointer;
 }
@@ -188,7 +196,7 @@ button.jstopcard:focus-visible { outline: 2px solid var(--gold); outline-offset:
 .jwiz-state.sel { background: var(--gold); border-color: var(--gold); color: var(--charcoal); font-weight: 700; }
 .jwiz-state:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .jwiz-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 28px; }
-.jwiz-skip { background: none; border: none; cursor: pointer; color: var(--slate); font: inherit; font-size: 13px; padding: 0; }
+.jwiz-skip { background: none; border: none; cursor: pointer; color: var(--slate); font: inherit; font-size: 14.5px; padding: 0; }
 .jwiz-skip:hover { color: var(--charcoal); }
 .jwiz-done-icon { width: 58px; height: 58px; border-radius: 50%; background: var(--sage); color: #fff; display: grid; place-items: center; margin-bottom: 16px; }
 .jwiz-done-icon svg { width: 26px; height: 26px; }
@@ -252,29 +260,29 @@ html.dark-mode .jdays.soon { background: rgba(201,168,76,0.22); color: var(--gol
 html.dark-mode .jdays.urgent { background: rgba(196,112,74,0.24); color: var(--terracotta-light); }
 
 /* Chips (wizard summary + projector numbers context) */
-.chip { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border-radius: 18px; border: 1px solid var(--border); background: var(--card); font-size: 13px; color: var(--charcoal); }
-.chip b { font-family: var(--font-mono); font-weight: 600; font-size: 12.5px; }
+.chip { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border-radius: 18px; border: 1px solid var(--border); background: var(--card); font-size: 14.5px; color: var(--charcoal); }
+.chip b { font-weight: 600; font-size: 14px; }
 html.dark-mode .chip { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
 
 /* ── v2 additions: eligibility, inspections, signup moment ── */
-.jelig { font-size: 12px; color: var(--terracotta); margin-top: 10px; line-height: 1.5; }
+.jelig { font-size: 14px; color: #8F4526; margin-top: 10px; line-height: 1.5; }
 .jpath.inelig { opacity: 0.75; }
-.mono-strong { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.mono-strong { font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .jsignup { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin: 22px 0 4px; border-color: var(--gold); }
-.jsignup p { font-size: 13.5px; color: var(--slate); line-height: 1.6; max-width: 52ch; }
+.jsignup p { font-size: 15px; color: var(--slate); line-height: 1.6; max-width: 52ch; }
 .jsignup-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
 .jsignup-actions .jbtn { text-decoration: none; display: inline-block; }
 
 .jinsp-form { display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 8px; margin-top: 4px; }
-.jinsp-form input { font-family: var(--font-body); font-size: 13.5px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 11px; min-width: 0; }
+.jinsp-form input { font-size: 15px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 11px; min-width: 0; }
 .jinsp-form input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
 .jinsp-list { margin-top: 14px; }
 .jinsp { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-top: 1px solid var(--border); }
 .jinsp-main { flex: 1; min-width: 0; }
-.jinsp-addr { font-size: 14.5px; color: var(--charcoal); font-weight: 600; }
-.jinsp-meta { font-size: 12.5px; color: var(--slate); overflow: hidden; text-overflow: ellipsis; }
-.jverdict { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; border: none; cursor: pointer; padding: 6px 12px; border-radius: 12px; flex: none; }
+.jinsp-addr { font-size: 16px; color: var(--charcoal); font-weight: 600; }
+.jinsp-meta { font-size: 14px; color: var(--slate); overflow: hidden; text-overflow: ellipsis; }
+.jverdict { font-size: 14px; font-weight: 600; border: none; cursor: pointer; padding: 6px 12px; border-radius: 12px; flex: none; }
 .jverdict.v0 { background: rgba(28,28,30,0.07); color: var(--slate); }
 .jverdict.v1 { background: rgba(123,158,135,0.18); color: var(--sage); }
 .jverdict.v2 { background: rgba(196,112,74,0.16); color: var(--terracotta); }
@@ -296,15 +304,15 @@ html.dark-mode .jverdict.v2 { background: rgba(196,112,74,0.22); color: var(--te
 
 /* ── v3: modal (confirm + milestone), timeline, reset ───── */
 .jreset-row { text-align: center; margin-top: 10px; }
-.jmodal-overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(28,28,30,0.55); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 20px; }
+.jmodal-overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(28,28,30,0.55); display: grid; place-items: center; padding: 20px; }
 /* The author display:grid above beats the hidden attribute's UA display:none —
    without these two rules the empty overlay renders permanently and eats every
    click on the page (shipped broken in v3; keep them). */
 .jmodal-overlay[hidden] { display: none !important; }
 .jmodal-icon[hidden] { display: none !important; }
 .jmodal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-width: 430px; width: 100%; padding: 30px 30px 26px; text-align: center; }
-.jmodal h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--charcoal); letter-spacing: -0.3px; text-wrap: balance; }
-.jmodal p { font-size: 14.5px; color: var(--slate); line-height: 1.6; margin-top: 8px; }
+.jmodal h2 { font-weight: 700; font-size: 22px; color: var(--charcoal);   }
+.jmodal p { font-size: 16px; color: var(--slate); line-height: 1.6; margin-top: 8px; }
 .jmodal-btns { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
 .jmodal-btns .jbtn.danger { background: var(--terracotta); color: #fff; }
 .jmodal-icon { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 14px; display: grid; place-items: center; background: var(--gold); color: var(--charcoal); }
@@ -317,13 +325,13 @@ html.dark-mode .jverdict.v2 { background: rgba(196,112,74,0.22); color: var(--te
 }
 
 /* Timeline: position on a shared time axis = when you could buy */
-.jtl-axis { display: grid; grid-template-columns: 158px 1fr 92px; gap: 12px; align-items: center; font-size: 11px; color: var(--slate); margin-bottom: 4px; }
-.jtl-axis .jtl-ticks { position: relative; height: 16px; font-family: var(--font-mono); }
+.jtl-axis { display: grid; grid-template-columns: 158px 1fr 92px; gap: 12px; align-items: center; font-size: 14px; color: var(--slate); margin-bottom: 4px; }
+.jtl-axis .jtl-ticks { position: relative; height: 16px; }
 .jtl-axis .jtl-tick { position: absolute; transform: translateX(-50%); white-space: nowrap; }
 .jtl-axis .jtl-tick:first-child { transform: none; }
 .jtl-axis .jtl-tick[style*="left:100%"] { transform: translateX(-100%); }
-.jtl-tick.jtl-goal { color: var(--gold-dark); font-weight: 600; font-variant-caps: all-small-caps; letter-spacing: 0.4px; }
-.jtl-row { display: grid; grid-template-columns: 158px 1fr 92px; gap: 12px; align-items: center; font-size: 13px; padding: 7px 0; }
+.jtl-tick.jtl-goal { color: var(--gold-dark); font-weight: 600;   }
+.jtl-row { display: grid; grid-template-columns: 158px 1fr 92px; gap: 12px; align-items: center; font-size: 14.5px; padding: 7px 0; }
 .jtl-row .nm { color: var(--slate); text-align: right; }
 .jtl-rail { position: relative; height: 18px; }
 .jtl-rail::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: rgba(28,28,30,0.09); border-radius: 1px; }
@@ -331,7 +339,7 @@ html.dark-mode .jverdict.v2 { background: rgba(196,112,74,0.22); color: var(--te
 .jtl-dot.now { background: var(--sage); }
 .jtl-dot.best { box-shadow: 0 0 0 4px rgba(201,168,76,0.25); }
 .jtl-dot.inelig { background: rgba(28,28,30,0.25); }
-.jtl-date { font-family: var(--font-mono); font-weight: 600; font-size: 12.5px; color: var(--charcoal); }
+.jtl-date { font-weight: 600; font-size: 14px; color: var(--charcoal); }
 .jtl-date.now { color: var(--sage); }
 @media (max-width: 560px) { .jtl-axis, .jtl-row { grid-template-columns: 104px 1fr 80px; } }
 
@@ -345,11 +353,11 @@ html.dark-mode .jtl-dot.inelig { background: rgba(245,240,232,0.25); }
 html.dark-mode .jtl-axis { color: rgba(245,240,232,0.55); }
 
 /* ── v4: budget cap hero + date inputs ───────────────────────── */
-.jcap { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 5.4vw, 42px); letter-spacing: -0.8px; color: var(--charcoal); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.jcap { font-weight: 700; font-size: clamp(30px, 5.4vw, 42px);  color: var(--charcoal); font-variant-numeric: tabular-nums; margin-top: 4px; }
 .jwiz-input.jdate { font-size: 19px; max-width: 230px; }
 .jb-dep { width: 100%; }
 html.dark-mode .jcap { color: var(--cream); }
-.jwiz-states.cols2 .jwiz-state { font-family: var(--font-body); font-size: 13.5px; letter-spacing: 0; line-height: 1.35; padding: 13px 12px; }
+.jwiz-states.cols2 .jwiz-state { font-size: 15px; letter-spacing: 0; line-height: 1.35; padding: 13px 12px; }
 
 /* ── v5: shared / collaborative journeys ─────────────────────── */
 #jmode-banner .jsignup { margin: 14px 0 4px; }
@@ -358,10 +366,10 @@ body.jro [data-jmark], body.jro #jreset-btn, body.jro .jreset-row, body.jro #jsh
 
 /* ── v6: places library (stop 5) ─────────────────────────────── */
 .jplace-filters { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 16px; }
-.jplace-filter { font-family: var(--font-body); font-size: 12px; padding: 6px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); color: var(--slate); cursor: pointer; }
-.jplace-filter b { font-family: var(--font-mono); font-weight: 600; font-size: 11px; }
+.jplace-filter { font-size: 14px; padding: 6px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); color: var(--slate); cursor: pointer; }
+.jplace-filter b { font-weight: 600; font-size: 14px; }
 .jplace-filter.sel { background: var(--charcoal); border-color: var(--charcoal); color: var(--cream); }
-.jplace-st { font-family: var(--font-body); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; font-size: 13px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: var(--card); color: var(--slate); cursor: pointer; flex: none; }
+.jplace-st { font-weight: 600; font-size: 14.5px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: var(--card); color: var(--slate); cursor: pointer; flex: none; }
 .jplace-st.st-shortlist { border-color: var(--gold); color: var(--gold-dark); background: rgba(201,168,76,0.1); }
 .jplace-st.st-offer { border-color: var(--gold-dark); color: var(--charcoal); background: rgba(201,168,76,0.22); }
 .jplace-st.st-lost { border-color: rgba(196,112,74,0.4); color: var(--terracotta); background: rgba(196,112,74,0.08); }
@@ -369,11 +377,11 @@ body.jro [data-jmark], body.jro #jreset-btn, body.jro .jreset-row, body.jro #jsh
 .jplace-st.st-passed { color: var(--slate); }
 .jinsp.muted .jinsp-addr { color: var(--slate); text-decoration: line-through; text-decoration-thickness: 1px; }
 .jplace-pick { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 0 12px; border-bottom: 1px solid var(--border); }
-.jplace-pick-chip { font-family: var(--font-body); font-size: 12px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: var(--card); color: var(--charcoal); cursor: pointer; }
+.jplace-pick-chip { font-size: 14px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: var(--card); color: var(--charcoal); cursor: pointer; }
 .jplace-pick-chip:hover { border-color: var(--gold); }
 .jplace-pick-chip.sel { background: var(--charcoal); border-color: var(--charcoal); color: var(--cream); }
 .jplace-pick-chip.st-won:hover { border-color: var(--sage); }
-.jcapdelta { font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; }
+.jcapdelta { font-size: 14px; font-weight: 600; padding: 1px 7px; border-radius: 10px; }
 .jcapdelta.over { background: rgba(196,112,74,0.12); color: var(--terracotta); }
 .jcapdelta.under { background: rgba(123,158,135,0.14); color: var(--sage); }
 #jplaces-slot .jsignup { margin-top: 22px; }
@@ -394,8 +402,24 @@ html.dark-mode .jplace-pick { border-color: rgba(245,240,232,0.1); }
 .jscen-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
 .jscen-row:first-child { border-top: none; }
 .jscen-main { flex: 1; min-width: 0; }
-.jscen-name { font-weight: 600; font-size: 14px; color: var(--charcoal); }
-.jscen-meta { font-size: 12px; color: var(--slate); margin-top: 2px; line-height: 1.5; }
+.jscen-name { font-weight: 600; font-size: 15.5px; color: var(--charcoal); }
+.jscen-meta { font-size: 14px; color: var(--slate); margin-top: 2px; line-height: 1.5; }
+/* The day a scenario was saved or a place was added. */
+.jscen-when, .jinsp-when { font-size: 14px; color: var(--slate); margin-top: 2px; }
+html.dark-mode .jscen-when, html.dark-mode .jinsp-when { color: rgba(245,240,232,0.62); }
+/* Step 2 opened from a saved place: the note, then its two actions in a row. */
+#jplace-note .jsignup { display: block; margin: 16px 0 4px; border-color: var(--border); }
+#jplace-note .jsignup p { max-width: none; }
+#jplace-note .jsignup-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 12px; }
+#jplace-note .jplace-said { margin: 16px 0 4px; }
+/* A place on a narrow screen: the address and note take the full width and
+   the buttons sit on the line below, so the address isn't squeezed into a
+   column one word wide. */
+@media (max-width: 640px) {
+  .jinsp { flex-wrap: wrap; position: relative; }
+  .jinsp-main { flex: 1 1 100%; padding-right: 34px; }
+  .jinsp > .jinsp-del { position: absolute; top: 6px; right: -6px; padding: 6px 8px; }
+}
 .jscen-btn { padding: 8px 14px; flex: none; }
 #jscen-slot .jsignup { margin-top: 14px; }
 html.dark-mode .jscen-name { color: var(--cream); }
@@ -407,12 +431,12 @@ html.dark-mode .jscen-row { border-color: rgba(245,240,232,0.1); }
 .jsub-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 2px; border-top: 1px solid var(--border); text-decoration: none; color: inherit; }
 .jsub-row:first-child { border-top: none; }
 .jsub-row:hover .jsub-name { color: var(--gold-dark); }
-.jsub-name { font-weight: 600; font-size: 14px; color: var(--charcoal); }
-.jsub-st { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; color: var(--slate); letter-spacing: 0.5px; margin-left: 4px; }
-.jsub-fig { font-family: var(--font-mono); font-size: 12.5px; color: var(--charcoal); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.jsub-name { font-weight: 600; font-size: 15.5px; color: var(--charcoal); }
+.jsub-st { font-size: 14px; font-weight: 500; color: var(--slate);  margin-left: 4px; }
+.jsub-fig { font-size: 14px; color: var(--charcoal); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .jsub-fig b { font-weight: 600; }
-.jsub-kind { font-family: var(--font-body); color: var(--slate); font-size: 11.5px; }
-.jsub-input { width: 100%; font: inherit; font-size: 14px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; }
+.jsub-kind { color: var(--slate); font-size: 14px; }
+.jsub-input { width: 100%; font: inherit; font-size: 15.5px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; }
 .jsub-input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
 html.dark-mode .jsub-name, html.dark-mode .jsub-fig { color: var(--cream); }
 html.dark-mode .jsub-row { border-color: rgba(245,240,232,0.1); }
@@ -426,27 +450,34 @@ html.dark-mode .jsub-input { background: #1F1F22; border-color: rgba(245,240,232
 .jseo { max-width: 720px; margin: 80px auto 0; padding-top: 34px; border-top: 1px solid var(--border); }
 .jseo h2 { font-size: 24px; }
 .jseo h3 { font-size: 18px; margin-top: 28px; }
-.jseo p, .jseo li, .jseo dd { font-size: 14.5px; line-height: 1.7; color: var(--slate); }
+.jseo p, .jseo li, .jseo dd { font-size: 16px; line-height: 1.7; color: var(--slate); }
 .jseo p { margin-top: 10px; }
 .jseo ol { margin: 12px 0 0 20px; display: flex; flex-direction: column; gap: 9px; }
 .jseo li strong, .jseo dt { color: var(--charcoal); }
 .jseo dl { margin-top: 12px; }
-.jseo dt { font-weight: 600; font-size: 14.5px; margin-top: 16px; }
+.jseo dt { font-weight: 600; font-size: 16px; margin-top: 16px; }
 .jseo dd { margin: 4px 0 0; }
-.jseo a { color: var(--gold-dark); text-decoration: underline; text-underline-offset: 2px; }
-.jseo-links { margin-top: 24px; font-size: 13px; }
+.jseo a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
+.jseo-links { margin-top: 24px; font-size: 14.5px; }
 html.dark-mode .jseo { border-color: rgba(245,240,232,0.12); }
 html.dark-mode .jseo p, html.dark-mode .jseo li, html.dark-mode .jseo dd { color: rgba(245,240,232,0.65); }
 html.dark-mode .jseo li strong, html.dark-mode .jseo dt { color: var(--cream); }
-html.dark-mode .jseo a { color: var(--gold); }
+html.dark-mode .jseo a { color: var(--link); }
 
 /* ── stake-at-flat-value table (projector) ───────────────────── */
 .jnet { margin-top: 12px; }
-.jnet-row { display: grid; grid-template-columns: minmax(120px, 1.4fr) 1fr 1fr 1fr; gap: 10px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.jnet-row { display: grid; grid-template-columns: minmax(120px, 1.4fr) 1fr 1fr 1fr; gap: 10px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--border); font-size: 14.5px; }
 .jnet-row:first-child { border-top: none; }
 .jnet-row .nm { color: var(--slate); }
-.jnet-row .v { font-family: var(--font-mono); font-weight: 600; font-size: 13px; color: var(--charcoal); font-variant-numeric: tabular-nums; text-align: right; }
-.jnet-head span { font-family: var(--font-body); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; color: var(--slate); font-size: 13px; text-align: right; }
+.jnet-row .v { font-weight: 600; font-size: 14.5px; color: var(--charcoal); font-variant-numeric: tabular-nums; text-align: right; }
+.jnet-head span { font-weight: 600; color: var(--slate); font-size: 14.5px; text-align: right; }
+/* Narrow screens: the path's name gets its own line above its three figures.
+   In four columns the 30-year figure ran off the edge of the card. */
+@media (max-width: 560px) {
+  .jnet-row { grid-template-columns: 1fr 1fr 1fr; row-gap: 2px; }
+  .jnet-row .nm { grid-column: 1 / -1; }
+  .jnet-head .nm { display: none; }
+}
 .jnet-row.best .nm { color: var(--gold-dark); font-weight: 600; }
 .jnet-row.inelig .v, .jnet-row.inelig .nm { color: rgba(28,28,30,0.35); }
 html.dark-mode .jnet-row { border-color: rgba(245,240,232,0.1); }
@@ -454,27 +485,27 @@ html.dark-mode .jnet-row .v { color: var(--cream); }
 html.dark-mode .jnet-row.best .nm { color: var(--gold); }
 html.dark-mode .jnet-row.inelig .v, html.dark-mode .jnet-row.inelig .nm { color: rgba(245,240,232,0.3); }
 
-.jfhss p { font-size: 14.5px; line-height: 1.65; color: var(--slate); }
+.jfhss p { font-size: 16px; line-height: 1.65; color: var(--slate); }
 .jfhss strong, .jfhss .mono-strong { color: var(--charcoal); }
-.jfhss a { color: var(--gold-dark); text-decoration: underline; text-underline-offset: 2px; }
+.jfhss a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
 html.dark-mode .jfhss p { color: rgba(245,240,232,0.65); }
 html.dark-mode .jfhss strong, html.dark-mode .jfhss .mono-strong { color: var(--cream); }
-html.dark-mode .jfhss a { color: var(--gold); }
+html.dark-mode .jfhss a { color: var(--link); }
 
 /* ── stop-7 final-costs reconciliation ───────────────────────── */
 .jrec-price { display: flex; align-items: center; gap: 12px; margin: 12px 0 16px; }
-.jrec-price label { font-family: var(--font-body); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; color: var(--slate); font-size: 13.5px; }
-.jrec-price input { font-family: var(--font-mono); font-size: 14px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; width: 140px; }
-.jrec-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.jrec-price label { font-weight: 600; color: var(--slate); font-size: 15px; }
+.jrec-price input { font-size: 15.5px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; width: 140px; }
+.jrec-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); font-size: 15px; }
 .jrec-row .k { color: var(--slate); }
-.jrec-row .est { font-family: var(--font-mono); font-size: 12.5px; color: var(--slate); text-align: right; font-variant-numeric: tabular-nums; }
+.jrec-row .est { font-size: 14px; color: var(--slate); text-align: right; font-variant-numeric: tabular-nums; }
 .jrec-row .act { text-align: right; }
-.jrec-row .act input { font-family: var(--font-mono); font-size: 13px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 10px; width: 110px; text-align: right; }
+.jrec-row .act input { font-size: 14.5px; color: var(--charcoal); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 10px; width: 110px; text-align: right; }
 .jrec-row .act input:focus-visible, .jrec-price input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
 .jrec-head { border-top: none; padding-bottom: 2px; }
-.jrec-head .est, .jrec-head .act { font-family: var(--font-body); font-variant-caps: all-small-caps; letter-spacing: 0.4px; font-weight: 600; font-size: 13px; }
-.jrec-total .est, .jrec-total .act { font-weight: 700; color: var(--charcoal); font-size: 13.5px; }
-.jrec-verdict { margin-top: 12px; font-size: 14px; font-weight: 600; }
+.jrec-head .est, .jrec-head .act { font-weight: 600; font-size: 14.5px; }
+.jrec-total .est, .jrec-total .act { font-weight: 700; color: var(--charcoal); font-size: 15px; }
+.jrec-verdict { margin-top: 12px; font-size: 15.5px; font-weight: 600; }
 .jrec-verdict.over { color: var(--terracotta); }
 .jrec-verdict.under { color: var(--sage-dark); }
 html.dark-mode .jrec-row { border-color: rgba(245,240,232,0.1); }
@@ -483,14 +514,14 @@ html.dark-mode .jrec-total .est, html.dark-mode .jrec-total .act { color: var(--
 html.dark-mode .jrec-verdict.under { color: var(--sage-light); }
 
 /* stop-5 offer strategy */
-.joffer-cap { font-size: 14.5px; line-height: 1.6; color: var(--slate); margin-bottom: 12px; }
+.joffer-cap { font-size: 16px; line-height: 1.6; color: var(--slate); margin-bottom: 12px; }
 .joffer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.joffer-h { font-size: 15px; margin-bottom: 4px; }
-.joffer-grid p { font-size: 13.5px; line-height: 1.6; color: var(--slate); }
+.joffer-h { font-size: 16px; margin-bottom: 4px; }
+.joffer-grid p { font-size: 15px; line-height: 1.6; color: var(--slate); }
 @media (max-width: 640px) { .joffer-grid { grid-template-columns: 1fr; } }
 html.dark-mode .joffer-cap, html.dark-mode .joffer-grid p { color: rgba(245,240,232,0.65); }
 
-.jplace-proj { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.4px; padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: transparent; color: var(--gold-dark); cursor: pointer; flex: none; }
+.jplace-proj { font-size: 14px;  padding: 6px 11px; border-radius: 13px; border: 1px solid var(--border); background: transparent; color: var(--gold-dark); cursor: pointer; flex: none; }
 .jplace-proj:hover { border-color: var(--gold); }
 html.dark-mode .jplace-proj { color: var(--gold); border-color: rgba(245,240,232,0.16); }
 
@@ -504,30 +535,65 @@ html.dark-mode .jrec-head .est, html.dark-mode .jrec-head .act { color: rgba(245
 /* wizard-done grouped summary (replaces the chip cloud) */
 .jsum { margin-top: 20px; display: flex; flex-direction: column; gap: 18px; text-align: left; }
 .jsum-group .jsc { margin-bottom: 2px; }
-.jsum-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+.jsum-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 15px; }
 .jsum-row:last-child { border-bottom: none; }
 .jsum-row .k { color: var(--slate); }
 .jsum-row .v { color: var(--charcoal); font-weight: 600; text-align: right; }
-.jsum-row .v.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.jsum-row .v.mono { font-variant-numeric: tabular-nums; }
 html.dark-mode .jsum-row { border-color: rgba(245,240,232,0.1); }
 html.dark-mode .jsum-row .k { color: rgba(245,240,232,0.55); }
 html.dark-mode .jsum-row .v { color: var(--cream); }
+/* The list of step 1 answers: label, answer, Edit. */
+.jsum-row .v { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.jsum-edit { flex: none; background: none; border: none; cursor: pointer; font: inherit; font-size: 15px; color: var(--link); text-decoration: underline; text-underline-offset: 2px; padding: 5px 0 5px 6px; }
+.jsum-edit:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 3px; }
 
 /* stop-2 decision layer: priority re-ranker + questions */
 .jprio-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.jprio-chip { font-family: var(--font-body); font-size: 13px; padding: 9px 14px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--card); color: var(--charcoal); cursor: pointer; }
+.jprio-chip { font-size: 14.5px; padding: 9px 14px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--card); color: var(--charcoal); cursor: pointer; }
 .jprio-chip:hover { border-color: var(--gold); }
 .jprio-chip.sel { background: var(--charcoal); border-color: var(--charcoal); color: var(--cream); font-weight: 600; }
 .jfaq-item { border-top: 1px solid var(--border); }
 .jfaq-item:first-of-type { border-top: none; }
-.jfaq-item summary { cursor: pointer; padding: 12px 0; font-size: 14.5px; font-weight: 600; color: var(--charcoal); list-style-position: outside; }
+.jfaq-item summary { cursor: pointer; padding: 12px 0; font-size: 16px; font-weight: 600; color: var(--charcoal); list-style-position: outside; }
 .jfaq-item summary:hover { color: var(--gold-dark); }
-.jfaq-item p { font-size: 13.5px; line-height: 1.65; color: var(--slate); padding: 0 0 14px 18px; }
-.jfaq-item a { color: var(--gold-dark); text-decoration: underline; text-underline-offset: 2px; }
+.jfaq-item p { font-size: 15px; line-height: 1.65; color: var(--slate); padding: 0 0 14px 18px; }
+.jfaq-item a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
 html.dark-mode .jprio-chip { background: #1F1F22; border-color: rgba(245,240,232,0.16); color: var(--cream); }
 html.dark-mode .jprio-chip.sel { background: var(--gold); border-color: var(--gold); color: var(--charcoal); }
 html.dark-mode .jfaq-item { border-color: rgba(245,240,232,0.1); }
 html.dark-mode .jfaq-item summary { color: var(--cream); }
 html.dark-mode .jfaq-item summary:hover { color: var(--gold); }
 html.dark-mode .jfaq-item p { color: rgba(245,240,232,0.65); }
-html.dark-mode .jfaq-item a { color: var(--gold); }
+html.dark-mode .jfaq-item a { color: var(--link); }
+
+/* ── Nov 2026: validation messages, sync state, focus targets ── */
+.jerr { color: #8F4526; font-size: 15px; line-height: 1.5; margin: 8px 0 0; font-weight: 600; }
+html.dark-mode .jerr { color: var(--terracotta-light); }
+.jwiz-input[aria-invalid="true"] { border-bottom-color: var(--terracotta) !important; }
+h3.jwiz-q { margin: 0; }
+.jwiz-q:focus, .jstephead h2:focus, .jgreet h1:focus, [tabindex="-1"]:focus { outline: none; }
+.jwiz-count { font-size: 14px; color: var(--slate); margin: -12px 0 10px; }
+.jwiz-note { font-size: 15.5px; line-height: 1.55; color: var(--charcoal); background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.35); border-radius: 8px; padding: 10px 14px; margin: 0 0 18px; }
+html.dark-mode .jwiz-note { color: var(--cream); }
+html.dark-mode .jwiz-count { color: rgba(245,240,232,0.62); }
+.jverdict-line { font-size: 16px; line-height: 1.55; font-weight: 600; padding: 10px 14px; border-radius: 8px; }
+.jverdict-line.good { color: #2F5A40; background: rgba(123,158,135,0.16); }
+.jverdict-line.warn { color: #8F4526; background: rgba(196,112,74,0.12); }
+html.dark-mode .jverdict-line.good { color: var(--sage-light); }
+html.dark-mode .jverdict-line.warn { color: var(--terracotta-light); }
+.jsaved.bad { color: #8F4526; font-weight: 600; }
+.jsaved.bad .jpip { background: var(--terracotta); }
+html.dark-mode .jsaved.bad { color: var(--terracotta-light); }
+.jsaved { text-align: left; }
+.jshare-live { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 14.5px; color: var(--slate); }
+.jshare-live:empty { display: none; }
+html.dark-mode .jshare-live { color: rgba(245,240,232,0.62); }
+
+/* Dark mode for the pieces restyled in Nov 2026 */
+html.dark-mode .jbtn { background: #F3F3F0; color: #111113; border-color: #F3F3F0; }
+html.dark-mode .jbtn:hover { background: #fff; }
+html.dark-mode .jbtn.quiet { background: transparent; color: #F3F3F0; border-color: rgba(245,240,232,0.4); }
+html.dark-mode .jbtn.quiet:hover { background: rgba(255,255,255,0.06); }
+html.dark-mode .jstop.current .jstopcard { border-color: rgba(245,240,232,0.7); }
+html.dark-mode button.jstopcard:hover { border-color: rgba(245,240,232,0.7); }

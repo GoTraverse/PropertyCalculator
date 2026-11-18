@@ -5,63 +5,37 @@
 <script>try{if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Offline — EquitySight</title>
+<title>You're offline (EquitySight.app)</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
-  /* Inline + self-contained so this page renders even when no CSS is cached. */
-  :root { --gold:#C9A84C; --charcoal:#1C1C1E; --cream:#F5F0E8; --warm-white:#FAF7F2; --slate:#4A4A52; }
+  /* Inline and self-contained so this page renders when no CSS is cached. */
   * { box-sizing: border-box; }
   body {
-    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 24px; background: var(--warm-white); color: var(--charcoal);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Geist", system-ui, sans-serif;
-    line-height: 1.55; -webkit-font-smoothing: antialiased;
+    margin: 0; background: #fff; color: #1C1C1E;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px; line-height: 1.55;
   }
-  .card { max-width: 520px; width: 100%; text-align: center; }
-  .mark {
-    width: 56px; height: 56px; margin: 0 auto 22px; border-radius: 14px;
-    background: var(--charcoal); color: var(--gold); display: flex; align-items: center; justify-content: center;
-    font-size: 26px; font-weight: 700; letter-spacing: -1px;
-  }
-  h1 { font-size: 24px; margin: 0 0 10px; letter-spacing: -0.4px; }
-  p { color: var(--slate); margin: 0 auto 22px; max-width: 420px; }
-  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 26px 0 18px; text-align: left; }
-  .links a {
-    display: block; padding: 12px 14px; border-radius: 9px; background: #fff;
-    border: 1px solid rgba(28,28,30,0.1); color: var(--charcoal); text-decoration: none;
-    font-size: 14px; font-weight: 500; transition: border-color 0.15s, transform 0.15s;
-  }
-  .links a:hover { border-color: var(--gold); transform: translateY(-1px); }
-  .retry {
-    display: inline-block; margin-top: 6px; padding: 12px 22px; border-radius: 8px;
-    background: var(--charcoal); color: var(--cream); text-decoration: none; font-weight: 600; font-size: 14px;
-    border: none; cursor: pointer;
-  }
-  .hint { font-size: 12px; color: var(--slate); margin-top: 18px; }
-  @media (max-width: 460px) { .links { grid-template-columns: 1fr; } }
-  /* Follows the user's chosen theme (html.dark-mode set by the inline script above),
-     matching the rest of the site rather than the OS preference. */
-  html.dark-mode body { background: #161618; color: var(--cream); }
-  html.dark-mode p, html.dark-mode .hint { color: rgba(245,240,232,0.72); }
-  html.dark-mode .links a { background: #1f1f22; border-color: rgba(255,255,255,0.1); color: var(--cream); }
-  html.dark-mode .retry { background: var(--gold); color: var(--charcoal); }
+  main { max-width: 720px; margin: 0 auto; padding: 56px 24px 72px; }
+  h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+  p { margin: 0 0 14px; }
+  ul { padding-left: 22px; margin: 0; }
+  li { margin-bottom: 6px; }
+  a { color: #0B4F9E; text-decoration: underline; text-underline-offset: 2px; }
+  @media (max-width: 600px) { main { padding: 36px 18px 56px; } }
+  /* Follows the theme chosen on the site (html.dark-mode, set by the inline script above). */
+  html.dark-mode body { background: #111113; color: #F5F0E8; }
+  html.dark-mode a { color: #8AB4F8; }
 </style>
 </head>
 <body>
-  <main class="card">
-    <div class="mark">E</div>
+  <main>
     <h1>You're offline</h1>
-    <p>EquitySight can't reach the network right now. Any calculator you've already opened still works offline — try one of these:</p>
-    <nav class="links" aria-label="Calculators available offline">
-      <a href="/tools/stamp-duty-calculator">Stamp Duty</a>
-      <a href="/tools/mortgage-repayment-calculator">Mortgage Repayments</a>
-      <a href="/tools/borrowing-power-calculator">Borrowing Power</a>
-      <a href="/tools/deposit-calculator">Deposit & LMI</a>
-      <a href="/tools/rental-yield-calculator">Rental Yield</a>
-      <a href="/tools/">All calculators</a>
-    </nav>
-    <a class="retry" href="/">Back to EquitySight</a>
-    <p class="hint">This page is shown when you have no connection. Once you're back online, reopening any page will reconnect automatically.</p>
+    <p>EquitySight can't reach the network right now. The First Home Journey is saved on this device and still opens. A calculator opens offline if you've used it on this device before.</p>
+    <ul>
+      <li><a href="/journey">First Home Journey</a></li>
+      <li><a href="/tools/">Calculators</a></li>
+      <li><a href="/">Home page</a></li>
+    </ul>
   </main>
 </body>
 </html>

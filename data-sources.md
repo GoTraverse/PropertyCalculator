@@ -1,32 +1,28 @@
 ---
-title: Data Sources & Attribution
-date: August 2026
-tag: Transparency
+title: Data sources and attribution
+date: November 2026
+tag: Reference
 ---
 
-## Where my numbers come from
+## 1. Population (ABS 2021 Census)
 
-This page is a plain account of which fields on EquitySight are sourced from a public dataset, which datasets those are, when each was last refreshed, and the licence terms I operate under. I would rather under-claim than overstate what I have. If you spot a stale link, a mislabelled figure, or an attribution I've missed, email [support@equitysight.app](mailto:support@equitysight.app) and I'll fix it.
+The usual-resident population on each suburb page comes from the Australian Bureau of Statistics [2021 Census of Population and Housing](https://www.abs.gov.au/census/find-census-data). The suburbs I build pages from are the ABS State Suburb (SAL) 2021 boundaries, read from the ABS ArcGIS FeatureServer through its public REST endpoint and cached at build time.
 
-## 1. Australian Bureau of Statistics — 2021 Census of Population and Housing
+Licence: [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Source: Australian Bureau of Statistics © Commonwealth of Australia.
 
-- **Used for:** the usual-resident **population** figure on each suburb page, the State Suburb (SAL) geography I build pages from, and the 2021 Census median rent and mortgage figures where they appear (always labelled as 2021).
-- **Source:** [abs.gov.au/census/find-census-data](https://www.abs.gov.au/census/find-census-data)
-- **Geography layer:** ABS ArcGIS FeatureServer (SAL 2021 boundaries), queried via the public REST endpoint and cached at build time.
-- **Licence:** [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Source: Australian Bureau of Statistics © Commonwealth of Australia.
-- **Refreshed:** The 2021 Census is the current release. I will ingest the 2026 Census once the ABS publishes the release files.
+The 2021 Census is the current release. I'll move to the 2026 Census once the ABS publishes the release files.
 
 ## 2. Postcodes
 
-- **Used for:** the postcode shown on every suburb page, matching suburb names to postal postcodes, and building state-level filters.
-- **Source:** community-maintained postcode CSV (`au_postcodes.csv`) cross-referenced against the [Australia Post postcode finder](https://auspost.com.au/postcode).
-- **Attribution:** Australia Post is the authoritative issuer of postcodes. My dataset is a mechanical lookup only; I do not resell, redistribute, or claim ownership over postcode data.
+The postcode on each suburb page comes from a community-maintained postcode CSV (`au_postcodes.csv`), checked against the [Australia Post postcode finder](https://auspost.com.au/postcode). I also use it to match suburb names to postcodes and to build the state filters. Where a suburb has more than one postcode I show the primary one. One postcode can cover several suburbs.
 
-Where a suburb has more than one postcode I display the primary one. A postcode may cover multiple suburbs — that is expected.
+Australia Post issues postcodes. My copy is a lookup only. I don't resell or redistribute postcode data, and I don't claim to own it.
 
-## 3. Current market data — state government open data (CC BY 4.0)
+The distances in the "Suburbs near" list on a suburb page are rough. They're measured between postcode centres, using coordinates from the matthewproctor/australianpostcodes community dataset (MIT licence).
 
-The current rents and sale medians on suburb pages, and the suburb price data behind the [First Home Journey](/journey) suburb search and the auction budget and listing price tools, come from these datasets:
+## 3. Rents and sale prices (state government open data)
+
+The current rents and sale medians on suburb pages come from these datasets. So does the suburb price data behind the [First Home Journey](/journey) suburb search and the auction budget and listing price tools.
 
 | Dataset | Publisher | Metric | Period | Level |
 |---------|-----------|--------|--------|-------|
@@ -34,49 +30,49 @@ The current rents and sale medians on suburb pages, and the suburb price data be
 | Private rental report | Consumer & Business Services (SA) | Median weekly rent | Jan–Mar 2026 | Suburb |
 | Metro Adelaide sale medians | Valuer-General (SA) | Median house price | Q1 2026 | Suburb (metro Adelaide) |
 | Victorian property sales | Valuer-General Victoria | Median house & unit prices | 2025 (preliminary) | Suburb |
-| Rental bond data | Department of Justice (Tasmania) | Median weekly rent | May 2025 – Apr 2026 | Suburb |
+| Rental bond data | Department of Justice (Tasmania) | Median weekly rent | May 2025 to Apr 2026 | Suburb |
 | Rent and Sales Report | NSW Communities & Justice | Median weekly rent | Jan–Mar 2026 | Postcode |
 
-All are published under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) by the respective state governments. Every figure drawn from these datasets carries an "as at" caption on the page naming the source and period. I refresh this data quarterly as new releases appear; the period captions are the honest read of each figure's age.
+The state governments publish all of these under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Every figure taken from them is printed with its source and period. I refresh this data by hand and aim to do it each quarter. The last refresh was July 2026, so check the period under each figure.
 
-Coverage is uneven and I say so on the pages: NSW rents exist only at postcode level, and Queensland has no free suburb-level sale-price dataset — where a figure doesn't exist, the page omits it rather than substituting a modelled number.
+Coverage is uneven. NSW rents exist only at postcode level, and Queensland has no free suburb-level sale-price dataset. Where a figure doesn't exist the page leaves it out. I don't substitute a modelled number.
 
-## 4. Reserve Bank of Australia — cash-rate target
+## 4. Cash rate (Reserve Bank of Australia)
 
-- **Used for:** the live cash-rate context on the Loan Serviceability, Mortgage Stress Test and Property Cashflow calculators via the `window.MarketRate` module.
-- **Source:** [rba.gov.au/statistics/cash-rate](https://www.rba.gov.au/statistics/cash-rate/)
-- **Refreshed:** fetched from the RBA public feed and cached briefly. If the live feed is unavailable, the calculators simply omit the live-rate hint — they never display a stale rate as current.
-- **Attribution:** Reserve Bank of Australia. Figures are used descriptively and are not represented as RBA forecasts.
+The Loan Serviceability, Mortgage Stress Test and Property Cashflow calculators use the current cash-rate target. The `window.MarketRate` module fetches it from the RBA's public feed ([rba.gov.au/statistics/cash-rate](https://www.rba.gov.au/statistics/cash-rate/)) and caches it briefly. Until you type your own interest rate, the calculator fills the interest rate field with the cash rate plus a lender margin that is my own assumption, and the note under the field shows both figures. If the feed is unavailable the calculator keeps its default rate and leaves the note out. It never shows a stale rate as current.
+
+Attribution: Reserve Bank of Australia. The cash rate is not presented as an RBA forecast.
 
 ## 5. Rates, duties and scheme settings
 
-Stamp duty schedules come from each state revenue office, income tax rates from the ATO, the 3% serviceability buffer from APRA's APS 220, and first-home-buyer scheme settings (5% Deposit Scheme, Help to Buy, FHSS, state FHOGs and concessions) from Housing Australia, the ATO and the state revenue offices. Each calculator page notes when its figures were last verified against the official source. The formulas are documented on the [methodology page](/methodology).
+Stamp duty schedules come from each state revenue office, income tax rates from the ATO, the 3% serviceability buffer from APRA's APS 220, and first-home-buyer scheme settings (5% Deposit Scheme, Help to Buy, FHSS, state FHOGs and concessions) from Housing Australia, the ATO and the state revenue offices. Each calculator that uses these rates notes when they were last checked against the official source. The repayment formulas are on the [methodology page](/methodology).
 
-## 6. Figures I removed rather than estimate
+Two things have no official source: the LMI table, and the living-cost floor in the borrowing estimates. Both are my own estimates, and the methodology page sets them out.
 
-Earlier versions of the suburb pages included fields I could not verify — a generated household income figure, an investment score, and school/park counts. All were removed rather than labelled and left in place. The [methodology page](/methodology) section 3 covers what was removed and why. I would rather omit a field than publish a number I can't stand behind.
+## 6. The written calculator guides
 
-## 7. My written calculator guides
+The long guides on the calculator pages are drafted with AI assistance, then reviewed and edited by me for accuracy and Australian relevance. The numbers and formulas inside the calculators are coded by hand.
 
-The long-form guides attached to each calculator are **drafted with AI assistance and then human-reviewed and edited** by me for accuracy and Australian relevance. I mention this plainly because I think you should know how the words are made. The numbers and formulas inside the calculators are coded by hand and documented on the [methodology page](/methodology); the prose around them is AI-assisted and human-checked.
+## 7. Reviews on suburb pages
 
-## 8. What I do NOT do
+A suburb page can have a "Community reviews" section. Signed-in visitors wrote those reviews and gave the star ratings before I closed submissions in August 2026, and I approved each one before it appeared. A page shows up to ten of them and the average star rating, which is also in the page's structured data. They are those visitors' opinions. I don't count them as data, and no new reviews are accepted.
 
-- **No third-party listing data on suburb pages.** The figures on a suburb page are not drawn from Domain, realestate.com.au, CoreLogic, PriceFinder, or any other commercial listing feed.
-- **No sponsored content.** No developer, agent, buyer's agent, or mortgage broker can pay me to feature a suburb or change a verdict.
-- **No scraped listings.** I do not scrape property listing websites.
-- **No personal data.** I do not collect, store, or infer anything about individual homeowners or tenants.
+## 8. What I don't use
+
+The figures on a suburb page are not drawn from Domain, realestate.com.au, CoreLogic, PriceFinder or any other commercial listing feed. I don't scrape property listing websites. I don't collect, store or infer anything about individual homeowners or tenants.
+
+Section 3 of the [methodology page](/methodology) lists the fields I've removed from suburb pages because I couldn't verify them.
 
 ## 9. Independence and conflicts of interest
 
-EquitySight is run by a single solo operator. It is not owned by, licensed to, or commercially affiliated with any real-estate agency, developer, mortgage broker, buyer's agent, or data reseller. The site carries no advertising. A small number of paid subscriptions exist from an earlier version of the product; no advertiser or subscriber has any influence over what any page says.
+I run EquitySight on my own. It isn't owned by, licensed to or commercially affiliated with any real-estate agency, developer, mortgage broker, buyer's agent or data reseller. The site has no advertising and no sponsored content. I don't collect paid data from agents or developers, and no developer, agent, buyer's agent or mortgage broker can pay me to feature a suburb or change what a page says.
 
-If this ever changes — for example if I accept investment from a party with an interest in specific suburbs — I will disclose it at the top of this page before the relationship begins.
+A small number of paid subscriptions from an earlier version of the product are still active. No advertiser or subscriber has any influence over what any page says.
 
-## 10. Reporting a correction
+If that changes, for example if I take investment from someone with an interest in particular suburbs, I'll say so at the top of this page before the arrangement begins.
 
-If any field on any page is wrong or misleading:
+## 10. Corrections
 
-1. Email [support@equitysight.app](mailto:support@equitysight.app) with the page URL and the field that's wrong (and, if you have it, the correct source reference).
-2. I reply within 24 hours on weekdays; confirmed corrections can take up to five business days to verify and fix.
-3. I'll fix confirmed issues and, where relevant, update this page.
+If a figure is wrong or mislabelled, a link is stale, or I've missed an attribution, email [support@equitysight.app](mailto:support@equitysight.app) with the page URL and the field that's wrong. Include the correct source reference if you have it.
+
+I reply within 24 hours on weekdays. A confirmed correction can take up to five business days to check and fix. Where it's relevant I update this page too.

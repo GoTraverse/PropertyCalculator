@@ -14,16 +14,18 @@ const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|
 const GROWTH_TTL  = 30 * 24 * 60 * 60; // 30 days in seconds
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// Only this site's own Netlify deploy and preview hosts, never any *.netlify.app.
+const OWN_NETLIFY_ORIGIN = /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$/;
 // CSRF defense-in-depth. See auth.js for the rationale.
 function isAllowedOrigin(event){
   const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
   if(!o) return true;
-  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+  return ALLOWED_ORIGINS.includes(o) || OWN_NETLIFY_ORIGIN.test(o);
 }
 function getCorsHeaders(event) {
   const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
-    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : OWN_NETLIFY_ORIGIN.test(reqOrigin) ? reqOrigin
     : ALLOWED_ORIGINS[0];
   return {
     'Content-Type':'application/json',

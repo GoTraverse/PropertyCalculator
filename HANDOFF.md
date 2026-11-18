@@ -1,3 +1,5 @@
+> **Historical — superseded by the Aug 2026 strategy in CLAUDE.md.** Kept for reference only; do not act on it.
+
 # Session Handoff — for Claude Code (desktop / local)
 
 > **⚠ PRODUCT DIRECTION UPDATE (12 Jul 2026):** the flagship is now the

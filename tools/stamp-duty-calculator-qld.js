@@ -55,12 +55,12 @@ function calcQldDuty(price, ptype, buyer, fhb) {
   if (price <= 0) return { duty: 0, note: '' };
   var v = price;
   if (fhb && ptype === 'land') {
-    return { duty: calcQldFhbLand(v), note: 'First home vacant land concession — no duty at any value (contracts from 1 May 2025).' };
+    return { duty: calcQldFhbLand(v), note: 'First home vacant land concession applied. No duty at any value for contracts from 1 May 2025.' };
   }
   if (fhb && ptype === 'home') {
-    if (v <= 700000) return { duty: 0, note: 'First home concession — full exemption.' };
-    if (v < 800000) return { duty: calcQldFhbHome(v), note: 'First home concession — QRO $10,000-band concession applied.' };
-    return { duty: calcQldFhbHome(v), note: 'Home concession applied (over first home threshold).' };
+    if (v <= 700000) return { duty: 0, note: 'First home concession applied. No duty to pay.' };
+    if (v < 800000) return { duty: calcQldFhbHome(v), note: 'First home concession applied, using QRO\'s $10,000 price bands.' };
+    return { duty: calcQldFhbHome(v), note: 'Home concession applied. The price is above the first home concession range.' };
   }
   if (buyer === 'owner' && ptype === 'home') {
     return { duty: calcQldHome(v), note: 'Home concession applied (owner-occupier).' };
@@ -74,10 +74,11 @@ function calculate() {
   if (_msg) _msg.hidden = true;
 
   var val = parseVal('price');
-  if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
+  if (!val || val <= 0) { if (!_isInit) _showErr('Enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
   var isForeign = document.getElementById('foreign').checked;
 
@@ -103,16 +104,22 @@ function calculate() {
   var regTotal = Math.round(regMortgage + regTransfer);
   var conveyancing = 1800;
   function lmiRate(lvr) {
+    // Rounded first, as lmiRate() in journey.js does: price × 0.8 ÷ price
+    // can come out as 0.8000000000000002 and land in the next tier.
+    lvr = Math.round(lvr * 10000) / 10000;
     if (lvr <= 0.80) return 0;
     if (lvr <= 0.85) return 0.0080;
     if (lvr <= 0.90) return 0.0190;
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -122,19 +129,21 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (Titles Qld — transfer fee scales with price)';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Titles Queensland; the transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Queensland 2026–27 transfer duty. From 1 Aug 2026, home concessions require Australian citizenship, permanent residency or specified foreign retiree status. LMI is an industry-average estimate; title registry fees per the Titles Queensland FY2026-27 schedule. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate only, at Queensland\'s 2026–27 transfer duty rates. From 1 Aug 2026 the home concessions need Australian citizenship, permanent residency or specified foreign retiree status. The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium. Registration fees are from the Titles Queensland FY2026-27 schedule. Check the figures with your solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -158,9 +167,9 @@ ToolPage.init({
   slug: 'stamp-duty-qld',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full Queensland purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Plan the rest of the Queensland purchase',
+    description: 'The First Home Journey checks the government schemes against your income and savings, then builds a budget that includes this duty and the other upfront costs.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=qld'
   },
   resources: {
@@ -168,31 +177,31 @@ ToolPage.init({
       {
         icon: '🏛️', title: 'Queensland Revenue Office',
         links: [
-          { text: 'QLD Transfer Duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
-          { text: 'Home Concession Rates', href: 'https://qro.qld.gov.au/duties/transfer-duty/concessions/homes/' },
-          { text: 'First Home Concession', href: 'https://qro.qld.gov.au/duties/transfer-duty/concessions/homes/first-home/' },
-          { text: 'First Home Vacant Land', href: 'https://qro.qld.gov.au/duties/transfer-duty/concessions/homes/first-home-vacant-land/' },
-          { text: 'QRO: Pay Transfer Duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/lodging-and-paying/' }
+          { text: 'Transfer duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
+          { text: 'Home concession', href: 'https://qro.qld.gov.au/duties/transfer-duty/concessions/homes/' },
+          { text: 'First home concession', href: 'https://qro.qld.gov.au/duties/transfer-duty/concessions/homes/first-home/' },
+          { text: 'First home vacant land concession', href: 'https://qro.qld.gov.au/duties/transfer-duty/concessions/homes/first-home-vacant-land/' },
+          { text: 'Lodging and paying transfer duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/lodging-and-paying/' }
         ]
       },
       {
-        icon: '🎯', title: 'First Home Buyer',
+        icon: '🎯', title: 'First home buyer schemes',
         links: [
-          { text: 'QLD First Home Owner Grant', href: 'https://qro.qld.gov.au/grants/first-home-owner-grant/' },
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'Queensland First Home Owner Grant', href: 'https://qro.qld.gov.au/grants/first-home-owner-grant/' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' }
         ]
       },
       {
-        icon: '💰', title: 'Financial Planning',
+        icon: '💰', title: 'Home loans and tax',
         links: [
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' }
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with the Queensland Revenue Office.'
+    disclaimer: 'Check the current rates with the Queensland Revenue Office before you sign.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-qld',
@@ -250,16 +259,8 @@ ToolPage.init({
     }
   ],
   faq: [
-    { q: 'How does stamp duty work in Queensland?',
-      a: 'Queensland calls stamp duty "transfer duty". It is charged by the Queensland Revenue Office (QRO) on the dutiable value of the property at settlement. Rates step up across price brackets — nil under $5,000 to 5.75% above $1 million. Owner-occupiers can apply for a home concession (saves up to $7,175) and first home buyers get a separate concession that fully exempts purchases up to $700,000.' },
-    { q: 'What is the QLD home concession?',
-      a: 'The home concession is a reduced transfer duty rate available to anyone buying a home as their principal place of residence — including non-first-home-buyers. It saves up to $7,175 compared to the investor rate. To qualify you must move in within 12 months of settlement and live there for at least 12 months.' },
-    { q: 'What is the QLD first home buyer concession?',
-      a: 'Eligible first home buyers pay no transfer duty on established-home purchases up to $700,000. Between $700,000 and $800,000, QRO deducts a fixed concession amount per $10,000 price band ($17,350 stepping down to nil at $800,000) from the home-concession duty — a $730,000 first home pays $6,555. Brand-new homes and vacant land attract no duty at any value for contracts from 1 May 2025. You must intend to live in the home as your principal place of residence within 12 months of settlement.' },
     { q: 'When is stamp duty due in QLD?',
-      a: 'Transfer duty is payable within 30 days of the dutiable transaction — usually 30 days after contract date or settlement. Most buyers pay duty at settlement through their solicitor or conveyancer.' },
-    { q: 'What is the difference between stamp duty and transfer duty?',
-      a: 'There is no difference — they are the same tax. Queensland officially renamed stamp duty to "transfer duty" in the Duties Act 2001 because the document no longer carries a physical stamp. Buyers, lenders, and solicitors still use both terms interchangeably.' }
+      a: 'The contract has to be lodged with the Queensland Revenue Office within 30 days of the date liability arises. QRO says that\'s usually the contract date, when it\'s signed or becomes unconditional, and that it isn\'t the settlement date. If your solicitor lodges it as a registered self assessor, the duty is due within 14 days of lodging. If you lodge it yourself, QRO sends an assessment notice with the amount and the due date. In practice your solicitor or conveyancer pays it at or before settlement. Duty isn\'t financed by your mortgage, so it has to come from your cash or your deposit. Late payment attracts unpaid tax interest at a rate QRO publishes each year.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },

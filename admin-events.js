@@ -36,7 +36,6 @@ var tabCallbacks = {
   'integrations': loadConfig,
   'branding': loadConfig,
   'email-templates': loadEmailTemplates,
-  'about-page': loadAboutPage,
   'legal-pages': loadLegalPagesList,
   'suburbs': loadSuburbsTab,
   'blog': loadBlogPosts,
@@ -236,6 +235,8 @@ document.querySelectorAll('[data-db-filter]').forEach(function(btn){
 });
 
 // ── Database maintenance ─────────────────────────────────────────────────────
+var revokeAllBtn = document.getElementById('revoke-all-sessions-btn');
+if(revokeAllBtn) revokeAllBtn.addEventListener('click', revokeAllSessions);
 var purgeSessionsBtn = document.getElementById('purge-sessions-btn');
 if(purgeSessionsBtn) purgeSessionsBtn.addEventListener('click', purgeExpiredSessions);
 var purgeProfilesBtn = document.getElementById('purge-profiles-btn');
@@ -256,12 +257,6 @@ var previewEtBtn = document.getElementById('preview-et-btn');
 if(previewEtBtn) previewEtBtn.addEventListener('click', previewEmailTemplate);
 var etTestBtn = document.getElementById('et-test-btn');
 if(etTestBtn) etTestBtn.addEventListener('click', sendTestEmail);
-
-// ── About page ────────────────────────────────────────────────────────────────
-var saveAboutBtn = document.getElementById('save-about-btn');
-if(saveAboutBtn) saveAboutBtn.addEventListener('click', saveAboutPage);
-var resetAboutBtn = document.getElementById('reset-about-btn');
-if(resetAboutBtn) resetAboutBtn.addEventListener('click', resetAboutPage);
 
 // ── Suburbs ───────────────────────────────────────────────────────────────────
 var triggerSuburbRebuildBtn = document.getElementById('trigger-suburb-rebuild-btn');

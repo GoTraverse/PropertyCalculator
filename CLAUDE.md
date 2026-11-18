@@ -7,12 +7,30 @@ What this means in practice:
 - **/journey is THE product.** The 18 calculators are its toolbox (kept, near-zero maintenance). Everything else either serves the walk or is cut/parked.
 - **Suburb pages: only the ~1,475 real-data pages are generated at all** (the 13k noindexed placeholder shells were cut Aug 2026 — they 404 by design). City pages cut; state hubs are plain directories.
 - **Blog is dark** behind `BLOG_ENABLE` (unset = no blog pages render, nav/footer links removed). Infrastructure kept dormant. It returns only if the owner writes posts personally.
-- **/app investor calculator is parked**: keeps working for existing users, not promoted to new visitors. No further development.
+- **/app is back (owner call, 18 Nov 2026; reverses the Aug 2026 parking)**: the detailed single-property calculator and its first-run wizard return as part of the product. Three conditions from the owner: it matches the plain design of the rest of the site; it gives the same figures as the calculators and the Journey (one set of rules, kept in step by tests); and a visitor enters each of their numbers once, so the Journey, the calculators and /app all read and write one shared set. Until that work lands (TODO.md item 50) /app still has the old look and its own rules.
 - **UGC submission forms are off** (no moderation time). Existing approved content may render.
-- **Not a paid app** (owner call, 14 Aug 2026): the pricing page is deleted (/pricing 301s to /journey), Pro is not offered at signup and no upgrade CTAs exist anywhere. Existing subscribers keep working and can manage/cancel billing via /account (Stripe backend + webhooks intact — payment-flow CODE changes remain ask-first). Default post-login/post-signup landing is /journey.
+- **Pro is back for three app features (owner call, 18 Nov 2026; replaces the Aug 2026 'not a paid app' call)**: the Journey, the calculators, the list of places and opening any place in /app are free. Pro ($8.99 a month, the existing Stripe plan; one subscriber in Nov 2026) is: saving a full workup for more than one property, PDF export, and the projection chart. A plain page where people can subscribe returns with TODO item 50; until then /pricing still 301s to /journey. No upgrade pressure anywhere: a locked feature says what it is and links to that page, nothing more, and Pro is not pushed at signup. The owner approved fixing the known billing bugs on 18 Nov 2026; other payment-flow CODE changes remain ask-first. Default post-login/post-signup landing is /journey.
 - **No posting obligation.** Growth is passive: partner-shares of journeys, the honest suburb pages, calculator long-tail. Do not push the owner toward marketing; do not add growth surfaces without an explicit ask.
 - **Maintenance contract**: quarterly market-data refresh (~2h, recipe in memory project-suburb-data-architecture), one FY rates verification a year, error-log checks. That is the whole obligation.
-- **The pride bar for all new work**: no fabricated figures ever; sources + periods on every number; the owner's plain voice (de-AI rules from #320); if a page can't be defended, it doesn't ship.
+- **The pride bar for all new work**: no fabricated figures ever; sources + periods on every number; the owner's plain voice (see "Voice and design" below); if a page can't be defended, it doesn't ship.
+
+## Voice and design (Nov 2026 de-AI pass — owner's top priority)
+The owner was told on a forum the site read as "AI slop". Every page was cut and rewritten, and the design was stripped back. Keep it that way. The full rubric used for the pass (20 writing tells, sources) is summarised here; apply it to any new text.
+
+**Writing**
+- First person singular ("I"), Australian English, contractions are fine. Never "we/our/the team".
+- Say what the thing does, once, with the specific fact. If a sentence could sit unchanged on any other finance site, cut it.
+- Banned: em dashes and spaced en dashes as pauses; "not X, but Y" / "X, not Y" flourishes; groups of three for rhythm; quotable closing lines; slogan or title-case headings; "Here's how / Let's / Think of it as"; stock words (seamless, powerful, comprehensive, unlock, empower, navigate, crucial, essential, ensure, peace of mind, everything you need, in one place, whether you're X or Y, take the guesswork out, honest, real numbers, simply, just, actually, genuinely); "Ready to…?", "Try it free", "Get started" CTAs; arrows/ticks/emoji in links and buttons (a "← Back" control may keep its arrow); bold lead-ins on every bullet; "This page shows…".
+- Buttons and links name the action or destination ("Open the First Home Journey", "Save", "Turn off this link").
+- Keep every source, period, assumption and limit. Cutting filler is fine; cutting a caveat is not.
+- No SEO filler: no "What is X?" definitions, no "why use this calculator", no padded government-link lists, no badge rows.
+
+**Design**
+- System font only (`--font-body` in shared.css; `--font-display`/`--font-mono` are aliases kept for old rules). No web fonts; `font-loader.js` is a no-op stub for cached pages.
+- White page, dark text, one column about 720px wide. Section headings sit under a thin rule. Links in running text are blue and underlined (`--link`). Primary buttons are dark (charcoal), not gold. Gold is only for the current journey step and selected options.
+- Not allowed back: eyebrow/kicker labels above headings, small caps, mono buttons, dark heroes with glows or grid overlays, card grids of icon + title + blurb, coloured side-stripe callouts, gradients, glassmorphism, share-button rows, agency "trust badge" rows, pop-up promo bars, "Useful links" blocks.
+- Calculator pages: `.tool-hero` (h1 + one line), the form in a light grey box, the result in a box with a dark border, then plain text sections. `tool-page.js` no longer renders share, trust, useful-links, the "Keep going" bar or a per-tool footer (the site footer is used).
+- Share images: `node bin/make-og-images.js` renders plain title cards (title, one line, address).
 
 ## Project Summary
 **EquitySight.app** — the First Home Journey (guided Australian first-home purchase planner) + its calculator toolbox, built on verified government sources. Static HTML/CSS/JS site with Netlify Functions backend. No build step, no framework. Direct git push → auto-deploys to production.
@@ -33,6 +51,7 @@ See **`README.md`** for feature overview and quick start guide.
 - **PR target** — **open PRs directly to `main` and squash-merge immediately** (user-granted auto-merge policy, April 2026). No Staging intermediary, no waiting for review, no required CI gates.
 - **Exception** — if a change is genuinely risky (schema migration, payment-flow refactor, broad refactor that can't be rolled back with a single revert), ask the user before auto-merging. Default is merge.
 - **Never push directly to `main`**; always via a PR + `mcp__github__merge_pull_request` even when self-merging. This preserves a clean PR audit trail.
+- **Merging is not the same as live.** Netlify only serves a new build if auto-publishing is on. On 17 Nov 2026 the site was locked to a deploy from 14 Aug 2026, so merges were building but not going live. After merging, check the published deploy (Netlify → Deploys) and tell the owner if it is still locked; only they can publish or unlock.
 
 ## Task Tracking
 **`TODO.md`** is the source of truth. After completing a task, **remove its line** from the file.
@@ -57,7 +76,6 @@ See **`README.md`** for feature overview and quick start guide.
 | `admin.js` | 3816 | `loadUsers()`, `openUserDetails(email)`, `showAdminTab()`, `callAuth(action, payload)`, admin dashboard logic |
 | `admin-events.js` | — | Admin page event listener wiring + WAI-ARIA arrow-key tab nav |
 | `auth-nav.js` | 606 | Source of truth for the site nav link set (`SITE_NAV_LINKS`) — renders `<ul class="site-nav-links">` on every page + profile dropdown + help modal. `window.renderSiteNav()` re-renders after profile changes. |
-| `account-panel.js` | 488 | Standalone account panel with profile pic upload, color theme selection, plan display |
 | `account.js` | 612 | Account page logic — subscription status, plan display, Stripe portal |
 
 ### Styling & Injection
@@ -67,22 +85,16 @@ See **`README.md`** for feature overview and quick start guide.
 | `footer.js` | 60 | Renders footer into `#site-footer-root`. Footer link set includes `/methodology` + `/data-sources` authority pages. |
 | `error-capture.js` | 118 | Global error handler — POSTs errors to `client-errors` function. SUPPRESS list for network noise + third-party `@context` parser errors. |
 | `site-init.js` | 21 | Dark-mode theme application + pre-signup page-trail recording (loaded with `defer`) |
-| `adsense.js` | 35 | Google AdSense integration |
-| `gtag-init.js` | 4 | Google Analytics (gtag) initialization |
 
 ### Supporting Scripts
 | File | Purpose |
 |------|---------|
-| `stripe-config.js` | Exports `STRIPE_PUBLISHABLE_KEY` and `STRIPE_PRICES` for client use |
 | `legal.js` | Markdown → HTML parser for legal pages (frontmatter, TOC, safe links) |
 | `tools/tool-page.js` | Shared calculator engine (init, input persistence, scroll-to-result) + the calc utilities (`fmtNum()`, `parseNum()`, `monthlyRepayment()`, etc.) that the tool pages actually load. (The old `shared-calcs.js` was unused and was deleted.) |
 | `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` for calculators |
-| `index-init.js` / `index-events.js` | Landing page init and event wiring |
+| `index-init.js` | Landing page init |
 | `login.js` | Login/signup page logic |
-| `pricing.js` | Pricing page logic |
-| `about-init.js` | About page init |
 | `contact.js` | Contact page form handling |
-| `suburb-insights.js` | Suburb insights page JS |
 | `state-hub-search.js` | State hub client-side search by name/postcode |
 
 ## Critical Patterns & Conventions
@@ -96,6 +108,8 @@ See **`README.md`** for feature overview and quick start guide.
 - **Admin Actions**: Every admin function verifies `user.role === 'admin'` via session cookie
 - **Session Auth**: HttpOnly Secure cookie (`es_session`) — set on login, cleared on signout; token never exposed to client JS
 - **Password Hashing**: scrypt with a per-user salt for new and changed passwords; older HMAC-SHA256 (`AUTH_SALT`) hashes are upgraded at the next sign-in
+- **Origin check**: every function except `stripe.js` accepts only `SITE_URL` origins and this site's own Netlify hosts (`OWN_NETLIFY_ORIGIN`, `^https://([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$`), never any `*.netlify.app`. The public proxies (`market-data`, `address-suggest`, `mapproxy`) also refuse cross-site requests and rate-limit by IPv4 address or IPv6 /64.
+- **Billing (fixed Nov 2026, owner-approved)**: the webhook takes a per-event and per-customer lock, records an event as done only after it is applied, and returns 5xx so Stripe retries on failure; past_due keeps Pro during the 3-day grace; checkout accepts only configured price ids; `deleteAccount` and `adminDeleteUser` cancel the Stripe subscription first (`_billing.js`) and delete nothing if that fails. `node tests/stripe-billing-test.js` covers it.
 - **Session floor**: `netlify/functions/_session.js` `SESSION_EPOCH_MS` — every function rejects sessions issued before it. Raise it to sign everyone out after any bug in how sessions are issued. Guarded by `node tests/auth-session-test.js`
 - **Sessions end on password change/reset**: `revokeAllTokensForUser` runs on changePassword, resetPassword and adminResetPassword
 
@@ -121,7 +135,7 @@ See **`README.md`** for feature overview and quick start guide.
 
 ### Calculator Architecture (Unified Pattern)
 - **18 free calculators** in `/tools/` plus `/tools/index.html` landing page that groups them (Buying / Borrowing / Investment). All share identical HTML/CSS structure via `tools.css` (no duplication).
-- **Template pattern**: `<nav class="site-nav">` (full site nav) → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (aria-live polite) → `.tool-cta` → `.tool-resources` → footer div
+- **Template pattern**: `<nav class="site-nav">` (full site nav) → `.tool-hero` → `.tool-main` (inputs) → `.tool-result` (aria-live polite) → `.tool-cta` (h2 + one sentence ending in a link) → examples, written guide, questions → `.tool-resources` (sources) → `<p class="tool-all-link">` → site footer
 - **Currency inputs** use `type="text" inputmode="decimal"` with `fmtInput()` thousands-separator formatting. Pure numeric inputs (rate, term) use `type="number"`.
 - **Shared utilities**: `tools/tool-page.js` provides the shared calc helpers (`fmtNum()`, `parseNum()`, `monthlyRepayment()`, etc.) loaded by every tool page (`shared-calcs.js` was removed — it was dead code).
 - **Live market data**: `market-rate.js` provides `window.MarketRate` (RBA cash rate, ABS state medians) — included in calculators that need current rates
@@ -131,27 +145,24 @@ See **`README.md`** for feature overview and quick start guide.
   - `auth-nav.js` — injects full site-nav link list (`SITE_NAV_LINKS`) + auth controls
   - `footer.js` — injects footer into `#site-footer-root` div
   - `error-capture.js` — global error handler POSTs to `client-errors` function
-- **Cross-linking**: Each tool config has `related[]` (4-card grid), `footer[]` (small link row), and `usefulLinks[]` (grouped sidebar: Other Tools / Popular Suburbs / Guides). Every tool links to `/tools` from its footer.
+- **Cross-linking**: `related[]` renders as a plain link list. `footer[]`, `usefulLinks[]` and `share` remain in the configs but are no longer rendered (Nov 2026). Every tool page ends with a link to `/tools/`.
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
 - **To update all calculators**: Edit `tools.css` (no need to touch individual HTML files)
+- **Worked examples must come from the code.** Every figure in a calculator's prose, examples, FAQ and FAQ JSON-LD is the tool's own output for those inputs (regenerated Nov 2026 after most of them had drifted). Change the code → re-run the example. `node tests/faq-jsonld-sync-test.js` checks FAQ JSON-LD against the visible FAQ.
+- **The 8 state stamp-duty pages are hand-maintained** (the old generator was deleted in Nov 2026). Fix the state files directly and run `tests/state-duty-sync-test.js`.
+- **Shared figures across tools (Nov 2026)**: conveyancing is $1,800, described as my estimate with the range $1,300 to $2,200, everywhere; the default interest rate is 6.25% everywhere; a rate prefilled from `market-rate.js` (RBA cash rate + 2.15 points) is explained with `MarketRate.bindRateNote()`; LVR is rounded to 4 places before the LMI tier lookup; the LMI table is my own estimate (no published rate table) and the methodology page sets it out.
+- **First home duty formulas (corrected Nov 2026 from the legislation)**: NSW s 78A uses N - ((1,000,000 - V) / 200,000) x D between $800,000 and $1,000,000; WA charges $16.15 per $100 (or part) over $600,000 up to $800,000; the generic straight-line slide is Victoria's s 57JA rule and is used for VIC only. Every engine copy must agree (`tests/duty-sync-test.js`, `tests/state-duty-sync-test.js`, `tests/stamp-duty-test.js`).
 
-### Suburb Insights System (~1,475 real-data pages generated — Aug 2026 cut; city pages removed)
-- **Data pipeline**: `fetch-abs-data.js` → `data/abs-suburbs.json` → `generate-suburbs-data.js` → `data/suburbs.json` → (deploy-time: `apply-abs-data.js` + `merge-market-current.js`) → `build-suburbs.js` → HTML pages
-- **Real data**: Suburb names + populations from ABS 2021 Census (ArcGIS FeatureServer, SAL geography); postcodes from community dataset (`au_postcodes.csv`); current rents/sale medians from `data/market-current.json` (CC BY 4.0 state gov)
-- **Placeholder fields in data/suburbs.json** (income, transport/amenity scores, school/park counts): NEVER rendered — build-suburbs nulls income unless `income_source === 'abs2021'` and all display sites are gated. Data-absent prose branches must say "not recorded", never assert a fact.
-- **Build output (Aug 2026)**: ONLY suburbs passing `shouldNoindex()`'s real-data gate are generated — `/suburb/{state}/{slug}/index.html` (~1,475 pages: QLD 583 / VIC 516 / SA 293 / TAS 83) + `/invest/{state}/index.html` (8 state hub directories; empty-state copy for NSW/WA/ACT/NT) + directory index + sitemap. Cut pages 404 by design. City pages removed (template deleted).
-- **Templates**: `templates/suburb-page.html` and `templates/state-hub.html` — use `{{PLACEHOLDER}}` syntax
-- **Styling**: `suburb-insights.css` — shared styles for suburb pages + state hubs
-- **SEO**: BreadcrumbList + Place + CollectionPage schema.org JSON-LD, postcodes in titles/meta/keywords; every market figure carries an "as at [period], [source]" caption
-- **Suburb sections**: strategy/risks/outlook prose is rule-based over the measured fields only; no investment score, no school/park counts. Suburb CTA deep-links `/journey?near=<suburb>&st=<state>`.
-- **State hubs**: plain directories of surviving suburbs + client-side search; market blurbs (`stateMarketSummaries`) must track the FY duty engine — re-verify at each annual FY sweep
-- **Performance**: Scripts use `defer` attribute; related suburbs pre-computed (O(n) not O(n²))
-- **Build command**: `node build.js` — conditional build wrapper:
-  - Normal deploys: restores cached suburb pages (instant, no rebuild)
-  - Suburb rebuild: only when triggered by admin "Rebuild Suburb Pages" button (or REBUILD_SUBURBS=true env var)
-  - Uses Netlify build cache to persist pages between deploys
-- **Admin tab**: Admin → Suburbs — browse/search suburbs, state breakdown, trigger rebuilds via Netlify deploy hook
-- **To regenerate data**: `node fetch-abs-data.js` then `node generate-suburbs-data.js`
+### Suburb pages (~1,475 generated; rebuilt Nov 2026 to show sourced figures only)
+- **What a suburb page may contain** (enforced by the header comment in `build/build-suburbs.js`): postcode, ABS 2021 Census population, the current median rent and/or sale medians from `data/market-current.json` with period and source printed under each number, plain arithmetic on those figures (5/10/20% deposit at the median; weekly rent per month and year), and the nearest other profiled suburbs with their own figures. **Nothing else.**
+- **Never render**: `suburb_type` (a class guessed from the postcode), `transport_score`, `amenity_score`, `school_count`, `park_count`, `median_household_income` (name-seeded placeholders in `data/suburbs.json`), or any strategy / outlook / sentiment / "who it suits" / pros-and-cons / yield text. All of that was removed in Nov 2026 because it read as analysis and had no data behind it. Do not bring it back in any form.
+- **Pipeline**: `data/suburbs.json` → (deploy-time: `apply-abs-data.js` + `merge-market-current.js`) → `build-suburbs.js` → `/suburb/{state}/{slug}/index.html` + `/invest/{state}/index.html` (8 state directories; NSW/WA/ACT/NT say they have no profiles) + `/suburb/index.html` + suburb sitemaps. The build fails on any unfilled `{{PLACEHOLDER}}`.
+- **Gate**: `shouldNoindex()` — postcode, population ≥ 2,000, and a current suburb-level CC BY rent or sale median. Postcode-level figures (NSW rents) do not count. Gate-failing suburbs get no page (404 by design).
+- **Nearby suburbs** use `data/suburb-coords.json` (postcode-centre coordinates, MIT). Distances are rough and labelled so; two suburbs in one postcode show "under 2 km".
+- **State hubs**: `stateDuty` in `build-suburbs.js` holds the per-state first-home duty facts. They must track the FY duty engine — re-check at each annual FY sweep. No market commentary.
+- **Templates**: `templates/suburb-page.html`, `templates/state-hub.html`. Styling: `suburb-insights.css` (the older rules for removed sections are still in the file and unused).
+- **Build**: `node build.js` restores cached pages unless a dependency's content hash changed (`SUBURB_CACHE_DEPS`) or `REBUILD_SUBURBS=true` / the admin "Rebuild Suburb Pages" hook. Running it locally rewrites `data/suburbs.json`: `git checkout data/suburbs.json` afterwards.
+- **Quarterly refresh**: update `data/market-current.json` by hand from the state government releases, then `node build/make-journey-suburbs.js` (period captions in the journey are read from the JSON, so they update themselves), then rebuild. The government hosts are not reachable from Claude Code cloud sessions unless added to the session's allowed network domains.
 
 ### The First Home Journey (flagship, /journey — Jul 2026)
 - **The product**: 7 guided stops (bearings wizard → scheme projector → budget
@@ -175,10 +186,28 @@ See **`README.md`** for feature overview and quick start guide.
   `journey?join=<token>` — don't break that allowlist.
 - **Admin → Journeys tab**: list + read-only detail + delete (delete also
   revokes the user's share tokens).
-- **⚠ SYNC COPIES**: journey.js embeds the duty engine (from
-  tools/stamp-duty-calculator.js) and scheme caps (from
-  first-home-buyer-grants-calculator.js). `node tests/duty-sync-test.js`
-  asserts the three duty copies agree — run it after ANY duty change.
+- **Sync rules (Nov 2026)**: nothing is pushed until the account copy has been
+  read and reconciled (`_remoteReady`); every sync sends `base` (the server
+  timestamp the copy was built on) and the server refuses a write built on an
+  older copy (`conflict: true`), so a stale tab or a blank new device cannot
+  overwrite newer work. A device journey that was never linked to the account
+  (`propCalc_journey_owner`) prompts before replacing the account copy. Leaving
+  a shared journey clears the local copy.
+- **One affordability test**: `borrowLimit()` (after-tax income, living-cost
+  floor by household, 3% of card limits, rate + 3%). Step 2 flags paths whose
+  loan exceeds it; step 3 sizes the maximum price with it. Do not add a second
+  rule of thumb anywhere.
+- **Steps 2–7 need step 1**: `show()` routes to the wizard until `done[1]`, so
+  example figures are never shown as the visitor's.
+- **`normalizeState()` whitelists every field** (types, enums, lengths). A new
+  state field must be added there or it will be dropped on load.
+- **⚠ SYNC COPIES**: journey.js embeds the duty engine and registration fees
+  (from tools/stamp-duty-calculator.js), scheme caps (from
+  first-home-buyer-grants-calculator.js) and `approxTax` / `hemMonthly` (from
+  tools/borrowing-power-calculator.js). `node tests/duty-sync-test.js` asserts
+  the duty, registration-fee and borrowing copies agree;
+  `node tests/state-duty-sync-test.js` covers the 8 state pages and the other
+  calculator copies. Run both after ANY duty, fee or tax change.
 - **Verification**: `tests/journey-browser-harness.html` (dev-only) seeds a
   rich journey and drives any view for headless-Chrome screenshots — use it
   before merging journey UI changes (a CSS [hidden] conflict once shipped a
@@ -284,6 +313,34 @@ Files intentionally NOT blocked (needed at runtime):
 - Submit sitemap.xml: https://search.google.com/search-console
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
+
+## Recent Changes (18 Nov 2026 — follow-ups, fact check, billing)
+
+- **Fact check**: 112 claims checked against government sources and legislation by one researcher, every doubted verdict re-checked by a second. 19 corrections applied, including the NSW and WA first home duty formulas (the site undercharged in the concession bands), NT house-and-land only, Queensland and Tasmanian grants now legislated, ACT, Queensland and WA duty due dates, SA six-month residence, APRA's HELP change in serviceability. Unverifiable claims are listed in TODO.md.
+- **Journey**: edit one answer without replaying the wizard; partner invites survive sign-in in the same browser; "Compare schemes" on a place no longer overwrites the target price; saved dates on places and scenarios.
+- **Calculators**: one conveyancing figure and one default rate everywhere; Queensland home concession for owner-occupiers who are not first home buyers in deposit, cost of purchase and auction budget; auction budget checks LVR and LMI and never solves to a loan above 95%; cash flow uses the phased Medicare levy; land tax extra rows persist.
+- **Security**: origin checks tightened; sign-in code attempt caps, email validation and the verification counter fixed; rate limits and cross-site refusal on the public proxies; CSP for share-view pages; seo-metrics state changes need POST; stale CSP hashes and dead hosts removed.
+- **Billing**: the five known Stripe bugs fixed (see Security above). Owner-approved.
+- **Cleanup**: AdSense code, the admin About tab and the old state-duty generator removed; homepage structured data fixed (and tested); sitemap dates corrected; /login has one h1; account inputs labelled; methodology describes the borrowing estimate and the LMI table.
+
+## Recent Changes (Nov 2026 — de-AI pass)
+
+The owner's top priority after a forum called the site "AI slop". Rules are in "Voice and design" above.
+- **Design**: system font, white page, one 720px column, blue underlined links, charcoal buttons. Google Fonts removed everywhere (`font-loader.js` is a stub). Homepage, calculators, journey, text pages, suburb pages and hubs, login, contact, about, 404 and offline restyled. Share images regenerated as plain title cards.
+- **Copy**: every visitor-facing page, email and generator string rewritten in the first person and cut hard (calculator guides roughly halved). Each page group was edited, checked independently, then fixed twice. No figure changed. New numbers in the text were moved from elsewhere on the same page or come from the code's output.
+- **Fixes found on the way**: the 8 state stamp-duty pages never showed their journey link (now revealed after a result); the "Try it free" nav button to the parked /app is gone; APRA's 1 Feb 2026 debt-to-income limit replaces "APRA monitors"; HomeStart was listed as a defence scheme; renovation FAQ claimed plumbing and electrical work needs a DA; account page settings that did nothing were removed; one FAQ list per calculator.
+- **Not checked**: facts the editors doubted are listed in TODO.md item 46.
+
+## Recent Changes (Nov 2026 — full-site review)
+
+Owner asked for a full review. What changed, in the order it mattered:
+- **Security (#408)**: `verifyEmail` was returning a session for any already-verified account without checking the code. Fixed; all sessions issued before the fix are rejected (`_session.js`); password change/reset end other sessions; the error log no longer carries names, emails or query strings and syncs to GitHub at most daily; Admin → Database Maintenance has "Sign everyone out".
+- **Suburb pages**: rebuilt to sourced figures only (see the Suburb pages section). Strategy, outlook, sentiment, audience, pros/cons, yield and the third-party listing call are gone.
+- **Homepage**: rewritten around the Journey. The parked-app mock-up with invented figures, the app gallery and the "all 8 states" suburb claim are gone. `showcase.html` and `screenshots/` deleted (/showcase → /journey).
+- **Journey**: one borrowing estimate drives steps 2 and 3 (they used to contradict each other); registration fees by state replace the flat $3,500; QLD non-first-home duty, the 5% scheme cap in step 3, LMI tier rounding, $0-a-month saving, the QLD cooling-off count, skip-able deadlines, calendar reminders; step 4 lists only the buyer's own state; sync can no longer overwrite newer work; share links can be turned off; state is whitelisted on load; focus moves with each step; real validation messages.
+- **Calculators**: loan serviceability now runs the model its page describes; vacant land + first home buyer fixed on the state pages; a dozen display/logic bugs; every worked example regenerated from the code; unsupported claims and padded links removed; field labels made readable.
+- **Hygiene**: dead files removed, terms/privacy/cookies match the free product, service worker pre-caches the journey instead of the parked app, share images regenerated at the right size (`bin/make-og-images.js`).
+- **Not done / needs the owner**: see TODO.md items 37–44.
 
 ## Recent Changes (Aug 2026 — Journey-only refocus)
 
@@ -527,7 +584,7 @@ Rounds 1–5 of the "audit the whole site" pass. PR #197 merged 2026-04-24, foll
 - ✅ **CSP inline handler fixes** — moved inline event handlers to JS to fix script-src-attr violations
 - ✅ **Dark/light mode** — system-wide fix across app, admin, and account panel
 - ✅ **Google Sign-In** added to login page
-- ✅ **Google AdSense** integrated via `adsense.js`
+- ✅ **Google AdSense** integrated via `adsense.js` (removed Nov 2026: ads never ran)
 - ✅ **market-rate.js** — live RBA cash rate + ABS state median prices for calculator pages
 - ✅ **shared-calcs.js** — common utility functions extracted for reuse across all calculators
 - ✅ **JS refactor** — page logic split into init + events files (app-init, app-events, admin-events, etc.)

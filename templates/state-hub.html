@@ -10,7 +10,6 @@
 <meta name="robots" content="noindex, follow">
 <title>{{HUB_TITLE}}</title>
 <meta name="description" content="{{HUB_META_DESC}}">
-<meta name="keywords" content="{{STATE_NAME}} property investment Australia, {{STATE}} suburbs Australia, {{STATE_NAME}} real estate, best suburbs {{STATE}} Australia, {{STATE_NAME}} suburb insights">
 <link rel="canonical" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
 <link rel="alternate" hreflang="en-AU" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
 <link rel="alternate" hreflang="x-default" href="https://equitysight.app/invest/{{STATE_LOWER}}/">
@@ -24,17 +23,13 @@
 <meta property="og:image" content="https://equitysight.app/images/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="EquitySight — Property finance, finally clear.">
+<meta property="og:image:alt" content="EquitySight: the First Home Journey and free Australian property calculators.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{HUB_TITLE}}">
 <meta name="twitter:description" content="{{HUB_META_DESC}}">
 <meta name="twitter:image" content="https://equitysight.app/images/og-image.png">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="/shared.css">
 <link rel="stylesheet" href="/tools.css">
 <link rel="stylesheet" href="/suburb-insights.css">
@@ -49,18 +44,17 @@
     <span class="tool-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="28" height="28"></span>
     <span class="tool-logo-name">EquitySight<span class="tool-logo-tld">.app</span></span>
   </a>
-  <a href="/journey" class="tool-header-link">Plan your first home — free →</a>
+  <a href="/journey" class="tool-header-link">First Home Journey</a>
 </header>
 <script src="/auth-nav-loader.js" defer></script>
 <script src="/error-capture.js" defer></script>
 
 <section class="tool-hero">
-  <nav class="suburb-breadcrumb">
+  <nav class="suburb-breadcrumb" aria-label="Breadcrumb">
     <a href="/">Home</a> <span>›</span>
     <span>{{STATE_NAME}}</span>
   </nav>
-  <div class="tool-eyebrow">Suburb Profiles · {{STATE}}, Australia</div>
-  <h1>{{STATE_NAME}}, Australia — Suburb Profiles</h1>
+  <h1>{{STATE_NAME}} suburb profiles</h1>
   <p>{{HUB_HERO_TEXT}}</p>
 </section>
 
@@ -68,28 +62,21 @@
 
   <!-- All States Navigation -->
   <section class="suburb-section">
-    <h2>All states &amp; territories</h2>
+    <h2>All states and territories</h2>
     <div class="state-nav">
       {{STATE_NAV_HTML}}
     </div>
   </section>
 
-  <!-- State market overview prose -->
+  <!-- First home buyer duty rules -->
   <section class="suburb-section">
-    <h2>{{STATE_NAME}} property market overview</h2>
+    <h2>{{STATE_NAME}} first home buyer duty</h2>
     {{STATE_OVERVIEW_HTML}}
   </section>
 
-  <!-- State stats summary -->
+  <!-- Suburb profiles: every card links to a page that exists. -->
   <section class="suburb-section">
-    <h2>{{STATE_NAME}} at a glance</h2>
-    {{STATE_STATS_HTML}}
-  </section>
-
-  <!-- Suburb profiles (surviving, real-data suburbs only — every card links
-       to a page that exists; there is no drawer of unpublished localities) -->
-  <section class="suburb-section">
-    <h2>Suburb profiles in {{STATE_NAME}}</h2>
+    <h2>Suburbs with a profile</h2>
     <p class="hub-list-intro">{{HUB_LIST_INTRO}}</p>
     {{HUB_SEARCH_HTML}}
     <div id="hub-suburb-list" class="hub-suburb-list">
@@ -101,30 +88,20 @@
 
   <!-- Calculator cross-links -->
   <section class="suburb-section">
-    <h2>Free property calculators for {{STATE_NAME}}</h2>
-    <p>Use these free tools to calculate your costs and returns when buying or investing in {{STATE_NAME}}.</p>
+    <h2>Calculators for {{STATE_NAME}} buyers</h2>
     <div class="state-nav" style="margin-top:12px;">
-      <a href="/tools/stamp-duty-calculator-{{STATE_LOWER}}">{{STATE}} Stamp Duty Calculator</a>
-      <a href="/tools/rental-yield-calculator">Rental Yield Calculator</a>
-      <a href="/tools/first-home-buyer-grants-calculator">First Home Buyer Grants — {{STATE}}</a>
-      <a href="/tools/cost-of-purchase-calculator">Cost of Purchase Calculator</a>
-      <a href="/tools/loan-serviceability-calculator">Loan Serviceability Calculator</a>
-      <a href="/tools/mortgage-stress-calculator">Mortgage Stress Test</a>
+      <a href="/tools/stamp-duty-calculator-{{STATE_LOWER}}">{{STATE}} stamp duty calculator</a>
+      <a href="/tools/first-home-buyer-grants-calculator">First home buyer grants calculator</a>
+      <a href="/tools/cost-of-purchase-calculator">Cost of purchase calculator</a>
+      <a href="/tools/deposit-calculator">Deposit calculator</a>
+      <a href="/tools/borrowing-power-calculator">Borrowing power calculator</a>
     </div>
-  </section>
-
-  <!-- State-specific FAQ -->
-  <section class="suburb-section suburb-faq">
-    <h2>{{STATE_NAME}} property FAQ</h2>
-    {{STATE_FAQ_HTML}}
   </section>
 
   <!-- CTA -->
   <section class="suburb-cta">
-    <div class="tool-cta-eye">Buying your first home in {{STATE_NAME}}?</div>
-    <h3>Walk the journey to your first home</h3>
-    <p>Seven guided stops — government schemes compared for your exact numbers, a real budget, suburb shortlisting and every contract deadline tracked. Free, no signup to start.</p>
-    <a href="/journey" class="tool-cta-btn">Start your first-home journey →</a>
+    <h2>Buying a first home</h2>
+    <p>The First Home Journey works out a maximum price from your income and savings, and which government schemes fit. <a href="/journey?st={{STATE_LOWER}}" class="tool-cta-btn">Open the First Home Journey</a></p>
   </section>
 
 </div>

@@ -20,7 +20,7 @@ function _acctDialog(title, msg, opts){
   return new Promise(function(resolve){
     _acctDialogResolveFn=resolve;
     var o=document.getElementById('acct-dialog-overlay');
-    document.getElementById('acct-dialog-icon').textContent=opts.icon||(opts.danger?'⚠️':'ℹ️');
+    document.getElementById('acct-dialog-icon').textContent=opts.icon||(opts.danger?'':'');
     document.getElementById('acct-dialog-title').textContent=title;
     document.getElementById('acct-dialog-msg').innerHTML=msg;
     var inp=document.getElementById('acct-dialog-input');
@@ -101,8 +101,8 @@ function renderPlan(){
 
   const badges = {
     free:'<span class="plan-badge plan-free">Free plan</span>',
-    pro:'<span class="plan-badge plan-pro">⭐ Pro</span>',
-    adviser:'<span class="plan-badge plan-adviser">◆ Adviser</span>'
+    pro:'<span class="plan-badge plan-pro">Pro</span>',
+    adviser:'<span class="plan-badge plan-adviser">Adviser</span>'
   };
   if(badgeEl) badgeEl.innerHTML = badges[plan] || badges.free;
 
@@ -113,50 +113,35 @@ function renderPlan(){
     const renewsAt = session?.renewsAt || session?.subscription_renews_at;
     if (canceledStatus && expiresAt) {
       const expiryDate = new Date(expiresAt).toLocaleDateString('en-AU', {year:'numeric', month:'short', day:'numeric'});
-      statusHtml.push('<div style="margin-bottom:12px;padding:10px 12px;background:rgba(196,90,90,0.08);border-left:3px solid #C45A5A;border-radius:3px;font-size:12px;color:#C45A5A;"><strong>Plan canceled</strong> — expires ' + expiryDate + '</div>');
+      statusHtml.push('<div style="margin-bottom:12px;padding:10px 12px;background:rgba(196,90,90,0.08);border-left:3px solid #C45A5A;border-radius:3px;font-size:12px;color:#C45A5A;"><strong>Plan cancelled.</strong> It ends on ' + expiryDate + '</div>');
     } else if (renewsAt) {
       const renewDate = new Date(renewsAt).toLocaleDateString('en-AU', {year:'numeric', month:'short', day:'numeric'});
       statusHtml.push('<div style="margin-bottom:12px;padding:10px 12px;background:rgba(201,168,76,0.08);border-radius:3px;font-size:12px;color:var(--slate);">Renews ' + renewDate + '</div>');
     }
   }
 
-  const features = {
-    free: [
-      {ok:true, text:'Calculator with all core features'},
-      {ok:true, text:'1 saved property scenario'},
-      {ok:false, text:'30-year projection chart (Pro)'},
-      {ok:false, text:'PDF export (Pro)'},
-      {ok:false, text:'Unlimited library &amp; cloud sync (Pro)'},
-    ],
-    pro: [
-      {ok:true, text:'All calculator features'},
-      {ok:true, text:'Unlimited saved properties'},
-      {ok:true, text:'30-year projection chart'},
-      {ok:true, text:'PDF export'},
-      {ok:true, text:'Cloud sync across devices'},
-      {ok:true, text:'Priority email support'},
-    ],
-    adviser: [
-      {ok:true, text:'Everything in Pro'},
-      {ok:true, text:'Up to 5 client accounts'},
-      {ok:true, text:'White-label PDF reports'},
-      {ok:true, text:'Phone + email priority support'},
-    ]
-  };
-  const fList = features[plan] || features.free;
-  if(featEl) featEl.innerHTML = statusHtml.join('') + fList.map(function(f){
-    return '<div class="plan-feature"><span class="'+(f.ok?'pf-check':'pf-lock')+'">'+(f.ok?'✓':'—')+'</span>'+f.text+'</div>';
-  }).join('');
+  // Paid plans are no longer sold. Free accounts get a plain note instead of a
+  // plan card; existing subscribers see their plan, its status and the billing
+  // portal button. No feature comparison or upsell list is shown to anyone.
+  const planCard = document.getElementById('plan-card');
+  const freeNote = document.getElementById('plan-free-note');
+  if(planCard) planCard.style.display = (plan==='free') ? 'none' : '';
+  if(freeNote) freeNote.style.display = (plan==='free') ? '' : 'none';
+  if(featEl) featEl.innerHTML = (plan==='free') ? '' : statusHtml.join('');
 
   if(upgradeEl){
     upgradeEl.innerHTML = plan==='free'
       ? ''
       : '<button class="acct-btn acct-btn-outline" id="manage-billing-btn-dynamic">Manage billing</button>';
     const dynBtn = upgradeEl.querySelector('#manage-billing-btn-dynamic');
-    if(dynBtn) dynBtn.addEventListener('click', openBillingPortal);
+    if(dynBtn) dynBtn.addEventListener('click', function(){ openBillingPortal(); });
   }
   if(billCard) billCard.style.display = (plan==='free') ? 'none' : 'block';
-  if(plan !== 'free') loadBillingStatus();
+  // Also asked for a free account: its plan may have been removed after a
+  // failed payment while the subscription still exists in Stripe. If so,
+  // loadBillingStatus shows the billing card so the card can be updated or
+  // the subscription cancelled.
+  loadBillingStatus();
 }
 
 function pickColor(el){
@@ -196,7 +181,7 @@ function saveProfile(){
     localStorage.setItem(SK, JSON.stringify(session));
   }
   const st = document.getElementById('profile-status');
-  if(st){ st.textContent='✓ Saved'; st.className='acct-status-msg ok'; setTimeout(function(){st.textContent='';},2000); }
+  if(st){ st.textContent='Saved'; st.className='acct-status-msg ok'; setTimeout(function(){st.textContent='';},2000); }
   if (window.renderSiteNav) window.renderSiteNav();
 }
 
@@ -209,7 +194,7 @@ async function changePassword(){
   const nw  = document.getElementById('pw-new').value;
   const cf  = document.getElementById('pw-confirm').value;
   const st  = document.getElementById('pw-status');
-  if(!cur || !nw){ st.textContent='Please fill in all password fields'; st.className='acct-status-msg err'; return; }
+  if(!cur || !nw){ st.textContent='Enter your current password and a new one'; st.className='acct-status-msg err'; return; }
   if(nw.length < 8){ st.textContent='New password must be at least 8 characters'; st.className='acct-status-msg err'; return; }
   if(nw !== cf){ st.textContent="New passwords don't match"; st.className='acct-status-msg err'; return; }
   st.textContent='Updating…'; st.className='acct-status-msg';
@@ -221,17 +206,17 @@ async function changePassword(){
     });
     const d = await r.json();
     if(d.ok){
-      st.textContent = '✓ Password updated successfully';
+      st.textContent = 'Password updated';
       st.className = 'acct-status-msg ok';
       document.getElementById('pw-current').value = '';
       document.getElementById('pw-new').value = '';
       document.getElementById('pw-confirm').value = '';
       if(document.getElementById('pw-strength-bar')) document.getElementById('pw-strength-bar').style.width='0%';
     } else {
-      st.textContent = d.error || 'Failed — please check your current password';
+      st.textContent = d.error || 'Password not changed. Check your current password.';
       st.className = 'acct-status-msg err';
     }
-  } catch(e){ st.textContent = 'Network error — please try again'; st.className = 'acct-status-msg err'; }
+  } catch(e){ st.textContent = 'Network error. Try again.'; st.className = 'acct-status-msg err'; }
 }
 
 async function loadBillingStatus(){
@@ -247,12 +232,23 @@ async function loadBillingStatus(){
     });
     const d = await r.json();
     if(!d.ok){ if(pmEl) pmEl.textContent='—'; return; }
+    if((session.plan||'free')==='free'){
+      // Free plan: the billing card stays hidden unless Stripe still holds a
+      // subscription for this account that can charge the card.
+      if(['active','trialing','past_due','unpaid','incomplete','paused'].indexOf(d.status) < 0) return;
+      var billCardEl = document.getElementById('billing-card');
+      var freeNoteEl = document.getElementById('plan-free-note');
+      if(billCardEl) billCardEl.style.display = 'block';
+      if(freeNoteEl) freeNoteEl.style.display = 'none';
+    }
     if(planEl){
-      var planLabel = (d.plan||'').charAt(0).toUpperCase()+(d.plan||'').slice(1);
+      // lapsedPlan: the plan that was removed because the payment failed.
+      var planWord = d.lapsedPlan || d.plan || '';
+      var planLabel = planWord.charAt(0).toUpperCase()+planWord.slice(1)+(d.lapsedPlan ? ' (off)' : '');
       if(d.priceAmount != null && d.priceCurrency){
         var amt = (d.priceAmount/100).toLocaleString('en-AU',{style:'currency',currency:d.priceCurrency.toUpperCase()});
         var interval = d.priceInterval ? ' / '+d.priceInterval : '';
-        planLabel += ' — '+amt+interval;
+        planLabel += ', '+amt+interval;
       }
       planEl.textContent = planLabel;
     }
@@ -273,9 +269,46 @@ async function loadBillingStatus(){
       periodEndEl.textContent = 'Active subscription';
     }
     if(d.cancelAtPeriodEnd && cancelNote){
-      const endDate = d.currentPeriodEnd ? new Date(d.currentPeriodEnd*1000).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}) : 'end of billing period';
-      cancelNote.textContent = '⚠️ Your subscription is cancelled and will end on '+endDate+'. You have full access until then.';
+      const endTs = d.cancelAt || d.currentPeriodEnd;
+      const endDate = endTs ? new Date(endTs*1000).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}) : 'the end of the billing period';
+      cancelNote.textContent = d.lapsedPlan
+        ? 'Your subscription is cancelled. It ends on '+endDate+'.'
+        : 'Your subscription is cancelled. You keep access until '+endDate+'.';
       cancelNote.style.display = 'block';
+    }
+    // "Cancel subscription" is hidden once the subscription is already set to
+    // cancel, has ended, or there is none. "Manage" still opens the portal,
+    // where a cancellation that hasn't taken effect yet can be undone.
+    const cancelBtn = document.querySelector('#billing-card .acct-btn-danger');
+    if(cancelBtn) cancelBtn.style.display = (d.cancelAtPeriodEnd || d.status==='none' || d.status==='canceled') ? 'none' : '';
+    // Payment failed. The server reports it only while Stripe says the
+    // subscription is past due or unpaid: graceEndsAt while the 3-day grace
+    // is running, lapsedPlan once the plan has been removed, and
+    // paymentFailedAt alone when the grace is over but the plan is still on.
+    let failNote = document.getElementById('payment-failed-note');
+    const planName = (d.lapsedPlan || d.plan)==='adviser' ? 'Adviser' : 'Pro';
+    let failText = '';
+    if(d.lapsedPlan){
+      failText = 'Your last payment failed and '+planName+' is now off. Update your card and '+planName+' comes back when the payment goes through.';
+    } else if(d.graceEndsAt){
+      const graceDate = new Date(d.graceEndsAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+      failText = 'Your last payment failed. '+planName+' stays on until '+graceDate+'. Update your card before then to keep it.';
+    } else if(d.paymentFailedAt){
+      failText = d.plan==='free'
+        ? 'Your last payment failed. Update your card, or cancel the subscription.'
+        : 'Your last payment failed. Update your card to keep '+planName+'.';
+    }
+    if(failText && cancelNote){
+      if(!failNote){
+        failNote = document.createElement('div');
+        failNote.id = 'payment-failed-note';
+        failNote.style.cssText = cancelNote.style.cssText;
+        cancelNote.parentNode.insertBefore(failNote, cancelNote);
+      }
+      failNote.textContent = failText;
+      failNote.style.display = 'block';
+    } else if(failNote){
+      failNote.style.display = 'none';
     }
     if(cancelNote && !d.cancelAtPeriodEnd){
       const canceledStatus = session?.canceledAt || session?.subscription_canceled_at;
@@ -285,7 +318,7 @@ async function loadBillingStatus(){
         // Track churn - user has cancelled their subscription
         if(window.trackChurn) trackChurn('user_action', d.plan || 'unknown');
         const expiryDate = new Date(expiresAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
-        cancelNote.textContent = '⚠️ Plan canceled — your access ends on '+expiryDate;
+        cancelNote.textContent = 'Plan cancelled. Your access ends on '+expiryDate;
         cancelNote.style.display = 'block';
       } else if(renewsAt){
         const renewDate = new Date(renewsAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
@@ -295,28 +328,30 @@ async function loadBillingStatus(){
   }catch(e){ if(pmEl) pmEl.textContent='—'; }
 }
 
-async function openBillingPortal(){
-  if(!session || !session.id){ acctAlert('Not signed in', 'Please sign in to manage billing.', {icon:'🔒'}); return; }
+// flow 'cancel' asks Stripe to open the portal on its cancel page for this
+// account's subscription; anything else opens the portal's home page.
+async function openBillingPortal(flow){
+  if(!session || !session.id){ acctAlert('Not signed in', 'Sign in to manage billing.', {icon:''}); return; }
   const st = document.getElementById('delete-status');
   if(st){ st.textContent='Opening billing portal…'; st.className='acct-status-msg info'; }
   try{
     const r = await fetch('/.netlify/functions/stripe',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'createPortalSession',returnUrl:location.href})
+      body:JSON.stringify({action:'createPortalSession',returnUrl:location.href,flow:flow==='cancel'?'cancel':undefined})
     });
     const d = await r.json();
     if(d.ok && d.url){
       location.href = d.url;
     } else {
       const msg = d.error && d.error.includes('not configured')
-        ? 'Billing portal is not yet configured. Email <a href="mailto:support@EquitySight.app">support@EquitySight.app</a> to manage your subscription.'
-        : (escHtml(d.error) || 'Unable to open billing portal. Please contact support.');
-      acctAlert('Billing Portal', msg, {icon:'💳', alertOnly:true, confirmLabel:'OK'});
+        ? 'The billing portal isn\'t set up yet. Email <a href="mailto:support@EquitySight.app">support@EquitySight.app</a> to manage your subscription.'
+        : (escHtml(d.error) || 'Couldn\'t open the billing portal. Email support@equitysight.app.');
+      acctAlert('Billing portal', msg, {icon:'', alertOnly:true, confirmLabel:'OK'});
       if(st){ st.textContent=''; st.className='acct-status-msg'; }
     }
   }catch(e){
-    acctAlert('Billing Portal', 'Email <a href="mailto:support@EquitySight.app">support@EquitySight.app</a> to manage your subscription.', {icon:'💳', alertOnly:true});
+    acctAlert('Billing portal', 'Email <a href="mailto:support@EquitySight.app">support@EquitySight.app</a> to manage your subscription.', {icon:'', alertOnly:true});
     if(st){ st.textContent=''; st.className='acct-status-msg'; }
   }
 }
@@ -337,13 +372,13 @@ async function pickDeleteReason(){
   return new Promise(function(resolve){
     _acctDialogResolveFn = null;
     var o = document.getElementById('acct-dialog-overlay');
-    document.getElementById('acct-dialog-icon').textContent = '👋';
-    document.getElementById('acct-dialog-title').textContent = 'We\'re sorry to see you go';
+    document.getElementById('acct-dialog-icon').textContent = '';
+    document.getElementById('acct-dialog-title').textContent = 'Delete account';
     var reasonBtns = DELETE_REASONS.map(function(r){
       return '<button class="acct-reason-btn" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:6px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.12);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13px;color:var(--charcoal);cursor:pointer;transition:background 0.15s;">'+escHtml(r)+'</button>';
     }).join('');
     document.getElementById('acct-dialog-msg').innerHTML =
-      '<div style="margin-bottom:10px;font-size:13px;color:var(--slate);line-height:1.6;">Mind telling us why you\'re leaving? This helps us improve.</div>' +
+      '<div style="margin-bottom:10px;font-size:13px;color:var(--slate);line-height:1.6;">Why are you leaving?</div>' +
       '<div id="acct-reason-list">'+reasonBtns+'</div>' +
       '<div style="margin-top:8px;font-size:11px;color:var(--slate);">Select a reason to continue, or cancel.</div>';
     var inp = document.getElementById('acct-dialog-input');
@@ -371,7 +406,7 @@ async function confirmDeleteAccount(){
   var reason = await pickDeleteReason();
   if(!reason) return;
   // Step 2: Ask for password
-  const pw = await acctPrompt('Confirm Deletion', 'Enter your password to confirm account deletion. This cannot be undone.', {danger:true, confirmLabel:'Delete Account', inputPlaceholder:'Your password'});
+  const pw = await acctPrompt('Confirm deletion', 'Enter your password to delete your account. This can\'t be undone.', {danger:true, confirmLabel:'Delete account', inputPlaceholder:'Your password'});
   if(!pw) return;
   const st = document.getElementById('delete-status') || document.createElement('span');
   try{
@@ -385,15 +420,15 @@ async function confirmDeleteAccount(){
       // Track account deletion
       if(window.trackAuthAction) trackAuthAction('account_deleted', 'success');
       localStorage.clear();
-      await acctAlert('Account Deleted', 'Your account has been deleted. You will now be redirected.', {icon:'👋'});
+      await acctAlert('Account deleted', 'Your account has been deleted. The home page opens next.', {icon:''});
       location.href='/';
     } else {
       if(window.trackAuthAction) trackAuthAction('account_deleted', 'failure');
-      await acctAlert('Error', d.error||'Failed to delete account. Please try again.', {danger:true, icon:'✗'});
+      await acctAlert('Error', d.error||'Couldn\'t delete the account. Try again.', {danger:true, icon:''});
     }
   }catch(e){
     localStorage.clear();
-    await acctAlert('Error', 'Account data cleared locally. Contact support@EquitySight.app to remove server data.', {icon:'⚠️'});
+    await acctAlert('Error', 'Your data on this device was cleared, but the request to the server failed. Email support@equitysight.app to have the account deleted.', {icon:''});
     location.href='/';
   }
 }
@@ -456,15 +491,15 @@ async function savePreferences(){
       });
       var d = await r.json();
       if(d.ok){
-        if(st){ st.textContent='✓ Preferences saved'; st.className='acct-status-msg ok'; setTimeout(function(){st.textContent='';},2000); }
+        if(st){ st.textContent='Preferences saved'; st.className='acct-status-msg ok'; setTimeout(function(){st.textContent='';},2000); }
       } else {
-        if(st){ st.textContent='Failed to save'; st.className='acct-status-msg err'; }
+        if(st){ st.textContent='Couldn\'t save'; st.className='acct-status-msg err'; }
       }
     } catch(e){
       if(st){ st.textContent='Network error'; st.className='acct-status-msg err'; }
     }
   } else {
-    if(st){ st.textContent='✓ Saved locally'; st.className='acct-status-msg ok'; setTimeout(function(){st.textContent='';},2000); }
+    if(st){ st.textContent='Saved on this device'; st.className='acct-status-msg ok'; setTimeout(function(){st.textContent='';},2000); }
   }
 }
 
@@ -511,9 +546,14 @@ document.querySelectorAll('.color-swatch').forEach(function(s){
 var saveProfileBtn = document.getElementById('save-profile-btn');
 if(saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
 
-// Billing portal buttons
-document.querySelectorAll('.manage-billing-btn').forEach(function(btn){
-  btn.addEventListener('click', openBillingPortal);
+// Billing buttons: "Manage" and "Update" open the Stripe billing portal, and
+// the red "Cancel subscription" button opens it on the cancel page. They are
+// matched by their place in the billing card as well as by class, because
+// account.html gave each of them two class attributes and the browser dropped
+// the second one (manage-billing-btn), which left all three unbound.
+document.querySelectorAll('.manage-billing-btn, #billing-card button').forEach(function(btn){
+  var isCancel = btn.classList.contains('acct-btn-danger');
+  btn.addEventListener('click', function(){ openBillingPortal(isCancel ? 'cancel' : ''); });
 });
 
 // Security panel

@@ -8,16 +8,18 @@ var NSW_FOREIGN_RATE = 0.09;
 var NSW_FHB_FULL = 800000;
 var NSW_FHB_PARTIAL = 1000000;
 
-// State-standard transfer duty (investor / non-FHB).
+// State-standard transfer duty (investor / non-FHB). The bracket bases are
+// Revenue NSW's published whole-dollar amounts ($1,662 where the rates add
+// up to $1,662.50, and so on up the table).
 function calcNSWStandard(v) {
   if (v <= 0) return 0;
   if (v <= 18000) return v * 0.0125;
   if (v <= 38000) return 225 + (v - 18000) * 0.015;
   if (v <= 103000) return 525 + (v - 38000) * 0.0175;
-  if (v <= 387000) return 1662.5 + (v - 103000) * 0.035;
-  if (v <= 1290000) return 11602.5 + (v - 387000) * 0.045;
-  if (v <= 3870000) return 52237.5 + (v - 1290000) * 0.055;
-  return 194137.5 + (v - 3870000) * 0.07;
+  if (v <= 387000) return 1662 + (v - 103000) * 0.035;
+  if (v <= 1290000) return 11602 + (v - 387000) * 0.045;
+  if (v <= 3870000) return 52237 + (v - 1290000) * 0.055;
+  return 194137 + (v - 3870000) * 0.07;
 }
 
 function calcNSWDuty(price, ptype, buyer, fhb) {
@@ -25,12 +27,21 @@ function calcNSWDuty(price, ptype, buyer, fhb) {
   var v = price;
   var standard = calcNSWStandard(v);
 
+  // Vacant land: same treatment as tools/stamp-duty-calculator.js, which only
+  // applies first home buyer relief to dwellings (QLD land aside).
+  if (fhb && ptype === 'land') {
+    return { duty: standard, note: 'First home buyer relief for vacant land has different rules that this page does not model, so standard duty is shown.' };
+  }
+
   if (fhb && v <= NSW_FHB_FULL) {
     return { duty: 0, note: 'First home buyer exemption applied.' };
   }
   if (fhb && v <= NSW_FHB_PARTIAL && NSW_FHB_PARTIAL > NSW_FHB_FULL) {
+    // Duties Act 1997 s 78A (as stated by secondary sources and fitted to
+    // Revenue NSW's FHBAS table): standard duty at the price, less
+    // (1,000,000 - price) / 200,000 of the standard duty on $800,000.
     var slide = (NSW_FHB_PARTIAL - v) / (NSW_FHB_PARTIAL - NSW_FHB_FULL);
-    return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
+    return { duty: Math.max(0, standard - slide * calcNSWStandard(NSW_FHB_FULL)), note: 'First home buyer partial concession applied.' };
   }
 
   return { duty: standard, note: '' };
@@ -42,10 +53,11 @@ function calculate() {
   if (_msg) _msg.hidden = true;
 
   var val = parseVal('price');
-  if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
+  if (!val || val <= 0) { if (!_isInit) _showErr('Enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
   var foreignEl = document.getElementById('foreign');
   var isForeign = foreignEl ? foreignEl.checked : false;
@@ -69,16 +81,22 @@ function calculate() {
   var regTotal = regMortgage + regTransfer;
   var conveyancing = 1800;
   function lmiRate(lvr) {
+    // Rounded first, as lmiRate() in journey.js does: price × 0.8 ÷ price
+    // can come out as 0.8000000000000002 and land in the next tier.
+    lvr = Math.round(lvr * 10000) / 10000;
     if (lvr <= 0.80) return 0;
     if (lvr <= 0.85) return 0.0080;
     if (lvr <= 0.90) return 0.0190;
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -89,6 +107,8 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
@@ -97,11 +117,11 @@ function calculate() {
   var regEl = document.getElementById('r-reg');
   if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on New South Wales 2026-27 transfer duty (brackets indexed 1 July 2026; verified 5 July 2026). LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate only, on the 2026-27 NSW transfer duty brackets (indexed 1 July 2026, checked 5 July 2026). The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium. Check the figures with your solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -125,9 +145,9 @@ ToolPage.init({
   slug: 'stamp-duty-nsw',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full New South Wales purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Plan the rest of the NSW purchase',
+    description: 'The First Home Journey builds a budget around this duty and the other upfront costs, then tracks your contract deadlines through to settlement.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=nsw'
   },
   resources: {
@@ -135,28 +155,28 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFDB\uFE0F', title: 'Revenue NSW',
         links: [
-          { text: 'NSW Conveyancing Duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
-          { text: 'First Home Buyers Assistance Scheme (FHBAS)', href: 'https://www.revenue.nsw.gov.au/grants-schemes/previous-schemes/first-home-buyer-assistance' }
+          { text: 'Transfer duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
+          { text: 'First Home Buyers Assistance Scheme', href: 'https://www.revenue.nsw.gov.au/grants-schemes/previous-schemes/first-home-buyer-assistance' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyer schemes',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        icon: '\uD83D\uDCB0', title: 'Home loans and tax',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with Revenue NSW.'
+    disclaimer: 'Check the current rates with Revenue NSW before you sign.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-nsw',
@@ -172,12 +192,11 @@ ToolPage.init({
     { href: '/', text: 'EquitySight.app' },
     { href: '/tools/stamp-duty-calculator', text: 'All States' },
     { href: '/tools/cost-of-purchase-calculator', text: 'Cost of Purchase' },
-    { href: '/invest/nsw/', text: 'NSW Suburb Guide' },
     { href: '/privacy', text: 'Privacy' }
   ],
   examples: [
   {
-    "label": "NSW — $640,000 property",
+    "label": "NSW, $640,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -191,11 +210,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$22,988"
+        "v": "$22,987"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$22,988"
+        "v": "$22,987"
       },
       {
         "k": "First home buyer duty",
@@ -204,7 +223,7 @@ ToolPage.init({
     ]
   },
   {
-    "label": "NSW — $900,000 property",
+    "label": "NSW, $900,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -218,20 +237,20 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$34,688"
+        "v": "$34,687"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$34,688"
+        "v": "$34,687"
       },
       {
         "k": "First home buyer duty",
-        "v": "$17,344 (FHB concession)"
+        "v": "$19,594 (FHB concession)"
       }
     ]
   },
   {
-    "label": "NSW — $1,200,000 property",
+    "label": "NSW, $1,200,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -245,50 +264,25 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$48,188"
+        "v": "$48,187"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$48,188"
+        "v": "$48,187"
       },
       {
         "k": "First home buyer duty",
-        "v": "$48,188 (over cap)"
+        "v": "$48,187 (over cap)"
       }
     ]
   }
 ],
-  faq: [
-  {
-    "q": "How does stamp duty work in NSW?",
-    "a": "NSW transfer duty (still commonly called stamp duty) is charged by Revenue NSW on the dutiable value of any property purchase. The duty steps up across brackets (FY2026-27, indexed 1 July 2026): 1.25% up to $18,000, 1.5% to $38,000, 1.75% to $103,000, 3.5% to $387,000, 4.5% to $1.29 million, 5.5% to $3.87 million, and 7% on the portion above $3.87 million. There is no owner-occupier \"home concession\" in NSW — owner-occupiers and investors pay the same standard rates. The main relief is the First Home Buyers Assistance Scheme."
-  },
-  {
-    "q": "Do first home buyers pay stamp duty in NSW?",
-    "a": "Eligible first home buyers pay no transfer duty on properties up to $800,000 and receive a sliding partial concession on properties between $800,000 and $1,000,000. Above $1,000,000 the standard rates apply with no concession. The same thresholds apply to both new and established homes under the First Home Buyers Assistance Scheme (FHBAS)."
-  },
-  {
-    "q": "When is stamp duty due in NSW?",
-    "a": "NSW transfer duty is payable within three months of liability — usually three months after the contract date. Most buyers pay duty at settlement through their solicitor or conveyancer. Late payment attracts interest and penalty tax under the Taxation Administration Act 1996 (NSW)."
-  },
-  {
-    "q": "What is the NSW foreign buyer surcharge?",
-    "a": "Foreign buyers (non-Australian citizens or permanent residents) pay an additional 9% surcharge purchaser duty on top of standard transfer duty. The surcharge applies to residential property purchases and is collected by Revenue NSW at the same time as the standard duty. New Zealand citizens with a Special Category Visa are treated as foreign for this surcharge unless they are also Australian permanent residents."
-  },
-  {
-    "q": "Is stamp duty tax deductible for NSW investors?",
-    "a": "No. Stamp duty paid by a property investor in NSW (or any state) is not immediately deductible against rental income. Instead it is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."
-  },
-  {
-    "q": "Stamp duty vs transfer duty in NSW — what is the difference?",
-    "a": "There is no difference — they are the same tax. NSW formally calls it \"transfer duty\" in the Duties Act 1997, but most buyers, lenders, and solicitors still call it \"stamp duty\". The legislation, the contract documents, and Revenue NSW forms all use \"transfer duty\"; everyday speech still uses both terms interchangeably."
-  }
-],
+  // FAQ: shown once, as static HTML in the page (the same text is in its
+  // JSON-LD). There is no JS copy here, so the two cannot drift apart.
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },
-    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },
-    { group: 'Guides', icon: '\uD83D\uDCD6', href: '/invest/nsw/', label: 'New South Wales Suburb Guide' }
+    { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' }
   ]
 });
 

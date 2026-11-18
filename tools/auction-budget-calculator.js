@@ -2,9 +2,12 @@
  *
  * Pre-auction companion: solves the maximum hammer price ("walk-away price")
  * your funds can support all-in (price + stamp duty + registration fees +
- * conveyancing), renders a funding breakdown, a deposit-day check, an optional
- * suburb-median anchor (from /tools/market-medians.json), a bid-pacing plan
- * and an auction-day checklist. Print button emits a one-page plan.
+ * conveyancing), with lenders mortgage insurance added to the loan when the
+ * loan is over 80% of the price and the loan before LMI held to 95% of the
+ * price at most. Renders a funding breakdown (loan, LVR, LMI),
+ * a deposit-day check, an optional suburb-median anchor (from
+ * /tools/market-medians.json), a bid-pacing plan and an auction-day
+ * checklist. Print button emits a one-page plan.
  */
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -42,7 +45,7 @@ var stateData = {
   // NOTE: VIC ($960k-$2M), ACT (>$1.455M) and NT use flat-of-total or quadratic
   // bands that the simple cumulative-tier model can't express — see calcDuty().
   nsw: {
-    name: 'New South Wales', dutyName: 'Transfer Duty', foreignRate: 0.09,
+    name: 'New South Wales', dutyName: 'Transfer duty', foreignRate: 0.09,
     fhbFull: 800000, fhbPartial: 1000000, fhbExemption: Infinity,
     // Brackets CPI-indexed 1 Jul 2026 (FY2026-27; premium threshold $3,870,000).
     tiers: [
@@ -56,7 +59,7 @@ var stateData = {
     ]
   },
   vic: {
-    name: 'Victoria', dutyName: 'Land Transfer Duty', foreignRate: 0.08,
+    name: 'Victoria', dutyName: 'Land transfer duty', foreignRate: 0.08,
     fhbFull: 600000, fhbPartial: 750000, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0.014 },
@@ -65,7 +68,7 @@ var stateData = {
     ]
   },
   qld: {
-    name: 'Queensland', dutyName: 'Transfer Duty', foreignRate: 0.08,
+    name: 'Queensland', dutyName: 'Transfer duty', foreignRate: 0.08,
     fhbFull: 700000, fhbPartial: 800000, fhbExemption: Infinity,
     // First home vacant land: NO duty at any value (contracts from 1 May 2025).
     tiers: [
@@ -77,7 +80,7 @@ var stateData = {
     ]
   },
   sa: {
-    name: 'South Australia', dutyName: 'Stamp Duty', foreignRate: 0.07,
+    name: 'South Australia', dutyName: 'Stamp duty', foreignRate: 0.07,
     // SA first-home relief is for NEW homes / vacant land only (no value taper),
     // so no automatic value-based FHB exemption is applied here.
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
@@ -94,7 +97,7 @@ var stateData = {
     ]
   },
   wa: {
-    name: 'Western Australia', dutyName: 'Transfer Duty', foreignRate: 0.07,
+    name: 'Western Australia', dutyName: 'Transfer duty', foreignRate: 0.07,
     fhbFull: 600000, fhbPartial: 800000, fhbExemption: Infinity, // WA thresholds raised 7 May 2026
     tiers: [
       { from: 0,       rate: 0.019  },
@@ -105,7 +108,7 @@ var stateData = {
     ]
   },
   tas: {
-    name: 'Tasmania', dutyName: 'Property Transfer Duty', foreignRate: 0.08,
+    name: 'Tasmania', dutyName: 'Property transfer duty', foreignRate: 0.08,
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity, // TAS FHB exemption EXPIRED 30 Jun 2026
     tiers: [
       { from: 0,       rate: 0      },
@@ -118,7 +121,7 @@ var stateData = {
     ]
   },
   act: {
-    name: 'Australian Capital Territory', dutyName: 'Conveyance Duty', foreignRate: 0,
+    name: 'Australian Capital Territory', dutyName: 'Conveyance duty', foreignRate: 0,
     fhbFull: Infinity, fhbPartial: Infinity, fhbExemption: Infinity, // ACT HBCS uncapped from 1 Jul 2026
     tiers: [
       { from: 0,       rate: 0.0028 },
@@ -130,7 +133,7 @@ var stateData = {
     ]
   },
   nt: {
-    name: 'Northern Territory', dutyName: 'Stamp Duty', foreignRate: 0,
+    name: 'Northern Territory', dutyName: 'Stamp duty', foreignRate: 0,
     // NT has no value-based FHB duty concession (relief is new-build exemption / grants).
     // Duty is a quadratic under $525k and a flat % of total above — see calcDuty().
     fhbFull: 0, fhbPartial: 0, fhbExemption: Infinity,
@@ -161,6 +164,10 @@ function calcDuty(state, v) {
     if (v <= from) break;
     var nextFrom = (i + 1 < tiers.length) ? tiers[i + 1].from : Infinity;
     duty += (Math.min(v, nextFrom) - from) * tiers[i].rate;
+    // Revenue NSW states each bracket's base in whole dollars ($1,662,
+    // $11,602, $52,237, $194,137), so floor the running total at each
+    // bracket NSW passes.
+    if (state === 'nsw' && v > nextFrom) duty = Math.floor(duty);
   }
   // Bands that are a flat % of the TOTAL value (not marginal on the excess):
   if (state === 'vic') {
@@ -234,6 +241,23 @@ function applyFhbConcession(state, val, baseDuty) {
   }
   if (val <= data.fhbPartial && data.fhbPartial > data.fhbFull) {
     var slide = (data.fhbPartial - val) / (data.fhbPartial - data.fhbFull);
+    if (state === 'nsw') {
+      // NSW (Duties Act 1997 s 78A, as stated by secondary sources and fitted
+      // to Revenue NSW's FHBAS table): standard duty at the price, less
+      // (1,000,000 - price) / 200,000 of the standard duty on $800,000. It
+      // rises in a straight line from nil at $800,000 to the standard duty on
+      // $1,000,000. $900,000 gives $19,593.50, the figure in Revenue NSW's
+      // table, because calcDuty() uses its whole-dollar bracket bases.
+      return { duty: Math.max(0, baseDuty - slide * calcDuty('nsw', data.fhbFull)), note: 'First home buyer partial concession applied.' };
+    }
+    if (state === 'wa') {
+      // WA first home owner rate for a home, agreements from 7 May 2026
+      // (RevenueWA): $16.15 for every $100, or part of $100, over $600,000,
+      // up to $800,000. Worked in cents to avoid floating-point drift.
+      return { duty: Math.round(Math.ceil((val - data.fhbFull) / 100) * 1615) / 100, note: 'First home buyer partial concession applied.' };
+    }
+    // VIC (s 57JA): standard duty scaled in a straight line, from nil at
+    // $600,000 to the full standard duty at $750,000. SRO: $24,713 at $700,000.
     return { duty: Math.max(0, baseDuty * (1 - slide)), note: 'First home buyer partial concession applied.' };
   }
   return { duty: baseDuty, note: '' };
@@ -325,22 +349,22 @@ function populateSuburbList() {
 }
 
 var _SUBURB_HINTS = {
-  vic: 'VIC data: median house + unit sale prices (Valuer-General Victoria, 2025 preliminary). No rent data yet.',
-  qld: 'QLD data: current median weekly rents only (RTA, Mar 2026). No free public sale-price data exists for QLD.',
-  sa: 'SA data: median weekly rents (Jan–Mar 2026) + median house sale prices for metro Adelaide (Q1 2026).',
-  tas: 'TAS data: suburb median weekly rents (12 months of bond lodgements, Dept of Justice). No free public sale prices.'
+  vic: 'VIC: median house and unit sale prices (Valuer-General Victoria, 2025 preliminary). No rents yet.',
+  qld: 'QLD: median weekly rents only (RTA, Mar 2026). There’s no free public sale-price data for QLD.',
+  sa: 'SA: median weekly rents (Jan–Mar 2026) and median house sale prices for metro Adelaide (Q1 2026).',
+  tas: 'TAS: suburb median weekly rents (12 months of bond lodgements, Dept of Justice). No free public sale prices.'
 };
 
 function updateSuburbHint() {
   var el = document.getElementById('suburb-hint');
   if (!el) return;
   if (_mediansFailed) {
-    el.textContent = 'Market medians are unavailable right now — the plan works without them.';
+    el.textContent = 'Market medians aren’t loading right now. The plan works without them.';
     return;
   }
   var st = document.getElementById('state').value;
   el.textContent = _SUBURB_HINTS[st] ||
-    'No free public median data for this state yet — the anchor is optional; your plan works without it.';
+    'I don’t have free public median data for this state yet. The suburb is optional and the plan works without it.';
 }
 
 function loadMedians() {
@@ -382,7 +406,7 @@ function renderMedianAnchor() {
 
   if (!_medians || !_medians.states) {
     box.innerHTML = _callout('mort-callout', 'Suburb anchor', _mediansFailed
-      ? 'Market medians are unavailable right now — your plan above is unaffected.'
+      ? 'Market medians aren’t loading right now. Your plan above isn’t affected.'
       : 'Loading market medians…');
     box.style.display = '';
     return;
@@ -391,8 +415,8 @@ function renderMedianAnchor() {
   var map = _medians.states[SC];
   if (!map) {
     box.innerHTML = _callout('mort-callout', 'Suburb anchor',
-      'There’s no free public median data for ' + escHtml(SC) + ' in our file yet, so we can’t show an anchor for ' +
-      disp + '. Judge value the manual way: recent comparable sales, days on market, and an independent valuation if in doubt.');
+      'I don’t have free public median data for ' + escHtml(SC) + ' yet, so there’s no median to show for ' +
+      disp + '. Recent comparable sales are the best guide, or an independent valuation if you’re unsure.');
     box.style.display = '';
     return;
   }
@@ -400,8 +424,8 @@ function renderMedianAnchor() {
   var rec = map[_normSuburb(typed)];
   if (!rec) {
     box.innerHTML = _callout('mort-callout', 'Suburb anchor',
-      'We don’t have ' + disp + ' in the current ' + escHtml(SC) +
-      ' data set. Pick a suggestion from the list, or skip the anchor — the plan above is unaffected.');
+      'I don’t have ' + disp + ' in the current ' + escHtml(SC) +
+      ' data. Pick a suburb from the list, or leave it blank. The plan above doesn’t change.');
     box.style.display = '';
     return;
   }
@@ -416,19 +440,19 @@ function renderMedianAnchor() {
   if (anchor) {
     var pct = ((W - anchor.v) / anchor.v) * 100;
     var rel = Math.abs(pct) < 0.5 ? 'right on' : (Math.abs(pct).toFixed(0) + '% ' + (pct < 0 ? 'below' : 'above'));
-    parts.push('<strong>' + disp + ' median ' + anchor.label + ' sale price: ' + fmt(anchor.v) + '</strong> — ' +
-      escHtml(_srcCaption(priceKey)) + '. Your walk-away price (' + fmt(W) + ') sits ' + rel +
-      ' this median — the market’s reference point, not a valuation of any specific property.');
+    parts.push('<strong>' + disp + ' median ' + anchor.label + ' sale price: ' + fmt(anchor.v) + '</strong>, ' +
+      escHtml(_srcCaption(priceKey)) + '. Your walk-away price (' + fmt(W) + ') is ' + rel +
+      ' this median. A median is the middle of past sales, not a valuation of the property you’re bidding on.');
     if (anchor.label === 'house' && typeof rec.u === 'number') {
       parts.push('Median unit sale price: ' + fmt(rec.u) + '.');
     }
   }
   if (typeof rec.r === 'number') {
-    parts.push('Median weekly rent: $' + Math.round(rec.r).toLocaleString() + '/wk — ' + escHtml(_srcCaption(rentKey)) + '.');
+    parts.push('Median weekly rent: $' + Math.round(rec.r).toLocaleString('en-AU') + '/wk, ' + escHtml(_srcCaption(rentKey)) + '.');
   }
   if (!anchor && typeof rec.r === 'number') {
     parts.push('No free public sale-price data exists for ' + escHtml(SC) +
-      ', so there’s no price anchor to compare your walk-away figure against — use recent comparable sales, or an independent valuation.');
+      ', so there’s no sale median to compare with your walk-away price. Use recent comparable sales or an independent valuation.');
   }
 
   if (!parts.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
@@ -437,28 +461,94 @@ function renderMedianAnchor() {
 }
 
 
-/* ═══ WALK-AWAY SOLVER ═══ */
-
-// All-in cost of buying at hammer price P (duty computed on P, with FHB
-// concession when ticked). Monotonically increasing in P for every state
-// (duty only ever steps UP at concession cliffs), so binary search is safe.
-function _allInAt(state, P, fhb, regTotal, legal) {
-  var base = calcDuty(state, P);
-  var duty = fhb ? applyFhbConcession(state, P, base).duty : base;
-  return P + duty + regTotal + legal;
+/* ═══ LMI ═══
+ * SYNC COPY of lmiRate() in journey.js, which is the reference for how the
+ * site treats LMI: the rate is read off the loan-to-value ratio before LMI,
+ * applied to the loan before LMI, and the premium is added to the loan. Same
+ * tiers as lmiEstimate() in deposit-calculator.js and estimateLmiTier() in
+ * stamp-duty-calculator.js. tests/state-duty-sync-test.js checks the copies
+ * agree. These are my rough rates by LVR band, with no published rate table
+ * behind them. The ratio is rounded first so that 0.9 * price / price, which
+ * can come out as 0.9000000000000001, stays in the right tier. */
+function lmiRate(lvr) {
+  lvr = Math.round(lvr * 10000) / 10000;
+  return lvr <= 0.80 ? 0 : lvr <= 0.85 ? 0.008 : lvr <= 0.90 ? 0.019 : lvr <= 0.95 ? 0.034 : 0.043;
 }
 
-// Largest feasible hammer price: usableSavings + preapproval >= all-in cost.
-// Rounded DOWN to the nearest $1,000 — a walk-away price is never optimistic.
-function solveWalkAway(funds, state, fhb, regTotal, legal) {
-  if (funds <= regTotal + legal) return 0;
-  var lo = 0, hi = funds;
+
+/* ═══ WALK-AWAY SOLVER ═══ */
+
+// Duty at hammer price P for this buyer. Same rule as calculate() in
+// stamp-duty-calculator.js for a dwelling: a first home buyer gets the
+// state's first home concession; otherwise a QLD buyer who will live in the
+// home pays the home-concession rate; everyone else pays the general rate.
+// Victoria's principal place of residence concession (owner-occupied homes up
+// to $550,000) isn't modelled here or in stamp-duty-calculator.js; the page
+// says so.
+function dutyAt(state, P, fhb, owner) {
+  var base = calcDuty(state, P);
+  if (fhb) return applyFhbConcession(state, P, base);
+  if (owner && state === 'qld') return { duty: qldHomeDuty(P), note: 'QLD home concession applied (owner-occupier).' };
+  return { duty: base, note: '' };
+}
+
+// The whole plan at hammer price P. o = { state, fhb, owner, legal, usable }.
+//   allIn     = price + duty + registration fees (at P) + conveyancing
+//   loan      = what has to be borrowed toward that once usable savings are in
+//   lmi       = my estimate on that loan at its LVR (0 at 80% or under)
+//   totalLoan = loan + lmi. LMI is added to the loan, as in journey.js.
+function planAt(P, o) {
+  var d = dutyAt(o.state, P, o.fhb, o.owner);
+  var reg = regFeesTotal(o.state, P);
+  var allIn = P + d.duty + reg + o.legal;
+  var loan = Math.max(0, allIn - o.usable);
+  var lvr = P > 0 ? loan / P : 0;
+  var lmi = loan * lmiRate(lvr);
+  return { price: P, duty: d.duty, note: d.note, reg: reg, allIn: allIn,
+    loan: loan, lvr: lvr, lmi: lmi, totalLoan: loan + lmi, cash: allIn - loan };
+}
+
+// Lenders generally want a deposit of at least 5% of the price on top of the
+// duty, fees and conveyancing, so the loan before LMI may not go past 95% of
+// the price. That is the smallest deposit with an ordinary loan in journey.js
+// (its 5% path), and it means savings always cover the costs: the loan never
+// reaches the price itself.
+var MAX_LVR = 0.95;
+
+// A hammer price P is reachable when the loan, with any LMI added, fits the
+// pre-approval (the same test journey.js incomeCeiling() runs against its
+// borrowing limit) and the loan before LMI is no more than 95% of P.
+function fitsAt(P, o, preapproval) {
+  var p = planAt(P, o);
+  return p.totalLoan <= preapproval && p.loan <= MAX_LVR * P;
+}
+
+// Largest reachable hammer price. Both tests only get harder as P rises.
+// totalLoan never falls: duty and registration fees only step up, so the
+// loan grows, and the LVR grows with it while savings cover the costs. The
+// 95% test is the same as 0.05P + duty + fees + conveyancing <= usable
+// savings, and the left side only rises. So the reachable prices run from $0
+// up to one limit and a binary search finds it. Rounded DOWN to the nearest $1,000: a walk-away price is
+// never optimistic.
+function solveWalkAway(o, preapproval) {
+  var lo = 0, hi = o.usable + preapproval;
+  if (hi <= 0) return 0;
   for (var i = 0; i < 60; i++) {
     var mid = (lo + hi) / 2;
-    if (_allInAt(state, mid, fhb, regTotal, legal) <= funds) lo = mid;
+    if (fitsAt(mid, o, preapproval)) lo = mid;
     else hi = mid;
   }
   return Math.floor(lo / 1000) * 1000;
+}
+
+// When the 95% limit sets the walk-away price before the pre-approval does:
+// the usable savings at which the two limits meet. There the loan is 95% of
+// the price and, with LMI at the 90-95% tier added, equals the pre-approval.
+// With any more savings the pre-approval becomes the limit. Rounded UP to the
+// nearest $1,000 so the figure is never too low.
+function savingsToUsePreapproval(o, preapproval) {
+  var P = preapproval / (MAX_LVR * (1 + lmiRate(MAX_LVR)));
+  return Math.ceil((planAt(P, o).allIn - MAX_LVR * P) / 1000) * 1000;
 }
 
 
@@ -468,14 +558,17 @@ function renderBidPlan(W) {
   var body = document.getElementById('bid-plan-body');
   if (!body) return;
   var open = Math.max(0, Math.floor((W * 0.9) / 1000) * 1000);
-  var html = '<tr><td>Likely opening</td><td>~' + fmt(open) + '</td><td>—</td>' +
-    '<td>Auctions often open around 10% under where they finish</td></tr>';
+  // The first row is only a pacing reference set 10% below the buyer's own
+  // ceiling. The tool knows nothing about the property, so it does not
+  // predict where bidding will open.
+  var html = '<tr><td>Reference point</td><td>' + fmt(open) + '</td><td>—</td>' +
+    '<td>10% below your limit. Not a prediction of the opening bid</td></tr>';
   var bands = [
-    { label: 'Early bidding', to: W - 50000, inc: 20000, note: 'Prompt, confident, round numbers' },
+    { label: 'Early bidding', to: W - 50000, inc: 20000, note: 'Prompt round numbers' },
     { label: 'Mid auction', to: W - 20000, inc: 10000, note: 'Hold a steady rhythm' },
-    { label: 'Approaching your ceiling', to: W - 10000, inc: 5000, note: 'Slow the tempo' },
-    { label: 'Final approach', to: W - 4000, inc: 2000, note: 'Odd, deliberate amounts' },
-    { label: 'Last bids', to: W, inc: 1000, note: 'Stop at ' + fmt(W) + ' — no exceptions' }
+    { label: 'Approaching your ceiling', to: W - 10000, inc: 5000, note: 'Slow down' },
+    { label: 'Final approach', to: W - 4000, inc: 2000, note: 'Odd amounts' },
+    { label: 'Last bids', to: W, inc: 1000, note: 'Stop at ' + fmt(W) }
   ];
   var from = open;
   bands.forEach(function (b) {
@@ -492,6 +585,18 @@ function renderBidPlan(W) {
 
 var _isInit = true;
 
+// On an error the last plan is hidden, so its rows and notes can't sit next
+// to the message and contradict the new inputs.
+function _clearResult() {
+  _lastWalkAway = 0;
+  var res = document.getElementById('result');
+  if (res) res.style.display = 'none';
+  var lmiBox = document.getElementById('lmi-callout');
+  if (lmiBox) { lmiBox.innerHTML = ''; lmiBox.style.display = 'none'; }
+  var depBox = document.getElementById('deposit-callout');
+  if (depBox) depBox.innerHTML = '';
+}
+
 function calculate() {
   var _msg = document.getElementById('calc-msg');
   function _showErr(t) { if (_msg) { _msg.textContent = t; _msg.hidden = false; } }
@@ -501,6 +606,12 @@ function calculate() {
   var data = stateData[state];
   if (!data) return;
   var fhb = document.getElementById('fhb').checked;
+  // "Buying to live in" only changes the duty in Queensland, and only for a
+  // buyer who isn't a first home buyer, so the box is hidden everywhere else.
+  var ownerEl = document.getElementById('owner');
+  var owner = ownerEl ? ownerEl.checked : true;
+  var ownerRow = document.getElementById('owner-check');
+  if (ownerRow) ownerRow.style.display = (state === 'qld' && !fhb) ? '' : 'none';
   var savings = parseVal('savings');
   var preapproval = parseVal('preapproval');
   var legal = parseVal('legal');
@@ -510,34 +621,36 @@ function calculate() {
   if (bufPct > 90) bufPct = 90;
 
   if (savings <= 0 && preapproval <= 0) {
-    if (!_isInit) _showErr('Enter your cash savings and/or your loan pre-approval amount.');
+    _clearResult();
+    if (!_isInit) _showErr('Enter your cash savings, your loan pre-approval or both.');
     return;
   }
 
   var bufferKept = savings * (bufPct / 100);
   var usable = savings - bufferKept;
-  var funds = usable + preapproval;
   var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
-  var regTotal = regFeesTotal(state, funds);
+  var opts = { state: state, fhb: fhb, owner: owner, legal: legal, usable: usable };
 
-  var W = solveWalkAway(funds, state, fhb, regTotal, legal);
-  // QLD/VIC/SA/WA reg fees scale with the price — refine once at the solved
-  // price (fee slope is far below $1 per $1 of price, so one pass converges).
-  if (SCALED_REG[state] && W > 0) {
-    regTotal = regFeesTotal(state, W);
-    W = solveWalkAway(funds, state, fhb, regTotal, legal);
-  }
+  var W = solveWalkAway(opts, preapproval);
   if (W <= 0) {
-    if (!_isInit) _showErr('Your usable funds don’t cover the fixed purchase costs yet — add savings or pre-approval, or lower the buffer.');
+    _clearResult();
+    if (!_isInit) _showErr('Your usable savings don’t cover the purchase costs plus a 5% deposit at any price. Add savings or lower the buffer.');
     return;
   }
+  // True when the 95% limit, and not the pre-approval, stopped the price:
+  // $1,000 more would still fit the pre-approval with LMI added.
+  var capBinds = planAt(W + 1000, opts).totalLoan <= preapproval;
 
-  var baseDuty = calcDuty(state, W);
-  var dres = fhb ? applyFhbConcession(state, W, baseDuty) : { duty: baseDuty, note: '' };
-  var duty = dres.duty;
-  var allIn = W + duty + regTotal + legal;
-  var loanUsed = Math.min(preapproval, allIn);
-  var cashUsed = Math.max(0, allIn - loanUsed);
+  // Everything shown below is the plan at W itself, so the rows add up.
+  var plan = planAt(W, opts);
+  var dres = { duty: plan.duty, note: plan.note };
+  var duty = plan.duty;
+  var regTotal = plan.reg;
+  var allIn = plan.allIn;
+  var loanBase = plan.loan;      // borrowed toward the purchase
+  var lmi = plan.lmi;            // added to the loan
+  var loanUsed = plan.totalLoan; // loan incl. LMI, never above the pre-approval
+  var cashUsed = plan.cash;
   var dep10 = W * 0.10;
 
   _lastWalkAway = W;
@@ -546,7 +659,7 @@ function calculate() {
   setText('r-walkaway', fmt(W));
   setText('r-hammer', fmt(W));
   var dutyLabelEl = document.getElementById('r-duty-label');
-  if (dutyLabelEl) dutyLabelEl.textContent = data.dutyName + ' — ' + data.name;
+  if (dutyLabelEl) dutyLabelEl.textContent = data.dutyName + ' (' + data.name + ')';
   setText('r-duty', fmt(duty));
   var noteEl = document.getElementById('r-duty-note');
   if (noteEl) {
@@ -554,27 +667,59 @@ function calculate() {
     noteEl.style.display = dres.note ? '' : 'none';
   }
   setText('r-reg', SCALED_REG[state]
-    ? fmt(regTotal) + ' (' + SCALED_REG[state] + ' — transfer fee scales with price)'
+    ? fmt(regTotal) + ' (' + SCALED_REG[state] + ', transfer fee scales with price)'
     : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')');
   setText('r-legal', fmt(legal));
   setText('r-allin', fmt(allIn));
+  setText('r-loan-base', fmt(loanBase));
+  setText('r-lvr', loanBase > 0 ? (plan.lvr * 100).toFixed(1) + '%' : 'No loan needed');
+  setText('r-lmi', lmi > 0 ? fmt(lmi) : '$0 (LVR is 80% or under)');
   setText('r-loan', fmt(loanUsed));
   setText('r-cash', fmt(cashUsed));
   setText('r-buffer', fmt(bufferKept));
+
+  // ── LVR and LMI note ──
+  var lmiBox = document.getElementById('lmi-callout');
+  if (lmiBox) {
+    var lvrTxt = (plan.lvr * 100).toFixed(1) + '%';
+    var parts = [];
+    if (lmi > 0) {
+      var rateTxt = (lmiRate(plan.lvr) * 100).toFixed(1) + '%';
+      parts.push('The loan is ' + lvrTxt + ' of the price. Above 80%, lenders usually charge lenders mortgage insurance (LMI). ' +
+        'I estimate it at ' + fmt(lmi) + ' (' + rateTxt + ' of the loan) and add it to the loan, which takes the loan to ' + fmt(loanUsed) + '.');
+      if (!capBinds) parts.push('That has to fit inside your ' + fmt(preapproval) + ' pre-approval, so LMI lowers the price you can reach.');
+    }
+    if (capBinds) {
+      parts.push('Your savings are the limit here. Lenders generally want a deposit of at least 5% of the price on top of the duty, fees and conveyancing, so I stop the loan at 95% of the price before LMI. ' +
+        'To use all of your ' + fmt(preapproval) + ' pre-approval you’d need about ' + fmt(savingsToUsePreapproval(opts, preapproval)) +
+        ' of usable savings after the buffer. You have ' + fmt(usable) + '.');
+    }
+    if (lmi > 0) {
+      parts.push('The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium.');
+      if (fhb) parts.push('An eligible first home buyer pays no LMI under the 5% Deposit Scheme. This calculator doesn’t check that, so it counts LMI either way.');
+    }
+    if (parts.length) {
+      lmiBox.innerHTML = _callout('mort-callout mort-callout-gold', lmi > 0 ? 'LMI' : 'Deposit', parts.join(' '));
+      lmiBox.style.display = '';
+    } else {
+      lmiBox.innerHTML = '';
+      lmiBox.style.display = 'none';
+    }
+  }
 
   // ── Deposit-on-the-day check ──
   var depBox = document.getElementById('deposit-callout');
   if (depBox) {
     if (usable >= dep10) {
       depBox.innerHTML = _callout('mort-callout', 'Deposit check',
-        'Auctions are unconditional — a 10% deposit (' + fmt(dep10) +
-        ' at your walk-away price) is typically payable on the day. Your usable savings (' + fmt(usable) +
-        ') cover it. Confirm the payment method (bank cheque or transfer) with the agent and your bank before auction day.');
+        'The 10% deposit (' + fmt(dep10) +
+        ' at your walk-away price) is usually due on the day, and your usable savings (' + fmt(usable) +
+        ') cover it. Agree the payment method (bank cheque or transfer) with the agent and your bank before auction day.');
     } else {
       depBox.innerHTML = _callout('mort-callout mort-callout-gold', 'Deposit check',
         'A 10% deposit at your walk-away price is ' + fmt(dep10) +
         ', but your usable savings after the buffer are only ' + fmt(usable) +
-        '. Auctions are unconditional and the deposit is typically payable on the day — arrange this with your lender and the agent BEFORE auction day (a reduced deposit or a deposit bond can sometimes be agreed in advance). Do not turn up hoping to sort it out after the hammer.');
+        '. The deposit is usually due on the day, so sort this out with your lender and the agent before auction day. A smaller deposit or a deposit bond can sometimes be agreed in advance, but not after the hammer falls.');
     }
   }
 
@@ -582,8 +727,8 @@ function calculate() {
   renderBidPlan(W);
 
   var disc = document.getElementById('disclaimer');
-  if (disc) disc.textContent = 'Estimates only. ' + data.dutyName + ' is based on ' + data.name +
-    ' FY2026-27 schedules (verified 5 Jul 2026); registration and conveyancing figures are indicative — verify with your conveyancer and state revenue office. Your lender’s formal approval, valuation and LVR limits can reduce what you can actually borrow. General information — not financial advice.';
+  if (disc) disc.textContent = 'Estimates only. ' + data.dutyName + ' uses the ' + data.name +
+    ' FY2026-27 schedule (checked 5 Jul 2026). Registration and conveyancing figures are approximate and the LMI figure is my rough estimate, so confirm them with your conveyancer, your lender and the state revenue office. Your lender’s formal approval, valuation and LVR limits can lower what you can borrow. General information, not financial advice.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -608,41 +753,41 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full purchase before you bid',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Plan the rest of the purchase',
+    description: 'The budget step of the First Home Journey sets a walk-away cap from your borrowing and savings, and the later steps track the contract deadlines through to settlement.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Offices',
+        icon: '\uD83C\uDFDB\uFE0F', title: 'Stamp duty',
         links: [
-          { text: 'NSW Transfer Duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
-          { text: 'VIC Land Transfer Duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
-          { text: 'QLD Transfer Duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
-          { text: 'SA Stamp Duty', href: 'https://www.revenuesa.sa.gov.au/stampduty' },
-          { text: 'WA Transfer Duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' }
+          { text: 'NSW transfer duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
+          { text: 'VIC land transfer duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
+          { text: 'QLD transfer duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
+          { text: 'SA stamp duty', href: 'https://www.revenuesa.sa.gov.au/stampduty' },
+          { text: 'WA transfer duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' }
         ]
       },
       {
-        icon: '\u2696\uFE0F', title: 'Auction Rules & Consumer Affairs',
+        icon: '\u2696\uFE0F', title: 'Auction rules',
         links: [
-          { text: 'NSW Fair Trading: Buying property at auction', href: 'https://www.fairtrading.nsw.gov.au/housing-and-property/buying-and-selling-property/buying-a-property/buying-property-at-auction' },
-          { text: 'Consumer Affairs Victoria: Buying & selling property', href: 'https://www.consumer.vic.gov.au/housing/buying-and-selling-property' },
-          { text: 'QLD Government: Buying & owning a home', href: 'https://www.qld.gov.au/housing/buying-owning-home' }
+          { text: 'NSW Fair Trading: buying property at auction', href: 'https://www.fairtrading.nsw.gov.au/housing-and-property/buying-and-selling-property/buying-a-property/buying-property-at-auction' },
+          { text: 'Consumer Affairs Victoria: buying and selling property', href: 'https://www.consumer.vic.gov.au/housing/buying-and-selling-property' },
+          { text: 'Queensland Government: buying and owning a home', href: 'https://www.qld.gov.au/housing/buying-owning-home' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Money & Finance Guidance',
+        icon: '\uD83D\uDCB0', title: 'Buying and borrowing',
         links: [
-          { text: 'Moneysmart: Buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Moneysmart: Home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
           { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/support-buy-home/first-home-guarantee' }
         ]
       }
     ],
-    disclaimer: 'General information only — not financial or legal advice. Auction rules and duty rates change; confirm current rules with your state’s consumer affairs body and revenue office before auction day.'
+    disclaimer: 'General information, not financial or legal advice. Auction rules and duty rates change, so check them with your state’s consumer affairs office and revenue office before auction day.'
   },
   share: {
     url: 'https://equitysight.app/tools/auction-budget-calculator',
@@ -663,7 +808,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'VIC — savings $120,000, pre-approval $560,000, 5% buffer',
+      label: 'Victoria: $120,000 savings, $560,000 pre-approval, 5% buffer',
       inputs: [
         { k: 'Cash savings', v: '$120,000' },
         { k: 'Loan pre-approval', v: '$560,000' },
@@ -672,14 +817,17 @@ ToolPage.init({
         { k: 'Conveyancing', v: '$1,800' }
       ],
       outputs: [
-        { k: 'Walk-away price', v: '$637,000' },
-        { k: 'Land transfer duty (VIC)', v: '~$33,290' },
-        { k: 'Total all-in cost', v: '~$673,800' },
-        { k: 'Cash at settlement', v: '~$113,800' }
+        { k: 'Walk-away price', v: '$627,000' },
+        { k: 'Land transfer duty (VIC)', v: '$32,690' },
+        { k: 'Total all-in cost', v: '$663,191' },
+        { k: 'Loan as a share of the price (LVR)', v: '87.6%' },
+        { k: 'Lenders mortgage insurance (my estimate)', v: '$10,435' },
+        { k: 'Total loan with LMI', v: '$559,626' },
+        { k: 'Cash from savings', v: '$114,000' }
       ]
     },
     {
-      label: 'QLD — first home buyer, savings $90,000, pre-approval $480,000',
+      label: 'Queensland first home buyer: $90,000 savings, $480,000 pre-approval',
       inputs: [
         { k: 'Cash savings', v: '$90,000' },
         { k: 'Loan pre-approval', v: '$480,000' },
@@ -688,26 +836,27 @@ ToolPage.init({
         { k: 'Conveyancing', v: '$1,800' }
       ],
       outputs: [
-        { k: 'Walk-away price', v: '$561,000' },
+        { k: 'Walk-away price', v: '$552,000' },
         { k: 'Transfer duty', v: '$0 (QLD FHB concession ≤ $700k)' },
-        { k: 'Total all-in cost', v: '~$565,100' },
-        { k: '10% deposit on the day', v: '~$56,100' }
+        { k: 'Total all-in cost', v: '$556,065' },
+        { k: 'Loan as a share of the price (LVR)', v: '85.2%' },
+        { k: 'Lenders mortgage insurance (my estimate)', v: '$8,941' },
+        { k: 'Total loan with LMI', v: '$479,506' },
+        { k: '10% deposit on the day', v: '$55,200' }
       ]
     }
   ],
   faq: [
-    { q: 'Is the 10% deposit really due on auction day?',
-      a: 'Yes — if you are the winning bidder you sign the contract and pay the deposit (usually 10% of the purchase price) immediately after the hammer falls. A smaller deposit can sometimes be negotiated with the vendor’s agent before auction day, but never assume it on the day. Arrange the payment method (bank cheque or transfer) with your bank and the agent in advance.' },
+    { q: 'Is the 10% deposit due on auction day?',
+      a: 'Yes. If you win, you sign the contract and pay the deposit (usually 10% of the price) straight after the hammer falls. A smaller deposit can sometimes be negotiated with the agent before auction day, but don’t count on it on the day. Arrange the payment method (bank cheque or transfer) with your bank and the agent in advance.' },
     { q: 'Can I bid past my loan pre-approval?',
-      a: 'Legally yes, but you are gambling with your deposit. Pre-approval is not a guarantee of finance — if your lender won’t extend the extra amount, or their valuation comes in below your winning bid, you may be unable to settle. You can lose your 10% deposit and be sued for the vendor’s losses on a resale.' },
+      a: 'You can, but you’re gambling with your deposit. Pre-approval isn’t a guarantee of finance. If your lender won’t lend the extra, or its valuation comes in below your winning bid, you may not be able to settle. You can then lose your 10% deposit and be sued for the vendor’s losses on a resale.' },
     { q: 'Do I get a cooling-off period when I buy at auction?',
-      a: 'No. In every Australian state and territory, auction sales are exempt from statutory cooling-off. In several states the exemption also extends to contracts signed shortly before or after the auction. The contract is unconditional the moment the hammer falls.' },
+      a: 'No. Auction sales are exempt from statutory cooling-off in every Australian state and territory, and in several states the exemption also covers contracts signed shortly before or after the auction. The contract is unconditional when the hammer falls.' },
     { q: 'What happens if the property passes in?',
-      a: 'If bidding doesn’t reach the vendor’s reserve the property is passed in. The highest bidder usually gets the first right to negotiate with the vendor immediately afterwards. Your walk-away price still applies in that negotiation — a pass-in doesn’t make the property cheaper to own.' },
-    { q: 'How accurate is the stamp duty figure?',
-      a: 'Duty is computed from FY 2026-27 schedules for all eight Australian states and territories, including first home buyer concessions, verified against each state revenue office. It is still an estimate — confirm your exact assessment with your conveyancer or state revenue office before settlement.' },
+      a: 'If bidding doesn’t reach the vendor’s reserve, the property is passed in. The highest bidder usually gets the first right to negotiate with the vendor straight afterwards. Your walk-away price still applies in that negotiation.' },
     { q: 'Why keep a safety buffer?',
-      a: 'Buying at auction is unconditional, and ownership generates immediate costs — moving, repairs, rates adjustments — plus the ongoing risk of rate rises. Spending your last dollar at the hammer leaves nothing for the first surprise. Many buyers keep 5–10% of savings untouched.' }
+      a: 'Buying at auction is unconditional, and owning a home brings costs straight away, such as moving, repairs and rates adjustments, along with the risk of rate rises. The calculator keeps back 5% of your savings by default.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
@@ -745,8 +894,10 @@ window.addEventListener('DOMContentLoaded', function () {
     calculate();
   });
 
-  var fhbEl = document.getElementById('fhb');
-  if (fhbEl) fhbEl.addEventListener('change', calculate);
+  ['fhb', 'owner'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', calculate);
+  });
 
   // Suburb only affects the anchor callout — no need to re-solve the price.
   var subEl = document.getElementById('suburb');

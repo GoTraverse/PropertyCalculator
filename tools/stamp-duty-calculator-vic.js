@@ -24,6 +24,12 @@ function calcVICDuty(price, ptype, buyer, fhb) {
   var v = price;
   var standard = calcVICStandard(v);
 
+  // Vacant land: same treatment as tools/stamp-duty-calculator.js, which only
+  // applies first home buyer relief to dwellings (QLD land aside).
+  if (fhb && ptype === 'land') {
+    return { duty: standard, note: 'First home buyer relief on vacant land has different rules that this page doesn’t model, so this is standard duty.' };
+  }
+
   if (fhb && v <= VIC_FHB_FULL) {
     return { duty: 0, note: 'First home buyer exemption applied.' };
   }
@@ -44,7 +50,8 @@ function calculate() {
   if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
-  var buyer = document.getElementById('buyer').value;
+  var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
+  var buyer = buyerEl ? buyerEl.value : 'owner';
   var isFHB = document.getElementById('fhb').checked;
   var foreignEl = document.getElementById('foreign');
   var isForeign = foreignEl ? foreignEl.checked : false;
@@ -70,16 +77,22 @@ function calculate() {
   var regTotal = Math.round(regMortgage + regTransfer);
   var conveyancing = 1800;
   function lmiRate(lvr) {
+    // Rounded first, as lmiRate() in journey.js does: price × 0.8 ÷ price
+    // can come out as 0.8000000000000002 and land in the next tier.
+    lvr = Math.round(lvr * 10000) / 10000;
     if (lvr <= 0.80) return 0;
     if (lvr <= 0.85) return 0.0080;
     if (lvr <= 0.90) return 0.0190;
     if (lvr <= 0.95) return 0.0340;
     return 0.0430;
   }
-  var lmi = (isFHB && lvr > 0.80) ? 0 : Math.round(loanAmount * lmiRate(lvr));
-  var lmiLabel = (isFHB && lvr > 0.80)
-    ? '$0 (FHBG eligibility assumed)'
-    : (lmi > 0 ? fmt(lmi) : '$0 (no LMI)');
+  // LMI is always estimated from the LVR. A first home buyer may pay none
+  // under the federal 5% Deposit Scheme, but that depends on the scheme's
+  // price cap and eligibility, which this page does not check.
+  var lmi = Math.round(loanAmount * lmiRate(lvr));
+  var lmiLabel = lmi > 0
+    ? fmt(lmi) + (isFHB ? ' (may be $0 under the 5% Deposit Scheme if you and the price qualify)' : '')
+    : '$0 (no LMI)';
   var upfrontTotal = total + lmi + regTotal + conveyancing;
 
   document.getElementById('r-duty').textContent = fmt(duty);
@@ -90,19 +103,21 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Use Victoria — transfer fee scales with price)';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Use Victoria, transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Victoria 2026-27 land transfer duty. LMI is an industry-average estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate at SRO Victoria’s 2026-27 rates, before any principal place of residence concession. The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium. Check the final figures with your conveyancer before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -126,9 +141,9 @@ ToolPage.init({
   slug: 'stamp-duty-vic',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full Victoria purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Buying your first home in Victoria',
+    description: 'The First Home Journey adds this duty to a budget for the whole purchase and tracks your contract dates through to settlement.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=vic'
   },
   resources: {
@@ -136,28 +151,28 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Office Victoria',
         links: [
-          { text: 'VIC Land Transfer Duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
-          { text: 'First Home Buyer Duty Exemption / Concession', href: 'https://www.sro.vic.gov.au/first-home-buyer-duty-exemption-or-concession' }
+          { text: 'Land transfer duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
+          { text: 'First home buyer duty exemption and concession', href: 'https://www.sro.vic.gov.au/first-home-buyer-duty-exemption-or-concession' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyers',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'First Home Guarantee', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        icon: '\uD83D\uDCB0', title: 'Home loans and rental property',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with State Revenue Office Victoria.'
+    disclaimer: 'This is general information, not advice. SRO Victoria or your conveyancer can confirm the duty on your contract.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-vic',
@@ -178,7 +193,7 @@ ToolPage.init({
   ],
   examples: [
   {
-    "label": "VIC — $480,000 property",
+    "label": "$480,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -200,12 +215,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "v": "$0 (first home buyer exemption)"
       }
     ]
   },
   {
-    "label": "VIC — $680,000 property",
+    "label": "$680,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -227,12 +242,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$19,131 (FHB concession)"
+        "v": "$19,131 (first home buyer concession)"
       }
     ]
   },
   {
-    "label": "VIC — $1,000,000 property",
+    "label": "$1,000,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -254,37 +269,13 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$55,000 (over cap)"
+        "v": "$55,000 (over the concession limit)"
       }
     ]
   }
 ],
-  faq: [
-  {
-    "q": "How does stamp duty work in Victoria?",
-    "a": "Victorian stamp duty (officially \"land transfer duty\") is charged by the State Revenue Office Victoria (SRO) on the dutiable value of any property purchase. Duty is 1.4% up to $25,000, 2.4% on the portion from $25,000 to $130,000, and 6% on the portion from $130,000 to $960,000. From $960,000 to $2 million duty is a flat 5.5% of the whole price, and above $2 million it is $110,000 plus 6.5% of the amount over $2 million."
-  },
-  {
-    "q": "Do first home buyers pay stamp duty in Victoria?",
-    "a": "Eligible first home buyers pay no land transfer duty on properties up to $600,000, with a sliding partial concession from $600,000 to $750,000. Above $750,000 the standard rates apply. The exemption applies to both new and established homes used as a principal place of residence."
-  },
-  {
-    "q": "What is the Victorian PPR concession?",
-    "a": "The State Revenue Office offers a principal place of residence (PPR) concession for some owner-occupiers buying a home as their principal residence, separate from the first home buyer exemption. This calculator does not model the PPR concession — its owner-occupier figure uses the standard land transfer duty rates, so treat the owner-occupier result as the duty before any PPR concession you may separately qualify for. Confirm your eligibility and the current value limits with the SRO."
-  },
-  {
-    "q": "When is stamp duty due in Victoria?",
-    "a": "Land transfer duty in Victoria is payable within 30 days of settlement. In practice, your conveyancer pays the SRO at settlement using funds drawn from your loan and deposit. Late payment attracts interest at the rate published by the SRO, plus penalty tax in some circumstances."
-  },
-  {
-    "q": "What is the foreign purchaser additional duty in Victoria?",
-    "a": "Foreign purchasers pay an additional 8% foreign purchaser duty on top of standard land transfer duty when buying residential property in Victoria. The surcharge is collected by the SRO at the same time as the standard duty. Australian citizens, permanent residents (including New Zealand citizens with a Special Category Visa who satisfy the residency test) are not foreign purchasers."
-  },
-  {
-    "q": "Is Victorian stamp duty tax deductible?",
-    "a": "No. Stamp duty paid by a Victorian property investor is not immediately deductible against rental income. It is added to the cost base of the property and reduces capital gains tax when the property is later sold. Owner-occupiers cannot deduct stamp duty at all."
-  }
-],
+  // FAQ: shown once, as static HTML in the page (the same text is in its
+  // JSON-LD). There is no JS copy here, so the two cannot drift apart.
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },
     { group: 'Other Tools', icon: '\uD83D\uDCCA', href: '/tools/cost-of-purchase-calculator', label: 'Cost of Purchase Calculator' },

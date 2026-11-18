@@ -8,10 +8,19 @@
  *   user:<email>      → {name, hash, id, plan, email, createdAt}
  *   token:<token>     → {userId, email, name, plan, expires}   TTL=30d
  *   profile:<userId>  → {color, ...non-photo settings}
+ *   magic:<token>, magicEmail:<email>            → sign-in link and its 6-digit code, TTL=15min
+ *   magicTries:<token>                           → attempts at that code (INCR), TTL=15min
+ *   magicCodeFail:<email>, magicCodeFailIp:<ip>  → wrong sign-in codes in the last hour
+ *   verifyTries:<email>                          → attempts at the email-verification code, TTL=15min
+ *
+ * Every email address that arrives in a request goes through normalizeEmail()
+ * (in _session.js) before it is used in a key. The admin actions that act on a
+ * record already on file use existingUserKeyEmail() instead; see there.
  */
 
 const crypto = require('crypto');
-const { isStaleSession } = require('./_session');
+const { cancelSubscriptionsForCustomer } = require('./_billing');
+const { isStaleSession, normalizeEmail, EMAIL_MAX_LEN } = require('./_session');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
@@ -24,6 +33,8 @@ const TOKEN_TTL   = 60 * 60 * 24 * 30; // 30 days
 const SESSION_COOKIE_NAME = 'es_session';
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// Only this site's own Netlify deploy and preview hosts, never any *.netlify.app.
+const OWN_NETLIFY_ORIGIN = /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$/;
 
 // Defense-in-depth CSRF check for mutating requests. SameSite=Lax already
 // blocks cross-site POST cookies, but verifying the Origin header catches any
@@ -33,13 +44,13 @@ const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').spli
 function isAllowedOrigin(event){
   const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
   if(!o) return true;
-  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+  return ALLOWED_ORIGINS.includes(o) || OWN_NETLIFY_ORIGIN.test(o);
 }
 
 function getCorsHeaders(event) {
   const reqOrigin = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
-    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : OWN_NETLIFY_ORIGIN.test(reqOrigin) ? reqOrigin
     : ALLOWED_ORIGINS[0];
   return {
     'Content-Type':'application/json',
@@ -87,17 +98,17 @@ const VERIFY_EMAIL_FROM = (process.env.VERIFY_EMAIL_FROM || 'noreply@equitysight
 const DEFAULT_TEMPLATES = {
   verification: {
     subject: 'Verify your EquitySight account',
-    html: '<p>Your verification code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 15 minutes.</p>',
+    html: '<p>Your EquitySight verification code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 15 minutes. If you didn\'t create an EquitySight account, ignore this email.</p>',
     variables: ['{{code}}'],
   },
   welcome: {
-    subject: 'Welcome to EquitySight!',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Welcome, {{firstName}}! 🎉</h2><p>Your EquitySight account is verified and ready to go.</p><p>Your First Home Journey now syncs to your account, so it follows you across devices — and you can share it with a partner from the journey page.</p><a href="https://equitysight.app/journey" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open your journey</a><p style="margin-top:24px;font-size:12px;color:#888;">If you have any questions, reply to this email.</p></div>',
+    subject: 'Your EquitySight account is verified',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Hi {{firstName}}</h2><p>Your EquitySight account is verified.</p><p>Your First Home Journey is now saved to your account, so you can open it on another device or share it with a partner from the journey page.</p><a href="https://equitysight.app/journey" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open your journey</a><p style="margin-top:24px;font-size:12px;color:#888;">If you have a question, email support@equitysight.app.</p></div>',
     variables: ['{{firstName}}', '{{name}}'],
   },
   password_reset: {
     subject: 'Reset your EquitySight password',
-    html: '<p>Your password reset code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 30 minutes. If you did not request this, you can ignore this email.</p>',
+    html: '<p>Your EquitySight password reset code is <strong style="font-size:18px;letter-spacing:2px;">{{code}}</strong>.</p><p>This code expires in 30 minutes. If you didn\'t ask to reset your password, ignore this email.</p>',
     variables: ['{{code}}'],
   },
   magic_link: {
@@ -107,32 +118,32 @@ const DEFAULT_TEMPLATES = {
     // URLs to scan for malware, which can consume single-use magic-link
     // tokens before the legitimate user clicks them. The 6-digit code
     // can't be auto-extracted from prose, so it survives prefetch.
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;margin:0 0 12px;">Sign in to EquitySight</h2><p style="font-size:14px;line-height:1.6;">Click the button below to sign in. The link expires in 15 minutes and can only be used once.</p><p style="text-align:center;margin:24px 0;"><a href="{{link}}" style="display:inline-block;padding:14px 32px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:4px;font-size:14px;font-weight:600;">Sign in to EquitySight</a></p><p style="font-size:14px;line-height:1.6;color:#4A4A52;">Or, if your email client blocks the link, enter this 6-digit code on the sign-in page:</p><p style="text-align:center;font-size:28px;font-weight:700;letter-spacing:6px;color:#1C1C1E;margin:8px 0 24px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">{{code}}</p><p style="font-size:12px;color:#9CA3AF;line-height:1.6;">If you did not request this, you can safely ignore this email — your account stays secure.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;margin:0 0 12px;">Sign in to EquitySight</h2><p style="font-size:14px;line-height:1.6;">Use this button to sign in to EquitySight. The link works once and expires in 15 minutes.</p><p style="text-align:center;margin:24px 0;"><a href="{{link}}" style="display:inline-block;padding:14px 32px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:4px;font-size:14px;font-weight:600;">Sign in</a></p><p style="font-size:14px;line-height:1.6;color:#4A4A52;">If the link doesn\'t work, enter this 6-digit code on the sign-in page instead:</p><p style="text-align:center;font-size:28px;font-weight:700;letter-spacing:6px;color:#1C1C1E;margin:8px 0 24px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">{{code}}</p><p style="font-size:12px;color:#9CA3AF;line-height:1.6;">If you didn\'t ask for this, ignore this email.</p></div>',
     variables: ['{{link}}', '{{code}}'],
   },
   subscription: {
     subject: 'Your EquitySight plan has been updated',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Plan updated</h2><p>Hi {{firstName}},</p><p>Your plan has been updated to <strong>{{plan}}</strong>.</p><p>You now have access to all features included in your new plan.</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open Calculator</a></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Plan updated</h2><p>Hi {{firstName}},</p><p>Your EquitySight plan is now <strong>{{plan}}</strong>.</p><p>Billing details are on your account page.</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Open calculator</a></div>',
     variables: ['{{firstName}}', '{{name}}', '{{plan}}'],
   },
   security_alert: {
-    subject: 'Security alert — EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C45A5A;">⚠ Security alert</h2><p>Hi {{firstName}},</p><p>We detected the following activity on your account: <strong>{{event}}</strong>.</p><p>If this was you, no action is needed. If you did not do this, please reset your password immediately.</p><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 24px;background:#1C1C1E;color:#F5F0E8;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Reset Password</a></div>',
+    subject: 'EquitySight security alert',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C45A5A;">Security alert</h2><p>Hi {{firstName}},</p><p>Activity on your EquitySight account: <strong>{{event}}</strong>.</p><p>If that was you, there\'s nothing to do. If it wasn\'t, reset your password now.</p><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 24px;background:#1C1C1E;color:#F5F0E8;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">Reset password</a></div>',
     variables: ['{{firstName}}', '{{name}}', '{{event}}'],
   },
   promotional: {
     subject: 'What\'s new at EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">What\'s new</h2><p>Hi {{firstName}},</p><p>We\'ve been working hard on new features for EquitySight. Here\'s what\'s new:</p><p style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:12px 16px;border-radius:0 4px 4px 0;">Your message here...</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:16px;">Open Calculator</a><p style="margin-top:24px;font-size:11px;color:#9CA3AF;">You\'re receiving this because you have an EquitySight account.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">What\'s new</h2><p>Hi {{firstName}},</p><p>An update from EquitySight:</p><p style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:12px 16px;border-radius:0 4px 4px 0;">Your message here...</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:16px;">Open calculator</a><p style="margin-top:24px;font-size:11px;color:#9CA3AF;">You\'re receiving this because you have an EquitySight account.</p></div>',
     variables: ['{{firstName}}', '{{name}}'],
   },
   scenario_shared: {
     subject: '{{senderName}} shared a property scenario with you',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open your calculator to view the shared scenario:</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View Scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">You can find shared scenarios in your Saved Library.</p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">Scenario shared with you</h2><p>Hi {{firstName}},</p><p><strong>{{senderName}}</strong> has shared a property scenario with you on EquitySight{{address}}.</p><p>Open the calculator to see it:</p><a href="https://equitysight.app/app" style="display:inline-block;padding:12px 24px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View scenario</a><p style="margin-top:24px;font-size:12px;color:#888;">Shared scenarios are in your Saved Library.</p></div>',
     variables: ['{{firstName}}', '{{senderName}}', '{{address}}'],
   },
   scenario_invite: {
     subject: '{{senderName}} shared a property with you on EquitySight',
-    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">You\'ve been invited to EquitySight</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Sign up for a free EquitySight account to view it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create Free Account</a></p></div>',
+    html: '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="font-size:20px;margin-bottom:8px;">A property scenario was shared with you</h2><p style="font-size:14px;color:#4A4A52;line-height:1.7;"><strong>{{senderName}}</strong> wants to share a property scenario with you{{address}}.</p><p style="font-size:14px;color:#4A4A52;line-height:1.7;">Create an EquitySight account to see it:</p><p style="text-align:center;margin:24px 0;"><a href="https://equitysight.app/login" style="display:inline-block;padding:12px 28px;background:#1C1C1E;color:#F5F0E8;border-radius:4px;text-decoration:none;font-size:14px;font-weight:600;">Create account</a></p></div>',
     variables: ['{{senderName}}', '{{address}}'],
   },
 };
@@ -152,7 +163,7 @@ async function notifyAdminsNewUser(email, name, plan){
     const users=await Promise.all(keys.map(k=>rGet(k)));
     const admins=users.filter(u=>u&&u.role==='admin'&&u.email);
     if(!admins.length) return;
-    const subject='New user signed up — EquitySight';
+    const subject='EquitySight: new user signed up';
     const html='<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1C1C1E;"><h2 style="color:#C9A84C;">New user signed up</h2><p><strong>Name:</strong> '+escHtml(name)+'</p><p><strong>Email:</strong> '+escHtml(email)+'</p><p><strong>Plan:</strong> '+escHtml(plan)+'</p><p><strong>Time:</strong> '+new Date().toISOString()+'</p><a href="https://equitysight.app/admin" style="display:inline-block;padding:10px 20px;background:#C9A84C;color:#1C1C1E;text-decoration:none;border-radius:6px;font-weight:600;margin-top:8px;">View in Admin</a></div>';
     await Promise.all(admins.map(a=>sendResend(a.email,subject,html)));
   }catch(e){ console.warn('[auth] Admin new-user notification failed:',e.message); }
@@ -320,16 +331,42 @@ async function deleteUserKeys(userData, opts){
   if(userData.stripeCustomerId) delOps.push(rDel('cid:'+userData.stripeCustomerId));
   // Journey data + share tokens — privacy policy promises deletion within 30
   // days, so the journey record and any live share links must go too.
-  delOps.push(rDel('journey:'+email));
+  // The journey keys are built from the address. A record stored before
+  // addresses were checked could be called "users" or "shares:a@b.com", and
+  // deleting it would then remove 'journey:users' (the admin list) or another
+  // person's 'journey:shares:a@b.com'. An address without an @ or with a colon
+  // could never have been verified, so it has no journey data to remove.
+  const journeyKeysAreOwn = email.includes('@') && !email.includes(':');
+  if(journeyKeysAreOwn){
+    delOps.push(rDel('journey:'+email));
+    try{
+      // Shape: journey:shares:<email> → { view: <token>, edit: <token> }
+      const shRaw = await redisCmd('GET','journey:shares:'+email);
+      const sh = shRaw ? (()=>{ try{return JSON.parse(shRaw);}catch(e){return null;} })() : null;
+      if(sh && typeof sh === 'object'){
+        for(const k of Object.keys(sh)){ if(sh[k]) delOps.push(rDel('journey:share:'+sh[k])); }
+      }
+    }catch(e){ /* non-fatal */ }
+    delOps.push(rDel('journey:shares:'+email));
+    // The admin Journeys list is built from this set; leaving the address in it
+    // keeps a deleted person's email on file.
+    delOps.push(redisCmd('SREM','journey:users',email));
+  }
+  // Parked-tool and usage data keyed by user id.
+  delOps.push(rDel('portfolio:'+uid));
+  delOps.push(rDel('usage:'+uid));
+  delOps.push(rDel('sharedwith:'+uid));
+  // Public scenario share links (/s/<token>) must stop working too.
   try{
-    // Shape: journey:shares:<email> → { view: <token>, edit: <token> }
-    const shRaw = await redisCmd('GET','journey:shares:'+email);
-    const sh = shRaw ? (()=>{ try{return JSON.parse(shRaw);}catch(e){return null;} })() : null;
-    if(sh && typeof sh === 'object'){
-      for(const k of Object.keys(sh)){ if(sh[k]) delOps.push(rDel('journey:share:'+sh[k])); }
+    const psRaw = await redisCmd('GET','pubshares:'+uid);
+    const ps = psRaw ? (()=>{ try{return JSON.parse(psRaw);}catch(e){return null;} })() : null;
+    const tokens = Array.isArray(ps) ? ps : (ps && typeof ps === 'object' ? Object.values(ps) : []);
+    for(const t of tokens){
+      const tok = typeof t === 'string' ? t : (t && t.token);
+      if(tok) delOps.push(rDel('pubshare:'+tok));
     }
   }catch(e){ /* non-fatal */ }
-  delOps.push(rDel('journey:shares:'+email));
+  delOps.push(rDel('pubshares:'+uid));
   // Delete all scenarios for this user
   try{
     const raw = await redisCmd('GET','scenarios:'+uid+':index');
@@ -359,10 +396,24 @@ async function scanAll(pattern){
 }
 
 // Increment a rate-limit counter; sets TTL on first increment. Returns current count.
-async function rRateInc(key,ttlSecs){
+// Pass `limit` (the count above which the caller refuses) and a counter that is
+// over it gets its expiry checked: see rHealExpiry.
+async function rRateInc(key,ttlSecs,limit){
   const count=await redisCmd('INCR',key);
   if(count===1) await redisCmd('EXPIRE',key,String(ttlSecs));
+  else if(limit && count>limit) await rHealExpiry(key,ttlSecs);
   return count;
+}
+// INCR and EXPIRE are two calls. If the EXPIRE is lost (a Redis error, the
+// function timing out between the two) the counter never expires, and the
+// limit it backs never lifts: that person, address or IP stays refused for
+// good. This runs where a limit is about to refuse someone and puts the expiry
+// back if it is missing (TTL returns -1 for a key with no expiry). It never
+// extends an expiry that is there, and a failure here is ignored.
+async function rHealExpiry(key,ttlSecs){
+  try{
+    if(Number(await redisCmd('TTL',key))===-1) await redisCmd('EXPIRE',key,String(ttlSecs));
+  }catch(e){ /* non-fatal */ }
 }
 
 // Append a structured event for a userId
@@ -374,6 +425,75 @@ async function logEvent(userId,type,extra){
 }
 
 const EMAIL_CODE_TTL_MS = 1000 * 60 * 15; // 15 minutes
+const EMAIL_INVALID = 'Enter a valid email address.';
+
+// For the admin actions that take targetEmail. Each of them only ever reads,
+// changes or deletes a 'user:<email>' record that is already on file, and none
+// can create a key, so they accept any stored spelling: an address that fails
+// normalizeEmail() may have been registered before that check existed, and the
+// dashboard is how such a record gets looked at and removed. This only bounds
+// the input: a string, trimmed and lower-cased like every stored key, 254
+// characters at most, no control characters. Returns '' otherwise.
+function existingUserKeyEmail(raw){
+  if(typeof raw!=='string') return '';
+  const e=raw.toLowerCase().trim();
+  if(!e||e.length>EMAIL_MAX_LEN||/[\u0000-\u001f\u007f]/.test(e)) return '';
+  return e;
+}
+
+// A request field read as text: a string as it is, a number as its digits,
+// anything else as ''. String() on a JSON object such as {"toString":1} throws,
+// so codes and page-trail fields go through this instead.
+function textOf(v){
+  if(typeof v==='string') return v;
+  if(typeof v==='number'&&Number.isFinite(v)) return String(v);
+  return '';
+}
+
+// The pages a visitor saw before signing up, as login.js sends them from
+// localStorage: the last 20 entries, each cut down to {p, t, q}. An entry that
+// is not an object (a null left by a damaged localStorage value, say) is
+// dropped instead of throwing. Returns null when nothing usable is left.
+function cleanPageTrail(raw){
+  if(!Array.isArray(raw)||!raw.length) return null;
+  const trail=raw.slice(-20).filter(e=>e&&typeof e==='object').map(e=>({
+    p:textOf(e.p).slice(0,200),
+    t:typeof e.t==='number'?e.t:0,
+    q:textOf(e.q).slice(0,120)||undefined
+  }));
+  return trail.length ? trail : null;
+}
+
+// Email-verification code (8 characters from a 32-letter alphabet, 15-minute
+// life). Attempts are counted in their own key, 'verifyTries:<email>', with
+// INCR, so the count is atomic, expires 15 minutes after the first attempt
+// (never before the code it guards), and is deleted when the right code is
+// entered or a new one is issued. It used to be a field on the user record
+// that nothing ever reset: 8 wrong tries and the account could never be
+// verified, new code or not.
+const VERIFY_MAX_TRIES = 8;
+const VERIFY_TRIES_TTL = EMAIL_CODE_TTL_MS / 1000;
+function verifyTriesKey(email){ return 'verifyTries:'+email; }
+
+// Sign-in code (6 digits, 900,000 values, 15-minute life, sent with the magic
+// link). What a guesser gets:
+//   per code     5 attempts, right or wrong; the 5th wrong one deletes the code.
+//                Counted with INCR in 'magicTries:<token>' before the code is
+//                compared. (The count used to be read from the record and
+//                written back, so requests sent in parallel each saw zero.)
+//   per address  10 wrong codes in an hour across however many codes were
+//                issued ('magicCodeFail:<email>'); after that the code path is
+//                refused for the rest of the hour. The emailed link still works.
+//   per IP       20 wrong codes in an hour across all addresses
+//                ('magicCodeFailIp:<ip>').
+// Asking for codes is capped separately in sendMagicLink: 5 an hour per
+// address, 10 an hour per IP.
+const MAGIC_TTL = 15 * 60;
+const MAGIC_CODE_MAX_TRIES = 5;
+const MAGIC_FAIL_WINDOW = 60 * 60;
+const MAGIC_MAX_FAILS_PER_EMAIL = 10;
+const MAGIC_MAX_FAILS_PER_IP = 20;
+function hashMagicCode(code){ return crypto.createHmac('sha256',SALT).update('magic-code:'+code).digest('hex'); }
 
 // ── Cloudflare Turnstile CAPTCHA verification ────────────────────────────────
 const TURNSTILE_SECRET = (process.env.TURNSTILE_SECRET_KEY || '').trim();
@@ -417,13 +537,17 @@ function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual
 function hashPwScrypt(pw){ const salt=crypto.randomBytes(16); const dk=crypto.scryptSync(String(pw),salt,64); return 'scrypt$'+salt.toString('hex')+'$'+dk.toString('hex'); }
 function isLegacyHash(stored){ return typeof stored==='string' && !stored.startsWith('scrypt$'); }
 function verifyPw(pw,stored){
-  if(!stored) return false;
+  // Every client sends the password as a string. Anything else never matches
+  // (and String() on some JSON objects throws).
+  if(!stored||typeof pw!=='string') return false;
   if(typeof stored==='string' && stored.startsWith('scrypt$')){
     const p=stored.split('$'); if(p.length!==3||!p[1]||!p[2]) return false;
     let dk; try{ dk=crypto.scryptSync(String(pw),Buffer.from(p[1],'hex'),64); }catch(e){ return false; }
     const want=Buffer.from(p[2],'hex'); return want.length===dk.length && crypto.timingSafeEqual(want,dk);
   }
-  return safeEqual(stored,hashPw(pw)); // legacy HMAC path (equivalent to the previous compare)
+  // Legacy HMAC-SHA256 hash (64 hex characters). safeEqual() decodes both sides
+  // and compares them with crypto.timingSafeEqual, so the compare is constant-time.
+  return safeEqual(stored,hashPw(String(pw)));
 }
 
 // Issue a logged-in session for a magic-link verification (link or code).
@@ -469,7 +593,7 @@ async function verifyToken(event){
 exports.handler = async function(event){
   H = getCorsHeaders(event);
   if(event.httpMethod==='OPTIONS') return {statusCode:204,headers:H,body:''};
-  if(!SALT) return fail('Server configuration error — AUTH_SALT not set', 500);
+  if(!SALT) return fail('Server configuration error: AUTH_SALT is not set.', 500);
 
   // Reject mutating requests whose Origin isn't in our allowlist (CSRF).
   if(event.httpMethod!=='GET' && !isAllowedOrigin(event)) return fail('Forbidden',403);
@@ -482,7 +606,7 @@ exports.handler = async function(event){
   }
 
   if(!REDIS_URL||!REDIS_TOKEN){
-    return fail('Auth not configured — set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Netlify Site Settings → Environment variables');
+    return fail('Auth is not configured. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in the Netlify site settings, under Environment variables.');
   }
 
   // ── General per-IP rate limit: max 30 auth requests per 60 seconds ──────────
@@ -492,44 +616,48 @@ exports.handler = async function(event){
   // lookup only runs in the over-limit path, so anonymous abuse still pays it.
   const reqIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
   try{
-    const ipCount=await rRateInc('authReq:'+reqIp, 60);
+    const ipCount=await rRateInc('authReq:'+reqIp, 60, 30);
     if(ipCount>30){
       const maybeAdmin=await verifyToken(event);
-      if(!maybeAdmin || maybeAdmin.role!=='admin') return fail('Too many requests — please slow down', 429);
+      if(!maybeAdmin || maybeAdmin.role!=='admin') return fail('Too many requests. Slow down and try again.', 429);
     }
   }catch(e){ /* non-fatal — don't block if Redis hiccups */ }
 
   let body;
   try{body=JSON.parse(event.body||'{}');}catch(e){return fail('Bad request',400);}
+  if(!body||typeof body!=='object'||Array.isArray(body)) return fail('Bad request',400);
   const {action}=body;
 
   if(action==='signup'){
     const {email,password,name,plan,ref,turnstileToken}=body;
-    if(!email||!password) return fail('Email and password required');
+    // A password that is not a string has no length to check (1.length is
+    // undefined), so it would skip the minimum below.
+    if(!email||!password||typeof password!=='string') return fail('Enter your email and password.');
+    const normalizedEmail=normalizeEmail(email);
+    if(!normalizedEmail) return fail(EMAIL_INVALID);
     // Turnstile CAPTCHA verification
     const clientIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
-    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, clientIp)) return fail('Security check failed — please try again', 403);
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, clientIp)) return fail('The security check failed. Try again.', 403);
     // Rate limit signups per IP to prevent email-bombing the transactional email service
     const signupRateKey='signup:'+clientIp;
-    const signupCount=await rRateInc(signupRateKey,3600); // 1-hour window
-    if(signupCount>10) return fail('Too many signups from this IP — please try again later');
+    const signupCount=await rRateInc(signupRateKey,3600,10); // 1-hour window
+    if(signupCount>10) return fail('Too many signups from this IP address. Try again later.');
     const siteCfgSu=await rGet('config:site')||{};
-    if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
+    if(siteCfgSu.allowSignups===false) return fail('New signups are currently disabled. Email support@equitysight.app.');
     const pwMin=parseInt(siteCfgSu.minPasswordLength)||8;
-    if(password.length<pwMin) return fail('Password must be at least '+pwMin+' characters');
-    const normalizedEmail=email.toLowerCase().trim();
+    if(password.length<pwMin) return fail('The password must be at least '+pwMin+' characters.');
     if(siteCfgSu.requireEmailDomain){
       const domain=siteCfgSu.requireEmailDomain.toLowerCase().replace(/^@/,'');
       const emailDomain=normalizedEmail.split('@').pop();
       if(emailDomain!==domain) return fail('Signups are restricted to @'+domain+' email addresses');
     }
     const ekey='user:'+normalizedEmail;
-    if(await rGet(ekey)) return fail('An account with this email already exists');
+    if(await rGet(ekey)) return fail('There\'s already an account with this email. Sign in instead.');
     const userId=Date.now().toString(36)+crypto.randomBytes(4).toString('hex');
     const code=makeEmailCode();
     const refCode=(userId.slice(0,8)).toUpperCase();
     const user={
-      name:(name||normalizedEmail.split('@')[0]).trim(),
+      name:(typeof name==='string'?name.trim():'')||normalizedEmail.split('@')[0],
       hash:hashPwScrypt(password),
       id:userId,
       plan:'free', // paid tiers are granted ONLY via the Stripe webhook / adminSetPlan — never trusted from the signup request
@@ -538,26 +666,21 @@ exports.handler = async function(event){
       emailVerified:false,
       emailVerificationCodeHash:hashEmailCode(code),
       emailVerificationExpiresAt:Date.now()+EMAIL_CODE_TTL_MS,
-      emailVerificationAttempts:0,
       emailVerificationSentAt:Date.now(),
       referralCode:refCode,
       referralCount:0
     };
     // Store pre-signup page trail (max 20 entries from client, sanitised)
-    if(Array.isArray(body.pageTrail)&&body.pageTrail.length){
-      user.signupPageTrail=body.pageTrail.slice(-20).map(e=>({
-        p:String(e.p||'').slice(0,200),
-        t:typeof e.t==='number'?e.t:0,
-        q:e.q?String(e.q).slice(0,120):undefined
-      }));
-    }
+    const trail=cleanPageTrail(body.pageTrail);
+    if(trail) user.signupPageTrail=trail;
     // Handle incoming referral
-    const incomingRef=(ref||'').trim().toUpperCase().slice(0,16);
+    const incomingRef=(typeof ref==='string'?ref:'').trim().toUpperCase().slice(0,16);
     if(incomingRef){
       const referrerId=await rGet('referral:'+incomingRef);
       if(referrerId&&referrerId!==userId) user.referredBy=referrerId;
     }
     await rSet(ekey,user);
+    await rDel(verifyTriesKey(normalizedEmail)); // a new code starts with a clean attempt count
     await rSet('referral:'+refCode,userId);
     await rSet('uid:'+userId,normalizedEmail); // reverse index for scenarios auth
     await logEvent(userId,'signup',{name:user.name,email:normalizedEmail,plan:user.plan});
@@ -567,39 +690,45 @@ exports.handler = async function(event){
 
   if(action==='signin'){
     const {email,password,turnstileToken}=body;
-    if(!email||!password) return fail('Email and password required');
+    if(!email||!password) return fail('Enter your email and password.');
+    const normalizedEmail=normalizeEmail(email);
+    if(!normalizedEmail) return fail(EMAIL_INVALID);
     // Turnstile CAPTCHA verification
     const signinIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
-    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, signinIp)) return fail('Security check failed — please try again', 403);
-    const normalizedEmail=email.toLowerCase().trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, signinIp)) return fail('The security check failed. Try again.', 403);
     // Rate limit — per-email cap prevents credential stuffing on a single
     // account; per-IP cap prevents low-and-slow attacks hitting many accounts
     // from one source.
     const failKey='loginFail:'+normalizedEmail;
     const failCount=Number(await rGet(failKey)||0);
-    if(failCount>=10) return fail('Too many failed sign-in attempts. Please wait 15 minutes or reset your password.');
+    if(failCount>=10){ await rHealExpiry(failKey,900); return fail('Too many failed sign-in attempts. Wait 15 minutes or reset your password.'); }
     const ipKey='loginFailIp:'+signinIp;
     const ipFailCount=Number(await rGet(ipKey)||0);
-    if(ipFailCount>=30) return fail('Too many failed sign-in attempts from your network. Please wait 15 minutes.');
+    if(ipFailCount>=30){ await rHealExpiry(ipKey,900); return fail('Too many failed sign-in attempts from your network. Wait 15 minutes.'); }
     const user=await rGet('user:'+normalizedEmail);
-    if(!user){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
-    if(!verifyPw(password,user.hash)){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('Email or password incorrect'); }
+    if(!user){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('The email or password is incorrect.'); }
+    if(!verifyPw(password,user.hash)){ await rRateInc(failKey,900); await rRateInc(ipKey,900); return fail('The email or password is incorrect.'); }
     await rDel(failKey); // clear per-email counter on success (IP counter keeps
                         // its window — legitimate users rarely exceed 30/15min)
     if(!await rGet('uid:'+user.id)) await rSet('uid:'+user.id,normalizedEmail); // backfill reverse index
+    // Upgrade a legacy HMAC hash to scrypt now that the password has just been
+    // checked against it. This is the only moment the plaintext is available.
+    // It runs before the unverified-email return so those accounts are upgraded
+    // too; for everyone else the rSet further down saves it.
+    const upgradedHash=isLegacyHash(user.hash);
+    if(upgradedHash) user.hash=hashPwScrypt(password);
     if(user.emailVerified===false){
-      return ok({ok:false,error:'Please verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
+      if(upgradedHash) await rSet('user:'+normalizedEmail,user);
+      return ok({ok:false,error:'Verify your email before signing in.',requiresEmailVerification:true,email:user.email,name:user.name,plan:user.plan||'free'});
     }
-    // Upgrade a legacy HMAC hash to scrypt now that we have the plaintext (persisted by the rSet below).
-    if(isLegacyHash(user.hash)) user.hash=hashPwScrypt(password);
     user.lastLoginAt=Date.now();
     user.loginCount=(user.loginCount||0)+1;
     user.lastLoginIp=(event.headers?.['x-nf-client-connection-ip']||'').split(',')[0].trim()||event.headers?.['x-real-ip']||'';
     await rSet('user:'+normalizedEmail,user);
     await logEvent(user.id,'signin',{ip:user.lastLoginIp||''});
     const token=makeToken();
-    await rSet('token:'+token,{userId:user.id,email:user.email||email,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
-    const result={ok:true,id:user.id,name:user.name,email:user.email||email,plan:user.plan||'free',role:user.role||'user'};
+    await rSet('token:'+token,{userId:user.id,email:user.email||normalizedEmail,name:user.name,plan:user.plan||'free',role:user.role||'user',expires:Date.now()+TOKEN_TTL*1000},TOKEN_TTL);
+    const result={ok:true,id:user.id,name:user.name,email:user.email||normalizedEmail,plan:user.plan||'free',role:user.role||'user'};
     if(user.subscription_canceled_at) result.canceledAt=user.subscription_canceled_at;
     if(user.subscription_expires_at) result.expiresAt=user.subscription_expires_at;
     if(user.subscription_renews_at) result.renewsAt=user.subscription_renews_at;
@@ -607,11 +736,12 @@ exports.handler = async function(event){
   }
 
   if(action==='resendVerification'){
-    const normalizedEmail=(body.email||'').toLowerCase().trim();
-    if(!normalizedEmail) return fail('Email required');
+    if(!body.email) return fail('Enter your email.');
+    const normalizedEmail=normalizeEmail(body.email);
+    if(!normalizedEmail) return fail(EMAIL_INVALID);
     // Rate limit: max 3 resend requests per email per hour (prevent email bombing)
     const rvKey='resendVerif:'+normalizedEmail;
-    const rvCount=await rRateInc(rvKey,3600);
+    const rvCount=await rRateInc(rvKey,3600,3);
     if(rvCount>3) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // silent cap
     const user=await rGet('user:'+normalizedEmail);
     if(!user) return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail}); // don't reveal existence
@@ -620,30 +750,37 @@ exports.handler = async function(event){
     user.emailVerificationCodeHash=hashEmailCode(code);
     user.emailVerificationExpiresAt=Date.now()+EMAIL_CODE_TTL_MS;
     user.emailVerificationSentAt=Date.now();
+    delete user.emailVerificationAttempts; // the old in-record counter, no longer read
     await rSet('user:'+normalizedEmail,user);
+    await rDel(verifyTriesKey(normalizedEmail)); // a new code starts with a clean attempt count
     await sendVerificationEmail(normalizedEmail, code);
     return ok({ok:true,requiresEmailVerification:true,email:normalizedEmail});
   }
 
   if(action==='verifyEmail'){
-    const normalizedEmail=(body.email||'').toLowerCase().trim();
-    const code=String(body.code||'').trim();
-    if(!normalizedEmail||!code) return fail('Email and code required');
+    const code=textOf(body.code).trim();
+    if(!body.email||!code) return fail('Enter your email and the code.');
+    const normalizedEmail=normalizeEmail(body.email);
+    if(!normalizedEmail) return fail(EMAIL_INVALID);
     const user=await rGet('user:'+normalizedEmail);
-    if(!user) return fail('No account found for this email');
+    if(!user) return fail('There\'s no account for this email.');
     // An already-verified account must sign in with its password, Google or a
     // magic link. This branch never issues a session: the code has not been
     // checked at this point, so the caller has proved nothing.
-    if(user.emailVerified) return fail('This email is already verified. Please sign in.');
+    if(user.emailVerified) return fail('This email is already verified. Sign in.');
     if(!user.emailVerificationCodeHash||!user.emailVerificationExpiresAt||Date.now()>user.emailVerificationExpiresAt){
-      return fail('Verification code expired. Please request a new code.');
+      return fail('That verification code has expired. Ask for a new one.');
     }
-    user.emailVerificationAttempts=(user.emailVerificationAttempts||0)+1;
-    if(user.emailVerificationAttempts>8) return fail('Too many attempts. Please request a new code.');
-    if(user.emailVerificationCodeHash!==hashEmailCode(code)){
-      await rSet('user:'+normalizedEmail,user);
-      return fail('Incorrect verification code.');
-    }
+    // Count the attempt before looking at the code. INCR is atomic, so requests
+    // sent in parallel cannot share one attempt. The count expires 15 minutes
+    // after the first attempt and is deleted below on success and in
+    // resendVerification when a new code is issued, so this refusal always has a
+    // way out. The emailVerificationAttempts field on older user records is
+    // ignored: nothing ever reset it.
+    const triesKey=verifyTriesKey(normalizedEmail);
+    if((await rRateInc(triesKey,VERIFY_TRIES_TTL,VERIFY_MAX_TRIES))>VERIFY_MAX_TRIES) return fail('Too many attempts. Ask for a new code.');
+    if(!safeEqual(user.emailVerificationCodeHash,hashEmailCode(code))) return fail('Incorrect verification code.');
+    await rDel(triesKey);
     user.emailVerified=true;
     user.emailVerifiedAt=Date.now();
     delete user.emailVerificationCodeHash;
@@ -675,19 +812,20 @@ exports.handler = async function(event){
     try{
       const res=await fetch('https://oauth2.googleapis.com/tokeninfo?id_token='+encodeURIComponent(credential));
       tokenData=await res.json();
-    }catch(e){ return fail('Could not verify Google credential — please try again'); }
+    }catch(e){ return fail('Couldn\'t verify the Google sign-in. Try again.'); }
 
     if(tokenData.error||!tokenData.email||tokenData.email_verified==='false'){
-      return fail('Google sign-in failed — unverified credential');
+      return fail('Google sign-in failed. The Google credential could not be verified.');
     }
 
     // Validate audience matches our client ID — mandatory.
     // Falls back to Redis config so the env var is optional (but recommended).
     const GOOGLE_CLIENT_ID=((process.env.GOOGLE_CLIENT_ID||'').trim())||((await rGet('config:site'))||{}).googleClientId||'';
-    if(!GOOGLE_CLIENT_ID) return fail('Google Sign-In is not configured — add your Client ID in Admin → Configuration');
-    if(tokenData.aud!==GOOGLE_CLIENT_ID) return fail('Google sign-in failed — client ID mismatch');
+    if(!GOOGLE_CLIENT_ID) return fail('Google sign-in is not configured. Add the Client ID in Admin, under Configuration.');
+    if(tokenData.aud!==GOOGLE_CLIENT_ID) return fail('Google sign-in failed (client ID mismatch).');
 
-    const email=tokenData.email.toLowerCase().trim();
+    const email=normalizeEmail(tokenData.email);
+    if(!email) return fail('Google sign-in failed. The Google credential could not be verified.');
     const name=tokenData.name||tokenData.given_name||email.split('@')[0];
     const ekey='user:'+email;
     let user=await rGet(ekey);
@@ -696,7 +834,7 @@ exports.handler = async function(event){
     if(!user){
       // New user — create account (no password, no email verification needed)
       const siteCfg=await rGet('config:site')||{};
-      if(siteCfg.allowSignups===false) return fail('New signups are currently disabled. Please contact support.');
+      if(siteCfg.allowSignups===false) return fail('New signups are currently disabled. Email support@equitysight.app.');
       const userId=Date.now().toString(36)+crypto.randomBytes(4).toString('hex');
       const refCode=userId.slice(0,8).toUpperCase();
       user={
@@ -715,13 +853,8 @@ exports.handler = async function(event){
         lastLoginIp:clientIp,
       };
       // Store pre-signup page trail for Google signups
-      if(Array.isArray(body.pageTrail)&&body.pageTrail.length){
-        user.signupPageTrail=body.pageTrail.slice(-20).map(e=>({
-          p:String(e.p||'').slice(0,200),
-          t:typeof e.t==='number'?e.t:0,
-          q:e.q?String(e.q).slice(0,120):undefined
-        }));
-      }
+      const trail=cleanPageTrail(body.pageTrail);
+      if(trail) user.signupPageTrail=trail;
       await rSet(ekey,user);
       await rSet('referral:'+refCode,userId);
       await rSet('uid:'+userId,email);
@@ -853,7 +986,7 @@ exports.handler = async function(event){
       const m=/^data:image\/(jpeg|png|webp|gif);base64,([A-Za-z0-9+/]+={0,2})$/.exec(s);
       if(!m) return fail('Invalid photo format');
       // Cap at ~800 KB (base64 of ~600 KB image) to prevent Redis abuse.
-      if(s.length>1100000) return fail('Photo too large — maximum ~800 KB');
+      if(s.length>1100000) return fail('Photo too large. The maximum is about 800 KB.');
       const declaredType=m[1];
       let buf;
       try{ buf=Buffer.from(m[2],'base64'); }catch(e){ return fail('Invalid photo encoding'); }
@@ -879,11 +1012,11 @@ exports.handler = async function(event){
     const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     const {currentPassword,newPassword}=body;
-    if(!currentPassword||!newPassword) return fail('Both passwords required');
-    if(newPassword.length<8) return fail('New password must be at least 8 characters');
+    if(!currentPassword||!newPassword||typeof newPassword!=='string') return fail('Enter your current password and a new one.');
+    if(newPassword.length<8) return fail('The new password must be at least 8 characters.');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
-    if(!verifyPw(currentPassword,userData.hash)) return fail('Current password is incorrect');
+    if(!verifyPw(currentPassword,userData.hash)) return fail('Your current password is incorrect.');
     userData.hash=hashPwScrypt(newPassword);
     await rSet('user:'+user.email,userData);
     await logEvent(userData.id,'password_changed',{});
@@ -897,14 +1030,15 @@ exports.handler = async function(event){
 
   if(action==='requestPasswordReset'){
     const {email,turnstileToken}=body;
-    if(!email) return fail('Email required');
+    if(!email) return fail('Enter your email.');
+    const normalizedEmail=normalizeEmail(email);
+    if(!normalizedEmail) return fail(EMAIL_INVALID);
     // Turnstile CAPTCHA verification
     const resetIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
-    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, resetIp)) return fail('Security check failed — please try again', 403);
-    const normalizedEmail=email.toLowerCase().trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, resetIp)) return fail('The security check failed. Try again.', 403);
     // Rate limit: max 3 reset emails per email per hour (prevent email bombing)
     const rrKey='pwResetReq:'+normalizedEmail;
-    const rrCount=await rRateInc(rrKey,3600);
+    const rrCount=await rRateInc(rrKey,3600,3);
     if(rrCount>3) return ok({ok:true,message:'If an account exists, a reset code has been sent.'}); // silent cap
     const userData=await rGet('user:'+normalizedEmail);
     // Always return ok to prevent email enumeration
@@ -921,28 +1055,32 @@ exports.handler = async function(event){
 
   if(action==='resetPasswordWithToken'){
     const {email,code,newPassword}=body;
-    if(!email||!code||!newPassword) return fail('Email, code and new password required');
-    if(newPassword.length<8) return fail('Password must be at least 8 characters');
-    const normalizedEmail=email.toLowerCase().trim();
+    if(!email||!code||!newPassword||typeof newPassword!=='string') return fail('Enter your email, the code and a new password.');
+    if(newPassword.length<8) return fail('The password must be at least 8 characters.');
+    const normalizedEmail=normalizeEmail(email);
+    if(!normalizedEmail) return fail(EMAIL_INVALID);
     const resetData=await rGet('pwreset:'+normalizedEmail);
-    if(!resetData) return fail('Invalid or expired reset code');
-    const submitted=hashEmailCode(String(code).trim());
+    if(!resetData) return fail('That reset code is invalid or has expired.');
+    const submitted=hashEmailCode(textOf(code).trim());
     if(!safeEqual(resetData.hash, submitted)){
       // Per-code lockout: burn the code after 5 wrong guesses so the attacker
       // can't keep guessing a different 8-char code for the same email.
       const attempts=(resetData.attempts||0)+1;
       if(attempts>=5){
         await rDel('pwreset:'+normalizedEmail);
-        return fail('Too many incorrect attempts — request a new reset code.');
+        return fail('Too many incorrect attempts. Ask for a new reset code.');
       }
       await rSet('pwreset:'+normalizedEmail,{...resetData,attempts},1800);
-      return fail('Invalid or expired reset code');
+      return fail('That reset code is invalid or has expired.');
     }
     const userData=await rGet('user:'+normalizedEmail);
     if(!userData) return fail('Account not found');
     userData.hash=hashPwScrypt(newPassword);
     await rSet('user:'+normalizedEmail,userData);
     await rDel('pwreset:'+normalizedEmail);
+    // The sign-in lockout message says "wait 15 minutes or reset your password",
+    // so a completed reset has to lift that lockout.
+    await rDel('loginFail:'+normalizedEmail);
     await logEvent(userData.id,'password_reset',{});
     // A reset is what someone does when they think the account is compromised,
     // so it must end every existing session.
@@ -957,33 +1095,35 @@ exports.handler = async function(event){
   // returns ok:true to prevent account-existence enumeration.
   if(action==='sendMagicLink'){
     const {email,turnstileToken}=body;
-    if(!email) return fail('Email required');
+    if(!email) return fail('Enter your email.');
+    const normalizedEmail=normalizeEmail(email);
+    if(!normalizedEmail) return fail(EMAIL_INVALID);
     const mlIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
-    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, mlIp)) return fail('Security check failed — please try again', 403);
-    const normalizedEmail=email.toLowerCase().trim();
+    if(TURNSTILE_SECRET && !await verifyTurnstile(turnstileToken, mlIp)) return fail('The security check failed. Try again.', 403);
     // Per-email rate limit: 5 magic-link requests per hour.
     const mlEmailKey='magicLinkReq:'+normalizedEmail;
-    if((await rRateInc(mlEmailKey,3600))>5) return ok({ok:true,message:'If an account exists, a sign-in link has been sent.'});
+    if((await rRateInc(mlEmailKey,3600,5))>5) return ok({ok:true,message:'If an account exists, a sign-in link has been sent.'});
     // Per-IP rate limit: 10 per hour (catches IP-rotated email-bombing).
     const mlIpKey='magicLinkReqIp:'+mlIp;
-    if((await rRateInc(mlIpKey,3600))>10) return ok({ok:true,message:'If an account exists, a sign-in link has been sent.'});
+    if((await rRateInc(mlIpKey,3600,10))>10) return ok({ok:true,message:'If an account exists, a sign-in link has been sent.'});
     const userData=await rGet('user:'+normalizedEmail);
     if(userData && userData.emailVerified !== false){
       // 256-bit random token for the link, plus a separate 6-digit code
       // for users whose email scanner pre-fetches and consumes the link.
       const token=crypto.randomBytes(32).toString('hex');
       const code=String(crypto.randomInt(100000, 1000000));
-      const expiresAt=Date.now() + 15*60*1000; // 15 minutes
+      const expiresAt=Date.now() + MAGIC_TTL*1000; // 15 minutes
       // Store under the token (link path) AND under email→token (code path).
-      // Single-use: both keys are deleted when consumed.
+      // Single-use: both keys are deleted when consumed. Attempts at the code
+      // are counted in 'magicTries:<token>' (see verifyMagicCode), so a new
+      // code always starts from zero.
       await rSet('magic:'+token, {
         email: normalizedEmail,
         userId: userData.id,
-        codeHash: crypto.createHmac('sha256',SALT).update('magic-code:'+code).digest('hex'),
-        attempts: 0,
+        codeHash: hashMagicCode(code),
         expiresAt,
-      }, 15*60);
-      await rSet('magicEmail:'+normalizedEmail, token, 15*60);
+      }, MAGIC_TTL);
+      await rSet('magicEmail:'+normalizedEmail, token, MAGIC_TTL);
       const link='https://equitysight.app/login?magic='+encodeURIComponent(token);
       await sendMagicLinkEmail(normalizedEmail, link, code);
     }
@@ -995,8 +1135,11 @@ exports.handler = async function(event){
   if(action==='verifyMagicLink'){
     const {token}=body;
     if(!token) return fail('Token required');
+    // The token is 32 random bytes in hex. Anything else is not one of mine, so
+    // it never reaches a Redis key.
+    if(typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token)) return fail('That sign-in link is invalid or has expired. Ask for a new one.');
     const data=await rGet('magic:'+token);
-    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('Sign-in link is invalid or has expired. Please request a new one.');
+    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('That sign-in link is invalid or has expired. Ask for a new one.');
     const user=await rGet('user:'+data.email);
     if(!user) return fail('Account not found');
     // Single-use: delete BOTH keys atomically so a leaked link can't be
@@ -1009,29 +1152,66 @@ exports.handler = async function(event){
   // Verify the 6-digit code path. User typed the code from the email.
   if(action==='verifyMagicCode'){
     const {email,code}=body;
-    if(!email||!code) return fail('Email and code required');
-    const normalizedEmail=email.toLowerCase().trim();
+    if(!email||!code) return fail('Enter your email and the code.');
+    const normalizedEmail=normalizeEmail(email);
+    if(!normalizedEmail) return fail(EMAIL_INVALID);
+    const BAD_CODE='That sign-in code is invalid or has expired. Ask for a new one.';
+    // The limits are set out next to MAGIC_CODE_MAX_TRIES. Every count below is
+    // taken with INCR before the code is compared, so requests sent in parallel
+    // cannot each see a count of zero. A correct code hands the per-IP and
+    // per-address counts back.
+    const ipFailKey='magicCodeFailIp:'+reqIp;
+    if((await rRateInc(ipFailKey,MAGIC_FAIL_WINDOW,MAGIC_MAX_FAILS_PER_IP))>MAGIC_MAX_FAILS_PER_IP){
+      return fail('Too many incorrect codes from your network. Use the sign-in link in the email, or wait an hour.');
+    }
     const token=await rGet('magicEmail:'+normalizedEmail);
-    if(!token) return fail('Sign-in code is invalid or has expired. Please request a new one.');
+    if(!token||typeof token!=='string') return fail(BAD_CODE);
     const data=await rGet('magic:'+token);
-    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail('Sign-in code is invalid or has expired. Please request a new one.');
-    const submittedHash=crypto.createHmac('sha256',SALT).update('magic-code:'+String(code).trim()).digest('hex');
-    if(!safeEqual(data.codeHash, submittedHash)){
-      // Burn the token after 5 wrong attempts so an attacker can't keep
-      // brute-forcing the same email.
-      const attempts=(data.attempts||0)+1;
-      if(attempts>=5){
-        await rDel('magic:'+token);
-        await rDel('magicEmail:'+normalizedEmail);
-        return fail('Too many incorrect attempts — request a new sign-in link.');
+    if(!data || (data.expiresAt && Date.now()>data.expiresAt)) return fail(BAD_CODE);
+    // Counted only once there is a live code to guess at, so nobody can use up
+    // an address's allowance while no code is outstanding.
+    const emailFailKey='magicCodeFail:'+normalizedEmail;
+    if((await rRateInc(emailFailKey,MAGIC_FAIL_WINDOW,MAGIC_MAX_FAILS_PER_EMAIL))>MAGIC_MAX_FAILS_PER_EMAIL){
+      return fail('Too many incorrect codes for this email. Use the sign-in link in the email, or wait an hour.');
+    }
+    // The per-code count is never deleted, only left to expire. A request that
+    // has already read the code's record must not be able to find the count
+    // back at zero because another request deleted it a moment earlier.
+    const triesKey='magicTries:'+token;
+    const burnCode=async()=>{
+      await rDel('magic:'+token);
+      await rDel('magicEmail:'+normalizedEmail);
+    };
+    // data.attempts is the old in-record count; a code issued before this
+    // change keeps whatever it had already used.
+    const tries=(await rRateInc(triesKey,MAGIC_TTL,MAGIC_CODE_MAX_TRIES))+(Number(data.attempts)||0);
+    if(tries>MAGIC_CODE_MAX_TRIES){
+      await burnCode();
+      return fail('Too many incorrect attempts. Ask for a new sign-in link.');
+    }
+    const submitted=textOf(code).trim();
+    // Only six digits can be a code; anything else is wrong without hashing it.
+    if(!/^\d{6}$/.test(submitted) || !safeEqual(data.codeHash, hashMagicCode(submitted))){
+      if(tries>=MAGIC_CODE_MAX_TRIES){
+        await burnCode();
+        return fail('Too many incorrect attempts. Ask for a new sign-in link.');
       }
-      await rSet('magic:'+token,{...data,attempts},15*60);
-      return fail('Sign-in code is invalid or has expired. Please request a new one.');
+      return fail(BAD_CODE);
     }
     const user=await rGet('user:'+normalizedEmail);
     if(!user) return fail('Account not found');
-    await rDel('magic:'+token);
-    await rDel('magicEmail:'+normalizedEmail);
+    await burnCode();
+    // This attempt was not a wrong one: clear the address's count and take it
+    // back off the IP's. Best effort; the sign-in goes ahead either way.
+    try{
+      await rDel(emailFailKey);
+      // DECR hands back the one INCR this request made and nothing more. The key
+      // is never deleted here: wrong codes from the same IP can land between
+      // the DECR and a DEL, and the DEL would wipe them. A count left at 0 is
+      // harmless. If the key expired between the INCR and the DECR, DECR makes
+      // a new one at -1 with no expiry, so give it the window back.
+      if(Number(await redisCmd('DECR',ipFailKey))<=0) await rHealExpiry(ipFailKey,MAGIC_FAIL_WINDOW);
+    }catch(e){ /* non-fatal */ }
     return await issueMagicSession(event, user, normalizedEmail);
   }
 
@@ -1040,10 +1220,17 @@ exports.handler = async function(event){
     const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     const {password,deleteReason}=body;
-    if(!password) return fail('Password required to confirm deletion');
+    if(!password) return fail('Enter your password to confirm.');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
     if(!verifyPw(password,userData.hash)) return fail('Incorrect password');
+    // Stop billing before anything is deleted. If the account has a Stripe
+    // customer and its subscription can't be cancelled, stop here with nothing
+    // removed, so nobody keeps paying for an account that no longer exists.
+    if(userData.stripeCustomerId){
+      const billing=await cancelSubscriptionsForCustomer(userData.stripeCustomerId);
+      if(!billing.ok) return fail("I couldn't confirm with Stripe that nothing is still being charged to your card, so your account has not been deleted and nothing was removed. Try again in a few minutes, or email support@equitysight.app.");
+    }
     // deleteUserKeys() now revokes every token for this user, so we just need
     // to clear the cookie on the browser.
     await deleteUserKeys(userData, {deleteReason: (deleteReason||'').slice(0,500), deletedBy:'self'});
@@ -1071,10 +1258,11 @@ exports.handler = async function(event){
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail,newPassword}=body;
     if(!targetEmail||!newPassword) return fail('targetEmail and newPassword required');
-    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    const targetKey=existingUserKeyEmail(targetEmail);
+    const userData=targetKey ? await rGet('user:'+targetKey) : null;
     if(!userData) return fail('User not found');
     userData.hash=hashPwScrypt(newPassword);
-    await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    await rSet('user:'+targetKey,userData);
     await logEvent(userData.id,'admin_password_reset',{by:user.email});
     await revokeAllTokensForUser(userData.id);
     return ok({ok:true});
@@ -1085,8 +1273,15 @@ exports.handler = async function(event){
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail}=body;
     if(!targetEmail) return fail('targetEmail required');
-    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    const targetKey=existingUserKeyEmail(targetEmail);
+    const userData=targetKey ? await rGet('user:'+targetKey) : null;
     if(!userData) return fail('User not found');
+    // Same rule as deleteAccount: cancel the Stripe subscription first and
+    // delete nothing if that fails.
+    if(userData.stripeCustomerId){
+      const billing=await cancelSubscriptionsForCustomer(userData.stripeCustomerId);
+      if(!billing.ok) return fail("Stripe could not confirm that this user's billing has stopped, so nothing was deleted. Try again. If it keeps failing, check that STRIPE_SECRET_KEY is set in Netlify.");
+    }
     await deleteUserKeys(userData, {deletedBy: user.email});
     return ok({ok:true});
   }
@@ -1108,11 +1303,12 @@ exports.handler = async function(event){
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail,role}=body;
     if(!targetEmail||!role) return fail('targetEmail and role required');
-    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    const targetKey=existingUserKeyEmail(targetEmail);
+    const userData=targetKey ? await rGet('user:'+targetKey) : null;
     if(!userData) return fail('User not found');
     const prevRole=userData.role||'user';
     userData.role=role;
-    await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    await rSet('user:'+targetKey,userData);
     await logEvent(userData.id,'role_changed',{from:prevRole,to:role,by:user.email});
     return ok({ok:true});
   }
@@ -1407,6 +1603,19 @@ exports.handler = async function(event){
     }catch(e){ return fail('History error: '+e.message); }
   }
 
+  // Ends every session on the site, the caller's included. For use after any
+  // doubt about who holds a session: everyone signs in again.
+  if(action==='adminRevokeAllSessions'){
+    const user=await verifyToken(event);
+    if(!user||user.role!=='admin') return fail('Unauthorized',401);
+    const keys=await scanAll('token:*');
+    for(let i=0;i<keys.length;i+=50){
+      await Promise.all(keys.slice(i,i+50).map(k=>rDel(k)));
+    }
+    await logEvent(user.userId,'admin_revoked_all_sessions',{count:keys.length});
+    return ok({ok:true,count:keys.length}, buildSessionCookie('', 0));
+  }
+
   if(action==='adminPurgeExpiredSessions'){
     const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
@@ -1552,7 +1761,8 @@ exports.handler = async function(event){
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
     const {targetEmail}=body;
     if(!targetEmail) return fail('targetEmail required');
-    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    const targetKey=existingUserKeyEmail(targetEmail);
+    const userData=targetKey ? await rGet('user:'+targetKey) : null;
     if(!userData) return fail('User not found');
     const {hash,...safeUser}=userData;
     const profile=await rGet('profile:'+userData.id)||{};
@@ -1590,11 +1800,12 @@ exports.handler = async function(event){
     if(!targetEmail||!plan) return fail('targetEmail and plan required');
     const validPlans=['free','pro','adviser'];
     if(!validPlans.includes(plan)) return fail('Invalid plan. Use: free, pro, adviser');
-    const userData=await rGet('user:'+targetEmail.toLowerCase().trim());
+    const targetKey=existingUserKeyEmail(targetEmail);
+    const userData=targetKey ? await rGet('user:'+targetKey) : null;
     if(!userData) return fail('User not found');
     const oldPlan=userData.plan||'free';
     userData.plan=plan;
-    await rSet('user:'+targetEmail.toLowerCase().trim(),userData);
+    await rSet('user:'+targetKey,userData);
     if(userData.id) await logEvent(userData.id,'plan_changed',{from:oldPlan,to:plan,by:user.email});
     // Also update any active tokens for this user
     return ok({ok:true,plan});
@@ -1634,14 +1845,14 @@ exports.handler = async function(event){
   if(action==='adminSendTestEmail'){
     const user=await verifyToken(event);
     if(!user||user.role!=='admin') return fail('Unauthorized',401);
-    if(!RESEND_API_KEY) return fail('RESEND_API_KEY not configured — cannot send email',503);
+    if(!RESEND_API_KEY) return fail('RESEND_API_KEY is not configured, so email can\'t be sent.',503);
     const {subject,html}=body;
     if(!subject||!html) return fail('subject and html required');
     const sampleVars={code:'123456',firstName:user.name?(user.name.split(' ')[0]):'Admin',name:user.name||'Admin',plan:'Pro',event:'Password changed',senderName:'Jane Smith',address:' — 42 Wallaby Way, Sydney NSW 2000'};
     const fill=s=>s.replace(/\{\{(\w+)\}\}/g,(m,k)=>sampleVars[k]||m);
     try{
       const sent=await sendResend(user.email,'[TEST] '+fill(subject),fill(html));
-      if(!sent) return fail('Failed to send via Resend — check RESEND_API_KEY');
+      if(!sent) return fail('Sending through Resend failed. Check RESEND_API_KEY.');
       return ok({ok:true,sentTo:user.email});
     }catch(e){ return fail('Send error: '+e.message); }
   }
@@ -1727,7 +1938,7 @@ exports.handler = async function(event){
     if(!evt||!ALLOWED_EVENTS.includes(evt)) return ok({ok:true}); // silent drop for unknown events
     const trackIp=(event.headers['x-nf-client-connection-ip']||'unknown').split(',')[0].trim();
     try{
-      const rc=await rRateInc('trackRate:'+trackIp,60);
+      const rc=await rRateInc('trackRate:'+trackIp,60,60);
       if(rc>60) return ok({ok:true}); // silent rate-limit
     }catch(e){}
     // Increment per-user usage count for this event

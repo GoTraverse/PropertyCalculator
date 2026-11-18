@@ -36,10 +36,10 @@ var STATE_NAMES = {
 // Static coverage summaries for the hint under the state select (precise
 // periods are always shown next to each figure from the file's sources).
 var STATE_COVERAGE = {
-  VIC: 'Live VIC data: house + unit sale medians with 12-month change (Valuer-General Victoria, preliminary). No rent medians yet.',
-  QLD: 'Live QLD data: median weekly rents with 12-month change (RTA). Queensland publishes no free suburb sale prices — the check uses rental fundamentals.',
-  SA:  'Live SA data: median weekly rents with 12-month change (CBS) + metro Adelaide house sale medians (Valuer-General).',
-  TAS: 'Live TAS data: suburb median weekly rents (12 months of bond lodgements, Dept of Justice). No free suburb sale prices — the check uses rental fundamentals.'
+  VIC: 'VIC data: house and unit sale medians with 12-month change (Valuer-General Victoria, preliminary). No rent medians.',
+  QLD: 'QLD data: median weekly rents with 12-month change (RTA). Queensland publishes no free suburb sale prices, so the check uses rent.',
+  SA:  'SA data: median weekly rents with 12-month change (CBS), plus metro Adelaide house sale medians (Valuer-General).',
+  TAS: 'TAS data: suburb median weekly rents (12 months of bond lodgements, Dept of Justice). No free suburb sale prices, so the check uses rent.'
 };
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
@@ -90,7 +90,7 @@ function srcCaption(srcKey) {
   var s = _MEDIANS && _MEDIANS.sources && _MEDIANS.sources[srcKey];
   if (!s) return '';
   var t = 'as at ' + s.period + ', ' + s.source + ' (' + (s.licence || 'CC BY 4.0') + ')';
-  if (s.note) t += ' — ' + s.note;
+  if (s.note) t += ', ' + s.note;
   return t;
 }
 
@@ -101,7 +101,7 @@ function srcCaptionHtml(srcKey) {
     ? '<a href="' + escHtml(s.url) + '" target="_blank" rel="noopener">' + escHtml(s.source) + '</a>'
     : escHtml(s.source);
   var t = 'as at ' + escHtml(s.period) + ', ' + name + ' (' + escHtml(s.licence || 'CC BY 4.0') + ')';
-  if (s.note) t += ' — ' + escHtml(s.note);
+  if (s.note) t += ', ' + escHtml(s.note);
   return t;
 }
 
@@ -187,12 +187,12 @@ function updateCoverageHint() {
   if (!hint) return;
   var code = stateCode();
   if (_MEDIANS_FAILED) {
-    hint.textContent = 'Live market data could not be loaded right now — the general checks below still apply.';
+    hint.textContent = 'The market data didn’t load. The general checks in the result still apply.';
   } else if (STATE_COVERAGE[code]) {
     hint.textContent = STATE_COVERAGE[code];
   } else {
-    hint.textContent = 'No free, republishable government price or rent dataset for ' +
-      (STATE_NAMES[code] || code) + ' yet — you’ll still get the generic checks.';
+    hint.textContent = 'I don’t have suburb-level government price or rent data I can republish for ' +
+      (STATE_NAMES[code] || code) + ' yet. You can still run a yield check from an advertised rent.';
   }
 }
 
@@ -210,9 +210,9 @@ function calculate() {
   var price = parseVal('price');
   var userRent = parseVal('rent');
 
-  if (!price || price <= 0) { showErr('Please enter the asking price.'); return; }
+  if (!price || price <= 0) { showErr('Enter the asking price.'); return; }
   if (_MEDIANS === null && !_MEDIANS_FAILED) {
-    showErr('Market data is still loading — try again in a moment.');
+    showErr('The market data is still loading. Try again in a moment.');
     return;
   }
 
@@ -254,14 +254,14 @@ function calculate() {
     } else if (deltaPct >= -12) {
       band = 'Below the suburb median'; kind = 'green';
     } else {
-      band = 'Well below the suburb median — in auction states this can signal underquoting; check comparable sold prices'; kind = 'gold';
+      band = 'Well below the suburb median, which in auction states can signal underquoting'; kind = 'gold';
     }
     verdictHtml = bannerHtml(kind, 'Verdict',
       band + ' (' + signedPct(deltaPct) + ' vs the ' + displaySuburb + ' ' + ptypeLabel + ' median).');
 
     var priceRows = [
       rowHtml('Asking price', fmt(price)),
-      rowHtml(titleCase(ptypeLabel) + ' median — ' + displaySuburb, fmt(median)),
+      rowHtml(titleCase(ptypeLabel) + ' median, ' + displaySuburb, fmt(median)),
       rowHtml('Difference', signedFmt(delta) + ' (' + signedPct(deltaPct) + ')', 'total')
     ];
     // 12-month movement of the same median (hc = house, uc = unit), so the
@@ -272,7 +272,7 @@ function calculate() {
     }
     priceBlock = breakdownHtml('Asking price vs suburb median', priceRows);
     if (priceSrcKey) {
-      sources.push('Suburb median: ' + fmt(median) + ' — ' + srcCaptionHtml(priceSrcKey) + '.');
+      sources.push('Suburb median: ' + fmt(median) + ', ' + srcCaptionHtml(priceSrcKey) + '.');
       if (entry && typeof entry[moveKey] === 'number') {
         sources.push('12-month change: ' + trendPeriod(priceSrcKey) + '.');
       }
@@ -281,18 +281,18 @@ function calculate() {
     // Suburb found, but these states publish no free sale medians at all.
     verdictHtml = bannerHtml('gold', code === 'QLD' ? 'Queensland note' : 'Tasmania note',
       code === 'QLD'
-        ? 'Queensland doesn’t publish free suburb sale prices; this check uses rental fundamentals instead.'
-        : 'Tasmania publishes no free suburb sale prices; this check uses rental fundamentals from 12 months of bond lodgements instead.');
+        ? 'Queensland doesn’t publish free suburb sale prices, so this check uses rent.'
+        : 'Tasmania publishes no free suburb sale prices, so this check uses rents from 12 months of bond lodgements.');
   } else if (entry) {
     // Suburb found but no sale median for this property type (e.g. SA units,
     // or a VIC suburb with no recorded unit median).
     verdictHtml = bannerHtml('gold', 'No ' + ptypeLabel + ' median',
       'The dataset has no ' + ptypeLabel + ' sale median for ' + displaySuburb +
-      ((typeof entry.r === 'number' || userRent > 0) ? ' — running the rental-fundamentals check instead.' : '. Try the other property type, or add an advertised rent for a yield check.'));
+      ((typeof entry.r === 'number' || userRent > 0) ? ', so this is a rent check only.' : '. Try the other property type, or add an advertised rent for a yield check.'));
   } else if (covered && suburbRaw) {
     verdictHtml = bannerHtml('gold', 'Suburb not found',
       '“' + displaySuburb + '” isn’t in the ' + code +
-      ' dataset — check the spelling or pick a suggestion from the suburb field. No numbers are invented for missing suburbs.');
+      ' dataset. Check the spelling or pick a suggestion from the suburb field.');
   } else if (covered) {
     // Covered state, no suburb entered.
     if (!(userRent > 0)) {
@@ -302,9 +302,9 @@ function calculate() {
     verdictHtml = bannerHtml('gold', 'No suburb selected',
       'Running a yield-only check from the rent you entered.');
   } else {
-    verdictHtml = bannerHtml('gold', 'No free public data for this state yet',
-      'There’s no free, republishable government sale-price or rent dataset for ' +
-      (STATE_NAMES[code] || code) + ' yet, so this listing can’t be scored against a median. The sanity checks below still apply.');
+    verdictHtml = bannerHtml('gold', 'No suburb data for this state yet',
+      'I don’t have suburb-level government sale-price or rent data I can republish for ' +
+      (STATE_NAMES[code] || code) + ' yet, so this listing can’t be compared with a median. The other checks below still apply.');
   }
 
   /* ── YIELD MODE — advertised rent, or suburb median rent where known ── */
@@ -338,54 +338,57 @@ function calculate() {
     }
 
     var yieldVerdict = '';
-    if (suburbRent > 0 && entry && typeof entry.h === 'number' && entry.h > 0) {
-      // Suburb has both a median rent and a house sale median — compute the
-      // suburb's own reference yield and compare against it.
+    if (ptype === 'house' && suburbRent > 0 && entry && typeof entry.h === 'number' && entry.h > 0) {
+      // HOUSE listing in a suburb with both a median rent and a house sale
+      // median — compute the suburb's own reference yield and compare against
+      // it. Unit listings never use this path: dividing rent by the HOUSE
+      // median would make every unit look cheap. They fall through to the
+      // indicative unit band below.
       refYield = suburbRent * 52 / entry.h * 100;
       yieldRows.push(rowHtml('Suburb reference yield (median rent vs house median)', fmtPct(refYield, 2)));
       var diff = impliedYield - refYield;
       if (diff <= -0.5) {
-        yieldVerdict = 'The implied gross yield is below the suburb’s reference yield — the asking price looks high relative to local rental fundamentals (indicative).';
+        yieldVerdict = 'The implied gross yield is below the suburb’s reference yield, so the asking price looks high for local rents (indicative).';
       } else if (diff < 0.5) {
-        yieldVerdict = 'The implied gross yield is in line with the suburb’s reference yield — the price and local rents are telling the same story (indicative).';
+        yieldVerdict = 'The implied gross yield is in line with the suburb’s reference yield, so the asking price is consistent with local rents (indicative).';
       } else {
-        yieldVerdict = 'The implied gross yield is above the suburb’s reference yield — the asking price looks modest relative to local rents (indicative).';
+        yieldVerdict = 'The implied gross yield is above the suburb’s reference yield, so the asking price looks modest for local rents (indicative).';
       }
     } else {
       // No local price reference — compare with honest typical bands, and say
       // WHERE in the band the price lands rather than a mushy "within band".
       var bandLow = ptype === 'house' ? 2.5 : 4.0;
       var bandHigh = ptype === 'house' ? 4.5 : 6.0;
-      var bandLabel = ptype === 'house' ? 'houses, indicative 2.5–4.5% gross' : 'units, indicative 4–6% gross';
-      yieldRows.push(rowHtml('Typical indicative band', bandLabel));
+      var bandLabel = ptype === 'house' ? 'houses, 2.5–4.5% gross (my rule of thumb)' : 'units, 4–6% gross (my rule of thumb)';
+      yieldRows.push(rowHtml('Rule-of-thumb band', bandLabel));
       if (impliedYield < bandLow) {
-        yieldVerdict = 'The implied gross yield is below the typical band — at this asking price the property earns unusually little rent for its cost. That reads as a HIGH asking price relative to rental fundamentals (indicative), unless strong capital growth justifies it.';
+        yieldVerdict = 'The implied gross yield is below the rule-of-thumb band, so the asking price is high for the rent the property earns (indicative).';
       } else if (impliedYield <= bandHigh) {
         var midBand = (bandLow + bandHigh) / 2;
         yieldVerdict = impliedYield < midBand
-          ? 'The implied gross yield sits in the LOWER half of the typical band — the asking price is on the expensive side relative to the rent, without being an outlier (indicative).'
-          : 'The implied gross yield sits in the UPPER half of the typical band — the asking price looks reasonable against the rent this suburb actually earns (indicative).';
+          ? 'The implied gross yield is in the lower half of the rule-of-thumb band. The asking price is on the expensive side for the rent, but inside the band (indicative).'
+          : 'The implied gross yield is in the upper half of the rule-of-thumb band. The asking price looks reasonable for the rent (indicative).';
       } else {
-        yieldVerdict = 'The implied gross yield is above the typical band — the price looks modest relative to the rent (or the advertised rent is optimistic; verify it against the suburb median).';
+        yieldVerdict = 'The implied gross yield is above the rule-of-thumb band. Either the price is modest for the rent or the advertised rent is optimistic.';
       }
     }
     // If the advertised rent is well off the suburb median, do the
     // verification for the reader instead of telling them to do it.
     if (rentDev !== null && Math.abs(rentDev) >= 10) {
-      yieldVerdict += ' Note: the advertised rent is ' + Math.abs(rentDev).toFixed(0) + '% ' +
+      yieldVerdict += ' The advertised rent is ' + Math.abs(rentDev).toFixed(0) + '% ' +
         (rentDev > 0 ? 'above' : 'below') + ' the suburb median rent (' + fmt(suburbRent) + '/wk), so the implied yield reads ' +
-        (rentDev > 0 ? 'optimistic — re-run the check with the median to see the conservative case.' : 'conservative — there may be rental upside.');
+        (rentDev > 0 ? 'optimistic. Leave the rent blank to run the check on the median.' : 'conservative.');
     } else if (rentDev !== null) {
-      yieldVerdict += ' The advertised rent is in line with the suburb median (' + fmt(suburbRent) + '/wk), which grounds this yield read.';
+      yieldVerdict += ' The advertised rent is in line with the suburb median (' + fmt(suburbRent) + '/wk).';
     }
     // Append rent momentum so the read carries direction, not just level.
     if (rentTrend !== null && rentSrcKey) {
       yieldVerdict += ' Suburb median rent moved ' + signedPct(rentTrend) + ' over ' + trendPeriod(rentSrcKey) + '.';
     }
 
-    yieldBlock = breakdownHtml('Rental fundamentals check (indicative)', yieldRows) +
+    yieldBlock = breakdownHtml('Rent check (indicative)', yieldRows) +
       bannerHtml((refYield !== null && (impliedYield - refYield) <= -0.5) || (refYield === null && impliedYield < (ptype === 'house' ? 2.5 : 4.0)) ? 'gold' : 'green',
-        'Yield read', yieldVerdict);
+        'Yield', yieldVerdict);
 
     // Stamp the sources of every suburb figure used above (linked to the
     // dataset page so every number is verifiable in one click). Any RTA/CBS
@@ -393,12 +396,12 @@ function calculate() {
     // including when the user supplied their own rent (the trend still
     // renders, so the caption must too).
     if (suburbRent > 0 && rentSrcKey) {
-      sources.push('Suburb median rent: ' + fmt(suburbRent) + '/wk — ' + srcCaptionHtml(rentSrcKey) + '.');
+      sources.push('Suburb median rent: ' + fmt(suburbRent) + '/wk, ' + srcCaptionHtml(rentSrcKey) + '.');
     } else if (rentTrend !== null && rentSrcKey) {
-      sources.push('Suburb rent trend — ' + srcCaptionHtml(rentSrcKey) + '.');
+      sources.push('Suburb rent trend, ' + srcCaptionHtml(rentSrcKey) + '.');
     }
     if (refYield !== null && priceSrcKey && !median) {
-      sources.push('Suburb house median (yield reference): ' + fmt(entry.h) + ' — ' + srcCaptionHtml(priceSrcKey) + '.');
+      sources.push('Suburb house median (yield reference): ' + fmt(entry.h) + ', ' + srcCaptionHtml(priceSrcKey) + '.');
     }
   }
 
@@ -439,40 +442,32 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Buying a first home',
+    description: 'The First Home Journey compares the government schemes on your figures and builds a budget that includes stamp duty and the legal and registration costs.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFDB\uFE0F', title: 'Official Data Sources',
+        icon: '\uD83C\uDFDB\uFE0F', title: 'Datasets',
         links: [
-          { text: 'Valuer-General Victoria — property sales statistics', href: 'https://www.land.vic.gov.au/valuations/resources-and-reports/property-sales-statistics' },
-          { text: 'Valuer-General SA — metro median house sales (data.sa.gov.au)', href: 'https://data.sa.gov.au/data/dataset/metro-median-house-sales' },
-          { text: 'RTA Queensland — median rents', href: 'https://www.rta.qld.gov.au/median-rents' },
-          { text: 'CBS South Australia — private rental data', href: 'https://www.cbs.sa.gov.au/' }
+          { text: 'Valuer-General Victoria: property sales statistics', href: 'https://www.land.vic.gov.au/valuations/resources-and-reports/property-sales-statistics' },
+          { text: 'Valuer-General SA: metro median house sales', href: 'https://data.sa.gov.au/data/dataset/metro-median-house-sales' },
+          { text: 'RTA Queensland: median rents', href: 'https://www.rta.qld.gov.au/median-rents' },
+          { text: 'Consumer and Business Services (SA)', href: 'https://www.cbs.sa.gov.au/' }
         ]
       },
       {
-        icon: '\uD83D\uDCCA', title: 'Open Data Portals',
+        icon: '\uD83D\uDCB0', title: 'Buying',
         links: [
-          { text: 'data.vic.gov.au', href: 'https://www.data.vic.gov.au/' },
-          { text: 'data.sa.gov.au', href: 'https://data.sa.gov.au/' },
-          { text: 'data.qld.gov.au', href: 'https://www.data.qld.gov.au/' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCB0', title: 'Buying Guidance',
-        links: [
-          { text: 'Moneysmart: Buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Moneysmart: Property investment', href: 'https://moneysmart.gov.au/property-investment' },
-          { text: 'Consumer Affairs Victoria: Underquoting', href: 'https://www.consumer.vic.gov.au/housing/buying-and-selling-property/buying-property/underquoting' }
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' },
+          { text: 'Consumer Affairs Victoria: underquoting', href: 'https://www.consumer.vic.gov.au/housing/buying-and-selling-property/buying-property/underquoting' }
         ]
       }
     ],
-    disclaimer: 'Medians are general market indicators, not valuations. Data is republished under CC BY 4.0 from the credited agencies and carries its stated period — confirm current figures with the source before relying on them.'
+    disclaimer: 'The figures are republished under CC BY 4.0 from the agencies credited.'
   },
   share: {
     url: 'https://equitysight.app/tools/listing-price-checker',
@@ -493,7 +488,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'Point Cook VIC — house asking $830,000',
+      label: 'Point Cook VIC, house asking $830,000',
       inputs: [
         { k: 'State', v: 'Victoria' },
         { k: 'Suburb', v: 'Point Cook' },
@@ -507,7 +502,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'Glenelg SA — house asking $1,850,000',
+      label: 'Glenelg SA, house asking $1,850,000',
       inputs: [
         { k: 'State', v: 'South Australia' },
         { k: 'Suburb', v: 'Glenelg' },
@@ -515,14 +510,14 @@ ToolPage.init({
         { k: 'Asking price', v: '$1,850,000' }
       ],
       outputs: [
-        { k: 'Metro house median (Q1 2026, VG SA)', v: '$1,949,000' },
+        { k: 'Suburb house median (Q1 2026, VG SA)', v: '$1,949,000' },
         { k: 'Difference', v: '−$99,000 (−5.1%)' },
         { k: 'Verdict', v: 'Below the suburb median' },
         { k: 'Implied yield at median rent $598/wk', v: '~1.7% (indicative)' }
       ]
     },
     {
-      label: 'New Farm QLD — house asking $1,300,000',
+      label: 'New Farm QLD, house asking $1,300,000',
       inputs: [
         { k: 'State', v: 'Queensland' },
         { k: 'Suburb', v: 'New Farm' },
@@ -532,23 +527,15 @@ ToolPage.init({
       outputs: [
         { k: 'Median weekly rent (Mar 2026, RTA)', v: '$700/wk' },
         { k: 'Implied gross yield', v: '~2.8% (indicative)' },
-        { k: 'Note', v: 'QLD has no free sale medians — rent check only' }
+        { k: 'Note', v: 'QLD has no free sale medians, so this is a rent check only' }
       ]
     }
   ],
   faq: [
-    { q: 'Is a suburb median the same as a property valuation?',
-      a: 'No. A median is the middle sale price or rent in a suburb over a period — it says nothing about a specific property’s bedrooms, land size, condition, street or aspect. Use it as a sanity check on an asking price, then look at comparable recent sold prices and, where it matters, get a professional valuation.' },
-    { q: 'Where does the listing price checker’s data come from?',
-      a: 'Sale medians are published by Valuer-General Victoria (2025, preliminary) and the Valuer-General of South Australia (metro Adelaide, Q1 2026). Rent medians come from the Residential Tenancies Authority Queensland (March quarter 2026), Consumer and Business Services South Australia (Jan–Mar 2026), and 12 months of Tasmanian Department of Justice rental-bond lodgements aggregated per suburb. All are open government datasets republished under the CC BY 4.0 licence, and every figure on screen links back to its dataset.' },
     { q: 'Why are there no NSW or Queensland sale prices?',
-      a: 'The NSW Valuer-General’s bulk sales data is licensed on non-commercial, no-derivatives terms, so it can’t lawfully be republished here. Queensland doesn’t publish a free suburb-level sales dataset at all — suburb sale medians there are sold by commercial data providers. For those states the checker uses rental fundamentals (QLD) or general guidance instead of inventing numbers.' },
-    { q: 'How current are the suburb medians?',
-      a: 'Every figure shown carries its own period: VIC sale medians are preliminary 2025 full-year figures, SA metro house medians are Q1 2026, QLD rents are the March 2026 quarter, SA rents are Jan–Mar 2026 and TAS rents cover the 12 months to April 2026. Where the same dataset publishes the prior period we also show the 12-month change, so you can see direction as well as level. Government medians typically lag the live market by a quarter or more, so treat them as a baseline rather than today’s price.' },
-    { q: 'What is underquoting and how does this tool help?',
-      a: 'Underquoting is advertising a price guide below the seller’s or agent’s genuine expectation, most common in auction markets like Melbourne and Sydney. If an advertised guide sits well below the suburb median (more than about 12%), that can be a signal — check recent comparable sold prices, and in Victoria the agent’s Statement of Information, before setting your budget.' },
-    { q: 'What is a good gross rental yield?',
-      a: 'As a broad indicative range, metro Australian houses commonly show gross yields of roughly 2.5–4.5% and units roughly 4–6%. A very low implied yield can mean the asking price is high relative to what the property earns in rent. Gross yield ignores costs — use our rental yield calculator for the net picture.' }
+      a: 'The NSW Valuer-General’s bulk sales data is licensed on non-commercial, no-derivatives terms, so I can’t lawfully republish it here. Queensland doesn’t publish a free suburb-level sales dataset. Suburb sale medians there are sold by commercial data providers, so for Queensland the checker uses rents.' },
+    { q: 'What is underquoting?',
+      a: 'Underquoting is advertising a price guide below what the seller or agent expects to get. It is most common in auction markets like Melbourne and Sydney. If an advertised guide sits more than about 12% below the suburb median, check recent comparable sold prices before setting your budget. In Victoria the agent’s Statement of Information must show three comparable sales.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },

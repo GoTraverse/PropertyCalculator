@@ -1,7 +1,7 @@
 {
   "name": "EquitySight",
   "short_name": "EquitySight",
-  "description": "Your first home, step by step — guided journey, scheme comparison and calculators for Australian home buyers",
+  "description": "A guided first home planner and calculators for Australian home buyers",
   "start_url": "/journey",
   "shortcuts": [
     { "name": "First Home Journey", "url": "/journey" },

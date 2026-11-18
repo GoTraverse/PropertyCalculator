@@ -41,7 +41,7 @@ var LT_META = {
     name: 'South Australia', office: 'RevenueSA',
     url: 'https://www.revenuesa.sa.gov.au/land-tax/rates-and-thresholds',
     basis: 'SA 2026-27 schedule (holdings at midnight 30 June 2026; site values; tax per $100 or part of $100)',
-    assess: 'South Australia assesses land owned at midnight 30 June 2026 for 2026-27 on site values — aggregated, then apportioned between your properties. Tax is computed per $100 or part of $100 of the excess.'
+    assess: 'South Australia assesses land owned at midnight 30 June 2026 for 2026-27 on site values. It adds your land together, then splits the tax between your properties. Tax is worked out per $100 or part of $100 of the excess.'
   },
   wa: {
     name: 'Western Australia', office: 'RevenueWA (Department of Treasury and Finance)',
@@ -64,7 +64,7 @@ var LT_META = {
   nt: {
     name: 'Northern Territory', office: 'NT Government',
     url: 'https://nt.gov.au/property/land/buying-and-selling-land/land-taxes',
-    basis: 'NT — no land tax levied',
+    basis: 'NT: no land tax',
     assess: ''
   }
 };
@@ -74,44 +74,44 @@ var LT_OTYPE_HINTS = {
   nsw: {
     individual: 'General scale: tax-free to $1,075,000, then $100 + 1.6% of the excess; 2% above $6,571,000 (2026 tax year).',
     company: 'Companies pay the same general scale and $1,075,000 threshold as individuals in NSW.',
-    trust: 'Special/discretionary trusts get NO threshold in NSW — 1.6% from the first dollar (2% above $6,571,000).',
-    foreign: 'Ordinary scale PLUS a 5% surcharge on the entire land value — the surcharge has no threshold.'
+    trust: 'Special and discretionary trusts get no threshold in NSW, so they pay 1.6% from the first dollar (2% above $6,571,000).',
+    foreign: 'The ordinary scale plus a 5% surcharge on the entire land value. The surcharge has no threshold.'
   },
   vic: {
     individual: 'General scale (2024–2033): tax-free below $50,000; bands from a flat $500 up to 2.65% above $3,000,000.',
     company: 'Companies pay the same general scale as individuals in Victoria.',
-    trust: 'Trusts pay a surcharge scale from just $25,000 — higher than the general scale until the two converge at $3,000,000.',
-    foreign: 'Absentee owners pay the general scale PLUS a 4% surcharge on the whole value (applies from $50,000).'
+    trust: 'Trusts pay a surcharge scale that starts at $25,000 and stays above the general scale until the two meet at $3,000,000.',
+    foreign: 'Absentee owners pay the general scale plus a 4% surcharge on the whole value (applies from $50,000).'
   },
   qld: {
     individual: 'Resident individuals: tax-free below $600,000, then $500 + 1c per $1 (higher bands from $1,000,000).',
-    company: 'Companies get the LOWER $350,000 threshold in QLD: $1,450 + 1.7c per $1 above it.',
-    trust: 'Trustees use the company scale in QLD — tax-free only below $350,000.',
-    foreign: 'Absentees use a modified company-style table PLUS a 3% surcharge on the value above $350,000.'
+    company: 'Companies get the lower $350,000 threshold in QLD, then $1,450 + 1.7c per $1 above it.',
+    trust: 'Trustees use the company scale in QLD, so they’re tax-free only below $350,000.',
+    foreign: 'Absentees use a modified company-style table plus a 3% surcharge on the value above $350,000.'
   },
   sa: {
     individual: 'General 2026-27 scale: tax-free to $936,000, then $0.50 per $100 (or part), rising to $2.40 per $100.',
     company: 'Companies pay the same general scale as individuals in SA.',
     trust: 'Trusts pay a higher scale from just $25,000 in SA.',
-    foreign: 'South Australia has NO foreign owner land tax surcharge — the ordinary scale applies.'
+    foreign: 'South Australia has no foreign owner land tax surcharge. The ordinary scale applies.'
   },
   wa: {
     individual: 'Single scale: tax-free to $300,000, flat $300 to $420,000, then marginal bands up to 2.67c per $1.',
-    company: 'Same single scale — WA has no separate company or trust scale.',
-    trust: 'Same single scale — WA has no trust surcharge.',
-    foreign: 'Same single scale — WA has no foreign owner land tax surcharge.'
+    company: 'Same single scale. WA has no separate company or trust scale.',
+    trust: 'Same single scale. WA has no trust surcharge.',
+    foreign: 'Same single scale. WA has no foreign owner land tax surcharge.'
   },
   tas: {
     individual: 'General Land scale (from 1 Jul 2025): tax-free below $125,000, then $50 + 0.45%; 1.5% above $500,000.',
     company: 'Companies pay the same General Land scale in Tasmania.',
-    trust: 'No separate trust scale in Tasmania — the general scale applies to trustees.',
-    foreign: 'General scale PLUS the 2% FILTS surcharge (no threshold) on residential-capable land acquired by a foreign person on/after 1 Jul 2022.'
+    trust: 'No separate trust scale in Tasmania. The general scale applies to trustees.',
+    foreign: 'General scale plus the 2% FILTS surcharge (no threshold) on residential-capable land acquired by a foreign person on/after 1 Jul 2022.'
   },
   act: {
-    individual: 'Per property (no aggregation): fixed $1,778 + marginal 0.54%–1.26% on the 5-yr-average AUV — only while rented or vacant.',
-    company: 'Same fixed + marginal charge — ownership structure doesn’t change the ACT calculation.',
-    trust: 'Same fixed + marginal charge — ownership structure doesn’t change the ACT calculation.',
-    foreign: 'Fixed + marginal charge PLUS a 0.75% foreign owner surcharge on each property’s AUV.'
+    individual: 'Per property (no aggregation): fixed $1,778 + marginal 0.54%–1.26% on the 5-yr-average AUV, only while rented or vacant.',
+    company: 'Same fixed and marginal charge. Ownership structure doesn’t change the ACT calculation.',
+    trust: 'Same fixed and marginal charge. Ownership structure doesn’t change the ACT calculation.',
+    foreign: 'Fixed and marginal charge plus a 0.75% foreign owner surcharge on each property’s AUV.'
   },
   nt: {
     individual: 'The Northern Territory levies no land tax on any owner type.',
@@ -122,11 +122,11 @@ var LT_OTYPE_HINTS = {
 };
 
 /* ── Value-basis hints shown above the property list ── */
-var LT_VALUE_HINT_DEFAULT = 'Enter TAXABLE LAND VALUES — the unimproved/site value on your valuation notice, not the market price of the property. Don’t include your own home (exempt everywhere) or primary production land.';
+var LT_VALUE_HINT_DEFAULT = 'Enter taxable land values: the unimproved or site value on your valuation notice, not what the property would sell for. Leave out your own home (exempt everywhere) and primary production land.';
 var LT_VALUE_HINTS = {
   nsw: LT_VALUE_HINT_DEFAULT + ' NSW assesses on a 3-year average of Valuer General land values.',
-  act: 'Enter each property’s 5-year-average AUV (Average Unimproved Value) from the rates assessment — not market price. ACT land tax applies ONLY to residential property that is rented or left vacant; an owner-occupied home is out of scope here.',
-  nt: 'The Northern Territory levies no land tax — the result below simply confirms $0.'
+  act: 'Enter each property’s 5-year-average AUV (Average Unimproved Value) from the rates assessment, not the market price. ACT land tax applies only to residential property that is rented or left vacant, so leave out a home you live in.',
+  nt: 'The Northern Territory has no land tax, so the result below is $0.'
 };
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -146,12 +146,12 @@ function ltR(tax, threshold, band, mRate, mNote) {
 
 function schedNSW(V, otype) {
   if (otype === 'trust') {
-    var tt = 'None — special/discretionary trusts have no NSW threshold';
+    var tt = 'None (special and discretionary trusts have no NSW threshold)';
     if (V <= 6571000) return ltR(0.016 * V, tt, 'Special trust: 1.6% of the entire land value', 0.016);
     return ltR(105136 + 0.02 * (V - 6571000), tt, 'Special trust above $6,571,000: $105,136 + 2% of the excess', 0.02);
   }
-  var th = '$1,075,000 (general — individuals, companies & fixed trusts)';
-  if (V <= 1075000) return ltR(0, th, 'At or below the general threshold — no land tax', 0, '0% until $1,075,000 (then $100 + 1.6% of the excess)');
+  var th = '$1,075,000 (general: individuals, companies and fixed trusts)';
+  if (V <= 1075000) return ltR(0, th, 'No land tax at or below the general threshold', 0, '0% until $1,075,000 (then $100 + 1.6% of the excess)');
   if (V <= 6571000) return ltR(100 + 0.016 * (V - 1075000), th, 'General: $100 + 1.6% of the value above $1,075,000', 0.016);
   return ltR(88036 + 0.02 * (V - 6571000), th, 'Premium: $88,036 + 2% of the value above $6,571,000', 0.02);
 }
@@ -159,7 +159,7 @@ function schedNSW(V, otype) {
 function schedVIC(V, otype) {
   if (otype === 'trust') {
     var tt = '$25,000 (VIC trust surcharge scale)';
-    if (V < 25000) return ltR(0, tt, 'Below the trust threshold — no land tax', 0, '0% until $25,000');
+    if (V < 25000) return ltR(0, tt, 'No land tax below the trust threshold', 0, '0% until $25,000');
     if (V < 50000) return ltR(82 + 0.00375 * (V - 25000), tt, '$25,000–<$50,000 (trust): $82 + 0.375% of the excess', 0.00375);
     if (V < 100000) return ltR(676 + 0.00375 * (V - 50000), tt, '$50,000–<$100,000 (trust): $676 + 0.375% of the excess', 0.00375);
     if (V < 250000) return ltR(1338 + 0.00375 * (V - 100000), tt, '$100,000–<$250,000 (trust): $1,338 + 0.375% of the excess', 0.00375);
@@ -170,9 +170,9 @@ function schedVIC(V, otype) {
     return ltR(31650 + 0.0265 * (V - 3000000), tt, '$3,000,000+ (trust converges with general): $31,650 + 2.65% of the excess', 0.0265);
   }
   var th = '$50,000 (general)';
-  if (V < 50000) return ltR(0, th, 'Below $50,000 — no land tax', 0, '0% until $50,000');
-  if (V < 100000) return ltR(500, th, '$50,000–<$100,000: flat $500', 0, 'Flat $500 across this band — $0 on the next dollar until $100,000');
-  if (V < 300000) return ltR(975, th, '$100,000–<$300,000: flat $975', 0, 'Flat $975 across this band — $0 on the next dollar until $300,000');
+  if (V < 50000) return ltR(0, th, 'No land tax below $50,000', 0, '0% until $50,000');
+  if (V < 100000) return ltR(500, th, '$50,000–<$100,000: flat $500', 0, 'Flat $500 across this band, so $0 on the next dollar until $100,000');
+  if (V < 300000) return ltR(975, th, '$100,000–<$300,000: flat $975', 0, 'Flat $975 across this band, so $0 on the next dollar until $300,000');
   if (V < 600000) return ltR(1350 + 0.003 * (V - 300000), th, '$300,000–<$600,000: $1,350 + 0.3% of the excess', 0.003);
   if (V < 1000000) return ltR(2250 + 0.006 * (V - 600000), th, '$600,000–<$1,000,000: $2,250 + 0.6% of the excess', 0.006);
   if (V < 1800000) return ltR(4650 + 0.009 * (V - 1000000), th, '$1,000,000–<$1,800,000: $4,650 + 0.9% of the excess', 0.009);
@@ -183,7 +183,7 @@ function schedVIC(V, otype) {
 function schedQLD(V, otype) {
   if (otype === 'individual') {
     var th = '$600,000 (resident individuals)';
-    if (V < 600000) return ltR(0, th, 'Below $600,000 — no land tax', 0, '0% until $600,000');
+    if (V < 600000) return ltR(0, th, 'No land tax below $600,000', 0, '0% until $600,000');
     if (V < 1000000) return ltR(500 + 0.01 * (V - 600000), th, '$600,000–<$1,000,000: $500 + 1.0c per $1 of the excess', 0.01);
     if (V < 3000000) return ltR(4500 + 0.0165 * (V - 1000000), th, '$1,000,000–<$3,000,000: $4,500 + 1.65c per $1 of the excess', 0.0165);
     if (V < 5000000) return ltR(37500 + 0.0125 * (V - 3000000), th, '$3,000,000–<$5,000,000: $37,500 + 1.25c per $1 of the excess', 0.0125);
@@ -194,7 +194,7 @@ function schedQLD(V, otype) {
   // different top bands (2.0c / 2.5c instead of 2.25c / 2.75c).
   var isAbs = (otype === 'foreign');
   var th2 = '$350,000 (' + (isAbs ? 'absentee/foreign schedule' : 'companies & trustees') + ')';
-  if (V < 350000) return ltR(0, th2, 'Below $350,000 — no land tax', 0, '0% until $350,000');
+  if (V < 350000) return ltR(0, th2, 'No land tax below $350,000', 0, '0% until $350,000');
   if (V < 2250000) return ltR(1450 + 0.017 * (V - 350000), th2, '$350,000–<$2,250,000: $1,450 + 1.7c per $1 of the excess', 0.017);
   if (V < 5000000) return ltR(33750 + 0.015 * (V - 2250000), th2, '$2,250,000–<$5,000,000: $33,750 + 1.5c per $1 of the excess', 0.015);
   if (isAbs) {
@@ -212,7 +212,7 @@ function saHundreds(excess) { return Math.ceil(excess / 100); }
 function schedSA(V, otype) {
   if (otype === 'trust') {
     var tt = '$25,000 (SA trust scale, 2026-27)';
-    if (V <= 25000) return ltR(0, tt, 'At or below $25,000 — no land tax', 0, '0% until $25,000');
+    if (V <= 25000) return ltR(0, tt, 'No land tax at or below $25,000', 0, '0% until $25,000');
     if (V <= 936000) return ltR(125 + 0.5 * saHundreds(V - 25000), tt, '$25,000–$936,000 (trust): $125 + $0.50 per $100 or part above $25,000', null, '$0.50 per $100 or part (≈ 0.5%)');
     if (V <= 1504000) return ltR(4680 + 1.0 * saHundreds(V - 936000), tt, '$936,000–$1,504,000 (trust): $4,680 + $1.00 per $100 or part above $936,000', null, '$1.00 per $100 or part (≈ 1.0%)');
     if (V <= 2188000) return ltR(10360 + 1.5 * saHundreds(V - 1504000), tt, '$1,504,000–$2,188,000 (trust): $10,360 + $1.50 per $100 or part above $1,504,000', null, '$1.50 per $100 or part (≈ 1.5%)');
@@ -220,7 +220,7 @@ function schedSA(V, otype) {
     return ltR(52204 + 2.4 * saHundreds(V - 3504000), tt, 'Above $3,504,000 (trust): $52,204 + $2.40 per $100 or part above $3,504,000', null, '$2.40 per $100 or part (≈ 2.4%)');
   }
   var th = '$936,000 (general, 2026-27)';
-  if (V <= 936000) return ltR(0, th, 'At or below $936,000 — no land tax', 0, '0% until $936,000');
+  if (V <= 936000) return ltR(0, th, 'No land tax at or below $936,000', 0, '0% until $936,000');
   if (V <= 1504000) return ltR(0.5 * saHundreds(V - 936000), th, '$936,000–$1,504,000: $0.50 per $100 or part above $936,000', null, '$0.50 per $100 or part (≈ 0.5%)');
   if (V <= 2188000) return ltR(2840 + 1.0 * saHundreds(V - 1504000), th, '$1,504,000–$2,188,000: $2,840 + $1.00 per $100 or part above $1,504,000', null, '$1.00 per $100 or part (≈ 1.0%)');
   if (V <= 3504000) return ltR(9680 + 2.0 * saHundreds(V - 2188000), th, '$2,188,000–$3,504,000: $9,680 + $2.00 per $100 or part above $2,188,000', null, '$2.00 per $100 or part (≈ 2.0%)');
@@ -229,8 +229,8 @@ function schedSA(V, otype) {
 
 function schedWA(V) {
   var th = '$300,000 (single scale for all owner types)';
-  if (V <= 300000) return ltR(0, th, 'At or below $300,000 — no land tax', 0, '0% until $300,000');
-  if (V <= 420000) return ltR(300, th, '$300,001–$420,000: flat $300', 0, 'Flat $300 across this band — $0 on the next dollar until $420,000');
+  if (V <= 300000) return ltR(0, th, 'No land tax at or below $300,000', 0, '0% until $300,000');
+  if (V <= 420000) return ltR(300, th, '$300,001–$420,000: flat $300', 0, 'Flat $300 across this band, so $0 on the next dollar until $420,000');
   if (V <= 1000000) return ltR(300 + 0.0025 * (V - 420000), th, '$420,001–$1,000,000: $300 + 0.25c per $1 above $420,000', 0.0025);
   if (V <= 1800000) return ltR(1750 + 0.009 * (V - 1000000), th, '$1,000,001–$1,800,000: $1,750 + 0.9c per $1 above $1,000,000', 0.009);
   if (V <= 5000000) return ltR(8950 + 0.018 * (V - 1800000), th, '$1,800,001–$5,000,000: $8,950 + 1.8c per $1 above $1,800,000', 0.018);
@@ -239,8 +239,8 @@ function schedWA(V) {
 }
 
 function schedTAS(V) {
-  var th = '$125,000 (General Land — same scale for all owner types)';
-  if (V < 125000) return ltR(0, th, 'Below $125,000 — no land tax', 0, '0% until $125,000');
+  var th = '$125,000 (General Land, same scale for all owner types)';
+  if (V < 125000) return ltR(0, th, 'No land tax below $125,000', 0, '0% until $125,000');
   if (V < 500000) return ltR(50 + 0.0045 * (V - 125000), th, '$125,000–<$500,000: $50 + 0.45% of the excess', 0.0045);
   return ltR(1737.5 + 0.015 * (V - 500000), th, '$500,000+: $1,737.50 + 1.5% of the excess', 0.015);
 }
@@ -274,17 +274,17 @@ function ltSurcharges(state, otype, V, mritOn) {
   var list = [];
   if (otype === 'foreign') {
     if (state === 'nsw') {
-      list.push({ label: 'Foreign owner surcharge (5% of the full land value — NSW, no threshold)', amount: 0.05 * V, add: 0.05 });
+      list.push({ label: 'Foreign owner surcharge (NSW, 5% of the full land value, no threshold)', amount: 0.05 * V, add: 0.05 });
     } else if (state === 'vic' && V >= 50000) {
-      list.push({ label: 'Absentee owner surcharge (4% of the full land value — VIC)', amount: 0.04 * V, add: 0.04 });
+      list.push({ label: 'Absentee owner surcharge (VIC, 4% of the full land value)', amount: 0.04 * V, add: 0.04 });
     } else if (state === 'qld' && V >= 350000) {
-      list.push({ label: 'Foreign owner surcharge (3% of the value above $350,000 — QLD)', amount: 0.03 * (V - 350000), add: 0.03 });
+      list.push({ label: 'Foreign owner surcharge (QLD, 3% of the value above $350,000)', amount: 0.03 * (V - 350000), add: 0.03 });
     } else if (state === 'tas') {
-      list.push({ label: 'FILTS foreign surcharge (2% — TAS; residential-capable General Land acquired by a foreign person on/after 1 Jul 2022, no threshold)', amount: 0.02 * V, add: 0.02 });
+      list.push({ label: 'FILTS foreign surcharge (TAS, 2% on residential-capable General Land acquired by a foreign person on/after 1 Jul 2022, no threshold)', amount: 0.02 * V, add: 0.02 });
     }
   }
   if (state === 'wa' && mritOn && V > 300000) {
-    list.push({ label: 'Metropolitan Region Improvement Tax (0.14% of the value above $300,000 — Perth metro)', amount: 0.0014 * (V - 300000), add: 0.0014 });
+    list.push({ label: 'Metropolitan Region Improvement Tax (Perth metro, 0.14% of the value above $300,000)', amount: 0.0014 * (V - 300000), add: 0.0014 });
   }
   return list;
 }
@@ -323,20 +323,20 @@ function ltCalloutHtml(kind, tag, text) {
 
 function ltVerifiedHtml(state) {
   var o = LT_META[state];
-  return escHtml(o.basis) + ' — verified against ' + escHtml(o.office) +
-    ' as at 5 July 2026. <a href="' + escHtml(o.url) + '" target="_blank" rel="noopener">Official rates and thresholds</a>. ' +
-    'General information only — not tax, legal or financial advice.';
+  return escHtml(o.basis) + '. Checked against ' + escHtml(o.office) +
+    ' on 5 July 2026. <a href="' + escHtml(o.url) + '" target="_blank" rel="noopener">Official rates and thresholds</a>. ' +
+    'General information, not tax, legal or financial advice.';
 }
 
 function ltMarginalText(res, addRate) {
   if (res.mNote) {
-    return res.mNote + (addRate > 0 ? ' · plus ' + ltPctStr(addRate) + ' surcharge on each extra dollar' : '');
+    return res.mNote + (addRate > 0 ? ', plus ' + ltPctStr(addRate) + ' surcharge on each extra dollar' : '');
   }
   if (addRate > 0) return ltPctStr(res.mRate) + ' schedule + ' + ltPctStr(addRate) + ' surcharge = ' + ltPctStr(res.mRate + addRate);
   return ltPctStr(res.mRate);
 }
 
-var LT_GOLD_CALLOUT_TEXT = 'Land value is the unimproved/site value on your valuation notice or assessment — typically WELL below market price. NSW uses a 3-year average; the ACT uses a 5-year average AUV.';
+var LT_GOLD_CALLOUT_TEXT = 'Land value is the unimproved or site value on your valuation notice or assessment, usually well below the market price. NSW uses a 3-year average and the ACT a 5-year average AUV.';
 
 /* ══════════════════════════════════════════════════════════════════════
    DYNAMIC PROPERTY ROWS
@@ -347,8 +347,8 @@ var _propSeq = 1;
 function ltValueHintText() {
   var st = ltByIdEl('state') ? ltByIdEl('state').value : 'nsw';
   return (st === 'act')
-    ? '(5-year-average AUV — not market price)'
-    : '(unimproved/site land value — not market price)';
+    ? '(5-year-average AUV, not market price)'
+    : '(unimproved or site value, not market price)';
 }
 
 function ltAddPropRow() {
@@ -390,6 +390,60 @@ function ltCollectProps() {
     out.push({ label: lEl ? (lEl.value || '') : '', value: v });
   }
   return out;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   REMEMBER THE PROPERTY ROWS ACROSS A REFRESH
+   tool-page.js remembers only the inputs that exist when the page loads
+   (state, owner type, MRIT and the first row). The rows a visitor adds or
+   removes are kept here: the whole list, in order, exactly as typed. It has
+   its own key because tool-page.js rewrites 'tool_inputs_v1:land-tax' in
+   full on every snapshot and would drop anything extra stored in it.
+   ══════════════════════════════════════════════════════════════════════ */
+
+var LT_ROWS_KEY = 'tool_inputs_v1:land-tax:rows';
+var LT_ROWS_MAX = 100; // most rows rebuilt on load, in case the stored list is damaged
+
+function ltSaveRows() {
+  var rows = document.querySelectorAll('#prop-list [data-prop-row]');
+  var out = [];
+  for (var i = 0; i < rows.length; i++) {
+    var lEl = rows[i].querySelector('[data-prop-label]');
+    var vEl = rows[i].querySelector('[data-prop-value]');
+    out.push({ label: lEl ? String(lEl.value || '') : '', value: vEl ? String(vEl.value || '') : '' });
+  }
+  try { localStorage.setItem(LT_ROWS_KEY, JSON.stringify(out)); } catch (e) { /* storage off or full */ }
+}
+
+/* Rebuilds the list from the last save. Runs after tool-page.js has restored
+ * the first row from its own snapshot and overrides it, because this list is
+ * saved on every keystroke and on every add or remove, so it is never older.
+ * (After the first row is removed, tool-page.js still holds that row's old
+ * value under prop-value-1; this list is what stops it coming back.)
+ * With nothing saved here, the page is left as tool-page.js restored it. */
+function ltRestoreRows() {
+  var list = ltByIdEl('prop-list');
+  if (!list) return;
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LT_ROWS_KEY) || 'null'); } catch (e) { return; }
+  if (!Array.isArray(saved) || !saved.length) return;
+  var n = Math.min(saved.length, LT_ROWS_MAX);
+  for (var i = 0; i < n; i++) {
+    var rows = list.querySelectorAll('[data-prop-row]');
+    if (i >= rows.length) {
+      ltAddPropRow();
+      rows = list.querySelectorAll('[data-prop-row]');
+    }
+    var item = saved[i] || {};
+    var lEl = rows[i].querySelector('[data-prop-label]');
+    var vEl = rows[i].querySelector('[data-prop-value]');
+    // Set through .value only, so a stored string can never become markup.
+    if (lEl) lEl.value = (typeof item.label === 'string') ? item.label.slice(0, 60) : '';
+    if (vEl) {
+      vEl.value = (typeof item.value === 'string') ? item.value : '';
+      fmtInput(vEl); // digits, separators and one decimal point only
+    }
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -463,7 +517,7 @@ function calculate() {
   if (state === 'nt') {
     /* ── NT: no land tax at all ── */
     heroEl.innerHTML = ltHeroHtml('$0', 'No land tax in the Northern Territory',
-      'The NT is the only Australian jurisdiction that levies no land tax — on any owner type or land value.');
+      'The NT is the only Australian jurisdiction with no land tax, whatever the owner or land value.');
     bdEl.innerHTML = '';
     callouts += ltCalloutHtml('', 'Why $0',
       'The Northern Territory has no land tax on individuals, companies, trusts or foreign owners, and no equivalent annual land-value tax. Council rates and other holding costs still apply.');
@@ -485,12 +539,12 @@ function calculate() {
       var fSur = (otype === 'foreign') ? 0.0075 * a : 0;
       var sub = ACT_FIXED_CHARGE + vres.tax + fSur;
       grandTotal += sub;
-      rows += ltRowHtml(escHtml(name) + ' — AUV ' + fmt(a), fmt(sub), 'subtotal');
+      rows += ltRowHtml(escHtml(name) + ', AUV ' + fmt(a), fmt(sub), 'subtotal');
       rows += ltRowHtml('Fixed charge (2026-27, per property)', fmt(ACT_FIXED_CHARGE));
-      rows += ltRowHtml('Valuation charge — ' + escHtml(vres.band), fmt(vres.tax));
-      if (fSur > 0) rows += ltRowHtml('Foreign owner surcharge (0.75% of AUV — ACT)', fmt(fSur));
+      rows += ltRowHtml('Valuation charge (' + escHtml(vres.band) + ')', fmt(vres.tax));
+      if (fSur > 0) rows += ltRowHtml('Foreign owner surcharge (ACT, 0.75% of AUV)', fmt(fSur));
     }
-    rows += ltRowHtml('TOTAL annual land tax (' + propCount + (propCount === 1 ? ' property' : ' properties') + ', computed per property — the ACT does not aggregate)', fmt(grandTotal), 'total');
+    rows += ltRowHtml('Total annual land tax (' + propCount + (propCount === 1 ? ' property' : ' properties') + ', worked out per property because the ACT doesn’t aggregate)', fmt(grandTotal), 'total');
     rows += ltRowHtml('Billed in four quarterly instalments of about', fmt(grandTotal / 4));
     rows += ltRowHtml('Effective rate on combined AUV', (grandTotal / V * 100).toFixed(2) + '%');
     if (propCount === 1 && lastVres) {
@@ -501,9 +555,9 @@ function calculate() {
           : ltPctStr(lastVres.rate)));
     }
     heroEl.innerHTML = ltHeroHtml(fmt(grandTotal), 'Estimated annual land tax',
-      'Assessed per property on 5-year-average AUV — billed in four quarterly instalments of about ' + fmt(grandTotal / 4) + '.');
+      'Assessed per property on the 5-year-average AUV and billed in four quarterly instalments of about ' + fmt(grandTotal / 4) + '.');
     bdEl.innerHTML = '<div class="tool-cost-breakdown">' + rows + '</div>';
-    callouts += ltCalloutHtml('gold', 'Land value ≠ market price', LT_GOLD_CALLOUT_TEXT);
+    callouts += ltCalloutHtml('gold', 'Land value is not market price', LT_GOLD_CALLOUT_TEXT);
     callouts += ltCalloutHtml('', 'Assessment basis', LT_META.act.assess);
     coEl.innerHTML = callouts;
     verEl.innerHTML = ltVerifiedHtml('act');
@@ -527,36 +581,36 @@ function calculate() {
     for (i = 0; i < surcharges.length; i++) {
       rows2 += ltRowHtml(escHtml(surcharges[i].label), fmt(surcharges[i].amount));
     }
-    rows2 += ltRowHtml('TOTAL annual land tax', fmt(grandTotal), 'total');
+    rows2 += ltRowHtml('Total annual land tax', fmt(grandTotal), 'total');
     rows2 += ltRowHtml('Effective rate on land value', (grandTotal / V * 100).toFixed(2) + '%');
     rows2 += ltRowHtml('Marginal rate on the next dollar', escHtml(ltMarginalText(res, addRate)));
     bdEl.innerHTML = '<div class="tool-cost-breakdown">' + rows2 + '</div>';
 
     var heroNote;
     if (grandTotal === 0) {
-      heroNote = '$0 — under the threshold. Your aggregate ' + fmt(V) + ' is within the tax-free threshold: ' + res.threshold + '.';
+      heroNote = 'Your aggregate ' + fmt(V) + ' is within the tax-free threshold of ' + res.threshold + '.';
     } else {
-      heroNote = LT_META[state].name + ' · ' + count + (count === 1 ? ' property' : ' properties') + ' · aggregated taxable value ' + fmt(V) + '.';
+      heroNote = LT_META[state].name + ', ' + count + (count === 1 ? ' property' : ' properties') + ', aggregated taxable value ' + fmt(V) + '.';
     }
     heroEl.innerHTML = ltHeroHtml(fmt(grandTotal), 'Estimated annual land tax', heroNote);
 
-    callouts += ltCalloutHtml('gold', 'Land value ≠ market price', LT_GOLD_CALLOUT_TEXT);
+    callouts += ltCalloutHtml('gold', 'Land value is not market price', LT_GOLD_CALLOUT_TEXT);
     callouts += ltCalloutHtml('', 'Assessment basis', LT_META[state].assess +
-      ' Your own home (principal place of residence) is exempt — don’t include it above.');
+      ' Your own home (principal place of residence) is exempt, so don’t include it above.');
     if (state === 'sa' && otype === 'foreign') {
-      callouts += ltCalloutHtml('', 'No SA surcharge', 'South Australia does not levy a foreign owner land tax surcharge — the ordinary scale applies.');
+      callouts += ltCalloutHtml('', 'No SA surcharge', 'South Australia doesn’t levy a foreign owner land tax surcharge. The ordinary scale applies.');
     }
     if (state === 'sa' && grandTotal > 0 && grandTotal < 20) {
-      callouts += ltCalloutHtml('', 'De minimis', 'RevenueSA does not issue assessments under $20, so this liability would not be billed.');
+      callouts += ltCalloutHtml('', 'De minimis', 'RevenueSA doesn’t issue assessments under $20, so this wouldn’t be billed.');
     }
     if (state === 'wa' && otype === 'foreign') {
-      callouts += ltCalloutHtml('', 'No WA surcharge', 'Western Australia has no foreign owner land tax surcharge — the single scale applies to everyone.');
+      callouts += ltCalloutHtml('', 'No WA surcharge', 'Western Australia has no foreign owner land tax surcharge. The single scale applies to everyone.');
     }
     if (state === 'wa' && otype === 'trust') {
-      callouts += ltCalloutHtml('', 'No trust scale', 'Western Australia has no separate trust scale — trustees pay the same single scale.');
+      callouts += ltCalloutHtml('', 'No trust scale', 'Western Australia has no separate trust scale. Trustees pay the same single scale.');
     }
     if (state === 'tas' && otype === 'trust') {
-      callouts += ltCalloutHtml('', 'No trust scale', 'Tasmania has no separate trust scale — the general scale applies to trustees.');
+      callouts += ltCalloutHtml('', 'No trust scale', 'Tasmania has no separate trust scale. The general scale applies to trustees.');
     }
     coEl.innerHTML = callouts;
     verEl.innerHTML = ltVerifiedHtml(state);
@@ -583,35 +637,35 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full hold — rent, loan, land tax & 30-year equity',
-    description: 'Land tax is one line of the annual picture. Stack it with rent, repayments and CGT using the other free calculators.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'The other costs of holding a property',
+    description: 'The property cash flow calculator has a land tax line and shows the weekly figure before and after tax, and the capital gains calculator covers the sale.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFDB\uFE0F', title: 'State & Territory Land Tax Rates',
+        icon: '\uD83C\uDFDB\uFE0F', title: 'Land tax rates by state',
         links: [
-          { text: 'Revenue NSW — thresholds and rates', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/thresholds-and-rates' },
-          { text: 'SRO Victoria — current land tax rates', href: 'https://www.sro.vic.gov.au/land-tax-current-rates' },
-          { text: 'Queensland Revenue Office — calculating land tax', href: 'https://qro.qld.gov.au/land-tax/calculate/' },
-          { text: 'RevenueSA — rates and thresholds', href: 'https://www.revenuesa.sa.gov.au/land-tax/rates-and-thresholds' },
-          { text: 'RevenueWA — land tax assessment', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/land-tax-assessment' },
-          { text: 'SRO Tasmania — rates of land tax', href: 'https://www.sro.tas.gov.au/land-tax/rates-of-land-tax' },
-          { text: 'ACT Revenue Office — how land tax is calculated', href: 'https://www.revenue.act.gov.au/rates-and-property-charges/land-tax/how-land-tax-is-calculated' },
-          { text: 'NT Government — land taxes', href: 'https://nt.gov.au/property/land/buying-and-selling-land/land-taxes' }
+          { text: 'Revenue NSW: thresholds and rates', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/thresholds-and-rates' },
+          { text: 'SRO Victoria: current land tax rates', href: 'https://www.sro.vic.gov.au/land-tax-current-rates' },
+          { text: 'Queensland Revenue Office: calculating land tax', href: 'https://qro.qld.gov.au/land-tax/calculate/' },
+          { text: 'RevenueSA: rates and thresholds', href: 'https://www.revenuesa.sa.gov.au/land-tax/rates-and-thresholds' },
+          { text: 'RevenueWA: land tax assessment', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/land-tax-assessment' },
+          { text: 'SRO Tasmania: rates of land tax', href: 'https://www.sro.tas.gov.au/land-tax/rates-of-land-tax' },
+          { text: 'ACT Revenue Office: how land tax is calculated', href: 'https://www.revenue.act.gov.au/rates-and-property-charges/land-tax/how-land-tax-is-calculated' },
+          { text: 'NT Government: land taxes', href: 'https://nt.gov.au/property/land/buying-and-selling-land/land-taxes' }
         ]
       },
       {
-        icon: '\uD83D\uDCD6', title: 'Investor Tax Basics',
+        icon: '\uD83D\uDCD6', title: 'Rental property tax',
         links: [
-          { text: 'ATO: Residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Moneysmart: Property investment', href: 'https://moneysmart.gov.au/property-investment' }
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' }
         ]
       }
     ],
-    disclaimer: 'Rates verified against each state and territory revenue office as at 5 July 2026. Thresholds are indexed or amended most years — always confirm current figures with the relevant revenue office and a qualified adviser.'
+    disclaimer: 'Rates checked against each state and territory revenue office on 5 July 2026. Thresholds change most years, so confirm the current figures with the revenue office.'
   },
   share: {
     url: 'https://equitysight.app/tools/land-tax-calculator',
@@ -632,7 +686,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'NSW — individual, land value $1,655,000 (official Revenue NSW example)',
+      label: 'NSW individual, land value $1,655,000 (Revenue NSW’s own example)',
       inputs: [
         { k: 'State', v: 'New South Wales' },
         { k: 'Owner type', v: 'Individual' },
@@ -645,7 +699,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'QLD — foreign/absentee owner, land value $400,000 (official QRO example)',
+      label: 'QLD foreign or absentee owner, land value $400,000 (QRO’s own example)',
       inputs: [
         { k: 'State', v: 'Queensland' },
         { k: 'Owner type', v: 'Foreign or absentee owner' },
@@ -658,7 +712,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'SA — individual, land value $1,575,000 (official RevenueSA 2026-27 example)',
+      label: 'SA individual, land value $1,575,000 (RevenueSA’s 2026-27 example)',
       inputs: [
         { k: 'State', v: 'South Australia' },
         { k: 'Owner type', v: 'Individual' },
@@ -673,17 +727,13 @@ ToolPage.init({
   ],
   faq: [
     { q: 'Is land value the same as market value?',
-      a: 'No. Land tax is assessed on the unimproved or site value of the land only — the value of the block without the house — as determined by your state’s Valuer-General. It is typically well below market price. NSW averages the last 3 years of land values and the ACT averages 5 years of unimproved values (AUV), which smooths out valuation spikes.' },
+      a: 'No. Land tax is assessed on the unimproved or site value of the land only, meaning the block without the house, as set by your state’s Valuer-General. It’s usually well below the market price. NSW averages the last 3 years of land values and the ACT averages 5 years of unimproved values (AUV), which smooths out valuation spikes.' },
     { q: 'Which states have no land tax?',
-      a: 'The Northern Territory levies no land tax at all. Everywhere else, your own home (principal place of residence) is exempt, so owner-occupiers effectively pay none — land tax is mainly a tax on investment property, commercial land and holiday homes. In the ACT, land tax only applies to residential property that is rented or left vacant.' },
+      a: 'The Northern Territory has no land tax at all. Everywhere else your own home (principal place of residence) is exempt, so owner-occupiers pay none and land tax falls mainly on investment property, commercial land and holiday homes. In the ACT, land tax only applies to residential property that is rented or left vacant.' },
     { q: 'How do trusts change land tax?',
-      a: 'In NSW a special or discretionary trust gets no tax-free threshold — it pays 1.6% from the first dollar. Victoria and South Australia apply higher trust surcharge scales with much lower thresholds ($25,000 in both). In Queensland trustees share the lower $350,000 company threshold. WA, Tasmania and the ACT tax trusts on the same scale as individuals. Structure choice can change the annual bill by thousands.' },
+      a: 'In NSW a special or discretionary trust gets no tax-free threshold and pays 1.6% from the first dollar. Victoria and South Australia apply higher trust surcharge scales with much lower thresholds ($25,000 in both). In Queensland, trustees share the lower $350,000 company threshold. WA, Tasmania and the ACT tax trusts on the same scale as individuals.' },
     { q: 'What are the foreign owner land tax surcharges?',
-      a: 'On top of standard land tax: NSW adds 5% of the entire land value (no threshold), VIC adds 4% (absentee owner surcharge), QLD adds 3% of the value above $350,000, TAS adds a 2% FILTS surcharge on residential-capable land acquired by a foreign person on or after 1 July 2022, and the ACT adds 0.75% of AUV. SA, WA and the NT have no foreign land tax surcharge.' },
-    { q: 'When is land tax assessed?',
-      a: 'NSW and VIC assess on the land you own at midnight 31 December for the following tax year. QLD, SA and WA assess at midnight 30 June. Tasmania assesses on land owned at 1 July. The ACT assesses and bills quarterly. Selling the day after the assessment date still leaves you liable for the full year in most states.' },
-    { q: 'Can I reduce land tax legitimately?',
-      a: 'Common approaches include spreading purchases across states so each stays under its own threshold, weighing ownership structure carefully before you buy, and claiming every exemption you are entitled to (principal place of residence, primary production). This is general information only, not tax advice — land tax planning has traps, so get advice from a qualified professional before acting.' }
+      a: 'On top of standard land tax, NSW adds 5% of the entire land value (no threshold), VIC adds 4% (absentee owner surcharge), QLD adds 3% of the value above $350,000, TAS adds a 2% FILTS surcharge on residential-capable land acquired by a foreign person on or after 1 July 2022, and the ACT adds 0.75% of AUV. SA, WA and the NT have no foreign land tax surcharge. On a $1 million NSW landholding the surcharge alone is $50,000 a year.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
@@ -699,6 +749,7 @@ ToolPage.init({
 window.addEventListener('DOMContentLoaded', function() {
   if (window.trackCalculatorStart) trackCalculatorStart('land-tax');
 
+  ltRestoreRows(); // before the first calculate(), so the total includes every saved row
   updateStateUI();
   ltUpdateRemoveButtons();
   calculate();
@@ -717,6 +768,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   if (addBtn) addBtn.addEventListener('click', function() {
     ltAddPropRow();
+    ltSaveRows();
     calculate();
   });
 
@@ -726,8 +778,13 @@ window.addEventListener('DOMContentLoaded', function() {
     propList.addEventListener('input', function(e) {
       var t = e.target;
       if (!t || !t.hasAttribute) return;
-      if (t.hasAttribute('data-prop-value')) { fmtInput(t); calculate(); }
-      else if (t.hasAttribute('data-prop-label')) { calculate(); }
+      if (t.hasAttribute('data-prop-value')) { fmtInput(t); ltSaveRows(); calculate(); }
+      else if (t.hasAttribute('data-prop-label')) { ltSaveRows(); calculate(); }
+    });
+    // tool-page.js snapshots on "change" as well as "input", so this list does too.
+    propList.addEventListener('change', function(e) {
+      var t = e.target;
+      if (t && t.hasAttribute && (t.hasAttribute('data-prop-value') || t.hasAttribute('data-prop-label'))) ltSaveRows();
     });
     propList.addEventListener('click', function(e) {
       var btn = e.target;
@@ -742,6 +799,7 @@ window.addEventListener('DOMContentLoaded', function() {
       if (row && row !== propList) {
         propList.removeChild(row);
         ltUpdateRemoveButtons();
+        ltSaveRows();
         calculate();
       }
     });

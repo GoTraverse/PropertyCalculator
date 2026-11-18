@@ -527,36 +527,31 @@
   color: var(--charcoal);
   margin-bottom: 18px;
 }
-.pf-links-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+/* A plain list: a blue underlined link, then one line of plain text under it.
+   (This was a grid of cards until Nov 2026.) */
+.pf-links-list { list-style: none; margin: 0; padding: 0; }
+.pf-links-list li { margin-bottom: 14px; }
+.pf-links-list li:last-child { margin-bottom: 0; }
+.pf-links-list a {
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
-.pf-link-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background: white;
-  border: 1px solid rgba(28,28,30,0.08);
-  border-radius: 10px;
-  padding: 18px 16px;
-  text-decoration: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+.pf-links-list a:hover { text-decoration-thickness: 2px; }
+.pf-links-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
 }
-.pf-link-card:hover { border-color: rgba(201,168,76,0.45); box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
-.pf-link-name {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--charcoal);
-}
-.pf-link-desc { font-size: 12px; line-height: 1.55; color: var(--slate); }
 
 /* ══ RESPONSIVE ══ */
 @media (max-width: 900px) {
   .pf-dash { grid-template-columns: repeat(3, 1fr); }
   .pf-holding-grid { grid-template-columns: repeat(3, 1fr); }
-  .pf-links-grid { grid-template-columns: repeat(2, 1fr); }
   .pf-hero-bullets { grid-template-columns: 1fr; }
 }
 
@@ -571,7 +566,6 @@
   .pf-holding-grid { grid-template-columns: repeat(2, 1fr); }
   .pf-form-grid { grid-template-columns: 1fr; }
   .pf-form { padding: 16px 14px; }
-  .pf-links-grid { grid-template-columns: 1fr; }
   .pf-date-when { min-width: 76px; }
   .pf-page-head { flex-direction: column; align-items: stretch; }
   .pf-page-head .pf-btn { text-align: center; }
@@ -587,7 +581,6 @@ html.dark-mode .pf-bullet-title,
 html.dark-mode .pf-form-title,
 html.dark-mode .pf-links-title,
 html.dark-mode .pf-holding-label,
-html.dark-mode .pf-link-name,
 html.dark-mode .pf-lt-group-head,
 html.dark-mode .pf-date-label,
 html.dark-mode .pf-stat-value,
@@ -598,8 +591,7 @@ html.dark-mode .pf-upgrade-card strong { color: #F5F0E8; }
 
 html.dark-mode .pf-stat,
 html.dark-mode .pf-panel,
-html.dark-mode .pf-form,
-html.dark-mode .pf-link-card { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
+html.dark-mode .pf-form { background: #1C1C1E; border-color: rgba(255,255,255,0.08); }
 
 html.dark-mode .pf-bullet,
 html.dark-mode .pf-holding { background: #232326; border-color: rgba(255,255,255,0.08); }
@@ -626,7 +618,6 @@ html.dark-mode .pf-empty,
 html.dark-mode .pf-loading,
 html.dark-mode .pf-cap-note,
 html.dark-mode .pf-error p,
-html.dark-mode .pf-link-desc,
 html.dark-mode .pf-honest,
 html.dark-mode .pf-upgrade-card p { color: rgba(245,240,232,0.70); }
 
@@ -669,5 +660,5 @@ html.dark-mode .pf-form-msg { color: var(--terracotta-light); }
    shared.css zeroes animation/transition durations globally; belt-and-braces
    for this page's own transitions + scroll behaviour. */
 @media (prefers-reduced-motion: reduce) {
-  .pf-btn, .pf-btn-ghost, .pf-input, .pf-link-card { transition: none !important; }
+  .pf-btn, .pf-btn-ghost, .pf-input { transition: none !important; }
 }

@@ -46,9 +46,10 @@ const engines = {
 };
 
 const STATES = ['nsw', 'vic', 'qld', 'sa', 'wa', 'tas', 'act', 'nt'];
-const PRICES = [1000, 250000, 350001, 525000, 540001, 550000, 600000, 650000,
-  700001, 710000, 725001, 750000, 800000, 900000, 960001, 1000000, 1290001,
-  1455001, 1500000, 2000001, 3000001, 3870001, 5000001];
+const PRICES = [1000, 250000, 350001, 525000, 540001, 550000, 600000, 600001,
+  600100, 600101, 650000, 700001, 710000, 725001, 725050, 750000, 800000, 800001,
+  850000, 900000, 960001, 990000, 999999, 1000000, 1000001, 1290001, 1455001,
+  1500000, 2000001, 3000001, 3870001, 5000001];
 
 let fails = 0;
 function close(a, b) { return Math.abs(a - b) < 0.51; } // sub-dollar rounding tolerance
@@ -77,12 +78,79 @@ function expect(label, actual, expected) {
   if (!close(actual, expected)) { fails++; console.error('REF FAIL', label, '→', actual, 'expected', expected); }
 }
 expect('QLD $750k FHB', engines['journey'].fhb('qld', 750000), 10925);
+
+// NSW standard duty to the cent in every copy. The general check above
+// allows 50c, which would not catch a copy that lost the whole-dollar
+// bracket bases ($1,662, $11,602, $52,237, $194,137).
+const NSW_STD_REFS = [
+  [103000, 1662.5], [103001, 1662.035], [387001, 11602.045], [400000, 12187],
+  [650000, 23437], [1000000, 39187], [1290001, 52237.055], [3870001, 194137.07]
+];
+for (const name of Object.keys(engines)) {
+  for (const [v, want] of NSW_STD_REFS) {
+    const got = engines[name].calcDuty('nsw', v);
+    if (!(Math.abs(got - want) < 0.001)) { fails++; console.error('NSW STD FAIL', name, v, '→', got, 'expected', want); }
+  }
+}
+
+// First home buyer bands, to the cent in every copy. The general check above
+// allows 50c, which would not catch a copy that drifted by cents.
+// NSW (s 78A): duty = (V - 800,000) / 200,000 x 39,187 (Revenue NSW's FHBAS
+//   table for 2026-27: $9,796.75 at $850,000, $19,593.50 at $900,000,
+//   $29,390.25 at $950,000, $37,227.65 at $990,000).
+// WA (first home owner rate): $16.15 per $100 or part over $600,000.
+// VIC (s 57JA): standard duty x (V - 600,000) / 150,000.
+const BAND_REFS = [
+  ['nsw', 800000, 0], ['nsw', 800001, 0.195935], ['nsw', 850000, 9796.75],
+  ['nsw', 900000, 19593.5], ['nsw', 950000, 29390.25], ['nsw', 990000, 37227.65],
+  ['nsw', 999999, 39186.804065], ['nsw', 1000000, 39187],
+  ['wa', 600000, 0], ['wa', 600001, 16.15], ['wa', 600100, 16.15], ['wa', 600101, 32.3],
+  ['wa', 650000, 8075], ['wa', 700000, 16150], ['wa', 725050, 20203.65], ['wa', 800000, 32300],
+  ['wa', 800001, 32315.0515],
+  ['vic', 700000, 24713.333333]
+];
+for (const name of Object.keys(engines)) {
+  for (const [st, v, want] of BAND_REFS) {
+    const got = engines[name].fhb(st, v);
+    if (!(Math.abs(got - want) < 0.001)) { fails++; console.error('BAND FAIL', name, st, v, '→', got, 'expected', want); }
+  }
+}
 expect('QLD $700k FHB (full exemption)', engines['journey'].fhb('qld', 700000), 0);
 expect('VIC $600k FHB (full exemption)', engines['journey'].fhb('vic', 600000), 0);
+
+// ── Other journey sync copies ────────────────────────────────────────────
+// journey.js also carries the title-office registration fees (from
+// tools/stamp-duty-calculator.js) and the tax + living-cost functions behind
+// its borrowing estimate (from tools/borrowing-power-calculator.js).
+function between(file, startToken, endToken) {
+  const src = fs.readFileSync(path.join(root, file), 'utf8');
+  const a = src.indexOf(startToken);
+  const b = src.indexOf(endToken, a);
+  if (a === -1 || b === -1) throw new Error('anchors not found in ' + file + ': ' + startToken);
+  return src.slice(a, b);
+}
+const regSrc = new Function(between('tools/stamp-duty-calculator.js', 'var REG_FEES', 'function updateState') + '\nreturn regFeesTotal;')();
+const regJourney = new Function(between('journey.js', '  var REG_FLAT', '  // ── end registration sync copy') + '\nreturn regFeesTotal;')();
+for (const st of STATES) {
+  for (const v of PRICES.concat([4000, 15000, 35000, 60000, 90000, 150000, 180000, 185000, 205000])) {
+    const a = regSrc(st, v), b = regJourney(st, v);
+    if (!close(a, b)) { fails++; console.error('DRIFT registration fees journey', st, v, '→', b, 'vs source', a); }
+  }
+}
+const bpSrc = new Function(between('tools/borrowing-power-calculator.js', 'function approxTax', '// ── Lender-discount factor') + '\nreturn { approxTax: approxTax, hemMonthly: hemMonthly };')();
+const bpJourney = new Function(between('journey.js', '  function approxTax', '  // ── end borrowing sync copy') + '\nreturn { approxTax: approxTax, hemMonthly: hemMonthly };')();
+for (const g of [0, 18200, 20000, 28011, 30000, 35013, 45000, 60000, 95000, 135000, 160000, 190000, 250000, 400000]) {
+  if (!close(bpSrc.approxTax(g), bpJourney.approxTax(g))) { fails++; console.error('DRIFT approxTax journey', g); }
+  for (const adults of [1, 2]) for (const deps of [0, 1, 2, 3]) {
+    if (!close(bpSrc.hemMonthly(g, adults, deps), bpJourney.hemMonthly(g, adults, deps))) { fails++; console.error('DRIFT hemMonthly journey', g, adults, deps); }
+  }
+}
 
 if (fails) {
   console.error('\n' + fails + ' duty-engine drift failure(s). Update ALL sync copies together:');
   console.error('tools/stamp-duty-calculator.js → tools/auction-budget-calculator.js + journey.js');
+  console.error('tools/borrowing-power-calculator.js (approxTax, hemMonthly) → journey.js');
   process.exit(1);
 }
 console.log('duty-sync-test: all 3 engines agree across', STATES.length, 'states ×', PRICES.length, 'prices ✓');
+console.log('duty-sync-test: journey registration-fee and borrowing-estimate copies match their sources ✓');

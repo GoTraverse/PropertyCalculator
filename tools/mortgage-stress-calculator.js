@@ -1,4 +1,6 @@
-function calculate() {
+// silent = true: recalculate without validation messages, scrolling or
+// tracking (used on first load and when the live rate arrives).
+function calculate(silent) {
   var loan = parseVal('loan');
   var rate = parseFloat(document.getElementById('rate').value) || 0;
   var term = parseInt(document.getElementById('term').value) || 30;
@@ -8,10 +10,10 @@ function calculate() {
   var bufferPct = parseFloat(document.getElementById('buffer').value) || 3;
 
   var _msg = document.getElementById('calc-msg');
-  function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
+  function _showErr(t){ if(_msg && !silent){ _msg.textContent = t; _msg.hidden = false; } }
   if (_msg) _msg.hidden = true;
 
-  if (!loan || !rate || !income) { if (!_isInit) _showErr('Please enter loan amount, interest rate, and monthly income.'); return; }
+  if (!loan || !rate || !income) { _showErr('Enter the loan amount, interest rate and monthly income.'); return; }
 
   var repay = monthlyRepayment(loan, rate, term, io);
   var stressed = monthlyRepayment(loan, rate + bufferPct, term, io);
@@ -26,12 +28,16 @@ function calculate() {
   var isStressed = dsrCurrent >= 30;
   var isStressedUnderBuffer = dsrStress >= 30;
 
+  // Check the CURRENT ratio first. The stressed ratio is always at least as
+  // high as the current one, so testing it first would hide the "already in
+  // stress" cases behind the "a rate rise would push you there" wording.
   var verdict = '';
-  if (dsrStress >= 50) verdict = '\u26A0\uFE0F High risk. Even at current rates this is stretched \u2014 at the stressed rate, repayments would be over 50% of gross income.';
-  else if (dsrStress >= 30) verdict = '\u26A0\uFE0F Caution. Repayments are manageable now, but a ' + bufferPct + '% rate rise would push you into mortgage stress territory (>30% of income).';
-  else if (dsrCurrent >= 30) verdict = 'You are currently in mortgage stress territory (>30% of gross income). A rate rise would make this significantly harder.';
-  else if (dsrStress < 25) verdict = '\u2713 Comfortable. Even with a ' + bufferPct + '% rate rise you remain well within the 30% threshold.';
-  else verdict = '\u2713 Manageable. Repayments are within guidelines, with reasonable buffer against rate rises.';
+  if (dsrCurrent >= 50) verdict = 'Severe stress. Repayments already take ' + dsrCurrent.toFixed(1) + '% of gross income at the current rate, above the 50% severe-stress line.';
+  else if (dsrCurrent >= 30) verdict = 'Already in mortgage stress. Repayments take ' + dsrCurrent.toFixed(1) + '% of gross income at the current rate (the threshold is 30%). A ' + bufferPct + '% rate rise would lift that to ' + dsrStress.toFixed(1) + '%.';
+  else if (dsrStress >= 50) verdict = 'High risk. Repayments are under 30% of gross income now, but a ' + bufferPct + '% rate rise would take them over 50%.';
+  else if (dsrStress >= 30) verdict = 'Caution. Repayments are under 30% of gross income now, but a ' + bufferPct + '% rate rise would push them to ' + dsrStress.toFixed(1) + '%, past the 30% stress threshold.';
+  else if (dsrStress < 25) verdict = 'Comfortable. Even with a ' + bufferPct + '% rate rise, repayments stay under 25% of gross income.';
+  else verdict = 'Manageable. Repayments stay under the 30% threshold even with a ' + bufferPct + '% rate rise.';
 
   var dsrEl = document.getElementById('r-dsr');
   dsrEl.textContent = dsrCurrent.toFixed(1) + '%';
@@ -51,7 +57,7 @@ function calculate() {
   document.getElementById('r-verdict').textContent = verdict;
 
   document.getElementById('result').style.display = '';
-  if (!_isInit) {
+  if (!silent) {
     document.getElementById('cta').style.display = '';
     document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // Track calculator result
@@ -69,21 +75,21 @@ function calculate() {
   }
 }
 
-/* ─ Hydrate interest rate from live RBA data ─ */
+/* ─ Rate suggestion: the RBA cash rate plus my estimated lender margin (see
+ *   market-rate.js), the same pattern as loan-serviceability. It is not a
+ *   quoted rate, so the note under the field, which market-rate.js words,
+ *   always says what it is made of. The suggestion only replaces the rate
+ *   while you have not typed your own, the result is recalculated so the
+ *   figures on screen match the rate in the box, and the label note shows
+ *   only while the field holds the suggestion. ─ */
 if (typeof MarketRate !== 'undefined') {
   MarketRate.onReady(function(d) {
-    if (!d) return;
-    var el = document.getElementById('rate');
-    if (el && el.value === '6.25') { // only replace default, not user-set values
-      el.value = d.suggestedRate;
-    }
-    var badge = document.getElementById('rate-live-badge');
-    var hint  = document.getElementById('rate-live-hint');
-    if (badge) badge.style.display = '';
-    if (hint)  hint.textContent = 'RBA cash rate ' + d.cashRate.toFixed(2) + '% + lender margin '
-      + d.lenderMargin.toFixed(2) + '% = ' + d.suggestedRate.toFixed(2) + '% suggested'
-      + (d.rateDate ? ' (as of ' + d.rateDate + ')' : '');
-    if (hint) hint.style.display = '';
+    // An older cached market-rate.js has no bindRateNote, so there would be
+    // no note saying what the suggestion is: keep the default instead.
+    if (!d || typeof MarketRate.bindRateNote !== 'function') return;
+    ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.25', slug: 'mortgage-stress', rate: d.suggestedRate });
+    calculate(true);
+    MarketRate.bindRateNote(document.getElementById('rate'), document.getElementById('rate-live-badge'), document.getElementById('rate-live-hint'));
   });
 }
 
@@ -92,40 +98,32 @@ ToolPage.init({
   slug: 'mortgage-stress',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full property purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Turn the repayment into a price limit',
+    description: 'The budget step of the First Home Journey tests the loan with the APRA buffer, then works out the most you can pay once stamp duty and the other upfront costs come out of your savings.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE6', title: 'Interest Rates & Policy',
+        icon: '\uD83C\uDFE6', title: 'Rates and lending rules',
         links: [
           { text: 'Reserve Bank of Australia (RBA)', href: 'https://www.rba.gov.au/' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
-          { text: 'APRA: Prudential Regulation', href: 'https://www.apra.gov.au/' },
-          { text: 'MoneySmart: Home Loans', href: 'https://moneysmart.gov.au/home-loans' }
+          { text: 'RBA: explainers', href: 'https://www.rba.gov.au/education/resources/explainers/' },
+          { text: 'APRA', href: 'https://www.apra.gov.au/' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Borrowing Capacity',
+        icon: '\uD83D\uDCB0', title: 'Home loans and budgeting',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ASIC: Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
-          { text: 'ASIC: Borrowing Guidance', href: 'https://moneysmart.gov.au/home-loans' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCCA', title: 'Financial Management',
-        links: [
-          { text: 'ASIC: Budgeting Tools', href: 'https://moneysmart.gov.au/budgeting' },
-          { text: 'MoneySmart: Money Management', href: 'https://moneysmart.gov.au/' },
-          { text: 'ASIC: Financial Difficulty Help', href: 'https://moneysmart.gov.au/justask' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
+          { text: 'Moneysmart: budgeting', href: 'https://moneysmart.gov.au/budgeting' },
+          { text: 'Moneysmart: problems paying your mortgage', href: 'https://moneysmart.gov.au/home-loans/problems-paying-your-mortgage' }
         ]
       }
     ],
-    disclaimer: 'This is general information only. Interest rates, serviceability criteria, and lending standards change over time. Always consult your lender and a financial adviser about your situation.'
+    disclaimer: 'General information, not financial advice. Rates and lending rules change, so check the current settings with your lender.'
   },
   share: {
     url: 'https://equitysight.app/tools/mortgage-stress-calculator',
@@ -139,7 +137,7 @@ ToolPage.init({
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools', text: 'All Calculators' },
+    { href: '/tools/', text: 'All Calculators' },
     { href: '/tools/borrowing-power-calculator', text: 'Borrowing Power' },
     { href: '/tools/mortgage-repayment-calculator', text: 'Repayment' },
     { href: '/privacy', text: 'Privacy' }
@@ -153,10 +151,8 @@ ToolPage.init({
   ]
 });
 
-var _isInit = true;
 if(window.trackCalculatorStart) trackCalculatorStart('mortgage-stress');
-calculate();
-_isInit = false;
+calculate(true);
 ['loan','income','expenses'].forEach(function(id) {
   var el = document.getElementById(id);
   if(el) el.addEventListener('input', function(){ fmtInput(this); });
@@ -164,5 +160,5 @@ _isInit = false;
 var calcBtn = document.getElementById('stress-calc-btn');
 if(calcBtn) calcBtn.addEventListener('click', function(){
   if(window.trackPageEvent) trackPageEvent('calculator_button_click', {'calculator': 'mortgage-stress'});
-  calculate();
+  calculate(false);
 });

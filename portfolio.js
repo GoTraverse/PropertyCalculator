@@ -8,8 +8,9 @@
  *   → {ok:true, holdings:[...], cap:{max,used,plan}}
  *   → {ok:false, error:'auth'|'cap'|'validation'|...}
  * Cookie auth (es_session) is automatic (credentials same-origin); guests
- * get error:'auth'. Free = 2 holdings, Pro = unlimited — the SERVER enforces
- * the cap; this UI just renders the upgrade prompt on a 'cap' response.
+ * get error:'auth'. The SERVER enforces a 2-holding cap on free accounts
+ * (existing paid subscribers have none). The tool is parked and paid plans are
+ * no longer sold, so on a 'cap' response this UI states the limit plainly.
  *
  * All property values are the user's MANUAL entries. Government suburb
  * medians are shown as labelled CONTEXT only — never as the property's value.
@@ -71,12 +72,12 @@ function ltR(tax, threshold, band, mRate, mNote) {
 
 function schedNSW(V, otype) {
   if (otype === 'trust') {
-    var tt = 'None — special/discretionary trusts have no NSW threshold';
+    var tt = 'None (special and discretionary trusts have no NSW threshold)';
     if (V <= 6571000) return ltR(0.016 * V, tt, 'Special trust: 1.6% of the entire land value', 0.016);
     return ltR(105136 + 0.02 * (V - 6571000), tt, 'Special trust above $6,571,000: $105,136 + 2% of the excess', 0.02);
   }
-  var th = '$1,075,000 (general — individuals, companies & fixed trusts)';
-  if (V <= 1075000) return ltR(0, th, 'At or below the general threshold — no land tax', 0, '0% until $1,075,000 (then $100 + 1.6% of the excess)');
+  var th = '$1,075,000 (general: individuals, companies and fixed trusts)';
+  if (V <= 1075000) return ltR(0, th, 'No land tax at or below the general threshold', 0, '0% until $1,075,000 (then $100 + 1.6% of the excess)');
   if (V <= 6571000) return ltR(100 + 0.016 * (V - 1075000), th, 'General: $100 + 1.6% of the value above $1,075,000', 0.016);
   return ltR(88036 + 0.02 * (V - 6571000), th, 'Premium: $88,036 + 2% of the value above $6,571,000', 0.02);
 }
@@ -84,7 +85,7 @@ function schedNSW(V, otype) {
 function schedVIC(V, otype) {
   if (otype === 'trust') {
     var tt = '$25,000 (VIC trust surcharge scale)';
-    if (V < 25000) return ltR(0, tt, 'Below the trust threshold — no land tax', 0, '0% until $25,000');
+    if (V < 25000) return ltR(0, tt, 'No land tax below the trust threshold', 0, '0% until $25,000');
     if (V < 50000) return ltR(82 + 0.00375 * (V - 25000), tt, '$25,000–<$50,000 (trust): $82 + 0.375% of the excess', 0.00375);
     if (V < 100000) return ltR(676 + 0.00375 * (V - 50000), tt, '$50,000–<$100,000 (trust): $676 + 0.375% of the excess', 0.00375);
     if (V < 250000) return ltR(1338 + 0.00375 * (V - 100000), tt, '$100,000–<$250,000 (trust): $1,338 + 0.375% of the excess', 0.00375);
@@ -95,9 +96,9 @@ function schedVIC(V, otype) {
     return ltR(31650 + 0.0265 * (V - 3000000), tt, '$3,000,000+ (trust converges with general): $31,650 + 2.65% of the excess', 0.0265);
   }
   var th = '$50,000 (general)';
-  if (V < 50000) return ltR(0, th, 'Below $50,000 — no land tax', 0, '0% until $50,000');
-  if (V < 100000) return ltR(500, th, '$50,000–<$100,000: flat $500', 0, 'Flat $500 across this band — $0 on the next dollar until $100,000');
-  if (V < 300000) return ltR(975, th, '$100,000–<$300,000: flat $975', 0, 'Flat $975 across this band — $0 on the next dollar until $300,000');
+  if (V < 50000) return ltR(0, th, 'No land tax below $50,000', 0, '0% until $50,000');
+  if (V < 100000) return ltR(500, th, '$50,000–<$100,000: flat $500', 0, 'Flat $500 across this band, so $0 on the next dollar until $100,000');
+  if (V < 300000) return ltR(975, th, '$100,000–<$300,000: flat $975', 0, 'Flat $975 across this band, so $0 on the next dollar until $300,000');
   if (V < 600000) return ltR(1350 + 0.003 * (V - 300000), th, '$300,000–<$600,000: $1,350 + 0.3% of the excess', 0.003);
   if (V < 1000000) return ltR(2250 + 0.006 * (V - 600000), th, '$600,000–<$1,000,000: $2,250 + 0.6% of the excess', 0.006);
   if (V < 1800000) return ltR(4650 + 0.009 * (V - 1000000), th, '$1,000,000–<$1,800,000: $4,650 + 0.9% of the excess', 0.009);
@@ -108,7 +109,7 @@ function schedVIC(V, otype) {
 function schedQLD(V, otype) {
   if (otype === 'individual') {
     var th = '$600,000 (resident individuals)';
-    if (V < 600000) return ltR(0, th, 'Below $600,000 — no land tax', 0, '0% until $600,000');
+    if (V < 600000) return ltR(0, th, 'No land tax below $600,000', 0, '0% until $600,000');
     if (V < 1000000) return ltR(500 + 0.01 * (V - 600000), th, '$600,000–<$1,000,000: $500 + 1.0c per $1 of the excess', 0.01);
     if (V < 3000000) return ltR(4500 + 0.0165 * (V - 1000000), th, '$1,000,000–<$3,000,000: $4,500 + 1.65c per $1 of the excess', 0.0165);
     if (V < 5000000) return ltR(37500 + 0.0125 * (V - 3000000), th, '$3,000,000–<$5,000,000: $37,500 + 1.25c per $1 of the excess', 0.0125);
@@ -119,7 +120,7 @@ function schedQLD(V, otype) {
   // different top bands (2.0c / 2.5c instead of 2.25c / 2.75c).
   var isAbs = (otype === 'foreign');
   var th2 = '$350,000 (' + (isAbs ? 'absentee/foreign schedule' : 'companies & trustees') + ')';
-  if (V < 350000) return ltR(0, th2, 'Below $350,000 — no land tax', 0, '0% until $350,000');
+  if (V < 350000) return ltR(0, th2, 'No land tax below $350,000', 0, '0% until $350,000');
   if (V < 2250000) return ltR(1450 + 0.017 * (V - 350000), th2, '$350,000–<$2,250,000: $1,450 + 1.7c per $1 of the excess', 0.017);
   if (V < 5000000) return ltR(33750 + 0.015 * (V - 2250000), th2, '$2,250,000–<$5,000,000: $33,750 + 1.5c per $1 of the excess', 0.015);
   if (isAbs) {
@@ -137,7 +138,7 @@ function saHundreds(excess) { return Math.ceil(excess / 100); }
 function schedSA(V, otype) {
   if (otype === 'trust') {
     var tt = '$25,000 (SA trust scale, 2026-27)';
-    if (V <= 25000) return ltR(0, tt, 'At or below $25,000 — no land tax', 0, '0% until $25,000');
+    if (V <= 25000) return ltR(0, tt, 'No land tax at or below $25,000', 0, '0% until $25,000');
     if (V <= 936000) return ltR(125 + 0.5 * saHundreds(V - 25000), tt, '$25,000–$936,000 (trust): $125 + $0.50 per $100 or part above $25,000', null, '$0.50 per $100 or part (≈ 0.5%)');
     if (V <= 1504000) return ltR(4680 + 1.0 * saHundreds(V - 936000), tt, '$936,000–$1,504,000 (trust): $4,680 + $1.00 per $100 or part above $936,000', null, '$1.00 per $100 or part (≈ 1.0%)');
     if (V <= 2188000) return ltR(10360 + 1.5 * saHundreds(V - 1504000), tt, '$1,504,000–$2,188,000 (trust): $10,360 + $1.50 per $100 or part above $1,504,000', null, '$1.50 per $100 or part (≈ 1.5%)');
@@ -145,7 +146,7 @@ function schedSA(V, otype) {
     return ltR(52204 + 2.4 * saHundreds(V - 3504000), tt, 'Above $3,504,000 (trust): $52,204 + $2.40 per $100 or part above $3,504,000', null, '$2.40 per $100 or part (≈ 2.4%)');
   }
   var th = '$936,000 (general, 2026-27)';
-  if (V <= 936000) return ltR(0, th, 'At or below $936,000 — no land tax', 0, '0% until $936,000');
+  if (V <= 936000) return ltR(0, th, 'No land tax at or below $936,000', 0, '0% until $936,000');
   if (V <= 1504000) return ltR(0.5 * saHundreds(V - 936000), th, '$936,000–$1,504,000: $0.50 per $100 or part above $936,000', null, '$0.50 per $100 or part (≈ 0.5%)');
   if (V <= 2188000) return ltR(2840 + 1.0 * saHundreds(V - 1504000), th, '$1,504,000–$2,188,000: $2,840 + $1.00 per $100 or part above $1,504,000', null, '$1.00 per $100 or part (≈ 1.0%)');
   if (V <= 3504000) return ltR(9680 + 2.0 * saHundreds(V - 2188000), th, '$2,188,000–$3,504,000: $9,680 + $2.00 per $100 or part above $2,188,000', null, '$2.00 per $100 or part (≈ 2.0%)');
@@ -154,8 +155,8 @@ function schedSA(V, otype) {
 
 function schedWA(V) {
   var th = '$300,000 (single scale for all owner types)';
-  if (V <= 300000) return ltR(0, th, 'At or below $300,000 — no land tax', 0, '0% until $300,000');
-  if (V <= 420000) return ltR(300, th, '$300,001–$420,000: flat $300', 0, 'Flat $300 across this band — $0 on the next dollar until $420,000');
+  if (V <= 300000) return ltR(0, th, 'No land tax at or below $300,000', 0, '0% until $300,000');
+  if (V <= 420000) return ltR(300, th, '$300,001–$420,000: flat $300', 0, 'Flat $300 across this band, so $0 on the next dollar until $420,000');
   if (V <= 1000000) return ltR(300 + 0.0025 * (V - 420000), th, '$420,001–$1,000,000: $300 + 0.25c per $1 above $420,000', 0.0025);
   if (V <= 1800000) return ltR(1750 + 0.009 * (V - 1000000), th, '$1,000,001–$1,800,000: $1,750 + 0.9c per $1 above $1,000,000', 0.009);
   if (V <= 5000000) return ltR(8950 + 0.018 * (V - 1800000), th, '$1,800,001–$5,000,000: $8,950 + 1.8c per $1 above $1,800,000', 0.018);
@@ -164,8 +165,8 @@ function schedWA(V) {
 }
 
 function schedTAS(V) {
-  var th = '$125,000 (General Land — same scale for all owner types)';
-  if (V < 125000) return ltR(0, th, 'Below $125,000 — no land tax', 0, '0% until $125,000');
+  var th = '$125,000 (General Land, same scale for all owner types)';
+  if (V < 125000) return ltR(0, th, 'No land tax below $125,000', 0, '0% until $125,000');
   if (V < 500000) return ltR(50 + 0.0045 * (V - 125000), th, '$125,000–<$500,000: $50 + 0.45% of the excess', 0.0045);
   return ltR(1737.5 + 0.015 * (V - 500000), th, '$500,000+: $1,737.50 + 1.5% of the excess', 0.015);
 }
@@ -395,7 +396,7 @@ function medianLines(h) {
     var cap = medianCaption(SC + '_rent');
     out += '<div class="pf-median">Suburb median rent ' + fmt(rec.r) + '/wk' +
       (cap ? ' (' + escHtml(cap) + ')' : '') +
-      ' — your rent is ' + signedPct((rent - rec.r) / rec.r * 100) + ' vs the median.</div>';
+      '. Your rent is ' + signedPct((rent - rec.r) / rec.r * 100) + ' vs the median.</div>';
   }
   var pv = num(h.currentValue);
   var pMedian = null, pLabel = '';
@@ -405,9 +406,9 @@ function medianLines(h) {
     var cap2 = medianCaption(SC + '_price');
     out += '<div class="pf-median">Suburb median ' + pLabel + ' price ' + fmt(pMedian) +
       (cap2 ? ' (' + escHtml(cap2) + ')' : '') +
-      ' — your value entry is ' + signedPct((pv - pMedian) / pMedian * 100) + ' vs the median.</div>';
+      '. Your value entry is ' + signedPct((pv - pMedian) / pMedian * 100) + ' vs the median.</div>';
   }
-  if (out) out += '<div class="pf-median-note">Suburb medians shown for context only — not a valuation of this property.</div>';
+  if (out) out += '<div class="pf-median-note">Suburb medians are shown for context. They are not a valuation of this property.</div>';
   return out;
 }
 
@@ -491,7 +492,7 @@ function renderLandTax() {
         var vres = actValuation(it.auv);
         var sub = ACT_FIXED_CHARGE + vres.tax;
         gTax += sub;
-        rows += ltRow(escHtml(it.label) + ' — AUV share ' + fmt(it.auv), fmt(sub));
+        rows += ltRow(escHtml(it.label) + ', AUV share ' + fmt(it.auv), fmt(sub));
       });
       rows += ltRow('Fixed charge per property (2026-27)', fmt(ACT_FIXED_CHARGE));
       rows += ltRow('Estimated annual land tax', fmt(gTax), true);
@@ -499,9 +500,9 @@ function renderLandTax() {
         var edgeA = nextStep('act', 'general', g.items[0].auv);
         rows += ltRow('Distance to next bracket', edgeA
           ? fmt(edgeA - g.items[0].auv) + ' more land value before the next rate step'
-          : 'Top band — the rate no longer steps up');
+          : 'Top band. The rate no longer steps up.');
       }
-      rows += '<div class="pf-lt-note">Assessed per property on AUV (no aggregation) — billed quarterly, about ' +
+      rows += '<div class="pf-lt-note">Assessed per property on AUV (no aggregation) and billed quarterly, about ' +
         fmt(gTax / 4) + ' per instalment. Applies to rentals only; an owner-occupied ACT home is out of scope.</div>';
 
     } else {
@@ -515,7 +516,7 @@ function renderLandTax() {
       var edge = nextStep(g.state, otype, g.V);
       rows += ltRow('Distance to next bracket', edge
         ? fmt(edge - g.V) + ' more land value before the next rate step'
-        : 'Top band — the rate no longer steps up');
+        : 'Top band. The rate no longer steps up.');
     }
 
     total += gTax;
@@ -526,18 +527,18 @@ function renderLandTax() {
     '<div class="pf-lt-total-num">' + fmt(total) + '</div></div>';
 
   if (!order.length) {
-    html = '<p class="pf-empty">No taxable holdings yet — add an investment property with a land value to see the rollup.</p>';
+    html = '<p class="pf-empty">No taxable holdings yet. Add an investment property with a land value to see the rollup.</p>';
     head = '';
   }
 
   var notes = '';
   if (pprCount > 0) {
     notes += '<div class="pf-lt-note">' + pprCount + (pprCount === 1 ? ' holding' : ' holdings') +
-      ' marked PPR excluded — your principal place of residence is exempt from land tax.</div>';
+      ' marked PPR excluded. Your principal place of residence is exempt from land tax.</div>';
   }
   if (missingLand > 0) {
     notes += '<div class="pf-lt-note">' + missingLand + (missingLand === 1 ? ' holding has' : ' holdings have') +
-      ' no land value entered — add the unimproved/site value from the valuation notice to include ' +
+      ' no land value entered. Add the unimproved/site value from the valuation notice to include ' +
       (missingLand === 1 ? 'it' : 'them') + '.</div>';
   }
 
@@ -572,18 +573,18 @@ function buildDateItems() {
           var jump = Math.max(0, piWk - ioWk);
           detail = 'Repayments jump ~' + fmt(jump) + '/wk at P&I (est., ' + remaining + '-yr term remaining).';
         }
-        items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ' — interest-only expiry', detail: detail });
+        items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ': interest-only expiry', detail: detail });
       }
     }
 
     if (h.fixedExpiry) {
       d = parseMonth(h.fixedExpiry);
-      if (d) items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ' — fixed rate ends', detail: 'The revert rate applies from here — reprice or refinance before it does.' });
+      if (d) items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ': fixed rate ends', detail: 'The revert rate applies from here.' });
     }
 
     if (h.leaseExpiry) {
       d = parseMonth(h.leaseExpiry);
-      if (d) items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ' — lease expires', detail: 'Plan the renewal or relisting early to avoid a vacancy gap.' });
+      if (d) items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: label + ': lease expires', detail: '' });
     }
   }
 
@@ -598,10 +599,10 @@ function buildDateItems() {
     seen[st] = true;
     if (LT_ASSESS[st]) {
       d = nextAnnual(LT_ASSESS[st].m, LT_ASSESS[st].d);
-      items.push({ t: d.getTime(), when: dayLabel(d), date: d, label: st.toUpperCase() + ' land tax assessment date', detail: 'Holdings assessed at ' + LT_ASSESS[st].txt + ' — selling the day after still leaves the full year payable in most states.' });
+      items.push({ t: d.getTime(), when: dayLabel(d), date: d, label: st.toUpperCase() + ' land tax assessment date', detail: 'Holdings assessed at ' + LT_ASSESS[st].txt + '. Selling the day after still leaves the full year payable in most states.' });
     } else if (st === 'act') {
       d = nextQuarterStart();
-      items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: 'ACT land tax — billed quarterly', detail: 'Assessed per rented property each quarter; next instalment period shown.' });
+      items.push({ t: d.getTime(), when: monthLabel(d), date: d, label: 'ACT land tax, billed quarterly', detail: 'Assessed per rented property each quarter; next instalment period shown.' });
     }
     /* NT: no land tax — no assessment date. */
   }
@@ -615,7 +616,7 @@ function renderDates() {
   if (!el) return;
   var items = buildDateItems();
   if (!items.length) {
-    el.innerHTML = '<li class="pf-empty">No upcoming dates — add interest-only, fixed-rate or lease expiry dates to your holdings to see them here.</li>';
+    el.innerHTML = '<li class="pf-empty">No upcoming dates. Add interest-only, fixed-rate or lease expiry dates to your holdings to see them here.</li>';
     return;
   }
   var now = new Date();
@@ -648,7 +649,7 @@ function renderHoldings() {
   var el = byId('pf-holdings');
   if (!el) return;
   if (!_holdings.length) {
-    el.innerHTML = '<p class="pf-empty">No properties yet. Add your first holding — it takes about a minute, and everything stays private to your account.</p>';
+    el.innerHTML = '<p class="pf-empty">No properties yet. What you add is private to your account.</p>';
     return;
   }
   var html = '';
@@ -689,8 +690,8 @@ function renderCapNote() {
   if (!el) return;
   if (!_cap || !_cap.max || _cap.plan !== 'free') { el.innerHTML = ''; return; }
   var atCap = _cap.used >= _cap.max;
-  el.innerHTML = escHtml(_cap.used + ' of ' + _cap.max + ' free holdings used') +
-    (atCap ? ' — the free plan tracks 2.' : '');
+  el.innerHTML = escHtml(_cap.used + ' of ' + _cap.max + ' holdings used') +
+    (atCap ? '. This tool is parked and free accounts are limited to ' + escHtml(_cap.max) + ' holdings.' : '');
 }
 
 function render() {
@@ -808,9 +809,10 @@ function readForm() {
 function showUpgrade() {
   var el = byId('pf-upgrade');
   if (!el) return;
+  var max = (_cap && _cap.max) || 2;
   el.innerHTML = '<div class="pf-upgrade-card">' +
-    '<strong>You’ve reached the free limit.</strong>' +
-    '<p>The free plan tracks 2 holdings.</p></div>';
+    '<strong>This account already has ' + escHtml(max) + ' holdings.</strong>' +
+    '<p>The portfolio tool is parked, and free accounts are limited to ' + escHtml(max) + ' holdings. Delete one to add another.</p></div>';
   el.style.display = '';
   if (window.trackPageEvent) trackPageEvent('portfolio_cap_hit', { plan: _cap ? _cap.plan : 'free' });
 }
@@ -841,13 +843,13 @@ function submitSave() {
     } else if (res && res.error === 'auth') {
       sessionExpired();
     } else if (res && res.error === 'validation') {
-      formMsg('The server rejected the entry — check the fields and try again.');
+      formMsg('The server rejected the entry. Check the fields and try again.');
     } else {
-      formMsg('Could not save — try again in a moment.');
+      formMsg("Couldn't save. Try again in a moment.");
     }
   }).catch(function () {
     if (btn) btn.disabled = false;
-    formMsg('Network error — check your connection and try again.');
+    formMsg('Network error. Check your connection and try again.');
   });
 }
 
@@ -855,7 +857,7 @@ function submitDelete() {
   if (_editingId === null || _editingId === undefined) return;
   var h = findHolding(_editingId);
   var name = h && h.label ? h.label : 'this property';
-  if (!window.confirm('Delete "' + name + '" from your portfolio? This cannot be undone.')) return;
+  if (!window.confirm('Delete "' + name + '" from your portfolio? This can\'t be undone.')) return;
   var btn = byId('pf-delete-btn');
   if (btn) btn.disabled = true;
   formMsg('Deleting…');
@@ -870,11 +872,11 @@ function submitDelete() {
     } else if (res && res.error === 'auth') {
       sessionExpired();
     } else {
-      formMsg('Could not delete — try again in a moment.');
+      formMsg("Couldn't delete. Try again in a moment.");
     }
   }).catch(function () {
     if (btn) btn.disabled = false;
-    formMsg('Network error — check your connection and try again.');
+    formMsg('Network error. Check your connection and try again.');
   });
 }
 
@@ -882,10 +884,25 @@ function submitDelete() {
    PAGE STATES — guest / loading / error / content
    ══════════════════════════════════════════════════════════════════════ */
 
+/* The page has one h1. In the HTML it sits in the guest block (the default
+ * view) and reads as the parked notice. When the tracker is shown it moves to
+ * the top of the page head and takes the signed-in title; it moves back if the
+ * session turns out to have expired. */
+function placeHeading(inApp) {
+  var h = byId('pf-h1');
+  var slot = byId(inApp ? 'pf-head-main' : 'pf-hero');
+  if (!h || !slot) return;
+  h.className = inApp ? 'pf-title' : 'pf-hero-h1';
+  h.textContent = inApp ? 'Your property portfolio' : 'The portfolio tracker is parked';
+  if (slot.firstElementChild !== h) slot.insertBefore(h, slot.firstChild);
+}
+
 function showGuest(msg) {
-  var g = byId('pf-guest'), a = byId('pf-app');
+  var g = byId('pf-guest'), a = byId('pf-app'), l = byId('pf-link-app');
+  placeHeading(false);
   if (a) a.style.display = 'none';
   if (g) g.style.display = '';
+  if (l) l.style.display = 'none';
   if (msg) {
     var m = byId('pf-guest-msg');
     if (m) { m.textContent = msg; m.style.display = ''; }
@@ -893,16 +910,18 @@ function showGuest(msg) {
 }
 
 function showApp() {
-  var g = byId('pf-guest'), a = byId('pf-app');
+  var g = byId('pf-guest'), a = byId('pf-app'), l = byId('pf-link-app');
+  placeHeading(true);
   if (g) g.style.display = 'none';
   if (a) a.style.display = '';
+  if (l) l.style.display = '';
 }
 
 /* 401 mid-session: server says the cookie is gone — the localStorage session
  * blob is stale. Show the guest surface with an explanation. */
 function sessionExpired() {
   hideForm();
-  showGuest('Your session has expired — sign in again to view your portfolio.');
+  showGuest('Your session has expired. Sign in again to see your portfolio.');
   if (window.trackPageEvent) trackPageEvent('portfolio_session_expired', {});
 }
 
@@ -957,7 +976,7 @@ function wireEvents() {
   var sugBtn = byId('pf-suggest-land');
   if (sugBtn) sugBtn.addEventListener('click', function () {
     var cv = parseVal('pf-f-current-value');
-    if (cv <= 0) { formMsg('Enter the current value first — the suggestion works off it.'); return; }
+    if (cv <= 0) { formMsg('Enter the current value first. The suggestion is worked out from it.'); return; }
     var land = Math.round(cv * 0.55 / 10000) * 10000;
     setCurrencyField('pf-f-land-value', land);
     var hint = byId('pf-suggest-hint');
@@ -984,11 +1003,6 @@ function wireEvents() {
     }
   });
 
-  /* Guest CTA analytics (guarded, like other pages). */
-  var cta = byId('pf-signup-cta');
-  if (cta) cta.addEventListener('click', function () {
-    if (window.trackGuest) trackGuest('portfolio_signup_cta', {});
-  });
 }
 
 /* ══════════════════════════════════════════════════════════════════════

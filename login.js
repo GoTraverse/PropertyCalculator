@@ -45,16 +45,16 @@ function setActiveForm(target) {
   const h = document.getElementById('login-heading');
   const s = document.getElementById('login-sub');
   if (h) {
-    h.textContent = target === 'signin' ? 'Welcome back'
-                  : target === 'signup' ? 'Create your account'
+    h.textContent = target === 'signin' ? 'Sign in'
+                  : target === 'signup' ? 'Create an account'
                   : target === 'magic'  ? 'Sign in with email'
                   : 'Reset password';
   }
   if (s) {
-    s.textContent = target === 'signin' ? 'Sign in to pick up where you left off.'
-                  : target === 'signup' ? 'Start for free — no credit card required'
-                  : target === 'magic'  ? 'No password needed'
-                  : "We'll send a code to your email";
+    s.textContent = target === 'signin' ? ''
+                  : target === 'signup' ? 'An account saves your journey so you can open it on another device or share it with a partner.'
+                  : target === 'magic'  ? ''
+                  : '';
     s.style.color = '';
   }
 
@@ -109,7 +109,7 @@ if (refParam) {
   if (reason === 'session-expired') {
     const errEl = document.querySelector('.login-form:not([hidden]) .form-error, #form-signin .form-error');
     if (errEl) {
-      errEl.textContent = 'Your session expired. Please sign in again to continue.';
+      errEl.textContent = 'Your session expired. Sign in again.';
       errEl.style.color = '#E8D080';
     }
   }
@@ -134,11 +134,30 @@ function safeNextUrl(raw) {
   return '/journey';
 }
 
+// A partner invite (/journey?join=<token>) that was opened in this browser
+// before signing in. journey.js stores it for a day and removes it once the
+// invite is accepted, declined or switched off. The emailed sign-in link
+// comes back as /login?magic=… with no `next`, and so does the Sign in link
+// in the menu, so without this the invite is lost on the way back.
+function pendingJoinNext() {
+  try {
+    const p = JSON.parse(localStorage.getItem('propCalc_journey_pendingJoin') || 'null');
+    const age = p ? Date.now() - p.at : -1;
+    if (p && typeof p.t === 'string' && age >= 0 && age < 86400000) return 'journey?join=' + p.t;
+  } catch (e) {}
+  return '';
+}
+// Where to go once signed in: the page's own `next`, or else a waiting
+// invite. Both go through safeNextUrl, so the same allowlist applies.
+function nextAfterSignIn() {
+  return safeNextUrl(params.get('next') || pendingJoinNext());
+}
+
 (function redirectIfLoggedIn() {
   try {
     const s = JSON.parse(localStorage.getItem('propCalc_session_v1'));
     if (s && (s.id || s.email)) {
-      location.href = safeNextUrl(params.get('next') || '');
+      location.href = nextAfterSignIn();
     }
   } catch (e) {}
 })();
@@ -177,18 +196,18 @@ function safeNextUrl(raw) {
       if (res.expiresAt) session.expiresAt = res.expiresAt;
       if (res.renewsAt) session.renewsAt = res.renewsAt;
       try { localStorage.setItem('propCalc_session_v1', JSON.stringify(session)); } catch (e) {}
-      location.href = safeNextUrl(params.get('next') || '');
+      location.href = nextAfterSignIn();
     } else {
       document.getElementById('page-spinner').classList.remove('show');
       setActiveForm('magic');
       const ml = document.getElementById('ml-error');
-      if (ml) ml.textContent = (res && res.error) || 'Sign-in link is invalid or has expired. Please request a new one.';
+      if (ml) ml.textContent = (res && res.error) || 'That sign-in link is invalid or has expired. Ask for a new one.';
     }
   }).catch(function () {
     document.getElementById('page-spinner').classList.remove('show');
     setActiveForm('magic');
     const ml = document.getElementById('ml-error');
-    if (ml) ml.textContent = 'Network error — please try again.';
+    if (ml) ml.textContent = 'Network error. Try again.';
   });
 })();
 
@@ -349,7 +368,7 @@ async function initGoogleSignIn() {
   if (btnHost) {
     btnHost.innerHTML = '';
     google.accounts.id.renderButton(btnHost, {
-      theme: 'filled_black',
+      theme: 'outline',
       size: 'large',
       shape: 'rectangular',
       width: 320,
@@ -381,9 +400,9 @@ async function handleGoogleCredential(response) {
     try { localStorage.removeItem('es_page_trail'); } catch (e) {}
     persistSession(res, { email: res.email });
     refreshProfileInBackground(res.id || res.email);
-    goTo(safeNextUrl(params.get('next') || ''));
+    goTo(nextAfterSignIn());
   } else {
-    if (errEl) errEl.textContent = res.error || 'Google sign-in failed — please try again or use email/password below';
+    if (errEl) errEl.textContent = res.error || 'Google sign-in failed. Try again, or use your email and password below.';
   }
 }
 
@@ -400,7 +419,7 @@ async function callAuth(action, payload) {
     });
     return await r.json();
   } catch (e) {
-    return { ok: false, error: 'Network error — try again' };
+    return { ok: false, error: 'Network error. Try again.' };
   }
 }
 
@@ -483,19 +502,19 @@ async function requestReset() {
   const email = document.getElementById('fp-email').value.trim();
   const errEl = document.getElementById('fp-error');
   const btn = document.getElementById('fp-btn');
-  if (!email) { errEl.textContent = 'Please enter your email'; return; }
+  if (!email) { errEl.textContent = 'Enter your email.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Sending…';
   let token;
   try { token = await getTurnstileToken(); }
   catch (e) {
-    btn.disabled = false; btn.textContent = 'Send Reset Code →';
-    errEl.textContent = 'Security check failed — please reload and try again';
+    btn.disabled = false; btn.textContent = 'Send reset code';
+    errEl.textContent = 'The security check failed. Reload the page and try again.';
     return;
   }
   _fpEmail = email;
   await callAuth('requestPasswordReset', { email: email, turnstileToken: token });
-  btn.textContent = 'Send Reset Code →'; btn.disabled = false;
+  btn.textContent = 'Send reset code'; btn.disabled = false;
   document.getElementById('forgot-step-request').style.display = 'none';
   document.getElementById('forgot-step-reset').style.display = '';
   setTimeout(function () { document.getElementById('fp-code').focus({ preventScroll: true }); }, 80);
@@ -506,18 +525,18 @@ async function confirmReset() {
   const newPw = document.getElementById('fp-newpw').value;
   const errEl = document.getElementById('fp-reset-error');
   const btn = document.getElementById('fp-reset-btn');
-  if (!code) { errEl.textContent = 'Enter the reset code'; return; }
-  if (!newPw || newPw.length < 8) { errEl.textContent = 'Password must be at least 8 characters'; return; }
+  if (!code) { errEl.textContent = 'Enter the reset code.'; return; }
+  if (!newPw || newPw.length < 8) { errEl.textContent = 'The password must be at least 8 characters.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Updating…';
   const res = await callAuth('resetPasswordWithToken', { email: _fpEmail, code: code, newPassword: newPw });
-  btn.disabled = false; btn.textContent = 'Set New Password →';
+  btn.disabled = false; btn.textContent = 'Set new password';
   if (res.ok) {
     setActiveForm('signin');
     const s = document.getElementById('login-sub');
-    if (s) { s.textContent = '✓ Password updated — sign in with your new password'; s.style.color = '#5A9E7A'; }
+    if (s) { s.textContent = 'Password updated. Sign in with your new password.'; s.style.color = '#5A9E7A'; }
   } else {
-    errEl.textContent = res.error || 'Invalid or expired code. Please try again.';
+    errEl.textContent = res.error || 'That code is invalid or has expired. Try again.';
   }
 }
 
@@ -533,7 +552,7 @@ function showVerificationStep(data) {
 }
 
 function postVerificationRedirect(plan) {
-  const next = safeNextUrl(params.get('next') || '');
+  const next = nextAfterSignIn();
   // Guest-mode migration: a guest who clicked "Create a free account" to save their
   // scenario must land back on /app so the pending draft auto-migrates into the new
   // account. Without this, a free email signup with next=/app would be sent to
@@ -552,14 +571,14 @@ async function doSignin() {
   const password = document.getElementById('si-password').value;
   const errEl = document.getElementById('si-error');
   const btn = document.getElementById('si-btn');
-  if (!email || !password) { errEl.textContent = 'Please enter email and password'; return; }
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Signing in…';
   let token;
   try { token = await getTurnstileToken(); }
   catch (e) {
-    btn.disabled = false; btn.textContent = 'Sign In →';
-    errEl.textContent = 'Security check failed — please reload and try again';
+    btn.disabled = false; btn.textContent = 'Sign in';
+    errEl.textContent = 'The security check failed. Reload the page and try again.';
     return;
   }
   // No fullscreen spinner — the disabled button + `Signing in…` text
@@ -569,7 +588,7 @@ async function doSignin() {
   if (res.ok) {
     persistSession(res, { email: email });
     refreshProfileInBackground(res.id || email);
-    goTo(safeNextUrl(params.get('next') || ''));
+    goTo(nextAfterSignIn());
     return;
   }
   if (res.requiresEmailVerification) {
@@ -580,10 +599,10 @@ async function doSignin() {
     showVerificationStep(res);
     errEl.textContent = '';
   } else {
-    errEl.textContent = res.error || 'Sign in failed — please try again';
+    errEl.textContent = res.error || 'Sign in failed. Try again.';
   }
   resetTurnstile();
-  btn.disabled = false; btn.textContent = 'Sign In →';
+  btn.disabled = false; btn.textContent = 'Sign in';
 }
 
 async function doSignup() {
@@ -594,10 +613,10 @@ async function doSignup() {
   const errEl = document.getElementById('su-error');
   const btn = document.getElementById('su-btn');
   const terms = document.getElementById('su-terms');
-  if (!name || !email || !password) { errEl.textContent = 'Please fill in all fields'; return; }
-  if (terms && !terms.checked) { errEl.textContent = 'Please accept the Terms & Conditions and Privacy Policy'; return; }
+  if (!name || !email || !password) { errEl.textContent = 'Fill in your name, email and password.'; return; }
+  if (terms && !terms.checked) { errEl.textContent = 'Tick the box to accept the Terms of Service and Privacy Policy.'; return; }
   const emailRx = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRx.test(email)) { errEl.textContent = 'Please enter a valid email address'; return; }
+  if (!emailRx.test(email)) { errEl.textContent = 'Enter a valid email address.'; return; }
   const pwErrors = [];
   if (password.length < 8) pwErrors.push('at least 8 characters');
   if (!/[A-Z]/.test(password)) pwErrors.push('one uppercase letter');
@@ -610,8 +629,8 @@ async function doSignup() {
   let token;
   try { token = await getTurnstileToken(); }
   catch (e) {
-    btn.disabled = false; btn.textContent = 'Create Account →';
-    errEl.textContent = 'Security check failed — please reload and try again';
+    btn.disabled = false; btn.textContent = 'Create account';
+    errEl.textContent = 'The security check failed. Reload the page and try again.';
     return;
   }
   const pendingRef = localStorage.getItem('equitySight_pendingRef') || '';
@@ -627,9 +646,9 @@ async function doSignup() {
     showVerificationStep(res);
     document.getElementById('verify-error').textContent = '';
   } else {
-    errEl.textContent = res.error || 'Could not create account — please try again';
+    errEl.textContent = res.error || "Couldn't create the account. Try again.";
     resetTurnstile();
-    btn.disabled = false; btn.textContent = 'Create Account →';
+    btn.disabled = false; btn.textContent = 'Create account';
   }
 }
 
@@ -640,7 +659,7 @@ async function doVerifyEmail() {
   const name = document.getElementById('su-name').value.trim();
   const errEl = document.getElementById('verify-error');
   const btn = document.getElementById('verify-btn');
-  if (!code) { errEl.textContent = 'Enter your verification code'; return; }
+  if (!code) { errEl.textContent = 'Enter your verification code.'; return; }
   btn.disabled = true; btn.textContent = 'Verifying…'; errEl.textContent = '';
   const res = await callAuth('verifyEmail', { email: email, code: code });
   if (res.ok) {
@@ -648,23 +667,23 @@ async function doVerifyEmail() {
     refreshProfileInBackground(res.id || email);
     postVerificationRedirect(res.plan || plan);
   } else {
-    errEl.textContent = res.error || 'Could not verify email';
-    btn.disabled = false; btn.textContent = 'Verify Email →';
+    errEl.textContent = res.error || "Couldn't verify your email. Try again.";
+    btn.disabled = false; btn.textContent = 'Verify email';
   }
 }
 
 async function resendVerificationCode() {
   const email = document.getElementById('su-email').value.trim();
   const errEl = document.getElementById('verify-error');
-  if (!email) { errEl.textContent = 'Enter your email first'; return; }
+  if (!email) { errEl.textContent = 'Enter your email first.'; return; }
   const res = await callAuth('resendVerification', { email: email });
   if (res.ok) {
     showVerificationStep(res);
-    errEl.textContent = 'A fresh verification code has been sent.';
+    errEl.textContent = 'A new verification code has been sent.';
     errEl.style.color = '#5A9E7A';
     setTimeout(function () { errEl.style.color = ''; }, 1200);
   } else {
-    errEl.textContent = res.error || 'Could not resend code';
+    errEl.textContent = res.error || "Couldn't resend the code. Try again.";
   }
 }
 
@@ -689,7 +708,7 @@ function showMagicLinkVerify(email) {
   document.getElementById('magic-step-verify').style.display = '';
   document.getElementById('ml-verify-error').textContent = '';
   const note = document.getElementById('ml-verify-note');
-  if (note) note.textContent = 'We sent a sign-in link and 6-digit code to ' + email + '. Click the link or enter the code below.';
+  if (note) note.textContent = 'I sent a sign-in link and a 6-digit code to ' + email + '. Open the link or enter the code here.';
   setTimeout(function () { document.getElementById('ml-code').focus({ preventScroll: true }); }, 80);
 }
 
@@ -697,23 +716,23 @@ async function requestMagicLink() {
   const email = document.getElementById('ml-email').value.trim();
   const errEl = document.getElementById('ml-error');
   const btn = document.getElementById('ml-send-btn');
-  if (!email) { errEl.textContent = 'Please enter your email'; return; }
+  if (!email) { errEl.textContent = 'Enter your email.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Sending…';
   let token;
   try { token = await getTurnstileToken(); }
   catch (e) {
-    btn.disabled = false; btn.textContent = 'Send sign-in link →';
-    errEl.textContent = 'Security check failed — please reload and try again';
+    btn.disabled = false; btn.textContent = 'Send sign-in link';
+    errEl.textContent = 'The security check failed. Reload the page and try again.';
     return;
   }
   const res = await callAuth('sendMagicLink', { email: email, turnstileToken: token });
-  btn.disabled = false; btn.textContent = 'Send sign-in link →';
+  btn.disabled = false; btn.textContent = 'Send sign-in link';
   if (res && res.ok) {
     _mlEmail = email;
     showMagicLinkVerify(email);
   } else {
-    errEl.textContent = (res && res.error) || 'Could not send sign-in link — please try again.';
+    errEl.textContent = (res && res.error) || "Couldn't send the sign-in link. Try again.";
   }
 }
 
@@ -722,36 +741,36 @@ async function verifyMagicCodeFlow() {
   const errEl = document.getElementById('ml-verify-error');
   const btn = document.getElementById('ml-verify-btn');
   const email = _mlEmail || document.getElementById('ml-email').value.trim();
-  if (!code) { errEl.textContent = 'Enter the 6-digit code'; return; }
-  if (!email) { errEl.textContent = 'Please request a new sign-in link'; return; }
+  if (!code) { errEl.textContent = 'Enter the 6-digit code.'; return; }
+  if (!email) { errEl.textContent = 'Ask for a new sign-in link.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Signing in…';
   const res = await callAuth('verifyMagicCode', { email: email, code: code });
   if (res && res.ok) {
     persistSession(res, { email: email });
     refreshProfileInBackground(res.id || email);
-    goTo(safeNextUrl(params.get('next') || ''));
+    goTo(nextAfterSignIn());
     return;
   }
-  btn.disabled = false; btn.textContent = 'Verify code →';
-  errEl.textContent = (res && res.error) || 'Sign-in code is invalid or has expired.';
+  btn.disabled = false; btn.textContent = 'Verify code';
+  errEl.textContent = (res && res.error) || 'That code is invalid or has expired.';
 }
 
 async function resendMagicLink() {
   const errEl = document.getElementById('ml-verify-error');
   const btn = document.getElementById('ml-resend-btn');
-  if (!_mlEmail) { errEl.textContent = 'Please enter your email and try again'; return; }
+  if (!_mlEmail) { errEl.textContent = 'Enter your email and try again.'; return; }
   btn.disabled = true; btn.textContent = 'Sending…';
   let token;
   try { token = await getTurnstileToken(); } catch (e) { token = ''; }
   const res = await callAuth('sendMagicLink', { email: _mlEmail, turnstileToken: token });
   btn.disabled = false; btn.textContent = 'Resend';
   if (res && res.ok) {
-    errEl.textContent = 'A fresh sign-in link has been sent.';
+    errEl.textContent = 'A new sign-in link has been sent.';
     errEl.style.color = '#5A9E7A';
     setTimeout(function () { errEl.style.color = ''; errEl.textContent = ''; }, 2000);
   } else {
-    errEl.textContent = (res && res.error) || 'Could not resend — please try again.';
+    errEl.textContent = (res && res.error) || "Couldn't resend. Try again.";
   }
 }
 

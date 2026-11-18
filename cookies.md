@@ -1,61 +1,64 @@
 ---
 title: Cookie Policy
-date: 13 August 2026
+date: 17 November 2026
 tag: Legal
 ---
 
-> equitysight.app uses a small number of storage technologies. This page explains what we store and why. We use an essential cookie to keep you signed in, and Google Analytics, which sets its own cookies. We do not run advertising and set no advertising cookies.
+> equitysight.app sets one essential cookie, which keeps you signed in. Google Analytics sets its own cookies. The site does not run advertising and sets no advertising cookies.
 
-## Cookies we set
+## Cookies the site sets
 
-We use an **essential cookie** to keep you signed in:
+There is one essential cookie:
 
 | Cookie | Purpose | Type | Attributes | Expires |
 |--------|---------|------|------------|---------|
-| `es_session` | Authenticates your login session with our servers. | Essential | HttpOnly, Secure, SameSite=Lax | 30 days or on sign-out |
+| `es_session` | Keeps you signed in. | Essential | HttpOnly, Secure, SameSite=Lax | 30 days or on sign-out |
 
-This cookie is **HttpOnly**, which means it cannot be read by JavaScript running in your browser. It is only sent to our servers over encrypted (HTTPS) connections. It contains a random session identifier — not your email, name, or any personal information.
+This cookie is HttpOnly, so JavaScript running in your browser cannot read it. It is sent only over encrypted (HTTPS) connections. It holds a random session identifier. It does not hold your email, name or any other personal information.
 
-In addition, **Google Analytics** sets its own cookies (such as `_ga`) to measure aggregate usage. These are described in the **Analytics** section below.
+Google Analytics also sets its own cookies (such as `_ga`). These are described in the Analytics section below.
 
-## Browser localStorage
+## Browser storage
 
-In addition to the session cookie above, we use browser **localStorage** to store non-sensitive application preferences on your device. localStorage is never automatically sent to our servers with each request.
-
-We may also use **sessionStorage** for temporary in-session state. This is cleared automatically when you close your browser tab.
+The site uses browser localStorage to keep data on your device. Some of it is financial. Your in-progress First Home Journey holds the income, savings and budget figures you enter, and the calculators remember the inputs you last used. This data stays in your browser. It is sent to my servers only if you sign in, so that your journey and saved scenarios follow you across devices.
 
 | Key | Purpose | Type | Expires |
 |-----|---------|------|---------|
-| `propCalc_session_v1` | Stores your display name, email, and plan type for the user interface. Does **not** contain your authentication token. | Essential | Until sign-out |
-| `propCalc_profile_v1_*` | Stores your display name, avatar colour, and profile preferences. | Functional | Until sign-out or cleared |
-| `propCalc_journey_v1` | Your in-progress First Home Journey — the answers and budget you've entered. Synced to our servers only when you're signed in. | Functional | Until cleared |
-| `propCalc_draft_v1` | Calculator draft in progress. | Functional | Until cleared |
-| `tool_inputs_v1:*` | Your saved calculator inputs. | Functional | Until cleared |
-| `equitySight_theme` | Dark/light preference. | Functional | Until cleared |
-| `es_page_trail` | Pages visited before signing up; attached to your account if you create one. | Functional | Until cleared |
+| `propCalc_session_v1` | Your display name, email and plan type, used to show that you are signed in. It does not hold your sign-in token. | Essential | Until sign-out |
+| `propCalc_profile_v1_*` | Your display name, avatar colour and profile preferences. | Functional | Until cleared |
+| `propCalc_journey_v1` | Your in-progress First Home Journey, including the income, savings and budget figures you entered. Synced to my servers only when you are signed in. | Functional | Until cleared |
+| `propCalc_draft_v1` | A purchase calculator scenario in progress, including the prices and loan figures you entered. | Functional | Until cleared |
+| `propCalc_v5_index` | A copy of your saved purchase calculator scenarios, if you have any. | Functional | Until cleared |
+| `tool_inputs_v1:*` | The inputs you last used in each calculator. | Functional | Until cleared |
+| `equitySight_theme` | Dark or light theme. | Functional | Until cleared |
+| `es_page_trail` | Pages visited before signing up. Attached to your account if you create one. | Functional | Until cleared |
+
+A few other small keys record interface state, such as a banner you dismissed.
+
+The site may also use sessionStorage for temporary state. This is cleared when you close the browser tab.
 
 ## Third-party cookies
 
-Our hosting infrastructure (Netlify) may set technical cookies required for CDN and security functions. These are outside our control and governed by Netlify's own privacy and cookie policies.
+The hosting provider (Netlify) may set technical cookies needed for content delivery and security. These are outside my control and are covered by Netlify's own privacy and cookie policies.
 
 ## Analytics
 
-We use **Google Analytics 4** to understand aggregate usage patterns (e.g. which features are most used). Google Analytics sets first-party cookies (for example `_ga`) in your browser to distinguish visitors and sessions. If you are signed in, we may pass your account identifier to Google Analytics so usage can be measured across your devices.
+The site uses Google Analytics 4 to see which pages and features are used. Google Analytics sets first-party cookies (for example `_ga`) in your browser to tell visitors and sessions apart. If you are signed in, the site may pass your account id to Google Analytics so usage can be measured across your devices. It does not pass your name or email address.
 
-Google Analytics is provided by Google and processes data under Google's own terms. For more detail on how Google uses this information, see [Google's Privacy Policy](https://policies.google.com/privacy).
+Google Analytics is provided by Google and processes data under Google's own terms. See [Google's Privacy Policy](https://policies.google.com/privacy).
 
 ## Advertising
 
-We do not run advertising and set no advertising cookies. If that ever changes we will update this page first.
+The site does not run advertising and sets no advertising cookies. If that changes I will update this page first.
 
 ## Managing storage
 
-You can clear all stored data at any time:
+You can clear stored data at any time:
 
-- **In your browser:** Go to Settings → Privacy → Clear browsing data → Cookies and site data.
-- **In the app:** Sign out removes your session cookie and profile preferences. Your in-progress journey and calculator drafts stay on your device so you don't lose work — clear your browser's site data to remove them completely.
-- **Full deletion:** Contact us at [support@equitysight.app](mailto:support@equitysight.app) to delete your entire account and all associated data.
+- In your browser: Open your browser's settings, go to Privacy, choose Clear browsing data and select Cookies and site data. This removes your in-progress journey and calculator inputs from the device.
+- By signing out: Signing out removes your session cookie and the saved sign-in details. Your in-progress journey, calculator inputs and preferences stay on the device so you don't lose work. Clear your browser's site data to remove them.
+- Full deletion: Email [support@equitysight.app](mailto:support@equitysight.app) to delete your account and all data stored with it.
 
 ## Changes
 
-We may update this Cookie Policy as our practices change. Material changes will be communicated via the Service. See our [Privacy Policy](/privacy) for broader information on how we handle your data.
+I may update this page as the site changes. See the [Privacy Policy](/privacy) for how your data is handled more broadly.

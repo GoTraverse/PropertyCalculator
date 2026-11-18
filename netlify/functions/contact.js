@@ -45,10 +45,10 @@ exports.handler = async function(event) {
   try { body = JSON.parse(event.body || '{}'); } catch(e) { return fail('Invalid JSON'); }
 
   const { name, email, subject, message, diagnostics } = body;
-  if (!name || !email || !subject || !message) return fail('All fields required');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Invalid email');
-  if (String(name).length > 100) return fail('Name too long');
-  if (message.length > 5000) return fail('Message too long (max 5000 characters)');
+  if (!name || !email || !subject || !message) return fail('Fill in every field.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Enter a valid email address.');
+  if (String(name).length > 100) return fail('The name is too long.');
+  if (message.length > 5000) return fail('The message is too long. The limit is 5000 characters.');
 
   // Rate limit: max 5 contact submissions per IP per hour
   if (REDIS_URL && REDIS_TOKEN) {
@@ -61,7 +61,7 @@ exports.handler = async function(event) {
         if (n === 1) await fetch(REDIS_URL, { method:'POST', headers:{ Authorization:'Bearer '+REDIS_TOKEN, 'Content-Type':'application/json' }, body: JSON.stringify(['EXPIRE', rateKey, '3600']) });
         return n;
       })();
-      if (count > 5) return fail('Too many messages — please try again later');
+      if (count > 5) return fail('Too many messages. Try again later.');
     } catch(e) { /* don't block on rate limit errors */ }
   }
 
@@ -80,7 +80,7 @@ exports.handler = async function(event) {
     calculator: 'Calculator question',
     other: 'Other',
   };
-  if (!subjectLabels[subject]) return fail('Invalid subject');
+  if (!subjectLabels[subject]) return fail('Choose a topic.');
   const subjectLabel = subjectLabels[subject];
 
   if (!RESEND_API_KEY) {
@@ -113,7 +113,7 @@ exports.handler = async function(event) {
   <div style="background:#F9FAFB;border-left:3px solid #C9A84C;padding:16px;border-radius:0 4px 4px 0;">
     <p style="margin:0;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escHtml(message)}</p>
   </div>${diagHtml}
-  <p style="font-size:12px;color:#9CA3AF;margin-top:24px;">Reply directly to this email to respond to ${escHtml(name)}.</p>
+  <p style="font-size:12px;color:#9CA3AF;margin-top:24px;">Reply to this email to answer ${escHtml(name)}.</p>
 </div>`;
 
   try {
@@ -124,12 +124,12 @@ exports.handler = async function(event) {
         from: VERIFY_EMAIL_FROM,
         to: [toEmail],
         reply_to: [email],
-        subject: '[EquitySight] ' + subjectLabel + ' — from ' + name,
+        subject: '[EquitySight] ' + subjectLabel + ' from ' + name,
         html,
       }),
     });
     if (!r.ok) {
-      let errMsg = 'Failed to send message — please try again';
+      let errMsg = "Couldn't send the message. Try again.";
       try {
         const errBody = await r.json();
         console.warn('[contact] Resend error %s: %j', r.status, errBody);
@@ -143,6 +143,6 @@ exports.handler = async function(event) {
     return ok({ ok: true });
   } catch(e) {
     console.warn('[contact] Send error:', e.message);
-    return fail('Failed to send message — please try again');
+    return fail("Couldn't send the message. Try again.");
   }
 };

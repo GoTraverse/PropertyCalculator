@@ -5,11 +5,13 @@ function calculate() {
 
   var propVal = parseVal('propval');
   var mortgage = parseVal('mortgage');
-  var lvr = parseFloat(document.getElementById('lvr').value) / 100;
+  var lvrPct = parseFloat(document.getElementById('lvr').value);
 
-  if (!propVal || propVal <= 0) { if (!_isInit) _showErr('Please enter the property value.'); return; }
-  if (!mortgage || mortgage < 0) { if (!_isInit) _showErr('Please enter the outstanding mortgage.'); return; }
-  if (mortgage > propVal) { if (!_isInit) _showErr('Mortgage cannot exceed property value.'); return; }
+  if (!propVal || propVal <= 0) { if (!_isInit) _showErr('Enter the property value.'); return; }
+  // A blank or $0 mortgage is valid: the home is owned outright.
+  if (mortgage > propVal) { if (!_isInit) _showErr('The mortgage can\'t be more than the property value.'); return; }
+  if (!isFinite(lvrPct) || lvrPct <= 0 || lvrPct > 100) { if (!_isInit) _showErr('Enter a maximum LVR between 1 and 100.'); return; }
+  var lvr = lvrPct / 100;
 
   var equity = propVal - mortgage;
   var currentLvr = mortgage / propVal;
@@ -43,40 +45,27 @@ ToolPage.init({
   slug: 'equity-release',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan your renovation or investment',
-    description: 'Cost the renovation, check the yield and stress-test the bigger loan with the other free calculators.',
-    buttonText: 'Browse all 18 calculators →',
+    title: 'The repayment on a bigger loan',
+    description: 'The mortgage stress calculator shows what share of your gross income the larger repayment takes, at your current rate and after a rate rise. If the money is for a renovation or a rental, those have calculators too.',
+    buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFE6', title: 'Borrowing & LVR',
+        icon: '\uD83C\uDFE6', title: 'Borrowing',
         links: [
-          { text: 'ASIC: Lenders Mortgage Insurance', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'RBA: Housing & Mortgages', href: 'https://www.rba.gov.au/education/resources/explainers/' },
-          { text: 'MoneySmart: Compare Lenders', href: 'https://moneysmart.gov.au/' }
+          { text: 'ASIC Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' }
         ]
       },
       {
-        icon: '\uD83C\uDFE0', title: 'Property & Renovation',
+        icon: '\uD83D\uDCB0', title: 'Tax',
         links: [
-          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Consumer Affairs: Housing Info', href: 'https://www.consumer.vic.gov.au/housing' },
-          { text: 'ASIC: Building Inspections', href: 'https://moneysmart.gov.au/home-loans/buying-a-house' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCB0', title: 'Tax & Investment',
-        links: [
-          { text: 'ATO: Rental Property Tax Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ATO: Shared Equity Schemes', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ASIC: Financial Adviser Directory', href: 'https://moneysmart.gov.au/financial-advice' }
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed financial adviser, accountant, and bank before using equity release for investment or renovation.'
+    disclaimer: 'Anything you release is secured against your home.'
   },
   share: {
     url: 'https://equitysight.app/tools/equity-release-calculator',
@@ -90,7 +79,7 @@ ToolPage.init({
   ],
   footer: [
     { href: '/', text: 'EquitySight.app' },
-    { href: '/tools', text: 'All Calculators' },
+    { href: '/tools/', text: 'All Calculators' },
     { href: '/tools/borrowing-power-calculator', text: 'Borrowing Power' },
     { href: '/tools/deposit-calculator', text: 'Deposit' },
     { href: '/privacy', text: 'Privacy' }

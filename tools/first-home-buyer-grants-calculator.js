@@ -1,19 +1,15 @@
 /* ═══ FHB GRANTS & CONCESSIONS CALCULATOR ═══
  *
- * Best-in-market Australian First Home Buyer assistance calculator.
- * What competitors don't do that this does:
- *
- *   • Computes the ACTUAL dollar saving per program for the user's
- *     specific situation, not just "Full exemption / Reduces with price".
- *     We compute baseline stamp duty for the price + state, then subtract
- *     concession, so the user sees "you save $24,757".
- *   • Federal schemes overlaid in the same view: the 5% Deposit Scheme
+ * What it does:
+ *   • Computes the dollar duty saving for the entered price and state:
+ *     the duty an owner-occupier who is not a first home buyer would pay,
+ *     minus the first home buyer duty.
+ *   • Shows the federal schemes in the same view: the 5% Deposit Scheme
  *     (formerly First Home Guarantee — 5% deposit, no LMI), Help to Buy
- *     (2% shared-equity), First Home Super Saver ($50k withdrawal).
- *   • Separate price-cap tables for the 5% Deposit Scheme and Help to Buy
- *     (they differ per state) — most calculators use one table for both.
- *   • Total-assistance figure at the top: one clear number for "your
- *     household gets $X in first-home-buyer help on this purchase".
+ *     (2% deposit, shared equity) and First Home Super Saver.
+ *   • Keeps separate price-cap tables for the 5% Deposit Scheme and Help
+ *     to Buy, because they differ per state.
+ *   • Adds duty saving + FHOG + estimated LMI avoided into one total.
  *
  * Federal program settings (verified July 2026):
  *   • 5% Deposit Scheme: from 1 Oct 2025 there are NO income caps,
@@ -36,7 +32,7 @@
 //   fhbPartial       — partial-concession upper bound
 //   fhbNewHomeExempt — true if NEW-home purchases get duty nil with no value
 //                      cap (QLD contracts ≥1 May 2025; SA new/off-the-plan
-//                      ≥6 Jun 2024; NT house-and-land packages to 30 Jun 2027)
+//                      ≥6 Jun 2024)
 //   fhbNote          — one-line plain-English summary shown under the duty rows
 //   fhog             — { amount, propertyCap, newBuildOnly }
 //   fdsCapCapital    — Federal 5% Deposit Scheme price cap, capital city /
@@ -55,8 +51,8 @@ const STATES = {
     // FY2026-27 indexed brackets (rates unchanged, boundaries moved 1 Jul 2026).
     tiers: [[0,0.0125],[18000,0.015],[38000,0.0175],[103000,0.035],[387000,0.045],[1290000,0.055],[3870000,0.07]],
     fhbFull: 800000, fhbPartial: 1000000,
-    fhbNote: 'Full exemption up to $800k, sliding concession to $1m — new and established homes.',
-    fhog: { amount: 10000, propertyCap: 600000, newBuildOnly: true, note: 'New homes only — purchase ≤$600k (or land + build ≤$750k)' },
+    fhbNote: 'Full exemption up to $800k, sliding concession to $1m. Applies to new and established homes.',
+    fhog: { amount: 10000, propertyCap: 600000, newBuildOnly: true, note: 'New homes only, purchase ≤$600k (or land and build ≤$750k)' },
     fdsCapCapital: 1500000, fdsCapOther: 800000,
     h2bCapCapital: 1300000, h2bCapOther: 800000,
     revenueOffice: 'Revenue NSW',
@@ -66,7 +62,7 @@ const STATES = {
     name: 'Victoria',
     tiers: [[0,0.014],[25000,0.024],[130000,0.06]],
     fhbFull: 600000, fhbPartial: 750000,
-    fhbNote: 'Full exemption up to $600k, sliding concession to $750k — new and established homes.',
+    fhbNote: 'Full exemption up to $600k, sliding concession to $750k. Applies to new and established homes.',
     fhog: { amount: 10000, propertyCap: 750000, newBuildOnly: true, note: 'New homes only, ≤$750k' },
     fdsCapCapital: 950000, fdsCapOther: 650000,
     h2bCapCapital: 950000, h2bCapOther: 650000,
@@ -80,11 +76,11 @@ const STATES = {
     // value cap for contracts from 1 May 2025 (fhbNewHomeExempt).
     fhbFull: 700000, fhbPartial: 800000, fhbNewHomeExempt: true,
     fhbNote: 'Established homes: full exemption to $700k, then a phased concession to $800k (QRO deducts a fixed amount per $10,000 band from the home-concession duty). New homes: duty nil with no value cap (contracts from 1 May 2025). From 1 Aug 2026 buyers must be Australian citizens, permanent residents or specified foreign retirees.',
-    // $30k FHOG CONTINUES for eligible contracts from 1 Jul 2026 (2026-27
-    // Budget — the $15k reversion did not happen; pending Royal Assent).
+    // $30k FHOG continues for eligible contracts from 1 Jul 2026: Act No. 16
+    // of 2026, assent 29 Jun 2026 (the $15k reversion did not happen).
     // capStrict: QLD's cap is "less than $750,000" (exclusive), unlike the
     // "not exceeding" caps elsewhere.
-    fhog: { amount: 30000, propertyCap: 750000, capStrict: true, newBuildOnly: true, note: 'New homes only, <$750k — $30k extended to contracts from 1 Jul 2026 (2026-27 Budget, pending Royal Assent)' },
+    fhog: { amount: 30000, propertyCap: 750000, capStrict: true, newBuildOnly: true, note: 'New homes only, valued under $750,000 including land. $30,000 for contracts signed from 1 July 2026 (legislated June 2026).' },
     // Gold Coast + Sunshine Coast count as regional centres = capital cap.
     fdsCapCapital: 1000000, fdsCapOther: 700000,
     h2bCapCapital: 1000000, h2bCapOther: 700000,
@@ -98,7 +94,7 @@ const STATES = {
     // (fhbNewHomeExempt). Nothing for established homes (fhbFull 0).
     tiers: [[0,0.01],[12000,0.02],[30000,0.03],[50000,0.035],[100000,0.04],[200000,0.0425],[250000,0.0475],[300000,0.05],[500000,0.055]],
     fhbFull: 0, fhbPartial: 0, fhbNewHomeExempt: true,
-    fhbNote: 'Full relief on new homes, off-the-plan and vacant land only — no value cap (contracts from 6 Jun 2024). No relief for established homes.',
+    fhbNote: 'Full relief on new homes, off-the-plan and vacant land only, with no value cap (contracts from 6 Jun 2024). No relief for established homes.',
     // FHOG has NO property value cap for contracts on/after 6 Jun 2024.
     fhog: { amount: 15000, propertyCap: 0, newBuildOnly: true, note: 'New homes only, no property value cap (contracts on/after 6 Jun 2024)' },
     fdsCapCapital: 900000, fdsCapOther: 500000,
@@ -109,16 +105,16 @@ const STATES = {
   wa: {
     name: 'Western Australia',
     tiers: [[0,0.019],[120000,0.0285],[150000,0.038],[360000,0.0475],[725000,0.0515]],
-    // Exemption ≤$600k, concession to $800k for transactions from 7 May 2026
-    // (was $500k/$700k). Announced in the 2026-27 Budget, applying
-    // retrospectively — confirm legislative status with RevenueWA.
+    // Exemption ≤$600k, then $16.15 per $100 over $600k up to $800k, for
+    // agreements from 7 May 2026 (was $500k/$700k). RevenueWA has assessed
+    // at the new rates since July 2026.
     // Vacant land: ≤$450k / to $550k (not modelled — no land property type
     // here).
     fhbFull: 600000, fhbPartial: 800000,
-    fhbNote: 'Exemption up to $600k, concession to $800k announced in the 2026-27 Budget, applying retrospectively to transactions from 7 May 2026 (confirm the current legislative status with RevenueWA). Vacant land: exemption to $450k, concession to $550k.',
+    fhbNote: 'No duty up to $600,000, then a reduced rate up to $800,000, for agreements signed from 7 May 2026. Vacant land: no duty to $450,000, reduced to $550,000.',
     // FHOG cap $800k south of the 26th parallel (transactions from 7 May
     // 2026, was $750k); $1m north. We apply the southern cap.
-    fhog: { amount: 10000, propertyCap: 800000, newBuildOnly: true, note: 'New homes only — cap $800k south of the 26th parallel ($1m north), transactions from 7 May 2026' },
+    fhog: { amount: 10000, propertyCap: 800000, newBuildOnly: true, note: 'New homes only. Cap $800k south of the 26th parallel ($1m north), transactions from 7 May 2026.' },
     fdsCapCapital: 850000, fdsCapOther: 600000,
     h2bCapCapital: 850000, h2bCapOther: 600000,
     revenueOffice: 'RevenueWA',
@@ -130,10 +126,11 @@ const STATES = {
     // relief for settlements after that date (fhbFull 0).
     tiers: [[0,0],[3000,0.0175],[25000,0.0225],[75000,0.035],[200000,0.04],[375000,0.0425],[725000,0.045]],
     fhbFull: 0, fhbPartial: 0,
-    fhbNote: 'Tasmania’s established-home FHB duty exemption ended 30 Jun 2026 — full duty now applies to first home buyers.',
-    // $20k from 1 Jul 2026 ($10k base + $10k additional — additional
-    // component subject to legislation passing). $30k window closed 30 Jun 2026.
-    fhog: { amount: 20000, propertyCap: 0, newBuildOnly: true, note: '$20,000 from 1 Jul 2026 ($10k base + $10k additional, subject to legislation passing). New homes only' },
+    fhbNote: 'Tasmania’s established-home first home duty exemption ended 30 Jun 2026, so first home buyers now pay full duty.',
+    // $20k for transactions commencing 1 Jul 2026 to 30 Jun 2027 (First Home
+    // Owner Grant Amendment Act 2026, No. 9 of 2026, assent 10 Jul 2026).
+    // Re-check before 1 Jul 2027. $30k window closed 30 Jun 2026.
+    fhog: { amount: 20000, propertyCap: 0, newBuildOnly: true, note: '$20,000 for transactions that start between 1 July 2026 and 30 June 2027. New homes only.' },
     fdsCapCapital: 700000, fdsCapOther: 550000,
     h2bCapCapital: 700000, h2bCapOther: 550000,
     revenueOffice: 'State Revenue Office Tasmania',
@@ -146,8 +143,8 @@ const STATES = {
     // no property owned in the previous 5 years + live in it for 1 year.
     tiers: [[0,0.0028],[260000,0.022],[300000,0.034],[500000,0.0432],[750000,0.059],[1000000,0.064]],
     fhbFull: Infinity, fhbPartial: Infinity,
-    fhbNote: 'Home Buyer Concession Scheme from 1 Jul 2026: no duty for eligible buyers — no income test, no property value limit. Eligibility: no property owned in the previous 5 years + live in the home for 12 months.',
-    fhog: { amount: 0, propertyCap: 0, newBuildOnly: false, note: 'ACT has no FHOG — the Home Buyer Concession Scheme (duty-free purchase) replaces it' },
+    fhbNote: 'Home Buyer Concession Scheme from 1 Jul 2026: no duty for eligible buyers, with no income test and no property value limit. You must have owned no property in the previous 5 years and live in the home for 12 months.',
+    fhog: { amount: 0, propertyCap: 0, newBuildOnly: false, note: 'The ACT has no FHOG. The Home Buyer Concession Scheme (no duty) takes its place.' },
     fdsCapCapital: 1000000, fdsCapOther: 1000000,
     h2bCapCapital: 1000000, h2bCapOther: 1000000,
     revenueOffice: 'ACT Revenue Office',
@@ -156,17 +153,20 @@ const STATES = {
   nt: {
     name: 'Northern Territory',
     // NT duty is a quadratic under $525k and a flat % of total above —
-    // handled directly in calcDuty(); tiers left empty. FHB relief is the
-    // House & Land Package Exemption: 100% duty exemption on house-and-land
-    // packages, contracts 1 Jul 2022 – 30 Jun 2027, no cap, not means-tested
-    // (fhbNewHomeExempt). No relief for established homes.
+    // handled directly in calcDuty(); tiers left empty. The NT has no first
+    // home buyer duty concession, so first home duty is full duty for every
+    // property type (same as journey.js and the NT duty page). The House and
+    // Land Package Exemption (a new detached house bought with its land from
+    // a building contractor in a single transaction, contracts to 30 Jun
+    // 2027) is open to any home buyer, so it isn't a first home saving; the
+    // calculator can't tell a package from other new builds anyway.
     tiers: [],
-    fhbFull: 0, fhbPartial: 0, fhbNewHomeExempt: true,
-    fhbNote: 'House & Land Package Exemption: 100% duty exemption on house-and-land packages (contracts 1 Jul 2022 – 30 Jun 2027, no cap, not means-tested). Off-the-plan apartments may not qualify. No relief for established homes.',
+    fhbFull: 0, fhbPartial: 0, fhbNewHomeExempt: false,
+    fhbNote: 'The NT has no first home buyer duty concession, so this shows full duty. A new detached house bought with its land from a building contractor in a single transaction pays no duty if the contract is signed by 30 June 2027, whether or not it is your first home. Units, townhouses, duplexes and off-the-plan apartments pay full duty.',
     // HomeGrown Territory grant $50k — NEW homes only, contracts
     // 1 Oct 2024 – 30 Sep 2027, no price cap, no income test. The old
     // $10k established-home stream ended 30 Sep 2025.
-    fhog: { amount: 50000, propertyCap: 0, newBuildOnly: true, note: '$50,000 HomeGrown Territory grant — new homes only, contracts 1 Oct 2024 – 30 Sep 2027, no price cap, no income test (established-home stream ended 30 Sep 2025)' },
+    fhog: { amount: 50000, propertyCap: 0, newBuildOnly: true, note: '$50,000 HomeGrown Territory grant for new homes only. Contracts 1 Oct 2024 to 30 Sep 2027, no price cap, no income test. The established-home stream ended 30 Sep 2025.' },
     // 5% Deposit Scheme NT split effective 1 Jul 2026: $750k Darwin / $600k rest.
     fdsCapCapital: 750000, fdsCapOther: 600000,
     h2bCapCapital: 600000, h2bCapOther: 600000,
@@ -187,7 +187,10 @@ const FHSS_MAX_CONTRIB_ANNUAL = 15000;
 const FHSS_MAX_TOTAL = 50000;
 
 // ── Cumulative tiered duty (mirrors stamp-duty-calculator.js) ─────────────
-function dutyAt(tiers, v) {
+// wholeBases: floor the running total at each bracket passed. Revenue NSW
+// states its bracket bases in whole dollars ($1,662, $11,602, $52,237,
+// $194,137), so calcDuty() passes it for NSW only.
+function dutyAt(tiers, v, wholeBases) {
   if (!tiers || v <= 0) return 0;
   let duty = 0;
   for (let i = 0; i < tiers.length; i++) {
@@ -195,6 +198,7 @@ function dutyAt(tiers, v) {
     if (v <= from) break;
     const next = (i + 1 < tiers.length) ? tiers[i + 1][0] : Infinity;
     duty += (Math.min(v, next) - from) * tiers[i][1];
+    if (wholeBases && v > next) duty = Math.floor(duty);
   }
   return duty;
 }
@@ -212,7 +216,7 @@ function calcDuty(stateCode, v) {
     if (v <= 5000000) return v * 0.0575;
     return v * 0.0595;
   }
-  let duty = dutyAt(data.tiers, v);
+  let duty = dutyAt(data.tiers, v, stateCode === 'nsw');
   // Bands that are a flat % of the TOTAL value (not marginal on the excess):
   if (stateCode === 'vic') {
     if (v > 960000 && v <= 2000000) duty = v * 0.055;
@@ -226,11 +230,27 @@ function calcDuty(stateCode, v) {
   return duty;
 }
 
+// Duty a NON-first-home owner-occupier pays — the baseline the first home
+// saving is measured against. Queensland charges owner-occupiers its lower
+// home-concession rate (the same qHome schedule fhbDuty() uses below), so
+// measuring the saving against the investor rate would overstate it by up
+// to $7,175 and exceed QRO's own maximum first home concession. No other
+// state has an owner-occupier rate, so standard duty is the baseline there.
+function ownerOccupierDuty(stateCode, price) {
+  if (stateCode === 'qld') {
+    return price <= 350000 ? price * 0.01
+      : price <= 540000 ? 3500 + (price - 350000) * 0.035
+      : price <= 1000000 ? 10150 + (price - 540000) * 0.045
+      : 30850 + (price - 1000000) * 0.0575;
+  }
+  return calcDuty(stateCode, price);
+}
+
 // FHB stamp-duty payable (after concession), state-specific
 function fhbDuty(stateData, stateCode, price, isNewBuild) {
   const stdDuty = calcDuty(stateCode, price);
   // New-home full exemptions with NO value cap: QLD (contracts ≥1 May 2025),
-  // SA new/off-the-plan (≥6 Jun 2024), NT house-and-land packages (to 30 Jun 2027).
+  // SA new/off-the-plan (≥6 Jun 2024).
   if (stateData.fhbNewHomeExempt && isNewBuild) return 0;
   // QLD established homes — QRO band-table method (verified 5 Jul 2026): a
   // fixed concession amount ($17,350 at <$710k, stepping down $1,735 per
@@ -253,9 +273,15 @@ function fhbDuty(stateData, stateCode, price, isNewBuild) {
   if (price <= stateData.fhbFull) {
     return 0;
   }
-  // Taper between fhbFull and fhbPartial (NSW/VIC/QLD/WA).
+  // Partial concession between fhbFull and fhbPartial (NSW/VIC/WA; QLD is
+  // handled above).
   if (price <= stateData.fhbPartial && stateData.fhbPartial > stateData.fhbFull) {
     const slide = (stateData.fhbPartial - price) / (stateData.fhbPartial - stateData.fhbFull);
+    // NSW (s 78A): standard duty less slide × the standard duty on $800,000.
+    if (stateCode === 'nsw') return Math.max(0, stdDuty - slide * calcDuty('nsw', stateData.fhbFull));
+    // WA first home owner rate: $16.15 per $100, or part, over $600,000.
+    if (stateCode === 'wa') return Math.round(Math.ceil((price - stateData.fhbFull) / 100) * 1615) / 100;
+    // VIC (s 57JA): standard duty scaled in a straight line.
     return Math.max(0, stdDuty * (1 - slide));
   }
   return stdDuty;
@@ -274,10 +300,14 @@ function fdsEligibility(stateData, price, isCapitalCity) {
   };
 }
 
-// LMI estimate (same tier table as mortgage-repayment)
+// LMI estimate: my own rough rates by LVR band, with no published rate table
+// behind them (same tier table as mortgage-repayment). The scheme is modelled
+// at a 5% deposit, so the loan passed in is 95% of the price.
 function estimateLmi(loan, propertyValue) {
   if (!loan || !propertyValue) return 0;
-  const lvr = loan / propertyValue;
+  // Rounded first, as lmiRate() in journey.js does: price × 0.95 ÷ price
+  // can come out as 0.9500000000000001 and land in the next tier.
+  const lvr = Math.round(loan / propertyValue * 10000) / 10000;
   if (lvr <= 0.80) return 0;
   if (lvr <= 0.85) return Math.round(loan * 0.0080);
   if (lvr <= 0.90) return Math.round(loan * 0.0190);
@@ -320,14 +350,15 @@ function calculate() {
   if (_msg) _msg.hidden = true;
 
   if (!price || price <= 0) {
-    if (!_isInit) _showErr('Please enter the property price.');
+    if (!_isInit) _showErr('Enter the property price.');
     return;
   }
 
   const isNewBuild = ptype === 'new' || ptype === 'offplan';
 
   // ── Stamp duty (without FHB) vs with FHB ───────────────────────────────
-  const stdDuty = calcDuty(stateCode, price);
+  // Baseline = what an owner-occupier who is not a first home buyer pays.
+  const stdDuty = ownerOccupierDuty(stateCode, price);
   const fhbDutyPayable = fhbDuty(data, stateCode, price, isNewBuild);
   const sdSaving = stdDuty - fhbDutyPayable;
 
@@ -342,9 +373,9 @@ function calculate() {
       fhog = data.fhog.amount;
       fhogReason = data.fhog.note;
     } else if (data.fhog.newBuildOnly && !isNewBuild) {
-      fhogReason = 'Not eligible — established home (FHOG is for new builds only)';
+      fhogReason = 'Not eligible. The FHOG is only for new homes.';
     } else if (data.fhog.propertyCap && !underCap) {
-      fhogReason = 'Not eligible — price ' + (data.fhog.capStrict ? 'is not under' : 'exceeds') + ' the ' + fmt(data.fhog.propertyCap) + ' FHOG cap';
+      fhogReason = 'Not eligible. The price ' + (data.fhog.capStrict ? 'is not under' : 'is over') + ' the ' + fmt(data.fhog.propertyCap) + ' FHOG cap.';
     } else {
       fhogReason = data.fhog.note;
     }
@@ -365,10 +396,10 @@ function calculate() {
 
   // ── Total assistance (cash equivalents — direct $ benefit) ─────────────
   let totalCash = sdSaving + fhog;
-  let totalCashNote = 'Stamp duty saving + FHOG';
+  let totalCashNote = 'Stamp duty saving plus FHOG';
   if (fds.eligible) {
     totalCash += fds.lmiAvoided;
-    totalCashNote += ' + LMI avoided via 5% Deposit Scheme';
+    totalCashNote += ' plus LMI avoided under the 5% Deposit Scheme';
   }
 
   // ── Render output cards ────────────────────────────────────────────────
@@ -383,8 +414,8 @@ function calculate() {
 
   // Stamp duty section
   html += '<div class="fhb-section">' +
-    '<div class="fhb-section-title">' + escHtml(data.name) + ' Stamp Duty</div>' +
-    '<div class="fhb-row"><span>Standard duty payable</span><span class="fhb-row-val">' + fmt(stdDuty) + '</span></div>' +
+    '<div class="fhb-section-title">' + escHtml(data.name) + ' stamp duty</div>' +
+    '<div class="fhb-row"><span>' + (stateCode === 'qld' ? 'Duty for an owner-occupier who is not a first home buyer (QLD home concession rate)' : 'Standard duty payable') + '</span><span class="fhb-row-val">' + fmt(stdDuty) + '</span></div>' +
     '<div class="fhb-row"><span>Your duty as a first home buyer</span><span class="fhb-row-val">' + fmt(fhbDutyPayable) + '</span></div>' +
     '<div class="fhb-row fhb-row-save"><span>Stamp duty saving</span><span class="fhb-row-val">' + fmt(sdSaving) + '</span></div>' +
     (data.fhbNote ? '<div class="fhb-row-note">' + escHtml(data.fhbNote) + '</div>' : '') +
@@ -394,7 +425,7 @@ function calculate() {
   html += '<div class="fhb-section">' +
     '<div class="fhb-section-title">' + escHtml(data.name) + ' First Home Owner Grant</div>' +
     (fhog > 0
-      ? '<div class="fhb-row fhb-row-save"><span>You’re eligible for FHOG</span><span class="fhb-row-val">' + fmt(fhog) + '</span></div>'
+      ? '<div class="fhb-row fhb-row-save"><span>You’re eligible for the FHOG</span><span class="fhb-row-val">' + fmt(fhog) + '</span></div>'
       : '<div class="fhb-row fhb-row-na"><span>FHOG status</span><span class="fhb-row-val">Not eligible</span></div>'
     ) +
     '<div class="fhb-row-note">' + escHtml(fhogReason) + '</div>' +
@@ -403,13 +434,13 @@ function calculate() {
   // 5% Deposit Scheme section
   html += '<div class="fhb-section">' +
     '<div class="fhb-section-title">Federal 5% Deposit Scheme (was First Home Guarantee)</div>' +
-    '<div class="fhb-row"><span>Income cap</span><span class="fhb-row-val">None — removed 1 Oct 2025</span></div>' +
+    '<div class="fhb-row"><span>Income cap</span><span class="fhb-row-val">None since 1 Oct 2025</span></div>' +
     '<div class="fhb-row"><span>Property price cap (' + (isCapitalCity ? 'capital city / regional centre' : 'rest of state') + ')</span><span class="fhb-row-val">' + fmt(fds.propertyCap) + '</span></div>' +
     (fds.eligible
       ? '<div class="fhb-row fhb-row-save"><span>LMI avoided via 5% deposit</span><span class="fhb-row-val">' + fmt(fds.lmiAvoided) + '</span></div>' +
-        '<div class="fhb-row-note">Eligible. Buy with a 5% deposit and pay no LMI. Since 1 Oct 2025: no income caps, unlimited places, no waitlist. Owner-occupiers who have never owned property in Australia — or haven’t owned in the last 10 years.</div>'
+        '<div class="fhb-row-note">Eligible on price. You can buy with a 5% deposit and pay no LMI. Since 1 Oct 2025 there is no income cap, no limit on places and no waitlist. It’s for owner-occupiers who have never owned property in Australia or haven’t owned any in the last 10 years. The LMI figure is my own estimate by LVR band, with no published rate table behind it.</div>'
       : '<div class="fhb-row fhb-row-na"><span>5% Deposit Scheme status</span><span class="fhb-row-val">Not eligible</span></div>' +
-        '<div class="fhb-row-note">Property price exceeds the ' + fmt(fds.propertyCap) + ' cap for this area. No income test applies — only the price cap.</div>'
+        '<div class="fhb-row-note">The price is over the ' + fmt(fds.propertyCap) + ' cap for this area. The scheme has no income test, so the price cap is the only check.</div>'
     ) +
     '</div>';
 
@@ -420,12 +451,12 @@ function calculate() {
       '<div class="fhb-row"><span>Income cap (' + (isCouple ? 'joint / single parent' : 'single') + ')</span><span class="fhb-row-val">' + fmt(helpToBuy.incomeCap) + '</span></div>' +
       '<div class="fhb-row"><span>Property price cap (' + (isCapitalCity ? 'capital city / regional centre' : 'rest of state') + ')</span><span class="fhb-row-val">' + fmt(helpToBuy.propertyCap) + '</span></div>' +
       (helpToBuy.eligible
-        ? '<div class="fhb-row"><span>Government equity (' + Math.round(helpToBuy.equityShare * 100) + '% — ' + (isNewBuild ? 'new build' : 'established') + ')</span><span class="fhb-row-val">' + fmt(helpToBuy.governmentEquity) + '</span></div>' +
-          '<div class="fhb-row fhb-row-save"><span>Your borrowing required (2% deposit + loan)</span><span class="fhb-row-val">' + fmt(helpToBuy.yourBorrowingRequired) + '</span></div>' +
-          '<div class="fhb-row-note">Eligible. Applications open since 5 Dec 2025 via Commonwealth Bank and Bank Australia (more lenders during 2026); 10,000 places in FY2026-27. Income caps from 1 Jul 2026: $103,000 single / $165,000 joint or single-parent. The government takes its proportional share of any gain when you sell or refinance. Cannot be combined with the 5% Deposit Scheme — pick one.</div>'
+        ? '<div class="fhb-row"><span>Government equity (' + Math.round(helpToBuy.equityShare * 100) + '%, ' + (isNewBuild ? 'new build' : 'established') + ')</span><span class="fhb-row-val">' + fmt(helpToBuy.governmentEquity) + '</span></div>' +
+          '<div class="fhb-row"><span>Your loan (price less the government share and a 2% deposit)</span><span class="fhb-row-val">' + fmt(helpToBuy.yourBorrowingRequired) + '</span></div>' +
+          '<div class="fhb-row-note">Eligible on income and price. Applications opened 5 Dec 2025 through Commonwealth Bank and Bank Australia, with more lenders during 2026, and there are 10,000 places in FY2026-27. Income caps from 1 Jul 2026: $103,000 single, $165,000 joint or single parent. The government takes its proportional share of any gain when you sell or refinance. You can’t combine it with the 5% Deposit Scheme.</div>'
         : '<div class="fhb-row fhb-row-na"><span>Help to Buy status</span><span class="fhb-row-val">Not eligible</span></div>' +
-          '<div class="fhb-row-note">' + (!helpToBuy.incomeOk ? 'Income exceeds the ' + fmt(helpToBuy.incomeCap) + ' ' + (isCouple ? 'joint / single-parent' : 'single') + ' cap (from 1 Jul 2026). ' : '') +
-          (!helpToBuy.priceOk ? 'Property price exceeds the ' + fmt(helpToBuy.propertyCap) + ' Help to Buy cap for this area. ' : '') + '</div>'
+          '<div class="fhb-row-note">' + (!helpToBuy.incomeOk ? 'Income is over the ' + fmt(helpToBuy.incomeCap) + ' ' + (isCouple ? 'joint or single parent' : 'single') + ' cap (from 1 Jul 2026). ' : '') +
+          (!helpToBuy.priceOk ? 'The price is over the ' + fmt(helpToBuy.propertyCap) + ' Help to Buy cap for this area. ' : '') + '</div>'
       ) +
       '</div>';
   }
@@ -436,11 +467,11 @@ function calculate() {
     '<div class="fhb-row"><span>Max voluntary contributions / year (per person)</span><span class="fhb-row-val">' + fmt(FHSS_MAX_CONTRIB_ANNUAL) + '</span></div>' +
     '<div class="fhb-row"><span>Max withdrawal cap (per person)</span><span class="fhb-row-val">' + fmt(FHSS_MAX_TOTAL) + '</span></div>' +
     (isCouple ? '<div class="fhb-row"><span>Combined as couple (both contributing)</span><span class="fhb-row-val">' + fmt(fhssMaxPerPerson) + '</span></div>' : '') +
-    '<div class="fhb-row-note">Voluntary super contributions are taxed at 15% (vs your marginal rate), then withdrawn for the deposit at a concessional rate. Useful for buyers ~3-5 years from purchase. Doesn’t directly reduce purchase price — accumulates a tax-effective deposit.</div>' +
+    '<div class="fhb-row-note">Voluntary super contributions are taxed at 15% instead of your marginal rate, then withdrawn for the deposit at a concessional rate. Most useful if you’re about 3-5 years from buying. It isn’t in the total above because it doesn’t reduce what you pay for the home.</div>' +
     '</div>';
 
   document.getElementById('results-container').innerHTML = html;
-  document.getElementById('disclaimer').textContent = 'Estimates only. Eligibility varies by state and scheme. Help to Buy has annual place caps (10,000 in FY2026-27); the 5% Deposit Scheme is uncapped. Scheme settings as at July 2026 — verify your specific eligibility with the relevant authority (' + data.revenueOffice + ', Housing Australia, ATO) before relying on these figures.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Help to Buy has a yearly limit on places (10,000 in FY2026-27) and the 5% Deposit Scheme has none. Scheme settings are as at July 2026. Check your eligibility with ' + data.revenueOffice + ', Housing Australia or the ATO before you rely on these figures.';
   document.getElementById('result').style.display = '';
 
   if (!_isInit) {
@@ -467,25 +498,25 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Compare the schemes over time',
+    description: 'Step 2 of the First Home Journey sets the 5% Deposit Scheme and Help to Buy against buying without a scheme, using your own savings, income and timeframe.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '🎯', title: 'Federal Programs',
+        icon: '🎯', title: 'Federal schemes',
         links: [
-          { text: '5% Deposit Scheme — firsthomebuyers.gov.au', href: 'https://www.firsthomebuyers.gov.au/' },
+          { text: 'firsthomebuyers.gov.au: 5% Deposit Scheme', href: 'https://www.firsthomebuyers.gov.au/' },
           { text: 'Housing Australia: First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'Help to Buy Scheme', href: 'https://www.housingaustralia.gov.au/help-to-buy' },
-          { text: 'First Home Super Saver Scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home Guide', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'Housing Australia: Help to Buy', href: 'https://www.housingaustralia.gov.au/help-to-buy' },
+          { text: 'ATO: First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '📍', title: 'State Revenue Offices',
+        icon: '📍', title: 'State revenue offices',
         links: [
           { text: 'Revenue NSW: First Home Buyer', href: 'https://www.revenue.nsw.gov.au/grants-schemes/first-home-buyer' },
           { text: 'SRO Victoria: First Home Owner Grant', href: 'https://www.sro.vic.gov.au/first-home-owner-grant' },
@@ -493,17 +524,9 @@ ToolPage.init({
           { text: 'RevenueSA: First Home Owners', href: 'https://www.revenuesa.sa.gov.au/grants-and-concessions/first-home-owners' },
           { text: 'RevenueWA: First Home Owner Grant', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/first-home-owner-grant' }
         ]
-      },
-      {
-        icon: '💰', title: 'Tax & Super',
-        links: [
-          { text: 'ATO: Capital Gains Tax Guide', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax' },
-          { text: 'ATO: PPOR Exemption', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/capital-gains-tax/property-and-capital-gains-tax/your-main-residence-home' },
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' }
-        ]
       }
     ],
-    disclaimer: 'Grant eligibility and amounts change frequently. Verify with your state’s housing authority + Housing Australia + the ATO before purchasing. This calculator uses scheme settings verified as at July 2026.'
+    disclaimer: 'Grants and scheme rules change often. The calculator uses the settings as at July 2026, so check with your state revenue office, Housing Australia and the ATO before you buy.'
   },
   share: {
     url: 'https://equitysight.app/tools/first-home-buyer-grants-calculator',
@@ -524,7 +547,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'QLD couple — $650k new build, $210k combined income, Brisbane',
+      label: 'QLD couple, $650k new build in Brisbane, $210k combined income',
       inputs: [
         { k: 'Price', v: '$650,000' },
         { k: 'State', v: 'QLD' },
@@ -532,14 +555,14 @@ ToolPage.init({
         { k: 'Couple income', v: '$210,000 combined' }
       ],
       outputs: [
-        { k: 'Stamp duty saving', v: '$22,275 (new-home duty nil, no value cap)' },
+        { k: 'Stamp duty saving', v: '$15,100 (new-home duty nil, measured against the owner-occupier rate)' },
         { k: 'FHOG (new builds)', v: '$30,000' },
-        { k: '5% Deposit Scheme', v: 'Eligible — no income caps since Oct 2025' },
-        { k: 'Total cash assistance', v: '~$73,270 (incl. ~$21,000 LMI avoided)' }
+        { k: '5% Deposit Scheme', v: 'Eligible (no income cap since Oct 2025)' },
+        { k: 'Total cash assistance', v: '$66,095 (incl. $20,995 estimated LMI avoided)' }
       ]
     },
     {
-      label: 'VIC single — $580k established, $95k income, Melbourne',
+      label: 'VIC single buyer, $580k established home in Melbourne, $95k income',
       inputs: [
         { k: 'Price', v: '$580,000' },
         { k: 'State', v: 'VIC' },
@@ -549,12 +572,12 @@ ToolPage.init({
       outputs: [
         { k: 'Stamp duty saving', v: '$29,870 (full exemption ≤ $600k)' },
         { k: 'FHOG', v: '$0 (established homes not eligible)' },
-        { k: '5% Deposit Scheme', v: 'Eligible — also under the $103k Help to Buy cap' },
-        { k: 'Total cash assistance', v: '~$48,600 (incl. ~$18,700 LMI avoided)' }
+        { k: '5% Deposit Scheme', v: 'Eligible. Income is also under the $103k Help to Buy cap' },
+        { k: 'Total cash assistance', v: '$48,604 (incl. $18,734 estimated LMI avoided)' }
       ]
     },
     {
-      label: 'NSW couple — $920k apartment, $185k combined, Sydney',
+      label: 'NSW couple, $920k apartment in Sydney, $185k combined income',
       inputs: [
         { k: 'Price', v: '$920,000' },
         { k: 'State', v: 'NSW' },
@@ -562,28 +585,20 @@ ToolPage.init({
         { k: 'Couple income', v: '$185,000 combined' }
       ],
       outputs: [
-        { k: 'Stamp duty saving', v: '~$14,235 (sliding concession $800k–$1m)' },
+        { k: 'Stamp duty saving', v: '$12,075 (sliding concession $800k–$1m)' },
         { k: 'FHOG', v: '$0 (established)' },
-        { k: '5% Deposit Scheme', v: 'Eligible — under the $1.5m Sydney cap, no income test' },
-        { k: 'Total cash assistance', v: '~$43,950 (incl. ~$29,700 LMI avoided)' }
+        { k: '5% Deposit Scheme', v: 'Eligible (under the $1.5m Sydney cap, no income test)' },
+        { k: 'Total cash assistance', v: '$41,791 (incl. $29,716 estimated LMI avoided)' }
       ]
     }
   ],
   faq: [
-    { q: 'Can I combine multiple first home buyer programs?',
-      a: 'Yes, mostly. State stamp duty concessions stack with the state FHOG (if you qualify for both) and the FHSS. The federal 5% Deposit Scheme (5% deposit, no LMI) is a separate add-on. Help to Buy and the 5% Deposit Scheme are mutually exclusive — pick one. You can use Help to Buy in combination with state SD concession + FHOG + FHSS.' },
+    { q: 'Which first home buyer schemes can I combine?',
+      a: 'Most of them. The state stamp duty concession, the First Home Owner Grant and the First Home Super Saver all stack, and you can add either the 5% Deposit Scheme or Help to Buy. You can’t use the 5% Deposit Scheme and Help to Buy together.' },
     { q: 'Am I eligible for the First Home Owner Grant?',
-      a: 'You must be buying or building a NEW home (not established), be an Australian citizen or permanent resident, be 18+, intend to live in the home as principal residence for at least 12 months starting within 12 months of settlement, and meet the state’s price cap where one applies (SA, TAS and the NT have no FHOG price cap). Eligibility rules vary by state — see the FHOG section above for your state’s specifics.' },
-    { q: 'What is the 5% Deposit Scheme (formerly the First Home Guarantee)?',
-      a: 'Federal scheme letting eligible first home buyers purchase with as little as a 5% deposit — the government guarantees the lender against the shortfall, so you don’t pay LMI. From 1 October 2025 the scheme has NO income caps, unlimited places and no waitlist. You must be an owner-occupier and either a first home buyer or someone who hasn’t owned property in the last 10 years. Property price caps still apply by state and region — e.g. $1,500,000 in Sydney and NSW regional centres, $1,000,000 in Brisbane, the Gold Coast and the Sunshine Coast.' },
-    { q: 'What is Help to Buy?',
-      a: 'Federal shared-equity scheme where the government takes a property equity stake (up to 40% on new builds, 30% on established) in exchange for reducing your borrowing requirement. You contribute as little as 2% deposit. Applications opened 5 December 2025 through Commonwealth Bank and Bank Australia, with more lenders joining during 2026, and there are 10,000 places in FY2026-27. Income caps from 1 July 2026: $103,000 single / $165,000 for joint applicants or single parents. Help to Buy also has its own property price caps, which differ from the 5% Deposit Scheme’s (e.g. $1,300,000 in Sydney vs $1,500,000). When you sell, the government takes its proportional share of any capital gain. You can’t use Help to Buy + the 5% Deposit Scheme together — pick one.' },
-    { q: 'What is the First Home Super Saver (FHSS)?',
-      a: 'You can voluntarily contribute up to $15,000 per year (max $50,000 total) of pre-tax income into super, then later withdraw it (plus deemed earnings) for your deposit. The tax saving comes from contributions being taxed at 15% inside super vs your marginal rate (32-47%). Most useful for buyers 3-5 years away from purchase. Withdrawal application takes ~25 business days — start the paperwork before you start house hunting.' },
-    { q: 'Does the stamp duty concession apply to established homes or only new builds?',
-      a: 'It varies by state. NSW, VIC and WA cover both new and established homes. QLD covers both, and new homes get duty nil with no value cap (contracts from 1 May 2025). SA’s relief applies only to new builds, off-the-plan and vacant land. Tasmania’s established-home exemption expired 30 June 2026 — TAS first home buyers now pay full duty on established homes. From 1 July 2026 the ACT charges eligible home buyers no duty at all, with no income test and no value limit. The NT offers relief only via its House & Land Package Exemption. All states’ FHOG (separate cash grant) is restricted to new builds.' },
+      a: 'You must be buying or building a new home, be an Australian citizen or permanent resident aged 18 or over, and live in the home as your main residence for a set period, six or 12 months depending on the state, usually starting within 12 months of settlement. NSW, VIC, QLD and WA also cap the price. SA, Tasmania and the NT don’t, and the ACT has no grant. The FHOG section of the result shows the amount and cap for your state.' },
     { q: 'Can I get help if I’m buying as an investor?',
-      a: 'No. Every first home buyer program requires you to live in the home as your principal place of residence (PPR) for at least 6-12 months starting within 12 months of settlement. If you buy as an investor or move out within the qualifying period, the concession is clawed back. The federal Help to Buy scheme and the 5% Deposit Scheme both disqualify investors entirely — owner-occupiers only.' }
+      a: 'No. Each scheme needs you to live in the home, and the timing differs. For state grants and duty concessions you generally move in within 12 months of settlement, or of the home being finished if you build, and stay for a continuous 6 or 12 months depending on the state and the scheme. If you don’t, the grant has to be repaid or the duty is reassessed. Under the 5% Deposit Scheme you move in within 6 months of settlement, or of the occupancy certificate for a new build, and keep living there for as long as the loan is guaranteed. If you don’t, the guarantee can end and the lender can charge you LMI. Under Help to Buy you move in when you settle on an established home and live there until the government’s share is paid out. You can’t rent the home out, and a breach can mean repaying some or all of that share.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },

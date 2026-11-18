@@ -73,6 +73,7 @@ const SUBURB_CACHE_DEPS = [
   'templates/state-hub.html',
   'data/suburbs.json',
   'data/market-current.json',
+  'data/suburb-coords.json',
 ];
 
 // Hash the dependency file contents (path + bytes, in fixed order). Missing files
