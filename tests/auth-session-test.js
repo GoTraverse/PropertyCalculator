@@ -10,9 +10,14 @@
 //      with hourly caps per address and per IP on top
 //   6. an old HMAC password hash is replaced by scrypt at the next sign-in
 //   7. a rate-limit counter that lost its expiry gets it back
+//   8. a right sign-in code never wipes wrong codes counted against its IP
+//   9. googleSignin applies the same address check
+//  10. a field that is not a string is refused or ignored, never a crash, and
+//      a password that is not a string is never stored
 process.env.UPSTASH_REDIS_REST_URL = 'https://redis.test';
 process.env.UPSTASH_REDIS_REST_TOKEN = 't';
 process.env.AUTH_SALT = 'salt';
+process.env.GOOGLE_CLIENT_ID = 'test-client.apps.googleusercontent.com';
 // Without these the handler skips the captcha and logs each emailed code
 // instead of sending it, which is how the tests below read the codes.
 delete process.env.RESEND_API_KEY;
@@ -24,6 +29,8 @@ const store = new Map();   // key → string
 const expiry = new Map();  // key → ms timestamp; no entry = no expiry
 const redisLog = [];       // every command, in order
 let redisFail = null;      // (command array) → true to answer HTTP 500
+let redisHook = null;      // async (command array, result), run after each command and before its reply
+let googleToken = {};      // what the stubbed Google tokeninfo endpoint answers
 const live = k => { if (expiry.has(k) && expiry.get(k) <= Date.now()) { store.delete(k); expiry.delete(k); } return store.has(k); };
 const ttlOf = k => !live(k) ? -2 : expiry.has(k) ? Math.ceil((expiry.get(k) - Date.now()) / 1000) : -1;
 const seed = (k, v, ttlSec) => { store.set(k, typeof v === 'string' ? v : JSON.stringify(v)); if (ttlSec) expiry.set(k, Date.now() + ttlSec * 1000); else expiry.delete(k); };
@@ -47,8 +54,10 @@ global.fetch = async (url, opts) => {
     else if (cmd === 'TTL') result = ttlOf(a[1]);
     else if (cmd === 'SCAN') { const re = new RegExp('^' + a[3].replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$'); result = ['0', [...store.keys()].filter(k => live(k) && re.test(k))]; }
     else result = 0; // RPUSH, LTRIM, SADD, SREM…
+    if (redisHook) await redisHook(a, result);
     return { ok: true, json: async () => ({ result }) };
   }
+  if (String(url).startsWith('https://oauth2.googleapis.com/tokeninfo')) { const g = googleToken; return { ok: true, json: async () => g }; }
   return { ok: true, json: async () => ({}), text: async () => '' };
 };
 
@@ -213,6 +222,27 @@ const BURNED = 'Too many incorrect attempts. Ask for a new sign-in link.';
   r = await api({ action: 'signin', email: ' jane.doe+HOME@mail.example.com.au', password: PW });
   t('signin with the password works for the same address', r.b.ok === true && r.b.email === 'jane.doe+home@mail.example.com.au' && !!r.cookie);
 
+  section('Google sign-in');
+  // googleSignin(email, fields to change in Google's reply, fields to add to the request)
+  const google = (email, tok, body) => { googleToken = Object.assign({ email, email_verified: 'true', aud: process.env.GOOGLE_CLIENT_ID, name: 'G' }, tok || {}); return api(Object.assign({ action: 'googleSignin', credential: 'x' }, body || {})); };
+  r = await google('Jane.Smith@Gmail.com');
+  t('a mixed-case Gmail address signs in under the lower-cased key', r.b.ok === true && r.b.email === 'jane.smith@gmail.com' && !!r.cookie && readJson('user:jane.smith@gmail.com') !== null && read('user:Jane.Smith@Gmail.com') === null);
+  r = await google('JANE.SMITH@GMAIL.COM');
+  t('…and the same address in capitals finds that account again', r.b.ok === true && readJson('user:jane.smith@gmail.com').loginCount === 2 && [...store.keys()].filter(k => /^user:jane\.smith@/i.test(k)).length === 1);
+  {
+    let okAll = true, touched = [];
+    for (const e of ['shares:victim@example.com', 'users', 'a b@example.com', 'x@y', 'a@example.com\nuser:x']) {
+      const from = redisLog.length;
+      const res = await google(e);
+      if (!(res.b.ok === false && res.b.error === 'Google sign-in failed. The Google credential could not be verified.' && !res.cookie)) okAll = false;
+      touched = touched.concat(keysSince(from));
+    }
+    t('an address Google hands back that fails the check is refused and touches no key', okAll && touched.length === 0);
+  }
+  r = await google('someone@example.com', { aud: 'another-client' });
+  t('(still) a credential for another client ID is refused', r.b.ok === false && !r.cookie && read('user:someone@example.com') === null);
+  googleToken = {};
+
   // ───────────────────────────────────────────────────────────────────────────
   section('Email-verification attempts');
   const unverified = (email, code, extra) => seedUser(email, Object.assign({ emailVerified: false, emailVerificationCodeHash: hmac('email-code:' + code), emailVerificationExpiresAt: clock + 15 * MIN }, extra || {}));
@@ -342,7 +372,35 @@ const BURNED = 'Too many incorrect attempts. Ask for a new sign-in link.';
   seedUser('refund2@example.com');
   m = await send('refund2@example.com', '192.0.2.11');
   r = await guess('refund2@example.com', m.code, '192.0.2.11');
-  t('…and an IP with no wrong codes is left with no counter at all', r.b.ok === true && read('magicCodeFailIp:192.0.2.11') === null);
+  t('…and an IP with no wrong codes is left at 0, still with its expiry', r.b.ok === true && read('magicCodeFailIp:192.0.2.11') === '0' && ttlOf('magicCodeFailIp:192.0.2.11') > 0 && ttlOf('magicCodeFailIp:192.0.2.11') <= 3600);
+
+  // A right code takes its own count back off the IP and nothing else. Wrong
+  // codes from the same IP that arrive while it is doing so must stay counted.
+  seedUser('race@example.com');
+  const raceIp = '192.0.2.12';
+  m = await send('race@example.com', newIp());
+  let landed = null;
+  redisHook = async (c, res) => {
+    if (c[0] !== 'DECR' || c[1] !== 'magicCodeFailIp:' + raceIp) return;
+    redisHook = null;
+    landed = res;
+    await Promise.all(Array.from({ length: 19 }, (_, i) => guess('racer' + i + '@example.com', '111111', raceIp)));
+  };
+  r = await guess('race@example.com', m.code, raceIp);
+  redisHook = null;
+  t('19 wrong codes from one IP that land just as a right code from it hands its count back are all still counted', r.b.ok === true && landed === 0 && read('magicCodeFailIp:' + raceIp) === '19' && ttlOf('magicCodeFailIp:' + raceIp) > 0);
+  for (let i = 0; i < 2; i++) r = await guess('racer@example.com', '111111', raceIp);
+  t('…so that IP is refused after its 20th wrong code, as usual', r.b.error === 'Too many incorrect codes from your network. Use the sign-in link in the email, or wait an hour.');
+
+  // The IP count expiring between this request's INCR and its DECR: DECR then
+  // makes a new key at -1 with no expiry, which must get one.
+  seedUser('lapse@example.com');
+  const lapseIp = '192.0.2.13';
+  m = await send('lapse@example.com', newIp());
+  redisHook = async c => { if (c[0] === 'GET' && c[1] === 'user:lapse@example.com') { redisHook = null; store.delete('magicCodeFailIp:' + lapseIp); expiry.delete('magicCodeFailIp:' + lapseIp); } };
+  r = await guess('lapse@example.com', m.code, lapseIp);
+  redisHook = null;
+  t('a count that expired mid-request is left at -1 with an hour on it, not without an expiry', r.b.ok === true && read('magicCodeFailIp:' + lapseIp) === '-1' && ttlOf('magicCodeFailIp:' + lapseIp) === 3600);
 
   // request caps
   seedUser('often@example.com');
@@ -384,6 +442,64 @@ const BURNED = 'Too many incorrect attempts. Ask for a new sign-in link.';
   seedUser('g@example.com', { hash: null });
   r = await api({ action: 'signin', email: 'g@example.com', password: PW }, { ip: newIp() });
   t('an account with no password (Google only) cannot be signed in to with one', r.b.ok === false && readJson('user:g@example.com').hash === null);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  section('Fields that are not strings');
+  const O = { toString: 1, valueOf: 1 }; // valid JSON, and String(O) throws
+  {
+    let okAll = true, touched = [];
+    for (const pw of [1, 12345678, { length: 99 }, ['Correct-horse-9'], true, O]) {
+      const from = redisLog.length;
+      const res = await api({ action: 'signup', email: 'np@example.com', password: pw, name: 'N' }, { ip: newIp() });
+      if (!(res.status === 200 && res.b.ok === false && res.b.error === 'Enter your email and password.')) okAll = false;
+      touched = touched.concat(keysSince(from));
+    }
+    t('signup refuses a password that is not a string, so none can skip the minimum length', okAll && touched.length === 0 && read('user:np@example.com') === null);
+  }
+  r = await api({ action: 'signup', email: 'odd1@example.com', password: PW, name: 123, ref: 456, pageTrail: [null, 5, 'x', { p: O, q: O, t: 'x' }, { p: '/journey', t: 1700000000000, q: '?near=x' }] }, { ip: newIp() });
+  const odd1 = readJson('user:odd1@example.com') || {};
+  t('signup with a number for the name and referral code and a damaged page trail goes through instead of throwing', r.status === 200 && r.b.ok === true && odd1.name === 'odd1' && odd1.referredBy === undefined
+    && JSON.stringify(odd1.signupPageTrail) === JSON.stringify([{ p: '', t: 0 }, { p: '/journey', t: 1700000000000, q: '?near=x' }]));
+  r = await api({ action: 'signup', email: 'odd2@example.com', password: PW, name: '  Sam  ', pageTrail: [null] }, { ip: newIp() });
+  t('…an ordinary name is still trimmed, and a trail with nothing usable in it is not stored', r.b.ok === true && r.b.name === 'Sam' && (readJson('user:odd2@example.com') || {}).signupPageTrail === undefined);
+  r = await google('odd3@example.com', null, { pageTrail: [null, { p: '/tools/', t: 2 }] });
+  t('Google sign-up drops the same bad trail entries', r.b.ok === true && JSON.stringify((readJson('user:odd3@example.com') || {}).signupPageTrail) === JSON.stringify([{ p: '/tools/', t: 2 }]));
+
+  seedUser('cp@example.com', { hash: hmac(PW) });
+  seed('token:CP', { userId: 'id-cp@example.com', email: 'cp@example.com', role: 'user', plan: 'free', expires: clock + TTL });
+  let typeOk = true;
+  for (const np of [1, 12345678, { length: 99 }, O]) {
+    const res = await api({ action: 'changePassword', currentPassword: PW, newPassword: np }, { cookie: 'CP' });
+    if (!(res.b.ok === false && res.b.error === 'Enter your current password and a new one.' && !res.cookie)) typeOk = false;
+  }
+  t('changePassword refuses a new password that is not a string and keeps the old one', typeOk && readJson('user:cp@example.com').hash === hmac(PW) && read('token:CP') !== null);
+  seed('pwreset:cp@example.com', { hash: hmac('email-code:ZZZZ3333'), email: 'cp@example.com', attempts: 0 }, 1800);
+  typeOk = true;
+  for (const np of [1, 12345678, O]) {
+    const res = await api({ action: 'resetPasswordWithToken', email: 'cp@example.com', code: 'ZZZZ3333', newPassword: np }, { ip: newIp() });
+    if (!(res.b.ok === false && res.b.error === 'Enter your email, the code and a new password.')) typeOk = false;
+  }
+  t('…so does resetPasswordWithToken, before the code is looked at', typeOk && readJson('pwreset:cp@example.com').attempts === 0 && readJson('user:cp@example.com').hash === hmac(PW));
+
+  unverified('oc@example.com', 'ABCD2345');
+  seedUser('om@example.com');
+  m = await send('om@example.com', newIp());
+  rs = [
+    await api({ action: 'verifyEmail', email: 'oc@example.com', code: O }),
+    await api({ action: 'resetPasswordWithToken', email: 'cp@example.com', code: O, newPassword: PW }, { ip: newIp() }),
+    await guess('om@example.com', O, newIp()),
+    await api({ action: 'signin', email: 'cp@example.com', password: O }, { ip: newIp() }),
+    await api({ action: 'signin', email: 'cp@example.com', password: [PW] }, { ip: newIp() }),
+  ];
+  t('a code or password sent as an object is refused or a wrong attempt, not a crash', rs.every(x => x.status === 200 && x.b.ok === false && !x.cookie)
+    && rs[0].b.error === 'Enter your email and the code.' && read('verifyTries:oc@example.com') === null
+    && rs[1].b.error === 'That reset code is invalid or has expired.' && readJson('pwreset:cp@example.com').attempts === 1
+    && rs[2].b.error === BAD_CODE && read('magicTries:' + m.token) === '1'
+    && rs[3].b.error === 'The email or password is incorrect.' && rs[4].b.error === 'The email or password is incorrect.');
+  r = await guess('om@example.com', Number(m.code), newIp());
+  t('…a sign-in code sent as a number still works, as before', r.b.ok === true && !!r.cookie);
+  r = await api({ action: 'resetPasswordWithToken', email: 'cp@example.com', code: 'ZZZZ3333', newPassword: 'A-new-password-2' }, { ip: newIp() });
+  t('…and the right reset code still works after the object one', r.b.ok === true && isScrypt(readJson('user:cp@example.com').hash));
 
   // ───────────────────────────────────────────────────────────────────────────
   section('Records stored before the address check');

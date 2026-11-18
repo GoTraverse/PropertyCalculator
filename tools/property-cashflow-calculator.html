@@ -78,9 +78,9 @@
       </div>
 
       <div class="tool-field">
-        <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
+        <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" class="tool-label-hint" style="display:none">(my estimate, explained below)</span></label>
         <input class="tool-input" type="number" id="rate" value="6.25" placeholder="e.g. 6.25" step="0.05" min="0" max="20">
-        <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
+        <p class="tool-field-hint" id="rate-live-hint" style="display:none"></p>
       </div>
 
       <div class="tool-field">

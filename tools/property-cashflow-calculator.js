@@ -388,24 +388,28 @@ function calculate(showErrors) {
   }
 }
 
-/* ─ Hydrate interest rate from live RBA data (same pattern as
- *   loan-serviceability). Only replaces the untouched default. ─ */
+/* ─ Rate suggestion: the RBA cash rate plus my estimated lender margin (see
+ *   market-rate.js), the same pattern as loan-serviceability. It is not a
+ *   quoted rate, so the note under the field, which market-rate.js words,
+ *   always says what it is made of. The suggestion only replaces the rate
+ *   while you have not typed your own (including a suggestion restored from
+ *   an earlier visit), and the label note shows only while the field holds
+ *   the suggestion. ─ */
 if (typeof MarketRate !== 'undefined') {
   MarketRate.onReady(function (d) {
-    if (!d) return;
-    // Only replaces the rate while you have not typed your own (including a
-    // suggestion restored from an earlier visit), so "Live" is never shown
-    // beside a stale rate.
-    var showing = ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.25', slug: 'property-cashflow', rate: d.suggestedRate });
-    var badge = document.getElementById('rate-live-badge');
-    var hint = document.getElementById('rate-live-hint');
-    if (badge) badge.style.display = showing ? '' : 'none';
-    if (hint) {
-      hint.textContent = 'RBA cash rate ' + d.cashRate.toFixed(2) +
-        '% + lender margin ' + d.lenderMargin.toFixed(2) + '% (my assumption) = ' + d.suggestedRate.toFixed(2) + '% suggested' +
-        (d.rateDate ? ' (cash rate as at ' + d.rateDate + ')' : '');
-      hint.style.display = '';
-    }
+    // An older cached market-rate.js has no bindRateNote, so there would be
+    // no note saying what the suggestion is: keep the default instead.
+    if (!d || typeof MarketRate.bindRateNote !== 'function') return;
+    var rateEl = document.getElementById('rate');
+    // 6.50 was the default before Nov 2026, and back then a saved 6.50 was
+    // always replaced by the suggestion. If no suggestion has been stored for
+    // this visitor, a saved 6.50 is that old default, so treat it as the
+    // new one.
+    try {
+      if (rateEl && rateEl.value === '6.50' && localStorage.getItem('tool_live_rate_v1:property-cashflow') === null) rateEl.value = '6.25';
+    } catch (e) {}
+    ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.25', slug: 'property-cashflow', rate: d.suggestedRate });
+    MarketRate.bindRateNote(rateEl, document.getElementById('rate-live-badge'), document.getElementById('rate-live-hint'));
     // Refresh only if a result is already on screen (avoids surfacing a
     // validation state the user never asked for).
     var res = document.getElementById('result');

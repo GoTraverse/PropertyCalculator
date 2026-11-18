@@ -47,7 +47,7 @@ Attribution: Reserve Bank of Australia. The cash rate is not presented as an RBA
 
 Stamp duty schedules come from each state revenue office, income tax rates from the ATO, the 3% serviceability buffer from APRA's APS 220, and first-home-buyer scheme settings (5% Deposit Scheme, Help to Buy, FHSS, state FHOGs and concessions) from Housing Australia, the ATO and the state revenue offices. Each calculator that uses these rates notes when they were last checked against the official source. The repayment formulas are on the [methodology page](/methodology).
 
-The LMI table and the living-cost floor behind the borrowing estimates have no official source. They are my own estimates, and both are set out on the methodology page.
+Two things have no official source: the LMI table, and the living-cost floor in the borrowing estimates. Both are my own estimates, and the methodology page sets them out.
 
 ## 6. The written calculator guides
 

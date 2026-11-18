@@ -69,21 +69,30 @@ The estimate is worked out from your step 1 answers, in this order:
 1. It starts with your household income before tax. If two of you are buying, that is split into two equal incomes.
 2. Income tax comes off each income at the FY2026-27 resident rates, with no tax offsets. The 2% Medicare levy comes off too, phased in between $28,011 and $35,013 (the single thresholds for FY2025-26, the latest published).
 3. All of the after-tax income counts if you're salaried. 80% of it counts if you're self-employed, casual or on contract, which is my assumption about common lender policy.
-4. A monthly living-cost floor comes off. The amounts are in the table below.
+4. A monthly living-cost floor comes off. The amounts are in the tables below.
 5. Each month, 3% of your total credit card limits comes off, whether or not you owe anything on the cards.
 6. What's left is taken as the highest monthly repayment you could make. The estimate is the loan that repayment clears over 30 years at 9.00%, using the formula in section 4. The 9.00% is the 6.00% the journey assumes for every loan plus the 3% serviceability buffer APRA sets for lenders.
 
-The living-cost floor is a monthly amount set by household income before tax, the number of adults and the number of dependants:
+The living-cost floor is a monthly amount set by household income before tax, the number of adults and the number of dependants. For the adults it is:
 
-| Household income before tax | One adult | Two adults | Each dependant |
-|-----------------------------|-----------|------------|----------------|
-| Under $50,000 | $1,750 | $2,975 | $700 |
-| $50,000 to under $80,000 | $1,950 | $3,315 | $700 |
-| $80,000 to under $120,000 | $2,150 | $3,655 | $800 |
-| $120,000 to under $180,000 | $2,400 | $4,080 | $800 |
-| $180,000 to under $250,000 | $2,700 | $4,590 | $880 |
-| $250,000 to under $350,000 | $3,050 | $5,185 | $880 |
-| $350,000 or more | $3,400 | $5,780 | $950 |
+| Income before tax | 1 adult | 2 adults |
+|-------------------|---------|----------|
+| Under $50,000 | $1,750 | $2,975 |
+| $50,000 to under $80,000 | $1,950 | $3,315 |
+| $80,000 to under $120,000 | $2,150 | $3,655 |
+| $120,000 to under $180,000 | $2,400 | $4,080 |
+| $180,000 to under $250,000 | $2,700 | $4,590 |
+| $250,000 to under $350,000 | $3,050 | $5,185 |
+| $350,000 or more | $3,400 | $5,780 |
+
+Each dependant adds this much a month:
+
+| Income before tax | Each dependant |
+|-------------------|----------------|
+| Under $80,000 | $700 |
+| $80,000 to under $180,000 | $800 |
+| $180,000 to under $350,000 | $880 |
+| $350,000 or more | $950 |
 
 The second adult is counted at 70% of the first. At most three dependants are counted, so "3 or more" counts as three. These amounts are my own approximation of the Household Expenditure Measure (HEM), the living-cost benchmark lenders use. The HEM table is licensed data that I don't have, so a lender's floor may be higher or lower.
 

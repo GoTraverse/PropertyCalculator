@@ -441,6 +441,29 @@ function existingUserKeyEmail(raw){
   return e;
 }
 
+// A request field read as text: a string as it is, a number as its digits,
+// anything else as ''. String() on a JSON object such as {"toString":1} throws,
+// so codes and page-trail fields go through this instead.
+function textOf(v){
+  if(typeof v==='string') return v;
+  if(typeof v==='number'&&Number.isFinite(v)) return String(v);
+  return '';
+}
+
+// The pages a visitor saw before signing up, as login.js sends them from
+// localStorage: the last 20 entries, each cut down to {p, t, q}. An entry that
+// is not an object (a null left by a damaged localStorage value, say) is
+// dropped instead of throwing. Returns null when nothing usable is left.
+function cleanPageTrail(raw){
+  if(!Array.isArray(raw)||!raw.length) return null;
+  const trail=raw.slice(-20).filter(e=>e&&typeof e==='object').map(e=>({
+    p:textOf(e.p).slice(0,200),
+    t:typeof e.t==='number'?e.t:0,
+    q:textOf(e.q).slice(0,120)||undefined
+  }));
+  return trail.length ? trail : null;
+}
+
 // Email-verification code (8 characters from a 32-letter alphabet, 15-minute
 // life). Attempts are counted in their own key, 'verifyTries:<email>', with
 // INCR, so the count is atomic, expires 15 minutes after the first attempt
@@ -514,7 +537,9 @@ function safeEqual(a,b){ try{ return a.length===b.length&&crypto.timingSafeEqual
 function hashPwScrypt(pw){ const salt=crypto.randomBytes(16); const dk=crypto.scryptSync(String(pw),salt,64); return 'scrypt$'+salt.toString('hex')+'$'+dk.toString('hex'); }
 function isLegacyHash(stored){ return typeof stored==='string' && !stored.startsWith('scrypt$'); }
 function verifyPw(pw,stored){
-  if(!stored) return false;
+  // Every client sends the password as a string. Anything else never matches
+  // (and String() on some JSON objects throws).
+  if(!stored||typeof pw!=='string') return false;
   if(typeof stored==='string' && stored.startsWith('scrypt$')){
     const p=stored.split('$'); if(p.length!==3||!p[1]||!p[2]) return false;
     let dk; try{ dk=crypto.scryptSync(String(pw),Buffer.from(p[1],'hex'),64); }catch(e){ return false; }
@@ -605,7 +630,9 @@ exports.handler = async function(event){
 
   if(action==='signup'){
     const {email,password,name,plan,ref,turnstileToken}=body;
-    if(!email||!password) return fail('Enter your email and password.');
+    // A password that is not a string has no length to check (1.length is
+    // undefined), so it would skip the minimum below.
+    if(!email||!password||typeof password!=='string') return fail('Enter your email and password.');
     const normalizedEmail=normalizeEmail(email);
     if(!normalizedEmail) return fail(EMAIL_INVALID);
     // Turnstile CAPTCHA verification
@@ -630,7 +657,7 @@ exports.handler = async function(event){
     const code=makeEmailCode();
     const refCode=(userId.slice(0,8)).toUpperCase();
     const user={
-      name:(name||normalizedEmail.split('@')[0]).trim(),
+      name:(typeof name==='string'?name.trim():'')||normalizedEmail.split('@')[0],
       hash:hashPwScrypt(password),
       id:userId,
       plan:'free', // paid tiers are granted ONLY via the Stripe webhook / adminSetPlan — never trusted from the signup request
@@ -644,15 +671,10 @@ exports.handler = async function(event){
       referralCount:0
     };
     // Store pre-signup page trail (max 20 entries from client, sanitised)
-    if(Array.isArray(body.pageTrail)&&body.pageTrail.length){
-      user.signupPageTrail=body.pageTrail.slice(-20).map(e=>({
-        p:String(e.p||'').slice(0,200),
-        t:typeof e.t==='number'?e.t:0,
-        q:e.q?String(e.q).slice(0,120):undefined
-      }));
-    }
+    const trail=cleanPageTrail(body.pageTrail);
+    if(trail) user.signupPageTrail=trail;
     // Handle incoming referral
-    const incomingRef=(ref||'').trim().toUpperCase().slice(0,16);
+    const incomingRef=(typeof ref==='string'?ref:'').trim().toUpperCase().slice(0,16);
     if(incomingRef){
       const referrerId=await rGet('referral:'+incomingRef);
       if(referrerId&&referrerId!==userId) user.referredBy=referrerId;
@@ -736,7 +758,7 @@ exports.handler = async function(event){
   }
 
   if(action==='verifyEmail'){
-    const code=String(body.code||'').trim();
+    const code=textOf(body.code).trim();
     if(!body.email||!code) return fail('Enter your email and the code.');
     const normalizedEmail=normalizeEmail(body.email);
     if(!normalizedEmail) return fail(EMAIL_INVALID);
@@ -831,13 +853,8 @@ exports.handler = async function(event){
         lastLoginIp:clientIp,
       };
       // Store pre-signup page trail for Google signups
-      if(Array.isArray(body.pageTrail)&&body.pageTrail.length){
-        user.signupPageTrail=body.pageTrail.slice(-20).map(e=>({
-          p:String(e.p||'').slice(0,200),
-          t:typeof e.t==='number'?e.t:0,
-          q:e.q?String(e.q).slice(0,120):undefined
-        }));
-      }
+      const trail=cleanPageTrail(body.pageTrail);
+      if(trail) user.signupPageTrail=trail;
       await rSet(ekey,user);
       await rSet('referral:'+refCode,userId);
       await rSet('uid:'+userId,email);
@@ -995,7 +1012,7 @@ exports.handler = async function(event){
     const user=await verifyToken(event);
     if(!user) return fail('Unauthorized',401);
     const {currentPassword,newPassword}=body;
-    if(!currentPassword||!newPassword) return fail('Enter your current password and a new one.');
+    if(!currentPassword||!newPassword||typeof newPassword!=='string') return fail('Enter your current password and a new one.');
     if(newPassword.length<8) return fail('The new password must be at least 8 characters.');
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
@@ -1038,13 +1055,13 @@ exports.handler = async function(event){
 
   if(action==='resetPasswordWithToken'){
     const {email,code,newPassword}=body;
-    if(!email||!code||!newPassword) return fail('Enter your email, the code and a new password.');
+    if(!email||!code||!newPassword||typeof newPassword!=='string') return fail('Enter your email, the code and a new password.');
     if(newPassword.length<8) return fail('The password must be at least 8 characters.');
     const normalizedEmail=normalizeEmail(email);
     if(!normalizedEmail) return fail(EMAIL_INVALID);
     const resetData=await rGet('pwreset:'+normalizedEmail);
     if(!resetData) return fail('That reset code is invalid or has expired.');
-    const submitted=hashEmailCode(String(code).trim());
+    const submitted=hashEmailCode(textOf(code).trim());
     if(!safeEqual(resetData.hash, submitted)){
       // Per-code lockout: burn the code after 5 wrong guesses so the attacker
       // can't keep guessing a different 8-char code for the same email.
@@ -1172,7 +1189,7 @@ exports.handler = async function(event){
       await burnCode();
       return fail('Too many incorrect attempts. Ask for a new sign-in link.');
     }
-    const submitted=String(code).trim();
+    const submitted=textOf(code).trim();
     // Only six digits can be a code; anything else is wrong without hashing it.
     if(!/^\d{6}$/.test(submitted) || !safeEqual(data.codeHash, hashMagicCode(submitted))){
       if(tries>=MAGIC_CODE_MAX_TRIES){
@@ -1188,9 +1205,12 @@ exports.handler = async function(event){
     // back off the IP's. Best effort; the sign-in goes ahead either way.
     try{
       await rDel(emailFailKey);
-      // A count back at zero is the same as no count: delete it, so this never
-      // leaves a zero or negative key behind without an expiry.
-      if(Number(await redisCmd('DECR',ipFailKey))<=0) await rDel(ipFailKey);
+      // DECR hands back the one INCR this request made and nothing more. The key
+      // is never deleted here: wrong codes from the same IP can land between
+      // the DECR and a DEL, and the DEL would wipe them. A count left at 0 is
+      // harmless. If the key expired between the INCR and the DECR, DECR makes
+      // a new one at -1 with no expiry, so give it the window back.
+      if(Number(await redisCmd('DECR',ipFailKey))<=0) await rHealExpiry(ipFailKey,MAGIC_FAIL_WINDOW);
     }catch(e){ /* non-fatal */ }
     return await issueMagicSession(event, user, normalizedEmail);
   }

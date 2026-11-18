@@ -18,8 +18,9 @@
  * Limits (Nov 2026):
  *   - The caller chooses one of the fixed actions above and nothing else. No
  *     part of an upstream address comes from the request.
- *   - Requests are limited per IP. See "Per-IP rate limit" for what happens
- *     when Redis is down.
+ *   - Requests are limited per IP (per /64 for IPv6). See "Per-IP rate limit"
+ *     for what happens when Redis is down.
+ *   - Requests sent by pages on other sites are refused. See "Origin".
  *   - Each running instance remembers its last answer for a few minutes (see
  *     "Per-instance memo"), so the RBA and the ABS are not asked again on every
  *     page view, with or without Redis.
@@ -43,12 +44,48 @@ const TTL_SUBURB_MISS  = 7  * 24 * 3600;  // 7 days — negative cache: Domain h
                                           // suburb into a cheap Redis read instead. Shorter than
                                           // TTL_SUBURB so newly-available data / creds recover.
 
-const H = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+// ── Origin ────────────────────────────────────────────────────────────────────
+// The only caller is market-rate.js on this site (and the service worker
+// re-fetching for it), which uses a relative URL, so the browser sends a
+// same-origin request with no Origin header. A page on another site can make
+// its visitors' browsers send either a CORS request, which carries that site's
+// Origin, or a no-cors one, which carries Sec-Fetch-Site: cross-site. Both are
+// refused before they are counted or sent upstream. (Until Nov 2026 this
+// answered every origin with Access-Control-Allow-Origin: *.) The allowlist is
+// the one the other functions use (see auth.js), plus the request's own host.
+const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// Only this site's own Netlify deploy and preview hosts, never any *.netlify.app.
+const OWN_NETLIFY_ORIGIN = /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$/;
+
+function requestOrigin(event) {
+  return String((event.headers && (event.headers.origin || event.headers.Origin)) || '');
+}
+
+function allowedOrigin(o, event) {
+  if (!o) return false;
+  if (ALLOWED_ORIGINS.includes(o) || OWN_NETLIFY_ORIGIN.test(o)) return true;
+  const host = String((event.headers && (event.headers.host || event.headers.Host)) || '').toLowerCase();
+  return !!host && o.toLowerCase() === 'https://' + host;
+}
+
+// True when the request was sent by a page on another site.
+function fromOtherSite(event) {
+  const o = requestOrigin(event);
+  if (o) return !allowedOrigin(o, event);
+  const h = event.headers || {};
+  return String(h['sec-fetch-site'] || h['Sec-Fetch-Site'] || '').toLowerCase() === 'cross-site';
+}
+
+function headersFor(event) {
+  const o = requestOrigin(event);
+  return {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': allowedOrigin(o, event) ? o : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin',
+  };
+}
 
 // ── Redis helpers ──────────────────────────────────────────────────────────────
 // redisCmd returns the command's result, or null when Redis is not configured,
@@ -318,15 +355,6 @@ function parseDomainResponse(json, suburb, state) {
   return null;
 }
 
-// ── Response helpers ──────────────────────────────────────────────────────────
-
-const ok   = (body) => ({ statusCode: 200, headers: H, body: JSON.stringify(body) });
-const fail = (msg, s = 400, extra) => ({
-  statusCode: s,
-  headers: extra ? Object.assign({}, H, extra) : H,
-  body: JSON.stringify({ ok: false, error: msg }),
-});
-
 // ── Per-instance memo ─────────────────────────────────────────────────────────
 // These figures change rarely (the Redis copies above are kept for 24 hours and
 // 7 days), so each running instance keeps its last answer in memory for ten
@@ -372,10 +400,47 @@ const RL_MAX_NO_REDIS = 10;   // per IP per minute, per instance, when Redis is 
 const RL_MEM_MAX_KEYS = 5000;
 const _rlMem = new Map();     // ip → { bucket, n }
 
+// The key a request is counted under. An IPv4 address is used whole. An IPv6
+// address is cut to its first four groups (its /64), because a home connection
+// or a cloud server is normally given a whole /64 and can send from any address
+// in it: counted one address at a time, one caller could skip the limit by
+// changing address. An IPv4 address written as IPv6 (::ffff:1.2.3.4) counts as
+// that IPv4 address. Anything that does not parse as an address counts as
+// 'unknown'. The same code is in mapproxy.js and address-suggest.js.
+function ipv4(s) {
+  const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(s);
+  if (!m) return null;
+  const p = m.slice(1).map(Number);
+  return p.every(n => n <= 255) ? p.join('.') : null;
+}
+
 function clientIp(event) {
-  const raw = String((event.headers && event.headers['x-nf-client-connection-ip']) || '').split(',')[0].trim();
-  // The value goes into a Redis key, so accept only what an IPv4 or IPv6 address can contain.
-  return /^[0-9a-fA-F:.]{2,45}$/.test(raw) ? raw.toLowerCase() : 'unknown';
+  const raw = String((event.headers && event.headers['x-nf-client-connection-ip']) || '').split(',')[0].trim().toLowerCase();
+  if (raw.length > 64) return 'unknown';
+  const v4 = ipv4(raw);
+  if (v4) return v4;
+  // IPv6. Drop a zone (%eth0) and write a dotted last 32 bits as two groups.
+  let s = raw.replace(/%[0-9a-z._-]*$/, '');
+  const dotted = /^(.*:)(\d{1,3}(?:\.\d{1,3}){3})$/.exec(s);
+  if (dotted) {
+    const v = ipv4(dotted[2]);
+    if (!v) return 'unknown';
+    const p = v.split('.').map(Number);
+    s = dotted[1] + ((p[0] << 8) | p[1]).toString(16) + ':' + ((p[2] << 8) | p[3]).toString(16);
+  }
+  const halves = s.split('::');
+  if (halves.length > 2) return 'unknown';
+  const head = halves[0] ? halves[0].split(':') : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(':') : [];
+  const gap  = 8 - head.length - tail.length;
+  if (halves.length === 2 ? gap < 1 : gap !== 0) return 'unknown';
+  const groups = head.concat(new Array(halves.length === 2 ? gap : 0).fill('0'), tail);
+  if (!groups.every(g => /^[0-9a-f]{1,4}$/.test(g))) return 'unknown';
+  const n = groups.map(g => parseInt(g, 16));
+  if (n.slice(0, 5).every(x => x === 0) && n[5] === 0xffff) {
+    return [n[6] >> 8, n[6] & 255, n[7] >> 8, n[7] & 255].join('.');
+  }
+  return n.slice(0, 4).map(x => x.toString(16)).join(':') + '::/64';
 }
 
 function memCount(ip, bucket) {
@@ -406,17 +471,25 @@ async function rateLimited(ip) {
   return count > RL_MAX ? retryAfter : 0;
 }
 
-const tooMany = (retryAfter) => fail('Too many requests', 429, { 'Retry-After': String(retryAfter) });
-
 const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
+  const H = headersFor(event);
+  const ok   = (body) => ({ statusCode: 200, headers: H, body: JSON.stringify(body) });
+  const fail = (msg, s = 400, extra) => ({
+    statusCode: s,
+    headers: extra ? Object.assign({}, H, extra) : H,
+    body: JSON.stringify({ ok: false, error: msg }),
+  });
+  const tooMany = (retryAfter) => fail('Too many requests', 429, { 'Retry-After': String(retryAfter) });
+
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
   if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
     return fail('Method not allowed', 405, { Allow: 'GET, POST, OPTIONS' });
   }
+  if (fromOtherSite(event)) return fail('Forbidden', 403);
 
   // Parse action from GET query or POST body
   let action = event.queryStringParameters && event.queryStringParameters.action;
