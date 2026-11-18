@@ -807,17 +807,23 @@ async function openUserDetails(email){
 
 function showAdminTab(tab, btn){
   // A tab name with no panel (a removed tab, a stale caller) opens the first tab.
-  if(!document.getElementById('tab-'+tab) || !btn){
+  var panel = document.getElementById('tab-'+tab);
+  if(!panel){
     btn = document.querySelector('.admin-tab[data-tab]');
     if(!btn) return;
     tab = btn.dataset.tab;
+    panel = document.getElementById('tab-'+tab);
+    if(!panel) return;
   }
+  // Called with a tab name only: find that tab's own button.
+  if(!btn) btn = document.querySelector('.admin-tab[data-tab="'+tab+'"]');
+  if(!btn) return;
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.admin-tab').forEach(function(b){
     b.classList.remove('active');
     b.setAttribute('aria-selected', 'false');
   });
-  document.getElementById('tab-'+tab).classList.add('active');
+  panel.classList.add('active');
   btn.classList.add('active');
   btn.setAttribute('aria-selected', 'true');
   // Scroll tab button into view horizontally (inline only) without affecting vertical scroll
