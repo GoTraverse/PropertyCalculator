@@ -8,16 +8,18 @@ var NSW_FOREIGN_RATE = 0.09;
 var NSW_FHB_FULL = 800000;
 var NSW_FHB_PARTIAL = 1000000;
 
-// State-standard transfer duty (investor / non-FHB).
+// State-standard transfer duty (investor / non-FHB). The bracket bases are
+// Revenue NSW's published whole-dollar amounts ($1,662 where the rates add
+// up to $1,662.50, and so on up the table).
 function calcNSWStandard(v) {
   if (v <= 0) return 0;
   if (v <= 18000) return v * 0.0125;
   if (v <= 38000) return 225 + (v - 18000) * 0.015;
   if (v <= 103000) return 525 + (v - 38000) * 0.0175;
-  if (v <= 387000) return 1662.5 + (v - 103000) * 0.035;
-  if (v <= 1290000) return 11602.5 + (v - 387000) * 0.045;
-  if (v <= 3870000) return 52237.5 + (v - 1290000) * 0.055;
-  return 194137.5 + (v - 3870000) * 0.07;
+  if (v <= 387000) return 1662 + (v - 103000) * 0.035;
+  if (v <= 1290000) return 11602 + (v - 387000) * 0.045;
+  if (v <= 3870000) return 52237 + (v - 1290000) * 0.055;
+  return 194137 + (v - 3870000) * 0.07;
 }
 
 function calcNSWDuty(price, ptype, buyer, fhb) {
@@ -35,8 +37,11 @@ function calcNSWDuty(price, ptype, buyer, fhb) {
     return { duty: 0, note: 'First home buyer exemption applied.' };
   }
   if (fhb && v <= NSW_FHB_PARTIAL && NSW_FHB_PARTIAL > NSW_FHB_FULL) {
+    // Duties Act 1997 s 78A (as stated by secondary sources and fitted to
+    // Revenue NSW's FHBAS table): standard duty at the price, less
+    // (1,000,000 - price) / 200,000 of the standard duty on $800,000.
     var slide = (NSW_FHB_PARTIAL - v) / (NSW_FHB_PARTIAL - NSW_FHB_FULL);
-    return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
+    return { duty: Math.max(0, standard - slide * calcNSWStandard(NSW_FHB_FULL)), note: 'First home buyer partial concession applied.' };
   }
 
   return { duty: standard, note: '' };
@@ -205,11 +210,11 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$22,988"
+        "v": "$22,987"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$22,988"
+        "v": "$22,987"
       },
       {
         "k": "First home buyer duty",
@@ -232,15 +237,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$34,688"
+        "v": "$34,687"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$34,688"
+        "v": "$34,687"
       },
       {
         "k": "First home buyer duty",
-        "v": "$17,344 (FHB concession)"
+        "v": "$19,594 (FHB concession)"
       }
     ]
   },
@@ -259,15 +264,15 @@ ToolPage.init({
     "outputs": [
       {
         "k": "Investor duty",
-        "v": "$48,188"
+        "v": "$48,187"
       },
       {
         "k": "Owner-occupier duty",
-        "v": "$48,188"
+        "v": "$48,187"
       },
       {
         "k": "First home buyer duty",
-        "v": "$48,188 (over cap)"
+        "v": "$48,187 (over cap)"
       }
     ]
   }

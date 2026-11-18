@@ -410,6 +410,10 @@ if (typeof MarketRate !== 'undefined') {
     } catch (e) {}
     ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.25', slug: 'property-cashflow', rate: d.suggestedRate });
     MarketRate.bindRateNote(rateEl, document.getElementById('rate-live-badge'), document.getElementById('rate-live-hint'));
+    // The note describes an owner-occupier margin, and this page is for
+    // investors, so the line saying investor rates run higher shows with it.
+    var invHint = document.getElementById('rate-investor-hint');
+    if (invHint) invHint.style.display = '';
     // Refresh only if a result is already on screen (avoids surfacing a
     // validation state the user never asked for).
     var res = document.getElementById('result');

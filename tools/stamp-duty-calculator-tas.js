@@ -32,7 +32,7 @@ function calcTASDuty(price, ptype, buyer, fhb) {
     // TAS's established-home FHB duty exemption (<= $750k) EXPIRED 30 June 2026
     // and was NOT extended (SRO: "not available for transactions settling after
     // 30 June 2026"). First home buyers now pay full standard duty.
-    return { duty: standard, note: 'Tasmania’s first home buyer duty exemption ended on 30 June 2026, so standard duty applies. The First Home Owner Grant for new homes is separate: $20,000 from 1 July 2026, subject to legislation.' };
+    return { duty: standard, note: 'Tasmania’s first home buyer duty exemption ended on 30 June 2026, so standard duty applies. The First Home Owner Grant for new homes is separate: $20,000 for transactions that start between 1 July 2026 and 30 June 2027.' };
   }
 
   return { duty: standard, note: '' };

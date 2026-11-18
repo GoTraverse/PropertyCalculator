@@ -5,7 +5,9 @@
 
 var WA_FOREIGN_RATE = 0.07;
 var WA_FHB_FULL = 600000;   // raised from $500k for transactions from 7 May 2026
-var WA_FHB_PARTIAL = 800000; // raised from $700k (2026-27 Budget; retrospective to 7 May 2026 — confirm status with RevenueWA)
+var WA_FHB_PARTIAL = 800000; // raised from $700k for agreements from 7 May 2026 (RevenueWA has assessed at the new rates since July 2026)
+// Between the two: $16.15 for every $100, or part of $100, over $600,000 (RevenueWA first home owner rate).
+var WA_FHB_CENTS_PER_100 = 1615;
 
 // State-standard transfer duty (investor / non-FHB).
 function calcWAStandard(v) {
@@ -32,8 +34,9 @@ function calcWADuty(price, ptype, buyer, fhb) {
     return { duty: 0, note: 'First home buyer exemption applied.' };
   }
   if (fhb && v <= WA_FHB_PARTIAL && WA_FHB_PARTIAL > WA_FHB_FULL) {
-    var slide = (WA_FHB_PARTIAL - v) / (WA_FHB_PARTIAL - WA_FHB_FULL);
-    return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
+    // First home owner rate: a flat amount per $100 over $600,000, not a
+    // share of the general rate. Worked in cents to avoid floating-point drift.
+    return { duty: Math.round(Math.ceil((v - WA_FHB_FULL) / 100) * WA_FHB_CENTS_PER_100) / 100, note: 'First home buyer partial concession applied.' };
   }
 
   return { duty: standard, note: '' };
@@ -116,7 +119,7 @@ function calculate() {
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimate at RevenueWA’s 2026-27 rates. The first home buyer thresholds were announced in the 2026-27 Budget and apply retrospectively to transactions from 7 May 2026, so confirm their legislative status with RevenueWA. The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium.';
+  document.getElementById('disclaimer').textContent = 'Estimate at RevenueWA’s 2026-27 rates. The first home buyer thresholds apply to agreements signed from 7 May 2026. The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

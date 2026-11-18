@@ -18,7 +18,8 @@ var INSPECTION = 500;
 /* ═══ VERIFIED STAMP-DUTY TIER ENGINE (FY2026-27) ═══
  * Lifted verbatim from tools/stamp-duty-calculator.js. Cumulative-marginal
  * tiers `[from, rate]`; continuous by construction (no bracket-cliff bugs).
- * FHB: full exemption below fhbFull, linear taper to fhbPartial. NEW-home-only
+ * FHB: full exemption below fhbFull, then each state's own rule up to
+ * fhbPartial (see applyFhbConcession). NEW-home-only
  * reliefs (SA) are intentionally NOT auto-applied — established-home FHBs pay
  * full duty there. Foreign-buyer surcharge per state.
  */
@@ -66,6 +67,10 @@ function calcDuty(state, v) {
     if (v <= from) break;
     var nextFrom = (i + 1 < tiers.length) ? tiers[i + 1].from : Infinity;
     duty += (Math.min(v, nextFrom) - from) * tiers[i].rate;
+    // Revenue NSW states each bracket's base in whole dollars ($1,662,
+    // $11,602, $52,237, $194,137), so floor the running total at each
+    // bracket NSW passes.
+    if (state === 'nsw' && v > nextFrom) duty = Math.floor(duty);
   }
   // Bands that are a flat % of the TOTAL value (not marginal on the excess):
   if (state === 'vic') {
@@ -90,7 +95,7 @@ function qldHomeDuty(v) {
   return 30850 + (v - 1000000) * 0.0575;
 }
 
-// FHB exemption / linear partial concession given a state's policy.
+// FHB exemption / partial concession given a state's policy.
 function applyFhbConcession(state, val, baseDuty) {
   var data = stateData[state];
   if (!data) return baseDuty;
@@ -111,6 +116,11 @@ function applyFhbConcession(state, val, baseDuty) {
   }
   if (val <= data.fhbPartial && data.fhbPartial > data.fhbFull) {
     var slide = (data.fhbPartial - val) / (data.fhbPartial - data.fhbFull);
+    // NSW (s 78A): standard duty less slide × the standard duty on $800,000.
+    if (state === 'nsw') return Math.max(0, baseDuty - slide * calcDuty('nsw', data.fhbFull));
+    // WA first home owner rate: $16.15 per $100, or part, over $600,000.
+    if (state === 'wa') return Math.round(Math.ceil((val - data.fhbFull) / 100) * 1615) / 100;
+    // VIC (s 57JA): standard duty scaled in a straight line.
     return Math.max(0, baseDuty * (1 - slide));
   }
   return baseDuty;
@@ -363,11 +373,11 @@ ToolPage.init({
         { k: 'First home buyer', v: 'No' }
       ],
       outputs: [
-        { k: 'Stamp duty', v: '$32,438' },
+        { k: 'Stamp duty', v: '$32,437' },
         { k: 'Title office registration fees', v: '$366' },
         { k: 'Conveyancing and legal', v: '$1,800' },
-        { k: 'Total buying costs', v: '$43,814 (5.2% of price)' },
-        { k: 'Cash needed incl. deposit', v: '$213,814' }
+        { k: 'Total buying costs', v: '$43,813 (5.2% of price)' },
+        { k: 'Cash needed incl. deposit', v: '$213,813' }
       ]
     },
     {

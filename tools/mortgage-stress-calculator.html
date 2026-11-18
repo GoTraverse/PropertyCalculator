@@ -71,9 +71,9 @@
         <input class="tool-input" type="text" inputmode="decimal" id="loan" value="580,000" placeholder="e.g. 580,000">
       </div>
       <div class="tool-field">
-        <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
+        <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" class="tool-label-hint" style="display:none">(my estimate, explained below)</span></label>
         <input class="tool-input" type="number" id="rate" value="6.25" placeholder="e.g. 6.25" step="0.05" min="0.1" max="20">
-        <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
+        <p class="tool-field-hint" id="rate-live-hint" style="display:none"></p>
       </div>
     </div>
     <div class="tool-row">
@@ -164,7 +164,7 @@
 </div>
 
 <section class="tool-content">
-  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">Last reviewed 12 July 2026.</p>
+  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">I checked APRA's 20% limit on loans at six or more times income on 18 November 2026.</p>
   <h2>How it works</h2>
   <p>For a principal and interest loan the monthly repayment is <strong>P × r × (1 + r)<sup>n</sup> ÷ ((1 + r)<sup>n</sup> − 1)</strong>, where P is the loan amount, r is the annual rate ÷ 12 and n is the number of monthly payments (years × 12). On an interest-only loan it's P × r, and the balance doesn't fall.</p>
   <p>The calculator works out the repayment at your rate and again at your rate plus the buffer you pick, then divides each by your gross monthly income. Above 30% of gross income is the usual line for mortgage stress, and above 50% is severe stress.</p>

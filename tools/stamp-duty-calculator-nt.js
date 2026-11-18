@@ -28,7 +28,7 @@ function calcNTDuty(price, ptype, buyer, fhb) {
   // first-home relief is a new-build-only duty discount handled elsewhere. So we
   // never auto-zero duty here; established-home FHBs pay the full standard duty.
   if (fhb) {
-    return { duty: standard, note: 'The NT has no first home buyer concession on an established home, so full duty applies. A new build or house and land package may get separate duty relief.' };
+    return { duty: standard, note: 'The NT has no first home buyer concession on an established home, so full duty applies. A new detached house bought with its land from a builder in one contract signed by 30 June 2027 may be exempt; units, townhouses and off-the-plan apartments pay full duty.' };
   }
 
   return { duty: standard, note: '' };

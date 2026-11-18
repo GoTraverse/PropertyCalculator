@@ -513,6 +513,10 @@
       if (v <= from) break;
       var next = (i + 1 < tiers.length) ? tiers[i + 1].from : Infinity;
       duty += (Math.min(v, next) - from) * tiers[i].rate;
+      // Revenue NSW states each bracket's base in whole dollars ($1,662,
+      // $11,602, $52,237, $194,137), so floor the running total at each
+      // bracket NSW passes.
+      if (st === 'nsw' && v > next) duty = Math.floor(duty);
     }
     if (st === 'vic') {
       if (v > 960000 && v <= 2000000) duty = v * 0.055;
@@ -542,6 +546,11 @@
     if (v <= data.fhbFull) return 0;
     if (v <= data.fhbPartial && data.fhbPartial > data.fhbFull) {
       var slide = (data.fhbPartial - v) / (data.fhbPartial - data.fhbFull);
+      // NSW (s 78A): standard duty less slide × the standard duty on $800,000.
+      if (st === 'nsw') return Math.max(0, base - slide * calcDuty('nsw', data.fhbFull));
+      // WA first home owner rate: $16.15 per $100, or part, over $600,000.
+      if (st === 'wa') return Math.round(Math.ceil((v - data.fhbFull) / 100) * 1615) / 100;
+      // VIC (s 57JA): standard duty scaled in a straight line.
       return Math.max(0, base * (1 - slide));
     }
     return base;

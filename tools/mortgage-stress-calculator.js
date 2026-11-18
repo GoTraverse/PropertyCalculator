@@ -75,21 +75,21 @@ function calculate(silent) {
   }
 }
 
-/* ─ Hydrate interest rate from live RBA data ─ */
+/* ─ Rate suggestion: the RBA cash rate plus my estimated lender margin (see
+ *   market-rate.js), the same pattern as loan-serviceability. It is not a
+ *   quoted rate, so the note under the field, which market-rate.js words,
+ *   always says what it is made of. The suggestion only replaces the rate
+ *   while you have not typed your own, the result is recalculated so the
+ *   figures on screen match the rate in the box, and the label note shows
+ *   only while the field holds the suggestion. ─ */
 if (typeof MarketRate !== 'undefined') {
   MarketRate.onReady(function(d) {
-    if (!d) return;
-    // Only replaces the rate while you have not typed your own, then
-    // recalculates so the result always matches the rate in the box.
-    var showing = ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.25', slug: 'mortgage-stress', rate: d.suggestedRate });
-    var badge = document.getElementById('rate-live-badge');
-    var hint  = document.getElementById('rate-live-hint');
-    if (badge) badge.style.display = showing ? '' : 'none';
-    if (hint)  hint.textContent = 'RBA cash rate ' + d.cashRate.toFixed(2) + '% + lender margin '
-      + d.lenderMargin.toFixed(2) + '% (my assumption) = ' + d.suggestedRate.toFixed(2) + '% suggested'
-      + (d.rateDate ? ' (cash rate as at ' + d.rateDate + ')' : '');
-    if (hint) hint.style.display = '';
+    // An older cached market-rate.js has no bindRateNote, so there would be
+    // no note saying what the suggestion is: keep the default instead.
+    if (!d || typeof MarketRate.bindRateNote !== 'function') return;
+    ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.25', slug: 'mortgage-stress', rate: d.suggestedRate });
     calculate(true);
+    MarketRate.bindRateNote(document.getElementById('rate'), document.getElementById('rate-live-badge'), document.getElementById('rate-live-hint'));
   });
 }
 

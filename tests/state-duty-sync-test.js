@@ -12,8 +12,15 @@
  *   2. The duty engines embedded in deposit-calculator.js,
  *      cost-of-purchase-calculator.js and first-home-buyer-grants-calculator.js
  *      (standard duty and established-home first home buyer duty).
+ *      The NSW, WA and VIC first home buyer bands are also compared to the
+ *      cent in every copy (state pages and the auction budget included), and
+ *      the grants calculator's new-build rule is checked against journey.js
+ *      (duty nil on a new home only in QLD and SA; full duty in the NT).
  *   3. The income-tax and expense-floor functions copied from
- *      borrowing-power-calculator.js into loan-serviceability-calculator.js.
+ *      borrowing-power-calculator.js into loan-serviceability-calculator.js,
+ *      and the income tax + Medicare levy copy in
+ *      property-cashflow-calculator.js (incomeTax) against approxTax() for
+ *      every whole dollar from $0 to $260,000.
  *   4. The upfront-cost calculators (deposit, cost of purchase, auction
  *      budget), driven through their real calc functions:
  *        - on-screen duty vs the all-states calculator for owner-occupier /
@@ -106,9 +113,10 @@ function loadPage(name) {
 
 const STATES = ['nsw', 'vic', 'qld', 'sa', 'wa', 'tas', 'act', 'nt'];
 const PRICES = [1000, 14000, 250000, 300000, 350001, 400000, 450000, 500000, 525000,
-  540001, 550000, 600000, 640000, 650000, 700000, 700001, 705000, 710000, 725001,
-  750000, 780000, 799999, 800000, 850000, 900000, 950000, 960001, 1000000, 1100000,
-  1290001, 1455001, 1500000, 2000001, 3000001, 3870001, 5000001];
+  540001, 550000, 600000, 600001, 600100, 600101, 640000, 650000, 700000, 700001, 705000,
+  710000, 725001, 725050, 750000, 780000, 799999, 800000, 800001, 850000, 900000, 950000,
+  960001, 990000, 999999, 1000000, 1000001, 1100000, 1290001, 1455001, 1500000, 2000001,
+  3000001, 3870001, 5000001];
 
 let checks = 0;
 let fails = 0;
@@ -187,6 +195,81 @@ for (const st of STATES) {
   }
 }
 
+// 2b. First home buyer bands to the cent. close() above allows 50c, which
+// would not catch a copy whose NSW, WA or VIC band rule drifted by cents.
+const nswPage = loadPage('stamp-duty-calculator-nsw');
+const waPage = loadPage('stamp-duty-calculator-wa');
+const vicPage = loadPage('stamp-duty-calculator-vic');
+const auctionEngine = loadPage('auction-budget-calculator');
+const BAND_PRICES = {
+  nsw: [800000, 800001, 800100, 850000, 900000, 920000, 950000, 990000, 999999, 1000000, 1000001],
+  wa: [600000, 600001, 600099, 600100, 600101, 650000, 700000, 725000, 725050, 750000, 799999, 800000, 800001],
+  vic: [600000, 600001, 650000, 700000, 749999, 750000, 750001]
+};
+const STATE_PAGE_FHB = {
+  nsw: (v) => nswPage.run(`calcNSWDuty(${v}, 'home', 'owner', true).duty`),
+  wa: (v) => waPage.run(`calcWADuty(${v}, 'home', 'owner', true).duty`),
+  vic: (v) => vicPage.run(`calcVICDuty(${v}, 'home', 'owner', true).duty`)
+};
+for (const st of Object.keys(BAND_PRICES)) {
+  const ST = st.toUpperCase();
+  for (const v of BAND_PRICES[st]) {
+    const want = refFhb(st, v);
+    const cases = [
+      ['state page ' + st, () => STATE_PAGE_FHB[st](v)],
+      ['deposit', () => deposit.run(`stampDutyEstimate(${v}, '${ST}', true)`)],
+      ['cost-of-purchase', () => cop.run(`applyFhbConcession('${st}', ${v}, calcDuty('${st}', ${v}))`)],
+      ['fhb-grants', () => grants.run(`fhbDuty(STATES['${st}'], '${st}', ${v}, false)`)],
+      ['auction-budget', () => auctionEngine.run(`applyFhbConcession('${st}', ${v}, calcDuty('${st}', ${v})).duty`)]
+    ];
+    for (const [label, fn] of cases) {
+      checks++;
+      let got;
+      try { got = fn(); } catch (e) { fail(`${label} FHB band ${st} $${v}: ${e.message}`); continue; }
+      if (typeof got !== 'number' || !(Math.abs(got - want) < 0.001)) fail(`${label} FHB band ${st} $${v}: ${got} vs source ${want} (to the cent)`);
+    }
+  }
+}
+
+// 2b2. NSW standard duty to the cent. Revenue NSW states its bracket bases in
+// whole dollars ($1,662, $11,602, $52,237, $194,137); close() above would not
+// catch a copy that went back to the $0.50 the rates add up to.
+const NSW_STD_REFS = [
+  [103000, 1662.5], [103001, 1662.035], [387001, 11602.045], [400000, 12187],
+  [650000, 23437], [900000, 34687], [1000000, 39187], [1290001, 52237.055], [3870001, 194137.07]
+];
+for (const [v, want] of NSW_STD_REFS) {
+  const cases = [
+    ['all-states', () => refStd('nsw', v)],
+    ['state page nsw', () => nswPage.run(`calcNSWStandard(${v})`)],
+    ['deposit', () => deposit.run(`stampDutyEstimate(${v}, 'NSW', false)`)],
+    ['cost-of-purchase', () => cop.run(`calcDuty('nsw', ${v})`)],
+    ['fhb-grants', () => grants.run(`calcDuty('nsw', ${v})`)],
+    ['auction-budget', () => auctionEngine.run(`calcDuty('nsw', ${v})`)]
+  ];
+  for (const [label, fn] of cases) {
+    checks++;
+    let got;
+    try { got = fn(); } catch (e) { fail(`${label} NSW standard $${v}: ${e.message}`); continue; }
+    if (typeof got !== 'number' || !(Math.abs(got - want) < 0.001)) fail(`${label} NSW standard $${v}: ${got} vs Revenue NSW ${want} (to the cent)`);
+  }
+}
+
+// 2c. The grants calculator's new-build rule matches journey.js buyerDutyAt():
+// a first home buyer's new home pays no duty in QLD and SA only. Everywhere
+// else (the NT included: its house and land package exemption isn't a first
+// home concession) a new build pays the same first home duty as an
+// established home.
+for (const st of STATES) {
+  for (const v of PRICES) {
+    checks++;
+    const est = grants.run(`fhbDuty(STATES['${st}'], '${st}', ${v}, false)`);
+    const neu = grants.run(`fhbDuty(STATES['${st}'], '${st}', ${v}, true)`);
+    const want = (st === 'qld' || st === 'sa') ? 0 : est;
+    if (!close(neu, want)) fail(`fhb-grants new build ${st} $${v}: ${neu} vs ${want} (journey.js rule)`);
+  }
+}
+
 /* ── 3. Tax + expense-floor sync copy (borrowing power → loan serviceability) ── */
 const bp = loadPage('borrowing-power-calculator');
 const svc = loadPage('loan-serviceability-calculator');
@@ -194,6 +277,22 @@ for (const g of [0, 18200, 18201, 28011, 30000, 35013, 35014, 45000, 45001, 6000
   checks++;
   const a = bp.run(`approxTax(${g})`), b = svc.run(`approxTax(${g})`);
   if (!close(a, b)) fail(`approxTax(${g}): loan-serviceability ${b} vs borrowing-power ${a}`);
+}
+// 3b. Income tax + Medicare levy copy in the cash flow calculator, every whole
+// dollar from $0 to $260,000 (all the tax brackets and both Medicare thresholds).
+{
+  const cashflow = loadPage('property-cashflow-calculator');
+  const cfTax = cashflow.run('typeof incomeTax === "function" ? incomeTax : null');
+  const bpTax = bp.run('approxTax');
+  checks++;
+  if (!cfTax) fail('property-cashflow-calculator.js: incomeTax() not found');
+  else {
+    let bad = 0, first = -1;
+    for (let g = 0; g <= 260000; g++) {
+      if (!(Math.abs(cfTax(g) - bpTax(g)) < 1e-6)) { bad++; if (first < 0) first = g; }
+    }
+    if (bad) fail(`property-cashflow incomeTax differs from borrowing-power approxTax at ${bad} whole-dollar incomes, first at $${first}: ${cfTax(first)} vs ${bpTax(first)}`);
+  }
 }
 for (const inc of [0, 49999, 50000, 79999, 80000, 119999, 120000, 179999, 180000, 249999, 250000, 349999, 350000, 500000]) {
   for (const adults of [1, 2]) {
@@ -459,4 +558,4 @@ if (fails) {
   console.error(`\nstate-duty-sync-test: ${fails} FAILED of ${checks} checks`);
   process.exit(1);
 }
-console.log(`state-duty-sync-test: all ${checks} checks passed (8 state pages, deposit, cost-of-purchase, FHB grants vs tools/stamp-duty-calculator.js; serviceability tax/expense-floor copy vs borrowing power; owner-occupier and QLD foreign buyer duty, conveyancing, LMI tiers, the auction solver and its error path on the upfront-cost calculators)`);
+console.log(`state-duty-sync-test: all ${checks} checks passed (8 state pages, deposit, cost-of-purchase, FHB grants vs tools/stamp-duty-calculator.js; NSW standard duty and the NSW, WA and VIC first home bands to the cent; the grants new-build rule vs journey.js; serviceability tax/expense-floor copy and the cash flow incomeTax vs borrowing power; owner-occupier and QLD foreign buyer duty, conveyancing, LMI tiers, the auction solver and its error path on the upfront-cost calculators)`);

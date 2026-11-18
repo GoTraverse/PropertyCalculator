@@ -260,7 +260,7 @@ ToolPage.init({
   ],
   faq: [
     { q: 'When is stamp duty due in QLD?',
-      a: 'Transfer duty is payable within 30 days of the dutiable transaction, usually 30 days after the contract date or settlement, whichever is later. In practice your solicitor or conveyancer pays QRO at settlement. Duty isn\'t financed by your mortgage, so it has to come from your cash or your deposit. Late payment attracts unpaid tax interest at a rate QRO publishes each year.' }
+      a: 'The contract has to be lodged with the Queensland Revenue Office within 30 days of the date liability arises. QRO says that\'s usually the contract date, when it\'s signed or becomes unconditional, and that it isn\'t the settlement date. If your solicitor lodges it as a registered self assessor, the duty is due within 14 days of lodging. If you lodge it yourself, QRO sends an assessment notice with the amount and the due date. In practice your solicitor or conveyancer pays it at or before settlement. Duty isn\'t financed by your mortgage, so it has to come from your cash or your deposit. Late payment attracts unpaid tax interest at a rate QRO publishes each year.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '🏛️', href: '/tools/stamp-duty-calculator', label: 'All-states Stamp Duty Calculator' },

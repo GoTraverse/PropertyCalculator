@@ -11,8 +11,8 @@
 // VIC ($960k–$2M flat-of-total, >$2M), ACT (>$1.455M flat) and NT (quadratic
 // under $525k / flat % above) use special cases — see _calcDutyTiered().
 var _SD_STATE_DATA = {
-  // fhbFull = full-exemption ceiling; fhbPartial = taper ceiling (===fhbFull
-  // means hard cliff, no taper). SA + NT: NEW homes only / grants — no
+  // fhbFull = full-exemption ceiling; fhbPartial = concession ceiling (===fhbFull
+  // means no concession band). SA + NT: NEW homes only / grants — no
   // value-based exemption, so fhbFull/fhbPartial are 0 (never auto-zeroed).
   // NSW brackets CPI-indexed 1 Jul 2026 (FY2026-27, verified vs Revenue NSW 5 Jul 2026)
   NSW: { fhbFull: 800000,  fhbPartial: 1000000, tiers: [[0,0.0125],[18000,0.015],[38000,0.0175],[103000,0.035],[387000,0.045],[1290000,0.055],[3870000,0.07]] },
@@ -44,6 +44,10 @@ function _calcDutyTiered(state, v) {
     if (v <= from) break;
     var nextFrom = (i + 1 < tiers.length) ? tiers[i + 1][0] : Infinity;
     duty += (Math.min(v, nextFrom) - from) * tiers[i][1];
+    // Revenue NSW states each bracket's base in whole dollars ($1,662,
+    // $11,602, $52,237, $194,137), so floor the running total at each
+    // bracket NSW passes.
+    if (state === 'NSW' && v > nextFrom) duty = Math.floor(duty);
   }
   // Bands that are a flat % of the TOTAL value (not marginal on the excess):
   if (state === 'VIC') {
@@ -97,10 +101,15 @@ function stampDutyEstimate(price, state, fhb, owner) {
   // Full exemption at/below fhbFull (SA + NT have fhbFull === 0 → no value-based
   // exemption: relief is NEW-home only, so established buyers pay full duty).
   if (data.fhbFull > 0 && price <= data.fhbFull) return 0;
-  // Sliding partial concession between fhbFull and fhbPartial (NSW/VIC/QLD/WA).
-  // TAS + ACT have fhbPartial === fhbFull → hard cliff, no taper.
+  // Partial concession between fhbFull and fhbPartial (NSW/VIC/WA; QLD is
+  // handled above). TAS + ACT have fhbPartial === fhbFull → no concession band.
   if (data.fhbPartial > data.fhbFull && price <= data.fhbPartial) {
     var slide = (data.fhbPartial - price) / (data.fhbPartial - data.fhbFull);
+    // NSW (s 78A): standard duty less slide × the standard duty on $800,000.
+    if (state === 'NSW') return Math.max(0, baseDuty - slide * _calcDutyTiered('NSW', data.fhbFull));
+    // WA first home owner rate: $16.15 per $100, or part, over $600,000.
+    if (state === 'WA') return Math.round(Math.ceil((price - data.fhbFull) / 100) * 1615) / 100;
+    // VIC (s 57JA): standard duty scaled in a straight line.
     return Math.max(0, baseDuty * (1 - slide));
   }
   return baseDuty;
@@ -257,9 +266,9 @@ ToolPage.init({
         { k: 'First home buyer', v: 'No' }
       ],
       outputs: [
-        { k: 'Cash needed up-front', v: '$229,238' },
+        { k: 'Cash needed up-front', v: '$229,237' },
         { k: 'Deposit portion', v: '$190,000' },
-        { k: 'Stamp duty', v: '$36,938' },
+        { k: 'Stamp duty', v: '$36,937' },
         { k: 'Conveyancing', v: '$1,800' },
         { k: 'Building and pest inspection', v: '$500' },
         { k: 'LMI estimate', v: 'Not required (20% deposit)' }

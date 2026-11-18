@@ -80,9 +80,9 @@ var stateData = {
   },
   wa: {
     name: 'Western Australia', dutyName: 'Transfer duty', foreignRate: 0.07,
-    // FHB thresholds raised for transactions from 7 May 2026 (announced in the
-    // 2026-27 Budget, applying retrospectively — confirm legislative status
-    // with RevenueWA).
+    // FHB thresholds raised for agreements from 7 May 2026. RevenueWA has
+    // assessed at the new rates since July 2026. Between $600,000 and
+    // $800,000 the duty is $16.15 per $100 over $600,000 (applyFhbConcession).
     fhbFull: 600000, fhbPartial: 800000, fhbExemption: Infinity,
     tiers: [
       { from: 0,       rate: 0.019  },
@@ -153,6 +153,11 @@ function calcDuty(state, v) {
     if (v <= from) break;
     var nextFrom = (i + 1 < tiers.length) ? tiers[i + 1].from : Infinity;
     duty += (Math.min(v, nextFrom) - from) * tiers[i].rate;
+    // Revenue NSW states each bracket's base in whole dollars ($1,662 at
+    // $103,000 where the rates add up to $1,662.50; then $11,602, $52,237
+    // and $194,137), so the running total is floored at each bracket NSW
+    // passes.
+    if (state === 'nsw' && v > nextFrom) duty = Math.floor(duty);
   }
   // Bands that are a flat % of the TOTAL value (not marginal on the excess):
   if (state === 'vic') {
@@ -240,6 +245,23 @@ function applyFhbConcession(state, val, baseDuty) {
   }
   if (val <= data.fhbPartial && data.fhbPartial > data.fhbFull) {
     var slide = (data.fhbPartial - val) / (data.fhbPartial - data.fhbFull);
+    if (state === 'nsw') {
+      // NSW (Duties Act 1997 s 78A, as stated by secondary sources and fitted
+      // to Revenue NSW's FHBAS table): standard duty at the price, less
+      // (1,000,000 - price) / 200,000 of the standard duty on $800,000. It
+      // rises in a straight line from nil at $800,000 to the standard duty on
+      // $1,000,000. $900,000 gives $19,593.50, the figure in Revenue NSW's
+      // table, because calcDuty() uses its whole-dollar bracket bases.
+      return { duty: Math.max(0, baseDuty - slide * calcDuty('nsw', data.fhbFull)), note: 'First home buyer partial concession applied.' };
+    }
+    if (state === 'wa') {
+      // WA first home owner rate for a home, agreements from 7 May 2026
+      // (RevenueWA): $16.15 for every $100, or part of $100, over $600,000,
+      // up to $800,000. Worked in cents to avoid floating-point drift.
+      return { duty: Math.round(Math.ceil((val - data.fhbFull) / 100) * 1615) / 100, note: 'First home buyer partial concession applied.' };
+    }
+    // VIC (s 57JA): standard duty scaled in a straight line, from nil at
+    // $600,000 to the full standard duty at $750,000. SRO: $24,713 at $700,000.
     return { duty: Math.max(0, baseDuty * (1 - slide)), note: 'First home buyer partial concession applied.' };
   }
   return { duty: baseDuty, note: '' };

@@ -64,7 +64,8 @@ ToolPage.init({
         icon: '🏦', title: 'Interest-only loans',
         links: [
           { text: 'ASIC Moneysmart: interest-only home loans', href: 'https://moneysmart.gov.au/home-loans/interest-only-home-loans' },
-          { text: 'ASIC Moneysmart: mortgage calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' }
+          { text: 'ASIC Moneysmart: mortgage calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
+          { text: 'RBA: lenders\' interest rates', href: 'https://www.rba.gov.au/statistics/interest-rates/' }
         ]
       },
       {
@@ -143,7 +144,7 @@ ToolPage.init({
   ],
   faq: [
     { q: 'Why is the IO rate higher than the P&I rate?',
-      a: 'APRA treats IO loans as higher risk because the balance isn\'t being paid down, which leaves less of a buffer if values fall. Lenders add a premium to the P&I rate, usually 0.15–0.40%, and the gap is larger for investors than for owner-occupiers.' },
+      a: 'APRA treats IO loans as higher risk because the balance isn\'t being paid down, which leaves less of a buffer if values fall. Lenders charge more for interest-only. In the RBA\'s lenders\' interest rates for new loans in 2026, owner-occupiers paid roughly 0.8 to 0.9 percentage points more for interest-only than for principal and interest, and investors about 0.2 points more. These averages mix fixed and variable loans and different borrowers, so compare the two rates your own lender quotes.' },
     { q: 'Can I extend the IO period beyond 5 years?',
       a: 'Investors can usually get up to 10 years of IO, sometimes split across more than one renewal. Owner-occupiers are generally capped at 5 years. Each extension is a new credit decision with a new serviceability assessment, so approval isn\'t automatic.' },
     { q: 'What happens when the IO period ends?',
