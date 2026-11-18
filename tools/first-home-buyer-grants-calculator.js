@@ -286,7 +286,9 @@ function fdsEligibility(stateData, price, isCapitalCity) {
   };
 }
 
-// LMI estimate (same tier table as mortgage-repayment)
+// LMI estimate: my own rough rates by LVR band, with no published rate table
+// behind them (same tier table as mortgage-repayment). The scheme is modelled
+// at a 5% deposit, so the loan passed in is 95% of the price.
 function estimateLmi(loan, propertyValue) {
   if (!loan || !propertyValue) return 0;
   const lvr = loan / propertyValue;
@@ -420,7 +422,7 @@ function calculate() {
     '<div class="fhb-row"><span>Property price cap (' + (isCapitalCity ? 'capital city / regional centre' : 'rest of state') + ')</span><span class="fhb-row-val">' + fmt(fds.propertyCap) + '</span></div>' +
     (fds.eligible
       ? '<div class="fhb-row fhb-row-save"><span>LMI avoided via 5% deposit</span><span class="fhb-row-val">' + fmt(fds.lmiAvoided) + '</span></div>' +
-        '<div class="fhb-row-note">Eligible on price. You can buy with a 5% deposit and pay no LMI. Since 1 Oct 2025 there is no income cap, no limit on places and no waitlist. It’s for owner-occupiers who have never owned property in Australia or haven’t owned any in the last 10 years.</div>'
+        '<div class="fhb-row-note">Eligible on price. You can buy with a 5% deposit and pay no LMI. Since 1 Oct 2025 there is no income cap, no limit on places and no waitlist. It’s for owner-occupiers who have never owned property in Australia or haven’t owned any in the last 10 years. The LMI figure is my own estimate by LVR band, with no published rate table behind it.</div>'
       : '<div class="fhb-row fhb-row-na"><span>5% Deposit Scheme status</span><span class="fhb-row-val">Not eligible</span></div>' +
         '<div class="fhb-row-note">The price is over the ' + fmt(fds.propertyCap) + ' cap for this area. The scheme has no income test, so the price cap is the only check.</div>'
     ) +

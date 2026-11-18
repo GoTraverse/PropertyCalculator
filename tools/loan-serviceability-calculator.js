@@ -144,19 +144,20 @@ function calculate(silent) {
   }
 }
 
-/* ─ Live RBA-based rate suggestion. The suggestion only replaces the rate
- *   while you have not typed your own, and the result is recalculated so the
- *   figures on screen always match the rate in the box. ─ */
+/* ─ Rate suggestion: the RBA cash rate plus my estimated lender margin (see
+ *   market-rate.js). It is not a quoted rate, so the note under the field,
+ *   which market-rate.js words, always says what it is made of. The
+ *   suggestion only replaces the rate while you have not typed your own, and
+ *   the result is recalculated so the figures on screen always match the rate
+ *   in the box. ─ */
 if (typeof MarketRate !== 'undefined') {
   MarketRate.onReady(function(d) {
     if (!d) return;
-    var showing = ToolPage.applyLiveRate({ inputId: 'base-rate', defaultValue: '6.50', slug: 'loan-serviceability', rate: d.suggestedRate });
+    var showing = ToolPage.applyLiveRate({ inputId: 'base-rate', defaultValue: '6.25', slug: 'loan-serviceability', rate: d.suggestedRate });
     var badge = document.getElementById('rate-live-badge');
     var hint  = document.getElementById('rate-live-hint');
     if (badge) badge.style.display = showing ? '' : 'none';
-    if (hint)  hint.textContent = 'RBA cash rate ' + d.cashRate.toFixed(2) + '% + lender margin '
-      + d.lenderMargin.toFixed(2) + '% (my assumption) = ' + d.suggestedRate.toFixed(2) + '%. The loan is tested at your rate + 3%.'
-      + (d.rateDate ? ' Cash rate as at ' + d.rateDate + '.' : '');
+    if (hint)  hint.textContent = MarketRate.rateNote(showing);
     if (hint) hint.style.display = '';
     calculate(true);
   });

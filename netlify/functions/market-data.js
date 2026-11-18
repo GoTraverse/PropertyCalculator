@@ -13,7 +13,19 @@
  * GET  /.netlify/functions/market-data?action=cashRate
  * GET  /.netlify/functions/market-data?action=statePrices
  * POST /.netlify/functions/market-data   {action:'suburbInsights', suburb:'Bondi Beach', state:'NSW'}
+ *      (retired Nov 2026: answers 410)
+ *
+ * Limits (Nov 2026):
+ *   - The caller chooses one of the fixed actions above and nothing else. No
+ *     part of an upstream address comes from the request.
+ *   - Requests are limited per IP. See "Per-IP rate limit" for what happens
+ *     when Redis is down.
+ *   - Each running instance remembers its last answer for a few minutes (see
+ *     "Per-instance memo"), so the RBA and the ABS are not asked again on every
+ *     page view, with or without Redis.
  */
+
+const log = require('./_log');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g,'').trim();
@@ -39,18 +51,29 @@ const H = {
 };
 
 // ── Redis helpers ──────────────────────────────────────────────────────────────
+// redisCmd returns the command's result, or null when Redis is not configured,
+// answers with an error, or takes longer than REDIS_TIMEOUT_MS. After a failure
+// Redis is skipped for REDIS_RETRY_MS, so an outage costs one slow request per
+// running instance rather than one per page view.
+const REDIS_TIMEOUT_MS = 3000;
+const REDIS_RETRY_MS   = 30000;
+let _redisDownUntil = 0;
 
 async function redisCmd(...args) {
   if (!REDIS_URL || !REDIS_TOKEN) return null;
+  if (Date.now() < _redisDownUntil) return null;
   try {
     const r = await fetch(REDIS_URL, {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'Content-Type': 'application/json' },
       body: JSON.stringify(args),
+      signal: AbortSignal.timeout(REDIS_TIMEOUT_MS),
     });
-    if (!r.ok) return null;
+    if (!r.ok) throw new Error('Redis HTTP ' + r.status);
     return (await r.json()).result;
   } catch (e) {
+    _redisDownUntil = Date.now() + REDIS_RETRY_MS;
+    log.warn('market-data.redis_unavailable', { err: e && e.message });
     return null;
   }
 }
@@ -298,24 +321,102 @@ function parseDomainResponse(json, suburb, state) {
 // ── Response helpers ──────────────────────────────────────────────────────────
 
 const ok   = (body) => ({ statusCode: 200, headers: H, body: JSON.stringify(body) });
-const fail = (msg, s = 400) => ({ statusCode: s, headers: H, body: JSON.stringify({ ok: false, error: msg }) });
+const fail = (msg, s = 400, extra) => ({
+  statusCode: s,
+  headers: extra ? Object.assign({}, H, extra) : H,
+  body: JSON.stringify({ ok: false, error: msg }),
+});
 
-// ── IP-based rate limit helper ────────────────────────────────────────────────
+// ── Per-instance memo ─────────────────────────────────────────────────────────
+// These figures change rarely (the Redis copies above are kept for 24 hours and
+// 7 days), so each running instance keeps its last answer in memory for ten
+// minutes and serves it without reading Redis or calling an upstream API.
+//
+// When the upstream API gave no answer, the hardcoded fallback is remembered
+// for one minute. Without that, every request would retry the RBA or the ABS
+// for as long as they are failing, and with Redis down every request would
+// call them even when they are working.
+const MEMO_LIVE_MS     = 10 * 60 * 1000;
+const MEMO_FALLBACK_MS = 60 * 1000;
+const _memo = new Map();   // action → { body, until }
 
-async function checkRateLimit(ip) {
-  if (!REDIS_URL || !REDIS_TOKEN) return false;
-  const key = 'rl:mkt:' + ip;
-  try {
-    const count = await redisCmd('INCR', key);
-    if (count === 1) await redisCmd('EXPIRE', key, '60');
-    return count > 30; // 30 req/min per IP (suburbInsights only — cached hits are cheap)
-  } catch { return false; }
+function memoGet(name) {
+  const m = _memo.get(name);
+  return m && m.until > Date.now() ? m.body : null;
 }
+function memoSet(name, body, ms) {
+  _memo.set(name, { body, until: Date.now() + ms });
+}
+
+// ── Per-IP rate limit ─────────────────────────────────────────────────────────
+// Sized for the pages that call this: three calculators load the cash rate once
+// per page view (market-rate.js; the service worker answers from its own cache
+// and still re-fetches in the background). 30 a minute from one address is well
+// past a person clicking between them.
+//
+// The shared count lives in Redis (INCR, then EXPIRE on the first hit: the same
+// pattern as rRateInc in auth.js). The key carries the window number, so a lost
+// EXPIRE can never leave an address blocked past the end of its window.
+//
+// Every request is also counted in this instance's memory. That count does two
+// jobs:
+//   1. An address already over the limit inside this one instance is refused
+//      without spending a Redis command on it.
+//   2. If Redis is not configured or does not answer, the memory count decides,
+//      against a smaller limit because every running instance keeps its own
+//      count. A Redis outage therefore neither blocks every visitor nor leaves
+//      the upstream APIs open to unlimited use.
+const RL_WINDOW_SECS  = 60;
+const RL_MAX          = 30;   // per IP per minute, counted in Redis
+const RL_MAX_NO_REDIS = 10;   // per IP per minute, per instance, when Redis is down
+const RL_MEM_MAX_KEYS = 5000;
+const _rlMem = new Map();     // ip → { bucket, n }
+
+function clientIp(event) {
+  const raw = String((event.headers && event.headers['x-nf-client-connection-ip']) || '').split(',')[0].trim();
+  // The value goes into a Redis key, so accept only what an IPv4 or IPv6 address can contain.
+  return /^[0-9a-fA-F:.]{2,45}$/.test(raw) ? raw.toLowerCase() : 'unknown';
+}
+
+function memCount(ip, bucket) {
+  let e = _rlMem.get(ip);
+  if (!e || e.bucket !== bucket) {
+    if (_rlMem.size >= RL_MEM_MAX_KEYS) {
+      for (const [k, v] of _rlMem) if (v.bucket !== bucket) _rlMem.delete(k);
+      if (_rlMem.size >= RL_MEM_MAX_KEYS) _rlMem.clear();
+    }
+    e = { bucket, n: 0 };
+    _rlMem.set(ip, e);
+  }
+  return ++e.n;
+}
+
+// Resolves to 0 when the request may go ahead, or to the number of seconds
+// until the window ends when it is over the limit.
+async function rateLimited(ip) {
+  const now = Date.now();
+  const bucket = Math.floor(now / (RL_WINDOW_SECS * 1000));
+  const retryAfter = Math.max(1, Math.ceil(((bucket + 1) * RL_WINDOW_SECS * 1000 - now) / 1000));
+  const local = memCount(ip, bucket);
+  if (local > RL_MAX) return retryAfter;
+  const key = 'ratelimit:market-data:' + ip + ':' + bucket;
+  const count = parseInt(await redisCmd('INCR', key), 10);
+  if (!Number.isFinite(count)) return local > RL_MAX_NO_REDIS ? retryAfter : 0;   // Redis is down
+  if (count === 1) await redisCmd('EXPIRE', key, String(RL_WINDOW_SECS));
+  return count > RL_MAX ? retryAfter : 0;
+}
+
+const tooMany = (retryAfter) => fail('Too many requests', 429, { 'Retry-After': String(retryAfter) });
+
+const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: H, body: '' };
+  if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
+    return fail('Method not allowed', 405, { Allow: 'GET, POST, OPTIONS' });
+  }
 
   // Parse action from GET query or POST body
   let action = event.queryStringParameters && event.queryStringParameters.action;
@@ -324,6 +425,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'POST') {
     let body = {};
     try { body = JSON.parse(event.body || '{}'); } catch { }
+    if (!isObj(body)) body = {};
     action  = action || body.action;
     suburb  = body.suburb;
     state   = body.state;
@@ -331,28 +433,51 @@ exports.handler = async (event) => {
 
   // ── GET cash rate ────────────────────────────────────────────────────────────
   if (action === 'cashRate') {
+    const retryAfter = await rateLimited(clientIp(event));
+    if (retryAfter) return tooMany(retryAfter);
+
+    const remembered = memoGet('cashRate');
+    if (remembered) return ok(remembered);
+
     const cacheKey = 'market:cashRate';
     const cached = await rGet(cacheKey);
-    if (cached) return ok({ ok: true, ...cached, cached: true });
+    if (isObj(cached)) {
+      const body = { ok: true, ...cached, cached: true };
+      memoSet('cashRate', body, MEMO_LIVE_MS);
+      return ok(body);
+    }
 
     const live = await fetchCashRate();
     const result = live || FALLBACK_CASH_RATE;
     if (live) await rSet(cacheKey, result, TTL_CASH_RATE);
+    memoSet('cashRate', { ok: true, ...result, cached: true }, live ? MEMO_LIVE_MS : MEMO_FALLBACK_MS);
 
     return ok({ ok: true, ...result, cached: false });
   }
 
   // ── GET state median prices ──────────────────────────────────────────────────
   if (action === 'statePrices') {
+    const retryAfter = await rateLimited(clientIp(event));
+    if (retryAfter) return tooMany(retryAfter);
+
+    const remembered = memoGet('statePrices');
+    if (remembered) return ok(remembered);
+
     const cacheKey = 'market:statePrices';
     const cached = await rGet(cacheKey);
-    if (cached) return ok({ ok: true, prices: cached, cached: true });
+    if (isObj(cached)) {
+      const body = { ok: true, prices: cached, cached: true };
+      memoSet('statePrices', body, MEMO_LIVE_MS);
+      return ok(body);
+    }
 
     const live = await fetchStatePrices();
     const prices = live || FALLBACK_STATE_PRICES;
     if (live) await rSet(cacheKey, prices, TTL_STATE_PRICES);
+    const source = live ? 'abs-api' : 'fallback';
+    memoSet('statePrices', { ok: true, prices, cached: true, source }, live ? MEMO_LIVE_MS : MEMO_FALLBACK_MS);
 
-    return ok({ ok: true, prices, cached: false, source: live ? 'abs-api' : 'fallback' });
+    return ok({ ok: true, prices, cached: false, source });
   }
 
   // ── POST suburb insights ─────────────────────────────────────────────────────
@@ -361,8 +486,8 @@ exports.handler = async (event) => {
     // so nothing calls this. It stays closed so an anonymous caller cannot
     // spend Domain API quota.
     return fail('This endpoint has been retired', 410);
-    const clientIp = (event.headers?.['x-nf-client-connection-ip'] || 'unknown').split(',')[0].trim();
-    if (await checkRateLimit(clientIp)) return fail('Too many requests', 429);
+    // Unreachable. If this is ever reopened it must sit behind rateLimited(),
+    // as the two actions above do.
     if (!suburb || !state) return fail('suburb and state required');
     const AU_STATES = ['NSW','VIC','QLD','SA','WA','TAS','NT','ACT'];
     if (!AU_STATES.includes(String(state).toUpperCase())) return fail('Invalid state');

@@ -136,11 +136,11 @@ function calculate() {
   var regEl = document.getElementById('r-reg');
   if (regEl) regEl.textContent = fmt(regTotal) + ' (Titles Queensland; the transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimate only, at Queensland\'s 2026–27 transfer duty rates. From 1 Aug 2026 the home concessions need Australian citizenship, permanent residency or specified foreign retiree status. LMI is a rough estimate. Registration fees are from the Titles Queensland FY2026-27 schedule. Check the figures with your solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate only, at Queensland\'s 2026–27 transfer duty rates. From 1 Aug 2026 the home concessions need Australian citizenship, permanent residency or specified foreign retiree status. The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium. Registration fees are from the Titles Queensland FY2026-27 schedule. Check the figures with your solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

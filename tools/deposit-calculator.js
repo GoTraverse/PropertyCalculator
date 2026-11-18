@@ -57,12 +57,28 @@ function _calcDutyTiered(state, v) {
   return duty;
 }
 
-function stampDutyEstimate(price, state, fhb) {
-  // Owner-occupier transfer/stamp duty (FY2026-27), with first home buyer
-  // concessions applied per state. Verified against the dedicated stamp duty
-  // calculator. Use that page for foreign-buyer surcharge + land-only rules.
+// QLD home-concession duty (owner-occupier rate, QRO schedule): 1% to $350k;
+// $3,500 + 3.5% to $540k; $10,150 + 4.5% to $1M; $30,850 + 5.75% above.
+// SYNC: qldHomeDuty() in tools/stamp-duty-calculator.js.
+function _qldHomeDuty(v) {
+  if (v <= 0) return 0;
+  if (v <= 350000) return v * 0.01;
+  if (v <= 540000) return 3500 + (v - 350000) * 0.035;
+  if (v <= 1000000) return 10150 + (v - 540000) * 0.045;
+  return 30850 + (v - 1000000) * 0.0575;
+}
+
+function stampDutyEstimate(price, state, fhb, owner) {
+  // Transfer/stamp duty on an established home (FY2026-27), with first home
+  // buyer concessions applied per state. Verified against the dedicated stamp
+  // duty calculator. Use that page for foreign-buyer surcharge + land-only rules.
+  // `owner` = the buyer will live in the home. Same rule as calculate() in
+  // tools/stamp-duty-calculator.js: it only changes the duty in QLD, where an
+  // owner-occupier who is not a first home buyer pays the home-concession
+  // rate. No other state has an owner/investor split. A first home buyer gets
+  // the first home concession whatever `owner` says, as in the source.
   var baseDuty = _calcDutyTiered(state, price);
-  if (!fhb) return baseDuty;
+  if (!fhb) return (owner && state === 'QLD') ? _qldHomeDuty(price) : baseDuty;
   var data = _SD_STATE_DATA[state];
   if (!data) return baseDuty;
   // QLD — QRO band-table method (verified 5 Jul 2026): a fixed concession
@@ -71,10 +87,7 @@ function stampDutyEstimate(price, state, fhb) {
   // rate; above $800k the home-concession rate still applies (an FHB is an
   // owner-occupier). QRO worked example: $730k → $6,555.
   if (state === 'QLD') {
-    var qHome = price <= 350000 ? price * 0.01
-      : price <= 540000 ? 3500 + (price - 350000) * 0.035
-      : price <= 1000000 ? 10150 + (price - 540000) * 0.045
-      : 30850 + (price - 1000000) * 0.0575;
+    var qHome = _qldHomeDuty(price);
     var qConc = price < 710000 ? 17350
       : (price >= 800000 ? 0 : 17350 - Math.floor((price - 700000) / 10000) * 1735);
     return Math.max(0, qHome - qConc);
@@ -92,9 +105,13 @@ function stampDutyEstimate(price, state, fhb) {
 }
 
 function lmiEstimate(loanAmount, lvr) {
-  // Rough LMI scale — varies by lender and LVR band. This is indicative only.
-  // Canonical LMI tiers (shared with mortgage-repayment + stamp-duty tools),
-  // indicative of Helia/QBE rates per ASIC MoneySmart. LVR as a percentage.
+  // My rough LMI scale by LVR band, with no published rate table behind it.
+  // Real premiums vary by lender and insurer. Same tiers as lmiRate() in
+  // journey.js and estimateLmiTier() in stamp-duty-calculator.js
+  // (tests/state-duty-sync-test.js checks they agree). LVR as a percentage.
+  // Rounded first, as journey.js does: (0.9 * price) / price * 100 can come
+  // out as 90.00000000000001 and land in the wrong tier.
+  lvr = Math.round(lvr * 100) / 100;
   if (lvr <= 80) return 0;
   if (lvr <= 85) return loanAmount * 0.0080;
   if (lvr <= 90) return loanAmount * 0.0190;
@@ -102,11 +119,26 @@ function lmiEstimate(loanAmount, lvr) {
   return loanAmount * 0.0430;
 }
 
+// Conveyancing: $1,800 on every page of the site (stamp duty pages, the
+// First Home Journey, cost of purchase, auction budget). My estimate; the
+// journey shows the range $1,300 to $2,200.
+var CONVEYANCING = 1800;
+// Building and pest inspection: my estimate, inside the $400 to $700 range
+// the First Home Journey shows at step 3. Same figure as
+// cost-of-purchase-calculator.js.
+var INSPECTION = 500;
+
 function calc() {
   var price = parseVal('price');
   var depPct = parseFloat(document.getElementById('dep-pct').value) || 20;
   var state = document.getElementById('state').value;
   var fhb = document.getElementById('fhb').checked;
+  // "Buying to live in" only changes the duty in Queensland, and only for a
+  // buyer who isn't a first home buyer, so the box is hidden everywhere else.
+  var ownerEl = document.getElementById('owner');
+  var owner = ownerEl ? ownerEl.checked : true;
+  var ownerRow = document.getElementById('owner-check');
+  if (ownerRow) ownerRow.style.display = (state === 'QLD' && !fhb) ? '' : 'none';
 
   var _msg = document.getElementById('calc-msg');
   function _showErr(t){ if(_msg){ _msg.textContent = t; _msg.hidden = false; } }
@@ -118,6 +150,7 @@ function calc() {
     setText('r-deposit', '—');
     setText('r-stamp', '—');
     setText('r-legal', '—');
+    setText('r-inspect', '—');
     setText('r-lmi', '—');
     setText('r-loan', '—');
     return;
@@ -126,15 +159,15 @@ function calc() {
   var deposit = price * (depPct / 100);
   var loan = price - deposit;
   var lvr = (loan / price) * 100;
-  var stamp = stampDutyEstimate(price, state, fhb);
-  var legal = 2500; // Conveyancing + inspections: my rough allowance, no official source
+  var stamp = stampDutyEstimate(price, state, fhb, owner);
   var lmi = lmiEstimate(loan, lvr);
-  var total = deposit + stamp + legal + lmi;
+  var total = deposit + stamp + CONVEYANCING + INSPECTION + lmi;
 
   setText('r-total', fmt(total));
   setText('r-deposit', fmt(deposit));
   setText('r-stamp', fmt(stamp));
-  setText('r-legal', fmt(legal));
+  setText('r-legal', fmt(CONVEYANCING));
+  setText('r-inspect', fmt(INSPECTION));
   setText('r-lmi', lmi > 0 ? fmt(lmi) : 'Not required');
   setText('r-loan', fmt(loan));
 
@@ -205,10 +238,11 @@ ToolPage.init({
         { k: 'First home buyer', v: 'Yes' }
       ],
       outputs: [
-        { k: 'Cash needed up-front', v: '$78,615' },
+        { k: 'Cash needed up-front', v: '$78,415' },
         { k: 'Deposit portion', v: '$65,000' },
         { k: 'Stamp duty (first home concession)', v: '$0' },
-        { k: 'Legal and inspections', v: '$2,500' },
+        { k: 'Conveyancing', v: '$1,800' },
+        { k: 'Building and pest inspection', v: '$500' },
         { k: 'LMI estimate', v: '$11,115' }
       ]
     },
@@ -221,9 +255,11 @@ ToolPage.init({
         { k: 'First home buyer', v: 'No' }
       ],
       outputs: [
-        { k: 'Cash needed up-front', v: '$229,438' },
+        { k: 'Cash needed up-front', v: '$229,238' },
         { k: 'Deposit portion', v: '$190,000' },
         { k: 'Stamp duty', v: '$36,938' },
+        { k: 'Conveyancing', v: '$1,800' },
+        { k: 'Building and pest inspection', v: '$500' },
         { k: 'LMI estimate', v: 'Not required (20% deposit)' }
       ]
     },
@@ -236,11 +272,13 @@ ToolPage.init({
         { k: 'First home buyer', v: 'Yes' }
       ],
       outputs: [
-        { k: 'Cash needed up-front', v: '$43,650' },
+        { k: 'Cash needed up-front', v: '$43,450' },
         { k: 'Deposit portion', v: '$25,000' },
         { k: 'Stamp duty (first home exemption)', v: '$0' },
+        { k: 'Conveyancing', v: '$1,800' },
+        { k: 'Building and pest inspection', v: '$500' },
         { k: 'LMI estimate', v: '$16,150' },
-        { k: 'If the 5% Deposit Scheme removes the LMI', v: '$27,500 cash needed' }
+        { k: 'If the 5% Deposit Scheme removes the LMI', v: '$27,300 cash needed' }
       ]
     }
   ],
@@ -269,7 +307,7 @@ calc();
   var el = document.getElementById(id);
   if (el) el.addEventListener('input', function(){ fmtInput(this); calc(); });
 });
-['dep-pct','state','fhb'].forEach(function(id){
+['dep-pct','state','fhb','owner'].forEach(function(id){
   var el = document.getElementById(id);
   if (el) el.addEventListener('change', calc);
 });

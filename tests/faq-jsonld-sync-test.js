@@ -135,6 +135,16 @@ for (const f of pages) {
   });
 }
 
+// Every structured-data block on the root pages must parse too (the homepage
+// once shipped a block with an invalid \' escape that no crawler could read).
+const ROOT = path.join(TOOLS, '..');
+for (const f of fs.readdirSync(ROOT).filter((x) => x.endsWith('.html'))) {
+  const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
+  for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+    try { JSON.parse(m[1]); } catch (e) { fail(`${f}: JSON-LD does not parse (${e.message})`); }
+  }
+}
+
 if (fails) {
   console.error(`\nfaq-jsonld-sync-test: ${fails} problem(s)`);
   process.exit(1);

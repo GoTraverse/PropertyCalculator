@@ -32,7 +32,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Cost of Purchase Calculator Australia","description":"Adds up the cost of buying a home in each Australian state on top of the deposit: stamp duty, registration fees, conveyancing, lender fees, a building and pest inspection, first-year insurance, LMI and moving costs.","url":"https://equitysight.app/tools/cost-of-purchase-calculator","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Cost of Purchase Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What are the total upfront costs of buying a house in Australia?","acceptedAnswer":{"@type":"Answer","text":"Mostly it depends on stamp duty. In the three examples on this page the total is 3.6%, 5.1% and 6.8% of the purchase price, on top of the deposit. That covers stamp duty, registration fees, conveyancing, lender fees, an inspection, first-year insurance, moving costs, and LMI if your deposit is under 20%."}},{"@type":"Question","name":"Do I need Lenders Mortgage Insurance (LMI)?","acceptedAnswer":{"@type":"Answer","text":"LMI applies to most loans with a deposit under 20%. This calculator estimates it from the loan-to-value ratio: for a $650,000 purchase with a 10% deposit the estimate is $11,115. A 20% deposit, a guarantor or the 5% Deposit Scheme (formerly the First Home Guarantee) avoids it, and the scheme has its own eligibility rules and price caps."}},{"@type":"Question","name":"How much are conveyancing and legal fees?","acceptedAnswer":{"@type":"Answer","text":"This calculator uses the middle of a range for each state, from $900 in Queensland and Tasmania to $1,400 in Victoria. Those ranges are my rough estimates, so get a quote."}},{"@type":"Question","name":"What about building and pest inspections?","acceptedAnswer":{"@type":"Answer","text":"This calculator allows $500 for a combined building and pest inspection on an established home, which is my rough estimate."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Cost of Purchase Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What are the total upfront costs of buying a house in Australia?","acceptedAnswer":{"@type":"Answer","text":"Mostly it depends on stamp duty. In the three examples on this page the total is 3.8%, 5.2% and 6.9% of the purchase price, on top of the deposit. That covers stamp duty, registration fees, conveyancing, lender fees, an inspection, first-year insurance, moving costs, and LMI if your deposit is under 20%."}},{"@type":"Question","name":"Do I need Lenders Mortgage Insurance (LMI)?","acceptedAnswer":{"@type":"Answer","text":"LMI applies to most loans with a deposit under 20%. This calculator estimates it from the loan-to-value ratio: for a $650,000 purchase with a 10% deposit the estimate is $11,115. A 20% deposit, a guarantor or the 5% Deposit Scheme (formerly the First Home Guarantee) avoids it, and the scheme has its own eligibility rules and price caps."}},{"@type":"Question","name":"How much are conveyancing and legal fees?","acceptedAnswer":{"@type":"Answer","text":"This calculator uses a flat $1,800 in every state. That is my estimate, and I would expect quotes between $1,300 and $2,200, so get one."}},{"@type":"Question","name":"What about building and pest inspections?","acceptedAnswer":{"@type":"Answer","text":"This calculator allows $500 for a combined building and pest inspection on an established home. That is my estimate, and I would expect quotes between $400 and $700."}}]}]}
 </script>
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../tools.css">
@@ -98,6 +98,10 @@
         <div class="tool-check">
           <input type="checkbox" id="fhb">
           <label for="fhb">First home buyer (applies your state's first home duty concession, if it has one)</label>
+        </div>
+        <div class="tool-check" id="ownerCheck" style="display:none">
+          <input type="checkbox" id="owner" checked>
+          <label for="owner">Buying to live in (applies Queensland's lower home concession rate)</label>
         </div>
         <div class="tool-check">
           <input type="checkbox" id="foreignBuyer">
@@ -217,7 +221,8 @@
   <ul>
     <li>Loan amount = purchase price − (purchase price × deposit %).</li>
     <li>LVR = loan amount ÷ purchase price. LMI is added when the deposit is under 20%, and the rate rises with the LVR.</li>
-    <li>Stamp duty = the state's tiered rate on the price, less the first home buyer concession if you tick that box, plus the foreign buyer surcharge if you tick that one.</li>
+    <li>Stamp duty = the state's tiered rate on the price, less the first home buyer concession if you tick that box, plus the foreign buyer surcharge if you tick that one. Queensland also charges a lower home concession rate to a buyer who will live in the home, so a "Buying to live in" box appears when you pick Queensland and haven't ticked first home buyer. No other state's duty depends on it. The <a href="/tools/stamp-duty-calculator-qld">Queensland stamp duty calculator</a> lists the conditions for the home concession.</li>
+    <li>Conveyancing is a flat $1,800 in every state. That's my estimate, and I'd expect quotes between $1,300 and $2,200.</li>
     <li>Total buying costs = stamp duty + registration fees + conveyancing + lender fees (valuation, loan application, settlement) + building and pest inspection + first-year building and contents insurance + LMI + moving costs + any lease-break cost.</li>
     <li>Cash needed = deposit + total buying costs.</li>
   </ul>
@@ -231,19 +236,18 @@
   <ul>
     <li>Stamp duty (transfer duty): $23,438</li>
     <li>Title office registration fees: $366</li>
-    <li>Conveyancing and legal: $1,150</li>
+    <li>Conveyancing and legal: $1,800</li>
     <li>Lender fees: bank valuation $650, loan application fee $1,170, settlement fee $250</li>
     <li>Building and pest inspection: $500</li>
     <li>First-year insurance: building $2,600, contents $500</li>
     <li>LMI at 90% LVR (1.9% of the loan): $11,115</li>
     <li>Moving costs: $2,500</li>
   </ul>
-  <p>Total buying costs are <strong>$44,239</strong>, or 6.8% of the price. With the $65,000 deposit, the cash needed is <strong>$109,239</strong>.</p>
+  <p>Total buying costs are <strong>$44,889</strong>, or 6.9% of the price. With the $65,000 deposit, the cash needed is <strong>$109,889</strong>.</p>
   <p>An eligible first home buyer would pay no stamp duty on this purchase in NSW, which removes the $23,438. LMI still shows when the first home buyer box is ticked. The 5% Deposit Scheme removes it if you and the property qualify, and the calculator doesn't check that.</p>
 
   <h2>What the calculator leaves out</h2>
   <ul>
-    <li>Queensland's lower home rate for owner-occupiers who aren't first home buyers. Without the first home buyer box, the calculator charges Queensland's general rate.</li>
     <li>Council and water rate adjustments at settlement, and utility connection fees.</li>
     <li>Strata or body corporate levies, council rates, land tax and insurance renewals after the first year.</li>
     <li>Landlord insurance if you're buying to rent out.</li>

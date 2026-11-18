@@ -137,7 +137,11 @@ function renderPlan(){
     if(dynBtn) dynBtn.addEventListener('click', function(){ openBillingPortal(); });
   }
   if(billCard) billCard.style.display = (plan==='free') ? 'none' : 'block';
-  if(plan !== 'free') loadBillingStatus();
+  // Also asked for a free account: its plan may have been removed after a
+  // failed payment while the subscription still exists in Stripe. If so,
+  // loadBillingStatus shows the billing card so the card can be updated or
+  // the subscription cancelled.
+  loadBillingStatus();
 }
 
 function pickColor(el){
@@ -228,8 +232,19 @@ async function loadBillingStatus(){
     });
     const d = await r.json();
     if(!d.ok){ if(pmEl) pmEl.textContent='—'; return; }
+    if((session.plan||'free')==='free'){
+      // Free plan: the billing card stays hidden unless Stripe still holds a
+      // subscription for this account that can charge the card.
+      if(['active','trialing','past_due','unpaid','incomplete','paused'].indexOf(d.status) < 0) return;
+      var billCardEl = document.getElementById('billing-card');
+      var freeNoteEl = document.getElementById('plan-free-note');
+      if(billCardEl) billCardEl.style.display = 'block';
+      if(freeNoteEl) freeNoteEl.style.display = 'none';
+    }
     if(planEl){
-      var planLabel = (d.plan||'').charAt(0).toUpperCase()+(d.plan||'').slice(1);
+      // lapsedPlan: the plan that was removed because the payment failed.
+      var planWord = d.lapsedPlan || d.plan || '';
+      var planLabel = planWord.charAt(0).toUpperCase()+planWord.slice(1)+(d.lapsedPlan ? ' (off)' : '');
       if(d.priceAmount != null && d.priceCurrency){
         var amt = (d.priceAmount/100).toLocaleString('en-AU',{style:'currency',currency:d.priceCurrency.toUpperCase()});
         var interval = d.priceInterval ? ' / '+d.priceInterval : '';
@@ -256,7 +271,9 @@ async function loadBillingStatus(){
     if(d.cancelAtPeriodEnd && cancelNote){
       const endTs = d.cancelAt || d.currentPeriodEnd;
       const endDate = endTs ? new Date(endTs*1000).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}) : 'the end of the billing period';
-      cancelNote.textContent = 'Your subscription is cancelled. You keep access until '+endDate+'.';
+      cancelNote.textContent = d.lapsedPlan
+        ? 'Your subscription is cancelled. It ends on '+endDate+'.'
+        : 'Your subscription is cancelled. You keep access until '+endDate+'.';
       cancelNote.style.display = 'block';
     }
     // "Cancel subscription" is hidden once the subscription is already set to
@@ -264,19 +281,31 @@ async function loadBillingStatus(){
     // where a cancellation that hasn't taken effect yet can be undone.
     const cancelBtn = document.querySelector('#billing-card .acct-btn-danger');
     if(cancelBtn) cancelBtn.style.display = (d.cancelAtPeriodEnd || d.status==='none' || d.status==='canceled') ? 'none' : '';
-    // Payment failed and the 3-day grace is still running (the server only
-    // sends graceEndsAt while Stripe reports the subscription as past due).
+    // Payment failed. The server reports it only while Stripe says the
+    // subscription is past due or unpaid: graceEndsAt while the 3-day grace
+    // is running, lapsedPlan once the plan has been removed, and
+    // paymentFailedAt alone when the grace is over but the plan is still on.
     let failNote = document.getElementById('payment-failed-note');
-    if(d.graceEndsAt && cancelNote){
+    const planName = (d.lapsedPlan || d.plan)==='adviser' ? 'Adviser' : 'Pro';
+    let failText = '';
+    if(d.lapsedPlan){
+      failText = 'Your last payment failed and '+planName+' is now off. Update your card and '+planName+' comes back when the payment goes through.';
+    } else if(d.graceEndsAt){
+      const graceDate = new Date(d.graceEndsAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+      failText = 'Your last payment failed. '+planName+' stays on until '+graceDate+'. Update your card before then to keep it.';
+    } else if(d.paymentFailedAt){
+      failText = d.plan==='free'
+        ? 'Your last payment failed. Update your card, or cancel the subscription.'
+        : 'Your last payment failed. Update your card to keep '+planName+'.';
+    }
+    if(failText && cancelNote){
       if(!failNote){
         failNote = document.createElement('div');
         failNote.id = 'payment-failed-note';
         failNote.style.cssText = cancelNote.style.cssText;
         cancelNote.parentNode.insertBefore(failNote, cancelNote);
       }
-      const planName = d.plan==='adviser' ? 'Adviser' : 'Pro';
-      const graceDate = new Date(d.graceEndsAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
-      failNote.textContent = 'Your last payment failed. '+planName+' stays on until '+graceDate+'. Update your card before then to keep it.';
+      failNote.textContent = failText;
       failNote.style.display = 'block';
     } else if(failNote){
       failNote.style.display = 'none';

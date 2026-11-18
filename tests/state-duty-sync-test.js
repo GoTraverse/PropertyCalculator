@@ -14,6 +14,17 @@
  *      (standard duty and established-home first home buyer duty).
  *   3. The income-tax and expense-floor functions copied from
  *      borrowing-power-calculator.js into loan-serviceability-calculator.js.
+ *   4. The upfront-cost calculators (deposit, cost of purchase, auction
+ *      budget), driven through their real calc functions:
+ *        - on-screen duty vs the all-states calculator for owner-occupier /
+ *          investor × standard / first home buyer (the QLD home concession);
+ *        - the "Buying to live in" box exists on each page;
+ *        - one conveyancing figure everywhere (the all-states calculator and
+ *          journey.js included) and one building-and-pest figure;
+ *        - every LMI tier copy (journey.js included) gives the same rate;
+ *        - the auction solver: the plan at the walk-away price fits the
+ *          pre-approval with LMI added to the loan, its rows add up, and
+ *          $1,000 more does not fit.
  *
  * Run: node tests/state-duty-sync-test.js
  */
@@ -188,8 +199,185 @@ for (const inc of [0, 49999, 50000, 79999, 80000, 119999, 120000, 179999, 180000
   }
 }
 
+/* ── 4. Upfront-cost calculators: owner-occupier duty, conveyancing, LMI ── */
+const auction = loadPage('auction-budget-calculator');
+function money(s) { // "$15,100", "15,100", "$1,800 (my flat estimate…)" → number
+  const m = String(s).replace(/\u2212/g, '-').match(/-?\$?\s*([\d,]+(?:\.\d+)?)/);
+  return m ? Number(m[1].replace(/,/g, '')) : NaN;
+}
+// A missing function or constant in one of the tools is drift too: report it
+// as a failure and carry on, instead of dying on a ReferenceError.
+function part(name, fn) {
+  try { fn(); } catch (e) { checks++; fail(`${name}: ${e.message}`); }
+}
+
+// 4a. On-screen duty, through each tool's own calc(), vs the all-states page.
+for (const [label, page] of [['deposit', deposit], ['cost-of-purchase', cop], ['auction-budget', auction]]) {
+  checks++;
+  if (!page.els.owner) fail(`${label}: the "Buying to live in" checkbox (id="owner") is missing, so a QLD owner-occupier cannot get the home concession`);
+}
+function depositDuty(st, price, fhb, owner) {
+  deposit.els.price.value = String(price);
+  deposit.els['dep-pct'].value = '20';
+  deposit.els.state.value = st.toUpperCase();
+  deposit.els.fhb.checked = fhb;
+  deposit.els.owner.checked = owner;
+  deposit.els['r-stamp'].textContent = '';
+  deposit.run('calc()');
+  return money(deposit.els['r-stamp'].textContent);
+}
+function copDuty(st, price, fhb, owner) {
+  cop.els.purchasePrice.value = String(price);
+  cop.els.depositPct.value = '20';
+  cop.els.state.value = st.toUpperCase();
+  cop.els.fhb.checked = fhb;
+  cop.els.owner.checked = owner;
+  cop.els.foreignBuyer.checked = false;
+  cop.els.currentlyRenting.checked = false;
+  cop.els.stampDuty.textContent = '';
+  cop.run('calc()');
+  return money(cop.els.stampDuty.textContent);
+}
+part('owner-occupier duty', () => {
+  for (const st of STATES) {
+    for (const fhb of [false, true]) {
+      for (const owner of [true, false]) {
+        for (const v of PRICES) {
+          const want = money(mainDuty(st, v, 'home', owner ? 'owner' : 'investor', fhb));
+          const who = `${st} ${fhb ? 'FHB' : 'std'} ${owner ? 'owner' : 'investor'} $${v}`;
+          const cases = [
+            ['deposit', depositDuty(st, v, fhb, owner)],
+            ['cost-of-purchase', copDuty(st, v, fhb, owner)],
+            ['auction-budget', Math.round(auction.run(`dutyAt('${st}', ${v}, ${fhb}, ${owner}).duty`))]
+          ];
+          for (const [label, got] of cases) {
+            checks++;
+            if (!(Math.abs(got - want) <= 1)) fail(`${label} on-screen duty ${who}: ${got} vs all-states ${want}`);
+          }
+        }
+      }
+    }
+  }
+});
+
+// 4b. One conveyancing figure and one building-and-pest figure.
+const journeySrc = fs.readFileSync(path.join(__dirname, '..', 'journey.js'), 'utf8');
+part('conveyancing and inspection figures', () => {
+  mainDuty('nsw', 650000, 'home', 'owner', false);
+  const conveyRef = money(main.els['r-conveyancing'].textContent);
+  const conveyCases = [
+    ['journey.js CONVEYANCING', Number((journeySrc.match(/\bCONVEYANCING\s*=\s*(\d+)/) || [])[1])],
+    ['auction-budget default conveyancing input', money(auction.els.legal.value)]
+  ];
+  for (const [label, page] of [['deposit', deposit], ['cost-of-purchase', cop]]) {
+    part(label + ' CONVEYANCING', () => conveyCases.push([label + ' CONVEYANCING', page.run('CONVEYANCING')]));
+  }
+  depositDuty('nsw', 650000, false, true);
+  conveyCases.push(['deposit on-screen conveyancing', money(deposit.els['r-legal'].textContent)]);
+  copDuty('nsw', 650000, false, true);
+  conveyCases.push(['cost-of-purchase on-screen conveyancing', money(cop.els.conveyancing.textContent)]);
+  for (const [label, got] of conveyCases) {
+    checks++;
+    if (got !== conveyRef) fail(`${label}: ${got} vs the all-states calculator's ${conveyRef}`);
+  }
+  checks++;
+  if (deposit.run('INSPECTION') !== cop.run('INSPECTION')) fail(`building and pest: deposit ${deposit.run('INSPECTION')} vs cost-of-purchase ${cop.run('INSPECTION')}`);
+  checks++;
+  if (money(deposit.els['r-inspect'].textContent) !== money(cop.els.inspection.textContent)) fail('building and pest: the two pages show different figures');
+});
+
+// 4c. LMI tier copies. journey.js lmiRate() is the reference for how LMI is
+// treated; estimateLmiTier() in the all-states calculator has the same tiers.
+const journeyLmi = (() => {
+  // Cut lmiRate() out of journey.js by matching its braces, so the check does
+  // not depend on how the function is laid out.
+  const a = journeySrc.indexOf('function lmiRate(');
+  let b = a === -1 ? -1 : journeySrc.indexOf('{', a), depth = 0, end = -1;
+  for (let i = b; i !== -1 && i < journeySrc.length; i++) {
+    if (journeySrc[i] === '{') depth++;
+    else if (journeySrc[i] === '}' && --depth === 0) { end = i + 1; break; }
+  }
+  if (end === -1) { checks++; fail('journey.js: lmiRate() not found'); return () => NaN; }
+  return new Function(journeySrc.slice(a, end) + '\nreturn lmiRate;')();
+})();
+const LMI_COPIES = [
+  ['all-states estimateLmiTier', (l) => main.run(`estimateLmiTier(${l}).rate`)],
+  ['deposit lmiEstimate', (l) => deposit.run(`lmiEstimate(1000000, ${l} * 100)`) / 1000000],
+  ['cost-of-purchase lmiRate', (l) => cop.run(`lmiRate(${l})`)],
+  ['auction-budget lmiRate', (l) => auction.run(`lmiRate(${l})`)]
+];
+for (const [label, rate] of LMI_COPIES) {
+  part('LMI tier ' + label, () => {
+    for (const l of [0.5, 0.79, 0.8, 0.8001, 0.85, 0.8501, 0.9, 0.9001, 0.95, 0.9501, 0.99, 1.05]) {
+      checks++;
+      const got = rate(l), want = journeyLmi(l);
+      if (!(Math.abs(got - want) < 1e-9)) fail(`LMI tier ${label} at LVR ${l}: ${got} vs journey.js ${want}`);
+    }
+  });
+}
+// A 10% deposit is exactly 90% LVR whatever the price (no float drift into the next tier).
+part('LMI at a 10% deposit', () => {
+  for (const price of [145758, 146443, 650000, 777777]) {
+    checks++;
+    const dep = price * 0.1, loan = price - dep;
+    const got = deposit.run(`lmiEstimate(${loan}, ${(loan / price) * 100})`);
+    if (!close(got, loan * 0.019)) fail(`deposit LMI at a 10% deposit on $${price}: ${got} vs ${loan * 0.019}`);
+    cop.els.purchasePrice.value = String(price); cop.els.depositPct.value = '10'; cop.run('calc()');
+    checks++;
+    if (Math.abs(money(cop.els.lmi.textContent) - Math.round(loan * 0.019)) > 1) fail(`cost-of-purchase LMI at a 10% deposit on $${price}: ${cop.els.lmi.textContent}`);
+  }
+});
+
+// 4d. Auction solver, through the page's calculate().
+function auctionPlan(st, fhb, owner, savings, pre, buffer) {
+  const e = auction.els;
+  e.state.value = st; e.fhb.checked = fhb; e.owner.checked = owner;
+  e.savings.value = String(savings); e.preapproval.value = String(pre);
+  e.buffer.value = String(buffer); e.legal.value = '1,800';
+  for (const id of ['r-walkaway', 'r-duty', 'r-allin', 'r-loan-base', 'r-lvr', 'r-lmi', 'r-loan', 'r-cash']) e[id].textContent = '';
+  auction.run('calculate()');
+  return { W: money(e['r-walkaway'].textContent), duty: money(e['r-duty'].textContent), allIn: money(e['r-allin'].textContent),
+    loanBase: money(e['r-loan-base'].textContent), lvrText: e['r-lvr'].textContent, lmi: money(e['r-lmi'].textContent),
+    loan: money(e['r-loan'].textContent), cash: money(e['r-cash'].textContent) };
+}
+const FUNDS = [[120000, 560000], [90000, 480000], [60000, 600000], [200000, 500000], [400000, 300000],
+  [150000, 900000], [35000, 450000], [250000, 0], [800000, 1200000]];
+part('auction solver', () => {
+for (const st of STATES) {
+  for (const fhb of [false, true]) {
+    for (const owner of [true, false]) {
+      for (const [savings, pre] of FUNDS) {
+        const p = auctionPlan(st, fhb, owner, savings, pre, 5);
+        const who = `auction ${st} ${fhb ? 'FHB' : 'std'} ${owner ? 'owner' : 'investor'} savings $${savings} pre-approval $${pre}`;
+        const usable = savings * 0.95;
+        checks++;
+        if (!(p.W > 0) || p.W % 1000 !== 0) { fail(`${who}: no walk-away price ("${auction.els['r-walkaway'].textContent}")`); continue; }
+        checks++;
+        const wantDuty = money(mainDuty(st, p.W, 'home', owner ? 'owner' : 'investor', fhb));
+        if (Math.abs(p.duty - wantDuty) > 1) fail(`${who}: duty at $${p.W} shows ${p.duty} vs all-states ${wantDuty}`);
+        checks++;
+        if (p.loan > pre + 1) fail(`${who}: total loan ${p.loan} is over the pre-approval`);
+        checks++;
+        if (p.cash > usable + 1) fail(`${who}: cash ${p.cash} is over usable savings ${usable}`);
+        checks++;
+        if (Math.abs(p.cash + p.loanBase - p.allIn) > 2) fail(`${who}: cash ${p.cash} + loan ${p.loanBase} does not add up to all-in ${p.allIn}`);
+        checks++;
+        const exact = auction.run(`planAt(${p.W}, { state: '${st}', fhb: ${fhb}, owner: ${owner}, legal: 1800, usable: ${usable} })`);
+        const wantLmi = exact.loan * journeyLmi(exact.loan / p.W);
+        if (Math.abs(p.lmi - wantLmi) > 1 || Math.abs(p.loan - (exact.loan + wantLmi)) > 1) fail(`${who}: LMI shows ${p.lmi}, total loan ${p.loan}; journey tiers give ${wantLmi} on ${exact.loan}`);
+        checks++;
+        if (exact.loan > 0 && p.lvrText !== (exact.loan / p.W * 100).toFixed(1) + '%') fail(`${who}: LVR shows "${p.lvrText}" vs ${(exact.loan / p.W * 100).toFixed(1)}%`);
+        checks++;
+        const next = auction.run(`planAt(${p.W + 1000}, { state: '${st}', fhb: ${fhb}, owner: ${owner}, legal: 1800, usable: ${usable} }).totalLoan`);
+        if (next <= pre) fail(`${who}: $${p.W + 1000} would also fit, so $${p.W} is not the walk-away price`);
+      }
+    }
+  }
+}
+});
+
 if (fails) {
   console.error(`\nstate-duty-sync-test: ${fails} FAILED of ${checks} checks`);
   process.exit(1);
 }
-console.log(`state-duty-sync-test: all ${checks} checks passed (8 state pages, deposit, cost-of-purchase, FHB grants vs tools/stamp-duty-calculator.js; serviceability tax/expense-floor copy vs borrowing power)`);
+console.log(`state-duty-sync-test: all ${checks} checks passed (8 state pages, deposit, cost-of-purchase, FHB grants vs tools/stamp-duty-calculator.js; serviceability tax/expense-floor copy vs borrowing power; owner-occupier duty, conveyancing, LMI tiers and the auction solver on the upfront-cost calculators)`);

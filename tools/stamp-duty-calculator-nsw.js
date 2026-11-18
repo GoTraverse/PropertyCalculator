@@ -109,11 +109,11 @@ function calculate() {
   var regEl = document.getElementById('r-reg');
   if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimate only, on the 2026-27 NSW transfer duty brackets (indexed 1 July 2026, checked 5 July 2026). LMI is a rough estimate. Check the figures with your solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate only, on the 2026-27 NSW transfer duty brackets (indexed 1 July 2026, checked 5 July 2026). The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium. Check the figures with your solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

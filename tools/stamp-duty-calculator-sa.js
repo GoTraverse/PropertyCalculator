@@ -121,11 +121,11 @@ function calculate() {
   var regEl = document.getElementById('r-reg');
   if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Services SA, transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (estimate, roughly $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimate at RevenueSA’s 2026-27 rates. The LMI figure is rough. Check the final figures with your conveyancer before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate at RevenueSA’s 2026-27 rates. The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium. Check the final figures with your conveyancer before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

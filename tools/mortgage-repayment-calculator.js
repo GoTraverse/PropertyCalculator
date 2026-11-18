@@ -19,8 +19,9 @@
 
 // ── LMI tier table ────────────────────────────────────────────────────────
 //
-// Rough LMI rates as a share of the loan amount. These are my working
-// estimates with no single published source or period. A real LMI quote
+// Rough LMI rates as a share of the loan amount. These are my own
+// estimates by LVR band, with no published rate table behind them (the page
+// says so beside the figure and above the tier table). A real LMI quote
 // varies by lender, insurer and borrower profile.
 const LMI_TIERS = [
   { maxLvr: 0.80, rate: 0,      label: 'No LMI (LVR ≤ 80%)' },

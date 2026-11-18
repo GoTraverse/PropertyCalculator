@@ -17,13 +17,35 @@
  * Data: pubshare:<token> in Redis is a snapshot of the already-COMPUTED
  * display values the sharer was looking at (see createPublicShare in
  * scenarios.js). Every value is escaped here before it touches the HTML.
+ *
+ * The snapshot is whatever the sharer's browser sent, so it is treated as
+ * hostile (Nov 2026):
+ *   - cleanSnapshot() keeps text, flags and { name, amt } rows and empties
+ *     everything else. Text then goes through esc().
+ *   - Escaping does not make a value safe inside a style attribute, so nothing
+ *     from the snapshot is copied into one. Colours go through safeColor() and
+ *     meter widths through safePercent(); both rebuild the value from what they
+ *     parsed and drop anything else.
+ *   - The photo must be a base64 image or a well-formed https address.
+ *   - Every response carries the headers in SECURITY_HEADERS. The policy allows
+ *     only what this page loads and no script at all, so a value that somehow
+ *     got past the escaping still could not run.
  */
 
 'use strict';
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g, '').trim();
 const REDIS_TOKEN = (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["']|["']$/g, '').trim();
-const SITE = (process.env.SITE_URL || 'https://equitysight.app').split(',')[0].trim().replace(/\/$/, '');
+// SITE_URL is configuration, but it is written into every link on the page, so
+// only a plain https origin is accepted.
+function siteOrigin(raw) {
+  try {
+    const u = new URL(String(raw || '').split(',')[0].trim());
+    if (u.protocol === 'https:' && !u.username && !u.password) return u.origin;
+  } catch (e) { /* fall through to the real site */ }
+  return 'https://equitysight.app';
+}
+const SITE = siteOrigin(process.env.SITE_URL);
 
 async function redisGet(key) {
   if (!REDIS_URL || !REDIS_TOKEN) throw new Error('UPSTASH env vars missing');
@@ -50,24 +72,122 @@ function esc(s) {
 }
 
 // Only allow a property photo if it's a data: image or an https URL — never
-// arbitrary markup. Mirrors safePhotoSrc() on the client.
+// arbitrary markup. Mirrors safePhotoSrc() on the client, and is stricter: the
+// data: form must be base64 from start to end, and the https form must parse
+// as a URL (it is written out again from the parsed parts).
 function safePhoto(src) {
-  const s = String(src || '');
-  if (/^data:image\/(jpeg|png|webp|gif);base64,/.test(s)) return s;
-  if (/^https:\/\//.test(s)) return s;
+  if (typeof src !== 'string' || !src) return '';
+  if (/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(src)) return src;
+  if (src.length <= 2048 && /^https:\/\//i.test(src)) {
+    try {
+      const u = new URL(src);
+      if (u.protocol === 'https:' && !u.username && !u.password) return u.href;
+    } catch (e) { /* not a URL */ }
+  }
   return '';
 }
+
+// ── Values that end up inside a style attribute ─────────────────────────
+// The app stores the colour of two figures as whatever element.style.color
+// held, and the two meter widths as element.style.width. Today those are
+// var(--name) colours from the site palette and whole percentages. esc() would
+// let "red;background:url(https://example.com/x)" straight through, so these
+// two functions accept a short list of forms and write the value out again
+// from the parts they parsed.
+
+// The palette names app.js uses for these figures, with the light-theme values
+// from shared.css. This page defines no CSS variables of its own, so a var()
+// colour is swapped for its value here.
+const PALETTE = new Map([
+  ['risk-red',     '#C45A5A'],
+  ['terracotta',   '#C4704A'],
+  ['reward-green', '#5A9E7B'],
+  ['sage',         '#7B9E87'],
+]);
+
+// Returns a colour that is safe to put in a style attribute, or ''.
+function safeColor(v) {
+  if (typeof v !== 'string') return '';
+  const s = v.trim();
+  if (!s || s.length > 40) return '';
+  if (/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(s)) return s;
+  let m = /^var\(\s*--([a-z][a-z0-9-]{0,30})\s*\)$/.exec(s);
+  if (m) return PALETTE.get(m[1]) || '';
+  m = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*(\d(?:\.\d{1,4})?|\.\d{1,4})\s*)?\)$/.exec(s);
+  if (m) {
+    const ch = (n) => Math.min(255, parseInt(n, 10));
+    const rgb = ch(m[1]) + ', ' + ch(m[2]) + ', ' + ch(m[3]);
+    return m[4] === undefined ? 'rgb(' + rgb + ')' : 'rgba(' + rgb + ', ' + Math.min(1, Number(m[4])) + ')';
+  }
+  return '';
+}
+
+// Returns a width such as "42%" (0 to 100), or ''.
+function safePercent(v) {
+  const m = /^\s*(\d{1,3}(?:\.\d{1,4})?)\s*%\s*$/.exec(typeof v === 'string' ? v : '');
+  return m ? Math.min(100, Number(m[1])) + '%' : '';
+}
+
+const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+
+// ── The stored snapshot ──────────────────────────────────────────────────
+// Every field the page reads is text, a true/false flag, or a list of
+// { name, amt } rows. Anything else is emptied before rendering: a stored
+// object can carry its own toString and make String() throw, and a null in a
+// row list used to crash the function.
+const text = (v) => (typeof v === 'string' ? v : (typeof v === 'number' && Number.isFinite(v) ? String(v) : ''));
+
+function cleanSnapshot(snap) {
+  const out = Object.create(null);
+  for (const k of Object.keys(snap)) {
+    const v = snap[k];
+    if (typeof v === 'boolean') out[k] = v;
+    else if (Array.isArray(v)) out[k] = v.filter(isObj).slice(0, 200).map(r => ({ name: text(r.name), amt: text(r.amt) }));
+    else out[k] = text(v);
+  }
+  return out;
+}
+
+// ── Response headers ─────────────────────────────────────────────────────
+// netlify.toml's site-wide headers cover files on the CDN, not what a function
+// returns, so this page sets its own.
+//
+// What the page loads: its own inline <style> and style attributes, the Google
+// Fonts stylesheet and font files, the favicon, and the property photo (a data:
+// image, or an https image the sharer linked to). It has no script, form, frame
+// or network call, so everything else is refused. Inline styles stay allowed
+// because the page is built from them; what goes into them is checked above.
+const CSP = [
+  "default-src 'none'",
+  "style-src 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src https://fonts.gstatic.com",
+  "img-src data: https:",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+].join('; ');
+
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': CSP,
+  'X-Content-Type-Options': 'nosniff',
+  // The token in this page's address is the only thing protecting the
+  // scenario, so the address is never sent on: not to the photo's host, not to
+  // Google Fonts, and not to the pages the links go to.
+  'Referrer-Policy': 'no-referrer',
+  // For browsers that do not read frame-ancestors.
+  'X-Frame-Options': 'DENY',
+};
 
 function htmlResponse(body, status) {
   return {
     statusCode: status || 200,
-    headers: {
+    headers: Object.assign({
       'Content-Type': 'text/html; charset=utf-8',
       // Link-only pages must never be indexed.
       'X-Robots-Tag': 'noindex, follow',
       // Shared snapshots are immutable; let the CDN cache briefly.
       'Cache-Control': 'public, max-age=300',
-    },
+    }, SECURITY_HEADERS),
     body,
   };
 }
@@ -85,24 +205,26 @@ a{display:inline-block;margin-top:18px;background:#1C1C1E;color:#C9A84C;text-dec
 <div style="font-size:40px;margin-bottom:8px">🔗</div>
 <h1>This shared scenario isn't available</h1>
 <p>The link may have expired or been revoked by its owner. You can still build your own property scenario in seconds — free, no signup to start.</p>
-<a href="${SITE}/app">Open the calculator →</a>
+<a href="${esc(SITE + '/app')}">Open the calculator →</a>
 </div></body></html>`, 404);
 }
 
 // ── Render helpers ──────────────────────────────────────────────────────
 function tile(val, label, color) {
   if (val == null || val === '') return '';
-  const style = color ? ` style="color:${esc(color)}"` : '';
+  const c = safeColor(color);
+  const style = c ? ` style="color:${esc(c)}"` : '';
   return `<div class="tile"><div class="tile-val"${style}>${esc(val)}</div><div class="tile-lbl">${esc(label)}</div></div>`;
 }
 function kv(label, val, color) {
   if (val == null || val === '') return '';
-  const style = color ? ` style="color:${esc(color)}"` : '';
+  const c = safeColor(color);
+  const style = c ? ` style="color:${esc(c)}"` : '';
   return `<div class="kv"><span class="lbl">${esc(label)}</span><span class="val"${style}>${esc(val)}</span></div>`;
 }
 
 function renderReport(snap, includeAddress) {
-  const s = snap || {};
+  const s = isObj(snap) ? snap : {};
   const showAddr = includeAddress && s.addr;
   const heading = showAddr ? s.addr : (s.suburbState || 'Property scenario');
   const photo = (showAddr && s.photo) ? safePhoto(s.photo) : '';
@@ -154,7 +276,7 @@ function renderReport(snap, includeAddress) {
         <div class="muted">Available for reno</div>
         <div class="divider"></div>
         <div class="card-tag">UNSPENT</div>
-        <div class="big-num" style="color:${esc(s.unspentColor || '#5A7D63')}">${esc(s.unspent || '—')}</div>
+        <div class="big-num" style="color:${esc(safeColor(s.unspentColor) || '#5A7D63')}">${esc(s.unspent || '—')}</div>
         <div class="muted">After planned reno</div>
       </div>
       <div class="card">
@@ -194,18 +316,21 @@ function renderReport(snap, includeAddress) {
       ${kv('Cash Left After Overlap', s.overlapAfter, '#5A7D63')}
     </div>` : '';
 
-  // Risk & reward
-  const riskSection = (s.riskScore || s.rewardScore) ? `
+  // Risk & reward. A meter is drawn only when its stored width is a
+  // percentage, and the figure beside it is the same checked value.
+  const riskPct = safePercent(s.riskScore);
+  const rewardPct = safePercent(s.rewardScore);
+  const riskSection = (riskPct || rewardPct) ? `
     <div class="section-title">Risk &amp; Reward</div>
     <div class="card">
-      ${s.riskScore ? `<div class="meter-block">
-        <div class="meter-head"><strong>Risk Level</strong><span>${esc(s.riskScore)}</span></div>
-        <div class="meter-wrap"><div class="meter-fill" style="width:${esc(s.riskScore)};background:linear-gradient(to right,#C9A84C,#C4704A)"></div></div>
+      ${riskPct ? `<div class="meter-block">
+        <div class="meter-head"><strong>Risk Level</strong><span>${esc(riskPct)}</span></div>
+        <div class="meter-wrap"><div class="meter-fill" style="width:${esc(riskPct)};background:linear-gradient(to right,#C9A84C,#C4704A)"></div></div>
         ${s.riskDesc ? `<div class="muted">${esc(s.riskDesc)}</div>` : ''}
       </div>` : ''}
-      ${s.rewardScore ? `<div class="meter-block">
-        <div class="meter-head"><strong>Reward Potential</strong><span>${esc(s.rewardScore)}</span></div>
-        <div class="meter-wrap"><div class="meter-fill" style="width:${esc(s.rewardScore)};background:linear-gradient(to right,#7B9E87,#5A9E7B)"></div></div>
+      ${rewardPct ? `<div class="meter-block">
+        <div class="meter-head"><strong>Reward Potential</strong><span>${esc(rewardPct)}</span></div>
+        <div class="meter-wrap"><div class="meter-fill" style="width:${esc(rewardPct)};background:linear-gradient(to right,#7B9E87,#5A9E7B)"></div></div>
         ${s.rewardDesc ? `<div class="muted">${esc(s.rewardDesc)}</div>` : ''}
       </div>` : ''}
     </div>` : '';
@@ -214,6 +339,14 @@ function renderReport(snap, includeAddress) {
 }
 
 exports.handler = async (event) => {
+  if (event.httpMethod && event.httpMethod !== 'GET' && event.httpMethod !== 'HEAD') {
+    return {
+      statusCode: 405,
+      headers: Object.assign({ 'Content-Type': 'text/plain; charset=utf-8', Allow: 'GET, HEAD' }, SECURITY_HEADERS),
+      body: 'Method not allowed',
+    };
+  }
+
   // Resolve the token robustly. Netlify's query-string splat rewrite to a
   // function is unreliable, so we accept the token from any of:
   //   1. ?t=<token>           (query rewrite)
@@ -231,9 +364,16 @@ exports.handler = async (event) => {
   let rec;
   try { rec = await redisGet('pubshare:' + token); }
   catch (e) { return notFoundPage(); }
-  if (!rec || !rec.snapshot) return notFoundPage();
+  if (!isObj(rec) || !isObj(rec.snapshot)) return notFoundPage();
 
-  const snap = rec.snapshot;
+  // A stored snapshot this code cannot render gets the "not available" page,
+  // not a crashed function.
+  try { return htmlResponse(renderPage(rec, token), 200); }
+  catch (e) { return notFoundPage(); }
+};
+
+function renderPage(rec, token) {
+  const snap = cleanSnapshot(rec.snapshot);
   const includeAddress = !!rec.includeAddress;
   const R = renderReport(snap, includeAddress);
 
@@ -254,8 +394,13 @@ exports.handler = async (event) => {
   // scenario is attributed to social/share traffic in GA4 (otherwise these
   // land in "Direct" and the channel is invisible — same dark-social problem
   // the Reddit links have). The destination is unchanged.
-  const appCta = SITE + '/app?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario';
-  const homeCta = SITE + '/?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario';
+  // These are written into href attributes below, so they are escaped here
+  // once (the & between the tags becomes &amp;).
+  const UTM = '?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario';
+  const appCta = esc(SITE + '/app' + UTM);
+  const homeCta = esc(SITE + '/' + UTM);
+  const toolsCta = esc(SITE + '/tools' + UTM);
+  const pricingCta = esc(SITE + '/pricing' + UTM);
 
   const html = `<!DOCTYPE html>
 <html lang="en-AU">
@@ -278,7 +423,7 @@ exports.handler = async (event) => {
 <meta name="twitter:title" content="${esc(ogTitle)}">
 <meta name="twitter:description" content="${esc(ogDesc)}">
 <meta name="twitter:image" content="${esc(ogImage)}">
-<link rel="icon" type="image/svg+xml" href="${SITE}/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="${esc(SITE + '/favicon.svg')}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@300..600&display=swap" rel="stylesheet">
@@ -385,10 +530,10 @@ exports.handler = async (event) => {
   <div class="disc">
     Figures are estimates shared by an EquitySight user for general information only — not financial advice. Always confirm with your lender, conveyancer and accountant before committing.
   </div>
-  <div class="foot"><a href="${homeCta}">EquitySight.app</a> · <a href="${SITE}/tools?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario">Free calculators</a> · <a href="${SITE}/pricing?utm_source=scenario-share&utm_medium=referral&utm_campaign=scenario">Pricing</a></div>
+  <div class="foot"><a href="${homeCta}">EquitySight.app</a> · <a href="${toolsCta}">Free calculators</a> · <a href="${pricingCta}">Pricing</a></div>
 </div>
 </body>
 </html>`;
 
-  return htmlResponse(html, 200);
-};
+  return html;
+}

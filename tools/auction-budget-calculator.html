@@ -55,7 +55,7 @@
 
 <section class="tool-hero" id="main-content">
   <h1>Auction Budget Calculator</h1>
-  <p>Works out the highest price you can bid once stamp duty, registration and conveyancing are paid from your savings and pre-approval. You can print the result as a one-page plan for auction day.</p>
+  <p>Works out the highest price you can bid once stamp duty, registration and conveyancing are paid from your savings and pre-approval, counting lenders mortgage insurance if the loan is over 80% of the price. You can print the result as a one-page plan for auction day.</p>
 </section>
 
 <div class="tool-main" role="main">
@@ -89,6 +89,11 @@
       <label for="fhb">First home buyer (applies the stamp duty concession)</label>
     </div>
 
+    <div class="tool-check" id="owner-check" style="display:none">
+      <input type="checkbox" id="owner" checked>
+      <label for="owner">Buying to live in (applies Queensland's lower home concession rate)</label>
+    </div>
+
     <div class="tool-card-title" style="margin-top:20px;">Your funds</div>
 
     <div class="tool-field">
@@ -107,7 +112,7 @@
     </div>
 
     <div class="tool-field">
-      <label class="tool-label" for="legal">Conveyancing estimate <span class="tool-label-hint">(roughly $1,500–$2,500)</span></label>
+      <label class="tool-label" for="legal">Conveyancing <span class="tool-label-hint">(my estimate; I'd expect quotes of $1,300 to $2,200)</span></label>
       <input class="tool-input" type="text" inputmode="decimal" id="legal" value="1,800" placeholder="e.g. 1,800">
     </div>
 
@@ -136,12 +141,16 @@
       </div>
       <div class="tool-cost-breakdown-section">
         <div class="tool-cost-breakdown-title">How it's funded</div>
-        <div class="tool-cost-row"><span class="tool-cost-row-label">Loan (up to your pre-approval)</span><span class="tool-cost-row-value" id="r-loan">—</span></div>
+        <div class="tool-cost-row"><span class="tool-cost-row-label">Loan for the purchase</span><span class="tool-cost-row-value" id="r-loan-base">—</span></div>
+        <div class="tool-cost-row"><span class="tool-cost-row-label">Loan as a share of the price (LVR)</span><span class="tool-cost-row-value" id="r-lvr">—</span></div>
+        <div class="tool-cost-row"><span class="tool-cost-row-label">Lenders mortgage insurance (my estimate)</span><span class="tool-cost-row-value" id="r-lmi">—</span></div>
+        <div class="tool-cost-row"><span class="tool-cost-row-label">Total loan with LMI (up to your pre-approval)</span><span class="tool-cost-row-value" id="r-loan">—</span></div>
         <div class="tool-cost-row"><span class="tool-cost-row-label">Cash from savings</span><span class="tool-cost-row-value" id="r-cash">—</span></div>
         <div class="tool-cost-row"><span class="tool-cost-row-label">Safety buffer (kept back)</span><span class="tool-cost-row-value" id="r-buffer">—</span></div>
       </div>
     </div>
 
+    <div id="lmi-callout" style="display:none"></div>
     <div id="deposit-callout"></div>
     <div id="median-anchor" style="display:none"></div>
 
@@ -195,12 +204,15 @@
   <p>When the hammer falls at an Australian auction, the contract is unconditional. There's no cooling-off period and no finance or building and pest clause, and the deposit (usually 10% of the price) is due on the spot. So the limit has to be set before the day, from your own funds. The calculator works out the most you can pay, all-in, without touching your safety buffer or going past your pre-approval. It doesn't value the property.</p>
   <ul>
     <li>Usable savings = cash savings minus the safety buffer you keep back (5% by default), for the costs that start as soon as you own the place, such as moving, small repairs and rates adjustments.</li>
-    <li>Total funds = usable savings + your loan pre-approval.</li>
-    <li>Walk-away price = the highest hammer price where the price, plus stamp duty on that price, plus title registration fees, plus conveyancing still fits inside your total funds. Duty rises with the price, so the calculator finds this by repeated trial, then rounds down to the nearest $1,000.</li>
+    <li>All-in cost = the hammer price, plus stamp duty on that price, plus title registration fees, plus conveyancing.</li>
+    <li>Loan = the all-in cost minus your usable savings.</li>
+    <li>If the loan is more than 80% of the price (the LVR), the calculator adds my estimate of lenders mortgage insurance (LMI) to it: 0.8% of the loan when the LVR is above 80%, 1.9% above 85%, 3.4% above 90% and 4.3% above 95%. Those rates are my own estimate, with no published rate table behind them. I've assumed the premium is added to the loan, the same as in the First Home Journey.</li>
+    <li>Walk-away price = the highest hammer price where the loan, with any LMI, still fits inside your pre-approval. Duty and LMI rise with the price, so the calculator finds this by repeated trial, then rounds down to the nearest $1,000.</li>
   </ul>
+  <p>In Queensland the duty also depends on whether you'll live in the home. An owner-occupier pays the lower home concession rate, so a "Buying to live in" box appears when you pick Queensland and haven't ticked first home buyer. No other state's duty depends on it. The <a href="/tools/stamp-duty-calculator-qld">Queensland stamp duty calculator</a> lists the conditions for the home concession.</p>
 
   <h2>Worked example</h2>
-  <p>Say you have $120,000 in savings, a $560,000 pre-approval, a 5% buffer and a $1,800 conveyancing estimate, and you're buying in Victoria as a non-first-home buyer. Usable savings are $114,000 (the $6,000 buffer stays put), so total funds are $674,000. The walk-away price comes out at <strong>$637,000</strong>. Land transfer duty is $33,290, title and registration fees are $1,724 (Victoria's transfer fee scales with the price, at $104.30 plus $2.34 per $1,000), and $1,800 of conveyancing brings the all-in total to $673,814. A $638,000 hammer price would go over.</p>
+  <p>Say you have $120,000 in savings, a $560,000 pre-approval, a 5% buffer and a $1,800 conveyancing estimate, and you're buying in Victoria as a non-first-home buyer. Usable savings are $114,000 (the $6,000 buffer stays put). The walk-away price comes out at <strong>$627,000</strong>. Land transfer duty is $32,690, title and registration fees are $1,701 (Victoria's transfer fee scales with the price, at $104.30 plus $2.34 per $1,000), and $1,800 of conveyancing brings the all-in total to $663,191. Your $114,000 goes toward that, so the loan is $549,191, which is 87.6% of the price. At that LVR my LMI estimate is $10,435, and adding it takes the loan to $559,626, inside the $560,000 pre-approval. A $628,000 hammer price would take the loan with LMI past $560,000.</p>
 
   <h2>Auctions by state</h2>
   <p>Auctions are the usual way homes sell in inner and middle-ring Melbourne and Sydney. Most Queensland homes sell by private treaty, and Queensland's five-business-day cooling-off period applies to private treaty contracts but not to auction purchases. A Queensland buyer who's used to having it can be caught out the first time they bid.</p>
@@ -217,7 +229,7 @@
 
   <h2>What it leaves out</h2>
   <p>It doesn't model what happens in the room. The auctioneer can make vendor bids for the seller, under rules that differ by state. Price guides can sit well below where a competitive auction ends. NSW and Victoria have underquoting laws. Budget from recent comparable sales instead of the guide.</p>
-  <p>It also leaves out the lender's valuation (if it comes in under your winning bid, your loan can shrink while what you owe the vendor doesn't), lenders mortgage insurance if the final loan is over 80% of the value, and buyer's agent fees, strata reports and contract review beyond the conveyancing figure you enter.</p>
+  <p>It also leaves out the lender's valuation (if it comes in under your winning bid, your loan can shrink while what you owe the vendor doesn't), and buyer's agent fees, strata reports and contract review beyond the conveyancing figure you enter. The LMI figure is my estimate, and your lender's premium can differ. An eligible first home buyer pays no LMI under the 5% Deposit Scheme. The calculator doesn't check eligibility, so it counts LMI either way.</p>
 </section>
 
 <div id="tool-resources-root"></div>

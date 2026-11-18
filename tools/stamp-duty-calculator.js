@@ -186,8 +186,9 @@ var REG_FEES = {
   nt:  { mortgage: 181, transfer: 181 }   // NT LTO flat per dealing
 };
 
-// LMI tier table (rough; see mortgage-repayment-calculator.js
-// for the same table). Real LMI varies by lender + insurer + borrower.
+// LMI tier table: my own rough rates by LVR band, with no published rate
+// table behind them (same tiers as mortgage-repayment-calculator.js and
+// lmiRate() in journey.js). Real LMI varies by lender, insurer and borrower.
 function estimateLmiTier(lvr) {
   if (lvr <= 0.80) return { rate: 0, label: 'No LMI (LVR ≤ 80%)' };
   if (lvr <= 0.85) return { rate: 0.0080, label: '~0.8% of loan' };
@@ -343,7 +344,9 @@ function calculate() {
   // \u2500\u2500 Reg fees + LMI \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
   var regTotal = regFeesTotal(state, val);
-  // Conveyancing / legal: industry-typical $1,500-$2,500 \u2014 use mid-point
+  // Conveyancing: $1,800 on every page of the site (the 8 state pages, the
+  // First Home Journey, deposit, cost of purchase, auction budget). My
+  // estimate, with no official source; the range shown is $1,300 to $2,200.
   var conveyancing = 1800;
   var lmiTier = estimateLmiTier(lvr);
   // LMI is always estimated from the LVR. A first home buyer may pay none
@@ -375,7 +378,7 @@ function calculate() {
     ? fmt(regTotal) + ' (' + SCALED_REG[state] + ', transfer fee scales with price)'
     : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my flat estimate; I\u2019d expect quotes of $1,500\u2013$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
@@ -408,7 +411,7 @@ function calculate() {
     fhbCols.forEach(function(el) { el.style.display = isFHB ? '' : 'none'; });
   }
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates are the ' + data.name + ' 2026-27 schedule (verified 5 July 2026). LMI is a rough estimate, so get a quote from the lender. Check the figures with your solicitor or conveyancer before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimates only. Rates are the ' + data.name + ' 2026-27 schedule (last checked 5 July 2026). The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium. Check the figures with your solicitor or conveyancer before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {

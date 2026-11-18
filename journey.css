@@ -407,9 +407,19 @@ html.dark-mode .jplace-pick { border-color: rgba(245,240,232,0.1); }
 /* The day a scenario was saved or a place was added. */
 .jscen-when, .jinsp-when { font-size: 14px; color: var(--slate); margin-top: 2px; }
 html.dark-mode .jscen-when, html.dark-mode .jinsp-when { color: rgba(245,240,232,0.62); }
-/* Step 2 opened from a saved place. */
-#jplace-note .jsignup { margin: 16px 0 4px; }
+/* Step 2 opened from a saved place: the note, then its two actions in a row. */
+#jplace-note .jsignup { display: block; margin: 16px 0 4px; border-color: var(--border); }
+#jplace-note .jsignup p { max-width: none; }
+#jplace-note .jsignup-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 12px; }
 #jplace-note .jplace-said { margin: 16px 0 4px; }
+/* A place on a narrow screen: the address and note take the full width and
+   the buttons sit on the line below, so the address isn't squeezed into a
+   column one word wide. */
+@media (max-width: 640px) {
+  .jinsp { flex-wrap: wrap; position: relative; }
+  .jinsp-main { flex: 1 1 100%; padding-right: 34px; }
+  .jinsp > .jinsp-del { position: absolute; top: 6px; right: -6px; padding: 6px 8px; }
+}
 .jscen-btn { padding: 8px 14px; flex: none; }
 #jscen-slot .jsignup { margin-top: 14px; }
 html.dark-mode .jscen-name { color: var(--cream); }
@@ -461,6 +471,13 @@ html.dark-mode .jseo a { color: var(--link); }
 .jnet-row .nm { color: var(--slate); }
 .jnet-row .v { font-weight: 600; font-size: 14.5px; color: var(--charcoal); font-variant-numeric: tabular-nums; text-align: right; }
 .jnet-head span { font-weight: 600; color: var(--slate); font-size: 14.5px; text-align: right; }
+/* Narrow screens: the path's name gets its own line above its three figures.
+   In four columns the 30-year figure ran off the edge of the card. */
+@media (max-width: 560px) {
+  .jnet-row { grid-template-columns: 1fr 1fr 1fr; row-gap: 2px; }
+  .jnet-row .nm { grid-column: 1 / -1; }
+  .jnet-head .nm { display: none; }
+}
 .jnet-row.best .nm { color: var(--gold-dark); font-weight: 600; }
 .jnet-row.inelig .v, .jnet-row.inelig .nm { color: rgba(28,28,30,0.35); }
 html.dark-mode .jnet-row { border-color: rgba(245,240,232,0.1); }

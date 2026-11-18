@@ -1,25 +1,19 @@
-/* ═══ STATE COSTS ═══
+/* ═══ COSTS ═══
  *
- * Conveyancing band kept as-is. Stamp duty is now computed by the verified
- * cumulative-tier engine below (the same FY2026-27 schedules used in
- * tools/stamp-duty-calculator.js + app.js, reproduced against 34/34 state
- * revenue office worked examples) rather than the old flat 2-4%-of-price
- * approximation, which was materially wrong (e.g. VIC $600k real duty ~$31k
- * vs flat 4% = $24k). State codes here are UPPERCASE; the tier data uses the
- * stamp-duty file's lowercase keys, bridged via STATE_KEY.
+ * Stamp duty is computed by the verified cumulative-tier engine below (the
+ * same FY2026-27 schedules used in tools/stamp-duty-calculator.js + app.js,
+ * reproduced against 34/34 state revenue office worked examples). State codes
+ * here are UPPERCASE; the tier data uses the stamp-duty file's lowercase
+ * keys, bridged via STATE_KEY.
  */
-// Conveyancing ranges are my rough estimates (no official source); the
-// calculator uses the mid-point of each range.
-var stateCosts = {
-  NSW: { conveyancing: { min: 800, max: 1500 } },
-  VIC: { conveyancing: { min: 1000, max: 1800 } },
-  QLD: { conveyancing: { min: 600, max: 1200 } },
-  SA:  { conveyancing: { min: 700, max: 1400 } },
-  WA:  { conveyancing: { min: 900, max: 1600 } },
-  TAS: { conveyancing: { min: 600, max: 1200 } },
-  ACT: { conveyancing: { min: 800, max: 1500 } },
-  NT:  { conveyancing: { min: 700, max: 1300 } }
-};
+// Conveyancing: $1,800 on every page of the site (stamp duty pages, the
+// First Home Journey, deposit, auction budget). My estimate, no official
+// source; the journey shows the range $1,300 to $2,200. This replaced a
+// per-state table that had no source either.
+var CONVEYANCING = 1800;
+// Building and pest inspection: my estimate, inside the $400 to $700 range
+// the First Home Journey shows at step 3. Same figure as deposit-calculator.js.
+var INSPECTION = 500;
 
 /* ═══ VERIFIED STAMP-DUTY TIER ENGINE (FY2026-27) ═══
  * Lifted verbatim from tools/stamp-duty-calculator.js. Cumulative-marginal
@@ -85,6 +79,17 @@ function calcDuty(state, v) {
   return duty;
 }
 
+// QLD home-concession duty (owner-occupier rate, QRO schedule): 1% to $350k;
+// $3,500 + 3.5% to $540k; $10,150 + 4.5% to $1M; $30,850 + 5.75% above.
+// SYNC: qldHomeDuty() in tools/stamp-duty-calculator.js.
+function qldHomeDuty(v) {
+  if (v <= 0) return 0;
+  if (v <= 350000) return v * 0.01;
+  if (v <= 540000) return 3500 + (v - 350000) * 0.035;
+  if (v <= 1000000) return 10150 + (v - 540000) * 0.045;
+  return 30850 + (v - 1000000) * 0.0575;
+}
+
 // FHB exemption / linear partial concession given a state's policy.
 function applyFhbConcession(state, val, baseDuty) {
   var data = stateData[state];
@@ -95,10 +100,7 @@ function applyFhbConcession(state, val, baseDuty) {
   // rate; above $800k the home-concession rate still applies (an FHB is an
   // owner-occupier). QRO worked example: $730k → $6,555.
   if (state === 'qld') {
-    var qHome = val <= 350000 ? val * 0.01
-      : val <= 540000 ? 3500 + (val - 350000) * 0.035
-      : val <= 1000000 ? 10150 + (val - 540000) * 0.045
-      : 30850 + (val - 1000000) * 0.0575;
+    var qHome = qldHomeDuty(val);
     var qConc = val < 710000 ? 17350
       : (val >= 800000 ? 0 : 17350 - Math.floor((val - 700000) / 10000) * 1735);
     return Math.max(0, qHome - qConc);
@@ -112,6 +114,28 @@ function applyFhbConcession(state, val, baseDuty) {
     return Math.max(0, baseDuty * (1 - slide));
   }
   return baseDuty;
+}
+
+// Duty before any foreign surcharge. Same rule as calculate() in
+// tools/stamp-duty-calculator.js for an established home: a first home buyer
+// gets the state's first home concession; otherwise a QLD buyer who will live
+// in the home pays the home-concession rate; everyone else pays the general
+// rate. No other state has an owner/investor duty split.
+function buyerDuty(state, val, isFhb, isOwner) {
+  var baseDuty = calcDuty(state, val);
+  if (isFhb) return applyFhbConcession(state, val, baseDuty);
+  if (isOwner && state === 'qld') return qldHomeDuty(val);
+  return baseDuty;
+}
+
+// My rough LMI scale by LVR band, with no published rate table behind it.
+// Same tiers as lmiRate() in journey.js, lmiEstimate() in deposit-calculator.js
+// and estimateLmiTier() in stamp-duty-calculator.js (tests/state-duty-sync-test.js
+// checks they agree). The ratio is rounded first, as journey.js does: 0.9 *
+// price / price can come out as 0.9000000000000001 and land in the wrong tier.
+function lmiRate(lvr) {
+  lvr = Math.round(lvr * 10000) / 10000;
+  return lvr <= 0.80 ? 0 : lvr <= 0.85 ? 0.008 : lvr <= 0.90 ? 0.019 : lvr <= 0.95 ? 0.034 : 0.043;
 }
 
 // Title-office registration fees (mortgage + transfer), FY2026-27 — verified
@@ -155,6 +179,12 @@ function calc() {
   var state = document.getElementById('state').value;
   var isFhb = document.getElementById('fhb').checked;
   var isForeignBuyer = document.getElementById('foreignBuyer').checked;
+  // "Buying to live in" only changes the duty in Queensland, and only for a
+  // buyer who isn't a first home buyer, so the box is hidden everywhere else.
+  var ownerEl = document.getElementById('owner');
+  var isOwner = ownerEl ? ownerEl.checked : true;
+  var ownerRow = document.getElementById('ownerCheck');
+  if (ownerRow) ownerRow.style.display = (state === 'QLD' && !isFhb) ? '' : 'none';
   var isRenting = document.getElementById('currentlyRenting').checked;
   var leaseBreak = getNumVal('leaseBreak');
 
@@ -169,11 +199,9 @@ function calc() {
   document.getElementById('loanAmount').value = Math.round(calculatedLoan);
 
   var stampDuty = 0;
-  var costs = stateCosts[state];
   var sKey = STATE_KEY[state];
   if (sKey) {
-    var baseDuty = calcDuty(sKey, purchasePrice);
-    stampDuty = isFhb ? applyFhbConcession(sKey, purchasePrice, baseDuty) : baseDuty;
+    stampDuty = buyerDuty(sKey, purchasePrice, isFhb, isOwner);
     if (isForeignBuyer) stampDuty += purchasePrice * (stateData[sKey].foreignRate || 0);
   }
 
@@ -183,20 +211,11 @@ function calc() {
   var loanFee = Math.max(150, calculatedLoan * 0.002);
   var settlementFee = 250;
   var regFees = sKey ? regFeesTotal(sKey, purchasePrice) : 400;
-  var conveyancing = costs.conveyancing.min + (costs.conveyancing.max - costs.conveyancing.min) * 0.5;
-  var inspection = 500;
+  var conveyancing = CONVEYANCING;
+  var inspection = INSPECTION;
 
   var lmi = 0;
-  if (depositPct < 20) {
-    var lvr = (calculatedLoan / purchasePrice) * 100;
-    // Canonical LMI tiers (shared with deposit / mortgage-repayment / stamp-duty),
-    // indicative of Helia/QBE rates per ASIC MoneySmart. Ascending <= bands so the
-    // boundary handling matches the other tools (e.g. exactly 90% LVR -> 1.90%).
-    if (lvr <= 85) lmi = calculatedLoan * 0.0080;
-    else if (lvr <= 90) lmi = calculatedLoan * 0.0190;
-    else if (lvr <= 95) lmi = calculatedLoan * 0.0340;
-    else lmi = calculatedLoan * 0.0430;
-  }
+  if (depositPct < 20) lmi = calculatedLoan * lmiRate(calculatedLoan / purchasePrice);
 
   var buildingIns = purchasePrice * 0.004;
   var contentsIns = 500;
@@ -322,10 +341,10 @@ ToolPage.init({
       outputs: [
         { k: 'Stamp duty', v: '$0 (first home concession)' },
         { k: 'Title office registration fees', v: '$2,358' },
-        { k: 'Conveyancing and legal', v: '$900' },
+        { k: 'Conveyancing and legal', v: '$1,800' },
         { k: 'LMI (10% deposit)', v: '$9,918' },
-        { k: 'Total buying costs', v: '$20,870 (3.6% of price)' },
-        { k: 'Cash needed incl. deposit', v: '$78,870' }
+        { k: 'Total buying costs', v: '$21,770 (3.8% of price)' },
+        { k: 'Cash needed incl. deposit', v: '$79,770' }
       ]
     },
     {
@@ -339,9 +358,9 @@ ToolPage.init({
       outputs: [
         { k: 'Stamp duty', v: '$32,438' },
         { k: 'Title office registration fees', v: '$366' },
-        { k: 'Conveyancing and legal', v: '$1,150' },
-        { k: 'Total buying costs', v: '$43,164 (5.1% of price)' },
-        { k: 'Cash needed incl. deposit', v: '$213,164' }
+        { k: 'Conveyancing and legal', v: '$1,800' },
+        { k: 'Total buying costs', v: '$43,814 (5.2% of price)' },
+        { k: 'Cash needed incl. deposit', v: '$213,814' }
       ]
     },
     {
@@ -354,21 +373,21 @@ ToolPage.init({
       outputs: [
         { k: 'Stamp duty', v: '$60,500' },
         { k: 'Title office registration fees', v: '$2,808 (VIC fee scales with price)' },
-        { k: 'Conveyancing and legal', v: '$1,400' },
-        { k: 'Total buying costs', v: '$75,318 (6.8% of price)' },
-        { k: 'Cash needed incl. deposit', v: '$295,318' }
+        { k: 'Conveyancing and legal', v: '$1,800' },
+        { k: 'Total buying costs', v: '$75,718 (6.9% of price)' },
+        { k: 'Cash needed incl. deposit', v: '$295,718' }
       ]
     }
   ],
   faq: [
     { q: 'What are the total upfront costs of buying a house in Australia?',
-      a: 'Mostly it depends on stamp duty. In the three examples on this page the total is 3.6%, 5.1% and 6.8% of the purchase price, on top of the deposit. That covers stamp duty, registration fees, conveyancing, lender fees, an inspection, first-year insurance, moving costs, and LMI if your deposit is under 20%.' },
+      a: 'Mostly it depends on stamp duty. In the three examples on this page the total is 3.8%, 5.2% and 6.9% of the purchase price, on top of the deposit. That covers stamp duty, registration fees, conveyancing, lender fees, an inspection, first-year insurance, moving costs, and LMI if your deposit is under 20%.' },
     { q: 'Do I need Lenders Mortgage Insurance (LMI)?',
       a: 'LMI applies to most loans with a deposit under 20%. This calculator estimates it from the loan-to-value ratio: for a $650,000 purchase with a 10% deposit the estimate is $11,115. A 20% deposit, a guarantor or the 5% Deposit Scheme (formerly the First Home Guarantee) avoids it, and the scheme has its own eligibility rules and price caps.' },
     { q: 'How much are conveyancing and legal fees?',
-      a: 'This calculator uses the middle of a range for each state, from $900 in Queensland and Tasmania to $1,400 in Victoria. Those ranges are my rough estimates, so get a quote.' },
+      a: 'This calculator uses a flat $1,800 in every state. That is my estimate, and I would expect quotes between $1,300 and $2,200, so get one.' },
     { q: 'What about building and pest inspections?',
-      a: 'This calculator allows $500 for a combined building and pest inspection on an established home, which is my rough estimate.' }
+      a: 'This calculator allows $500 for a combined building and pest inspection on an established home. That is my estimate, and I would expect quotes between $400 and $700.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },
@@ -390,7 +409,7 @@ _isInit = false;
 });
 var stateEl = document.getElementById('state');
 if(stateEl) stateEl.addEventListener('change', dCalc);
-['fhb','foreignBuyer','currentlyRenting'].forEach(function(id) {
+['fhb','owner','foreignBuyer','currentlyRenting'].forEach(function(id) {
   var el = document.getElementById(id);
   if(el) el.addEventListener('change', dCalc);
 });

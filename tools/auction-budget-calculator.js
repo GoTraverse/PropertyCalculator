@@ -2,9 +2,11 @@
  *
  * Pre-auction companion: solves the maximum hammer price ("walk-away price")
  * your funds can support all-in (price + stamp duty + registration fees +
- * conveyancing), renders a funding breakdown, a deposit-day check, an optional
- * suburb-median anchor (from /tools/market-medians.json), a bid-pacing plan
- * and an auction-day checklist. Print button emits a one-page plan.
+ * conveyancing), with lenders mortgage insurance added to the loan when the
+ * loan is over 80% of the price. Renders a funding breakdown (loan, LVR, LMI),
+ * a deposit-day check, an optional suburb-median anchor (from
+ * /tools/market-medians.json), a bid-pacing plan and an auction-day
+ * checklist. Print button emits a one-page plan.
  */
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -437,25 +439,65 @@ function renderMedianAnchor() {
 }
 
 
-/* ═══ WALK-AWAY SOLVER ═══ */
-
-// All-in cost of buying at hammer price P (duty computed on P, with FHB
-// concession when ticked). Monotonically increasing in P for every state
-// (duty only ever steps UP at concession cliffs), so binary search is safe.
-function _allInAt(state, P, fhb, regTotal, legal) {
-  var base = calcDuty(state, P);
-  var duty = fhb ? applyFhbConcession(state, P, base).duty : base;
-  return P + duty + regTotal + legal;
+/* ═══ LMI ═══
+ * SYNC COPY of lmiRate() in journey.js, which is the reference for how the
+ * site treats LMI: the rate is read off the loan-to-value ratio before LMI,
+ * applied to the loan before LMI, and the premium is added to the loan. Same
+ * tiers as lmiEstimate() in deposit-calculator.js and estimateLmiTier() in
+ * stamp-duty-calculator.js. tests/state-duty-sync-test.js checks the copies
+ * agree. These are my rough rates by LVR band, with no published rate table
+ * behind them. The ratio is rounded first so that 0.9 * price / price, which
+ * can come out as 0.9000000000000001, stays in the right tier. */
+function lmiRate(lvr) {
+  lvr = Math.round(lvr * 10000) / 10000;
+  return lvr <= 0.80 ? 0 : lvr <= 0.85 ? 0.008 : lvr <= 0.90 ? 0.019 : lvr <= 0.95 ? 0.034 : 0.043;
 }
 
-// Largest feasible hammer price: usableSavings + preapproval >= all-in cost.
-// Rounded DOWN to the nearest $1,000 — a walk-away price is never optimistic.
-function solveWalkAway(funds, state, fhb, regTotal, legal) {
-  if (funds <= regTotal + legal) return 0;
-  var lo = 0, hi = funds;
+
+/* ═══ WALK-AWAY SOLVER ═══ */
+
+// Duty at hammer price P for this buyer. Same rule as calculate() in
+// stamp-duty-calculator.js for a dwelling: a first home buyer gets the
+// state's first home concession; otherwise a QLD buyer who will live in the
+// home pays the home-concession rate; everyone else pays the general rate.
+// No other state has an owner/investor duty split.
+function dutyAt(state, P, fhb, owner) {
+  var base = calcDuty(state, P);
+  if (fhb) return applyFhbConcession(state, P, base);
+  if (owner && state === 'qld') return { duty: qldHomeDuty(P), note: 'QLD home concession applied (owner-occupier).' };
+  return { duty: base, note: '' };
+}
+
+// The whole plan at hammer price P. o = { state, fhb, owner, legal, usable }.
+//   allIn     = price + duty + registration fees (at P) + conveyancing
+//   loan      = what has to be borrowed toward that once usable savings are in
+//   lmi       = my estimate on that loan at its LVR (0 at 80% or under)
+//   totalLoan = loan + lmi. LMI is added to the loan, as in journey.js.
+function planAt(P, o) {
+  var d = dutyAt(o.state, P, o.fhb, o.owner);
+  var reg = regFeesTotal(o.state, P);
+  var allIn = P + d.duty + reg + o.legal;
+  var loan = Math.max(0, allIn - o.usable);
+  var lvr = P > 0 ? loan / P : 0;
+  var lmi = loan * lmiRate(lvr);
+  return { price: P, duty: d.duty, note: d.note, reg: reg, allIn: allIn,
+    loan: loan, lvr: lvr, lmi: lmi, totalLoan: loan + lmi, cash: allIn - loan };
+}
+
+// Largest hammer price whose loan, with any LMI added, fits the pre-approval
+// (the same test journey.js incomeCeiling() runs against its borrowing limit).
+// With no LMI this is simply all-in cost <= usable savings + pre-approval.
+// totalLoan never falls as P rises: duty and registration fees only step up,
+// so the loan grows, and while savings still cover the costs the LVR grows
+// with it (above that the top LMI tier applies throughout). Binary search is
+// therefore safe. Rounded DOWN to the nearest $1,000: a walk-away price is
+// never optimistic.
+function solveWalkAway(o, preapproval) {
+  var lo = 0, hi = o.usable + preapproval;
+  if (hi <= 0) return 0;
   for (var i = 0; i < 60; i++) {
     var mid = (lo + hi) / 2;
-    if (_allInAt(state, mid, fhb, regTotal, legal) <= funds) lo = mid;
+    if (planAt(mid, o).totalLoan <= preapproval) lo = mid;
     else hi = mid;
   }
   return Math.floor(lo / 1000) * 1000;
@@ -504,6 +546,12 @@ function calculate() {
   var data = stateData[state];
   if (!data) return;
   var fhb = document.getElementById('fhb').checked;
+  // "Buying to live in" only changes the duty in Queensland, and only for a
+  // buyer who isn't a first home buyer, so the box is hidden everywhere else.
+  var ownerEl = document.getElementById('owner');
+  var owner = ownerEl ? ownerEl.checked : true;
+  var ownerRow = document.getElementById('owner-check');
+  if (ownerRow) ownerRow.style.display = (state === 'qld' && !fhb) ? '' : 'none';
   var savings = parseVal('savings');
   var preapproval = parseVal('preapproval');
   var legal = parseVal('legal');
@@ -519,28 +567,25 @@ function calculate() {
 
   var bufferKept = savings * (bufPct / 100);
   var usable = savings - bufferKept;
-  var funds = usable + preapproval;
   var reg = REG_FEES[state] || { mortgage: 200, transfer: 200 };
-  var regTotal = regFeesTotal(state, funds);
+  var opts = { state: state, fhb: fhb, owner: owner, legal: legal, usable: usable };
 
-  var W = solveWalkAway(funds, state, fhb, regTotal, legal);
-  // QLD/VIC/SA/WA reg fees scale with the price — refine once at the solved
-  // price (fee slope is far below $1 per $1 of price, so one pass converges).
-  if (SCALED_REG[state] && W > 0) {
-    regTotal = regFeesTotal(state, W);
-    W = solveWalkAway(funds, state, fhb, regTotal, legal);
-  }
+  var W = solveWalkAway(opts, preapproval);
   if (W <= 0) {
     if (!_isInit) _showErr('Your usable funds don’t cover the fixed purchase costs yet. Add savings or pre-approval, or lower the buffer.');
     return;
   }
 
-  var baseDuty = calcDuty(state, W);
-  var dres = fhb ? applyFhbConcession(state, W, baseDuty) : { duty: baseDuty, note: '' };
-  var duty = dres.duty;
-  var allIn = W + duty + regTotal + legal;
-  var loanUsed = Math.min(preapproval, allIn);
-  var cashUsed = Math.max(0, allIn - loanUsed);
+  // Everything shown below is the plan at W itself, so the rows add up.
+  var plan = planAt(W, opts);
+  var dres = { duty: plan.duty, note: plan.note };
+  var duty = plan.duty;
+  var regTotal = plan.reg;
+  var allIn = plan.allIn;
+  var loanBase = plan.loan;      // borrowed toward the purchase
+  var lmi = plan.lmi;            // added to the loan
+  var loanUsed = plan.totalLoan; // loan incl. LMI, never above the pre-approval
+  var cashUsed = plan.cash;
   var dep10 = W * 0.10;
 
   _lastWalkAway = W;
@@ -561,9 +606,36 @@ function calculate() {
     : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')');
   setText('r-legal', fmt(legal));
   setText('r-allin', fmt(allIn));
+  setText('r-loan-base', fmt(loanBase));
+  setText('r-lvr', loanBase > 0 ? (plan.lvr * 100).toFixed(1) + '%' : 'No loan needed');
+  setText('r-lmi', lmi > 0 ? fmt(lmi) : '$0 (LVR is 80% or under)');
   setText('r-loan', fmt(loanUsed));
   setText('r-cash', fmt(cashUsed));
   setText('r-buffer', fmt(bufferKept));
+
+  // ── LVR and LMI note ──
+  var lmiBox = document.getElementById('lmi-callout');
+  if (lmiBox) {
+    if (lmi > 0) {
+      var lvrTxt = (plan.lvr * 100).toFixed(1) + '%';
+      var rateTxt = (lmiRate(plan.lvr) * 100).toFixed(1) + '%';
+      var lmiMsg = 'The loan is ' + lvrTxt + ' of the price. Above 80%, lenders usually charge lenders mortgage insurance (LMI). ' +
+        'I estimate it at ' + fmt(lmi) + ' (' + rateTxt + ' of the loan) and add it to the loan, so the loan with LMI (' + fmt(loanUsed) +
+        ') has to fit inside your ' + fmt(preapproval) + ' pre-approval. That lowers the price you can reach. ' +
+        'The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium.';
+      if (plan.lvr > 0.95) {
+        lmiMsg += ' ' + lvrTxt + ' is above 95%, and lenders generally want a deposit of at least 5%, so check that yours will lend this much before you rely on this price.';
+      }
+      if (fhb) {
+        lmiMsg += ' An eligible first home buyer pays no LMI under the 5% Deposit Scheme. This calculator doesn’t check that, so it counts LMI either way.';
+      }
+      lmiBox.innerHTML = _callout('mort-callout mort-callout-gold', 'LMI', lmiMsg);
+      lmiBox.style.display = '';
+    } else {
+      lmiBox.innerHTML = '';
+      lmiBox.style.display = 'none';
+    }
+  }
 
   // ── Deposit-on-the-day check ──
   var depBox = document.getElementById('deposit-callout');
@@ -586,7 +658,7 @@ function calculate() {
 
   var disc = document.getElementById('disclaimer');
   if (disc) disc.textContent = 'Estimates only. ' + data.dutyName + ' uses the ' + data.name +
-    ' FY2026-27 schedule (checked 5 Jul 2026). Registration and conveyancing figures are approximate, so confirm them with your conveyancer and the state revenue office. Your lender’s formal approval, valuation and LVR limits can lower what you can borrow. General information, not financial advice.';
+    ' FY2026-27 schedule (checked 5 Jul 2026). Registration and conveyancing figures are approximate and the LMI figure is my rough estimate, so confirm them with your conveyancer, your lender and the state revenue office. Your lender’s formal approval, valuation and LVR limits can lower what you can borrow. General information, not financial advice.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -675,10 +747,13 @@ ToolPage.init({
         { k: 'Conveyancing', v: '$1,800' }
       ],
       outputs: [
-        { k: 'Walk-away price', v: '$637,000' },
-        { k: 'Land transfer duty (VIC)', v: '~$33,290' },
-        { k: 'Total all-in cost', v: '~$673,800' },
-        { k: 'Cash at settlement', v: '~$113,800' }
+        { k: 'Walk-away price', v: '$627,000' },
+        { k: 'Land transfer duty (VIC)', v: '$32,690' },
+        { k: 'Total all-in cost', v: '$663,191' },
+        { k: 'Loan as a share of the price (LVR)', v: '87.6%' },
+        { k: 'Lenders mortgage insurance (my estimate)', v: '$10,435' },
+        { k: 'Total loan with LMI', v: '$559,626' },
+        { k: 'Cash from savings', v: '$114,000' }
       ]
     },
     {
@@ -691,10 +766,13 @@ ToolPage.init({
         { k: 'Conveyancing', v: '$1,800' }
       ],
       outputs: [
-        { k: 'Walk-away price', v: '$561,000' },
+        { k: 'Walk-away price', v: '$552,000' },
         { k: 'Transfer duty', v: '$0 (QLD FHB concession ≤ $700k)' },
-        { k: 'Total all-in cost', v: '~$565,100' },
-        { k: '10% deposit on the day', v: '~$56,100' }
+        { k: 'Total all-in cost', v: '$556,065' },
+        { k: 'Loan as a share of the price (LVR)', v: '85.2%' },
+        { k: 'Lenders mortgage insurance (my estimate)', v: '$8,941' },
+        { k: 'Total loan with LMI', v: '$479,506' },
+        { k: '10% deposit on the day', v: '$55,200' }
       ]
     }
   ],
@@ -746,8 +824,10 @@ window.addEventListener('DOMContentLoaded', function () {
     calculate();
   });
 
-  var fhbEl = document.getElementById('fhb');
-  if (fhbEl) fhbEl.addEventListener('change', calculate);
+  ['fhb', 'owner'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', calculate);
+  });
 
   // Suburb only affects the anchor callout — no need to re-solve the price.
   var subEl = document.getElementById('suburb');

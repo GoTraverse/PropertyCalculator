@@ -45,7 +45,7 @@ function describeFailure(res) {
  * Returns { ok, cancelled: [subscription ids], error? }.
  *   ok:true  — the customer has nothing left that can charge them. Either
  *              every live subscription was cancelled, there were none, or
- *              Stripe has no such customer.
+ *              Stripe has no such live customer.
  *   ok:false — at least one subscription may still be live, or Stripe could
  *              not be asked. Nothing should be deleted.
  */
@@ -69,8 +69,12 @@ async function cancelSubscriptionsForCustomer(customerId) {
         (startingAfter ? '&starting_after=' + encodeURIComponent(startingAfter) : ''));
       if (!res.ok) {
         // Stripe has no customer with this id (for example an id left over
-        // from test mode), so there is no subscription to cancel.
-        if (res.data.error && res.data.error.code === 'resource_missing') {
+        // from test mode), so there is no subscription to cancel. Stripe
+        // gives the same code when a test key is used against a live
+        // customer ("a similar object exists in live mode"). That customer's
+        // subscription may well be charging, so it counts as a failure.
+        const listErr = res.data.error || {};
+        if (listErr.code === 'resource_missing' && !/exists in live mode/i.test(String(listErr.message || ''))) {
           console.warn('[billing] Stripe has no customer', customerId, ', nothing to cancel');
           return { ok: true, cancelled, customerMissing: true };
         }

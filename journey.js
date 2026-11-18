@@ -280,7 +280,6 @@
   // Real-world stage → the stop that matches it. Buyers can enter mid-journey;
   // earlier stops stay open ("catch up any time") rather than blocking.
   var STAGE_STOP = { start: 2, schemes: 2, budget: 3, ground: 4, hunt: 5, deal: 6 };
-  var STAGE_LABEL = { start: 'Early days', schemes: 'Saving and researching', budget: 'Working out borrowing', ground: 'Deciding where', hunt: 'Inspecting homes', deal: 'Contract signed' };
   function currentStop() {
     var first = null;
     for (var i = 0; i < STOPS.length; i++) if (!S.done[STOPS[i].n]) { first = STOPS[i].n; break; }
@@ -840,6 +839,8 @@
     var box = document.getElementById('jwizard');
     if (!box) return;
     var note = _answersNote; _answersNote = '';
+    // A quiet redraw puts focus back on the Edit it was on.
+    var held = quiet && document.activeElement && box.contains(document.activeElement) ? document.activeElement.getAttribute('data-wedit') : null;
     var groups = ANSWER_GROUPS.map(function (g) {
       return '<div class="jsum-group"><span class="jsc jblock">' + g[0] + '</span>' + g[1].map(function (id) {
         var q = wqById(id);
@@ -866,12 +867,12 @@
       '<button type="button" class="jbtn" data-jgoto="' + go.view + '">' + (back ? 'Back to' : 'Go to') + ' “' + esc(go.title) + '”</button>' +
       '</div></div>';
     if (!quiet) focusHeading(box);
+    else if (held) { var again = box.querySelector('[data-wedit="' + held + '"]'); if (again) { try { again.focus({ preventScroll: true }); } catch (e) {} } }
   }
   // Open one question from the list of answers.
   function openAnswer(id) {
     var q = wqById(id);
     if (!q || RO) return;
-    if (_view !== 'wizard') show('wizard');
     _wizOne = true; _wizFocus = true;
     wStep = WQ.indexOf(q);
     _wizBefore = wVal(q);
@@ -2530,7 +2531,7 @@
       api({ action: 'shareResolve', token: joinTok }).then(function (r) {
         if (!r || !r.ok || !r.state) {
           if (r && r.gone) {
-            // The server knows the link and it is off (or was never real).
+            // The server says this link is switched off, or never existed.
             forgetJoin();
             setModeBanner('<div class="jcard jpad jsignup"><div>' +
               '<span class="jsc jsc-gold jblock">This link no longer works</span>' +

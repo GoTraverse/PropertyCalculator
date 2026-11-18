@@ -109,11 +109,11 @@ function calculate() {
   var regEl = document.getElementById('r-reg');
   if (regEl) regEl.textContent = fmt(regTotal) + ' (Landgate, transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (estimate, roughly $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,300 to $2,200)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimate at RevenueWA’s 2026-27 rates. The first home buyer thresholds were announced in the 2026-27 Budget and apply retrospectively to transactions from 7 May 2026, so confirm their legislative status with RevenueWA. The LMI figure is rough.';
+  document.getElementById('disclaimer').textContent = 'Estimate at RevenueWA’s 2026-27 rates. The first home buyer thresholds were announced in the 2026-27 Budget and apply retrospectively to transactions from 7 May 2026, so confirm their legislative status with RevenueWA. The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
