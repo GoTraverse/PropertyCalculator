@@ -1,27 +1,45 @@
-/* index.css: the homepage. One column of text, the same width as a book page.
+/* index.css: the homepage. Short: what it is, the seven steps as a trail,
+   the calculators as plain link groups, sources, who made it.
    Shared pieces (nav, footer, link colour) come from shared.css. */
-.home { max-width: 720px; margin: 0 auto; padding: 48px 24px 72px; }
-.home h1 { font-size: clamp(28px, 4.2vw, 38px); line-height: 1.15; letter-spacing: -0.015em; font-weight: 700; margin-bottom: 24px; }
-.home h2 { font-size: 24px; line-height: 1.25; font-weight: 700; margin: 56px 0 14px; padding-top: 28px; border-top: 1px solid var(--rule); }
-.home h3 { font-size: 17px; font-weight: 700; margin: 28px 0 8px; }
-.home p { margin-bottom: 16px; }
-.home-lead { font-size: 19px; }
-.home-start { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 28px 0 8px; }
+.home { max-width: 760px; margin: 0 auto; padding: 40px 24px 72px; }
+.home-hero { padding: 16px 0 8px; }
+.home h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.12; letter-spacing: -0.02em; font-weight: 700; margin-bottom: 16px; }
+.home h2 { font-size: 22px; line-height: 1.25; font-weight: 700; margin: 48px 0 16px; padding-top: 24px; border-top: 1px solid var(--rule); }
+.home h3 { font-size: 15px; font-weight: 700; margin: 0 0 6px; color: var(--ink-soft); }
+.home p { margin-bottom: 14px; }
+.home-lead { font-size: 19px; max-width: 34em; }
+.home-note { font-size: 15px; color: var(--ink-soft); }
+.home-start { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 24px 0 0; }
 .home-start span { color: var(--ink-soft); font-size: 15px; }
-.home-btn { display: inline-block; background: var(--charcoal); color: #fff; font-weight: 600; font-size: 17px; padding: 12px 22px; border-radius: 4px; text-decoration: none; }
+.home-btn { display: inline-block; background: var(--charcoal); color: #fff; font-weight: 600; font-size: 17px; padding: 13px 24px; border-radius: 4px; text-decoration: none; }
 .home-btn:hover { background: var(--charcoal-mid); }
-.home-steps { margin: 0 0 20px; padding-left: 1.4em; }
-.home-steps li { margin-bottom: 14px; padding-left: 4px; }
-.home-steps li::marker { font-weight: 700; }
-.home-steps strong { display: block; }
-.home-links { list-style: none; margin: 0 0 8px; }
-.home-links li { padding: 9px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 220px 1fr; gap: 4px 20px; align-items: baseline; }
-.home-links li:first-child { border-top: 1px solid var(--rule); }
-.home-links span { color: var(--ink-soft); font-size: 15px; }
-@media (max-width: 600px) {
-  .home { padding: 28px 18px 56px; }
-  .home h2 { margin-top: 40px; padding-top: 22px; }
-  .home-links li { grid-template-columns: 1fr; }
+
+/* The seven steps as a trail: numbered circles joined by a line */
+.home-trail { list-style: none; margin: 0 0 16px; padding: 0; }
+.home-trail li { position: relative; display: flex; gap: 14px; padding-bottom: 16px; }
+.home-trail li::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: var(--rule); }
+.home-trail li:last-child { padding-bottom: 0; }
+.home-trail li:last-child::before { display: none; }
+.home-trail-n { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--charcoal); background: var(--warm-white); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; position: relative; }
+.home-trail .is-first .home-trail-n { background: var(--gold); border-color: var(--gold); color: #1C1C1E; }
+.home-trail strong { display: block; line-height: 1.3; padding-top: 4px; }
+.home-trail div span { color: var(--ink-soft); font-size: 15px; }
+
+/* Calculators: three plain link groups */
+.home-calcs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 28px; margin: 4px 0 14px; }
+.home-calcs ul { list-style: none; margin: 0; padding: 0; }
+.home-calcs li { padding: 5px 0; }
+.home-calcs a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
+
+@media (max-width: 640px) {
+  .home { padding: 20px 18px 56px; }
+  .home h2 { margin-top: 36px; padding-top: 20px; }
+  .home-btn { width: 100%; text-align: center; }
+  .home-calcs { grid-template-columns: 1fr 1fr; }
+  .home-calcs li { padding: 7px 0; }
 }
+@media (max-width: 380px) { .home-calcs { grid-template-columns: 1fr; } }
 html.dark-mode .home-btn { background: #F3F3F0; color: #111113; }
 html.dark-mode .home-btn:hover { background: #fff; }
+html.dark-mode .home-trail-n { background: #111113; border-color: #F3F3F0; }
+html.dark-mode .home-trail .is-first .home-trail-n { background: var(--gold); border-color: var(--gold); }

@@ -69,70 +69,79 @@
 
 <main id="main-content" class="home">
 
-<h1>A step-by-step planner for buying your first home in Australia</h1>
+<section class="home-hero">
+  <h1>Plan your first home purchase, step by step</h1>
+  <p class="home-lead">Answer a few questions about your savings, income and where you're buying. I work out the schemes you can use, your maximum price and the costs, for your state.</p>
+  <p class="home-start"><a href="/journey" class="home-btn">Start at step 1</a> <span>Free. No account needed.</span></p>
+</section>
 
-<p class="home-lead">I built this in 2026 while my partner and I were buying our first home. Stamp duty was on one site, an LMI estimate on another and the Queensland shared-equity scheme somewhere else, so I put the sums into a spreadsheet and later turned the spreadsheet into this site.</p>
+<section aria-labelledby="steps">
+  <h2 id="steps">The seven steps</h2>
+  <ol class="home-trail">
+    <li class="is-first"><span class="home-trail-n">1</span><div><strong>Your details</strong><span>16 quick questions. About two minutes.</span></div></li>
+    <li><span class="home-trail-n">2</span><div><strong>Compare the schemes</strong><span>5% Deposit Scheme, Help to Buy, 10% with LMI, or a 20% deposit.</span></div></li>
+    <li><span class="home-trail-n">3</span><div><strong>Set your budget</strong><span>Stamp duty, fees and a maximum price tested at your rate plus 3%.</span></div></li>
+    <li><span class="home-trail-n">4</span><div><strong>Where to buy</strong><span>Suburbs whose government median fits your budget.</span></div></li>
+    <li><span class="home-trail-n">5</span><div><strong>Inspections and offers</strong><span>Each place you look at, checked against your maximum.</span></div></li>
+    <li><span class="home-trail-n">6</span><div><strong>Contract deadlines</strong><span>Cooling-off, finance and settlement dates, counted down.</span></div></li>
+    <li><span class="home-trail-n">7</span><div><strong>Settlement</strong><span>A checklist and your final costs.</span></div></li>
+  </ol>
+  <p class="home-note">Step 4 has sale medians for Victoria and metro Adelaide, and rents for Queensland, South Australia and Tasmania. NSW, WA, the ACT and the NT aren't covered yet.</p>
+</section>
 
-<p>It takes you through a purchase in seven steps. You answer questions about your savings, your income and where you're buying, and each step does the working for that stage.</p>
+<section aria-labelledby="free-tools">
+  <h2 id="free-tools">Calculators</h2>
+  <p>Each one also works on its own.</p>
+  <div class="home-calcs">
+    <div>
+      <h3>Buying</h3>
+      <ul>
+        <li><a href="/tools/stamp-duty-calculator">Stamp duty</a></li>
+        <li><a href="/tools/first-home-buyer-grants-calculator">First home buyer grants</a></li>
+        <li><a href="/tools/deposit-calculator">Deposit</a></li>
+        <li><a href="/tools/cost-of-purchase-calculator">Cost of purchase</a></li>
+        <li><a href="/tools/auction-budget-calculator">Auction budget</a></li>
+        <li><a href="/tools/listing-price-checker">Listing price checker</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Borrowing</h3>
+      <ul>
+        <li><a href="/tools/borrowing-power-calculator">Borrowing power</a></li>
+        <li><a href="/tools/mortgage-repayment-calculator">Mortgage repayment</a></li>
+        <li><a href="/tools/loan-serviceability-calculator">Loan serviceability</a></li>
+        <li><a href="/tools/mortgage-stress-calculator">Mortgage stress test</a></li>
+        <li><a href="/tools/interest-only-vs-principal-calculator">Interest only vs principal and interest</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Investment property</h3>
+      <ul>
+        <li><a href="/tools/rental-yield-calculator">Rental yield</a></li>
+        <li><a href="/tools/property-cashflow-calculator">Property cash flow</a></li>
+        <li><a href="/tools/land-tax-calculator">Land tax</a></li>
+        <li><a href="/tools/capital-gains-calculator">Capital gains tax</a></li>
+        <li><a href="/tools/equity-release-calculator">Home equity</a></li>
+        <li><a href="/tools/house-flip-calculator">House flip</a></li>
+        <li><a href="/tools/renovation-cost-calculator">Renovation cost</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="home-note"><a href="/tools/">All calculators</a>, including a stamp duty page for each state.</p>
+</section>
 
-<p class="home-start"><a href="/journey" class="home-btn">Start at step 1</a> <span>You don't need an account. Your answers are saved in your browser.</span></p>
+<section aria-labelledby="where-the-numbers-come-from">
+  <h2 id="where-the-numbers-come-from">Where the numbers come from</h2>
+  <p>Stamp duty and first home concessions come from each state revenue office. Scheme settings come from <a href="https://www.housingaustralia.gov.au/" rel="noopener">Housing Australia</a>, tax rates from the <a href="https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents" rel="noopener">ATO</a> and the 3% buffer from <a href="https://www.apra.gov.au/" rel="noopener">APRA</a>. These are the FY2026-27 settings.</p>
+  <p>Suburb rents and sale medians are state government open data, shown with their period and source: <a href="/invest/qld/">Queensland</a>, <a href="/invest/vic/">Victoria</a>, <a href="/invest/sa/">South Australia</a> and <a href="/invest/tas/">Tasmania</a>. There are no investment scores or growth forecasts here.</p>
+  <p class="home-note">The formulas are on the <a href="/methodology">methodology</a> page and each dataset is on the <a href="/data-sources">data sources</a> page.</p>
+</section>
 
-<h2 id="steps">The seven steps</h2>
-<ol class="home-steps">
-  <li><strong>Your details</strong> 16 questions about where you're buying, what you earn and what you've saved. It takes about two minutes.</li>
-  <li><strong>Compare the schemes</strong> Compares four ways to buy: the 5% Deposit Scheme, Help to Buy, a 10% deposit with lenders mortgage insurance (LMI), and saving a 20% deposit. For each one you see when you could buy, the cash you'd need, the LMI and the repayment. The price and income caps are checked for your state.</li>
-  <li><strong>Set your budget</strong> Adds up stamp duty for your state with any first home concession, registration fees and legal costs. It tests the repayment at your interest rate plus the 3% buffer that banks apply, and gives you a maximum price.</li>
-  <li><strong>Where to buy</strong> Lists suburbs in your state where the median published by the state government fits your budget. Sale medians cover Victoria and metro Adelaide. Median rents cover Queensland, South Australia and Tasmania. NSW, WA, the ACT and the NT aren't covered yet.</li>
-  <li><strong>Inspections and offers</strong> A record of each place you look at, with the asking price and your notes. Each one is compared with your maximum price.</li>
-  <li><strong>Contract deadlines</strong> You enter the dates from your contract and it counts down cooling-off, building and pest, finance approval and settlement. You can add them to your phone calendar.</li>
-  <li><strong>Settlement</strong> A settlement checklist and the final costs.</li>
-</ol>
-<p>It's free. An account is optional. It keeps your journey on more than one device and lets a partner view or edit it with you.</p>
-
-<h2 id="where-the-numbers-come-from">Where the numbers come from</h2>
-<p>Stamp duty schedules and first home buyer concessions come from each state revenue office. The 5% Deposit Scheme and Help to Buy settings come from <a href="https://www.housingaustralia.gov.au/" rel="noopener">Housing Australia</a>, tax rates from the <a href="https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents" rel="noopener">ATO</a> and the 3% serviceability buffer from <a href="https://www.apra.gov.au/" rel="noopener">APRA</a>. The figures in use are the FY2026-27 settings, and I check them against those sources at the start of each financial year.</p>
-<p>Suburb rents and sale medians come from state government open data, and each one is shown with its period and its source. Populations are from the ABS 2021 Census. Where a state doesn't publish a suburb-level figure I leave it out. There are no investment scores or growth forecasts on this site.</p>
-<p>The <a href="/methodology">methodology</a> page has the formulas, and the <a href="/data-sources">data sources</a> page lists each dataset with its licence and period. I'm not a financial adviser, and everything here is general information. There's more about me on the <a href="/about">about page</a>.</p>
-
-<h2 id="free-tools">Calculators</h2>
-<p>The journey uses these calculations at each step. Each calculator also works on its own.</p>
-
-<h3>Buying</h3>
-<ul class="home-links">
-  <li><a href="/tools/stamp-duty-calculator">Stamp duty</a> <span>All 8 states and territories, with first home buyer concessions and foreign buyer surcharges.</span></li>
-  <li><a href="/tools/cost-of-purchase-calculator">Cost of purchase</a> <span>Stamp duty, legal fees, bank charges, inspections, insurance and moving in one total.</span></li>
-  <li><a href="/tools/deposit-calculator">Deposit</a> <span>The deposit at 5% to 25%, with stamp duty, LMI and legal costs added.</span></li>
-  <li><a href="/tools/first-home-buyer-grants-calculator">First home buyer grants</a> <span>Grants, stamp duty concessions and federal schemes for your state.</span></li>
-  <li><a href="/tools/listing-price-checker">Listing price checker</a> <span>An asking price against the government suburb median: sale medians for Victoria and metro Adelaide, rents for Queensland, South Australia and Tasmania.</span></li>
-  <li><a href="/tools/auction-budget-calculator">Auction budget</a> <span>Your maximum bid, the full cost at that bid, and a plan to print for auction day.</span></li>
-</ul>
-
-<h3>Borrowing and repayments</h3>
-<ul class="home-links">
-  <li><a href="/tools/borrowing-power-calculator">Borrowing power</a> <span>An estimate of what a bank would lend, tested at your rate plus the 3% buffer.</span></li>
-  <li><a href="/tools/loan-serviceability-calculator">Loan serviceability</a> <span>The loan your income leaves room for after living costs and debts, tested at your rate plus APRA&rsquo;s 3% buffer.</span></li>
-  <li><a href="/tools/mortgage-repayment-calculator">Mortgage repayment</a> <span>Weekly, fortnightly and monthly repayments, with extra repayments and offset.</span></li>
-  <li><a href="/tools/interest-only-vs-principal-calculator">Interest only vs principal and interest</a> <span>Repayments and total interest for both loan types.</span></li>
-  <li><a href="/tools/mortgage-stress-calculator">Mortgage stress test</a> <span>What your repayment becomes if rates rise.</span></li>
-</ul>
-
-<h3>Investment property</h3>
-<ul class="home-links">
-  <li><a href="/tools/rental-yield-calculator">Rental yield</a> <span>Gross and net yield from the rent, the price and the running costs.</span></li>
-  <li><a href="/tools/property-cashflow-calculator">Property cash flow</a> <span>Weekly cost or income after tax, at FY2026-27 tax rates.</span></li>
-  <li><a href="/tools/capital-gains-calculator">Capital gains tax</a> <span>Tax on a property sale, with the 50% discount and your marginal rate applied.</span></li>
-  <li><a href="/tools/land-tax-calculator">Land tax</a> <span>Annual land tax in every state and territory.</span></li>
-  <li><a href="/tools/equity-release-calculator">Home equity</a> <span>Usable equity at a lender's loan-to-value limit.</span></li>
-  <li><a href="/tools/house-flip-calculator">House flip</a> <span>Profit and return for a buy, renovate and sell plan.</span></li>
-  <li><a href="/tools/renovation-cost-calculator">Renovation cost</a> <span>A budget by room, with contingency.</span></li>
-</ul>
-<p>The <a href="/tools/">calculators page</a> also has a stamp duty page for each state.</p>
-
-<h2 id="suburbs">Suburb figures</h2>
-<p>A suburb has a page only when its state government publishes a current rent or sale median for it. That covers four states so far: <a href="/invest/qld/">Queensland</a> (median rents), <a href="/invest/vic/">Victoria</a> (sale medians), <a href="/invest/sa/">South Australia</a> (rents and sale medians) and <a href="/invest/tas/">Tasmania</a> (median rents).</p>
-
-<h2 id="corrections">If something looks wrong</h2>
-<p>I maintain this myself. If a figure or a rule looks wrong, <a href="/contact">tell me</a> which page it's on and I'll check it against the source.</p>
+<section aria-labelledby="who">
+  <h2 id="who">Who made this</h2>
+  <p>I built this in 2026 while my partner and I were buying our first home. Stamp duty was on one site, an LMI estimate on another and the Queensland shared-equity scheme somewhere else, so I put the sums into a spreadsheet and later turned it into this site. There's more on the <a href="/about">about page</a>.</p>
+  <p>I'm not a financial adviser, and everything here is general information. If a figure or a rule looks wrong, <a href="/contact">tell me</a> which page it's on and I'll check it against the source.</p>
+</section>
 
 </main>
 
