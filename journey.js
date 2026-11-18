@@ -2566,7 +2566,7 @@
                 ? '<span class="jsc jsc-gold jblock">This link no longer works</span>' +
                   '<p>The person who shared it has turned it off, or the address is incomplete. Ask them for a new link. The journey below is your own.</p>'
                 : '<span class="jsc jsc-gold jblock">The partner link no longer works</span>' +
-                  '<p>The partner link you opened earlier has been turned off. Ask the person who sent it for a new link. The journey below is your own.</p>') +
+                  '<p>The link you opened earlier to join someone’s journey has been turned off. Ask them for a new link. The journey below is your own.</p>') +
               '</div></div>');
             stripJoinParam();
           } else if (fromLink) {
