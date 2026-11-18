@@ -796,6 +796,13 @@
         fieldError(input, 'That’s more in a year than your household income of ' + m$(S.profile.income) + '. Enter what you save each month.');
         return;
       }
+      // The same check from the other side, when income is changed on its
+      // own from the list of answers. On a first run the saving question
+      // comes later and still holds its default, so it isn't checked here.
+      if (q.id === 'income' && _wizOne && n > 0 && (S.numbers.saveMo || 0) * 12 > n) {
+        fieldError(input, 'You save ' + m$(S.numbers.saveMo) + ' a month, which is more in a year than ' + m$(n) + '. Enter your household income before tax, or change your monthly saving first.');
+        return;
+      }
       wSet(q, Math.round(n));
     }
     wizAdvance(q);
@@ -898,6 +905,10 @@
   // the journey, so looking at a place can't change the saved target price.
   // It ends when the visitor opens any other view.
   var _placeView = null;
+  // The lowest price step 2 will work with: the same floor the wizard and
+  // normalizeState() put on the target price. A place saved with a lower
+  // price (usually a typo, $600 for $600k) gets no Compare schemes button.
+  var MIN_PRICE = 50000;
   var _placeNote = '';   // one-off line after a place's price is made the target
   function projPrice() { return _placeView ? _placeView.price : S.numbers.price; }
   function schemeCaps(table) {
@@ -1081,7 +1092,7 @@
         : 'These figures use the ' + m$(pv.price) + ' you entered for this place. Your target price is still ' + m$(target) + '.') + '</p></div>' +
       '<div class="jsignup-actions">' +
       '<button type="button" class="jbtn quiet" data-jgoto="hunt">Back to my places</button>' +
-      (!same && !RO && pv.price >= 50000 ? '<button type="button" class="jwiz-skip" id="jplace-use">Make ' + m$(pv.price) + ' my target price</button>' : '') +
+      (!same && !RO && pv.price >= MIN_PRICE ? '<button type="button" class="jwiz-skip" id="jplace-use">Make ' + m$(pv.price) + ' my target price</button>' : '') +
       '</div></div>';
     var use = document.getElementById('jplace-use');
     if (use) use.addEventListener('click', function () {
@@ -1249,9 +1260,23 @@
   // The owner's architecture: one journey → many worked scenarios. Each is a
   // snapshot of the inputs + the best path at save time; Load restores the
   // inputs and the projector recomputes live.
+  // Names are stored up to 80 characters. A place address fills whatever
+  // room is left and is cut at a word, with an ellipsis, when it doesn't fit.
   function scenName() {
     var N = S.numbers, P = S.profile;
-    return (N.state.toUpperCase() + ' ' + m$(projPrice()) + (P.fhb ? '' : ', not first home') + (_placeView ? ', ' + _placeView.addr : '')).slice(0, 80);
+    var name = N.state.toUpperCase() + ' ' + m$(projPrice()) + (P.fhb ? '' : ', not first home');
+    if (_placeView && _placeView.addr) name += ', ' + clipWords(_placeView.addr, 80 - name.length - 2);
+    return name.slice(0, 80);
+  }
+  function clipWords(s, room) {
+    s = String(s).trim();
+    if (s.length <= room) return s;
+    var cut = s.slice(0, Math.max(0, room - 1));
+    var sp = cut.lastIndexOf(' ');
+    // Back to the last space, unless that would throw away most of it (one
+    // very long word).
+    if (sp > room / 2) cut = cut.slice(0, sp);
+    return cut.replace(/[\s,;:\/-]+$/, '') + '…';
   }
   function renderScenarios(R) {
     var box = document.getElementById('jscen');
@@ -1780,8 +1805,9 @@
       return '<div class="jinsp' + (st === 'passed' || st === 'lost' ? ' muted' : '') + '">' +
         '<div class="jinsp-main"><div class="jinsp-addr">' + esc(r.addr) + '</div>' +
         '<div class="jinsp-meta">' + (r.price ? m$(r.price) + capDelta(r.price) + (r.note ? ', ' : '') : '') + esc(r.note || '') + '</div>' +
-        (when ? '<div class="jinsp-when">Added ' + when + '</div>' : '') + '</div>' +
-        (r.price ? '<button type="button" class="jplace-proj" data-place-proj="' + i + '" title="Open step 2 at this price. Your target price stays as it is.">Compare schemes</button>' : '') +
+        (when ? '<div class="jinsp-when">Added ' + when + '</div>' : '') +
+        (r.price && r.price < MIN_PRICE ? '<div class="jinsp-when">That price is under ' + m$(MIN_PRICE) + ', so I can’t compare schemes for it. If it’s a typo, remove the place and add it again.</div>' : '') + '</div>' +
+        (r.price >= MIN_PRICE ? '<button type="button" class="jplace-proj" data-place-proj="' + i + '" title="Open step 2 at this price. Your target price stays as it is.">Compare schemes</button>' : '') +
         '<button type="button" class="jplace-st st-' + st + '" data-place-status="' + i + '" aria-expanded="' + (_huntOpen === i) + '">' + PLACE_LABEL[st] + ' ▾</button>' +
         '<button type="button" class="jinsp-del" data-insp-del="' + i + '" aria-label="Remove ' + esc(r.addr) + '">×</button>' +
         '</div>' + picker;
@@ -2292,7 +2318,7 @@
     var pp = e.target.closest('[data-place-proj]');
     if (pp) {
       var place = S.inspections[+pp.getAttribute('data-place-proj')];
-      if (place && place.price) {
+      if (place && place.price >= MIN_PRICE) {
         // Step 2 at this place's price. Nothing is saved: the target price
         // only changes if the buyer then asks for that on the step 2 screen.
         show('projector', { place: { addr: place.addr, price: place.price } });
@@ -2532,10 +2558,16 @@
         if (!r || !r.ok || !r.state) {
           if (r && r.gone) {
             // The server says this link is switched off, or never existed.
+            // A remembered invite resolved when it was remembered, so for
+            // that one the address can't be the cause.
             forgetJoin();
             setModeBanner('<div class="jcard jpad jsignup"><div>' +
-              '<span class="jsc jsc-gold jblock">This link no longer works</span>' +
-              '<p>The person who shared it has turned it off, or the address is incomplete. Ask them for a new link. The journey below is your own.</p></div></div>');
+              (fromLink
+                ? '<span class="jsc jsc-gold jblock">This link no longer works</span>' +
+                  '<p>The person who shared it has turned it off, or the address is incomplete. Ask them for a new link. The journey below is your own.</p>'
+                : '<span class="jsc jsc-gold jblock">The partner link no longer works</span>' +
+                  '<p>The partner link you opened earlier has been turned off. Ask the person who sent it for a new link. The journey below is your own.</p>') +
+              '</div></div>');
             stripJoinParam();
           } else if (fromLink) {
             // The link couldn't be checked (no connection, or the server

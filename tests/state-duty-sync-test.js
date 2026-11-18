@@ -18,13 +18,19 @@
  *      budget), driven through their real calc functions:
  *        - on-screen duty vs the all-states calculator for owner-occupier /
  *          investor × standard / first home buyer (the QLD home concession);
+ *        - cost of purchase: a QLD foreign buyer pays the general rate plus
+ *          the surcharge (no QLD home concessions from 1 Aug 2026), and the
+ *          "Buying to live in" box is hidden for them;
  *        - the "Buying to live in" box exists on each page;
  *        - one conveyancing figure everywhere (the all-states calculator and
  *          journey.js included) and one building-and-pest figure;
  *        - every LMI tier copy (journey.js included) gives the same rate;
  *        - the auction solver: the plan at the walk-away price fits the
- *          pre-approval with LMI added to the loan, its rows add up, and
- *          $1,000 more does not fit.
+ *          pre-approval with LMI added to the loan, the loan before LMI is no
+ *          more than 95% of the price, its rows add up, and $1,000 more does
+ *          not fit; when savings set the price, the savings figure the page
+ *          gives does let the pre-approval set it; with too little saved the
+ *          page shows an error and hides the old plan.
  *
  * Run: node tests/state-duty-sync-test.js
  */
@@ -226,13 +232,13 @@ function depositDuty(st, price, fhb, owner) {
   deposit.run('calc()');
   return money(deposit.els['r-stamp'].textContent);
 }
-function copDuty(st, price, fhb, owner) {
+function copDuty(st, price, fhb, owner, foreign) {
   cop.els.purchasePrice.value = String(price);
   cop.els.depositPct.value = '20';
   cop.els.state.value = st.toUpperCase();
   cop.els.fhb.checked = fhb;
   cop.els.owner.checked = owner;
-  cop.els.foreignBuyer.checked = false;
+  cop.els.foreignBuyer.checked = !!foreign;
   cop.els.currentlyRenting.checked = false;
   cop.els.stampDuty.textContent = '';
   cop.run('calc()');
@@ -258,6 +264,38 @@ part('owner-occupier duty', () => {
       }
     }
   }
+});
+
+// 4a (cont). Cost of purchase, QLD foreign buyer: from 1 Aug 2026 the QLD
+// home and first home concessions need citizenship, permanent residency or
+// specified foreign retiree status (tools/stamp-duty-calculator-qld.html), so
+// the page charges the general rate plus the surcharge whatever the first
+// home buyer and "Buying to live in" boxes say, and hides the second box.
+// Elsewhere the foreign box only adds the surcharge.
+part('cost-of-purchase foreign buyer', () => {
+  for (const st of STATES) {
+    const rate = cop.run(`stateData['${st}'].foreignRate || 0`);
+    for (const fhb of [false, true]) {
+      for (const owner of [true, false]) {
+        for (const v of PRICES) {
+          const who = `cost-of-purchase foreign ${st} ${fhb ? 'FHB' : 'std'} ${owner ? 'owner' : 'investor'} $${v}`;
+          const domestic = st === 'qld'
+            ? money(mainDuty(st, v, 'home', 'investor', false))
+            : money(mainDuty(st, v, 'home', owner ? 'owner' : 'investor', fhb));
+          const got = copDuty(st, v, fhb, owner, true);
+          checks++;
+          if (!(Math.abs(got - (domestic + v * rate)) <= 1)) fail(`${who}: ${got} vs ${domestic} + surcharge ${Math.round(v * rate)}`);
+          if (st === 'qld') {
+            checks++;
+            if (cop.els.ownerCheck.style.display !== 'none') fail(`${who}: the "Buying to live in" box is showing`);
+          }
+        }
+      }
+    }
+  }
+  copDuty('qld', 650000, false, true, false);
+  checks++;
+  if (cop.els.ownerCheck.style.display === 'none') fail('cost-of-purchase QLD, not foreign, not FHB: the "Buying to live in" box is hidden');
 });
 
 // 4b. One conveyancing figure and one building-and-pest figure.
@@ -368,16 +406,57 @@ for (const st of STATES) {
         checks++;
         if (exact.loan > 0 && p.lvrText !== (exact.loan / p.W * 100).toFixed(1) + '%') fail(`${who}: LVR shows "${p.lvrText}" vs ${(exact.loan / p.W * 100).toFixed(1)}%`);
         checks++;
-        const next = auction.run(`planAt(${p.W + 1000}, { state: '${st}', fhb: ${fhb}, owner: ${owner}, legal: 1800, usable: ${usable} }).totalLoan`);
-        if (next <= pre) fail(`${who}: $${p.W + 1000} would also fit, so $${p.W} is not the walk-away price`);
+        if (exact.loan > 0.95 * p.W + 1e-6) fail(`${who}: the loan before LMI is ${(exact.loan / p.W * 100).toFixed(2)}% of the price, over 95%`);
+        checks++;
+        const nextOpts = `{ state: '${st}', fhb: ${fhb}, owner: ${owner}, legal: 1800, usable: ${usable} }`;
+        if (auction.run(`fitsAt(${p.W + 1000}, ${nextOpts}, ${pre})`)) fail(`${who}: $${p.W + 1000} would also fit, so $${p.W} is not the walk-away price`);
+        // Savings set the price: the page must say so and give a savings
+        // figure that does let the pre-approval set it.
+        const capBinds = auction.run(`planAt(${p.W + 1000}, ${nextOpts}).totalLoan`) <= pre;
+        const note = auction.els['lmi-callout'].innerHTML;
+        checks++;
+        if (capBinds !== /Your savings are the limit here/.test(note)) fail(`${who}: savings ${capBinds ? 'set' : 'do not set'} the price but the note ${capBinds ? 'does not say so' : 'says they do'}`);
+        if (capBinds) {
+          const need = money((note.match(/you\u2019d need about (\$[\d,]+)/) || [])[1]);
+          checks++;
+          if (!(need > usable)) { fail(`${who}: savings figure "${need}" missing or not above usable savings ${usable}`); continue; }
+          const q = auctionPlan(st, fhb, owner, need, pre, 0);
+          const qOpts = `{ state: '${st}', fhb: ${fhb}, owner: ${owner}, legal: 1800, usable: ${need} }`;
+          checks++;
+          if (auction.run(`planAt(${q.W + 1000}, ${qOpts}).totalLoan`) <= pre) fail(`${who}: with the $${need} of usable savings the page asks for, savings still set the price ($${q.W})`);
+          const r = auctionPlan(st, fhb, owner, need - 5000, pre, 0);
+          const rOpts = `{ state: '${st}', fhb: ${fhb}, owner: ${owner}, legal: 1800, usable: ${need - 5000} }`;
+          checks++;
+          if (!(auction.run(`planAt(${r.W + 1000}, ${rOpts}).totalLoan`) <= pre)) fail(`${who}: $${need} is more than needed; $${need - 5000} already lets the pre-approval set the price`);
+        }
       }
     }
   }
 }
 });
 
+// 4e. Too little saved for a 5% deposit plus costs at any price: an error,
+// and the previous plan (rows and notes) is hidden, not left on screen.
+part('auction error path', () => {
+  auction.run('_isInit = false');
+  for (const st of STATES) {
+    for (const [savings, pre] of [[0, 560000], [1000, 560000], [1000, 0], [0, 0]]) {
+      auctionPlan(st, false, true, 120000, 560000, 5); // a valid plan first
+      auctionPlan(st, false, true, savings, pre, 5);
+      const e = auction.els, who = `auction ${st} savings $${savings} pre-approval $${pre}`;
+      checks++;
+      if (e['calc-msg'].hidden || !e['calc-msg'].textContent) fail(`${who}: no error message`);
+      checks++;
+      if (e.result.style.display !== 'none') fail(`${who}: the old plan is still showing`);
+      checks++;
+      if (e['lmi-callout'].innerHTML || e['deposit-callout'].innerHTML) fail(`${who}: an old LMI or deposit note is still there`);
+    }
+  }
+  auction.run('_isInit = true');
+});
+
 if (fails) {
   console.error(`\nstate-duty-sync-test: ${fails} FAILED of ${checks} checks`);
   process.exit(1);
 }
-console.log(`state-duty-sync-test: all ${checks} checks passed (8 state pages, deposit, cost-of-purchase, FHB grants vs tools/stamp-duty-calculator.js; serviceability tax/expense-floor copy vs borrowing power; owner-occupier duty, conveyancing, LMI tiers and the auction solver on the upfront-cost calculators)`);
+console.log(`state-duty-sync-test: all ${checks} checks passed (8 state pages, deposit, cost-of-purchase, FHB grants vs tools/stamp-duty-calculator.js; serviceability tax/expense-floor copy vs borrowing power; owner-occupier and QLD foreign buyer duty, conveyancing, LMI tiers, the auction solver and its error path on the upfront-cost calculators)`);

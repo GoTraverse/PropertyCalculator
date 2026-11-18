@@ -75,8 +75,10 @@ function stampDutyEstimate(price, state, fhb, owner) {
   // `owner` = the buyer will live in the home. Same rule as calculate() in
   // tools/stamp-duty-calculator.js: it only changes the duty in QLD, where an
   // owner-occupier who is not a first home buyer pays the home-concession
-  // rate. No other state has an owner/investor split. A first home buyer gets
-  // the first home concession whatever `owner` says, as in the source.
+  // rate. A first home buyer gets the first home concession whatever `owner`
+  // says, as in the source. Victoria's principal place of residence
+  // concession (owner-occupied homes up to $550,000) isn't modelled here or
+  // in the source; the page says so.
   var baseDuty = _calcDutyTiered(state, price);
   if (!fhb) return (owner && state === 'QLD') ? _qldHomeDuty(price) : baseDuty;
   var data = _SD_STATE_DATA[state];

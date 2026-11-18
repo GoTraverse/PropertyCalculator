@@ -120,9 +120,15 @@ function applyFhbConcession(state, val, baseDuty) {
 // tools/stamp-duty-calculator.js for an established home: a first home buyer
 // gets the state's first home concession; otherwise a QLD buyer who will live
 // in the home pays the home-concession rate; everyone else pays the general
-// rate. No other state has an owner/investor duty split.
-function buyerDuty(state, val, isFhb, isOwner) {
+// rate. One difference: from 1 Aug 2026 Queensland's home concessions (home
+// and first home) need Australian citizenship, permanent residency or
+// specified foreign retiree status, so a QLD foreign buyer pays the general
+// rate here. stamp-duty-calculator.js doesn't check that rule. Victoria's
+// principal place of residence concession (owner-occupied homes up to
+// $550,000) isn't modelled here or there; the page says so.
+function buyerDuty(state, val, isFhb, isOwner, isForeign) {
   var baseDuty = calcDuty(state, val);
+  if (isForeign && state === 'qld') return baseDuty;
   if (isFhb) return applyFhbConcession(state, val, baseDuty);
   if (isOwner && state === 'qld') return qldHomeDuty(val);
   return baseDuty;
@@ -180,11 +186,12 @@ function calc() {
   var isFhb = document.getElementById('fhb').checked;
   var isForeignBuyer = document.getElementById('foreignBuyer').checked;
   // "Buying to live in" only changes the duty in Queensland, and only for a
-  // buyer who isn't a first home buyer, so the box is hidden everywhere else.
+  // buyer who is neither a first home buyer nor a foreign buyer, so the box
+  // is hidden everywhere else.
   var ownerEl = document.getElementById('owner');
   var isOwner = ownerEl ? ownerEl.checked : true;
   var ownerRow = document.getElementById('ownerCheck');
-  if (ownerRow) ownerRow.style.display = (state === 'QLD' && !isFhb) ? '' : 'none';
+  if (ownerRow) ownerRow.style.display = (state === 'QLD' && !isFhb && !isForeignBuyer) ? '' : 'none';
   var isRenting = document.getElementById('currentlyRenting').checked;
   var leaseBreak = getNumVal('leaseBreak');
 
@@ -201,7 +208,7 @@ function calc() {
   var stampDuty = 0;
   var sKey = STATE_KEY[state];
   if (sKey) {
-    stampDuty = buyerDuty(sKey, purchasePrice, isFhb, isOwner);
+    stampDuty = buyerDuty(sKey, purchasePrice, isFhb, isOwner, isForeignBuyer);
     if (isForeignBuyer) stampDuty += purchasePrice * (stateData[sKey].foreignRate || 0);
   }
 

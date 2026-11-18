@@ -3,7 +3,8 @@
  * Pre-auction companion: solves the maximum hammer price ("walk-away price")
  * your funds can support all-in (price + stamp duty + registration fees +
  * conveyancing), with lenders mortgage insurance added to the loan when the
- * loan is over 80% of the price. Renders a funding breakdown (loan, LVR, LMI),
+ * loan is over 80% of the price and the loan before LMI held to 95% of the
+ * price at most. Renders a funding breakdown (loan, LVR, LMI),
  * a deposit-day check, an optional suburb-median anchor (from
  * /tools/market-medians.json), a bid-pacing plan and an auction-day
  * checklist. Print button emits a one-page plan.
@@ -460,7 +461,9 @@ function lmiRate(lvr) {
 // stamp-duty-calculator.js for a dwelling: a first home buyer gets the
 // state's first home concession; otherwise a QLD buyer who will live in the
 // home pays the home-concession rate; everyone else pays the general rate.
-// No other state has an owner/investor duty split.
+// Victoria's principal place of residence concession (owner-occupied homes up
+// to $550,000) isn't modelled here or in stamp-duty-calculator.js; the page
+// says so.
 function dutyAt(state, P, fhb, owner) {
   var base = calcDuty(state, P);
   if (fhb) return applyFhbConcession(state, P, base);
@@ -484,23 +487,47 @@ function planAt(P, o) {
     loan: loan, lvr: lvr, lmi: lmi, totalLoan: loan + lmi, cash: allIn - loan };
 }
 
-// Largest hammer price whose loan, with any LMI added, fits the pre-approval
-// (the same test journey.js incomeCeiling() runs against its borrowing limit).
-// With no LMI this is simply all-in cost <= usable savings + pre-approval.
-// totalLoan never falls as P rises: duty and registration fees only step up,
-// so the loan grows, and while savings still cover the costs the LVR grows
-// with it (above that the top LMI tier applies throughout). Binary search is
-// therefore safe. Rounded DOWN to the nearest $1,000: a walk-away price is
+// Lenders generally want a deposit of at least 5% of the price on top of the
+// duty, fees and conveyancing, so the loan before LMI may not go past 95% of
+// the price. That is the smallest deposit with an ordinary loan in journey.js
+// (its 5% path), and it means savings always cover the costs: the loan never
+// reaches the price itself.
+var MAX_LVR = 0.95;
+
+// A hammer price P is reachable when the loan, with any LMI added, fits the
+// pre-approval (the same test journey.js incomeCeiling() runs against its
+// borrowing limit) and the loan before LMI is no more than 95% of P.
+function fitsAt(P, o, preapproval) {
+  var p = planAt(P, o);
+  return p.totalLoan <= preapproval && p.loan <= MAX_LVR * P;
+}
+
+// Largest reachable hammer price. Both tests only get harder as P rises.
+// totalLoan never falls: duty and registration fees only step up, so the
+// loan grows, and the LVR grows with it while savings cover the costs. The
+// 95% test is the same as 0.05P + duty + fees + conveyancing <= usable
+// savings, and the left side only rises. So the reachable prices run from $0
+// up to one limit and a binary search finds it. Rounded DOWN to the nearest $1,000: a walk-away price is
 // never optimistic.
 function solveWalkAway(o, preapproval) {
   var lo = 0, hi = o.usable + preapproval;
   if (hi <= 0) return 0;
   for (var i = 0; i < 60; i++) {
     var mid = (lo + hi) / 2;
-    if (planAt(mid, o).totalLoan <= preapproval) lo = mid;
+    if (fitsAt(mid, o, preapproval)) lo = mid;
     else hi = mid;
   }
   return Math.floor(lo / 1000) * 1000;
+}
+
+// When the 95% limit sets the walk-away price before the pre-approval does:
+// the usable savings at which the two limits meet. There the loan is 95% of
+// the price and, with LMI at the 90-95% tier added, equals the pre-approval.
+// With any more savings the pre-approval becomes the limit. Rounded UP to the
+// nearest $1,000 so the figure is never too low.
+function savingsToUsePreapproval(o, preapproval) {
+  var P = preapproval / (MAX_LVR * (1 + lmiRate(MAX_LVR)));
+  return Math.ceil((planAt(P, o).allIn - MAX_LVR * P) / 1000) * 1000;
 }
 
 
@@ -537,6 +564,18 @@ function renderBidPlan(W) {
 
 var _isInit = true;
 
+// On an error the last plan is hidden, so its rows and notes can't sit next
+// to the message and contradict the new inputs.
+function _clearResult() {
+  _lastWalkAway = 0;
+  var res = document.getElementById('result');
+  if (res) res.style.display = 'none';
+  var lmiBox = document.getElementById('lmi-callout');
+  if (lmiBox) { lmiBox.innerHTML = ''; lmiBox.style.display = 'none'; }
+  var depBox = document.getElementById('deposit-callout');
+  if (depBox) depBox.innerHTML = '';
+}
+
 function calculate() {
   var _msg = document.getElementById('calc-msg');
   function _showErr(t) { if (_msg) { _msg.textContent = t; _msg.hidden = false; } }
@@ -561,6 +600,7 @@ function calculate() {
   if (bufPct > 90) bufPct = 90;
 
   if (savings <= 0 && preapproval <= 0) {
+    _clearResult();
     if (!_isInit) _showErr('Enter your cash savings, your loan pre-approval or both.');
     return;
   }
@@ -572,9 +612,13 @@ function calculate() {
 
   var W = solveWalkAway(opts, preapproval);
   if (W <= 0) {
-    if (!_isInit) _showErr('Your usable funds don’t cover the fixed purchase costs yet. Add savings or pre-approval, or lower the buffer.');
+    _clearResult();
+    if (!_isInit) _showErr('Your usable savings don’t cover the purchase costs plus a 5% deposit at any price. Add savings or lower the buffer.');
     return;
   }
+  // True when the 95% limit, and not the pre-approval, stopped the price:
+  // $1,000 more would still fit the pre-approval with LMI added.
+  var capBinds = planAt(W + 1000, opts).totalLoan <= preapproval;
 
   // Everything shown below is the plan at W itself, so the rows add up.
   var plan = planAt(W, opts);
@@ -616,20 +660,25 @@ function calculate() {
   // ── LVR and LMI note ──
   var lmiBox = document.getElementById('lmi-callout');
   if (lmiBox) {
+    var lvrTxt = (plan.lvr * 100).toFixed(1) + '%';
+    var parts = [];
     if (lmi > 0) {
-      var lvrTxt = (plan.lvr * 100).toFixed(1) + '%';
       var rateTxt = (lmiRate(plan.lvr) * 100).toFixed(1) + '%';
-      var lmiMsg = 'The loan is ' + lvrTxt + ' of the price. Above 80%, lenders usually charge lenders mortgage insurance (LMI). ' +
-        'I estimate it at ' + fmt(lmi) + ' (' + rateTxt + ' of the loan) and add it to the loan, so the loan with LMI (' + fmt(loanUsed) +
-        ') has to fit inside your ' + fmt(preapproval) + ' pre-approval. That lowers the price you can reach. ' +
-        'The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium.';
-      if (plan.lvr > 0.95) {
-        lmiMsg += ' ' + lvrTxt + ' is above 95%, and lenders generally want a deposit of at least 5%, so check that yours will lend this much before you rely on this price.';
-      }
-      if (fhb) {
-        lmiMsg += ' An eligible first home buyer pays no LMI under the 5% Deposit Scheme. This calculator doesn’t check that, so it counts LMI either way.';
-      }
-      lmiBox.innerHTML = _callout('mort-callout mort-callout-gold', 'LMI', lmiMsg);
+      parts.push('The loan is ' + lvrTxt + ' of the price. Above 80%, lenders usually charge lenders mortgage insurance (LMI). ' +
+        'I estimate it at ' + fmt(lmi) + ' (' + rateTxt + ' of the loan) and add it to the loan, which takes the loan to ' + fmt(loanUsed) + '.');
+      if (!capBinds) parts.push('That has to fit inside your ' + fmt(preapproval) + ' pre-approval, so LMI lowers the price you can reach.');
+    }
+    if (capBinds) {
+      parts.push('Your savings are the limit here. Lenders generally want a deposit of at least 5% of the price on top of the duty, fees and conveyancing, so I stop the loan at 95% of the price before LMI. ' +
+        'To use all of your ' + fmt(preapproval) + ' pre-approval you’d need about ' + fmt(savingsToUsePreapproval(opts, preapproval)) +
+        ' of usable savings after the buffer. You have ' + fmt(usable) + '.');
+    }
+    if (lmi > 0) {
+      parts.push('The LMI figure is my own estimate by LVR band, with no published rate table behind it, so ask your lender for the premium.');
+      if (fhb) parts.push('An eligible first home buyer pays no LMI under the 5% Deposit Scheme. This calculator doesn’t check that, so it counts LMI either way.');
+    }
+    if (parts.length) {
+      lmiBox.innerHTML = _callout('mort-callout mort-callout-gold', lmi > 0 ? 'LMI' : 'Deposit', parts.join(' '));
       lmiBox.style.display = '';
     } else {
       lmiBox.innerHTML = '';
