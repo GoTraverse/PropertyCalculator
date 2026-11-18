@@ -4,34 +4,74 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>journey test harness</title>
+<!--
+  Dev-only page for looking at /journey in a real browser (headless Chrome
+  screenshots, Playwright checks). It seeds a journey that is well under way,
+  loads the real journey.js and journey.css, and opens whichever view the
+  address asks for. Not deployed (.netlifyignore). Netlify functions don't run
+  locally, so mock /.netlify/functions/journey in the test if sync matters.
+
+  The markup inside <main> is a copy of the views in journey.html, without the
+  nav, the footer and the text section. Keep the two the same: if this copy
+  drifts, the dumps taken from it describe a page that no longer exists.
+
+  Address options (combine them):
+    ?view=<view>   wizard | projector | budget | ground | hunt | deal | settle
+                   (wizard opens the list of step 1 answers, because the seeded
+                   journey has finished step 1)
+    ?edit=<id>     with view=wizard: open one answer for editing, e.g.
+                   edit=income, edit=price, edit=state
+    ?walk=1        start as a first-time visitor (nothing seeded) and click
+                   through every wizard question; use with view=wizard
+    ?old=1         seed the journey as an older version of the page saved it:
+                   no dates on places, placeholder dates on scenarios
+    ?picker=1      with view=hunt: open the status picker on the first place
+    ?proj=1        with view=hunt: press "Compare schemes" on the first place
+    ?dark=1        dark mode
+-->
 <script>
 // Seed BEFORE journey.js (defer) runs
-localStorage.setItem('propCalc_journey_v1', JSON.stringify({
-  v: 1,
-  done: { 1: true, 2: true, 3: true, 4: true },
-  numbers: { price: 650000, saved: 45000, saveMo: 2000, state: 'qld' },
-  profile: { stage: 'hunt', anchor: 'Chermside', area: 'capital', buyers: 'couple', fhb: true, build: 'established', income: 145000, timeframe: '12mo', dependants: 0, employment: 'payg', rentNow: 2400, cardLimits: 0 },
-  budget: { depositPct: 0.05, cap: 640000 },
-  deal: { signed: true, dates: { contract: '2026-07-10', cooling: '2026-07-17', bp: '2026-07-24', finance: '2026-07-31', preapproval: '2026-09-15', settlement: '2026-08-21' } },
-  dealChecks: [false,false,false,false,false],
-  settleChecks: [false,false,false,false,false],
-  inspections: [
-    { addr: '14 Wattle St, Chermside', price: 655000, note: 'West-facing living room, gets hot', st: 'won' },
-    { addr: '3/22 Banksia Ave, Kedron', price: 598000, note: 'Body corp $980/q', st: 'offer' },
-    { addr: '8 Coral Cres, Zillmere', price: 671000, note: 'Went $40k over reserve', st: 'lost' },
-    { addr: '112 Gympie Rd, Strathpine', price: 612000, note: 'Main road noise', st: 'passed' },
-    { addr: '5 Fern Pl, Aspley', price: 634000, note: 'Great yard, dated kitchen', st: 'inspected' },
-    { addr: '19 Melaleuca Dr, Bracken Ridge', price: 619000, note: 'Saw online only', st: 'browsed' },
-    { addr: '7 Cedar Ct, Boondall', price: 645000, note: 'Open home Saturday', st: 'browsed' }
-  ],
-  scenarios: [
-    { name: 'QLD $650,000', at: 1, numbers: { price: 650000, saved: 45000, saveMo: 2000, state: 'qld' }, profile: { fhb: true, area: 'capital', buyers: 'couple', build: 'established', income: 145000 }, bestName: 'Help to Buy', mo: 0, buyBy: 'Ready now', rep: 2650, need: 16500, saved: 45000, saveMo: 2000 },
-    { name: 'QLD $720,000', at: 2, numbers: { price: 720000, saved: 45000, saveMo: 2500, state: 'qld' }, profile: { fhb: true, area: 'capital', buyers: 'couple', build: 'established', income: 145000 }, bestName: '5% Deposit Scheme', mo: 4, buyBy: 'Nov 2026', rep: 4100, need: 39500, saved: 45000, saveMo: 2500 }
-  ],
-  settle: { price: null, actuals: { legals: 1850, bp: 550 } },
-  signupDismissed: true,
-  updatedAt: 1
-}));
+(function () {
+  var q = new URLSearchParams(location.search);
+  if (q.get('walk') === '1') { localStorage.removeItem('propCalc_journey_v1'); return; }
+  var old = q.get('old') === '1';
+  var seed = {
+    v: 1,
+    done: { 1: true, 2: true, 3: true, 4: true },
+    numbers: { price: 650000, saved: 45000, saveMo: 2000, state: 'qld' },
+    profile: { stage: 'hunt', anchor: 'Chermside', area: 'capital', buyers: 'couple', fhb: true, build: 'established', income: 145000, timeframe: '12mo', dependants: 0, employment: 'payg', rentNow: 2400, cardLimits: 0 },
+    budget: { depositPct: 0.05, cap: 640000 },
+    deal: { signed: true, dates: { contract: '2026-07-10', cooling: '2026-07-17', bp: '2026-07-24', finance: '2026-07-31', preapproval: '2026-09-15', settlement: '2026-08-21' } },
+    dealChecks: [false,false,false,false,false],
+    settleChecks: [false,false,false,false,false],
+    // The first two places carry the time they were added (2 Sep and 9 Oct
+    // 2026, midday in Brisbane). The rest were saved before that was kept.
+    inspections: [
+      { addr: '14 Wattle St, Chermside', price: 655000, note: 'West-facing living room, gets hot', st: 'won', at: 1788314400000 },
+      { addr: '3/22 Banksia Ave, Kedron', price: 598000, note: 'Body corp $980/q', st: 'offer', at: 1791511200000 },
+      { addr: '8 Coral Cres, Zillmere', price: 671000, note: 'Went $40k over reserve', st: 'lost' },
+      { addr: '112 Gympie Rd, Strathpine', price: 612000, note: 'Main road noise', st: 'passed' },
+      { addr: '5 Fern Pl, Aspley', price: 634000, note: 'Great yard, dated kitchen', st: 'inspected' },
+      { addr: '19 Melaleuca Dr, Bracken Ridge', price: 619000, note: 'Saw online only', st: 'browsed' },
+      { addr: '7 Cedar Ct, Boondall', price: 645000, note: 'Open home Saturday', st: 'browsed' }
+    ],
+    // The first scenario was saved on 24 Oct 2026. The second has the
+    // placeholder timestamp older seeds used, which must show no date.
+    scenarios: [
+      { name: 'QLD $650,000', at: 1792807200000, numbers: { price: 650000, saved: 45000, saveMo: 2000, state: 'qld' }, profile: { fhb: true, area: 'capital', buyers: 'couple', build: 'established', income: 145000 }, bestName: 'Help to Buy', mo: 0, buyBy: 'Ready now', rep: 2650, need: 16500, saved: 45000, saveMo: 2000 },
+      { name: 'QLD $720,000', at: 2, numbers: { price: 720000, saved: 45000, saveMo: 2500, state: 'qld' }, profile: { fhb: true, area: 'capital', buyers: 'couple', build: 'established', income: 145000 }, bestName: '5% Deposit Scheme', mo: 4, buyBy: 'Nov 2026', rep: 4100, need: 39500, saved: 45000, saveMo: 2500 }
+    ],
+    settle: { price: null, actuals: { legals: 1850, bp: 550 } },
+    signupDismissed: true,
+    updatedAt: 1
+  };
+  if (old) {
+    seed.inspections.forEach(function (r) { delete r.at; });
+    seed.scenarios[0].at = 1;
+    delete seed.scenarios[1].at;
+  }
+  localStorage.setItem('propCalc_journey_v1', JSON.stringify(seed));
+})();
 </script>
 <script>try{var q=new URLSearchParams(location.search);if(q.get("dark")==="1"){localStorage.setItem("equitySight_theme","dark");}if(localStorage.getItem("equitySight_theme")==="dark")document.documentElement.classList.add("dark-mode")}catch(e){}</script>
 <link rel="stylesheet" href="/shared.css">
@@ -39,35 +79,158 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
 </head>
 <body class="journey-page">
 <main id="main-content" class="jwrap">
+
+  <!-- ══ VIEW: HOME (the seven steps) ══ -->
   <div class="jview active" id="jv-home">
     <header class="jgreet">
-      <span class="jsc jsc-gold">Your first home journey</span>
-      <h1>Buy your first home in seven steps.</h1>
-      <div class="jprogress"><span id="jprog-label"></span><span class="jprog-rail"><span class="jprog-fill" id="jprog-fill"></span></span><span class="jprog-pct" id="jprog-pct"></span></div>
+      <h1>First Home Journey</h1>
+      <p>Seven steps, in the order they happen when you buy. Mark each one done as you finish it.</p>
+      <div class="jprogress" aria-label="Journey progress">
+        <span id="jprog-label">Step 1 of 7</span>
+        <span class="jprog-rail"><span class="jprog-fill" id="jprog-fill"></span></span>
+        <span class="jprog-pct" id="jprog-pct">0%</span>
+      </div>
     </header>
+
     <div id="jmode-banner"></div>
     <div id="jsignup-slot"></div>
+
     <div class="jtrail" id="jtrail"></div>
+
     <div id="jplaces-slot"></div>
-    <p class="jsaved"><span class="jpip"></span> <span id="jsaved-text">Progress saves on this device.</span></p>
+
+    <div id="jscen-slot"></div>
+
+    <p class="jsaved"><span class="jpip"></span> <span id="jsaved-text">Your progress is saved in this browser.</span></p>
     <div id="jshare-slot"></div>
-    <p class="jreset-row"><button type="button" class="jwiz-skip" id="jreset-btn">Start the whole journey over</button></p>
+    <p class="jreset-row"><button type="button" class="jwiz-skip" id="jreset-btn">Start over</button></p>
   </div>
-  <div class="jview" id="jv-wizard"><div id="jwizard"></div></div>
-  <div class="jview" id="jv-projector"><div id="jctx-chips"></div><p id="jduty-note"></p><section class="jcard jpad" id="jprio"></section><section class="jpaths" id="jpaths"></section><section class="jcard jpad"><div class="jbars" id="jbars"></div></section><section class="jcard jpad"><span class="jsc">Your stake, years after you buy</span><div class="jnet" id="jnet"></div></section><section class="jcard jpad"><span class="jsc jblock">Boost any path: the super saver</span><div class="jfhss" id="jfhss"></div></section><section><div class="jread" id="jread"></div></section><section class="jcard jpad" id="jfaq"></section><section id="jscen"></section><section class="jcard jpad jdone-row"><div><span class="jsc jsc-sage">Milestone</span><div class="jdone-t">You know your path.</div></div><button class="jbtn" data-jmark="2">Mark this stop done</button></section></div>
-  <div class="jview" id="jv-budget"><div id="jbudget"></div></div>
-  <div class="jview" id="jv-ground"><div id="jground"></div></div>
+
+  <!-- ══ VIEW: STEP 1: YOUR DETAILS (wizard) ══ -->
+  <div class="jview" id="jv-wizard">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jwizard" id="jwizard"></div>
+  </div>
+
+  <!-- ══ VIEW: STEP 2: COMPARE THE SCHEMES ══ -->
+  <div class="jview" id="jv-projector">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Step 2: Compare the schemes</span>
+      <h2 id="jproj-title">Four ways to buy your first home</h2>
+    </div>
+
+    <div id="jplace-note"></div>
+    <div class="jwiz-summary" id="jctx-chips" aria-label="Your answers"></div>
+    <p class="jduty-note" id="jduty-note"></p>
+
+    <section class="jcard jpad" id="jprio"></section>
+
+    <section class="jpaths" id="jpaths" aria-live="polite"></section>
+
+    <section class="jcard jpad">
+      <span class="jsc">When you could buy</span>
+      <div class="jbars" id="jbars"></div>
+    </section>
+
+    <section class="jcard jpad">
+      <span class="jsc">What you’d own over time</span>
+      <div class="jnet" id="jnet"></div>
+    </section>
+
+    <section class="jcard jpad">
+      <span class="jsc jblock">The First Home Super Saver</span>
+      <div class="jfhss" id="jfhss"></div>
+    </section>
+
+    <section>
+      <div class="jread" id="jread"></div>
+    </section>
+
+    <section class="jcard jpad" id="jfaq"></section>
+
+    <section id="jscen"></section>
+
+    <section>
+      <p class="jcaveat">Repayments assume 6.00% over 30 years. Stamp duty and registration fees are the FY2026-27 schedules from each state revenue and titles office. Scheme price caps and income caps are the FY2026-27 settings published by <a href="https://www.housingaustralia.gov.au/" target="_blank" rel="noopener">Housing Australia</a>, and are checked against your answers. LMI is my estimate from a typical premium table, so a lender's quote will differ. Other scheme conditions and each lender's own rules aren't checked here, so confirm them with the scheme administrator and your lender. General information, not financial advice.</p>
+    </section>
+
+    <section class="jcard jpad jdone-row">
+      <button class="jbtn" data-jmark="2">Mark this step done</button>
+    </section>
+  </div>
+
+  <!-- ══ VIEW: STEP 3: SET YOUR BUDGET ══ -->
+  <div class="jview" id="jv-budget">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Step 3: Set your budget</span>
+      <h2>Costs, repayments and your maximum price</h2>
+    </div>
+    <div id="jbudget"></div>
+  </div>
+
+  <!-- ══ VIEW: STEP 4: WHERE TO BUY ══ -->
+  <div class="jview" id="jv-ground">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Step 4: Where to buy</span>
+      <h2>Suburbs in your price range</h2>
+      <p>A price band to search in, and suburb figures from state government data.</p>
+    </div>
+    <div id="jground"></div>
+  </div>
+
+  <!-- ══ VIEW: STEP 5: INSPECTIONS AND OFFERS ══ -->
   <div class="jview" id="jv-hunt">
-    <div class="jstephead"><span class="jsc">Step 5 · Hunt &amp; compare</span><h2>Keep track of every place</h2></div>
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Step 5: Inspections and offers</span>
+      <h2>The places you look at</h2>
+      <p>Add each place with its asking price and a note. Each one is checked against your maximum price.</p>
+    </div>
     <div id="jhunt"></div>
   </div>
-  <div class="jview" id="jv-settle"><section class="jcard jpad"><span class="jsc jblock">The final dollars</span><div id="jreconcile"></div></section><section class="jcard jpad"><span class="jsc jblock">Settlement checklist</span><div id="jsettle-checks"></div></section></div>
-  <div class="jview" id="jv-deal"><div id="jdeal"></div></div>
+
+  <!-- ══ VIEW: STEP 7: SETTLEMENT ══ -->
+  <div class="jview" id="jv-settle">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Step 7: Settlement</span>
+      <h2>Final costs and checklist</h2>
+    </div>
+    <section class="jcard jpad" style="margin-top:18px">
+      <span class="jsc jblock">Final costs</span>
+      <div id="jreconcile"></div>
+    </section>
+
+    <section class="jcard jpad" style="margin-top:18px">
+      <span class="jsc jblock">Settlement checklist</span>
+      <div id="jsettle-checks"></div>
+    </section>
+    <section class="jcard jpad jdone-row" style="margin-top:18px">
+      <button class="jbtn" data-jmark="7">Mark the journey complete</button>
+    </section>
+  </div>
+
+  <!-- ══ VIEW: STEP 6: CONTRACT DEADLINES ══ -->
+  <div class="jview" id="jv-deal">
+    <button class="jback" data-jgoto="home">← Back to your journey</button>
+    <div class="jstephead">
+      <span class="jsc">Step 6: Contract deadlines</span>
+      <h2>Dates from your contract</h2>
+      <p>Missing one of these dates can cost you the deposit or the loan.</p>
+    </div>
+    <div id="jdeal"></div>
+  </div>
 </main>
+
+<!-- Journey modal (confirm / step done) -->
 <div class="jmodal-overlay" id="jmodal" hidden>
   <div class="jmodal" role="dialog" aria-modal="true" aria-labelledby="jmodal-title">
     <div id="jmodal-icon" class="jmodal-icon" hidden></div>
-    <h2 id="jmodal-title"></h2><p id="jmodal-body"></p>
+    <h2 id="jmodal-title"></h2>
+    <p id="jmodal-body"></p>
     <div class="jmodal-btns" id="jmodal-btns"></div>
   </div>
 </div>
@@ -76,6 +239,7 @@ localStorage.setItem('propCalc_journey_v1', JSON.stringify({
 window.addEventListener('load', function () {
   var q = new URLSearchParams(location.search);
   if (q.get('walk') === '1') {
+    // Click through the wizard until the list of answers appears.
     var walked = false;
     var walker = setInterval(function () {
       if (document.querySelector('.jwiz-done-icon')) { clearInterval(walker); return; }
@@ -91,6 +255,8 @@ window.addEventListener('load', function () {
       var b = document.querySelector('[data-jgoto="' + q.get('view') + '"]');
       if (b) b.click();
       setTimeout(function () {
+        var ed = q.get('edit') && document.querySelector('[data-wedit="' + q.get('edit') + '"]');
+        if (ed) ed.click();
         var pill = document.querySelector('[data-place-status]');
         if (pill && q.get('picker') === '1') pill.click();
         var proj = document.querySelector('[data-place-proj]');

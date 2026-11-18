@@ -134,11 +134,30 @@ function safeNextUrl(raw) {
   return '/journey';
 }
 
+// A partner invite (/journey?join=<token>) that was opened in this browser
+// before signing in. journey.js stores it for a day and removes it once the
+// invite is accepted, declined or switched off. The emailed sign-in link
+// comes back as /login?magic=… with no `next`, and so does the Sign in link
+// in the menu, so without this the invite is lost on the way back.
+function pendingJoinNext() {
+  try {
+    const p = JSON.parse(localStorage.getItem('propCalc_journey_pendingJoin') || 'null');
+    const age = p ? Date.now() - p.at : -1;
+    if (p && typeof p.t === 'string' && age >= 0 && age < 86400000) return 'journey?join=' + p.t;
+  } catch (e) {}
+  return '';
+}
+// Where to go once signed in: the page's own `next`, or else a waiting
+// invite. Both go through safeNextUrl, so the same allowlist applies.
+function nextAfterSignIn() {
+  return safeNextUrl(params.get('next') || pendingJoinNext());
+}
+
 (function redirectIfLoggedIn() {
   try {
     const s = JSON.parse(localStorage.getItem('propCalc_session_v1'));
     if (s && (s.id || s.email)) {
-      location.href = safeNextUrl(params.get('next') || '');
+      location.href = nextAfterSignIn();
     }
   } catch (e) {}
 })();
@@ -177,7 +196,7 @@ function safeNextUrl(raw) {
       if (res.expiresAt) session.expiresAt = res.expiresAt;
       if (res.renewsAt) session.renewsAt = res.renewsAt;
       try { localStorage.setItem('propCalc_session_v1', JSON.stringify(session)); } catch (e) {}
-      location.href = safeNextUrl(params.get('next') || '');
+      location.href = nextAfterSignIn();
     } else {
       document.getElementById('page-spinner').classList.remove('show');
       setActiveForm('magic');
@@ -381,7 +400,7 @@ async function handleGoogleCredential(response) {
     try { localStorage.removeItem('es_page_trail'); } catch (e) {}
     persistSession(res, { email: res.email });
     refreshProfileInBackground(res.id || res.email);
-    goTo(safeNextUrl(params.get('next') || ''));
+    goTo(nextAfterSignIn());
   } else {
     if (errEl) errEl.textContent = res.error || 'Google sign-in failed. Try again, or use your email and password below.';
   }
@@ -533,7 +552,7 @@ function showVerificationStep(data) {
 }
 
 function postVerificationRedirect(plan) {
-  const next = safeNextUrl(params.get('next') || '');
+  const next = nextAfterSignIn();
   // Guest-mode migration: a guest who clicked "Create a free account" to save their
   // scenario must land back on /app so the pending draft auto-migrates into the new
   // account. Without this, a free email signup with next=/app would be sent to
@@ -569,7 +588,7 @@ async function doSignin() {
   if (res.ok) {
     persistSession(res, { email: email });
     refreshProfileInBackground(res.id || email);
-    goTo(safeNextUrl(params.get('next') || ''));
+    goTo(nextAfterSignIn());
     return;
   }
   if (res.requiresEmailVerification) {
@@ -730,7 +749,7 @@ async function verifyMagicCodeFlow() {
   if (res && res.ok) {
     persistSession(res, { email: email });
     refreshProfileInBackground(res.id || email);
-    goTo(safeNextUrl(params.get('next') || ''));
+    goTo(nextAfterSignIn());
     return;
   }
   btn.disabled = false; btn.textContent = 'Verify code';

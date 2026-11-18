@@ -393,6 +393,60 @@ function ltCollectProps() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   REMEMBER THE PROPERTY ROWS ACROSS A REFRESH
+   tool-page.js remembers only the inputs that exist when the page loads
+   (state, owner type, MRIT and the first row). The rows a visitor adds or
+   removes are kept here: the whole list, in order, exactly as typed. It has
+   its own key because tool-page.js rewrites 'tool_inputs_v1:land-tax' in
+   full on every snapshot and would drop anything extra stored in it.
+   ══════════════════════════════════════════════════════════════════════ */
+
+var LT_ROWS_KEY = 'tool_inputs_v1:land-tax:rows';
+var LT_ROWS_MAX = 100; // most rows rebuilt on load, in case the stored list is damaged
+
+function ltSaveRows() {
+  var rows = document.querySelectorAll('#prop-list [data-prop-row]');
+  var out = [];
+  for (var i = 0; i < rows.length; i++) {
+    var lEl = rows[i].querySelector('[data-prop-label]');
+    var vEl = rows[i].querySelector('[data-prop-value]');
+    out.push({ label: lEl ? String(lEl.value || '') : '', value: vEl ? String(vEl.value || '') : '' });
+  }
+  try { localStorage.setItem(LT_ROWS_KEY, JSON.stringify(out)); } catch (e) { /* storage off or full */ }
+}
+
+/* Rebuilds the list from the last save. Runs after tool-page.js has restored
+ * the first row from its own snapshot and overrides it, because this list is
+ * saved on every keystroke and on every add or remove, so it is never older.
+ * (After the first row is removed, tool-page.js still holds that row's old
+ * value under prop-value-1; this list is what stops it coming back.)
+ * With nothing saved here, the page is left as tool-page.js restored it. */
+function ltRestoreRows() {
+  var list = ltByIdEl('prop-list');
+  if (!list) return;
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LT_ROWS_KEY) || 'null'); } catch (e) { return; }
+  if (!Array.isArray(saved) || !saved.length) return;
+  var n = Math.min(saved.length, LT_ROWS_MAX);
+  for (var i = 0; i < n; i++) {
+    var rows = list.querySelectorAll('[data-prop-row]');
+    if (i >= rows.length) {
+      ltAddPropRow();
+      rows = list.querySelectorAll('[data-prop-row]');
+    }
+    var item = saved[i] || {};
+    var lEl = rows[i].querySelector('[data-prop-label]');
+    var vEl = rows[i].querySelector('[data-prop-value]');
+    // Set through .value only, so a stored string can never become markup.
+    if (lEl) lEl.value = (typeof item.label === 'string') ? item.label.slice(0, 60) : '';
+    if (vEl) {
+      vEl.value = (typeof item.value === 'string') ? item.value : '';
+      fmtInput(vEl); // digits, separators and one decimal point only
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    STATE-DEPENDENT UI (owner hint, value hints, WA MRIT visibility)
    ══════════════════════════════════════════════════════════════════════ */
 
@@ -695,6 +749,7 @@ ToolPage.init({
 window.addEventListener('DOMContentLoaded', function() {
   if (window.trackCalculatorStart) trackCalculatorStart('land-tax');
 
+  ltRestoreRows(); // before the first calculate(), so the total includes every saved row
   updateStateUI();
   ltUpdateRemoveButtons();
   calculate();
@@ -713,6 +768,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   if (addBtn) addBtn.addEventListener('click', function() {
     ltAddPropRow();
+    ltSaveRows();
     calculate();
   });
 
@@ -722,8 +778,13 @@ window.addEventListener('DOMContentLoaded', function() {
     propList.addEventListener('input', function(e) {
       var t = e.target;
       if (!t || !t.hasAttribute) return;
-      if (t.hasAttribute('data-prop-value')) { fmtInput(t); calculate(); }
-      else if (t.hasAttribute('data-prop-label')) { calculate(); }
+      if (t.hasAttribute('data-prop-value')) { fmtInput(t); ltSaveRows(); calculate(); }
+      else if (t.hasAttribute('data-prop-label')) { ltSaveRows(); calculate(); }
+    });
+    // tool-page.js snapshots on "change" as well as "input", so this list does too.
+    propList.addEventListener('change', function(e) {
+      var t = e.target;
+      if (t && t.hasAttribute && (t.hasAttribute('data-prop-value') || t.hasAttribute('data-prop-label'))) ltSaveRows();
     });
     propList.addEventListener('click', function(e) {
       var btn = e.target;
@@ -738,6 +799,7 @@ window.addEventListener('DOMContentLoaded', function() {
       if (row && row !== propList) {
         propList.removeChild(row);
         ltUpdateRemoveButtons();
+        ltSaveRows();
         calculate();
       }
     });
