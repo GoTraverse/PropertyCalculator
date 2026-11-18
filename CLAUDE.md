@@ -85,7 +85,6 @@ See **`README.md`** for feature overview and quick start guide.
 | `footer.js` | 60 | Renders footer into `#site-footer-root`. Footer link set includes `/methodology` + `/data-sources` authority pages. |
 | `error-capture.js` | 118 | Global error handler — POSTs errors to `client-errors` function. SUPPRESS list for network noise + third-party `@context` parser errors. |
 | `site-init.js` | 21 | Dark-mode theme application + pre-signup page-trail recording (loaded with `defer`) |
-| `adsense.js` | 35 | Google AdSense integration |
 
 ### Supporting Scripts
 | File | Purpose |
@@ -93,7 +92,7 @@ See **`README.md`** for feature overview and quick start guide.
 | `legal.js` | Markdown → HTML parser for legal pages (frontmatter, TOC, safe links) |
 | `tools/tool-page.js` | Shared calculator engine (init, input persistence, scroll-to-result) + the calc utilities (`fmtNum()`, `parseNum()`, `monthlyRepayment()`, etc.) that the tool pages actually load. (The old `shared-calcs.js` was unused and was deleted.) |
 | `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` for calculators |
-| `index-init.js` / `index-events.js` | Landing page init and event wiring |
+| `index-init.js` | Landing page init |
 | `login.js` | Login/signup page logic |
 | `contact.js` | Contact page form handling |
 | `state-hub-search.js` | State hub client-side search by name/postcode |
@@ -109,6 +108,8 @@ See **`README.md`** for feature overview and quick start guide.
 - **Admin Actions**: Every admin function verifies `user.role === 'admin'` via session cookie
 - **Session Auth**: HttpOnly Secure cookie (`es_session`) — set on login, cleared on signout; token never exposed to client JS
 - **Password Hashing**: scrypt with a per-user salt for new and changed passwords; older HMAC-SHA256 (`AUTH_SALT`) hashes are upgraded at the next sign-in
+- **Origin check**: every function except `stripe.js` accepts only `SITE_URL` origins and this site's own Netlify hosts (`OWN_NETLIFY_ORIGIN`, `^https://([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$`), never any `*.netlify.app`. The public proxies (`market-data`, `address-suggest`, `mapproxy`) also refuse cross-site requests and rate-limit by IPv4 address or IPv6 /64.
+- **Billing (fixed Nov 2026, owner-approved)**: the webhook takes a per-event and per-customer lock, records an event as done only after it is applied, and returns 5xx so Stripe retries on failure; past_due keeps Pro during the 3-day grace; checkout accepts only configured price ids; `deleteAccount` and `adminDeleteUser` cancel the Stripe subscription first (`_billing.js`) and delete nothing if that fails. `node tests/stripe-billing-test.js` covers it.
 - **Session floor**: `netlify/functions/_session.js` `SESSION_EPOCH_MS` — every function rejects sessions issued before it. Raise it to sign everyone out after any bug in how sessions are issued. Guarded by `node tests/auth-session-test.js`
 - **Sessions end on password change/reset**: `revokeAllTokensForUser` runs on changePassword, resetPassword and adminResetPassword
 
@@ -148,7 +149,9 @@ See **`README.md`** for feature overview and quick start guide.
 - **Cost breakdown styling**: `.tool-cost-breakdown` + `.tool-cost-row` for detailed cost displays (used by cost-of-purchase)
 - **To update all calculators**: Edit `tools.css` (no need to touch individual HTML files)
 - **Worked examples must come from the code.** Every figure in a calculator's prose, examples, FAQ and FAQ JSON-LD is the tool's own output for those inputs (regenerated Nov 2026 after most of them had drifted). Change the code → re-run the example. `node tests/faq-jsonld-sync-test.js` checks FAQ JSON-LD against the visible FAQ.
-- **The 8 state stamp-duty pages are hand-maintained.** `build/build-state-stamp-duty.js` is disabled (its config is stale); fix the state files directly and run `tests/state-duty-sync-test.js`.
+- **The 8 state stamp-duty pages are hand-maintained** (the old generator was deleted in Nov 2026). Fix the state files directly and run `tests/state-duty-sync-test.js`.
+- **Shared figures across tools (Nov 2026)**: conveyancing is $1,800, described as my estimate with the range $1,300 to $2,200, everywhere; the default interest rate is 6.25% everywhere; a rate prefilled from `market-rate.js` (RBA cash rate + 2.15 points) is explained with `MarketRate.bindRateNote()`; LVR is rounded to 4 places before the LMI tier lookup; the LMI table is my own estimate (no published rate table) and the methodology page sets it out.
+- **First home duty formulas (corrected Nov 2026 from the legislation)**: NSW s 78A uses N - ((1,000,000 - V) / 200,000) x D between $800,000 and $1,000,000; WA charges $16.15 per $100 (or part) over $600,000 up to $800,000; the generic straight-line slide is Victoria's s 57JA rule and is used for VIC only. Every engine copy must agree (`tests/duty-sync-test.js`, `tests/state-duty-sync-test.js`, `tests/stamp-duty-test.js`).
 
 ### Suburb pages (~1,475 generated; rebuilt Nov 2026 to show sourced figures only)
 - **What a suburb page may contain** (enforced by the header comment in `build/build-suburbs.js`): postcode, ABS 2021 Census population, the current median rent and/or sale medians from `data/market-current.json` with period and source printed under each number, plain arithmetic on those figures (5/10/20% deposit at the median; weekly rent per month and year), and the nearest other profiled suburbs with their own figures. **Nothing else.**
@@ -310,6 +313,15 @@ Files intentionally NOT blocked (needed at runtime):
 - Submit sitemap.xml: https://search.google.com/search-console
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
+
+## Recent Changes (18 Nov 2026 — follow-ups, fact check, billing)
+
+- **Fact check**: 112 claims checked against government sources and legislation by one researcher, every doubted verdict re-checked by a second. 19 corrections applied, including the NSW and WA first home duty formulas (the site undercharged in the concession bands), NT house-and-land only, Queensland and Tasmanian grants now legislated, ACT, Queensland and WA duty due dates, SA six-month residence, APRA's HELP change in serviceability. Unverifiable claims are listed in TODO.md.
+- **Journey**: edit one answer without replaying the wizard; partner invites survive sign-in in the same browser; "Compare schemes" on a place no longer overwrites the target price; saved dates on places and scenarios.
+- **Calculators**: one conveyancing figure and one default rate everywhere; Queensland home concession for owner-occupiers who are not first home buyers in deposit, cost of purchase and auction budget; auction budget checks LVR and LMI and never solves to a loan above 95%; cash flow uses the phased Medicare levy; land tax extra rows persist.
+- **Security**: origin checks tightened; sign-in code attempt caps, email validation and the verification counter fixed; rate limits and cross-site refusal on the public proxies; CSP for share-view pages; seo-metrics state changes need POST; stale CSP hashes and dead hosts removed.
+- **Billing**: the five known Stripe bugs fixed (see Security above). Owner-approved.
+- **Cleanup**: AdSense code, the admin About tab and the old state-duty generator removed; homepage structured data fixed (and tested); sitemap dates corrected; /login has one h1; account inputs labelled; methodology describes the borrowing estimate and the LMI table.
 
 ## Recent Changes (Nov 2026 — de-AI pass)
 
@@ -572,7 +584,7 @@ Rounds 1–5 of the "audit the whole site" pass. PR #197 merged 2026-04-24, foll
 - ✅ **CSP inline handler fixes** — moved inline event handlers to JS to fix script-src-attr violations
 - ✅ **Dark/light mode** — system-wide fix across app, admin, and account panel
 - ✅ **Google Sign-In** added to login page
-- ✅ **Google AdSense** integrated via `adsense.js`
+- ✅ **Google AdSense** integrated via `adsense.js` (removed Nov 2026: ads never ran)
 - ✅ **market-rate.js** — live RBA cash rate + ABS state median prices for calculator pages
 - ✅ **shared-calcs.js** — common utility functions extracted for reuse across all calculators
 - ✅ **JS refactor** — page logic split into init + events files (app-init, app-events, admin-events, etc.)
