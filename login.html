@@ -36,7 +36,10 @@
 <main class="login-wrap" id="main-content">
   <div class="login-box">
     <div style="text-align:center;">
-      <div class="login-heading" id="login-heading">Sign in</div>
+      <!-- The page's one h1. login.js (setActiveForm) rewrites its text to name
+           the panel on show: Sign in, Create an account, Sign in with email,
+           Reset password. -->
+      <h1 class="login-heading" id="login-heading">Sign in</h1>
       <div class="login-sub" id="login-sub"></div>
     </div>
     <!-- Google Sign-In. The skeleton is a fully styled button that
@@ -88,7 +91,7 @@
              2. Verify — enter the 6-digit code (or click the link in
                 the email; the link path goes through ?magic=TOKEN
                 detection on this same page). -->
-      <div id="form-magic" class="login-form" role="tabpanel">
+      <div id="form-magic" class="login-form" role="tabpanel" aria-labelledby="login-heading">
         <div id="magic-step-request">
           <div class="form-note">I'll email you a sign-in link and a 6-digit code. Either one signs you in.</div>
           <div class="form-field"><label class="form-label" for="ml-email">Email</label><input class="form-input" id="ml-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
@@ -107,7 +110,7 @@
         </div>
       </div>
       <!-- Forgot Password Flow -->
-      <div id="form-forgot" class="login-form" role="tabpanel">
+      <div id="form-forgot" class="login-form" role="tabpanel" aria-labelledby="login-heading">
         <div id="forgot-step-request">
           <div class="form-note">Enter your email and I'll send a reset code.</div>
           <div class="form-field"><label class="form-label" for="fp-email">Email</label><input class="form-input" id="fp-email" type="email" placeholder="you@email.com" autocomplete="email"></div>

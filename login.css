@@ -42,14 +42,16 @@ body {
   contain: layout style;
 }
 
-/* Heading */
+/* Heading: the page's h1. login.js changes its text to name the panel on
+   show. The margin is spelled out so it does not lean on the reset in
+   shared.css. */
 .login-heading {
   font-size: clamp(28px, 4.2vw, 36px);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.015em;
   text-align: left;
-  margin-bottom: 10px;
+  margin: 0 0 10px;
 }
 .login-sub {
   font-size: 17px;

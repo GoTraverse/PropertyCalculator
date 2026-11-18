@@ -67,8 +67,11 @@
 <section class="pf-guest" id="pf-guest">
   <div class="pf-wrap">
     <div id="pf-guest-msg" class="pf-guest-msg" style="display:none;" role="status"></div>
-    <div class="pf-hero">
-      <h1 class="pf-hero-h1">The portfolio tracker is parked</h1>
+    <div class="pf-hero" id="pf-hero">
+      <!-- The page's one h1. portfolio.js (placeHeading) moves it to the top of
+           the page head below, with the signed-in title, when the tracker is
+           shown. -->
+      <h1 class="pf-hero-h1" id="pf-h1">The portfolio tracker is parked</h1>
       <p class="pf-hero-sub">It still works for people who already use it, but I'm not developing it further. If you have holdings saved here, <a href="/login?next=/portfolio">sign in</a> to see them. If you're buying your first home, the First Home Journey is the part of the site I maintain.</p>
       <div class="pf-hero-ctas">
         <a href="/journey" class="pf-btn pf-btn-gold pf-btn-lg">Go to the First Home Journey</a>
@@ -82,8 +85,8 @@
   <div class="pf-wrap">
 
     <header class="pf-page-head">
-      <div>
-        <h1 class="pf-title">Your property portfolio</h1>
+      <div id="pf-head-main">
+        <!-- portfolio.js puts the h1 here ("Your property portfolio"). -->
         <p class="pf-sub">To model changes to one property, use Scenarios in the calculator.</p>
       </div>
       <button class="pf-btn pf-btn-gold" id="pf-add-btn" type="button">+ Add property</button>
@@ -285,28 +288,17 @@
   </div>
 </section>
 
-<!-- ══ Cross-links (both states) ══ -->
+<!-- ══ Cross-links (both states). A plain list. portfolio.js shows the last
+     item (#pf-link-app) only to signed-in users. ══ -->
 <section class="pf-links">
   <div class="pf-wrap">
     <h2 class="pf-links-title">Related tools</h2>
-    <div class="pf-links-grid">
-      <a class="pf-link-card" href="/tools/land-tax-calculator">
-        <span class="pf-link-name">Land Tax Calculator</span>
-        <span class="pf-link-desc">All 8 states, with surcharges and owner types.</span>
-      </a>
-      <a class="pf-link-card" href="/tools/property-cashflow-calculator">
-        <span class="pf-link-name">Cash Flow Calculator</span>
-        <span class="pf-link-desc">Weekly cash flow before and after tax, on FY2026-27 rates.</span>
-      </a>
-      <a class="pf-link-card" href="/tools/listing-price-checker">
-        <span class="pf-link-name">Listing Price Checker</span>
-        <span class="pf-link-desc">Compare an asking price with government suburb medians.</span>
-      </a>
-      <a class="pf-link-card" href="/app" id="pf-link-app" style="display:none;">
-        <span class="pf-link-name">Scenarios</span>
-        <span class="pf-link-desc">Model changes to a property: rates, rent and renovations over 30 years.</span>
-      </a>
-    </div>
+    <ul class="pf-links-list">
+      <li><a href="/tools/land-tax-calculator">Land Tax Calculator</a><span class="pf-links-note">All 8 states, with surcharges and owner types.</span></li>
+      <li><a href="/tools/property-cashflow-calculator">Cash Flow Calculator</a><span class="pf-links-note">Weekly cash flow before and after tax, on FY2026-27 rates.</span></li>
+      <li><a href="/tools/listing-price-checker">Listing Price Checker</a><span class="pf-links-note">Compare an asking price with government suburb medians.</span></li>
+      <li id="pf-link-app" style="display:none;"><a href="/app">Scenarios</a><span class="pf-links-note">Model changes to a property: rates, rent and renovations over 30 years.</span></li>
+    </ul>
   </div>
 </section>
 

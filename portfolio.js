@@ -884,8 +884,22 @@ function submitDelete() {
    PAGE STATES — guest / loading / error / content
    ══════════════════════════════════════════════════════════════════════ */
 
+/* The page has one h1. In the HTML it sits in the guest block (the default
+ * view) and reads as the parked notice. When the tracker is shown it moves to
+ * the top of the page head and takes the signed-in title; it moves back if the
+ * session turns out to have expired. */
+function placeHeading(inApp) {
+  var h = byId('pf-h1');
+  var slot = byId(inApp ? 'pf-head-main' : 'pf-hero');
+  if (!h || !slot) return;
+  h.className = inApp ? 'pf-title' : 'pf-hero-h1';
+  h.textContent = inApp ? 'Your property portfolio' : 'The portfolio tracker is parked';
+  if (slot.firstElementChild !== h) slot.insertBefore(h, slot.firstChild);
+}
+
 function showGuest(msg) {
   var g = byId('pf-guest'), a = byId('pf-app'), l = byId('pf-link-app');
+  placeHeading(false);
   if (a) a.style.display = 'none';
   if (g) g.style.display = '';
   if (l) l.style.display = 'none';
@@ -897,6 +911,7 @@ function showGuest(msg) {
 
 function showApp() {
   var g = byId('pf-guest'), a = byId('pf-app'), l = byId('pf-link-app');
+  placeHeading(true);
   if (g) g.style.display = 'none';
   if (a) a.style.display = '';
   if (l) l.style.display = '';

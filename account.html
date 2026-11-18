@@ -61,7 +61,15 @@
 
   /* Form fields */
   .acct-field { margin-bottom: 16px; }
-  .acct-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(28,28,30,0.45); margin-bottom: 6px; display: block; }
+  /* Field labels: plain text at a readable size and full contrast. (They were
+     9px uppercase at 45% opacity, and had no dark-mode colour, so on the dark
+     theme they could not be seen at all.) */
+  .acct-label { font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--charcoal); margin-bottom: 6px; display: block; }
+  html.dark-mode .acct-label { color: #F5F0E8; }
+  /* The label around each theme radio. Its colour used to be set inline to
+     the dark ink, which left the three options unreadable on the dark theme. */
+  .acct-choice { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--charcoal); }
+  html.dark-mode .acct-choice { color: #F5F0E8; }
   .acct-input { width: 100%; background: var(--warm-white); border: 1px solid rgba(28,28,30,0.12); border-radius: 4px; padding: 11px 14px; font-family: var(--font-body); font-size: 14px; color: var(--charcoal); outline: none; transition: border-color 0.15s; box-sizing: border-box; }
   .acct-input:focus { border-color: rgba(201,168,76,0.6); background: white; }
   .acct-input:read-only { opacity: 0.5; cursor: default; }
@@ -197,7 +205,7 @@
           <div class="acct-avatar-row">
             <label style="cursor:pointer;">
               <div class="acct-avatar" id="acct-avatar">?</div>
-              <input type="file" accept="image/*" style="display:none;" id="avatar-file-input">
+              <input type="file" accept="image/*" style="display:none;" id="avatar-file-input" aria-label="Profile photo">
             </label>
             <div>
               <div class="acct-avatar-hint">Click to change your profile photo. It is resized to 128 by 128 pixels.</div>
@@ -207,17 +215,17 @@
 
           <div class="acct-row">
             <div class="acct-field">
-              <label class="acct-label">Display name</label>
+              <label class="acct-label" for="acct-name">Display name</label>
               <input class="acct-input" id="acct-name" type="text" placeholder="Your name" maxlength="30">
             </div>
             <div class="acct-field">
-              <label class="acct-label">Email</label>
+              <label class="acct-label" for="acct-email">Email</label>
               <input class="acct-input" id="acct-email" type="email" readonly placeholder="email@example.com">
             </div>
           </div>
 
           <div class="acct-field">
-            <label class="acct-label">Profile colour</label>
+            <div class="acct-label">Profile colour</div>
             <div class="color-swatches" id="acct-color-swatches">
               <div class="color-swatch active" style="background:#C9A84C;" data-color="#C9A84C"></div>
               <div class="color-swatch" style="background:#7B9E87;" data-color="#7B9E87"></div>
@@ -306,17 +314,17 @@
         </div>
         <div class="acct-card-body">
           <div class="acct-field">
-            <label class="acct-label">Theme</label>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--charcoal);">
+            <div class="acct-label" id="pref-theme-label">Theme</div>
+            <div role="radiogroup" aria-labelledby="pref-theme-label" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+              <label class="acct-choice">
                 <input type="radio" name="pref-theme" value="system" style="accent-color:var(--gold);">
                 System default
               </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--charcoal);">
+              <label class="acct-choice">
                 <input type="radio" name="pref-theme" value="light" style="accent-color:var(--gold);">
                 Light
               </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--charcoal);">
+              <label class="acct-choice">
                 <input type="radio" name="pref-theme" value="dark" style="accent-color:var(--gold);">
                 Dark
               </label>
@@ -348,16 +356,16 @@
           </div>
           <div id="password-form" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(28,28,30,0.07);">
             <div class="acct-field">
-              <label class="acct-label">Current password</label>
+              <label class="acct-label" for="pw-current">Current password</label>
               <input class="acct-input" id="pw-current" type="password" placeholder="••••••••">
             </div>
             <div class="acct-row">
               <div class="acct-field">
-                <label class="acct-label">New password</label>
+                <label class="acct-label" for="pw-new">New password</label>
                 <input class="acct-input" id="pw-new" type="password" placeholder="At least 8 characters">
               </div>
               <div class="acct-field">
-                <label class="acct-label">Confirm new password</label>
+                <label class="acct-label" for="pw-confirm">Confirm new password</label>
                 <input class="acct-input" id="pw-confirm" type="password" placeholder="Repeat password">
               </div>
             </div>
@@ -420,7 +428,7 @@
     </div>
     <div style="padding:16px 22px;">
       <div id="acct-dialog-msg" style="font-size:13px;color:var(--slate);line-height:1.7;"></div>
-      <input type="password" id="acct-dialog-input" placeholder="Your password" style="display:none;width:100%;margin-top:10px;padding:9px 12px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.12);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:13px;color:var(--charcoal);outline:none;">
+      <input type="password" id="acct-dialog-input" aria-label="Your password" aria-describedby="acct-dialog-msg" placeholder="Your password" style="display:none;width:100%;margin-top:10px;padding:9px 12px;background:rgba(28,28,30,0.04);border:1px solid rgba(28,28,30,0.12);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:13px;color:var(--charcoal);outline:none;">
     </div>
     <div style="padding:0 22px 18px;display:flex;gap:10px;justify-content:flex-end;">
       <button id="acct-dialog-cancel" style="padding:9px 18px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:11px;cursor:pointer;background:rgba(28,28,30,0.07);border:1px solid rgba(28,28,30,0.12);color:var(--slate);">Cancel</button>
