@@ -25,7 +25,7 @@ function calcWADuty(price, ptype, buyer, fhb) {
   // Vacant land: same treatment as tools/stamp-duty-calculator.js, which only
   // applies first home buyer relief to dwellings (QLD land aside).
   if (fhb && ptype === 'land') {
-    return { duty: standard, note: 'First home buyer relief for vacant land has different rules that this page does not model, so standard duty is shown.' };
+    return { duty: standard, note: 'First home buyer relief on vacant land has different rules that this page doesn’t model, so this is standard duty.' };
   }
 
   if (fhb && v <= WA_FHB_FULL) {
@@ -99,19 +99,21 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (Landgate — transfer fee scales with price)';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Landgate, transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (estimate, roughly $1,500–$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Western Australia 2026-27 transfer duty (FHB thresholds announced in the 2026-27 Budget, applying retrospectively to transactions from 7 May 2026 — confirm the current legislative status with RevenueWA). LMI is a rough estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate at RevenueWA’s 2026-27 rates. The first home buyer thresholds were announced in the 2026-27 Budget and apply retrospectively to transactions from 7 May 2026, so confirm their legislative status with RevenueWA. The LMI figure is rough.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -135,9 +137,9 @@ ToolPage.init({
   slug: 'stamp-duty-wa',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full Western Australia purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Buying your first home in Western Australia',
+    description: 'The First Home Journey adds this duty to a budget for the whole purchase and tracks your contract dates through to settlement.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=wa'
   },
   resources: {
@@ -145,28 +147,28 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFDB\uFE0F', title: 'RevenueWA',
         links: [
-          { text: 'WA Transfer Duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' },
+          { text: 'Transfer duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' },
           { text: 'First Home Owner Rate of Duty', href: 'https://www.wa.gov.au/government/publications/duties-fact-sheet-first-home-owner-rate' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyers',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'First Home Guarantee', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        icon: '\uD83D\uDCB0', title: 'Home loans and rental property',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with RevenueWA.'
+    disclaimer: 'This is general information, not advice. RevenueWA or your settlement agent can confirm the duty on your contract.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-wa',
@@ -186,7 +188,7 @@ ToolPage.init({
   ],
   examples: [
   {
-    "label": "WA — $340,000 property",
+    "label": "$340,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -208,12 +210,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "v": "$0 (first home buyer exemption)"
       }
     ]
   },
   {
-    "label": "WA — $470,000 property",
+    "label": "$470,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -235,12 +237,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "v": "$0 (first home buyer exemption)"
       }
     ]
   },
   {
-    "label": "WA — $1,000,000 property",
+    "label": "$1,000,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -262,7 +264,7 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$42,615 (over cap)"
+        "v": "$42,615 (over the concession limit)"
       }
     ]
   }

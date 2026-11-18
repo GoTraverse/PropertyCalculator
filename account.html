@@ -200,7 +200,7 @@
               <input type="file" accept="image/*" style="display:none;" id="avatar-file-input">
             </label>
             <div>
-              <div class="acct-avatar-hint">Click to change your profile photo.<br>JPG or PNG, max 5MB.</div>
+              <div class="acct-avatar-hint">Click to change your profile photo. It is resized to 128 by 128 pixels.</div>
               <span class="acct-avatar-change" id="avatar-remove" style="display:none;color:#C45A5A;">Remove photo</span>
             </div>
           </div>
@@ -325,71 +325,6 @@
         </div>
       </div>
 
-      <div class="acct-card">
-        <div class="acct-card-head">
-          <h3>Calculator defaults</h3>
-          <p>Filled in for you when you start a new scenario.</p>
-        </div>
-        <div class="acct-card-body">
-          <div class="acct-row">
-            <div class="acct-field">
-              <label class="acct-label">Default state</label>
-              <select class="acct-input" id="pref-state">
-                <option value="">None</option>
-                <option value="QLD">QLD</option>
-                <option value="NSW">NSW</option>
-                <option value="VIC">VIC</option>
-                <option value="SA">SA</option>
-                <option value="WA">WA</option>
-                <option value="TAS">TAS</option>
-                <option value="NT">NT</option>
-                <option value="ACT">ACT</option>
-              </select>
-              <div style="font-size:11px;color:var(--slate);margin-top:4px;">Used for suburb growth lookups</div>
-            </div>
-            <div class="acct-field">
-              <label class="acct-label">Default loan term (years)</label>
-              <select class="acct-input" id="pref-loan-term">
-                <option value="">None</option>
-                <option value="20">20</option>
-                <option value="25">25</option>
-                <option value="30">30</option>
-                <option value="35">35</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="acct-card">
-        <div class="acct-card-head">
-          <h3>Notifications</h3>
-          <p>Which emails EquitySight sends you.</p>
-        </div>
-        <div class="acct-card-body">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(28,28,30,0.07);">
-            <div>
-              <div style="font-size:13px;font-weight:500;color:var(--charcoal);">Security alerts</div>
-              <div style="font-size:12px;color:var(--slate);margin-top:2px;">Password changes, new sign-ins from unfamiliar devices</div>
-            </div>
-            <label class="pref-toggle">
-              <input type="checkbox" id="pref-notify-security" checked>
-              <span class="pref-toggle-track"></span>
-            </label>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
-            <div>
-              <div style="font-size:13px;font-weight:500;color:var(--charcoal);">Product updates</div>
-              <div style="font-size:12px;color:var(--slate);margin-top:2px;">New features and improvements</div>
-            </div>
-            <label class="pref-toggle">
-              <input type="checkbox" id="pref-notify-updates">
-              <span class="pref-toggle-track"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-
       <div class="acct-btn-row">
         <button class="acct-btn acct-btn-primary" id="save-prefs-btn">Save preferences</button>
         <span class="acct-status-msg" id="prefs-status"></span>
@@ -419,7 +354,7 @@
             <div class="acct-row">
               <div class="acct-field">
                 <label class="acct-label">New password</label>
-                <input class="acct-input" id="pw-new" type="password" placeholder="Min 8 characters">
+                <input class="acct-input" id="pw-new" type="password" placeholder="At least 8 characters">
               </div>
               <div class="acct-field">
                 <label class="acct-label">Confirm new password</label>

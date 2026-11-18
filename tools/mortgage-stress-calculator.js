@@ -119,7 +119,7 @@ ToolPage.init({
           { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
           { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' },
           { text: 'Moneysmart: budgeting', href: 'https://moneysmart.gov.au/budgeting' },
-          { text: 'Moneysmart: help with financial difficulty', href: 'https://moneysmart.gov.au/justask' }
+          { text: 'Moneysmart: problems paying your mortgage', href: 'https://moneysmart.gov.au/home-loans/problems-paying-your-mortgage' }
         ]
       }
     ],

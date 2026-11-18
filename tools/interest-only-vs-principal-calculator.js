@@ -54,7 +54,7 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Buying a first home',
-    description: 'The First Home Journey compares the government schemes on your figures and builds a budget that includes every upfront cost.',
+    description: 'The First Home Journey compares the government schemes using your savings and income, then builds a budget that includes stamp duty and the other upfront costs.',
     buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
@@ -74,7 +74,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'General information, not financial advice. The tool assumes the loan reverts to P&I at the IO rate. Refinancing, or a different revert rate from your lender, changes the result.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/interest-only-vs-principal-calculator',
@@ -103,7 +103,7 @@ ToolPage.init({
         { k: 'Total term', v: '30 years' }
       ],
       outputs: [
-        { k: 'IO monthly (5 yr period)', v: '$3,300' },
+        { k: 'IO monthly, first 5 years', v: '$3,300' },
         { k: 'P&I monthly', v: '$3,694' },
         { k: 'IO monthly after reverting to P&I', v: '$4,089' },
         { k: 'Extra interest vs P&I', v: '$94,695' }
@@ -121,12 +121,12 @@ ToolPage.init({
       outputs: [
         { k: 'IO monthly', v: '$4,427' },
         { k: 'P&I monthly', v: '$5,091' },
-        { k: 'Cash-flow saving/month', v: '$664' },
+        { k: 'Cash-flow saving a month', v: '$664' },
         { k: 'Extra interest vs P&I', v: '$88,401' }
       ]
     },
     {
-      label: '$400,000 owner-occupier 2-year IO bridge',
+      label: '$400,000 owner-occupier loan, 2 years IO',
       inputs: [
         { k: 'Loan amount', v: '$400,000' },
         { k: 'P&I rate', v: '6.10%' },
@@ -143,13 +143,13 @@ ToolPage.init({
   ],
   faq: [
     { q: 'Why is the IO rate higher than the P&I rate?',
-      a: 'APRA treats IO loans as higher risk, because the balance isn\'t being paid down if values fall. Lenders add a premium on top of the P&I rate, usually 0.15–0.40%. The gap is larger for investors than for owner-occupiers.' },
+      a: 'APRA treats IO loans as higher risk because the balance isn\'t being paid down, which leaves less of a buffer if values fall. Lenders add a premium to the P&I rate, usually 0.15–0.40%, and the gap is larger for investors than for owner-occupiers.' },
     { q: 'Can I extend the IO period beyond 5 years?',
-      a: 'Investors can usually get up to 10 years of IO, sometimes split across more than one renewal. Owner-occupiers are usually capped at 5 years. Each extension is a new credit decision with a new serviceability assessment, so approval isn\'t automatic.' },
+      a: 'Investors can usually get up to 10 years of IO, sometimes split across more than one renewal. Owner-occupiers are generally capped at 5 years. Each extension is a new credit decision with a new serviceability assessment, so approval isn\'t automatic.' },
     { q: 'What happens when the IO period ends?',
-      a: 'The loan reverts to P&I over the remaining term. You have fewer years to repay the full principal, so the repayment rises. In this calculator, a $600,000 30-year loan at 6.60% with 5 years of IO goes from $3,300 to $4,089 a month, a 24% rise. A longer IO period or a shorter remaining term makes the rise bigger.' },
+      a: 'The loan reverts to P&I over the remaining term. The full principal has to be repaid in fewer years, so the repayment rises. A $600,000 30-year loan at 6.60% with 5 years of IO goes from $3,300 to $4,089 a month, a 24% rise. A longer IO period or a shorter remaining term makes the rise bigger.' },
     { q: 'Is the interest on an IO loan tax-deductible?',
-      a: 'On an investment property the interest is generally deductible whether the loan is IO or P&I. Principal repayments are never deductible. On your own home, neither is. The ATO or a registered tax agent can confirm your position.' }
+      a: 'On an investment property the interest is generally deductible whether the loan is IO or P&I. Principal repayments are never deductible. On your own home, neither is.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '📊', href: '/tools/mortgage-repayment-calculator', label: 'Mortgage Repayment' },

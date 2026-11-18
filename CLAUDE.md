@@ -311,6 +311,14 @@ Files intentionally NOT blocked (needed at runtime):
 - Set target country to Australia in GSC settings
 - Monitor search traffic by country & CTR from Australian searches
 
+## Recent Changes (Nov 2026 — de-AI pass)
+
+The owner's top priority after a forum called the site "AI slop". Rules are in "Voice and design" above.
+- **Design**: system font, white page, one 720px column, blue underlined links, charcoal buttons. Google Fonts removed everywhere (`font-loader.js` is a stub). Homepage, calculators, journey, text pages, suburb pages and hubs, login, contact, about, 404 and offline restyled. Share images regenerated as plain title cards.
+- **Copy**: every visitor-facing page, email and generator string rewritten in the first person and cut hard (calculator guides roughly halved). Each page group was edited, checked independently, then fixed twice. No figure changed. New numbers in the text were moved from elsewhere on the same page or come from the code's output.
+- **Fixes found on the way**: the 8 state stamp-duty pages never showed their journey link (now revealed after a result); the "Try it free" nav button to the parked /app is gone; APRA's 1 Feb 2026 debt-to-income limit replaces "APRA monitors"; HomeStart was listed as a defence scheme; renovation FAQ claimed plumbing and electrical work needs a DA; account page settings that did nothing were removed; one FAQ list per calculator.
+- **Not checked**: facts the editors doubted are listed in TODO.md item 46.
+
 ## Recent Changes (Nov 2026 — full-site review)
 
 Owner asked for a full review. What changed, in the order it mattered:

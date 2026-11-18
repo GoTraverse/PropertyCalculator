@@ -6,13 +6,13 @@ EquitySight is a free website for Australian home buyers, built and run by one p
 
 ## First Home Journey
 
-- [First Home Journey](https://equitysight.app/journey): A step-by-step planner for Australian first home buyers. It compares the 5% Deposit Scheme, Help to Buy, FHSS and buying with no scheme, builds a purchase budget with stamp duty and LMI, and tracks the search through to settlement.
+- [First Home Journey](https://equitysight.app/journey): A step-by-step planner for Australian first home buyers. It compares the 5% Deposit Scheme, Help to Buy, a 10% deposit with LMI and a 20% deposit, works out a budget and maximum price with stamp duty included, and tracks the purchase through to settlement.
 
 ## Calculators
 
 - [All calculators](https://equitysight.app/tools/): The full list, grouped by buying, borrowing and investment.
 - [Stamp Duty Calculator](https://equitysight.app/tools/stamp-duty-calculator): FY2026-27 transfer duty for all 8 states and territories, with first home buyer concessions and foreign buyer surcharges. State-specific versions exist for NSW, VIC, QLD, SA, WA, TAS, ACT and NT (e.g. https://equitysight.app/tools/stamp-duty-calculator-nsw).
-- [Deposit Calculator](https://equitysight.app/tools/deposit-calculator): How long to save a deposit, including the 5% Deposit Scheme and FHSS.
+- [Deposit Calculator](https://equitysight.app/tools/deposit-calculator): The deposit at 5% to 25%, with stamp duty, LMI and legal costs added.
 - [Borrowing Power Calculator](https://equitysight.app/tools/borrowing-power-calculator): Joint applicants, income-type haircuts, tiered HEM, HECS and APRA's 3% buffer.
 - [First Home Buyer Grants Calculator](https://equitysight.app/tools/first-home-buyer-grants-calculator): Total assistance from state duty concessions, FHOG, the 5% Deposit Scheme, Help to Buy and FHSS.
 - [Mortgage Repayment Calculator](https://equitysight.app/tools/mortgage-repayment-calculator): Repayments, fortnightly savings, extra repayments, offset impact and amortisation schedule.
@@ -39,6 +39,6 @@ EquitySight publishes about 1,475 suburb profile pages, in Queensland, Victoria,
 - [About](https://equitysight.app/about)
 - [Methodology](https://equitysight.app/methodology)
 - [Data Sources](https://equitysight.app/data-sources)
-- [Contact / Support](https://equitysight.app/contact)
+- [Contact](https://equitysight.app/contact)
 - [Privacy Policy](https://equitysight.app/privacy)
 - [Terms of Service](https://equitysight.app/terms)

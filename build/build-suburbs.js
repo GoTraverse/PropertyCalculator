@@ -53,9 +53,10 @@ function shortMoney(n) {
   if (n >= 1000000) return '$' + (Math.round(n / 10000) / 100).toFixed(2) + 'm';
   return '$' + Math.round(n / 1000) + 'k';
 }
-// "as at 2025 (preliminary)" reads badly; "for 2025 (preliminary)" does not.
+// "as at Mar 2026" for a single month; "for" a quarter, a range or a year
+// ("for Q1 2026", "for Jan–Mar 2026", "for 2025 (preliminary)").
 function periodPhrase(period) {
-  return /^\d{4}\b/.test(String(period || '')) ? 'for ' + period : 'as at ' + period;
+  return /^[A-Z][a-z]{2} \d{4}$/.test(String(period || '')) ? 'as at ' + period : 'for ' + period;
 }
 
 const stateNames = {
@@ -66,44 +67,44 @@ const stateNames = {
 
 const stateResources = {
   QLD: [
-    ['Queensland Government: property', 'https://www.qld.gov.au/housing'],
+    ['Queensland Government housing information', 'https://www.qld.gov.au/housing'],
     ['Queensland Revenue Office', 'https://qro.qld.gov.au/'],
-    ['REIQ: Real Estate Institute of QLD', 'https://www.reiq.com/'],
+    ['Real Estate Institute of Queensland (REIQ)', 'https://www.reiq.com/'],
   ],
   NSW: [
-    ['NSW Revenue: property tax', 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty'],
-    ['NSW Fair Trading: property', 'https://www.fairtrading.nsw.gov.au/housing-and-property'],
-    ['REINSW: Real Estate Institute of NSW', 'https://www.reinsw.com.au/'],
+    ['Revenue NSW transfer duty', 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty'],
+    ['NSW Fair Trading housing and property', 'https://www.fairtrading.nsw.gov.au/housing-and-property'],
+    ['Real Estate Institute of NSW (REINSW)', 'https://www.reinsw.com.au/'],
   ],
   VIC: [
     ['State Revenue Office Victoria', 'https://www.sro.vic.gov.au/'],
-    ['Consumer Affairs Victoria: renting', 'https://www.consumer.vic.gov.au/housing/renting'],
-    ['REIV: Real Estate Institute of VIC', 'https://reiv.com.au/'],
+    ['Consumer Affairs Victoria renting information', 'https://www.consumer.vic.gov.au/housing/renting'],
+    ['Real Estate Institute of Victoria (REIV)', 'https://reiv.com.au/'],
   ],
   WA: [
-    ['WA Department of Finance: revenue', 'https://www.wa.gov.au/organisation/department-of-finance'],
-    ['REIWA: Real Estate Institute of WA', 'https://reiwa.com.au/'],
-    ['Landgate WA: property information', 'https://www.landgate.wa.gov.au/'],
+    ['WA Department of Finance', 'https://www.wa.gov.au/organisation/department-of-finance'],
+    ['Real Estate Institute of WA (REIWA)', 'https://reiwa.com.au/'],
+    ['Landgate property information', 'https://www.landgate.wa.gov.au/'],
   ],
   SA: [
-    ['RevenueSA: stamp duty', 'https://www.revenuesa.sa.gov.au/'],
-    ['SA Government: housing', 'https://www.sa.gov.au/topics/housing'],
-    ['REISA: Real Estate Institute of SA', 'https://www.reisa.com.au/'],
+    ['RevenueSA', 'https://www.revenuesa.sa.gov.au/'],
+    ['SA Government housing information', 'https://www.sa.gov.au/topics/housing'],
+    ['Real Estate Institute of South Australia (REISA)', 'https://www.reisa.com.au/'],
   ],
   TAS: [
     ['State Revenue Office Tasmania', 'https://www.sro.tas.gov.au/'],
-    ['REIT: Real Estate Institute of TAS', 'https://www.reit.com.au/'],
-    ['Tasmanian Government: housing', 'https://www.housing.tas.gov.au/'],
+    ['Real Estate Institute of Tasmania (REIT)', 'https://www.reit.com.au/'],
+    ['Tasmanian Government housing information', 'https://www.housing.tas.gov.au/'],
   ],
   ACT: [
     ['ACT Revenue Office', 'https://www.revenue.act.gov.au/'],
-    ['REIACT: Real Estate Institute of ACT', 'https://www.reiact.com.au/'],
-    ['ACT Government: housing', 'https://www.act.gov.au/homes-housing-and-community'],
+    ['Real Estate Institute of the ACT (REIACT)', 'https://www.reiact.com.au/'],
+    ['ACT Government housing information', 'https://www.act.gov.au/homes-housing-and-community'],
   ],
   NT: [
     ['NT Revenue Office', 'https://treasury.nt.gov.au/dtf/territory-revenue-office'],
-    ['REINT: Real Estate Institute of NT', 'https://www.reint.com.au/'],
-    ['NT Government: housing', 'https://nt.gov.au/property'],
+    ['Real Estate Institute of the NT (REINT)', 'https://www.reint.com.au/'],
+    ['NT Government property information', 'https://nt.gov.au/property'],
   ],
 };
 
@@ -172,12 +173,12 @@ function buildSuburbMetaDesc(s) {
   if (f.unit && !f.house) parts.push(`median unit price ${money(f.unit.value)} ${when(f.unit.period)}`);
   if (f.rent) parts.push(`median rent $${fmt(f.rent.value)} a week ${when(f.rent.period)}`);
   const variants = [
-    `${s.suburb} ${region}: ${parts.join(', ')}. Population ${pop} at the 2021 Census. Government figures, each with its source.`,
+    `${s.suburb} ${region}: ${parts.join(', ')}. Population ${pop} at the 2021 Census. Sources: state government open data and the ABS.`,
     `${s.suburb} ${region}: ${parts.join(', ')}. Population ${pop} (2021 Census).`,
     `${s.suburb} ${region}: ${parts[0]}. Population ${pop} (2021 Census).`,
   ];
   for (const v of variants) if (v.length <= 155) return v;
-  return `${s.suburb} ${region} suburb profile with government rent and price figures.`;
+  return `${s.suburb} ${region}: government median figures and the 2021 Census population.`;
 }
 
 // ── Page sections ────────────────────────────────────────────────────────
@@ -212,16 +213,21 @@ function generateFiguresHTML(s) {
 
 // Plain arithmetic on the published figures. No duty, no repayments, no
 // eligibility: those depend on the buyer and live in the calculators and the
-// journey, which the block under this section links to.
+// journey, which the block under this section links to. The section heading
+// is written here because it depends on which figures the suburb has.
 function generateBuyerHTML(s) {
   const f = figures(s);
   const out = [];
   const priced = [f.house && ['Houses', f.house], f.unit && ['Units', f.unit]].filter(Boolean);
+  const heading = priced.length
+    ? (f.rent ? 'Deposits and rent at the median' : 'Deposits at the median price')
+    : 'Rent per month and per year';
+  out.push(`    <h2>${heading}</h2>`);
   if (priced.length) {
     const rows = priced.map(([label, fig]) =>
       `        <tr><th scope="row">${label}</th><td>${money(fig.value)}</td><td>${money(fig.value * 0.05)}</td><td>${money(fig.value * 0.10)}</td><td>${money(fig.value * 0.20)}</td></tr>`
     ).join('\n');
-    out.push(`    <p>Deposits of 5%, 10% and 20% on a home bought at the ${escHtml(s.suburb)} median. Half of the sales in the period were above the median and half below, so check recent sales for the kind of home you want.</p>
+    out.push(`    <p>Half of the sales in the period were above the median and half below, so check recent sales for the kind of home you want.</p>
     <div class="suburb-table-wrap">
       <table class="suburb-dep-table">
         <thead><tr><th scope="col">At the median</th><th scope="col">Price</th><th scope="col">5% deposit</th><th scope="col">10% deposit</th><th scope="col">20% deposit</th></tr></thead>
@@ -237,7 +243,7 @@ ${rows}
     out.push(`    <p>The median rent of $${fmt(f.rent.value)} a week is about ${money(perMonth)} a month, or ${money(f.rent.value * 52)} a year. Rent figure: ${escHtml(caption(f.rent))}.</p>`);
   }
   if (!priced.length) {
-    out.push(`    <p>There is no median sale price on this page. I don't have a suburb-level one for ${escHtml(s.suburb)} from a state government dataset I can republish, and I don't estimate one.</p>`);
+    out.push(`    <p>I don't have a median sale price for ${escHtml(s.suburb)} from a state government dataset I can republish, and I don't estimate one.</p>`);
   }
   return out.join('\n');
 }
@@ -246,15 +252,11 @@ function generateFAQ(s) {
   const f = figures(s);
   const qa = [];
   if (f.house) qa.push([`What is the median house price in ${s.suburb}?`,
-    `The median house price in ${s.suburb} is ${money(f.house.value)} ${periodPhrase(f.house.period)}, from ${f.house.source}.`]);
+    `The median house price in ${s.suburb} is ${money(f.house.value)} ${periodPhrase(f.house.period)}. Source: ${f.house.source}.`]);
   if (f.unit) qa.push([`What is the median unit price in ${s.suburb}?`,
-    `The median unit price in ${s.suburb} is ${money(f.unit.value)} ${periodPhrase(f.unit.period)}, from ${f.unit.source}.`]);
+    `The median unit price in ${s.suburb} is ${money(f.unit.value)} ${periodPhrase(f.unit.period)}. Source: ${f.unit.source}.`]);
   if (f.rent) qa.push([`What is the median rent in ${s.suburb}?`,
-    `The median rent in ${s.suburb} is $${fmt(f.rent.value)} a week ${periodPhrase(f.rent.period)}, from ${f.rent.source}. A median covers every dwelling type and size in the data, so a particular home can rent for a lot more or less.`]);
-  qa.push([`How many people live in ${s.suburb}?`,
-    `${s.suburb} had ${fmt(s.population)} usual residents at the 2021 Census (Australian Bureau of Statistics).`]);
-  qa.push([`What is the postcode for ${s.suburb}?`,
-    `The postcode for ${s.suburb}, ${s.state_name} is ${s.postcode}.`]);
+    `The median rent in ${s.suburb} is $${fmt(f.rent.value)} a week ${periodPhrase(f.rent.period)}. Source: ${f.rent.source}. The median covers every type and size of home in the data, so a particular home can rent for a lot more or less.`]);
   return qa.map(([q, a]) =>
     `    <details><summary>${escHtml(q)}</summary><p>${escHtml(a)}</p></details>`
   ).join('\n');
@@ -265,11 +267,11 @@ function generateAboutHTML(s) {
   const bits = [];
   if (f.house || f.unit) {
     const fig = f.house || f.unit;
-    bits.push(`The sale median${f.house && f.unit ? 's come' : ' comes'} from ${escHtml(fig.source)}, ${escHtml(fig.period)}.`);
+    bits.push(`Sale median${f.house && f.unit ? 's' : ''}: ${escHtml(fig.source)}, ${escHtml(fig.period)}.`);
   }
-  if (f.rent) bits.push(`The rent comes from ${escHtml(f.rent.source)}, ${escHtml(f.rent.period)}.`);
-  bits.push(`${(f.house || f.unit) && f.rent ? 'Both are' : 'This is'} state government open data published under a Creative Commons Attribution 4.0 licence. The population is from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census</a>, and the postcode is from a community postcode list checked against Australia Post.`);
-  bits.push(`There is no investment score, growth forecast, school count or lifestyle rating here, because I have no data for those that I can show a source for. The <a href="/methodology">methodology</a> and <a href="/data-sources">data sources</a> pages have more.`);
+  if (f.rent) bits.push(`Rent: ${escHtml(f.rent.source)}, ${escHtml(f.rent.period)}.`);
+  bits.push(`${(f.house || f.unit) && f.rent ? 'Both are' : 'This is'} state government open data, published under a Creative Commons Attribution 4.0 licence. The population is from the <a href="https://www.abs.gov.au/census" target="_blank" rel="noopener">ABS 2021 Census</a>, and the postcode from a community postcode list checked against Australia Post.`);
+  bits.push(`I don't show an investment score, growth forecast, school count or lifestyle rating, because I have no sourced data for any of them. The <a href="/methodology">methodology</a> and <a href="/data-sources">data sources</a> pages have the detail.`);
   return bits.join(' ');
 }
 
@@ -326,7 +328,7 @@ function generateNearbyHTML(s, near) {
     <div class="suburb-related">
 ${cards}
     </div>
-    <p class="suburb-fig-note">Other suburbs with a page here, nearest first. Distances are measured between postcode centres, so they are rough.</p>
+    <p class="suburb-fig-note">Other suburbs with a page here, nearest first. Distances are between postcode centres, so they're rough.</p>
   </section>`;
 }
 
@@ -403,7 +405,7 @@ function generateReviewsBlock(state, slug, suburbName) {
       '        <header class="suburb-review-head">\n' +
       '          <div class="suburb-review-stars" aria-label="' + r.rating + ' out of 5 stars">' + starBar(r.rating) + '</div>\n' +
       '          <h3 class="suburb-review-title">' + (r.title || '') + '</h3>\n' +
-      '          <div class="suburb-review-meta"><span>' + (r.userName || 'Anonymous') + '</span>' + (date ? ' <span>·</span> <span>' + date + '</span>' : '') + '</div>\n' +
+      '          <div class="suburb-review-meta"><span>' + (r.userName || 'Anonymous') + '</span>' + (date ? ', <span>' + date + '</span>' : '') + '</div>\n' +
       '        </header>\n' +
       '        <p class="suburb-review-body">' + bodyHtml + '</p>\n' +
       '      </article>'
@@ -547,54 +549,22 @@ function stateCoverage(stateSubs) {
   const seen = new Map();
   for (const s of stateSubs) {
     const f = figures(s);
-    if (f.rent) seen.set('rent', `median rents (${f.rent.source}, ${f.rent.period})`);
-    if (f.house || f.unit) { const p = f.house || f.unit; seen.set('price', `sale medians (${p.source}, ${p.period})`); }
+    if (f.rent) seen.set('rent', `Median rents: ${f.rent.source}, ${f.rent.period}.`);
+    if (f.house || f.unit) { const p = f.house || f.unit; seen.set('price', `Sale medians: ${p.source}, ${p.period}.`); }
   }
   return [seen.get('price'), seen.get('rent')].filter(Boolean);
 }
 
 function emptyStateNote(stateName) {
-  return `There are no ${stateName} suburb profiles yet. I only publish a suburb page when I have a current suburb-level median from an openly licensed government dataset, and I haven't found one for ${stateName}.`;
+  const the = /Territory$/.test(stateName) ? 'the ' : '';
+  return `There are no ${stateName} suburb profiles yet. I only publish a suburb page when I have a current suburb-level median from an openly licensed government dataset, and I haven't found one for ${the}${stateName}.`;
 }
 
+// First home buyer duty only. Which figures the profiles carry is said once,
+// above the suburb list (hubListIntro).
 function generateStateOverviewHTML(state, stateName, stateSubs) {
   const d = stateDuty[state];
-  const n = stateSubs.length;
-  const cov = stateCoverage(stateSubs);
-  // A state with no profiles already says so in the hero line above.
-  const dataSentence = n
-    ? `<p>${cov.length > 1 ? 'Between them the' : 'The'} ${fmt(n)} ${escHtml(stateName)} profiles carry ${escHtml(cov.join(' and '))}. Each has its 2021 Census population.</p>`
-    : '';
-  return `${dataSentence}<p>${escHtml(d.body)} These are the FY2026-27 settings. The <a href="/tools/stamp-duty-calculator-${state.toLowerCase()}">${escHtml(state)} stamp duty calculator</a> works out the duty at any price.</p>`;
-}
-
-function generateStateStatsHTML(state, stateName, stateSubs) {
-  const d = stateDuty[state];
-  const rows = [
-    ['Suburb profiles published', fmt(stateSubs.length)],
-    ['First home buyer duty relief', escHtml(d.fhbThreshold)],
-    ['Foreign buyer surcharge', escHtml(d.foreignSurcharge)],
-    ['Revenue office', `<a href="${d.revenueOfficeUrl}" target="_blank" rel="noopener">${escHtml(d.revenueOffice)}</a>`]
-  ];
-  return `<table class="state-stats-table"><tbody>`
-    + rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('')
-    + `</tbody></table>`;
-}
-
-function generateStateFaqHTML(state, stateName, stateSubs) {
-  const d = stateDuty[state];
-  const n = stateSubs.length;
-  const cov = stateCoverage(stateSubs);
-  const faqs = [
-    [`How many ${stateName} suburbs have a profile?`,
-      n ? `${fmt(n)}. A suburb gets a page when it has at least 2,000 residents and a current suburb-level rent or sale median from state government open data.`
-        : escHtml(emptyStateNote(stateName))],
-    [`What stamp duty do first home buyers pay in ${stateName}?`,
-      `${escHtml(d.body)} Duty is collected by ${/^Revenue/.test(d.revenueOffice) ? '' : 'the '}${escHtml(d.revenueOffice)}. The <a href="/tools/stamp-duty-calculator-${state.toLowerCase()}">${escHtml(state)} stamp duty calculator</a> gives the figure for a specific price.`],
-    n ? [`How current are the figures on the ${stateName} pages?`,
-      `The pages carry ${escHtml(cov.join(' and '))}. Populations are from the ABS 2021 Census. Every figure is printed with its period.`] : null
-  ].filter(Boolean);
-  return faqs.map(([q, a]) => `<details class="suburb-faq-item"><summary>${escHtml(q)}</summary><div class="suburb-faq-detail"><p>${a}</p></div></details>`).join('\n    ');
+  return `<p>${escHtml(d.body)} These are the FY2026-27 settings. The <a href="/tools/stamp-duty-calculator-${state.toLowerCase()}">${escHtml(state)} stamp duty calculator</a> works out the duty at any price. Duty is collected by ${/^Revenue/.test(d.revenueOffice) ? '' : 'the '}<a href="${d.revenueOfficeUrl}" target="_blank" rel="noopener">${escHtml(d.revenueOffice)}</a>.</p>`;
 }
 
 function suburbCard(s, searchable) {
@@ -619,17 +589,18 @@ for (const state of allStates) {
   const suburbListHTML = stateSuburbs.map(s => suburbCard(s, true)).join('\n');
 
   const hubTitle = n
-    ? `${stateName} Suburb Profiles: ${fmt(n)} Suburbs | EquitySight`
+    ? `${fmt(n)} ${stateName} Suburb Profiles | EquitySight`
     : `${stateName} Suburb Profiles | EquitySight`;
   const hubMetaDesc = n
     ? `${fmt(n)} ${stateName} suburb profiles, each with a government-published median rent or sale price and its 2021 Census population.`
     : `There are no ${stateName} suburb profiles yet. I haven't found a current suburb-level government median I can republish.`;
   const hubHeroText = n
-    ? `${fmt(n)} suburbs, each with a median rent or sale price published by the state government, shown with its period and source.`
+    ? `${fmt(n)} suburbs. A suburb gets a page when it has at least 2,000 residents and a current suburb-level rent or sale median from state government open data. Each figure is shown with its period and source.`
     : emptyStateNote(stateName);
+  const cov = stateCoverage(stateSuburbs);
   const hubListIntro = n
-    ? `In alphabetical order. Each card shows the figure the profile carries.`
-    : `Nothing to list yet. The other states are in the navigation above.`;
+    ? `In alphabetical order. ${cov.join(' ')}`
+    : `Nothing to list yet. The other states are linked at the top of the page.`;
   const hubSearchHTML = n
     ? `<input type="text" id="suburb-search" class="hub-search" placeholder="Search by suburb name or postcode" aria-label="Search suburbs by name or postcode" autocomplete="off">`
     : '';
@@ -645,8 +616,6 @@ for (const state of allStates) {
     .replace(/\{\{HUB_SEARCH_HTML\}\}/g, () => hubSearchHTML)
     .replace(/\{\{STATE_NAV_HTML\}\}/g, () => stateNavHTML)
     .replace(/\{\{STATE_OVERVIEW_HTML\}\}/g, () => generateStateOverviewHTML(state, stateName, stateSuburbs))
-    .replace(/\{\{STATE_STATS_HTML\}\}/g, () => generateStateStatsHTML(state, stateName, stateSuburbs))
-    .replace(/\{\{STATE_FAQ_HTML\}\}/g, () => generateStateFaqHTML(state, stateName, stateSuburbs))
     .replace(/\{\{SUBURB_LIST_HTML\}\}/g, () => suburbListHTML);
 
   const outDir = path.join(ROOT, 'invest', stateLower);
@@ -667,7 +636,7 @@ const dirIndexHTML = `<!DOCTYPE html>
 <script src="/site-init.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, follow">
-<title>Suburb Profiles: ${fmt(keptSuburbs.length)} Australian Suburbs | EquitySight</title>
+<title>${fmt(keptSuburbs.length)} Australian Suburb Profiles | EquitySight</title>
 <meta name="description" content="${fmt(keptSuburbs.length)} suburb profiles across ${keptStateNamesList}, each with a government-published median rent or sale price.">
 <link rel="canonical" href="https://equitysight.app/suburb/">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -717,9 +686,8 @@ ${subs.map(s => suburbCard(s, false)).join('\n')}
 }).join('\n\n')}
 
   <section class="suburb-cta">
-    <h3>First Home Journey</h3>
-    <p>It takes your savings and income and works out which government schemes fit, a maximum price and your contract deadlines.</p>
-    <a href="/journey" class="tool-cta-btn">Open the First Home Journey</a>
+    <h2>Buying a first home</h2>
+    <p>The First Home Journey works out a maximum price from your income and savings, and which government schemes fit. <a href="/journey" class="tool-cta-btn">Open the First Home Journey</a></p>
   </section>
 
 </div>

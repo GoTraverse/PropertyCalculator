@@ -41,10 +41,10 @@ function calcSADuty(price, ptype, buyer, fhb) {
     return { duty: Math.max(0, standard * (1 - slide)), note: 'First home buyer partial concession applied.' };
   }
   if (fhb && ptype === 'land') {
-    return { duty: standard, note: 'SA first home relief can cover vacant land you build a home on. This page does not model it, so standard duty is shown.' };
+    return { duty: standard, note: 'SA first home relief can cover vacant land you build a new home on. This page doesn’t model it, so this is standard duty.' };
   }
   if (fhb) {
-    return { duty: standard, note: 'SA first-home stamp-duty relief applies to new homes and vacant land only — established homes pay full duty.' };
+    return { duty: standard, note: 'SA first home relief covers new homes and land to build on, not established homes. This page doesn’t model it, so this is the full duty you’d pay on an established home.' };
   }
 
   return { duty: standard, note: '' };
@@ -111,19 +111,21 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Services SA — transfer fee scales with price)';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Services SA, transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (estimate, roughly $1,500–$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on South Australia 2026-27 stamp duty on conveyances. LMI is a rough estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate at RevenueSA’s 2026-27 rates. The LMI figure is rough. Check the final figures with your conveyancer before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -147,9 +149,9 @@ ToolPage.init({
   slug: 'stamp-duty-sa',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full South Australia purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Buying your first home in South Australia',
+    description: 'The First Home Journey adds this duty to a budget for the whole purchase and tracks your contract dates through to settlement.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=sa'
   },
   resources: {
@@ -157,28 +159,28 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFDB\uFE0F', title: 'RevenueSA',
         links: [
-          { text: 'SA Stamp Duty on Conveyances', href: 'https://www.revenuesa.sa.gov.au/stampduty' },
-          { text: 'First Home Owner Stamp Duty Relief (new builds)', href: 'https://www.revenuesa.sa.gov.au/grants-and-concessions/first-home-owners' }
+          { text: 'Stamp duty on conveyances', href: 'https://www.revenuesa.sa.gov.au/stampduty' },
+          { text: 'First home owner stamp duty relief (new homes)', href: 'https://www.revenuesa.sa.gov.au/grants-and-concessions/first-home-owners' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyers',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'First Home Guarantee', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        icon: '\uD83D\uDCB0', title: 'Home loans and rental property',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with RevenueSA.'
+    disclaimer: 'This is general information, not advice. RevenueSA or your conveyancer can confirm the duty on your contract.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-sa',
@@ -199,7 +201,7 @@ ToolPage.init({
   ],
   examples: [
   {
-    "label": "SA — $520,000 property",
+    "label": "$520,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -221,12 +223,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$22,430 (established home — no relief)"
+        "v": "$22,430 (established home, no relief)"
       }
     ]
   },
   {
-    "label": "SA — $680,000 property",
+    "label": "$680,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -248,12 +250,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$31,230 (established home — no relief)"
+        "v": "$31,230 (established home, no relief)"
       }
     ]
   },
   {
-    "label": "SA — $1,000,000 property",
+    "label": "$1,000,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -275,7 +277,7 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$48,830 (established home — no relief)"
+        "v": "$48,830 (established home, no relief)"
       }
     ]
   }

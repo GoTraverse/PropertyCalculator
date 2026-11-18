@@ -45,8 +45,8 @@ ToolPage.init({
   slug: 'equity-release',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Renovation cost, yield and mortgage stress',
-    description: 'The renovation cost and rental yield calculators cover what the money is for. The mortgage stress calculator tests the bigger loan.',
+    title: 'The repayment on a bigger loan',
+    description: 'The mortgage stress calculator shows what share of your gross income the larger repayment takes, at your current rate and after a rate rise. If the money is for a renovation or a rental, those have calculators too.',
     buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
@@ -55,28 +55,17 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFE6', title: 'Borrowing',
         links: [
-          { text: 'ASIC Moneysmart: mortgage calculator', href: 'https://moneysmart.gov.au/home-loans/mortgage-calculator' },
-          { text: 'ASIC Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'RBA: explainers', href: 'https://www.rba.gov.au/education/resources/explainers/' },
+          { text: 'ASIC Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' }
         ]
       },
       {
-        icon: '\uD83C\uDFE0', title: 'Buying and housing',
+        icon: '\uD83D\uDCB0', title: 'Tax',
         links: [
-          { text: 'ASIC Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Consumer Affairs Victoria: housing', href: 'https://www.consumer.vic.gov.au/housing' },
-          { text: 'ASIC Moneysmart: home loans when buying a house', href: 'https://moneysmart.gov.au/home-loans/buying-a-house' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCB0', title: 'Tax and advice',
-        links: [
-          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'ASIC Moneysmart: financial advice', href: 'https://moneysmart.gov.au/financial-advice' }
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' }
         ]
       }
     ],
-    disclaimer: 'General information, not financial advice. Anything you release is secured against your home.'
+    disclaimer: 'Anything you release is secured against your home.'
   },
   share: {
     url: 'https://equitysight.app/tools/equity-release-calculator',

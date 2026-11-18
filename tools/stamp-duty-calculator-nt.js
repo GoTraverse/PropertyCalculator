@@ -28,7 +28,7 @@ function calcNTDuty(price, ptype, buyer, fhb) {
   // first-home relief is a new-build-only duty discount handled elsewhere. So we
   // never auto-zero duty here; established-home FHBs pay the full standard duty.
   if (fhb) {
-    return { duty: standard, note: 'NT has no first home buyer concession on established homes — full duty applies. New-build/house-and-land buyers may claim a separate duty discount.' };
+    return { duty: standard, note: 'The NT has no first home buyer concession on an established home, so full duty applies. A new build or house and land package may get separate duty relief.' };
   }
 
   return { duty: standard, note: '' };
@@ -40,7 +40,7 @@ function calculate() {
   if (_msg) _msg.hidden = true;
 
   var val = parseVal('price');
-  if (!val || val <= 0) { if (!_isInit) _showErr('Please enter the purchase price.'); return; }
+  if (!val || val <= 0) { if (!_isInit) _showErr('Enter the purchase price.'); return; }
 
   var ptype = document.getElementById('ptype').value;
   var buyerEl = document.getElementById('buyer'); // only the QLD page has a buyer profile
@@ -92,6 +92,8 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
@@ -100,11 +102,11 @@ function calculate() {
   var regEl = document.getElementById('r-reg');
   if (regEl) regEl.textContent = fmt(regTotal) + ' (mortgage $' + regMortgage + ' + transfer $' + regTransfer + ')';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (my estimate; allow $1,500–$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Northern Territory 2026-27 stamp duty on conveyances. LMI is a rough estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate only, at the Northern Territory\'s 2026-27 stamp duty rates. LMI is a rough estimate. Check the figures with your solicitor before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -128,9 +130,9 @@ ToolPage.init({
   slug: 'stamp-duty-nt',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full Northern Territory purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Plan the rest of the NT purchase',
+    description: 'The First Home Journey checks the government schemes against your income and savings, then builds a budget that includes this duty and the other upfront costs.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=nt'
   },
   resources: {
@@ -138,27 +140,27 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFDB\uFE0F', title: 'Territory Revenue Office',
         links: [
-          { text: 'NT Stamp Duty on Conveyances', href: 'https://nt.gov.au/property/buying-and-selling-a-home/settle-the-sale/stamp-duty-buying-or-selling-a-home' },
+          { text: 'Stamp duty when buying or selling a home', href: 'https://nt.gov.au/property/buying-and-selling-a-home/settle-the-sale/stamp-duty-buying-or-selling-a-home' },
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyer schemes',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
           { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        icon: '\uD83D\uDCB0', title: 'Home loans and tax',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with Territory Revenue Office.'
+    disclaimer: 'Check the current rates with the Territory Revenue Office before you sign.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-nt',
@@ -178,7 +180,7 @@ ToolPage.init({
   ],
   examples: [
   {
-    "label": "NT — $520,000 property",
+    "label": "NT, $520,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -205,7 +207,7 @@ ToolPage.init({
     ]
   },
   {
-    "label": "NT — $700,000 property",
+    "label": "NT, $700,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -232,7 +234,7 @@ ToolPage.init({
     ]
   },
   {
-    "label": "NT — $1,000,000 property",
+    "label": "NT, $1,000,000 property",
     "inputs": [
       {
         "k": "Property price",

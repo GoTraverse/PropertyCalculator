@@ -68,21 +68,15 @@
     </div>
   </section>
 
-  <!-- Coverage and duty rules -->
+  <!-- First home buyer duty rules -->
   <section class="suburb-section">
-    <h2>Buying in {{STATE_NAME}}</h2>
+    <h2>{{STATE_NAME}} first home buyer duty</h2>
     {{STATE_OVERVIEW_HTML}}
-  </section>
-
-  <!-- State stats summary -->
-  <section class="suburb-section">
-    <h2>{{STATE_NAME}} summary</h2>
-    {{STATE_STATS_HTML}}
   </section>
 
   <!-- Suburb profiles: every card links to a page that exists. -->
   <section class="suburb-section">
-    <h2>Suburb profiles in {{STATE_NAME}}</h2>
+    <h2>Suburbs with a profile</h2>
     <p class="hub-list-intro">{{HUB_LIST_INTRO}}</p>
     {{HUB_SEARCH_HTML}}
     <div id="hub-suburb-list" class="hub-suburb-list">
@@ -104,17 +98,10 @@
     </div>
   </section>
 
-  <!-- State-specific FAQ -->
-  <section class="suburb-section suburb-faq">
-    <h2>Common questions</h2>
-    {{STATE_FAQ_HTML}}
-  </section>
-
   <!-- CTA -->
   <section class="suburb-cta">
-    <h3>First Home Journey</h3>
-    <p>It takes your savings and income and works out which government schemes fit, a maximum price and your contract deadlines.</p>
-    <a href="/journey?st={{STATE_LOWER}}" class="tool-cta-btn">Open the First Home Journey</a>
+    <h2>Buying a first home</h2>
+    <p>The First Home Journey works out a maximum price from your income and savings, and which government schemes fit. <a href="/journey?st={{STATE_LOWER}}" class="tool-cta-btn">Open the First Home Journey</a></p>
   </section>
 
 </div>

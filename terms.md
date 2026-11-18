@@ -16,7 +16,7 @@ By using the Service, you confirm that you are at least 18 years old, have read 
 
 equitysight.app provides a guided first-home buying planner (the First Home Journey), a set of property finance calculators, and suburb market data pages, to help you plan an Australian property purchase.
 
-> ⚠ **Important:** The Service provides calculations and estimates for information only. It is not financial, legal, tax or investment advice. Always consult a qualified professional before making property or financial decisions. See the [Disclaimer](/disclaimer) for details.
+> **Important:** The Service provides calculations and estimates for information only. It is not financial, legal, tax or investment advice. Always consult a qualified professional before making property or financial decisions. See the [Disclaimer](/disclaimer) for details.
 
 ## 3. Accounts and registration
 
@@ -60,11 +60,13 @@ You agree not to:
 
 ## 6. Intellectual property
 
-The Service and its original content (excluding data you provide) remain the property of EquitySight and its licensors. The Service is protected by copyright, trademark, and other intellectual property laws.
+The Service and its original content (excluding data you provide) remain my property and that of my licensors. The Service is protected by copyright, trademark, and other intellectual property laws.
 
 Your journey and scenario data remain yours. You grant me a limited licence to store and process that data only to provide the Service to you.
 
-**Content you submitted for publication.** While review submissions were open, you could post suburb reviews. By submitting one you granted me a non-exclusive licence to publish it with your display name. I may edit it for legality or remove it at any time, and you can email me to have one taken down.
+### Content you submitted for publication
+
+While review submissions were open, you could post suburb reviews. By submitting one you granted me a non-exclusive licence to publish it with your display name. I may edit it for legality or remove it at any time, and you can email me to have one taken down.
 
 ## 7. Disclaimer of warranties
 
@@ -74,13 +76,13 @@ I do not warrant that the Service will be uninterrupted or error-free, or that a
 
 ## 8. Limitation of liability
 
-TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL EQUITYSIGHT OR ITS SERVICE PROVIDERS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR ACCESS TO OR USE OF (OR INABILITY TO ACCESS OR USE) THE SERVICE.
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL I OR MY SERVICE PROVIDERS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR ACCESS TO OR USE OF (OR INABILITY TO ACCESS OR USE) THE SERVICE.
 
-The total liability of EquitySight to you for any claims arising out of or related to these Terms or the Service shall not exceed the amount you paid in the twelve months before the claim, or A$50 if you have not made any payments.
+My total liability to you for any claims arising out of or related to these Terms or the Service shall not exceed the amount you paid in the twelve months before the claim, or A$50 if you have not made any payments.
 
 ## 9. Indemnification
 
-You agree to defend, indemnify, and hold harmless EquitySight and its service providers from and against any claims, liabilities, damages, losses, and expenses arising from your use of the Service or your breach of these Terms.
+You agree to defend, indemnify, and hold harmless me and my service providers from and against any claims, liabilities, damages, losses, and expenses arising from your use of the Service or your breach of these Terms.
 
 ## 10. Termination
 
@@ -98,8 +100,4 @@ I may change these Terms. If a change is material, I will post a notice on the s
 
 ## 13. Contact
 
-> **Legal enquiries**
->
-> Email: [support@equitysight.app](mailto:support@equitysight.app)
->
-> A postal address for formal legal notices is available on request.
+Send legal enquiries to [support@equitysight.app](mailto:support@equitysight.app). A postal address for formal legal notices is available on request.

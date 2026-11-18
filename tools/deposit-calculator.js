@@ -177,7 +177,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'Estimates only. LMI premiums vary by lender. Stamp duty thresholds and concessions change, so confirm them with your state revenue office.'
+    disclaimer: 'Stamp duty thresholds and concessions change, so confirm them with your state revenue office.'
   },
   share: {
     url: 'https://equitysight.app/tools/deposit-calculator',
@@ -248,7 +248,7 @@ ToolPage.init({
     { q: 'Do I need a 20% deposit to buy a home in Australia?',
       a: 'No. 20% is the usual target because it avoids Lenders Mortgage Insurance (LMI). You can buy with 10% and pay LMI, or with as little as 5% through the 5% Deposit Scheme (formerly the First Home Guarantee).' },
     { q: 'What is Lenders Mortgage Insurance (LMI) and when do I pay it?',
-      a: 'LMI is insurance the lender takes out, and you pay for, when your deposit is below 20%. It protects the lender if you default. In this calculator, a $650,000 purchase gives an LMI estimate of $4,420 with a 15% deposit, $11,115 with 10% and $20,995 with 5%. It\'s usually added to the loan.' },
+      a: 'LMI is insurance the lender takes out, and you pay for, when your deposit is below 20%. It protects the lender if you default. In this calculator, a $650,000 purchase gives an LMI estimate of $4,420 with a 15% deposit, $11,115 with 10% and $20,995 with 5%.' },
     { q: 'Can I use my super for a deposit?',
       a: 'Yes. The First Home Super Saver Scheme lets eligible first home buyers release voluntary super contributions (plus earnings) to put toward a deposit. You can withdraw up to $50,000 of contributions, which are taxed concessionally.' }
   ],

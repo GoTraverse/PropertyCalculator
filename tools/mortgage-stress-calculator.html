@@ -36,7 +36,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Mortgage Stress Calculator Australia","url":"https://equitysight.app/tools/mortgage-stress-calculator","description":"Works out a mortgage repayment as a share of gross household income, at the current rate and at the rate plus a buffer you choose, with other monthly debts added in a total debt ratio.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Mortgage Stress Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What percentage of income is mortgage stress in Australia?","acceptedAnswer":{"@type":"Answer","text":"The usual line is repayments above 30% of gross household income, and above 50% is severe stress. It's a rule of thumb, not a legal definition, so read it alongside the dollars you have left each month and your other debts."}},{"@type":"Question","name":"Should I stress test with gross or net income?","acceptedAnswer":{"@type":"Answer","text":"This calculator uses gross (before-tax) income, because the 30% rule is based on it and lenders frame serviceability the same way. For your own budget, check the repayment against your take-home pay as well. It will take a bigger share of that."}},{"@type":"Question","name":"Why test at the current rate plus 3%?","acceptedAnswer":{"@type":"Answer","text":"APRA expects lenders to check that you could still afford the loan at 3 percentage points above the rate you're offered. It has been 3 points since late 2021 (2.5% before that), so a bank quoting 6% tests your budget at 9%. Most Australian home loans are variable, so a change in the RBA cash rate usually reaches your repayment within weeks."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Mortgage Stress Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What percentage of income is mortgage stress in Australia?","acceptedAnswer":{"@type":"Answer","text":"The usual line is repayments above 30% of gross household income, and above 50% is severe stress. It's a rule of thumb, not a legal definition, so read it alongside the dollars you have left each month and your other debts."}},{"@type":"Question","name":"Should I stress test with gross or net income?","acceptedAnswer":{"@type":"Answer","text":"This calculator uses gross (before-tax) income, because the 30% rule is based on it. For your own budget, check the repayment against your take-home pay as well. It will take a bigger share of that."}},{"@type":"Question","name":"Why test at the current rate plus 3%?","acceptedAnswer":{"@type":"Answer","text":"APRA expects lenders to check that you could still afford the loan at 3 percentage points above the rate you're offered. It has been 3 points since late 2021 (2.5% before that), so a bank quoting 6% tests your budget at 9%. Most Australian home loans are variable, so a change in the RBA cash rate usually reaches your repayment within weeks."}}]}]}
 </script>
 </head>
 <body>
@@ -48,7 +48,7 @@
       <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
-    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Support</a></li></ul>
+    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Contact</a></li></ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
   </div>
@@ -171,7 +171,7 @@
   <p>For a principal and interest loan the monthly repayment is <strong>P × r × (1 + r)<sup>n</sup> ÷ ((1 + r)<sup>n</sup> − 1)</strong>, where P is the loan amount, r is the annual rate ÷ 12 and n is the number of monthly payments (years × 12). On an interest-only loan it's P × r, and the balance doesn't fall.</p>
   <p>The calculator works out the repayment at your rate and again at your rate plus the buffer you pick, then divides each by your gross monthly income. Above 30% of gross income is the usual line for mortgage stress, and above 50% is severe stress.</p>
   <p>The 30% line takes no account of how much you earn. A household on $250,000 paying 35% can have plenty left over, while one on $80,000 paying 28% can be squeezed hard. So the calculator also adds your other monthly debt repayments to the mortgage and shows the total as a share of income, along with the dollars left each month. Both use the repayment at your current rate.</p>
-  <p>The DTI figure beside the total is the loan divided by gross annual income. It leaves out your other debts, because the form only asks for their monthly repayments. APRA monitors how much banks lend at more than 6× income, and lenders look harder at those loans.</p>
+  <p>The DTI figure beside the total is the loan divided by gross annual income. It leaves out your other debts, because the form only asks for their monthly repayments. Since 1 February 2026 APRA has limited loans at six or more times the borrower's income to 20% of each bank's new lending. APRA's measure counts all of the borrower's debt, so with other loans your ratio on its measure is higher than this figure.</p>
 
   <h2>Worked example</h2>
   <p>A $580,000 loan over 30 years, principal and interest, at 6.25%. The household earns $12,500 a month before tax and pays $800 a month on a car loan. The test adds 3%.</p>
@@ -181,20 +181,20 @@
     <li>All debt at the current rate: ($3,571 + $800) ÷ $12,500 = 35.0%.</li>
     <li>Left each month at the current rate: $12,500 − $3,571 − $800 = $8,129 before tax and living costs. At the higher repayment it's $12,500 − $4,772 − $800 = $6,928.</li>
   </ul>
-  <p>The repayment is under 30% today and well over it after a 3% rise, so the result is a caution. Tax and living costs still have to come out of the $8,129.</p>
+  <p>The repayment is under 30% today and well over it after a 3% rise, so the result is a caution.</p>
 
   <h2>If you're already in mortgage stress</h2>
-  <p>Call your lender before you miss a payment. Banks have financial hardship obligations and can offer a temporary lower repayment, a pause or a restructure, and you have more options before a missed payment than after one. A lower rate or a longer term also cuts the monthly repayment, though a longer term means more interest overall. The National Debt Helpline (1800 007 007) gives free, independent financial counselling.</p>
+  <p>Call your lender before you miss a payment. Banks have financial hardship obligations and can offer a temporary lower repayment, a pause or a restructure. A lower rate or a longer term also cuts the monthly repayment, though a longer term means more interest overall. The National Debt Helpline (1800 007 007) gives free, independent financial counselling.</p>
 
   <h2>What it leaves out</h2>
-  <p>It doesn't take out income tax, and it doesn't apply the living-cost benchmarks lenders use, such as the Household Expenditure Measure (HEM). Lenders mortgage insurance, fees, offset and redraw balances, fixed-rate splits and changes in your income aren't included either. A lender will run its own numbers, so treat this as a first check. This is general information, not financial advice. The APRA buffer and interest rates change, so check the current settings with APRA, the RBA or Moneysmart.</p>
+  <p>It doesn't take out income tax, and it doesn't apply the living-cost benchmarks lenders use, such as the Household Expenditure Measure (HEM). Lenders mortgage insurance, fees, offset and redraw balances, fixed-rate splits and changes in your income aren't included either. A lender will run its own numbers, so treat this as a first check. The APRA buffer and interest rates change, so check the current settings with APRA, the RBA or Moneysmart.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>What percentage of income is mortgage stress in Australia?</h3>
   <p>The usual line is repayments above 30% of gross household income, and above 50% is severe stress. It's a rule of thumb, not a legal definition, so read it alongside the dollars you have left each month and your other debts.</p>
 
   <h3>Should I stress test with gross or net income?</h3>
-  <p>This calculator uses gross (before-tax) income, because the 30% rule is based on it and lenders frame serviceability the same way. For your own budget, check the repayment against your take-home pay as well. It will take a bigger share of that.</p>
+  <p>This calculator uses gross (before-tax) income, because the 30% rule is based on it. For your own budget, check the repayment against your take-home pay as well. It will take a bigger share of that.</p>
 
   <h3>Why test at the current rate plus 3%?</h3>
   <p>APRA expects lenders to check that you could still afford the loan at 3 percentage points above the rate you're offered. It has been 3 points since late 2021 (2.5% before that), so a bank quoting 6% tests your budget at 9%. Most Australian home loans are variable, so a change in the RBA cash rate usually reaches your repayment within weeks.</p>

@@ -402,7 +402,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'Estimates only. Repayments depend on your lender, its fees and rate changes. The LMI figure is a rough estimate.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/mortgage-repayment-calculator',

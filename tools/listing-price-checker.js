@@ -362,7 +362,7 @@ function calculate() {
       var bandLabel = ptype === 'house' ? 'houses, 2.5–4.5% gross (my rule of thumb)' : 'units, 4–6% gross (my rule of thumb)';
       yieldRows.push(rowHtml('Rule-of-thumb band', bandLabel));
       if (impliedYield < bandLow) {
-        yieldVerdict = 'The implied gross yield is below the rule-of-thumb band. At this asking price the property earns little rent for its cost, which points to a high asking price for the rent (indicative).';
+        yieldVerdict = 'The implied gross yield is below the rule-of-thumb band, so the asking price is high for the rent the property earns (indicative).';
       } else if (impliedYield <= bandHigh) {
         var midBand = (bandLow + bandHigh) / 2;
         yieldVerdict = impliedYield < midBand
@@ -443,27 +443,19 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Buying a first home',
-    description: 'The First Home Journey compares the government schemes on your figures and builds a budget that includes every upfront cost.',
+    description: 'The First Home Journey compares the government schemes on your figures and builds a budget that includes stamp duty and the legal and registration costs.',
     buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFDB\uFE0F', title: 'Where the data comes from',
+        icon: '\uD83C\uDFDB\uFE0F', title: 'Datasets',
         links: [
           { text: 'Valuer-General Victoria: property sales statistics', href: 'https://www.land.vic.gov.au/valuations/resources-and-reports/property-sales-statistics' },
           { text: 'Valuer-General SA: metro median house sales', href: 'https://data.sa.gov.au/data/dataset/metro-median-house-sales' },
           { text: 'RTA Queensland: median rents', href: 'https://www.rta.qld.gov.au/median-rents' },
           { text: 'Consumer and Business Services (SA)', href: 'https://www.cbs.sa.gov.au/' }
-        ]
-      },
-      {
-        icon: '\uD83D\uDCCA', title: 'Open data portals',
-        links: [
-          { text: 'data.vic.gov.au', href: 'https://www.data.vic.gov.au/' },
-          { text: 'data.sa.gov.au', href: 'https://data.sa.gov.au/' },
-          { text: 'data.qld.gov.au', href: 'https://www.data.qld.gov.au/' }
         ]
       },
       {
@@ -475,7 +467,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'A median is a general market indicator and doesn’t value a property. The data is republished under CC BY 4.0 from the agencies credited, each with its period. Newer releases may exist at the source.'
+    disclaimer: 'The figures are republished under CC BY 4.0 from the agencies credited.'
   },
   share: {
     url: 'https://equitysight.app/tools/listing-price-checker',
@@ -518,7 +510,7 @@ ToolPage.init({
         { k: 'Asking price', v: '$1,850,000' }
       ],
       outputs: [
-        { k: 'Metro house median (Q1 2026, VG SA)', v: '$1,949,000' },
+        { k: 'Suburb house median (Q1 2026, VG SA)', v: '$1,949,000' },
         { k: 'Difference', v: '−$99,000 (−5.1%)' },
         { k: 'Verdict', v: 'Below the suburb median' },
         { k: 'Implied yield at median rent $598/wk', v: '~1.7% (indicative)' }

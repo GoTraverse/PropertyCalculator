@@ -72,12 +72,12 @@ function ltR(tax, threshold, band, mRate, mNote) {
 
 function schedNSW(V, otype) {
   if (otype === 'trust') {
-    var tt = 'None — special/discretionary trusts have no NSW threshold';
+    var tt = 'None (special and discretionary trusts have no NSW threshold)';
     if (V <= 6571000) return ltR(0.016 * V, tt, 'Special trust: 1.6% of the entire land value', 0.016);
     return ltR(105136 + 0.02 * (V - 6571000), tt, 'Special trust above $6,571,000: $105,136 + 2% of the excess', 0.02);
   }
-  var th = '$1,075,000 (general — individuals, companies & fixed trusts)';
-  if (V <= 1075000) return ltR(0, th, 'At or below the general threshold — no land tax', 0, '0% until $1,075,000 (then $100 + 1.6% of the excess)');
+  var th = '$1,075,000 (general: individuals, companies and fixed trusts)';
+  if (V <= 1075000) return ltR(0, th, 'No land tax at or below the general threshold', 0, '0% until $1,075,000 (then $100 + 1.6% of the excess)');
   if (V <= 6571000) return ltR(100 + 0.016 * (V - 1075000), th, 'General: $100 + 1.6% of the value above $1,075,000', 0.016);
   return ltR(88036 + 0.02 * (V - 6571000), th, 'Premium: $88,036 + 2% of the value above $6,571,000', 0.02);
 }
@@ -85,7 +85,7 @@ function schedNSW(V, otype) {
 function schedVIC(V, otype) {
   if (otype === 'trust') {
     var tt = '$25,000 (VIC trust surcharge scale)';
-    if (V < 25000) return ltR(0, tt, 'Below the trust threshold — no land tax', 0, '0% until $25,000');
+    if (V < 25000) return ltR(0, tt, 'No land tax below the trust threshold', 0, '0% until $25,000');
     if (V < 50000) return ltR(82 + 0.00375 * (V - 25000), tt, '$25,000–<$50,000 (trust): $82 + 0.375% of the excess', 0.00375);
     if (V < 100000) return ltR(676 + 0.00375 * (V - 50000), tt, '$50,000–<$100,000 (trust): $676 + 0.375% of the excess', 0.00375);
     if (V < 250000) return ltR(1338 + 0.00375 * (V - 100000), tt, '$100,000–<$250,000 (trust): $1,338 + 0.375% of the excess', 0.00375);
@@ -96,9 +96,9 @@ function schedVIC(V, otype) {
     return ltR(31650 + 0.0265 * (V - 3000000), tt, '$3,000,000+ (trust converges with general): $31,650 + 2.65% of the excess', 0.0265);
   }
   var th = '$50,000 (general)';
-  if (V < 50000) return ltR(0, th, 'Below $50,000 — no land tax', 0, '0% until $50,000');
-  if (V < 100000) return ltR(500, th, '$50,000–<$100,000: flat $500', 0, 'Flat $500 across this band — $0 on the next dollar until $100,000');
-  if (V < 300000) return ltR(975, th, '$100,000–<$300,000: flat $975', 0, 'Flat $975 across this band — $0 on the next dollar until $300,000');
+  if (V < 50000) return ltR(0, th, 'No land tax below $50,000', 0, '0% until $50,000');
+  if (V < 100000) return ltR(500, th, '$50,000–<$100,000: flat $500', 0, 'Flat $500 across this band, so $0 on the next dollar until $100,000');
+  if (V < 300000) return ltR(975, th, '$100,000–<$300,000: flat $975', 0, 'Flat $975 across this band, so $0 on the next dollar until $300,000');
   if (V < 600000) return ltR(1350 + 0.003 * (V - 300000), th, '$300,000–<$600,000: $1,350 + 0.3% of the excess', 0.003);
   if (V < 1000000) return ltR(2250 + 0.006 * (V - 600000), th, '$600,000–<$1,000,000: $2,250 + 0.6% of the excess', 0.006);
   if (V < 1800000) return ltR(4650 + 0.009 * (V - 1000000), th, '$1,000,000–<$1,800,000: $4,650 + 0.9% of the excess', 0.009);
@@ -109,7 +109,7 @@ function schedVIC(V, otype) {
 function schedQLD(V, otype) {
   if (otype === 'individual') {
     var th = '$600,000 (resident individuals)';
-    if (V < 600000) return ltR(0, th, 'Below $600,000 — no land tax', 0, '0% until $600,000');
+    if (V < 600000) return ltR(0, th, 'No land tax below $600,000', 0, '0% until $600,000');
     if (V < 1000000) return ltR(500 + 0.01 * (V - 600000), th, '$600,000–<$1,000,000: $500 + 1.0c per $1 of the excess', 0.01);
     if (V < 3000000) return ltR(4500 + 0.0165 * (V - 1000000), th, '$1,000,000–<$3,000,000: $4,500 + 1.65c per $1 of the excess', 0.0165);
     if (V < 5000000) return ltR(37500 + 0.0125 * (V - 3000000), th, '$3,000,000–<$5,000,000: $37,500 + 1.25c per $1 of the excess', 0.0125);
@@ -120,7 +120,7 @@ function schedQLD(V, otype) {
   // different top bands (2.0c / 2.5c instead of 2.25c / 2.75c).
   var isAbs = (otype === 'foreign');
   var th2 = '$350,000 (' + (isAbs ? 'absentee/foreign schedule' : 'companies & trustees') + ')';
-  if (V < 350000) return ltR(0, th2, 'Below $350,000 — no land tax', 0, '0% until $350,000');
+  if (V < 350000) return ltR(0, th2, 'No land tax below $350,000', 0, '0% until $350,000');
   if (V < 2250000) return ltR(1450 + 0.017 * (V - 350000), th2, '$350,000–<$2,250,000: $1,450 + 1.7c per $1 of the excess', 0.017);
   if (V < 5000000) return ltR(33750 + 0.015 * (V - 2250000), th2, '$2,250,000–<$5,000,000: $33,750 + 1.5c per $1 of the excess', 0.015);
   if (isAbs) {
@@ -138,7 +138,7 @@ function saHundreds(excess) { return Math.ceil(excess / 100); }
 function schedSA(V, otype) {
   if (otype === 'trust') {
     var tt = '$25,000 (SA trust scale, 2026-27)';
-    if (V <= 25000) return ltR(0, tt, 'At or below $25,000 — no land tax', 0, '0% until $25,000');
+    if (V <= 25000) return ltR(0, tt, 'No land tax at or below $25,000', 0, '0% until $25,000');
     if (V <= 936000) return ltR(125 + 0.5 * saHundreds(V - 25000), tt, '$25,000–$936,000 (trust): $125 + $0.50 per $100 or part above $25,000', null, '$0.50 per $100 or part (≈ 0.5%)');
     if (V <= 1504000) return ltR(4680 + 1.0 * saHundreds(V - 936000), tt, '$936,000–$1,504,000 (trust): $4,680 + $1.00 per $100 or part above $936,000', null, '$1.00 per $100 or part (≈ 1.0%)');
     if (V <= 2188000) return ltR(10360 + 1.5 * saHundreds(V - 1504000), tt, '$1,504,000–$2,188,000 (trust): $10,360 + $1.50 per $100 or part above $1,504,000', null, '$1.50 per $100 or part (≈ 1.5%)');
@@ -146,7 +146,7 @@ function schedSA(V, otype) {
     return ltR(52204 + 2.4 * saHundreds(V - 3504000), tt, 'Above $3,504,000 (trust): $52,204 + $2.40 per $100 or part above $3,504,000', null, '$2.40 per $100 or part (≈ 2.4%)');
   }
   var th = '$936,000 (general, 2026-27)';
-  if (V <= 936000) return ltR(0, th, 'At or below $936,000 — no land tax', 0, '0% until $936,000');
+  if (V <= 936000) return ltR(0, th, 'No land tax at or below $936,000', 0, '0% until $936,000');
   if (V <= 1504000) return ltR(0.5 * saHundreds(V - 936000), th, '$936,000–$1,504,000: $0.50 per $100 or part above $936,000', null, '$0.50 per $100 or part (≈ 0.5%)');
   if (V <= 2188000) return ltR(2840 + 1.0 * saHundreds(V - 1504000), th, '$1,504,000–$2,188,000: $2,840 + $1.00 per $100 or part above $1,504,000', null, '$1.00 per $100 or part (≈ 1.0%)');
   if (V <= 3504000) return ltR(9680 + 2.0 * saHundreds(V - 2188000), th, '$2,188,000–$3,504,000: $9,680 + $2.00 per $100 or part above $2,188,000', null, '$2.00 per $100 or part (≈ 2.0%)');
@@ -155,8 +155,8 @@ function schedSA(V, otype) {
 
 function schedWA(V) {
   var th = '$300,000 (single scale for all owner types)';
-  if (V <= 300000) return ltR(0, th, 'At or below $300,000 — no land tax', 0, '0% until $300,000');
-  if (V <= 420000) return ltR(300, th, '$300,001–$420,000: flat $300', 0, 'Flat $300 across this band — $0 on the next dollar until $420,000');
+  if (V <= 300000) return ltR(0, th, 'No land tax at or below $300,000', 0, '0% until $300,000');
+  if (V <= 420000) return ltR(300, th, '$300,001–$420,000: flat $300', 0, 'Flat $300 across this band, so $0 on the next dollar until $420,000');
   if (V <= 1000000) return ltR(300 + 0.0025 * (V - 420000), th, '$420,001–$1,000,000: $300 + 0.25c per $1 above $420,000', 0.0025);
   if (V <= 1800000) return ltR(1750 + 0.009 * (V - 1000000), th, '$1,000,001–$1,800,000: $1,750 + 0.9c per $1 above $1,000,000', 0.009);
   if (V <= 5000000) return ltR(8950 + 0.018 * (V - 1800000), th, '$1,800,001–$5,000,000: $8,950 + 1.8c per $1 above $1,800,000', 0.018);
@@ -165,8 +165,8 @@ function schedWA(V) {
 }
 
 function schedTAS(V) {
-  var th = '$125,000 (General Land — same scale for all owner types)';
-  if (V < 125000) return ltR(0, th, 'Below $125,000 — no land tax', 0, '0% until $125,000');
+  var th = '$125,000 (General Land, same scale for all owner types)';
+  if (V < 125000) return ltR(0, th, 'No land tax below $125,000', 0, '0% until $125,000');
   if (V < 500000) return ltR(50 + 0.0045 * (V - 125000), th, '$125,000–<$500,000: $50 + 0.45% of the excess', 0.0045);
   return ltR(1737.5 + 0.015 * (V - 500000), th, '$500,000+: $1,737.50 + 1.5% of the excess', 0.015);
 }

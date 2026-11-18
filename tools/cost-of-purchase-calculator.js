@@ -366,9 +366,9 @@ ToolPage.init({
     { q: 'Do I need Lenders Mortgage Insurance (LMI)?',
       a: 'LMI applies to most loans with a deposit under 20%. This calculator estimates it from the loan-to-value ratio: for a $650,000 purchase with a 10% deposit the estimate is $11,115. A 20% deposit, a guarantor or the 5% Deposit Scheme (formerly the First Home Guarantee) avoids it, and the scheme has its own eligibility rules and price caps.' },
     { q: 'How much are conveyancing and legal fees?',
-      a: 'This calculator uses the middle of a range for each state, from $900 in Queensland and Tasmania to $1,400 in Victoria. Those ranges are my rough estimates, so get a quote. Solicitors usually charge more than licensed conveyancers but handle complex matters like deceased estates.' },
+      a: 'This calculator uses the middle of a range for each state, from $900 in Queensland and Tasmania to $1,400 in Victoria. Those ranges are my rough estimates, so get a quote.' },
     { q: 'What about building and pest inspections?',
-      a: 'This calculator allows $500 for a combined building and pest inspection on an established home, which is my rough estimate. Inspections are optional, but they can show up problems before you\'re committed.' }
+      a: 'This calculator allows $500 for a combined building and pest inspection on an established home, which is my rough estimate.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },

@@ -48,7 +48,7 @@
       <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
-    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Support</a></li></ul>
+    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Contact</a></li></ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
   </div>
@@ -58,7 +58,7 @@
 
 <section class="tool-hero" id="main-content">
   <h1>Interest Only vs Principal + Interest</h1>
-  <p>Puts an Interest Only loan next to a Principal + Interest loan of the same amount and term, and shows the repayments and total interest on each.</p>
+  <p>Compares an Interest Only loan with a Principal + Interest loan of the same amount and term. It shows the repayment on each, what the IO repayment rises to when the IO period ends, and how much more interest the IO path costs.</p>
 </section>
 
 <div class="tool-main" role="main">
@@ -77,7 +77,7 @@
     </div>
 
     <div class="tool-field">
-      <label class="tool-label" for="rate-io">Interest Only rate (%), usually about 0.25% above the P&amp;I rate</label>
+      <label class="tool-label" for="rate-io">Interest Only rate (%)</label>
       <input class="tool-input" type="number" id="rate-io" value="6.60" step="0.01" min="0">
     </div>
 
@@ -143,9 +143,8 @@
 
 <section class="tool-content">
   <h2>How the comparison is worked out</h2>
-  <p>The tool runs the same loan amount and term down two paths.</p>
-  <p>On the P&amp;I path the monthly repayment is <strong>P × r × (1 + r)^n ÷ ((1 + r)^n − 1)</strong>, where P is the loan amount, r is the monthly interest rate (annual rate divided by 12) and n is the number of monthly repayments (years × 12).</p>
-  <p>On the IO path the repayment during the IO period is the loan balance multiplied by the annual IO rate, divided by 12. Nothing comes off the balance, so when the IO period ends you still owe the full amount and have fewer years to repay it. A 30-year loan with a 5-year IO period is repaid over the remaining 25 years, which is why the repayment jumps. The "extra interest" figure is total interest on the IO path minus total interest on P&amp;I from the start.</p>
+  <p>The P&amp;I repayment is <strong>P × r × (1 + r)^n ÷ ((1 + r)^n − 1)</strong>, where P is the loan amount, r is the monthly interest rate (annual rate divided by 12) and n is the number of monthly repayments (years × 12).</p>
+  <p>During the IO period the repayment is the loan balance multiplied by the annual IO rate, divided by 12. Nothing comes off the balance, so when the IO period ends you still owe the full amount and have fewer years left to repay it. A 30-year loan with a 5-year IO period is repaid over the remaining 25 years, which is why the repayment jumps. The "extra interest" figure is total interest on the IO path minus total interest on P&amp;I from the start.</p>
 
   <h2>Worked example</h2>
   <p>A $600,000 loan over 30 years, with a P&amp;I rate of 6.25%, an IO rate of 6.60% and a 5-year IO period.</p>
@@ -156,15 +155,15 @@
     <li>Total interest is $824,644 on the IO path and $729,949 on P&amp;I from the start, which is $94,695 more.</li>
   </ul>
 
-  <h2>Who uses interest-only, and the risks</h2>
-  <p>Mostly property investors. Interest on an investment loan is generally tax-deductible and principal repayments aren't, so some investors keep the investment loan on IO and put their spare cash into a non-deductible debt such as their own home loan. IO is also used to get through a temporary drop in income (parental leave, a career break) or while a new home is being built.</p>
-  <p>The main risk is the repayment after the IO period ends, as in the example above. The other is that you build no equity during the IO years, so if prices stall or fall you have a thinner buffer than someone who has been paying the loan down. On an owner-occupied loan there's no tax deduction, so IO costs you the higher rate and the extra interest with nothing coming back.</p>
+  <h2>Who uses interest-only</h2>
+  <p>Mostly investors. Interest on an investment loan is generally tax-deductible and principal repayments aren't, so some investors keep the investment loan on IO and put their spare cash into their own home loan, where the interest isn't deductible. Owner-occupiers sometimes use IO to get through a drop in income (parental leave, a career break) or while a new home is being built. On your own home there's no deduction, so you pay the higher rate and the extra interest with no tax benefit.</p>
+  <p>You also build no equity from repayments during the IO years. If prices stall or fall, you have a thinner buffer than someone who has been paying the loan down.</p>
 
   <h2>How lenders assess an IO loan</h2>
-  <p>APRA expects lenders to test whether you could still afford the loan at an interest rate around 3 percentage points above the actual rate. For an IO loan that test is usually run on the P&amp;I repayment over the term left after IO ends, which is higher than the IO repayment, so qualifying for IO is often harder than for P&amp;I.</p>
+  <p>APRA expects lenders to test whether you could still afford the loan at an interest rate around 3 percentage points above the actual rate. For an IO loan that test is usually run on the P&amp;I repayment over the term left after IO ends. That repayment is higher than the IO one, so qualifying for IO is often harder than qualifying for P&amp;I.</p>
 
   <h2>What this calculator leaves out</h2>
-  <p>Changes to interest rates over time (it assumes the IO rate carries on after the loan reverts, and your lender may apply a different revert rate), fees and charges, Lenders Mortgage Insurance, offset or redraw balances, and tax deductions. It is general information, not personal financial advice.</p>
+  <p>It assumes the IO rate carries on after the loan reverts to P&amp;I, and your lender may use a different revert rate. It doesn't model rate changes over time, refinancing, fees, Lenders Mortgage Insurance, an offset or redraw balance, or tax deductions. It is general information, not personal financial advice.</p>
 </section>
 
 <div id="tool-resources-root"></div>

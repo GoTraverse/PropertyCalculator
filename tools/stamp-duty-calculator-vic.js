@@ -27,7 +27,7 @@ function calcVICDuty(price, ptype, buyer, fhb) {
   // Vacant land: same treatment as tools/stamp-duty-calculator.js, which only
   // applies first home buyer relief to dwellings (QLD land aside).
   if (fhb && ptype === 'land') {
-    return { duty: standard, note: 'First home buyer relief for vacant land has different rules that this page does not model, so standard duty is shown.' };
+    return { duty: standard, note: 'First home buyer relief on vacant land has different rules that this page doesn’t model, so this is standard duty.' };
   }
 
   if (fhb && v <= VIC_FHB_FULL) {
@@ -100,19 +100,21 @@ function calculate() {
   document.getElementById('r-allin').textContent = fmt(val + total);
   document.getElementById('r-note').textContent = note;
   document.getElementById('r-note').style.display = note ? '' : 'none';
+  var cta = document.getElementById('cta');
+  if (cta) cta.style.display = '';
 
   var lvrEl = document.getElementById('r-lvr');
   if (lvrEl) lvrEl.textContent = (lvr * 100).toFixed(1) + '% (' + fmt(loanAmount) + ' loan)';
   var lmiEl = document.getElementById('r-lmi');
   if (lmiEl) lmiEl.textContent = lmiLabel;
   var regEl = document.getElementById('r-reg');
-  if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Use Victoria — transfer fee scales with price)';
+  if (regEl) regEl.textContent = fmt(regTotal) + ' (Land Use Victoria, transfer fee rises with the price)';
   var conveyEl = document.getElementById('r-conveyancing');
-  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (typical $1,500–$2,500)';
+  if (conveyEl) conveyEl.textContent = fmt(conveyancing) + ' (estimate, roughly $1,500–$2,500)';
   var upfrontEl = document.getElementById('r-upfront');
   if (upfrontEl) upfrontEl.textContent = fmt(upfrontTotal);
 
-  document.getElementById('disclaimer').textContent = 'Estimates only. Rates based on Victoria 2026-27 land transfer duty. LMI is a rough estimate. Verify with a solicitor before settlement.';
+  document.getElementById('disclaimer').textContent = 'Estimate at SRO Victoria’s 2026-27 rates, before any principal place of residence concession. The LMI figure is rough. Check the final figures with your conveyancer before settlement.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -136,9 +138,9 @@ ToolPage.init({
   slug: 'stamp-duty-vic',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Plan the full Victoria purchase',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Buying your first home in Victoria',
+    description: 'The First Home Journey adds this duty to a budget for the whole purchase and tracks your contract dates through to settlement.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey?st=vic'
   },
   resources: {
@@ -146,28 +148,28 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Office Victoria',
         links: [
-          { text: 'VIC Land Transfer Duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
-          { text: 'First Home Buyer Duty Exemption / Concession', href: 'https://www.sro.vic.gov.au/first-home-buyer-duty-exemption-or-concession' }
+          { text: 'Land transfer duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
+          { text: 'First home buyer duty exemption and concession', href: 'https://www.sro.vic.gov.au/first-home-buyer-duty-exemption-or-concession' }
         ]
       },
       {
-        icon: '\uD83C\uDFAF', title: 'First Home Buyer',
+        icon: '\uD83C\uDFAF', title: 'First home buyers',
         links: [
-          { text: 'First Home Guarantee Scheme', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
-          { text: 'First Home Super Saver', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
-          { text: 'ASIC: Buying a Home', href: 'https://moneysmart.gov.au/buying-a-house' }
+          { text: 'First Home Guarantee', href: 'https://www.housingaustralia.gov.au/first-home-guarantee' },
+          { text: 'First Home Super Saver scheme', href: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/early-access-to-super/first-home-super-saver-scheme' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Financial Planning',
+        icon: '\uD83D\uDCB0', title: 'Home loans and rental property',
         links: [
-          { text: 'ASIC: Home Loan Guide', href: 'https://moneysmart.gov.au/home-loans' },
-          { text: 'ATO: Rental Properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
-          { text: 'Choosing a Home Loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
+          { text: 'Moneysmart: choosing a home loan', href: 'https://moneysmart.gov.au/home-loans/choosing-a-home-loan' }
         ]
       }
     ],
-    disclaimer: 'This information is general only. Always consult with a licensed solicitor, accountant, and financial adviser before purchasing. Verify current rates with State Revenue Office Victoria.'
+    disclaimer: 'This is general information, not advice. SRO Victoria or your conveyancer can confirm the duty on your contract.'
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator-vic',
@@ -188,7 +190,7 @@ ToolPage.init({
   ],
   examples: [
   {
-    "label": "VIC — $480,000 property",
+    "label": "$480,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -210,12 +212,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$0 (FHB exemption)"
+        "v": "$0 (first home buyer exemption)"
       }
     ]
   },
   {
-    "label": "VIC — $680,000 property",
+    "label": "$680,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -237,12 +239,12 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$19,131 (FHB concession)"
+        "v": "$19,131 (first home buyer concession)"
       }
     ]
   },
   {
-    "label": "VIC — $1,000,000 property",
+    "label": "$1,000,000 property",
     "inputs": [
       {
         "k": "Property price",
@@ -264,7 +266,7 @@ ToolPage.init({
       },
       {
         "k": "First home buyer duty",
-        "v": "$55,000 (over cap)"
+        "v": "$55,000 (over the concession limit)"
       }
     ]
   }

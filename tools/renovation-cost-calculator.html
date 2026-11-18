@@ -7,7 +7,7 @@
 <script src="tool-page.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Renovation Cost Calculator Australia</title>
-<meta name="description" content="A rough low-to-high budget for an Australian home renovation from floor area, scope, finish, bathrooms and kitchen. The rates used are on the page.">
+<meta name="description" content="A rough low-to-high budget for an Australian home renovation from floor area, scope, finish, bathrooms and kitchen, using rates I've estimated.">
 <meta name="keywords" content="renovation cost calculator Australia, property renovation estimator, house renovation cost, bathroom renovation cost, kitchen renovation cost Australia">
 <link rel="canonical" href="https://equitysight.app/tools/renovation-cost-calculator">
 <link rel="alternate" hreflang="en-AU" href="https://equitysight.app/tools/renovation-cost-calculator">
@@ -16,7 +16,7 @@
 <meta name="geo.placename" content="Australia">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Renovation Cost Calculator Australia">
-<meta property="og:description" content="A rough low-to-high budget for an Australian home renovation from floor area, scope, finish, bathrooms and kitchen. The rates used are on the page.">
+<meta property="og:description" content="A rough low-to-high budget for an Australian home renovation from floor area, scope, finish, bathrooms and kitchen, using rates I've estimated.">
 <meta property="og:url" content="https://equitysight.app/tools/renovation-cost-calculator">
 <meta property="og:site_name" content="EquitySight.app">
 <meta property="og:image" content="https://equitysight.app/images/og/renovation-cost-calculator.png">
@@ -25,7 +25,7 @@
 <meta property="og:image:alt" content="EquitySight renovation cost calculator">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Renovation Cost Calculator Australia">
-<meta name="twitter:description" content="A rough low-to-high budget for an Australian home renovation from floor area, scope, finish, bathrooms and kitchen. The rates used are on the page.">
+<meta name="twitter:description" content="A rough low-to-high budget for an Australian home renovation from floor area, scope, finish, bathrooms and kitchen, using rates I've estimated.">
 <meta name="twitter:image" content="https://equitysight.app/images/og/renovation-cost-calculator.png">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <meta name="theme-color" content="#1C1C1E">
@@ -36,7 +36,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Renovation Cost Calculator Australia","url":"https://equitysight.app/tools/renovation-cost-calculator","description":"Gives a rough low-to-high budget for an Australian home renovation from floor area, scope and finish level. The rates are the site owner's own estimates.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Renovation Cost Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Do I need council approval to renovate?","acceptedAnswer":{"@type":"Answer","text":"Painting, replacing fixtures and new flooring usually need no approval. Structural changes, extensions, anything that alters the building footprint, and most plumbing and electrical work typically require a Development Application (DA) or, for straightforward jobs, a faster Complying Development Certificate (CDC). Licensed electrical and plumbing work must be carried out and certified by a licensed tradesperson. The requirements are set by your state or territory and administered by your local council, so check with the council before booking trades."}},{"@type":"Question","name":"Will a renovation increase my capital gains tax?","acceptedAnswer":{"@type":"Answer","text":"For an investment property, the cost of capital improvements is generally added to the asset's cost base, which reduces the capital gain when you sell. Your main residence is usually exempt from capital gains tax."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Renovation Cost Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Do I need council approval to renovate?","acceptedAnswer":{"@type":"Answer","text":"Painting, replacing fixtures and new flooring usually need no approval. Structural changes, extensions and anything that changes the building's footprint usually need council or certifier approval. Electrical and plumbing work must be done and certified by a licensed tradesperson. The rules are set by each state and run by local councils, so check with yours before booking trades."}},{"@type":"Question","name":"Will a renovation increase my capital gains tax?","acceptedAnswer":{"@type":"Answer","text":"For an investment property, the cost of capital improvements is generally added to the asset's cost base, which reduces the capital gain when you sell. Your main residence is usually exempt from capital gains tax."}}]}]}
 </script>
 </head>
 <body>
@@ -48,7 +48,7 @@
       <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
-    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Support</a></li></ul>
+    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Contact</a></li></ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
   </div>
@@ -58,7 +58,7 @@
 
 <section class="tool-hero" id="main-content">
   <h1>Property Renovation Cost Calculator</h1>
-  <p>Gives a rough low-to-high budget for a renovation from the floor area, the scope and the finish. The rates are my own estimates and are listed further down.</p>
+  <p>Enter the floor area, the scope and the finish to get a rough low-to-high budget for a renovation. The rates are my own estimates, and the main ones are listed further down.</p>
 </section>
 
 <div class="tool-main" role="main">
@@ -164,14 +164,14 @@
   <h2>How the estimate is built</h2>
   <ul>
     <li>Base cost = floor area (m²) × a rate per m² that depends on the scope and finish you choose.</li>
-    <li>Bathrooms and the kitchen are added on top as fixed allowances, because plumbing, waterproofing, tiling and cabinetry make them cost far more than their floor area suggests.</li>
-    <li>Landscaping is added if you tick it.</li>
+    <li>Bathrooms and the kitchen (a refresh or a full replacement) are added on top as fixed allowances for your finish level, because plumbing, waterproofing, tiling and cabinetry make them cost far more than their floor area suggests.</li>
+    <li>Landscaping is another fixed allowance, added if you tick it.</li>
     <li>Contingency = subtotal × 15%, when the box is ticked. It covers what you can't see until walls come off: rotten subfloors, undersized switchboards, old plumbing that fails inspection, or asbestos in a pre-1990 home.</li>
   </ul>
-  <p>Each rate is a low and a high figure, so the result is a range. The mid-point is the average of the two, and cost per m² is the mid-point divided by your floor area.</p>
+  <p>Each rate has a low and a high figure, so the result is a range. The mid-point is the average of the two, and cost per m² is the mid-point divided by your floor area.</p>
 
   <h2>The rates this calculator uses</h2>
-  <p>These are my own rough estimates and have no official or industry source. A sloping or heritage-listed site costs more.</p>
+  <p>These rates and the room allowances below are my own rough estimates, with no official or industry source.</p>
   <table>
     <tr><th>Renovation type</th><th>Budget (per m²)</th><th>Mid-range</th><th>Premium</th></tr>
     <tr><td>Cosmetic refresh</td><td>$200–$400</td><td>$400–$700</td><td>$700–$1,200</td></tr>
@@ -179,7 +179,7 @@
     <tr><td>Full gut renovation</td><td>$1,400–$2,000</td><td>$2,000–$3,500</td><td>$3,500–$6,000+</td></tr>
   </table>
 
-  <h2>Room allowances (my estimates)</h2>
+  <h2>Room allowances</h2>
   <table>
     <tr><th>Room</th><th>Budget</th><th>Mid-range</th><th>Premium</th></tr>
     <tr><td>Bathroom</td><td>$8,000–$15,000</td><td>$15,000–$28,000</td><td>$28,000–$60,000</td></tr>
@@ -196,10 +196,10 @@
     <li>Contingency at 15%: $32,250 to $54,150.</li>
     <li>Total: $247,250 to $415,150. The mid-point is $331,200, or $1,840 per m².</li>
   </ul>
-  <p>The room allowances are added on top of the per-m² base rate, with no deduction for the floor area the kitchen and bathroom occupy, so the range leans high. The range is wide because the rates are rough. It's enough to decide whether a project is worth getting quotes for.</p>
+  <p>The room allowances are added on top of the per-m² base rate, with no deduction for the floor area the kitchen and bathroom take up, so the range leans high. It's wide because the rates are rough, but it's enough to tell whether a project is worth getting quotes for.</p>
 
   <h2>What the estimate leaves out</h2>
-  <p>Your property's condition, local pricing in your suburb, site access and slope, heritage overlays, and finance. It also leaves out the costs below. The dollar ranges are my rough estimates, not sourced figures.</p>
+  <p>It doesn't know the condition of your property, prices in your suburb, site access and slope, or heritage overlays, and it leaves out finance. It also leaves out these costs (the dollar ranges are my rough estimates, not sourced figures):</p>
   <ul>
     <li>Council approvals / DA: $2,000–$15,000+ depending on scope</li>
     <li>Structural engineer report: $1,500–$4,000</li>
@@ -208,11 +208,11 @@
     <li>Holding costs: mortgage interest, council rates and insurance during the build period</li>
     <li>Skip bins, site cleaning and waste levies</li>
   </ul>
-  <p>It isn't a quote or a valuation, and it doesn't tell you whether the work will add more to the sale price than it costs. For a real number, get at least three itemised quotes from licensed builders working to the same scope of works. This page is general information, not personal financial advice.</p>
+  <p>It isn't a quote or a valuation, and it can't tell you whether the work will add more to the sale price than it costs. For a figure you can budget on, get at least three itemised quotes from licensed builders working to the same scope of works.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>Do I need council approval to renovate?</h3>
-  <p>Painting, replacing fixtures and new flooring usually need no approval. Structural changes, extensions, anything that alters the building footprint, and most plumbing and electrical work typically require a Development Application (DA) or, for straightforward jobs, a faster Complying Development Certificate (CDC). Licensed electrical and plumbing work must be carried out and certified by a licensed tradesperson. The requirements are set by your state or territory and administered by your local council, so check with the council before booking trades.</p>
+  <p>Painting, replacing fixtures and new flooring usually need no approval. Structural changes, extensions and anything that changes the building's footprint usually need council or certifier approval. Electrical and plumbing work must be done and certified by a licensed tradesperson. The rules are set by each state and run by local councils, so check with yours before booking trades.</p>
 
   <h3>Will a renovation increase my capital gains tax?</h3>
   <p>For an investment property, the cost of capital improvements is generally added to the asset's cost base, which reduces the capital gain when you sell. Your main residence is usually exempt from capital gains tax.</p>

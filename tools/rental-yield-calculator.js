@@ -23,10 +23,10 @@ function calculate() {
 
   // No loan is entered here, so the verdict does not claim the property is
   // positively or negatively geared. It states the test instead.
-  var verdict = (totalExpenses > 0 ? '' : 'No expenses entered, so net yield equals gross yield. ') +
-    'This calculator has no loan input, so it can\'t say whether the property is positively or negatively geared. ' +
-    'Rent covers the loan interest when the net yield (' + netYield.toFixed(2) + '%) is higher than your interest rate multiplied by the share of the price you borrow. ' +
-    'For example, a 6% rate on an 80% loan needs a net yield above 4.8%.';
+  var verdict = (totalExpenses > 0 ? '' : 'No running costs entered, so net yield takes off vacancy only. ') +
+    'There\'s no loan in this calculator, so it can\'t say whether the property is positively or negatively geared. ' +
+    'The rent covers the loan interest when the net yield (' + netYield.toFixed(2) + '%) is above your interest rate multiplied by the share of the price you borrow. ' +
+    'A 6% rate on an 80% loan, for example, needs a net yield above 4.8%.';
 
   var netEl = document.getElementById('r-net');
   netEl.textContent = netYield.toFixed(2) + '%';
@@ -58,8 +58,8 @@ ToolPage.init({
   slug: 'rental-yield',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Cash flow, land tax and CGT',
-    description: 'Yield stops before the loan and tax. The property cash flow, land tax and capital gains calculators cover those.',
+    title: 'Adding the loan and tax',
+    description: 'Land tax and capital gains tax have calculators of their own, and the property cash flow calculator takes the same rent and costs and adds the loan interest and tax.',
     buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
@@ -80,16 +80,9 @@ ToolPage.init({
           { text: 'ASIC Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' },
           { text: 'ASIC Moneysmart: how to invest', href: 'https://moneysmart.gov.au/how-to-invest' }
         ]
-      },
-      {
-        icon: '\uD83D\uDCCB', title: 'Renting rules',
-        links: [
-          { text: 'NSW Government: renting', href: 'https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live' },
-          { text: 'Consumer Affairs Victoria: housing', href: 'https://www.consumer.vic.gov.au/housing' },
-        ]
       }
     ],
-    disclaimer: 'General information, not tax or financial advice. How a rental property is taxed depends on your circumstances.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/rental-yield-calculator',
@@ -148,13 +141,13 @@ ToolPage.init({
   ],
   faq: [
     { q: 'What is a good rental yield?',
-      a: 'The useful test is whether rent covers your loan interest. It does when the net yield is higher than your interest rate multiplied by the share of the price you borrow. A 6% rate on an 80% loan needs a net yield above 4.8%.' },
+      a: 'One test is whether the rent covers your loan interest. It does when the net yield is higher than your interest rate multiplied by the share of the price you borrow. A 6% rate on an 80% loan needs a net yield above 4.8%.' },
     { q: 'Should I use the purchase price or the current value?',
       a: 'For a property you\'re thinking of buying, use the price you expect to pay. For one you already own, use its current market value. As the value rises the same rent is a lower yield, which is one reason a property held for a long time can show a low yield.' },
     { q: 'Does yield include loan repayments?',
       a: 'No. Yield compares the rent with the full price of the property, whatever you borrowed. Loan repayments affect cash flow, which the property cash flow calculator works out.' },
     { q: 'What vacancy allowance should I use?',
-      a: 'A rule of thumb is one to two weeks a year for a well-located property in a tight rental market, and three to four weeks or more where there is high supply, seasonal demand or older stock.' }
+      a: 'A rough guide with no dataset behind it: one to two weeks a year for a well-located property in a tight rental market, and three to four weeks or more where there is high supply, seasonal demand or older stock.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFE6', href: '/tools/loan-serviceability-calculator', label: 'Loan Serviceability Calculator' },

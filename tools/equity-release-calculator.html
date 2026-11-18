@@ -36,7 +36,7 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"Home Equity Calculator","url":"https://equitysight.app/tools/equity-release-calculator","description":"Works out usable home equity for Australian property owners: how much could be borrowed against a home, from its value, the mortgage balance and the lender's LVR limit.","applicationCategory":"FinanceApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"publisher":{"@type":"Organization","name":"EquitySight","url":"https://equitysight.app"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Home Equity Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much equity can I release?","acceptedAnswer":{"@type":"Answer","text":"Generally up to 80% of your property's value minus your current loan, before LMI applies. Above 80% you can sometimes borrow more by paying LMI, but lenders rarely release equity above 90% LVR. The amount also has to pass the lender's income and serviceability test, so the figure here is a ceiling."}},{"@type":"Question","name":"Is the interest on released equity tax-deductible?","acceptedAnswer":{"@type":"Answer","text":"It depends on what the borrowed money is used for. What it is secured against doesn't matter. If you use the funds to buy an income-producing asset such as a rental property or shares, the interest is generally deductible. If you use them for personal purposes such as a holiday or renovating your own home, it isn't. The ATO sets the rules, and a registered tax agent can confirm how they apply to you."}},{"@type":"Question","name":"What's the difference between redraw and equity release?","acceptedAnswer":{"@type":"Answer","text":"Redraw lets you take back extra repayments you have already made. It is your own money and usually needs no new application. Equity release is new borrowing against the value of your home, which means a new loan assessment, possibly a valuation, and LMI if it pushes your LVR above 80%."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"EquitySight","item":"https://equitysight.app/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://equitysight.app/tools/"},{"@type":"ListItem","position":3,"name":"Home Equity Calculator"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much equity can I release?","acceptedAnswer":{"@type":"Answer","text":"Generally up to 80% of your property's value minus your current loan, before LMI applies. Above 80% you can sometimes borrow more by paying LMI, but lenders rarely release equity above 90% LVR. The amount also has to pass the lender's income and serviceability test, so the figure here is a ceiling."}},{"@type":"Question","name":"Is the interest on released equity tax-deductible?","acceptedAnswer":{"@type":"Answer","text":"It depends on what the borrowed money is used for. What it is secured against doesn't matter. If you use the funds to buy an income-producing asset such as a rental property or shares, the interest is generally deductible. If you use them for personal purposes such as a holiday or renovating your own home, it isn't."}},{"@type":"Question","name":"What's the difference between redraw and equity release?","acceptedAnswer":{"@type":"Answer","text":"Redraw lets you take back extra repayments you have already made. It is your own money and usually needs no new application. Equity release is new borrowing against the value of your home, which means a new loan assessment, possibly a valuation, and LMI if it pushes your LVR above 80%."}}]}]}
 </script>
 </head>
 <body>
@@ -48,7 +48,7 @@
       <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
-    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Support</a></li></ul>
+    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Contact</a></li></ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
   </div>
@@ -58,7 +58,7 @@
 
 <section class="tool-hero" id="main-content">
   <h1>Home Equity Calculator</h1>
-  <p>Works out your usable equity, the amount you could borrow against your home, from its value, your mortgage balance and the lender's maximum loan-to-value ratio (LVR).</p>
+  <p>Works out your usable equity: how much more you could borrow against your home, given its value, your mortgage balance and the lender's maximum loan-to-value ratio (LVR).</p>
 </section>
 
 <div class="tool-main" role="main">
@@ -122,11 +122,8 @@
 </div>
 
 <section class="tool-content">
-  <h2>Total equity and usable equity</h2>
-  <p>Total equity is what your home is worth minus what you still owe on it. Usable equity is the part a lender will let you borrow against, which is usually capped at 80% of the property's value before Lenders Mortgage Insurance (LMI) applies. That's why the amount available to release is almost always smaller than your total equity.</p>
-
   <h2>How it's worked out</h2>
-  <p>The calculator takes three inputs: the current property value, the outstanding mortgage, and the maximum LVR your lender allows (commonly 80%).</p>
+  <p>Usable equity is the part a lender will let you borrow against, usually up to 80% of the property's value before Lenders Mortgage Insurance (LMI) applies, so it is almost always smaller than total equity.</p>
   <ul>
     <li>Total equity = property value − outstanding mortgage.</li>
     <li>Current LVR = outstanding mortgage ÷ property value, as a percentage.</li>
@@ -142,25 +139,21 @@
     <li>Maximum borrowing at 80% = $650,000 × 0.80 = <strong>$520,000</strong>.</li>
     <li>Available to release = $520,000 − $400,000 = <strong>$120,000</strong>.</li>
   </ul>
-  <p>There is $250,000 of equity in the property and $120,000 of it is usable at 80%.</p>
 
-  <h2>What the figure doesn't tell you</h2>
+  <h2>What the figure leaves out</h2>
   <ul>
     <li>Whether you can afford the bigger loan. Since APRA introduced its serviceability buffer, lenders assess whether you could still repay at an interest rate around 3 percentage points above the actual rate.</li>
-    <li>What the lender thinks the home is worth. Lenders order their own valuation, and a lower figure than yours shrinks the usable equity.</li>
-    <li>The cost of going above 80% LVR. Most lenders then require LMI, which protects the lender if you default. The premium rises with LVR and varies by insurer, loan size and state. It can usually be added to the loan.</li>
+    <li>The lender's valuation. Lenders order their own, and a lower figure than yours shrinks the usable equity.</li>
+    <li>The cost of LMI. Above 80% LVR you'll generally pay it, and it protects the lender, not you, if you default. The premium rises with LVR and varies by insurer, loan size and state. It can usually be added to the loan.</li>
   </ul>
-  <p>If part of the money is for investment and part is personal, splitting it into separate sub-accounts keeps the deductible and non-deductible interest apart.</p>
-
-  <h2>What this calculator leaves out</h2>
-  <p>It uses property value, current debt and the LVR limit only. It doesn't assess serviceability (income and expenses), and it doesn't include LMI, stamp duty, refinancing or valuation fees, your credit history or the lender's own policy. This page is general information, not personal financial advice.</p>
+  <p>It also leaves out stamp duty, refinancing and valuation fees, your credit history and the lender's own policy. This page is general information, not personal financial advice.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>How much equity can I release?</h3>
   <p>Generally up to 80% of your property's value minus your current loan, before LMI applies. Above 80% you can sometimes borrow more by paying LMI, but lenders rarely release equity above 90% LVR. The amount also has to pass the lender's income and serviceability test, so the figure here is a ceiling.</p>
 
   <h3>Is the interest on released equity tax-deductible?</h3>
-  <p>It depends on what the borrowed money is used for. What it is secured against doesn't matter. If you use the funds to buy an income-producing asset such as a rental property or shares, the interest is generally deductible. If you use them for personal purposes such as a holiday or renovating your own home, it isn't. The ATO sets the rules, and a registered tax agent can confirm how they apply to you.</p>
+  <p>It depends on what the borrowed money is used for. What it is secured against doesn't matter. If you use the funds to buy an income-producing asset such as a rental property or shares, the interest is generally deductible. If you use them for personal purposes such as a holiday or renovating your own home, it isn't.</p>
 
   <h3>What's the difference between redraw and equity release?</h3>
   <p>Redraw lets you take back extra repayments you have already made. It is your own money and usually needs no new application. Equity release is new borrowing against the value of your home, which means a new loan assessment, possibly a valuation, and LMI if it pushes your LVR above 80%.</p>

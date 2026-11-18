@@ -87,8 +87,8 @@ ToolPage.init({
   slug: 'renovation-cost',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'House flip and home equity calculators',
-    description: 'The house flip calculator sets this cost against a sale price. The home equity calculator shows how much you could borrow against the house to pay for it.',
+    title: 'Home equity and house flip calculators',
+    description: 'The home equity calculator shows how much you could borrow against your house to pay for the work, and the house flip calculator sets the cost against a sale price.',
     buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
@@ -97,8 +97,7 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFE2', title: 'Building',
         links: [
-          { text: 'ASIC Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Consumer Affairs Victoria: housing', href: 'https://www.consumer.vic.gov.au/housing' }
+          { text: 'Master Builders Australia', href: 'https://www.masterbuilders.com.au/' }
         ]
       },
       {
@@ -108,16 +107,9 @@ ToolPage.init({
           { text: 'ATO: residential rental properties', href: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/property-and-land/residential-rental-properties' },
           { text: 'ASIC Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' }
         ]
-      },
-      {
-        icon: '\uD83D\uDCCB', title: 'Other',
-        links: [
-          { text: 'Master Builders Australia', href: 'https://www.masterbuilders.com.au/' },
-          { text: 'RBA: explainers', href: 'https://www.rba.gov.au/education/resources/explainers/' }
-        ]
       }
     ],
-    disclaimer: 'The rates behind this calculator are my own rough estimates with no official source. Costs vary by location, complexity and contractor, so get several quotes. General information, not financial advice.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/renovation-cost-calculator',

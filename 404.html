@@ -14,86 +14,27 @@
 <meta name="theme-color" content="#1C1C1E">
 <link rel="stylesheet" href="shared.css">
 <style>
-  .notfound-wrap {
-    min-height: 70vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 60px 24px;
-  }
-  .notfound-code {
-    font-family: var(--font-display);
-    font-size: clamp(80px, 20vw, 160px);
-    font-weight: 900;
-    color: var(--gold);
-    line-height: 1;
-    margin: 0;
-  }
-  .notfound-title {
-    font-family: var(--font-display);
-    font-size: clamp(20px, 5vw, 32px);
-    color: var(--charcoal);
-    margin: 16px 0 12px;
-  }
-  html.dark-mode .notfound-title { color: var(--cream); }
-  .notfound-sub {
-    font-family: var(--font-body);
-    font-size: 16px;
-    color: var(--slate);
-    max-width: 400px;
-    line-height: 1.6;
-    margin: 0 0 32px;
-  }
-  html.dark-mode .notfound-sub { color: rgba(245,240,232,0.6); }
-  .notfound-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .btn-primary {
-    display: inline-block;
-    padding: 12px 28px;
-    background: var(--gold);
-    color: var(--charcoal);
-    text-decoration: none;
-    border-radius: var(--radius-md);
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 15px;
-  }
-  .btn-secondary {
-    display: inline-block;
-    padding: 12px 28px;
-    background: transparent;
-    color: var(--charcoal);
-    text-decoration: none;
-    border-radius: var(--radius-md);
-    font-family: var(--font-body);
-    font-weight: 500;
-    font-size: 15px;
-    border: 1.5px solid rgba(28,28,30,0.25);
-  }
-  html.dark-mode .btn-secondary { color: var(--cream); border-color: rgba(245,240,232,0.25); }
+  .notfound-wrap { max-width: 720px; margin: 0 auto; padding: 56px 24px 72px; }
+  .notfound-wrap h1 { font-size: clamp(28px, 4.2vw, 36px); font-weight: 700; line-height: 1.15; margin-bottom: 10px; }
+  .notfound-wrap p { margin-bottom: 14px; }
+  .notfound-wrap ul { padding-left: 22px; }
+  .notfound-wrap li { margin-bottom: 6px; }
+  .notfound-wrap a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
+  @media (max-width: 600px) { .notfound-wrap { padding: 36px 18px 56px; } }
 </style>
 </head>
 <body>
 <div id="auth-nav-root"></div>
-<div class="notfound-wrap">
-  <p class="notfound-code">404</p>
-  <h1 class="notfound-title">Page not found</h1>
-  <p class="notfound-sub">This page doesn't exist, or it has moved.</p>
-  <div class="notfound-actions">
-    <a href="/journey" class="btn-primary">Go to the First Home Journey</a>
-    <a href="/" class="btn-secondary">Home page</a>
-  </div>
-  <div style="margin-top:32px;">
-    <a href="/tools/" style="font-size:14px;color:var(--slate);text-decoration:underline;margin-right:16px;">All calculators</a>
-    <a href="/suburb/" style="font-size:14px;color:var(--slate);text-decoration:underline;">Suburb profiles</a>
-  </div>
-</div>
+<main class="notfound-wrap" id="main-content">
+  <h1>Page not found</h1>
+  <p>This page doesn't exist, or it has moved. There are suburb profiles only for suburbs with at least 2,000 residents and a current state government rent or sale figure, so many suburbs have no page.</p>
+  <ul>
+    <li><a href="/journey">First Home Journey</a></li>
+    <li><a href="/tools/">Calculators</a></li>
+    <li><a href="/suburb/">Suburb profiles</a></li>
+    <li><a href="/">Home page</a></li>
+  </ul>
+</main>
 <script src="/auth-nav-loader.js" defer></script>
 </body>
 </html>

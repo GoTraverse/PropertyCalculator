@@ -6,11 +6,16 @@ tag: Reference
 
 ## 1. What a suburb page shows
 
-A suburb page shows the postcode and the population at the 2021 Census. It also shows a current median weekly rent, a median sale price for houses and units, or both, depending on what the state government publishes for that suburb. Each rent and price has its period and source printed under it. The datasets and their licences are listed on the [data sources](/data-sources) page.
+A suburb page shows only these figures:
 
-The page also does plain arithmetic on those figures: a 5%, 10% and 20% deposit at the median sale price, and the weekly rent per month and per year. It lists the nearest other suburbs that have a page, with their own figures. Distances in that list are measured between postcode centres, so they are rough.
+- the postcode
+- the population at the 2021 Census
+- the current median weekly rent, median sale price, or both, depending on what the state government publishes for that suburb
+- a 5%, 10% and 20% deposit at the median sale price
+- the weekly rent as a monthly and a yearly amount
+- the nearest other suburbs that have a page, with their own figures and a distance
 
-Those are the only figures on a suburb page.
+Each rent and price has its period and source printed under it. The datasets and their licences are on the [data sources](/data-sources) page. The deposits and the monthly and yearly rent are plain arithmetic on those medians. Distances are measured between postcode centres, so they are rough.
 
 ## 2. Which suburbs get a page
 
@@ -35,46 +40,48 @@ Earlier versions of the suburb pages carried content I couldn't source. All of i
 
 ## 4. Repayments
 
-The First Home Journey and the calculators work out a repayment from the numbers you enter, using the standard monthly amortisation formula:
+The First Home Journey and the calculators work out a monthly repayment from the numbers you enter, using the standard amortisation formula:
 
 `monthly = P × r / (1 − (1 + r)^−n)`
 
-`P` is the loan amount, `r` is the monthly rate (annual rate ÷ 12 ÷ 100) and `n` is the number of monthly periods (term × 12). Total interest is `monthly × n − P`.
+`P` is the loan amount, `r` is the monthly rate (annual rate ÷ 12 ÷ 100) and `n` is the number of months (term × 12). Total interest is `monthly × n − P`.
 
 ### Fortnightly repayments
 
-The "switching to fortnightly saves X years and $Y in interest" figure is worked out by running the whole loan fortnight by fortnight.
+The "switching to fortnightly saves X years and $Y in interest" figure comes from running the loan fortnight by fortnight:
 
-- The payment is `monthly / 2`, paid every 14 days. A year has 26 fortnights, so that adds up to 13 monthly payments a year, one more than the 12 on a monthly schedule.
-- The rate applied each fortnight is the annual rate ÷ 26.
-- Each fortnight the code adds the interest and then takes the payment off the balance, until the balance reaches zero. `yearsLess` = (term × 12 − monthsEquivalent) ÷ 12 and `interestSaved` = monthlyInterestTotal − fortnightlyInterestTotal.
+- The payment is half the monthly repayment, paid every 14 days. A year has 26 fortnights, so that adds up to 13 monthly repayments a year instead of 12.
+- The rate for each fortnight is the annual rate ÷ 26.
+- Each fortnight the interest is added to the balance and the payment taken off, until the balance reaches zero.
 
-This models paying half the monthly amount every fortnight. Paying `annual / 26` every fortnight is a different thing: it is monthly repayments relabelled, and it saves nothing.
+The years saved are the loan term minus the time the fortnightly schedule takes to clear the loan. The interest saved is the total interest on the monthly schedule minus the total interest on the fortnightly one.
+
+Paying a twenty-sixth of the yearly repayments every fortnight is a different arrangement. That's the monthly repayments relabelled, and it saves nothing.
 
 ## 5. Duty, LMI and scheme rules
 
-Stamp duty, LMI and scheme rules in the calculators and the First Home Journey follow the published FY2026-27 state revenue office schedules and Housing Australia program settings. Each tool page notes the date its figures were last verified. The [data sources](/data-sources) page lists where each kind of rate comes from.
+Stamp duty and scheme rules in the calculators and the First Home Journey follow the published FY2026-27 state revenue office schedules and Housing Australia program settings. LMI is my own estimate from a table of rough premiums by LVR band, so a lender's quote will differ. The [data sources](/data-sources) page lists where each kind of rate comes from.
 
 ## 6. The written guides
 
-The written guides on the calculator pages are drafted with AI assistance and then reviewed and edited by me for accuracy before publishing.
+The written guides on the calculator pages are drafted with AI assistance, then reviewed and edited by me for accuracy before they go up.
 
 ## 7. Known limitations
 
-- The population figures are from the 2021 Census, which is five years old at the time of writing. I'll switch to Census 2026 data once the ABS releases it.
-- Coverage is uneven by state. NSW rents exist only at postcode level, and no free suburb-level sale-price dataset exists for Queensland. Where a figure doesn't exist the page leaves it out. I don't substitute a modelled figure.
-- Valuer-General sale medians lag the market by one to several quarters. A single quarter in a small suburb can hold only a few sales, so a median can move a lot between quarters.
-- I refresh the rent and price data by hand and aim to do it each quarter. Go by the period printed under each figure.
-- EquitySight is built and maintained by one person, Jacoby. There is no valuation team and no certified valuer, and I hold no professional credentials. Nothing on the site is personal financial advice. Get licensed, independent advice before making a property decision.
+- The population figures are from the 2021 Census, five years old at the time of writing.
+- Coverage is uneven, because not every state publishes suburb-level figures. The [data sources](/data-sources) page lists the datasets that exist and their gaps.
+- Valuer-General sale medians lag the market by one to several quarters. A small suburb can have only a few sales in a quarter, so its median can move a lot from one quarter to the next.
+- I refresh the rent and price figures by hand. Go by the period printed under each figure.
+- I'm Jacoby, and I build and maintain EquitySight on my own. There's no valuation team and no certified valuer, and I hold no professional credentials. Nothing on the site is personal financial advice. Get licensed, independent advice before you make a property decision.
 
 ## 8. Change log
 
-- November 2026: Rebuilt the suburb pages to show sourced figures only. Removed the strategy, risk, outlook, sentiment, audience, pros-and-cons and yield content (section 3).
-- August 2026 (later): Removed the ~13,000 placeholder suburb pages entirely. Suburbs without verified current data no longer have pages.
+- November 2026: Rebuilt the suburb pages to show sourced figures only, and removed the strategy, risk, outlook, sentiment, audience, pros-and-cons and yield content (section 3).
+- August 2026 (later): Removed the ~13,000 placeholder suburb pages. Suburbs without verified current data no longer have pages.
 - August 2026: Removed the placeholder household income figure from all suburb pages. Documented the rule for which suburbs get a page (section 2) and the current state government market data sources.
-- July 2026: Integrated current suburb-level rents and sale medians from state government open data. Began indexing the ~1,475 suburb pages that carry them.
+- July 2026: Added current suburb-level rents and sale medians from state government open data, and began indexing the ~1,475 suburb pages that carry them.
 - June 2026: Rewrote this page to separate measured data from estimates. Removed the investment score display.
-- April 2026: First published methodology.
+- April 2026: First published this page.
 
 ## 9. Corrections
 

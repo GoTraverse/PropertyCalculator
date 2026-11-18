@@ -41,7 +41,7 @@ function calculate() {
   else if (months <= 0) verdict = 'Profit of ' + fmt(netProfit) + ' before tax, a ' + roi.toFixed(1) + '% return on total cost. Enter a hold period and holding costs to see the annualised return.';
   else if (annualised >= 20) verdict = 'Strong return on these figures (20% a year or more before tax). It rests on your renovation and sale price estimates.';
   else if (annualised >= 10) verdict = 'Reasonable return on these figures (10% to 20% a year before tax).';
-  else verdict = 'Marginal return (under 10% a year before tax) for the risk and the work involved.';
+  else verdict = 'Marginal return (under 10% a year before tax) for the risk and the work.';
 
   document.getElementById('r-cost').textContent = fmt(totalCost);
   document.getElementById('r-proceeds').textContent = fmt(netProceeds);
@@ -72,8 +72,8 @@ ToolPage.init({
   slug: 'house-flip',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Tax on the sale and the renovation budget',
-    description: 'The capital gains tax calculator works out the tax on the sale. The renovation cost calculator estimates the budget.',
+    title: 'Tax and renovation costs',
+    description: 'The capital gains tax calculator works out the tax on the sale, and the renovation cost calculator gives a rough range for the works.',
     buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
@@ -90,7 +90,6 @@ ToolPage.init({
       {
         icon: '\uD83C\uDFE2', title: 'Buying',
         links: [
-          { text: 'Consumer Affairs Victoria: housing', href: 'https://www.consumer.vic.gov.au/housing' },
           { text: 'ASIC Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
         ]
       },
@@ -98,7 +97,6 @@ ToolPage.init({
         icon: '\uD83D\uDCCB', title: 'Investing',
         links: [
           { text: 'ASIC Moneysmart: property investment', href: 'https://moneysmart.gov.au/property-investment' },
-          { text: 'RBA: explainers', href: 'https://www.rba.gov.au/education/resources/explainers/' },
         ]
       }
     ],

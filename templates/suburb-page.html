@@ -63,23 +63,22 @@
 
   <!-- The figures. Every tile prints its period and source under the value. -->
   <section class="suburb-section">
-    <h2>{{SUBURB}} in figures</h2>
+    <h2>Figures for {{SUBURB}}</h2>
     <div class="suburb-figs">
 {{FIGURES_HTML}}
     </div>
   </section>
 
-  <!-- Arithmetic on those figures -->
+  <!-- Arithmetic on those figures. BUYER_HTML includes the h2, which depends
+       on whether the suburb has sale medians, a rent or both. -->
   <section class="suburb-section">
-    <h2>Arithmetic on these figures</h2>
 {{BUYER_HTML}}
   </section>
 
   <!-- CTA -->
   <section class="suburb-cta">
-    <h3>First Home Journey</h3>
-    <p>It takes your savings and income and works out which government schemes fit, a maximum price and your contract deadlines.</p>
-    <a href="{{JOURNEY_LINK}}" class="tool-cta-btn">Open the First Home Journey</a>
+    <h2>Buying a first home</h2>
+    <p>The First Home Journey works out a maximum price from your income and savings, and which government schemes fit. <a href="{{JOURNEY_LINK}}" class="tool-cta-btn">Open the First Home Journey</a></p>
     <div class="suburb-cta-secondary">
       <a href="/tools/stamp-duty-calculator-{{STATE_LOWER}}">{{STATE}} stamp duty calculator</a>
       <a href="/tools/first-home-buyer-grants-calculator">First home buyer grants calculator</a>
@@ -95,7 +94,7 @@
 
   <!-- FAQ: each answer restates a figure shown above, with its source -->
   <section class="suburb-section suburb-faq">
-    <h2>Common questions about {{SUBURB}}</h2>
+    <h2>Questions about {{SUBURB}}</h2>
 {{FAQ_HTML}}
   </section>
 

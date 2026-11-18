@@ -325,22 +325,22 @@ function populateSuburbList() {
 }
 
 var _SUBURB_HINTS = {
-  vic: 'VIC data: median house + unit sale prices (Valuer-General Victoria, 2025 preliminary). No rent data yet.',
-  qld: 'QLD data: current median weekly rents only (RTA, Mar 2026). No free public sale-price data exists for QLD.',
-  sa: 'SA data: median weekly rents (Jan–Mar 2026) + median house sale prices for metro Adelaide (Q1 2026).',
-  tas: 'TAS data: suburb median weekly rents (12 months of bond lodgements, Dept of Justice). No free public sale prices.'
+  vic: 'VIC: median house and unit sale prices (Valuer-General Victoria, 2025 preliminary). No rents yet.',
+  qld: 'QLD: median weekly rents only (RTA, Mar 2026). There’s no free public sale-price data for QLD.',
+  sa: 'SA: median weekly rents (Jan–Mar 2026) and median house sale prices for metro Adelaide (Q1 2026).',
+  tas: 'TAS: suburb median weekly rents (12 months of bond lodgements, Dept of Justice). No free public sale prices.'
 };
 
 function updateSuburbHint() {
   var el = document.getElementById('suburb-hint');
   if (!el) return;
   if (_mediansFailed) {
-    el.textContent = 'Market medians are unavailable right now — the plan works without them.';
+    el.textContent = 'Market medians aren’t loading right now. The plan works without them.';
     return;
   }
   var st = document.getElementById('state').value;
   el.textContent = _SUBURB_HINTS[st] ||
-    'No free public median data for this state yet — the anchor is optional; your plan works without it.';
+    'I don’t have free public median data for this state yet. The suburb is optional and the plan works without it.';
 }
 
 function loadMedians() {
@@ -382,7 +382,7 @@ function renderMedianAnchor() {
 
   if (!_medians || !_medians.states) {
     box.innerHTML = _callout('mort-callout', 'Suburb anchor', _mediansFailed
-      ? 'Market medians are unavailable right now — your plan above is unaffected.'
+      ? 'Market medians aren’t loading right now. Your plan above isn’t affected.'
       : 'Loading market medians…');
     box.style.display = '';
     return;
@@ -391,8 +391,8 @@ function renderMedianAnchor() {
   var map = _medians.states[SC];
   if (!map) {
     box.innerHTML = _callout('mort-callout', 'Suburb anchor',
-      'There’s no free public median data for ' + escHtml(SC) + ' in our file yet, so we can’t show an anchor for ' +
-      disp + '. Judge value the manual way: recent comparable sales, days on market, and an independent valuation if in doubt.');
+      'I don’t have free public median data for ' + escHtml(SC) + ' yet, so there’s no median to show for ' +
+      disp + '. Recent comparable sales are the best guide, or an independent valuation if you’re unsure.');
     box.style.display = '';
     return;
   }
@@ -400,8 +400,8 @@ function renderMedianAnchor() {
   var rec = map[_normSuburb(typed)];
   if (!rec) {
     box.innerHTML = _callout('mort-callout', 'Suburb anchor',
-      'We don’t have ' + disp + ' in the current ' + escHtml(SC) +
-      ' data set. Pick a suggestion from the list, or skip the anchor — the plan above is unaffected.');
+      'I don’t have ' + disp + ' in the current ' + escHtml(SC) +
+      ' data. Pick a suburb from the list, or leave it blank. The plan above doesn’t change.');
     box.style.display = '';
     return;
   }
@@ -416,19 +416,19 @@ function renderMedianAnchor() {
   if (anchor) {
     var pct = ((W - anchor.v) / anchor.v) * 100;
     var rel = Math.abs(pct) < 0.5 ? 'right on' : (Math.abs(pct).toFixed(0) + '% ' + (pct < 0 ? 'below' : 'above'));
-    parts.push('<strong>' + disp + ' median ' + anchor.label + ' sale price: ' + fmt(anchor.v) + '</strong> — ' +
-      escHtml(_srcCaption(priceKey)) + '. Your walk-away price (' + fmt(W) + ') sits ' + rel +
-      ' this median — the market’s reference point, not a valuation of any specific property.');
+    parts.push('<strong>' + disp + ' median ' + anchor.label + ' sale price: ' + fmt(anchor.v) + '</strong>, ' +
+      escHtml(_srcCaption(priceKey)) + '. Your walk-away price (' + fmt(W) + ') is ' + rel +
+      ' this median. A median is the middle of past sales, not a valuation of the property you’re bidding on.');
     if (anchor.label === 'house' && typeof rec.u === 'number') {
       parts.push('Median unit sale price: ' + fmt(rec.u) + '.');
     }
   }
   if (typeof rec.r === 'number') {
-    parts.push('Median weekly rent: $' + Math.round(rec.r).toLocaleString('en-AU') + '/wk — ' + escHtml(_srcCaption(rentKey)) + '.');
+    parts.push('Median weekly rent: $' + Math.round(rec.r).toLocaleString('en-AU') + '/wk, ' + escHtml(_srcCaption(rentKey)) + '.');
   }
   if (!anchor && typeof rec.r === 'number') {
     parts.push('No free public sale-price data exists for ' + escHtml(SC) +
-      ', so there’s no price anchor to compare your walk-away figure against — use recent comparable sales, or an independent valuation.');
+      ', so there’s no sale median to compare with your walk-away price. Use recent comparable sales or an independent valuation.');
   }
 
   if (!parts.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
@@ -472,13 +472,13 @@ function renderBidPlan(W) {
   // ceiling. The tool knows nothing about the property, so it does not
   // predict where bidding will open.
   var html = '<tr><td>Reference point</td><td>' + fmt(open) + '</td><td>—</td>' +
-    '<td>10% below your ceiling. Not a prediction of the opening bid</td></tr>';
+    '<td>10% below your limit. Not a prediction of the opening bid</td></tr>';
   var bands = [
-    { label: 'Early bidding', to: W - 50000, inc: 20000, note: 'Prompt, confident, round numbers' },
+    { label: 'Early bidding', to: W - 50000, inc: 20000, note: 'Prompt round numbers' },
     { label: 'Mid auction', to: W - 20000, inc: 10000, note: 'Hold a steady rhythm' },
-    { label: 'Approaching your ceiling', to: W - 10000, inc: 5000, note: 'Slow the tempo' },
-    { label: 'Final approach', to: W - 4000, inc: 2000, note: 'Odd, deliberate amounts' },
-    { label: 'Last bids', to: W, inc: 1000, note: 'Stop at ' + fmt(W) + ' — no exceptions' }
+    { label: 'Approaching your ceiling', to: W - 10000, inc: 5000, note: 'Slow down' },
+    { label: 'Final approach', to: W - 4000, inc: 2000, note: 'Odd amounts' },
+    { label: 'Last bids', to: W, inc: 1000, note: 'Stop at ' + fmt(W) }
   ];
   var from = open;
   bands.forEach(function (b) {
@@ -513,7 +513,7 @@ function calculate() {
   if (bufPct > 90) bufPct = 90;
 
   if (savings <= 0 && preapproval <= 0) {
-    if (!_isInit) _showErr('Enter your cash savings and/or your loan pre-approval amount.');
+    if (!_isInit) _showErr('Enter your cash savings, your loan pre-approval or both.');
     return;
   }
 
@@ -531,7 +531,7 @@ function calculate() {
     W = solveWalkAway(funds, state, fhb, regTotal, legal);
   }
   if (W <= 0) {
-    if (!_isInit) _showErr('Your usable funds don’t cover the fixed purchase costs yet — add savings or pre-approval, or lower the buffer.');
+    if (!_isInit) _showErr('Your usable funds don’t cover the fixed purchase costs yet. Add savings or pre-approval, or lower the buffer.');
     return;
   }
 
@@ -549,7 +549,7 @@ function calculate() {
   setText('r-walkaway', fmt(W));
   setText('r-hammer', fmt(W));
   var dutyLabelEl = document.getElementById('r-duty-label');
-  if (dutyLabelEl) dutyLabelEl.textContent = data.dutyName + ' — ' + data.name;
+  if (dutyLabelEl) dutyLabelEl.textContent = data.dutyName + ' (' + data.name + ')';
   setText('r-duty', fmt(duty));
   var noteEl = document.getElementById('r-duty-note');
   if (noteEl) {
@@ -557,7 +557,7 @@ function calculate() {
     noteEl.style.display = dres.note ? '' : 'none';
   }
   setText('r-reg', SCALED_REG[state]
-    ? fmt(regTotal) + ' (' + SCALED_REG[state] + ' — transfer fee scales with price)'
+    ? fmt(regTotal) + ' (' + SCALED_REG[state] + ', transfer fee scales with price)'
     : fmt(regTotal) + ' (mortgage $' + reg.mortgage + ' + transfer $' + reg.transfer + ')');
   setText('r-legal', fmt(legal));
   setText('r-allin', fmt(allIn));
@@ -570,14 +570,14 @@ function calculate() {
   if (depBox) {
     if (usable >= dep10) {
       depBox.innerHTML = _callout('mort-callout', 'Deposit check',
-        'Auctions are unconditional — a 10% deposit (' + fmt(dep10) +
-        ' at your walk-away price) is typically payable on the day. Your usable savings (' + fmt(usable) +
-        ') cover it. Confirm the payment method (bank cheque or transfer) with the agent and your bank before auction day.');
+        'The 10% deposit (' + fmt(dep10) +
+        ' at your walk-away price) is usually due on the day, and your usable savings (' + fmt(usable) +
+        ') cover it. Agree the payment method (bank cheque or transfer) with the agent and your bank before auction day.');
     } else {
       depBox.innerHTML = _callout('mort-callout mort-callout-gold', 'Deposit check',
         'A 10% deposit at your walk-away price is ' + fmt(dep10) +
         ', but your usable savings after the buffer are only ' + fmt(usable) +
-        '. Auctions are unconditional and the deposit is typically payable on the day — arrange this with your lender and the agent BEFORE auction day (a reduced deposit or a deposit bond can sometimes be agreed in advance). Do not turn up hoping to sort it out after the hammer.');
+        '. The deposit is usually due on the day, so sort this out with your lender and the agent before auction day. A smaller deposit or a deposit bond can sometimes be agreed in advance, but not after the hammer falls.');
     }
   }
 
@@ -585,8 +585,8 @@ function calculate() {
   renderBidPlan(W);
 
   var disc = document.getElementById('disclaimer');
-  if (disc) disc.textContent = 'Estimates only. ' + data.dutyName + ' is based on ' + data.name +
-    ' FY2026-27 schedules (verified 5 Jul 2026); registration and conveyancing figures are indicative — verify with your conveyancer and state revenue office. Your lender’s formal approval, valuation and LVR limits can reduce what you can actually borrow. General information — not financial advice.';
+  if (disc) disc.textContent = 'Estimates only. ' + data.dutyName + ' uses the ' + data.name +
+    ' FY2026-27 schedule (checked 5 Jul 2026). Registration and conveyancing figures are approximate, so confirm them with your conveyancer and the state revenue office. Your lender’s formal approval, valuation and LVR limits can lower what you can borrow. General information, not financial advice.';
 
   document.getElementById('result').style.display = '';
   if (!_isInit) {
@@ -611,41 +611,41 @@ ToolPage.init({
   stateSelectId: 'state',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'Model the full purchase before you bid',
-    description: 'The free First Home Journey compares government schemes for your numbers, builds a budget with every upfront cost, and tracks your contract deadlines.',
-    buttonText: 'Start your first-home journey — free \u2192',
+    title: 'Plan the rest of the purchase',
+    description: 'The budget step of the First Home Journey sets a walk-away cap from your borrowing and savings, and the later steps track the contract deadlines through to settlement.',
+    buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
   resources: {
     groups: [
       {
-        icon: '\uD83C\uDFDB\uFE0F', title: 'State Revenue Offices',
+        icon: '\uD83C\uDFDB\uFE0F', title: 'Stamp duty',
         links: [
-          { text: 'NSW Transfer Duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
-          { text: 'VIC Land Transfer Duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
-          { text: 'QLD Transfer Duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
-          { text: 'SA Stamp Duty', href: 'https://www.revenuesa.sa.gov.au/stampduty' },
-          { text: 'WA Transfer Duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' }
+          { text: 'NSW transfer duty', href: 'https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty' },
+          { text: 'VIC land transfer duty', href: 'https://www.sro.vic.gov.au/land-transfer-duty' },
+          { text: 'QLD transfer duty', href: 'https://qro.qld.gov.au/duties/transfer-duty/' },
+          { text: 'SA stamp duty', href: 'https://www.revenuesa.sa.gov.au/stampduty' },
+          { text: 'WA transfer duty', href: 'https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty' }
         ]
       },
       {
-        icon: '\u2696\uFE0F', title: 'Auction Rules & Consumer Affairs',
+        icon: '\u2696\uFE0F', title: 'Auction rules',
         links: [
-          { text: 'NSW Fair Trading: Buying property at auction', href: 'https://www.fairtrading.nsw.gov.au/housing-and-property/buying-and-selling-property/buying-a-property/buying-property-at-auction' },
-          { text: 'Consumer Affairs Victoria: Buying & selling property', href: 'https://www.consumer.vic.gov.au/housing/buying-and-selling-property' },
-          { text: 'QLD Government: Buying & owning a home', href: 'https://www.qld.gov.au/housing/buying-owning-home' }
+          { text: 'NSW Fair Trading: buying property at auction', href: 'https://www.fairtrading.nsw.gov.au/housing-and-property/buying-and-selling-property/buying-a-property/buying-property-at-auction' },
+          { text: 'Consumer Affairs Victoria: buying and selling property', href: 'https://www.consumer.vic.gov.au/housing/buying-and-selling-property' },
+          { text: 'Queensland Government: buying and owning a home', href: 'https://www.qld.gov.au/housing/buying-owning-home' }
         ]
       },
       {
-        icon: '\uD83D\uDCB0', title: 'Money & Finance Guidance',
+        icon: '\uD83D\uDCB0', title: 'Buying and borrowing',
         links: [
-          { text: 'Moneysmart: Buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
-          { text: 'Moneysmart: Home loans', href: 'https://moneysmart.gov.au/home-loans' },
+          { text: 'Moneysmart: buying a house', href: 'https://moneysmart.gov.au/buying-a-house' },
+          { text: 'Moneysmart: home loans', href: 'https://moneysmart.gov.au/home-loans' },
           { text: 'First Home Guarantee (5% Deposit Scheme)', href: 'https://www.housingaustralia.gov.au/support-buy-home/first-home-guarantee' }
         ]
       }
     ],
-    disclaimer: 'General information only — not financial or legal advice. Auction rules and duty rates change; confirm current rules with your state’s consumer affairs body and revenue office before auction day.'
+    disclaimer: 'General information, not financial or legal advice. Auction rules and duty rates change, so check them with your state’s consumer affairs office and revenue office before auction day.'
   },
   share: {
     url: 'https://equitysight.app/tools/auction-budget-calculator',
@@ -666,7 +666,7 @@ ToolPage.init({
   ],
   examples: [
     {
-      label: 'VIC — savings $120,000, pre-approval $560,000, 5% buffer',
+      label: 'Victoria: $120,000 savings, $560,000 pre-approval, 5% buffer',
       inputs: [
         { k: 'Cash savings', v: '$120,000' },
         { k: 'Loan pre-approval', v: '$560,000' },
@@ -682,7 +682,7 @@ ToolPage.init({
       ]
     },
     {
-      label: 'QLD — first home buyer, savings $90,000, pre-approval $480,000',
+      label: 'Queensland first home buyer: $90,000 savings, $480,000 pre-approval',
       inputs: [
         { k: 'Cash savings', v: '$90,000' },
         { k: 'Loan pre-approval', v: '$480,000' },
@@ -699,18 +699,16 @@ ToolPage.init({
     }
   ],
   faq: [
-    { q: 'Is the 10% deposit really due on auction day?',
-      a: 'Yes — if you are the winning bidder you sign the contract and pay the deposit (usually 10% of the purchase price) immediately after the hammer falls. A smaller deposit can sometimes be negotiated with the vendor’s agent before auction day, but never assume it on the day. Arrange the payment method (bank cheque or transfer) with your bank and the agent in advance.' },
+    { q: 'Is the 10% deposit due on auction day?',
+      a: 'Yes. If you win, you sign the contract and pay the deposit (usually 10% of the price) straight after the hammer falls. A smaller deposit can sometimes be negotiated with the agent before auction day, but don’t count on it on the day. Arrange the payment method (bank cheque or transfer) with your bank and the agent in advance.' },
     { q: 'Can I bid past my loan pre-approval?',
-      a: 'Legally yes, but you are gambling with your deposit. Pre-approval is not a guarantee of finance — if your lender won’t extend the extra amount, or their valuation comes in below your winning bid, you may be unable to settle. You can lose your 10% deposit and be sued for the vendor’s losses on a resale.' },
+      a: 'You can, but you’re gambling with your deposit. Pre-approval isn’t a guarantee of finance. If your lender won’t lend the extra, or its valuation comes in below your winning bid, you may not be able to settle. You can then lose your 10% deposit and be sued for the vendor’s losses on a resale.' },
     { q: 'Do I get a cooling-off period when I buy at auction?',
-      a: 'No. In every Australian state and territory, auction sales are exempt from statutory cooling-off. In several states the exemption also extends to contracts signed shortly before or after the auction. The contract is unconditional the moment the hammer falls.' },
+      a: 'No. Auction sales are exempt from statutory cooling-off in every Australian state and territory, and in several states the exemption also covers contracts signed shortly before or after the auction. The contract is unconditional when the hammer falls.' },
     { q: 'What happens if the property passes in?',
-      a: 'If bidding doesn’t reach the vendor’s reserve the property is passed in. The highest bidder usually gets the first right to negotiate with the vendor immediately afterwards. Your walk-away price still applies in that negotiation — a pass-in doesn’t make the property cheaper to own.' },
-    { q: 'How accurate is the stamp duty figure?',
-      a: 'Duty is computed from FY 2026-27 schedules for all eight Australian states and territories, including first home buyer concessions, verified against each state revenue office. It is still an estimate — confirm your exact assessment with your conveyancer or state revenue office before settlement.' },
+      a: 'If bidding doesn’t reach the vendor’s reserve, the property is passed in. The highest bidder usually gets the first right to negotiate with the vendor straight afterwards. Your walk-away price still applies in that negotiation.' },
     { q: 'Why keep a safety buffer?',
-      a: 'Buying at auction is unconditional, and ownership generates immediate costs — moving, repairs, rates adjustments — plus the ongoing risk of rate rises. Spending your last dollar at the hammer leaves nothing for the first surprise. Many buyers keep 5–10% of savings untouched.' }
+      a: 'Buying at auction is unconditional, and owning a home brings costs straight away, such as moving, repairs and rates adjustments, along with the risk of rate rises. The calculator keeps back 5% of your savings by default.' }
   ],
   usefulLinks: [
     { group: 'Other Tools', icon: '\uD83C\uDFDB\uFE0F', href: '/tools/stamp-duty-calculator', label: 'Stamp Duty Calculator' },

@@ -287,7 +287,7 @@ ToolPage.init({
   cta: {
     eyebrow: 'Go deeper',
     title: 'Turn the loan into a budget',
-    description: 'The First Home Journey runs the same borrowing test, then takes stamp duty and the other upfront costs out of your savings and sets a maximum price.',
+    description: 'The First Home Journey runs a simpler version of this test (it leaves out HECS and other debts), then takes stamp duty and the other upfront costs out of your savings and sets a maximum price.',
     buttonText: 'Open the First Home Journey',
     buttonHref: '/journey'
   },
@@ -317,7 +317,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'Indicative only. Every lender has its own expense benchmark, income percentages and credit scoring. Get pre-approval for the figure your lender will offer.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/borrowing-power-calculator',
@@ -381,7 +381,7 @@ ToolPage.init({
     { q: 'Why does my casual income only count for 80%?',
       a: 'This calculator counts casual, contract and self-employed income at 80%, rental income at 75% and PAYG with bonus or commission at 90%. Only PAYG salary counts at 100%. The percentages are my assumptions about common lender policy. Some lenders will count a stable casual role with 2+ years of payslips at 100%, so ask.' },
     { q: 'Can I borrow more on a 40-year loan term?',
-      a: 'A little. Extending from 30 to 40 years increases borrowing power by about 4% in this calculator at a 6.25% loan rate, and costs about $305,000 more in interest over the life of a $600,000 loan at that rate. Most lenders cap owner-occupier loans at 30 years, and few offer 35 to 40.' },
+      a: 'A little. Extending from 30 to 40 years increases borrowing power by about 4% in this calculator at a 6.25% loan rate, and costs about $305,000 more in interest over the life of a $600,000 loan at that rate. Check that your lender offers a term over 30 years before counting on it.' },
     { q: 'Why does this differ from my lender\'s pre-approval?',
       a: 'Lenders use the licensed HEM tables, their own percentages for non-PAYG income, credit scoring and their own treatment of investment debt. This calculator uses my expense floor and my income percentages, so the result is indicative. For a firm number, apply for pre-approval with a lender or broker.' }
   ],

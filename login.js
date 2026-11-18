@@ -483,7 +483,7 @@ async function requestReset() {
   const email = document.getElementById('fp-email').value.trim();
   const errEl = document.getElementById('fp-error');
   const btn = document.getElementById('fp-btn');
-  if (!email) { errEl.textContent = 'Enter your email'; return; }
+  if (!email) { errEl.textContent = 'Enter your email.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Sending…';
   let token;
@@ -506,8 +506,8 @@ async function confirmReset() {
   const newPw = document.getElementById('fp-newpw').value;
   const errEl = document.getElementById('fp-reset-error');
   const btn = document.getElementById('fp-reset-btn');
-  if (!code) { errEl.textContent = 'Enter the reset code'; return; }
-  if (!newPw || newPw.length < 8) { errEl.textContent = 'Password must be at least 8 characters'; return; }
+  if (!code) { errEl.textContent = 'Enter the reset code.'; return; }
+  if (!newPw || newPw.length < 8) { errEl.textContent = 'The password must be at least 8 characters.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Updating…';
   const res = await callAuth('resetPasswordWithToken', { email: _fpEmail, code: code, newPassword: newPw });
@@ -552,7 +552,7 @@ async function doSignin() {
   const password = document.getElementById('si-password').value;
   const errEl = document.getElementById('si-error');
   const btn = document.getElementById('si-btn');
-  if (!email || !password) { errEl.textContent = 'Enter your email and password'; return; }
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Signing in…';
   let token;
@@ -594,10 +594,10 @@ async function doSignup() {
   const errEl = document.getElementById('su-error');
   const btn = document.getElementById('su-btn');
   const terms = document.getElementById('su-terms');
-  if (!name || !email || !password) { errEl.textContent = 'Fill in your name, email and password'; return; }
-  if (terms && !terms.checked) { errEl.textContent = 'Tick the box to accept the Terms & Conditions and Privacy Policy'; return; }
+  if (!name || !email || !password) { errEl.textContent = 'Fill in your name, email and password.'; return; }
+  if (terms && !terms.checked) { errEl.textContent = 'Tick the box to accept the Terms of Service and Privacy Policy.'; return; }
   const emailRx = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRx.test(email)) { errEl.textContent = 'Enter a valid email address'; return; }
+  if (!emailRx.test(email)) { errEl.textContent = 'Enter a valid email address.'; return; }
   const pwErrors = [];
   if (password.length < 8) pwErrors.push('at least 8 characters');
   if (!/[A-Z]/.test(password)) pwErrors.push('one uppercase letter');
@@ -640,7 +640,7 @@ async function doVerifyEmail() {
   const name = document.getElementById('su-name').value.trim();
   const errEl = document.getElementById('verify-error');
   const btn = document.getElementById('verify-btn');
-  if (!code) { errEl.textContent = 'Enter your verification code'; return; }
+  if (!code) { errEl.textContent = 'Enter your verification code.'; return; }
   btn.disabled = true; btn.textContent = 'Verifying…'; errEl.textContent = '';
   const res = await callAuth('verifyEmail', { email: email, code: code });
   if (res.ok) {
@@ -648,7 +648,7 @@ async function doVerifyEmail() {
     refreshProfileInBackground(res.id || email);
     postVerificationRedirect(res.plan || plan);
   } else {
-    errEl.textContent = res.error || "Couldn't verify the email";
+    errEl.textContent = res.error || "Couldn't verify your email. Try again.";
     btn.disabled = false; btn.textContent = 'Verify email';
   }
 }
@@ -656,7 +656,7 @@ async function doVerifyEmail() {
 async function resendVerificationCode() {
   const email = document.getElementById('su-email').value.trim();
   const errEl = document.getElementById('verify-error');
-  if (!email) { errEl.textContent = 'Enter your email first'; return; }
+  if (!email) { errEl.textContent = 'Enter your email first.'; return; }
   const res = await callAuth('resendVerification', { email: email });
   if (res.ok) {
     showVerificationStep(res);
@@ -664,7 +664,7 @@ async function resendVerificationCode() {
     errEl.style.color = '#5A9E7A';
     setTimeout(function () { errEl.style.color = ''; }, 1200);
   } else {
-    errEl.textContent = res.error || "Couldn't resend the code";
+    errEl.textContent = res.error || "Couldn't resend the code. Try again.";
   }
 }
 
@@ -697,7 +697,7 @@ async function requestMagicLink() {
   const email = document.getElementById('ml-email').value.trim();
   const errEl = document.getElementById('ml-error');
   const btn = document.getElementById('ml-send-btn');
-  if (!email) { errEl.textContent = 'Enter your email'; return; }
+  if (!email) { errEl.textContent = 'Enter your email.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Sending…';
   let token;
@@ -722,8 +722,8 @@ async function verifyMagicCodeFlow() {
   const errEl = document.getElementById('ml-verify-error');
   const btn = document.getElementById('ml-verify-btn');
   const email = _mlEmail || document.getElementById('ml-email').value.trim();
-  if (!code) { errEl.textContent = 'Enter the 6-digit code'; return; }
-  if (!email) { errEl.textContent = 'Ask for a new sign-in link'; return; }
+  if (!code) { errEl.textContent = 'Enter the 6-digit code.'; return; }
+  if (!email) { errEl.textContent = 'Ask for a new sign-in link.'; return; }
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Signing in…';
   const res = await callAuth('verifyMagicCode', { email: email, code: code });
@@ -740,7 +740,7 @@ async function verifyMagicCodeFlow() {
 async function resendMagicLink() {
   const errEl = document.getElementById('ml-verify-error');
   const btn = document.getElementById('ml-resend-btn');
-  if (!_mlEmail) { errEl.textContent = 'Enter your email and try again'; return; }
+  if (!_mlEmail) { errEl.textContent = 'Enter your email and try again.'; return; }
   btn.disabled = true; btn.textContent = 'Sending…';
   let token;
   try { token = await getTurnstileToken(); } catch (e) { token = ''; }

@@ -45,7 +45,7 @@
       <div class="site-logo-mark"><img src="/images/icon-dark.svg" alt="EquitySight" width="52" height="52"></div>
       <div class="site-logo-text"><span class="site-logo-name">EquitySight</span><span class="site-logo-tld">.app</span></div>
     </a>
-    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Support</a></li></ul>
+    <ul class="site-nav-links"><li><a href="/tools/">Calculators</a></li><li><a href="/about">About</a></li><li><a href="/contact">Contact</a></li></ul>
     <div class="site-nav-actions"></div>
     <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">☰</button>
   </div>
@@ -55,7 +55,7 @@
 
 <section class="tool-hero" id="main-content">
   <h1>Listing Price Checker</h1>
-  <p>Enter an asking price and see how it compares with the suburb's government-recorded median. Every figure shows the period it covers.</p>
+  <p>Enter an asking price to compare it with the suburb's government-recorded median. Sale medians cover Victoria and metro Adelaide, and rents cover Queensland, South Australia and Tasmania. Every figure shows the period it covers.</p>
 </section>
 
 <div class="tool-main" role="main">
@@ -98,7 +98,7 @@
     </div>
 
     <div class="tool-field">
-      <label class="tool-label" for="rent">Advertised weekly rent <span class="tool-label-hint">(optional. Leave it blank to use the suburb median where there is one)</span></label>
+      <label class="tool-label" for="rent">Advertised weekly rent <span class="tool-label-hint">(optional, leave blank to use the suburb median where there is one)</span></label>
       <input class="tool-input" type="text" inputmode="decimal" id="rent" placeholder="e.g. 650">
     </div>
 
@@ -130,11 +130,10 @@
         <li>Find the last 3–6 comparable sold prices (same suburb, similar bedrooms, land and condition). Sold prices tell you more than advertised guides.</li>
         <li>Check days on market. A listing that has sat for months at the same price hasn't found a buyer at that price.</li>
         <li>In Victoria, ask for the agent's Statement of Information. It must show three comparable sales and an indicative selling price.</li>
-        <li>Compare the implied gross rental yield with the suburb's rent levels. A very low yield means the price is high for the rent the property earns.</li>
       </ul>
     </div>
 
-    <p class="tool-disclaimer" id="disclaimer">A suburb median is a general market indicator and doesn't value any individual property. This page is general information, not financial advice. Check figures against the credited government source, and check comparable sold prices, before making an offer.</p>
+    <p class="tool-disclaimer" id="disclaimer">General information, not financial advice or a valuation.</p>
   </div>
 
   <div class="ad-slot" data-ad-type="calculator"></div>
@@ -152,36 +151,33 @@
 <div id="tool-trust-root"></div>
 
 <section class="tool-content">
-  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">Data file last updated 5 July 2026. Each figure on this page shows the period it covers, and newer government releases may exist.</p>
+  <p class="tool-disclaimer" style="margin-top:0;margin-bottom:18px">Data file last updated 5 July 2026. Newer government releases may exist.</p>
   <h2>Where the data comes from</h2>
-  <p>All of it is open government data. I don't blend, model or extrapolate the figures. If a suburb or a state isn't in a free dataset I can lawfully republish, the tool says so.</p>
+  <p>All of it is open government data. The medians are shown as the agencies publish them, except Tasmania's, which I work out from the raw bond records (below). If a suburb or a state isn't in a free dataset I can lawfully republish, the tool says so.</p>
   <ul>
-    <li><strong>Victoria</strong>: suburb-level house and unit sale medians from the Valuer-General's property sales statistics (2025 full year, preliminary, so final figures can differ). No free suburb rent medians.</li>
-    <li><strong>South Australia</strong>: metro Adelaide house sale medians from the Valuer-General (Q1 2026) and median weekly rents from Consumer &amp; Business Services (January–March 2026). Unit sale medians and non-metro suburbs aren't in the free release.</li>
-    <li><strong>Queensland</strong>: median weekly rents from the Residential Tenancies Authority's bond data (March quarter 2026). There is no free suburb-level sale price dataset, so the checker runs a rent check and says so on screen.</li>
-    <li><strong>Tasmania</strong>: the Department of Justice publishes raw rental-bond lodgements. I aggregate 12 months of them into suburb median rents and leave out suburbs with fewer than 10 bonds. No free suburb sale prices.</li>
-    <li><strong>NSW, WA, the ACT and the NT</strong>: no suburb-level data I can republish yet. You can still enter an advertised rent for a yield check.</li>
+    <li>Victoria: suburb-level house and unit sale medians from the Valuer-General's property sales statistics (2025 full year, preliminary, so final figures can differ). No free suburb rent medians.</li>
+    <li>South Australia: metro Adelaide house sale medians from the Valuer-General (Q1 2026) and median weekly rents from Consumer &amp; Business Services (January–March 2026). Unit sale medians, and sale medians outside metro Adelaide, aren't in the free release.</li>
+    <li>Queensland: median weekly rents from the Residential Tenancies Authority's bond data (March quarter 2026). There is no free suburb-level sale price dataset, so the checker runs a rent check and says so on screen.</li>
+    <li>Tasmania: the Department of Justice publishes raw rental-bond lodgements. I aggregate 12 months of them (May 2025 to April 2026) into suburb median rents and leave out suburbs with fewer than 10 bonds. No free suburb sale prices.</li>
+    <li>NSW, WA, the ACT and the NT: no suburb-level data I can republish yet. You can still enter an advertised rent for a yield check.</li>
   </ul>
   <p>Sale medians &copy; Valuer-General Victoria and Valuer-General (SA). Rents &copy; RTA Queensland, CBS South Australia and the Tasmanian Department of Justice (rental bond data). Licensed under CC BY 4.0.</p>
 
   <h2>How the comparison works</h2>
-  <p><strong>Difference vs median (%) = (asking price &minus; suburb median) &divide; suburb median</strong></p>
+  <p>Difference vs median (%) = (asking price &minus; suburb median) &divide; suburb median</p>
   <p>Within &plusmn;5% of the median counts as in line. 5–12% above is somewhat above, and more than 12% above is well above. 5–12% below is below, and more than 12% below is well below, which in auction states can signal underquoting.</p>
-  <p><strong>Implied gross yield = (weekly rent &times; 52) &divide; asking price</strong></p>
+  <p>Point Cook, VIC: the Valuer-General's preliminary 2025 median house price is $787,500. A house asking $830,000 is $830,000 &minus; $787,500 = $42,500 above it, and $42,500 &divide; $787,500 = 5.4%, just inside the "somewhat above" band.</p>
+  <p>Implied gross yield = (weekly rent &times; 52) &divide; asking price</p>
   <p>The rent is the advertised rent if you enter one. Otherwise it is the suburb's median weekly rent where one exists. For a house in a suburb that also has a recorded house sale median, the checker works out the suburb's own reference yield (median rent against median price) and compares your listing to it. Where there's no local reference, it uses two rule-of-thumb bands: 2.5–4.5% gross for houses and 4–6% for units. Those bands are my own guide, not figures from a dataset. Gross yield ignores rates, insurance, maintenance, management and vacancy, so all yield output is labelled indicative.</p>
-
-  <h2>Two worked examples</h2>
-  <p>Point Cook, VIC (house). The Valuer-General's preliminary 2025 median house price for Point Cook is $787,500. A listing asking $830,000 is $830,000 &minus; $787,500 = $42,500 above it, and $42,500 &divide; $787,500 = 5.4%. That lands just inside the "somewhat above the suburb median" band.</p>
-  <p>New Farm, QLD (house). Queensland publishes no free suburb sale prices, so the checker uses rent. The RTA's March 2026 median rent for New Farm is $700 a week, and $700 &times; 52 = $36,400 a year. Against a $1,300,000 asking price, the implied gross yield is $36,400 &divide; $1,300,000 = 2.8%. That is near the bottom of the 2.5–4.5% rule-of-thumb band this tool uses for houses.</p>
+  <p>New Farm, QLD: with no sale median, the checker uses rent. The RTA's March 2026 median rent for New Farm is $700 a week, and $700 &times; 52 = $36,400 a year. Against a house asking $1,300,000 that's $36,400 &divide; $1,300,000 = 2.8% gross, near the bottom of the 2.5–4.5% band for houses.</p>
 
   <h2>What this checker doesn't cover</h2>
-  <p>It doesn't value the specific property. It knows nothing about the land size, build quality, renovation state, zoning, easements or strata health. It has no sale prices for NSW, WA, TAS, ACT or NT (no free lawful source) or for QLD (paywalled), and nothing on off-market sales or brand-new builds with no comparable resale history. Medians also lag the market by at least a quarter. This page is general information, not personal financial advice or a valuation.</p>
+  <p>It doesn't value the specific property. It knows nothing about the land size, build quality, renovation state, zoning, easements or strata health. It has no sale prices for NSW, WA, TAS, ACT or NT (no free lawful source) or for QLD (paywalled), and nothing on off-market sales or brand-new builds with no comparable resale history. Medians also lag the market by at least a quarter.</p>
 </section>
 
 <p class="tool-all-link"><a href="/tools/">All 18 calculators</a></p>
 
 <div id="tool-footer-root"></div>
-<div id="site-footer-root"></div>
 
 <script src="listing-price-checker.js" defer></script>
 

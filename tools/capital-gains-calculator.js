@@ -97,8 +97,8 @@ ToolPage.init({
   slug: 'capital-gains',
   cta: {
     eyebrow: 'Go deeper',
-    title: 'The years before the sale',
-    description: 'CGT comes at the end. The land tax, property cash flow and rental yield calculators cover the years you hold the property.',
+    title: 'Costs while you hold the property',
+    description: 'The land tax, property cash flow and rental yield calculators cover the years before you sell.',
     buttonText: 'See all 18 calculators',
     buttonHref: '/tools/'
   },
@@ -121,7 +121,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'A simplified estimate under FY2026-27 law. It doesn\'t model partial-year holding periods, offset losses or absences from a main residence. General information, not tax advice.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/capital-gains-calculator',

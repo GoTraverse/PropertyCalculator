@@ -182,7 +182,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'General information, not financial advice.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/loan-serviceability-calculator',
@@ -246,9 +246,9 @@ ToolPage.init({
     { q: 'How much income do I need to borrow $1 million?',
       a: 'It depends on your expenses, debts and the rate. With no debts or credit cards and a 6.50% loan rate, this calculator gives about $1,068,000 for a single applicant on $200,000 and about $990,000 for a couple earning $100,000 each. A car loan, a credit card limit or a higher rate lowers both figures.' },
     { q: 'Why does my credit card limit reduce my borrowing power if I pay it off?',
-      a: 'Lenders assume you could draw the full limit at any time, so they count a notional monthly repayment on the limit whatever the balance. This calculator uses 3% of the limit a month. Cutting or closing cards you don\u2019t need is one of the quickest ways to lift your borrowing capacity.' },
+      a: 'Lenders assume you could draw the full limit at any time, so they count a notional monthly repayment on the limit whatever the balance. This calculator uses 3% of the limit a month. In the worked example on this page, cutting the $10,000 limit to $5,000 lifts the estimate from $951,585 to $970,227.' },
     { q: 'Does rental income count?',
-      a: 'Yes, but lenders usually discount it by 20\u201330% to allow for vacancy and ongoing costs, so a property earning $500/week might count as about $375/week. This calculator counts 75% of other income, after tax.' },
+      a: 'Yes, but at a discount for vacancy and running costs, so a property earning $500/week might count as about $375/week. This calculator counts 75% of other income, after tax.' },
     { q: 'Does the 3% buffer ever change?',
       a: 'Yes. APRA sets the minimum buffer and reviews it. It was 2.5% before October 2021 and has been 3% since. Some lenders also use a minimum floor rate that is higher than your rate plus the buffer.' }
   ],

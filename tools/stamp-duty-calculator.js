@@ -463,7 +463,7 @@ ToolPage.init({
         ]
       }
     ],
-    disclaimer: 'General information, not advice. Rates change, so check the current schedule with your state revenue office before you sign.'
+    disclaimer: ''
   },
   share: {
     url: 'https://equitysight.app/tools/stamp-duty-calculator',
@@ -525,7 +525,7 @@ ToolPage.init({
   ],
   faq: [
     { q: 'When is stamp duty due?',
-      a: 'Usually at or shortly after settlement. Many revenue offices want it within around 30 days of the liability arising, which is often the contract date. Your conveyancer or solicitor normally arranges payment as part of settlement. Paying late attracts penalty interest.' },
+      a: 'Your conveyancer or solicitor normally pays it as part of settlement. Each state sets its own deadline, counted from when the liability arises (often the contract date), and paying late attracts penalty interest.' },
     { q: 'Can I add stamp duty to my home loan?',
       a: 'Not directly. The bank lends against the property\u2019s value and expects you to fund the duty yourself. Some buyers borrow a little more (a higher LVR) to keep cash free for duty, but going over 80% LVR brings in lenders mortgage insurance.' },
     { q: 'Is stamp duty tax deductible?',
