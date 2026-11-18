@@ -19,6 +19,7 @@
  */
 
 const crypto = require('crypto');
+const { cancelSubscriptionsForCustomer } = require('./_billing');
 const { isStaleSession, normalizeEmail, EMAIL_MAX_LEN } = require('./_session');
 
 const REDIS_URL   = (process.env.UPSTASH_REDIS_REST_URL   || '').replace(/^["']|["']$/g,'').trim();
@@ -32,6 +33,8 @@ const TOKEN_TTL   = 60 * 60 * 24 * 30; // 30 days
 const SESSION_COOKIE_NAME = 'es_session';
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// Only this site's own Netlify deploy and preview hosts, never any *.netlify.app.
+const OWN_NETLIFY_ORIGIN = /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$/;
 
 // Defense-in-depth CSRF check for mutating requests. SameSite=Lax already
 // blocks cross-site POST cookies, but verifying the Origin header catches any
@@ -41,13 +44,13 @@ const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').spli
 function isAllowedOrigin(event){
   const o = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
   if(!o) return true;
-  return ALLOWED_ORIGINS.includes(o) || o.endsWith('.netlify.app');
+  return ALLOWED_ORIGINS.includes(o) || OWN_NETLIFY_ORIGIN.test(o);
 }
 
 function getCorsHeaders(event) {
   const reqOrigin = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
-    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : OWN_NETLIFY_ORIGIN.test(reqOrigin) ? reqOrigin
     : ALLOWED_ORIGINS[0];
   return {
     'Content-Type':'application/json',
@@ -1201,6 +1204,13 @@ exports.handler = async function(event){
     const userData=await rGet('user:'+user.email);
     if(!userData) return fail('Account not found');
     if(!verifyPw(password,userData.hash)) return fail('Incorrect password');
+    // Stop billing before anything is deleted. If the account has a Stripe
+    // customer and its subscription can't be cancelled, stop here with nothing
+    // removed, so nobody keeps paying for an account that no longer exists.
+    if(userData.stripeCustomerId){
+      const billing=await cancelSubscriptionsForCustomer(userData.stripeCustomerId);
+      if(!billing.ok) return fail("I couldn't confirm with Stripe that nothing is still being charged to your card, so your account has not been deleted and nothing was removed. Try again in a few minutes, or email support@equitysight.app.");
+    }
     // deleteUserKeys() now revokes every token for this user, so we just need
     // to clear the cookie on the browser.
     await deleteUserKeys(userData, {deleteReason: (deleteReason||'').slice(0,500), deletedBy:'self'});
@@ -1246,6 +1256,12 @@ exports.handler = async function(event){
     const targetKey=existingUserKeyEmail(targetEmail);
     const userData=targetKey ? await rGet('user:'+targetKey) : null;
     if(!userData) return fail('User not found');
+    // Same rule as deleteAccount: cancel the Stripe subscription first and
+    // delete nothing if that fails.
+    if(userData.stripeCustomerId){
+      const billing=await cancelSubscriptionsForCustomer(userData.stripeCustomerId);
+      if(!billing.ok) return fail("Stripe could not confirm that this user's billing has stopped, so nothing was deleted. Try again. If it keeps failing, check that STRIPE_SECRET_KEY is set in Netlify.");
+    }
     await deleteUserKeys(userData, {deletedBy: user.email});
     return ok({ok:true});
   }

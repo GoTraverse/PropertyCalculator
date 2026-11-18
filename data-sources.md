@@ -47,17 +47,23 @@ Attribution: Reserve Bank of Australia. The cash rate is not presented as an RBA
 
 Stamp duty schedules come from each state revenue office, income tax rates from the ATO, the 3% serviceability buffer from APRA's APS 220, and first-home-buyer scheme settings (5% Deposit Scheme, Help to Buy, FHSS, state FHOGs and concessions) from Housing Australia, the ATO and the state revenue offices. Each calculator that uses these rates notes when they were last checked against the official source. The repayment formulas are on the [methodology page](/methodology).
 
+The LMI table and the living-cost floor behind the borrowing estimates have no official source. They are my own estimates, and both are set out on the methodology page.
+
 ## 6. The written calculator guides
 
 The long guides on the calculator pages are drafted with AI assistance, then reviewed and edited by me for accuracy and Australian relevance. The numbers and formulas inside the calculators are coded by hand.
 
-## 7. What I don't use
+## 7. Reviews on suburb pages
+
+A suburb page can have a "Community reviews" section. Signed-in visitors wrote those reviews and gave the star ratings before I closed submissions in August 2026, and I approved each one before it appeared. A page shows up to ten of them and the average star rating, which is also in the page's structured data. They are those visitors' opinions. I don't count them as data, and no new reviews are accepted.
+
+## 8. What I don't use
 
 The figures on a suburb page are not drawn from Domain, realestate.com.au, CoreLogic, PriceFinder or any other commercial listing feed. I don't scrape property listing websites. I don't collect, store or infer anything about individual homeowners or tenants.
 
 Section 3 of the [methodology page](/methodology) lists the fields I've removed from suburb pages because I couldn't verify them.
 
-## 8. Independence and conflicts of interest
+## 9. Independence and conflicts of interest
 
 I run EquitySight on my own. It isn't owned by, licensed to or commercially affiliated with any real-estate agency, developer, mortgage broker, buyer's agent or data reseller. The site has no advertising and no sponsored content. I don't collect paid data from agents or developers, and no developer, agent, buyer's agent or mortgage broker can pay me to feature a suburb or change what a page says.
 
@@ -65,7 +71,7 @@ A small number of paid subscriptions from an earlier version of the product are 
 
 If that changes, for example if I take investment from someone with an interest in particular suburbs, I'll say so at the top of this page before the arrangement begins.
 
-## 9. Corrections
+## 10. Corrections
 
 If a figure is wrong or mislabelled, a link is stale, or I've missed an attribution, email [support@equitysight.app](mailto:support@equitysight.app) with the page URL and the field that's wrong. Include the correct source reference if you have it.
 

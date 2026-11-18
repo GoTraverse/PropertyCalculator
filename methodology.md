@@ -17,6 +17,8 @@ A suburb page shows only these figures:
 
 Each rent and price has its period and source printed under it. The datasets and their licences are on the [data sources](/data-sources) page. The deposits and the monthly and yearly rent are plain arithmetic on those medians. Distances are measured between postcode centres, so they are rough.
 
+A suburb page can also carry reviews that visitors wrote before I closed submissions in August 2026, with the average of their star ratings. Those are opinions, and the [data sources](/data-sources) page says what they are.
+
 ## 2. Which suburbs get a page
 
 A suburb gets a page only when it has all of:
@@ -58,15 +60,66 @@ The years saved are the loan term minus the time the fortnightly schedule takes 
 
 Paying a twenty-sixth of the yearly repayments every fortnight is a different arrangement. That's the monthly repayments relabelled, and it saves nothing.
 
-## 5. Duty, LMI and scheme rules
+## 5. The borrowing estimate in the First Home Journey
+
+Steps 2 and 3 of the [First Home Journey](/journey) use one estimate of the largest loan a lender might approve. Step 2 flags any path whose loan is over it. Step 3 uses it to find the highest price whose loan fits at the deposit you choose. It is my simplified version of the test a lender runs. Every lender runs its own, so the amount you're approved for will differ.
+
+The estimate is worked out from your step 1 answers, in this order:
+
+1. It starts with your household income before tax. If two of you are buying, that is split into two equal incomes.
+2. Income tax comes off each income at the FY2026-27 resident rates, with no tax offsets. The 2% Medicare levy comes off too, phased in between $28,011 and $35,013 (the single thresholds for FY2025-26, the latest published).
+3. All of the after-tax income counts if you're salaried. 80% of it counts if you're self-employed, casual or on contract, which is my assumption about common lender policy.
+4. A monthly living-cost floor comes off. The amounts are in the table below.
+5. Each month, 3% of your total credit card limits comes off, whether or not you owe anything on the cards.
+6. What's left is taken as the highest monthly repayment you could make. The estimate is the loan that repayment clears over 30 years at 9.00%, using the formula in section 4. The 9.00% is the 6.00% the journey assumes for every loan plus the 3% serviceability buffer APRA sets for lenders.
+
+The living-cost floor is a monthly amount set by household income before tax, the number of adults and the number of dependants:
+
+| Household income before tax | One adult | Two adults | Each dependant |
+|-----------------------------|-----------|------------|----------------|
+| Under $50,000 | $1,750 | $2,975 | $700 |
+| $50,000 to under $80,000 | $1,950 | $3,315 | $700 |
+| $80,000 to under $120,000 | $2,150 | $3,655 | $800 |
+| $120,000 to under $180,000 | $2,400 | $4,080 | $800 |
+| $180,000 to under $250,000 | $2,700 | $4,590 | $880 |
+| $250,000 to under $350,000 | $3,050 | $5,185 | $880 |
+| $350,000 or more | $3,400 | $5,780 | $950 |
+
+The second adult is counted at 70% of the first. At most three dependants are counted, so "3 or more" counts as three. These amounts are my own approximation of the Household Expenditure Measure (HEM), the living-cost benchmark lenders use. The HEM table is licensed data that I don't have, so a lender's floor may be higher or lower.
+
+The estimate leaves out:
+
+- other debts, such as a car loan or a HELP debt
+- what you spend, because only the floor above is used
+- how a couple's income is split between the two of you, and whether you each earn it in a different way
+
+The [borrowing power calculator](/tools/borrowing-power-calculator) uses the same tax rates and living-cost floor. In it you can add a HELP debt, other loan repayments and your own living costs, enter two incomes separately, and set the rate and term. A lender or broker can give you a firm figure.
+
+## 6. Duty, LMI and scheme rules
 
 Stamp duty and scheme rules in the calculators and the First Home Journey follow the published FY2026-27 state revenue office schedules and Housing Australia program settings. LMI is my own estimate from a table of rough premiums by LVR band, so a lender's quote will differ. The [data sources](/data-sources) page lists where each kind of rate comes from.
 
-## 6. The written guides
+### The LMI table
+
+Every LMI figure in the First Home Journey and the calculators comes from the same table. It takes the loan before LMI as a share of the price (the LVR) and applies a percentage to that loan:
+
+| LVR | LMI estimate |
+|-----|--------------|
+| 80% or under | None |
+| Over 80% and up to 85% | 0.8% of the loan |
+| Over 85% and up to 90% | 1.9% of the loan |
+| Over 90% and up to 95% | 3.4% of the loan |
+| Over 95% | 4.3% of the loan |
+
+Mortgage insurers publish premium estimators and no rate table, so these percentages have no published schedule behind them. They are my own rough estimates. A real premium varies with the insurer, the lender and the borrower, and my table has one rate per band for everyone. Ask your lender for the premium.
+
+The journey and the auction budget calculator add the estimate to the loan. The deposit, cost of purchase and stamp duty calculators count it as an upfront cost. In the journey there is no LMI on a 20% deposit, on the Help to Buy path, or on a 5% deposit when you're a first home buyer and the price is within the 5% Deposit Scheme cap for your area.
+
+## 7. The written guides
 
 The written guides on the calculator pages are drafted with AI assistance, then reviewed and edited by me for accuracy before they go up.
 
-## 7. Known limitations
+## 8. Known limitations
 
 - The population figures are from the 2021 Census, five years old at the time of writing.
 - Coverage is uneven, because not every state publishes suburb-level figures. The [data sources](/data-sources) page lists the datasets that exist and their gaps.
@@ -74,8 +127,9 @@ The written guides on the calculator pages are drafted with AI assistance, then 
 - I refresh the rent and price figures by hand. Go by the period printed under each figure.
 - I'm Jacoby, and I build and maintain EquitySight on my own. There's no valuation team and no certified valuer, and I hold no professional credentials. Nothing on the site is personal financial advice. Get licensed, independent advice before you make a property decision.
 
-## 8. Change log
+## 9. Change log
 
+- November 2026 (later): Added how the First Home Journey estimates borrowing (section 5) and the LMI table (section 6).
 - November 2026: Rebuilt the suburb pages to show sourced figures only, and removed the strategy, risk, outlook, sentiment, audience, pros-and-cons and yield content (section 3).
 - August 2026 (later): Removed the ~13,000 placeholder suburb pages. Suburbs without verified current data no longer have pages.
 - August 2026: Removed the placeholder household income figure from all suburb pages. Documented the rule for which suburbs get a page (section 2) and the current state government market data sources.
@@ -83,6 +137,6 @@ The written guides on the calculator pages are drafted with AI assistance, then 
 - June 2026: Rewrote this page to separate measured data from estimates. Removed the investment score display.
 - April 2026: First published this page.
 
-## 9. Corrections
+## 10. Corrections
 
 If you find a calculation error, or something on this page is unclear, email me at [support@equitysight.app](mailto:support@equitysight.app).

@@ -27,7 +27,6 @@ Browser (static files)
   ├── shared-calcs.js     — common calculator utility functions (fmt, parse, repayment, growth)
   ├── market-rate.js      — live RBA cash rate + ABS state median prices (window.MarketRate)
   ├── legal.js            — markdown parser for legal pages
-  ├── adsense.js          — Google AdSense integration
   ├── gtag-init.js        — Google Analytics initialization
   │
   └── /.netlify/functions/   (Node.js serverless, Netlify deploys automatically)
@@ -112,7 +111,6 @@ All calculators use `shared-calcs.js` for common utilities and optionally `marke
 | `market-rate.js` | Loads live RBA cash rate + ABS state median prices; exposes `window.MarketRate` — 69 lines |
 | `legal.js` | Markdown → HTML parser — frontmatter, headings, TOC, safe links — 300+ lines |
 | `stripe-config.js` | Exports Stripe publishable key + plan IDs (client-safe config) |
-| `adsense.js` | Google AdSense integration |
 | `gtag-init.js` | Google Analytics (gtag) initialization |
 | `manifest.json` | PWA manifest — app name, icons, start URL, display mode, theme colors |
 | `netlify.toml` | Build config, CSP headers, CORS, cache headers for static assets; `force=true` redirects blocking dev files |

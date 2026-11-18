@@ -806,6 +806,12 @@ async function openUserDetails(email){
 }
 
 function showAdminTab(tab, btn){
+  // A tab name with no panel (a removed tab, a stale caller) opens the first tab.
+  if(!document.getElementById('tab-'+tab) || !btn){
+    btn = document.querySelector('.admin-tab[data-tab]');
+    if(!btn) return;
+    tab = btn.dataset.tab;
+  }
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.admin-tab').forEach(function(b){
     b.classList.remove('active');
@@ -2673,81 +2679,6 @@ async function sendTestEmail(){
     setTimeout(()=>{ if(st) st.className='admin-status'; },4000);
   } else {
     if(st){st.className='admin-status error';st.textContent='Error: '+(d.error||'Failed to send');}
-  }
-}
-
-// ── About Page Editor ─────────────────────────────────────────────────────
-const ABOUT_PAGE_KEY = 'propCalc_aboutPage_v1';
-
-const DEFAULT_ABOUT = {
-  heroH1: 'Built by a buyer,<br>for buyers.',
-  heroLead: 'In early 2026, my partner and I went looking for our first home — and I got tired of jumping between a dozen separate calculators just to understand the full picture. So I built the one tool I always wished for.',
-  storyH2: 'The spreadsheet that became an app.',
-  storyP1: 'In January 2026 we started house-hunting, and I ran straight into a wall of scattered numbers: a stamp duty calculator on one site, an LMI estimate on another, the Queensland shared-equity scheme somewhere else, and 30 years of repayments nowhere obvious. I built a spreadsheet to stitch it together. It grew a dozen tabs and still would not tell me the one thing I actually wanted — the full cost, end to end, and what it would look like over the long run.'
-};
-
-async function loadAboutPage(){
-  const st = document.getElementById('about-page-status');
-  st.textContent = 'Loading…'; st.className = 'admin-status info';
-
-  const d = await callAuth('adminGetAboutPage');
-  let aboutData = DEFAULT_ABOUT;
-
-  if(d.ok && d.about){
-    aboutData = d.about;
-  }
-
-  setV('about-hero-h1', aboutData.heroH1);
-  setV('about-hero-lead', aboutData.heroLead);
-  setV('about-story-h2', aboutData.storyH2);
-  setV('about-story-p1', aboutData.storyP1);
-
-  // Cache locally
-  try { localStorage.setItem(ABOUT_PAGE_KEY, JSON.stringify(aboutData)); } catch(e){}
-
-  st.textContent = '';
-  st.className = 'admin-status';
-}
-
-async function saveAboutPage(){
-  const st = document.getElementById('about-page-status');
-  st.textContent = 'Saving…'; st.className = 'admin-status info';
-
-  const aboutData = {
-    heroH1: getV('about-hero-h1', ''),
-    heroLead: getV('about-hero-lead', ''),
-    storyH2: getV('about-story-h2', ''),
-    storyP1: getV('about-story-p1', '')
-  };
-
-  const d = await callAuth('adminSetAboutPage', { about: aboutData });
-
-  if(d.ok){
-    try { localStorage.setItem(ABOUT_PAGE_KEY, JSON.stringify(aboutData)); } catch(e){}
-    st.textContent = '✓ Changes saved'; st.className = 'admin-status success';
-    setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 3000);
-  } else {
-    st.textContent = 'Error: ' + (d.error || 'Failed to save'); st.className = 'admin-status error';
-  }
-}
-
-async function resetAboutPage(){
-  const ok = await customConfirm('Reset about page?', 'This will restore the default content. Your custom changes will be lost.', { danger: true });
-  if(!ok) return;
-
-  const d = await callAuth('adminSetAboutPage', { about: DEFAULT_ABOUT });
-  const st = document.getElementById('about-page-status');
-
-  if(d.ok){
-    try { localStorage.setItem(ABOUT_PAGE_KEY, JSON.stringify(DEFAULT_ABOUT)); } catch(e){}
-    setV('about-hero-h1', DEFAULT_ABOUT.heroH1);
-    setV('about-hero-lead', DEFAULT_ABOUT.heroLead);
-    setV('about-story-h2', DEFAULT_ABOUT.storyH2);
-    setV('about-story-p1', DEFAULT_ABOUT.storyP1);
-    st.textContent = '✓ Reset to defaults'; st.className = 'admin-status success';
-    setTimeout(()=>{ st.textContent = ''; st.className = 'admin-status'; }, 3000);
-  } else {
-    st.textContent = 'Error: ' + (d.error || 'Failed to reset'); st.className = 'admin-status error';
   }
 }
 

@@ -168,7 +168,6 @@ const stripeError = (status, code, message) => ({ status, body: { error: { type:
 
 // A check that waits for something that never happens must fail, not hang.
 const watchdog = setTimeout(() => { out('stripe-billing-test: timed out after 60 s, a delivery never finished'); process.exit(1); }, 60000);
-watchdog.unref();
 
 (async () => {
   let r, e, e2;

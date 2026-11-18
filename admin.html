@@ -13,10 +13,6 @@
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="shortcut icon" href="favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Geist+Mono:wght@300..700&display=swap">
-<script src="/font-loader.js" defer></script>
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="admin.css">
 <style>
@@ -201,7 +197,6 @@
     <button class="admin-tab" data-tab="integrations">Integrations</button>
     <button class="admin-tab" data-tab="branding">Branding</button>
     <button class="admin-tab" data-tab="email-templates">Email Templates</button>
-    <button class="admin-tab" data-tab="about-page">About Page</button>
     <button class="admin-tab" data-tab="legal-pages">Legal Pages</button>
     <button class="admin-tab" data-tab="suburbs">Suburbs</button>
     <button class="admin-tab" data-tab="blog">Blog</button>
@@ -900,40 +895,6 @@
     </div>
   </div>
 
-  <!-- ABOUT PAGE TAB -->
-  <div class="admin-section" id="tab-about-page">
-    <div class="admin-card">
-      <div class="admin-card-head">
-        <h3>About Page</h3>
-        <span style="font-size:11px;color:var(--slate);">Edit the hero section and main story text. Changes appear immediately on about.html.</span>
-      </div>
-      <div style="padding:24px;">
-        <div style="margin-bottom:16px;">
-          <label class="config-label">Hero Headline</label>
-          <input class="config-input" id="about-hero-h1" type="text" style="width:100%;" placeholder="Built by buyers,&#10;for buyers.">
-        </div>
-        <div style="margin-bottom:16px;">
-          <label class="config-label">Hero Subheading</label>
-          <textarea id="about-hero-lead" class="config-input" style="width:100%;min-height:60px;resize:vertical;" placeholder="We got frustrated trying to understand..."></textarea>
-        </div>
-        <div style="margin-bottom:16px;">
-          <label class="config-label">Story Heading</label>
-          <input class="config-input" id="about-story-h2" type="text" style="width:100%;" placeholder="The spreadsheet that became an app.">
-        </div>
-        <div style="margin-bottom:16px;">
-          <label class="config-label">Story Body (first paragraph)</label>
-          <textarea id="about-story-p1" class="config-input" style="width:100%;min-height:80px;resize:vertical;font-family:var(--font-mono);font-size:12px;" placeholder="In 2023, trying to figure out..."></textarea>
-        </div>
-        <div id="about-page-status" class="admin-status" style="margin-bottom:16px;"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn-admin btn-admin-primary" id="save-about-btn">Save Changes</button>
-          <button class="btn-admin-outline" id="reset-about-btn">Reset to Default</button>
-          <a href="/about" class="btn-admin-outline" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;padding:10px 18px;">Preview on Site →</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- SUBURBS TAB -->
   <div class="admin-section" id="tab-suburbs">
     <div class="admin-card">
@@ -1245,7 +1206,7 @@
   </div>
 </div>
 
-<script src="admin.js?v=8" defer></script>
-<script src="admin-events.js?v=7" defer></script>
+<script src="admin.js?v=9" defer></script>
+<script src="admin-events.js?v=8" defer></script>
 </body>
 </html>

@@ -48,11 +48,13 @@ const GSC_SA_PRIVATE_KEY = (process.env.GSC_SA_PRIVATE_KEY || '').replace(/\\n/g
 const SNAPSHOT_TTL_SEC = 60 * 60 * 24 * 30 * 18;
 
 const ALLOWED_ORIGINS = (process.env.SITE_URL || 'https://equitysight.app').split(',').map(s => s.trim());
+// Only this site's own Netlify deploy and preview hosts, never any *.netlify.app.
+const OWN_NETLIFY_ORIGIN = /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*--)?equitysight\.netlify\.app$/;
 
 function corsHeaders(event) {
   const reqOrigin = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
   const origin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin
-    : reqOrigin.endsWith('.netlify.app') ? reqOrigin
+    : OWN_NETLIFY_ORIGIN.test(reqOrigin) ? reqOrigin
     : ALLOWED_ORIGINS[0];
   return {
     'Content-Type': 'application/json',

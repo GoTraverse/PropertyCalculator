@@ -151,7 +151,6 @@ stripe-config.js        # Stripe API key + plan IDs (client-safe)
 shared-calcs.js         # Common calc utilities (fmt, parse, repayment, growth) — used by all calculators
 market-rate.js          # Live RBA cash rate + ABS state median prices (window.MarketRate)
 site-init.js            # Applies dark/light theme before first paint + pre-signup page trail (~21 lines)
-adsense.js              # Google AdSense integration
 gtag-init.js            # Google Analytics initialization
 ```
 
