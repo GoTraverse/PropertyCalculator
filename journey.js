@@ -106,7 +106,8 @@
         addr: str(r.addr, 120),
         price: num(r.price, 0, 5e7),
         note: str(r.note, 160),
-        st: pick(r.st, PLACE_ST, ['inspected', 'shortlist', 'passed'][r.v] || 'inspected')
+        st: pick(r.st, PLACE_ST, ['inspected', 'shortlist', 'passed'][r.v] || 'inspected'),
+        at: num(r.at, 0, 1e14)
       };
     });
     out.scenarios = (Array.isArray(s.scenarios) ? s.scenarios : []).filter(function (c) { return c && typeof c === 'object'; }).slice(0, 12).map(function (c) {
@@ -224,6 +225,7 @@
     else if (_view === 'deal') renderDeal();
     else if (_view === 'settle') renderSettle();
     else if (_view === 'home') renderTrail();
+    else if (_view === 'wizard' && S.done[1] && !_wizOne) renderAnswers(false, true);
     refreshMarkButtons();
   }
 
@@ -311,18 +313,28 @@
       btns.appendChild(el);
     });
     _modalReturn = document.activeElement;
+    _modalDismiss = opts.onDismiss || null;
     ov.hidden = false;
     ov.style.display = 'grid';
     var first = btns.querySelector('.jbtn:not(.quiet):not(.danger)') || btns.firstChild;
     if (first) first.focus();
   }
-  var _modalReturn = null;
+  var _modalReturn = null, _modalDismiss = null;
   function closeModal() {
     var ov = document.getElementById('jmodal');
     if (!ov || ov.hidden) return;
     ov.hidden = true; ov.style.display = 'none';
     if (_modalReturn && document.contains(_modalReturn)) { try { _modalReturn.focus(); } catch (e) {} }
-    _modalReturn = null;
+    _modalReturn = null; _modalDismiss = null;
+  }
+  // Escape, or a click outside the dialog. A dialog whose question can't be
+  // left unanswered passes onDismiss, which runs in place of a button.
+  function dismissModal() {
+    var ov = document.getElementById('jmodal');
+    if (!ov || ov.hidden) return;
+    var d = _modalDismiss;
+    closeModal();
+    if (d) d();
   }
   // Keep Tab inside the open dialog.
   document.addEventListener('keydown', function (e) {
@@ -337,10 +349,10 @@
   });
   document.addEventListener('click', function (e) {
     var ov = document.getElementById('jmodal');
-    if (ov && !ov.hidden && e.target === ov) closeModal();
+    if (ov && !ov.hidden && e.target === ov) dismissModal();
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') dismissModal();
   });
 
   function stopByN(n) { for (var i = 0; i < STOPS.length; i++) if (STOPS[i].n === n) return STOPS[i]; return null; }
@@ -401,6 +413,7 @@
         { label: 'Erase and start over', cls: 'danger', cb: function () {
             S = blank(); bStep = 0; dStep = 0; wStep = 0;
             _budgetEditing = false; _dealEditing = false;
+            _wizOne = false; _answersBack = null; _placeView = null;
             save();
             track('journey_reset', {});
             show('home');
@@ -455,7 +468,9 @@
     var slot = document.getElementById('jsignup-slot');
     if (!slot) return;
     var doneCount = 0; STOPS.forEach(function (s) { if (S.done[s.n]) doneCount++; });
-    var shouldShow = !isLoggedIn() && !S.signupDismissed && doneCount >= 2; // after the first real milestone beyond the wizard
+    // After the first real milestone beyond the wizard. Never on someone
+    // else's shared journey: the card is about the visitor's own progress.
+    var shouldShow = !RO && !isLoggedIn() && !S.signupDismissed && doneCount >= 2;
     if (!shouldShow) { slot.innerHTML = ''; return; }
     slot.innerHTML = '<div class="jcard jpad jsignup">' +
       '<div>' +
@@ -644,6 +659,13 @@
     return null;
   }
   function m$(v) { return '$' + Math.round(v).toLocaleString('en-AU'); }
+  // "18 Nov 2026" from a stored timestamp, or '' when there isn't a usable
+  // one. Scenarios and places saved before the date was kept or shown have
+  // no timestamp (or a placeholder), and they get no date, never a wrong one.
+  function dayLabel(at) {
+    if (typeof at !== 'number' || !(at >= 1577836800000) || at > Date.now() + 172800000) return '';
+    try { return new Date(at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; }
+  }
   // Accepts "650,000", "$650000", "650k" and "1.2m".
   function parseNum(s) {
     var str = String(s == null ? '' : s).trim().toLowerCase();
@@ -652,28 +674,37 @@
     return isFinite(n) ? n * mult : 0;
   }
 
-  // ── Stop 1 wizard (nine questions, one at a time) ────────────────────
+  // ── Stop 1 wizard (one question at a time) ───────────────────────────
+  // A first-time visitor answers every question in order. Once step 1 is
+  // done the view is the list of answers, and each row opens its own
+  // question, saves it and comes back to the list.
   var WQ = [
-    { id: 'stage', kind: 'chips', cols: 2, q: 'How far along are you?', help: 'Pick the closest match. When you finish these questions the journey opens at the step that fits, and the earlier steps stay open.', opts: [['start', 'Wondering if I can afford it'], ['schemes', 'Saving up and researching'], ['budget', 'Working out what I can borrow'], ['ground', 'Deciding where to buy'], ['hunt', 'Inspecting homes'], ['deal', 'I’ve signed a contract']], store: 'profile' },
-    { id: 'state', kind: 'chips', q: 'Which state are you buying in?', help: 'Stamp duty, its first home concessions and the scheme price caps differ by state.', opts: [['qld', 'QLD'], ['nsw', 'NSW'], ['vic', 'VIC'], ['sa', 'SA'], ['wa', 'WA'], ['tas', 'TAS'], ['act', 'ACT'], ['nt', 'NT']], store: 'numbers' },
-    { id: 'area', kind: 'chips', q: 'Capital city or regional?', help: 'The schemes have a higher price cap for capital cities and the large regional centres, such as Newcastle, the Gold Coast and Geelong. The rest of each state has a lower cap.', opts: [['capital', 'Capital city or major regional centre'], ['regional', 'Rest of the state']], store: 'profile' },
-    { id: 'anchor', kind: 'text', optional: true, q: 'Is there a suburb or town you want to live near?', help: 'Optional. Step 4 uses it to sort suburbs by distance.', store: 'profile' },
-    { id: 'buyers', kind: 'chips', q: 'Are you buying alone or with someone?', help: 'Help to Buy has a higher income cap for joint applicants.', opts: [['single', 'Just me'], ['couple', 'Two of us']], store: 'profile' },
-    { id: 'fhb', kind: 'chips', q: 'Is this your first home?', help: 'First home buyers pay less stamp duty in most states, and can use the federal schemes in every state.', opts: [[true, 'Yes'], [false, 'No, I’ve owned a home before']], store: 'profile' },
-    { id: 'build', kind: 'chips', q: 'Established home or new build?', help: 'Some states give a bigger duty concession for a new build, and Help to Buy can take a larger share of a new home.', opts: [['established', 'Established'], ['new', 'New build'], ['unsure', 'Not sure yet']], store: 'profile' },
-    { id: 'income', kind: 'money', q: 'What is your household income before tax?', help: 'Yearly, and combined if you’re buying together. It’s used for the scheme income caps and the borrowing estimate.', def: 95000, min: 0, store: 'profile' },
-    { id: 'price', kind: 'money', q: 'What price are you aiming for?', help: 'A rough figure is fine. You can change it later.', def: 650000, min: 50000, store: 'numbers' },
-    { id: 'saved', kind: 'money', q: 'How much have you saved so far?', help: 'Deposit savings only. Don’t count your emergency buffer.', def: 60000, min: 0, store: 'numbers' },
-    { id: 'saveMo', kind: 'money', q: 'How much can you save each month?', help: 'Step 2 uses this to work out when you could buy, so pick an amount you can keep up.', def: 2000, min: 0, store: 'numbers' },
-    { id: 'rentNow', kind: 'money', q: 'What do you pay in rent or board each month?', help: 'Zero is fine. Step 3 compares the loan repayment with it.', def: 0, min: 0, store: 'profile' },
-    { id: 'cardLimits', kind: 'money', q: 'What is the total limit on your credit cards?', help: 'The limit, not the balance: lenders count the whole limit even when nothing is owing. Enter zero if you have none.', def: 0, min: 0, store: 'profile' },
-    { id: 'employment', kind: 'chips', q: 'How do you earn your income?', help: 'Lenders usually count 80% of self-employed and casual income, and the borrowing estimate in step 3 does the same.', opts: [['payg', 'Salaried (PAYG)'], ['self', 'Self-employed'], ['casual', 'Casual or contract']], store: 'profile' },
-    { id: 'dependants', kind: 'chips', q: 'How many dependants do you have?', help: 'Lenders allow more for living costs with each dependant, and so does the borrowing estimate in step 3.', opts: [[0, 'None'], [1, '1'], [2, '2'], [3, '3 or more']], store: 'profile' },
-    { id: 'timeframe', kind: 'chips', q: 'When do you want to buy?', help: 'Step 2 shows which paths fit this timeframe.', opts: [['asap', 'As soon as possible'], ['6mo', 'Within 6 months'], ['12mo', 'Within a year'], ['2yr', 'In 1–2 years or later']], store: 'profile' }
+    { id: 'stage', label: 'How far along', kind: 'chips', cols: 2, q: 'How far along are you?', help: 'Pick the closest match. When you finish these questions the journey opens at the step that fits, and the earlier steps stay open.', helpOne: 'Pick the closest match. The journey opens at the step that fits, and the earlier steps stay open.', opts: [['start', 'Wondering if I can afford it'], ['schemes', 'Saving up and researching'], ['budget', 'Working out what I can borrow'], ['ground', 'Deciding where to buy'], ['hunt', 'Inspecting homes'], ['deal', 'I’ve signed a contract']], store: 'profile' },
+    { id: 'state', label: 'State', kind: 'chips', q: 'Which state are you buying in?', help: 'Stamp duty, its first home concessions and the scheme price caps differ by state.', opts: [['qld', 'QLD'], ['nsw', 'NSW'], ['vic', 'VIC'], ['sa', 'SA'], ['wa', 'WA'], ['tas', 'TAS'], ['act', 'ACT'], ['nt', 'NT']], store: 'numbers' },
+    { id: 'area', label: 'Area', kind: 'chips', q: 'Capital city or regional?', help: 'The schemes have a higher price cap for capital cities and the large regional centres, such as Newcastle, the Gold Coast and Geelong. The rest of each state has a lower cap.', opts: [['capital', 'Capital city or major regional centre'], ['regional', 'Rest of the state']], store: 'profile' },
+    { id: 'anchor', label: 'Near', kind: 'text', optional: true, q: 'Is there a suburb or town you want to live near?', help: 'Optional. Step 4 uses it to sort suburbs by distance.', helpOne: 'Optional. Step 4 uses it to sort suburbs by distance. Leave it empty to remove it.', store: 'profile' },
+    { id: 'buyers', label: 'Buying', kind: 'chips', q: 'Are you buying alone or with someone?', help: 'Help to Buy has a higher income cap for joint applicants.', opts: [['single', 'Just me'], ['couple', 'Two of us']], store: 'profile' },
+    { id: 'fhb', label: 'First home', kind: 'chips', q: 'Is this your first home?', help: 'First home buyers pay less stamp duty in most states, and can use the federal schemes in every state.', opts: [[true, 'Yes'], [false, 'No, I’ve owned a home before']], store: 'profile' },
+    { id: 'build', label: 'Home type', kind: 'chips', q: 'Established home or new build?', help: 'Some states give a bigger duty concession for a new build, and Help to Buy can take a larger share of a new home.', opts: [['established', 'Established'], ['new', 'New build'], ['unsure', 'Not sure yet']], store: 'profile' },
+    { id: 'income', label: 'Household income', per: '/yr', kind: 'money', q: 'What is your household income before tax?', help: 'Yearly, and combined if you’re buying together. It’s used for the scheme income caps and the borrowing estimate.', def: 95000, min: 0, store: 'profile' },
+    { id: 'price', label: 'Target price', kind: 'money', q: 'What price are you aiming for?', help: 'A rough figure is fine. You can change it later.', def: 650000, min: 50000, store: 'numbers' },
+    { id: 'saved', label: 'Saved so far', kind: 'money', q: 'How much have you saved so far?', help: 'Deposit savings only. Don’t count your emergency buffer.', def: 60000, min: 0, store: 'numbers' },
+    { id: 'saveMo', label: 'Saving', per: '/mo', kind: 'money', q: 'How much can you save each month?', help: 'Step 2 uses this to work out when you could buy, so pick an amount you can keep up.', def: 2000, min: 0, store: 'numbers' },
+    { id: 'rentNow', label: 'Rent or board', per: '/mo', kind: 'money', q: 'What do you pay in rent or board each month?', help: 'Zero is fine. Step 3 compares the loan repayment with it.', def: 0, min: 0, store: 'profile' },
+    { id: 'cardLimits', label: 'Card limits', kind: 'money', q: 'What is the total limit on your credit cards?', help: 'The limit, not the balance: lenders count the whole limit even when nothing is owing. Enter zero if you have none.', def: 0, min: 0, store: 'profile' },
+    { id: 'employment', label: 'Income type', kind: 'chips', q: 'How do you earn your income?', help: 'Lenders usually count 80% of self-employed and casual income, and the borrowing estimate in step 3 does the same.', opts: [['payg', 'Salaried (PAYG)'], ['self', 'Self-employed'], ['casual', 'Casual or contract']], store: 'profile' },
+    { id: 'dependants', label: 'Dependants', kind: 'chips', q: 'How many dependants do you have?', help: 'Lenders allow more for living costs with each dependant, and so does the borrowing estimate in step 3.', opts: [[0, 'None'], [1, '1'], [2, '2'], [3, '3 or more']], store: 'profile' },
+    { id: 'timeframe', label: 'Timeframe', kind: 'chips', q: 'When do you want to buy?', help: 'Step 2 shows which paths fit this timeframe.', opts: [['asap', 'As soon as possible'], ['6mo', 'Within 6 months'], ['12mo', 'Within a year'], ['2yr', 'In 1–2 years or later']], store: 'profile' }
   ];
   var wStep = 0;
   var _wizNote = '';      // one-off line shown above the first question
   var _wizFocus = false;  // false on the very first render so page load does not grab focus
+  // One answer being edited from the list. These are in memory only, like
+  // the other wizard-open flags: none of them is ever saved or synced.
+  var _wizOne = false;
+  var _wizBefore;          // that answer as it was when its question opened
+  var _answersNote = '';   // one-off line shown above the list of answers
+  var _answersBack = null; // the view the list of answers was opened from
   // Move keyboard and screen-reader focus to the heading of a freshly drawn step.
   function focusHeading(root) {
     var h = root && root.querySelector('[tabindex="-1"]');
@@ -687,7 +718,7 @@
   function renderWizard() {
     var box = document.getElementById('jwizard');
     if (!box) return;
-    if (wStep >= WQ.length) { renderWizardDone(); return; }
+    if (wStep >= WQ.length) { finishWizard(); return; }
     var q = WQ[wStep];
     var dots = WQ.map(function (_, i) { return '<span class="jwiz-dot' + (i <= wStep ? ' on' : '') + '"></span>'; }).join('');
     var body;
@@ -706,16 +737,18 @@
         '<input class="jwiz-input" id="jwiz-in" type="text" inputmode="decimal" value="' + Number(val).toLocaleString('en-AU') + '" aria-label="' + esc(q.q) + '"></div>';
     }
     box.innerHTML = '<div class="jwiz-card">' +
-      (wStep === 0 && _wizNote ? '<p class="jwiz-note" role="status">' + esc(_wizNote) + '</p>' : '') +
-      '<div class="jwiz-dots" aria-hidden="true">' + dots + '</div>' +
-      '<p class="jwiz-count">Question ' + (wStep + 1) + ' of ' + WQ.length + '</p>' +
+      (!_wizOne && wStep === 0 && _wizNote ? '<p class="jwiz-note" role="status">' + esc(_wizNote) + '</p>' : '') +
+      (_wizOne ? '' : '<div class="jwiz-dots" aria-hidden="true">' + dots + '</div>' +
+        '<p class="jwiz-count">Question ' + (wStep + 1) + ' of ' + WQ.length + '</p>') +
       '<h3 class="jwiz-q" tabindex="-1">' + esc(q.q) + '</h3>' +
-      '<p class="jwiz-help">' + esc(q.help) + '</p>' + body +
+      '<p class="jwiz-help">' + esc((_wizOne && q.helpOne) || q.help) + '</p>' + body +
       '<div class="jwiz-nav">' +
-      (wStep > 0 ? '<button type="button" class="jwiz-skip" id="jwiz-back">← Back</button>' : '<span></span>') +
+      (_wizOne ? '<button type="button" class="jwiz-skip" id="jwiz-back">← Back to my answers</button>'
+        : (wStep > 0 ? '<button type="button" class="jwiz-skip" id="jwiz-back">← Back</button>' : '<span></span>')) +
       (q.kind === 'chips' ? '<span class="jmins">choose one</span>'
-        : (q.optional ? '<span style="display:flex;gap:14px;align-items:center"><button type="button" class="jwiz-skip" id="jwiz-skipq">Skip</button><button type="button" class="jbtn" id="jwiz-next">Next</button></span>'
-          : '<button type="button" class="jbtn" id="jwiz-next">Next</button>')) +
+        : (_wizOne ? '<button type="button" class="jbtn" id="jwiz-next">Save</button>'
+          : (q.optional ? '<span style="display:flex;gap:14px;align-items:center"><button type="button" class="jwiz-skip" id="jwiz-skipq">Skip</button><button type="button" class="jbtn" id="jwiz-next">Next</button></span>'
+            : '<button type="button" class="jbtn" id="jwiz-next">Next</button>'))) +
       '</div></div>';
     var input = document.getElementById('jwiz-in');
     if (input) {
@@ -731,8 +764,18 @@
     var sq = document.getElementById('jwiz-skipq');
     if (sq) sq.addEventListener('click', function () { wSet(WQ[wStep], ''); wStep++; renderWizard(); });
     var bb = document.getElementById('jwiz-back');
-    if (bb) bb.addEventListener('click', function () { wStep = Math.max(0, wStep - 1); renderWizard(); });
-    track('journey_wizard_step', { step: wStep });
+    if (bb) bb.addEventListener('click', function () {
+      if (_wizOne) { closeAnswer(null); return; }
+      wStep = Math.max(0, wStep - 1); renderWizard();
+    });
+    if (!_wizOne) track('journey_wizard_step', { step: wStep });
+  }
+  // After an answer is stored: the next question, or back to the list when
+  // one answer was being edited.
+  function wizAdvance(q) {
+    if (_wizOne) { closeAnswer(q); return; }
+    wStep++;
+    renderWizard();
   }
 
   function wizardNext() {
@@ -740,8 +783,7 @@
     if (q.kind === 'text') {
       var ti = document.getElementById('jwiz-in');
       wSet(q, (ti && ti.value ? ti.value : '').trim().slice(0, 60));
-      wStep++;
-      renderWizard();
+      wizAdvance(q);
       return;
     }
     if (q.kind === 'money') {
@@ -757,58 +799,106 @@
       }
       wSet(q, Math.round(n));
     }
-    wStep++;
-    renderWizard();
+    wizAdvance(q);
   }
 
-  function renderWizardDone() {
+  // A buyer who says the contract is signed goes straight to the deadline
+  // tracker. True when that changed something.
+  function syncStage() {
+    if (S.profile.stage === 'deal' && !S.deal.signed) { S.deal.signed = true; return true; }
+    return false;
+  }
+  function finishWizard() {
     S.done[1] = true;
-    if (S.profile.stage === 'deal' && !S.deal.signed) S.deal.signed = true;
+    syncStage();
     save();
     track('journey_wizard_done', { stage: S.profile.stage || 'unset' });
-    var box = document.getElementById('jwizard');
-    var N = S.numbers, P = S.profile;
     _wizNote = '';
-    box.innerHTML = '<div class="jwiz-card">' +
-      '<div class="jwiz-done-icon">' + IC.check + '</div>' +
-      '<h3 class="jwiz-q" tabindex="-1">Your answers</h3>' +
-      '<p class="jwiz-help">Step 1 is done. Check your answers below.</p>' +
-      (function () {
-        var row = function (k, v, mono) {
-          return '<div class="jsum-row"><span class="k">' + k + '</span><span class="v' + (mono ? ' mono' : '') + '">' + v + '</span></div>';
-        };
-        var you =
-          row('Where', esc(N.state.toUpperCase()) + ', ' + (P.area === 'capital' ? 'capital city' : 'regional')) +
-          row('Buying', (P.buyers === 'couple' ? 'Together' : 'Alone') + ', ' + (P.fhb ? 'first home' : 'owned a home before')) +
-          row('Home type', P.build === 'new' ? 'New build' : P.build === 'unsure' ? 'Not sure yet' : 'Established') +
-          row('Income type', (P.employment === 'self' ? 'Self-employed' : P.employment === 'casual' ? 'Casual or contract' : 'Salaried') + (P.dependants ? ', ' + P.dependants + (P.dependants >= 3 ? '+' : '') + ' dependant' + (P.dependants > 1 ? 's' : '') : ''));
-        var money =
-          row('Household income', m$(P.income || 0) + '/yr', true) +
-          row('Saved so far', m$(N.saved), true) +
-          row('Saving', (N.saveMo > 0 ? m$(N.saveMo) + '/mo' : 'Nothing at the moment'), true) +
-          (P.rentNow ? row('Rent now', m$(P.rentNow) + '/mo', true) : '') +
-          (P.cardLimits ? row('Card limits', m$(P.cardLimits), true) : '');
-        var plan =
-          row('Target price', m$(N.price), true) +
-          (P.anchor ? row('Near', esc(P.anchor)) : '') +
-          row('Timeframe', ({ asap: 'As soon as possible', '6mo': 'Within 6 months', '12mo': 'Within a year', '2yr': 'In 1–2 years or later' })[P.timeframe] || 'Not set') +
-          (STAGE_LABEL[P.stage] ? row('Where you\u2019re up to', STAGE_LABEL[P.stage]) : '');
-        return '<div class="jsum">' +
-          '<div class="jsum-group"><span class="jsc jblock">You</span>' + you + '</div>' +
-          '<div class="jsum-group"><span class="jsc jblock">Your money</span>' + money + '</div>' +
-          '<div class="jsum-group"><span class="jsc jblock">Your plan</span>' + plan + '</div>' +
+    renderAnswers(true);
+  }
+
+  function wqById(id) { for (var i = 0; i < WQ.length; i++) if (WQ[i].id === id) return WQ[i]; return null; }
+  // An answer as the list shows it. A choice is shown in the words of the
+  // option that was picked.
+  function wShown(q) {
+    var v = wVal(q);
+    if (q.kind === 'chips') {
+      for (var i = 0; i < q.opts.length; i++) if (String(q.opts[i][0]) === String(v)) return q.opts[i][1];
+      return 'Not answered';
+    }
+    if (q.kind === 'text') return v ? String(v) : 'Not set';
+    return v == null ? 'Not answered' : m$(v) + (q.per || '');
+  }
+  var ANSWER_GROUPS = [
+    ['You', ['state', 'area', 'buyers', 'fhb', 'build', 'employment', 'dependants']],
+    ['Your money', ['income', 'saved', 'saveMo', 'rentNow', 'cardLimits']],
+    ['Your plan', ['price', 'anchor', 'timeframe', 'stage']]
+  ];
+  // The step 1 answers as a list. justDone: the wizard has only now been
+  // finished. quiet: a redraw that must not move focus.
+  function renderAnswers(justDone, quiet) {
+    var box = document.getElementById('jwizard');
+    if (!box) return;
+    var note = _answersNote; _answersNote = '';
+    var groups = ANSWER_GROUPS.map(function (g) {
+      return '<div class="jsum-group"><span class="jsc jblock">' + g[0] + '</span>' + g[1].map(function (id) {
+        var q = wqById(id);
+        return '<div class="jsum-row"><span class="k">' + esc(q.label) + '</span>' +
+          '<span class="v' + (q.kind === 'money' ? ' mono' : '') + '">' + esc(wShown(q)) + '</span>' +
+          (RO ? '' : '<button type="button" class="jsum-edit" data-wedit="' + q.id + '" aria-label="Edit ' + esc(q.label.toLowerCase()) + '">Edit</button>') +
           '</div>';
-      })() +
-      '<div class="jwiz-nav" style="margin-top:22px">' +
-      '<button type="button" class="jwiz-skip" data-jgoto="wizard">Change my answers</button>' +
-      (STAGE_STOP[P.stage] > 2
-        ? '<button type="button" class="jbtn" data-jgoto="' + stopByN(STAGE_STOP[P.stage]).view + '">Go to “' + esc(stopByN(STAGE_STOP[P.stage]).title) + '”</button>'
-        : '<button type="button" class="jbtn" data-jgoto="projector">Go to “Compare the schemes”</button>') +
+      }).join('') + '</div>';
+    }).join('');
+    // Back to the step this was opened from, or on to the step that matches
+    // how far along the buyer is.
+    var back = null;
+    for (var i = 0; i < STOPS.length; i++) if (STOPS[i].n > 1 && STOPS[i].view === _answersBack) back = STOPS[i];
+    var go = back || stopByN(STAGE_STOP[S.profile.stage] > 2 ? STAGE_STOP[S.profile.stage] : 2);
+    box.innerHTML = '<div class="jwiz-card">' +
+      (note ? '<p class="jwiz-note" role="status">' + esc(note) + '</p>' : '') +
+      (justDone ? '<div class="jwiz-done-icon">' + IC.check + '</div>' : '') +
+      '<h3 class="jwiz-q" tabindex="-1">Your answers</h3>' +
+      '<p class="jwiz-help">' + (justDone ? 'Step 1 is done. Check your answers below.'
+        : RO ? 'The other steps are worked out from these answers.'
+          : 'The other steps are worked out from these answers. Edit any of them here.') + '</p>' +
+      '<div class="jsum">' + groups + '</div>' +
+      '<div class="jwiz-nav" style="margin-top:22px"><span></span>' +
+      '<button type="button" class="jbtn" data-jgoto="' + go.view + '">' + (back ? 'Back to' : 'Go to') + ' “' + esc(go.title) + '”</button>' +
       '</div></div>';
-    focusHeading(box);
+    if (!quiet) focusHeading(box);
+  }
+  // Open one question from the list of answers.
+  function openAnswer(id) {
+    var q = wqById(id);
+    if (!q || RO) return;
+    if (_view !== 'wizard') show('wizard');
+    _wizOne = true; _wizFocus = true;
+    wStep = WQ.indexOf(q);
+    _wizBefore = wVal(q);
+    renderWizard();
+  }
+  // Back to the list. q is the question that was saved, or null when the
+  // visitor went back without saving.
+  function closeAnswer(q) {
+    _wizOne = false;
+    if (q) {
+      if (syncStage()) save();
+      if (String(wVal(q)) !== String(_wizBefore)) {
+        _answersNote = 'Saved. The other steps now use this answer.';
+        track('journey_answer_edited', { q: q.id });
+      }
+    }
+    renderAnswers(false);
   }
 
   // ── Stop 2: Scheme Pathway Projector v2 ──────────────────────────────
+  // "Compare schemes" on a saved place opens this step at that place's
+  // price: { addr, price }. It is held in memory only and never written to
+  // the journey, so looking at a place can't change the saved target price.
+  // It ends when the visitor opens any other view.
+  var _placeView = null;
+  var _placeNote = '';   // one-off line after a place's price is made the target
+  function projPrice() { return _placeView ? _placeView.price : S.numbers.price; }
   function schemeCaps(table) {
     var caps = table[S.numbers.state] || [0, 0];
     return S.profile.area === 'capital' ? caps[0] : caps[1];
@@ -816,8 +906,8 @@
 
   function computePaths() {
     var N = S.numbers, P = S.profile;
-    var price = N.price, saved = N.saved, saveMo = Math.max(0, N.saveMo || 0);
-    var duty = buyerDuty();
+    var price = projPrice(), saved = N.saved, saveMo = Math.max(0, N.saveMo || 0);
+    var duty = buyerDutyAt(price);
     var costs = otherCosts(price);
     var limit = borrowLimit();
     // Months until the cash is saved. Infinity when the buyer is short and
@@ -954,7 +1044,7 @@
   function renderNetPosition(R) {
     var box = document.getElementById('jnet');
     if (!box) return;
-    var price = S.numbers.price;
+    var price = projPrice();
     var head = '<div class="jnet-row jnet-head"><span class="nm"></span>' +
       ['5 yrs', '10 yrs', '30 yrs'].map(function (h) { return '<span>' + h + '</span>'; }).join('') + '</div>';
     var rows = R.paths.map(function (p) {
@@ -968,14 +1058,54 @@
       '<p class="jcaveat" style="margin-top:10px">What you’d own is the price paid, less what you’d still owe and less any government share, at ' + RATE.toFixed(2) + '% over 30 years from the day each path buys. The home stays valued at ' + m$(price) + ' because I don’t forecast price growth. The Help to Buy share is repaid at market value when you sell or buy it out.</p>';
   }
 
+  // The card above the figures when step 2 is showing a saved place.
+  function renderPlaceNote() {
+    var slot = document.getElementById('jplace-note');
+    if (!slot) {
+      // A cached copy of the page from before this slot existed.
+      var chips = document.getElementById('jctx-chips');
+      if (!chips) return;
+      slot = document.createElement('div');
+      slot.id = 'jplace-note';
+      chips.parentNode.insertBefore(slot, chips);
+    }
+    var said = _placeNote; _placeNote = '';
+    var pv = _placeView;
+    if (!pv) { slot.innerHTML = said ? '<p class="jwiz-note jplace-said" role="status">' + esc(said) + '</p>' : ''; return; }
+    var target = S.numbers.price, same = pv.price === target;
+    slot.innerHTML = '<div class="jcard jpad jsignup"><div>' +
+      '<span class="jsc jblock">' + esc(pv.addr) + '</span>' +
+      '<p>' + (same
+        ? 'The ' + m$(pv.price) + ' you entered for this place is the same as your target price.'
+        : 'These figures use the ' + m$(pv.price) + ' you entered for this place. Your target price is still ' + m$(target) + '.') + '</p></div>' +
+      '<div class="jsignup-actions">' +
+      '<button type="button" class="jbtn quiet" data-jgoto="hunt">Back to my places</button>' +
+      (!same && !RO && pv.price >= 50000 ? '<button type="button" class="jwiz-skip" id="jplace-use">Make ' + m$(pv.price) + ' my target price</button>' : '') +
+      '</div></div>';
+    var use = document.getElementById('jplace-use');
+    if (use) use.addEventListener('click', function () {
+      if (RO) return;
+      S.numbers.price = pv.price;
+      _placeView = null;
+      _placeNote = 'Your target price is now ' + m$(pv.price) + '.';
+      save();
+      renderProjector();
+      var h = document.getElementById('jproj-title');
+      if (h) { h.setAttribute('tabindex', '-1'); try { h.focus({ preventScroll: true }); } catch (e) {} }
+      track('journey_place_price_adopted', {});
+    });
+  }
+
   function renderProjector() {
     var N = S.numbers, P = S.profile;
+    var price = projPrice();
+    renderPlaceNote();
     var chips = document.getElementById('jctx-chips');
     if (chips) {
       chips.innerHTML =
         '<span class="chip"><b>' + esc(N.state.toUpperCase()) + '</b> ' + (P.area === 'capital' ? 'capital' : 'regional') + '</span>' +
         '<span class="chip">' + (P.fhb ? 'First home buyer' : 'Not a first home') + '</span>' +
-        '<span class="chip">Target <b>' + m$(N.price) + '</b></span>' +
+        '<span class="chip">' + (_placeView ? 'This place' : 'Target') + ' <b>' + m$(price) + '</b></span>' +
         '<span class="chip">Saved <b>' + m$(N.saved) + '</b></span>' +
         '<span class="chip">Saving <b>' + m$(N.saveMo) + '/mo</b></span>' +
         '<button type="button" class="jwiz-skip" data-jgoto="wizard" style="align-self:center">Change my answers</button>';
@@ -983,7 +1113,7 @@
 
     var R = computePaths();
     var title = document.getElementById('jproj-title');
-    if (title) title.textContent = R.paths.length + ' ways to buy your ' + m$(N.price) + (P.fhb ? ' first home' : ' home');
+    if (title) title.textContent = R.paths.length + ' ways to buy your ' + m$(price) + (P.fhb ? ' first home' : ' home');
 
     var note = document.getElementById('jduty-note');
     if (note) {
@@ -1070,7 +1200,7 @@
       var txt = '<span class="jsc">My read</span>';
       if (R.noneFit) {
         // No path's loan fits the borrowing estimate: say so before anything else.
-        txt += '<strong>At ' + m$(N.price) + ', every path needs a bigger loan than I estimate a lender would approve.</strong> ' +
+        txt += '<strong>At ' + m$(price) + ', every path needs a bigger loan than I estimate a lender would approve.</strong> ' +
           'On a household income of ' + m$(P.income) + ', the estimate is a loan of about <b class="mono-strong">' + m$(roundK(R.limit.maxLoan)) + '</b>. ' +
           'The smallest loan here is ' + m$(Math.min.apply(null, R.paths.map(function (p) { return p.loan; }))) + '. ' +
           'Step 3 works out the price your income supports. A lender or broker can give you a firm figure.';
@@ -1120,14 +1250,16 @@
   // inputs and the projector recomputes live.
   function scenName() {
     var N = S.numbers, P = S.profile;
-    return N.state.toUpperCase() + ' ' + m$(N.price) + (P.fhb ? '' : ', not first home');
+    return (N.state.toUpperCase() + ' ' + m$(projPrice()) + (P.fhb ? '' : ', not first home') + (_placeView ? ', ' + _placeView.addr : '')).slice(0, 80);
   }
   function renderScenarios(R) {
     var box = document.getElementById('jscen');
     if (!box) return;
     var rows = S.scenarios.map(function (sc, i) {
+      var when = dayLabel(sc.at);
       return '<div class="jscen-row">' +
         '<div class="jscen-main"><div class="jscen-name">' + esc(sc.name) + '</div>' +
+        (when ? '<div class="jscen-when">Saved ' + when + '</div>' : '') +
         '<div class="jscen-meta">' + esc(sc.bestName) + ', ' + (sc.mo <= 0 ? 'ready now' : 'ready ' + esc(sc.buyBy)) + ', ' + m$(sc.rep) + '/mo, needs ' + m$(sc.need) + ', saved ' + m$(sc.saved) + ' at ' + m$(sc.saveMo) + '/mo</div></div>' +
         '<button type="button" class="jbtn quiet jscen-btn" data-scen-load="' + i + '">Load</button>' +
         '<button type="button" class="jinsp-del" data-scen-del="' + i + '" aria-label="Delete scenario">×</button>' +
@@ -1147,7 +1279,7 @@
       S.scenarios.unshift({
         name: scenName(),
         at: Date.now(),
-        numbers: { price: N.price, saved: N.saved, saveMo: N.saveMo, state: N.state },
+        numbers: { price: projPrice(), saved: N.saved, saveMo: N.saveMo, state: N.state },
         profile: { fhb: P.fhb, area: P.area, buyers: P.buyers, build: P.build, income: P.income },
         bestName: b.name, mo: b.mo, buyBy: b.buyBy, rep: Math.round(b.rep), need: Math.round(b.need),
         saved: N.saved, saveMo: N.saveMo
@@ -1637,6 +1769,7 @@
     var rows = S.inspections.map(function (r, i) {
       var st = placeSt(r);
       if (_huntFilter !== 'all' && st !== _huntFilter) return '';
+      var when = dayLabel(r.at);
       var picker = '';
       if (_huntOpen === i) {
         picker = '<div class="jplace-pick">' + PLACE_STATUSES.map(function (s) {
@@ -1645,8 +1778,9 @@
       }
       return '<div class="jinsp' + (st === 'passed' || st === 'lost' ? ' muted' : '') + '">' +
         '<div class="jinsp-main"><div class="jinsp-addr">' + esc(r.addr) + '</div>' +
-        '<div class="jinsp-meta">' + (r.price ? m$(r.price) + capDelta(r.price) + (r.note ? ', ' : '') : '') + esc(r.note || '') + '</div></div>' +
-        (r.price ? '<button type="button" class="jplace-proj" data-place-proj="' + i + '" title="Open step 2 with this price">Compare schemes</button>' : '') +
+        '<div class="jinsp-meta">' + (r.price ? m$(r.price) + capDelta(r.price) + (r.note ? ', ' : '') : '') + esc(r.note || '') + '</div>' +
+        (when ? '<div class="jinsp-when">Added ' + when + '</div>' : '') + '</div>' +
+        (r.price ? '<button type="button" class="jplace-proj" data-place-proj="' + i + '" title="Open step 2 at this price. Your target price stays as it is.">Compare schemes</button>' : '') +
         '<button type="button" class="jplace-st st-' + st + '" data-place-status="' + i + '" aria-expanded="' + (_huntOpen === i) + '">' + PLACE_LABEL[st] + ' ▾</button>' +
         '<button type="button" class="jinsp-del" data-insp-del="' + i + '" aria-label="Remove ' + esc(r.addr) + '">×</button>' +
         '</div>' + picker;
@@ -1702,7 +1836,8 @@
         addr: addr.slice(0, 120),
         price: parseNum(document.getElementById('jinsp-price').value) || 0,
         note: (document.getElementById('jinsp-note').value || '').trim().slice(0, 160),
-        st: 'inspected'
+        st: 'inspected',
+        at: Date.now()
       });
       _huntOpen = -1;
       save(); renderHunt(); renderPlacesSummary();
@@ -2036,19 +2171,29 @@
     }
   }
 
-  function show(view) {
+  // opt.place: open step 2 at a saved place's price (see _placeView).
+  function show(view, opt) {
     // Steps 2 to 7 are worked out from the step 1 answers. Without them the
     // page would be showing example figures as if they were the visitor's.
     if (!S.done[1] && !RO && view !== 'home' && view !== 'wizard') {
       _wizNote = 'Step 1 comes first, because the other steps use your answers. It takes about two minutes.';
       view = 'wizard';
     }
+    var prev = _view;
     _view = view;
+    _placeView = (view === 'projector' && opt && opt.place) || null;
     Object.keys(VIEWS).forEach(function (k) {
       var el = document.getElementById(VIEWS[k]);
       if (el) el.classList.toggle('active', k === view);
     });
-    if (view === 'wizard') { wStep = 0; renderWizard(); }
+    if (view === 'wizard') {
+      // A first-time visitor gets every question. After that the view is
+      // the list of answers, each with its own Edit.
+      _wizOne = false;
+      if (prev !== 'wizard') _answersBack = prev;
+      if (S.done[1]) renderAnswers(false);
+      else { wStep = 0; renderWizard(); }
+    }
     if (view === 'projector') renderProjector();
     if (view === 'budget') renderBudget();
     if (view === 'ground') renderGround();
@@ -2069,7 +2214,7 @@
   }
 
   document.addEventListener('click', function (e) {
-    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-place-set],[data-place-proj],[data-insp-del],[data-bdep],[data-scen-load],[data-scen-del],#jreset-btn')) return;
+    if (RO && e.target.closest('[data-jmark],[data-check],[data-wopt],[data-wedit],[data-place-set],[data-insp-del],[data-bdep],[data-scen-load],[data-scen-del],#jreset-btn')) return;
     var go = e.target.closest('[data-jgoto]');
     if (go) { show(go.getAttribute('data-jgoto')); return; }
     var mk = e.target.closest('[data-jmark]');
@@ -2102,15 +2247,17 @@
       var raw = wopt.getAttribute('data-wopt');
       var val = raw === 'true' ? true : raw === 'false' ? false : (/^[0-9]+$/.test(raw) ? +raw : raw);
       wSet(q, val);
-      wStep++;
-      renderWizard();
+      wizAdvance(q);
       return;
     }
+    var wed = e.target.closest('[data-wedit]');
+    if (wed) { openAnswer(wed.getAttribute('data-wedit')); return; }
     var sl = e.target.closest('[data-scen-load]');
     if (sl) {
       var si = +sl.getAttribute('data-scen-load');
       var sc = S.scenarios[si];
       if (sc) {
+        _placeView = null;
         S.numbers.price = sc.numbers.price; S.numbers.saved = sc.numbers.saved;
         S.numbers.saveMo = sc.numbers.saveMo; S.numbers.state = sc.numbers.state;
         S.profile.fhb = sc.profile.fhb; S.profile.area = sc.profile.area;
@@ -2143,12 +2290,11 @@
     }
     var pp = e.target.closest('[data-place-proj]');
     if (pp) {
-      var ppi = +pp.getAttribute('data-place-proj');
-      var pr = S.inspections[ppi];
-      if (pr && pr.price) {
-        S.numbers.price = pr.price;
-        save();
-        show('projector');
+      var place = S.inspections[+pp.getAttribute('data-place-proj')];
+      if (place && place.price) {
+        // Step 2 at this place's price. Nothing is saved: the target price
+        // only changes if the buyer then asks for that on the step 2 screen.
+        show('projector', { place: { addr: place.addr, price: place.price } });
         track('journey_place_projected', {});
       }
       return;
@@ -2340,26 +2486,76 @@
     });
   }
 
+  // A partner invite opened in this browser before signing in. Signing in
+  // can come back without the link's token: the emailed sign-in link has no
+  // return address, and neither does the Sign in link in the menu. So the
+  // token is kept here for a day and the invite is offered again once the
+  // visitor is signed in. It is removed when the invite is accepted,
+  // declined or found to be switched off. login.js reads the same key.
+  var PENDING_JOIN_KEY = 'propCalc_journey_pendingJoin';
+  var JOIN_TOKEN_RE = /^[A-Za-z0-9_-]{6,64}$/;
+  function rememberJoin(tok) {
+    if (!JOIN_TOKEN_RE.test(tok)) return;
+    try { localStorage.setItem(PENDING_JOIN_KEY, JSON.stringify({ t: tok, at: Date.now() })); } catch (e) {}
+  }
+  function forgetJoin() { try { localStorage.removeItem(PENDING_JOIN_KEY); } catch (e) {} }
+  function pendingJoin() {
+    try {
+      var p = JSON.parse(localStorage.getItem(PENDING_JOIN_KEY) || 'null');
+      if (!p) return null;
+      var age = Date.now() - p.at;
+      if (typeof p.t === 'string' && JOIN_TOKEN_RE.test(p.t) && age >= 0 && age < 86400000) return p.t;
+      forgetJoin();
+    } catch (e) {}
+    return null;
+  }
+
+  // The signed-in visitor's own boot: the shared journey they are already
+  // on, or else their account's journey.
+  function bootMine() {
+    if (!isLoggedIn()) return;
+    if (COLLAB) pullCollab(); else bootOwn();
+  }
+
   function bootRemote() {
-    var joinTok = null;
+    var joinTok = null, fromLink = false;
     try { joinTok = new URLSearchParams(location.search).get('join'); } catch (e) {}
+    if (joinTok) fromLink = true;
+    else if (isLoggedIn()) joinTok = pendingJoin();
 
     // Already working on this shared journey: no need to ask again.
-    if (joinTok && COLLAB === joinTok && isLoggedIn()) { stripJoinParam(); joinTok = null; }
+    if (joinTok && COLLAB === joinTok && isLoggedIn()) { stripJoinParam(); forgetJoin(); joinTok = null; }
 
     if (joinTok) {
       api({ action: 'shareResolve', token: joinTok }).then(function (r) {
         if (!r || !r.ok || !r.state) {
-          setModeBanner('<div class="jcard jpad jsignup"><div>' +
-            '<span class="jsc jsc-gold jblock">This link no longer works</span>' +
-            '<p>The person who shared it has turned it off, or the address is incomplete. Ask them for a new link. The journey below is your own.</p></div></div>');
-          stripJoinParam();
-          if (isLoggedIn()) bootOwn();
+          if (r && r.gone) {
+            // The server knows the link and it is off (or was never real).
+            forgetJoin();
+            setModeBanner('<div class="jcard jpad jsignup"><div>' +
+              '<span class="jsc jsc-gold jblock">This link no longer works</span>' +
+              '<p>The person who shared it has turned it off, or the address is incomplete. Ask them for a new link. The journey below is your own.</p></div></div>');
+            stripJoinParam();
+          } else if (fromLink) {
+            // The link couldn't be checked (no connection, or the server
+            // failed), so it may be fine. The address keeps its token and a
+            // reload tries again. A remembered invite is kept the same way,
+            // and nothing is said about it.
+            setModeBanner('<div class="jcard jpad jsignup"><div>' +
+              '<span class="jsc jsc-gold jblock">I couldn’t open this shared journey</span>' +
+              '<p>The link couldn’t be checked, which usually means there’s no connection. Reload the page to try again. The journey below is your own.</p></div></div>');
+          }
+          bootMine();
           return;
         }
-        if (r.mode === 'view') { enterReadOnly(r); return; }
+        if (r.mode === 'view') {
+          if (!fromLink) { forgetJoin(); bootMine(); return; } // only a partner link is ever remembered
+          enterReadOnly(r);
+          return;
+        }
         // edit link
         if (!isLoggedIn()) {
+          rememberJoin(joinTok);
           enterReadOnly(r);
           setModeBanner('<div class="jcard jpad jsignup"><div>' +
             '<span class="jsc jsc-gold jblock">' + esc(r.ownerName) + ' invited you to their journey</span>' +
@@ -2367,15 +2563,27 @@
             '<div class="jsignup-actions"><a class="jbtn" href="/login?tab=signup&next=' + encodeURIComponent('/journey?join=' + joinTok) + '">Sign in to join</a></div></div>');
           return;
         }
+        if (r.mine) {
+          // The signed-in visitor opened their own partner link.
+          forgetJoin(); stripJoinParam();
+          setModeBanner('<div class="jcard jpad jsignup"><div>' +
+            '<span class="jsc jsc-gold jblock">This is your own partner link</span>' +
+            '<p>You’re already on this journey. Send the link to the person you want to share it with.</p></div></div>');
+          bootMine();
+          return;
+        }
+        var decline = function () { forgetJoin(); stripJoinParam(); bootMine(); };
         jModal({
           title: 'Join ' + r.ownerName + '’s journey?',
           body: 'You’ll both edit the same journey, and each of you sees the other’s changes when you open the page or come back to it. Their journey replaces the one in this browser. The one in your own account is kept and comes back when you leave.',
+          onDismiss: decline,
           buttons: [
-            { label: 'Not now', cls: 'quiet', cb: function () { stripJoinParam(); bootOwn(); } },
+            { label: 'Not now', cls: 'quiet', cb: decline },
             { label: 'Join their journey', cb: function () {
                 COLLAB = joinTok;
                 try { localStorage.setItem('propCalc_journey_collab', joinTok); } catch (e) {}
                 RO = false;
+                forgetJoin();
                 stripJoinParam();
                 adoptRemote({ state: r.state, updatedAt: r.updatedAt || 0 });
                 _remoteReady = true;
@@ -2389,8 +2597,7 @@
       return;
     }
 
-    if (COLLAB && isLoggedIn()) { pullCollab(); return; }
-    if (isLoggedIn()) bootOwn();
+    bootMine();
   }
 
   // Reconcile this device with the signed-in account's own journey.

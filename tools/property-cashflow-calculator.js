@@ -21,16 +21,35 @@
  *   $135,001–$190,000: 37% | $190,001+: 45%
  * The 15% band applies from 1 Jul 2026 and is legislated to drop to 14%
  * from 1 Jul 2027 — update TAX_BRACKETS then.
- * Medicare levy is applied as a FLAT 2% of taxable income — a stated
- * simplification (ignores the low-income phase-in, offsets, and the
- * Medicare levy surcharge). */
+ * The Medicare levy is added on top, phased in for low incomes (see
+ * medicareLevy below). Still ignored, and stated on the page: the family and
+ * seniors thresholds, tax offsets and the Medicare levy surcharge. */
 var TAX_BRACKETS = [
   [18200, 0.15],
   [45000, 0.30],
   [135000, 0.37],
   [190000, 0.45]
 ];
+
+/* ── Medicare levy (singles) ──
+ * Nil up to $28,011; 10% of the excess over $28,011 until that reaches the
+ * full levy at $35,013; 2% of taxable income above that. FY2025-26 thresholds
+ * (the latest published; each year's are legislated retrospectively).
+ *
+ * ⚠ SYNC COPY: the rule and both thresholds are copied from approxTax() in
+ * tools/borrowing-power-calculator.js, which is the source copy (the same
+ * lines are in tools/capital-gains-calculator.js). Change them together. */
 var MEDICARE_RATE = 0.02;
+var MEDICARE_LOWER = 28011;      // no levy at or below this
+var MEDICARE_UPPER = 35013;      // full 2% above this
+var MEDICARE_SHADE_RATE = 0.10;  // of the excess over MEDICARE_LOWER
+
+function medicareLevy(taxable) {
+  var x = Math.max(0, taxable);
+  if (x > MEDICARE_UPPER) return x * MEDICARE_RATE;
+  if (x > MEDICARE_LOWER) return (x - MEDICARE_LOWER) * MEDICARE_SHADE_RATE;
+  return 0;
+}
 
 function incomeTax(taxable) {
   var x = Math.max(0, taxable);
@@ -41,13 +60,18 @@ function incomeTax(taxable) {
     var to = (i + 1 < TAX_BRACKETS.length) ? TAX_BRACKETS[i + 1][0] : Infinity;
     t += (Math.min(x, to) - from) * TAX_BRACKETS[i][1];
   }
-  return t + x * MEDICARE_RATE;
+  return t + medicareLevy(x);
 }
 
+/* The rate on the next dollar of taxable income. Between the two Medicare
+ * thresholds the levy itself rises by 10c in the dollar, so the 15% band
+ * is split into three rows. */
 function bandLabel(taxable) {
   var x = Math.max(0, taxable);
-  if (x <= 18200) return '0% (tax-free threshold) + 2% Medicare';
-  if (x <= 45000) return '15% + 2% Medicare ($18,201–$45,000)';
+  if (x <= 18200) return '0% (tax-free threshold), no Medicare levy';
+  if (x <= MEDICARE_LOWER) return '15%, no Medicare levy ($18,201–$28,011)';
+  if (x <= MEDICARE_UPPER) return '15% + Medicare levy phasing in at 10% ($28,012–$35,013)';
+  if (x <= 45000) return '15% + 2% Medicare ($35,014–$45,000)';
   if (x <= 135000) return '30% + 2% Medicare ($45,001–$135,000)';
   if (x <= 190000) return '37% + 2% Medicare ($135,001–$190,000)';
   return '45% + 2% Medicare ($190,001+)';
@@ -372,7 +396,7 @@ if (typeof MarketRate !== 'undefined') {
     // Only replaces the rate while you have not typed your own (including a
     // suggestion restored from an earlier visit), so "Live" is never shown
     // beside a stale rate.
-    var showing = ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.50', slug: 'property-cashflow', rate: d.suggestedRate });
+    var showing = ToolPage.applyLiveRate({ inputId: 'rate', defaultValue: '6.25', slug: 'property-cashflow', rate: d.suggestedRate });
     var badge = document.getElementById('rate-live-badge');
     var hint = document.getElementById('rate-live-hint');
     if (badge) badge.style.display = showing ? '' : 'none';

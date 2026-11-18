@@ -134,7 +134,7 @@ function renderPlan(){
       ? ''
       : '<button class="acct-btn acct-btn-outline" id="manage-billing-btn-dynamic">Manage billing</button>';
     const dynBtn = upgradeEl.querySelector('#manage-billing-btn-dynamic');
-    if(dynBtn) dynBtn.addEventListener('click', openBillingPortal);
+    if(dynBtn) dynBtn.addEventListener('click', function(){ openBillingPortal(); });
   }
   if(billCard) billCard.style.display = (plan==='free') ? 'none' : 'block';
   if(plan !== 'free') loadBillingStatus();
@@ -254,9 +254,32 @@ async function loadBillingStatus(){
       periodEndEl.textContent = 'Active subscription';
     }
     if(d.cancelAtPeriodEnd && cancelNote){
-      const endDate = d.currentPeriodEnd ? new Date(d.currentPeriodEnd*1000).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}) : 'the end of the billing period';
+      const endTs = d.cancelAt || d.currentPeriodEnd;
+      const endDate = endTs ? new Date(endTs*1000).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}) : 'the end of the billing period';
       cancelNote.textContent = 'Your subscription is cancelled. You keep access until '+endDate+'.';
       cancelNote.style.display = 'block';
+    }
+    // "Cancel subscription" is hidden once the subscription is already set to
+    // cancel, has ended, or there is none. "Manage" still opens the portal,
+    // where a cancellation that hasn't taken effect yet can be undone.
+    const cancelBtn = document.querySelector('#billing-card .acct-btn-danger');
+    if(cancelBtn) cancelBtn.style.display = (d.cancelAtPeriodEnd || d.status==='none' || d.status==='canceled') ? 'none' : '';
+    // Payment failed and the 3-day grace is still running (the server only
+    // sends graceEndsAt while Stripe reports the subscription as past due).
+    let failNote = document.getElementById('payment-failed-note');
+    if(d.graceEndsAt && cancelNote){
+      if(!failNote){
+        failNote = document.createElement('div');
+        failNote.id = 'payment-failed-note';
+        failNote.style.cssText = cancelNote.style.cssText;
+        cancelNote.parentNode.insertBefore(failNote, cancelNote);
+      }
+      const planName = d.plan==='adviser' ? 'Adviser' : 'Pro';
+      const graceDate = new Date(d.graceEndsAt).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+      failNote.textContent = 'Your last payment failed. '+planName+' stays on until '+graceDate+'. Update your card before then to keep it.';
+      failNote.style.display = 'block';
+    } else if(failNote){
+      failNote.style.display = 'none';
     }
     if(cancelNote && !d.cancelAtPeriodEnd){
       const canceledStatus = session?.canceledAt || session?.subscription_canceled_at;
@@ -276,7 +299,9 @@ async function loadBillingStatus(){
   }catch(e){ if(pmEl) pmEl.textContent='—'; }
 }
 
-async function openBillingPortal(){
+// flow 'cancel' asks Stripe to open the portal on its cancel page for this
+// account's subscription; anything else opens the portal's home page.
+async function openBillingPortal(flow){
   if(!session || !session.id){ acctAlert('Not signed in', 'Sign in to manage billing.', {icon:''}); return; }
   const st = document.getElementById('delete-status');
   if(st){ st.textContent='Opening billing portal…'; st.className='acct-status-msg info'; }
@@ -284,7 +309,7 @@ async function openBillingPortal(){
     const r = await fetch('/.netlify/functions/stripe',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'createPortalSession',returnUrl:location.href})
+      body:JSON.stringify({action:'createPortalSession',returnUrl:location.href,flow:flow==='cancel'?'cancel':undefined})
     });
     const d = await r.json();
     if(d.ok && d.url){
@@ -492,9 +517,14 @@ document.querySelectorAll('.color-swatch').forEach(function(s){
 var saveProfileBtn = document.getElementById('save-profile-btn');
 if(saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
 
-// Billing portal buttons
-document.querySelectorAll('.manage-billing-btn').forEach(function(btn){
-  btn.addEventListener('click', openBillingPortal);
+// Billing buttons: "Manage" and "Update" open the Stripe billing portal, and
+// the red "Cancel subscription" button opens it on the cancel page. They are
+// matched by their place in the billing card as well as by class, because
+// account.html gave each of them two class attributes and the browser dropped
+// the second one (manage-billing-btn), which left all three unbound.
+document.querySelectorAll('.manage-billing-btn, #billing-card button').forEach(function(btn){
+  var isCancel = btn.classList.contains('acct-btn-danger');
+  btn.addEventListener('click', function(){ openBillingPortal(isCancel ? 'cancel' : ''); });
 });
 
 // Security panel

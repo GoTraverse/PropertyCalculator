@@ -14,6 +14,19 @@
  *   customer.subscription.deleted
  *   customer.subscription.updated
  *   invoice.payment_failed
+ *   invoice.paid               (clears the payment-failed grace; the handler
+ *                               also accepts invoice.payment_succeeded)
+ *
+ * Billing rules (tests/stripe-billing-test.js guards them):
+ *   - An event is recorded as handled only after it has been applied. A
+ *     failure replies 5xx so Stripe sends the event again.
+ *   - An older subscription event never overwrites a newer one.
+ *   - A failed payment starts a 3-day grace. past_due does not remove the plan
+ *     while the grace flag exists. The plan is removed when Stripe ends the
+ *     subscription (deleted, canceled, unpaid, incomplete_expired) or when a
+ *     past_due update arrives after the grace has gone.
+ *   - A successful payment clears the grace flag and paymentFailedAt.
+ *   - Checkout only accepts the price ids configured for this site.
  */
 
 const crypto = require('crypto');
@@ -72,7 +85,11 @@ async function redisPipe(cmds) {
     body: JSON.stringify(cmds),
   });
   if (!r.ok) throw new Error('Redis pipeline HTTP ' + r.status);
-  return await r.json();
+  const out = await r.json();
+  // A pipeline can answer 200 with an error for one command. Treat that as a
+  // failure so the webhook is retried instead of recorded as handled.
+  if (!Array.isArray(out) || out.some(x => x && x.error)) throw new Error('Redis pipeline command failed');
+  return out;
 }
 
 async function rGet(key) {
@@ -219,25 +236,99 @@ function extractDiscountInfo(discount, baseAmountCents, currency) {
 }
 
 // ── Webhook idempotency + dead-letter helpers ────────────────────────────────
-// Stripe retries webhooks on timeouts / 5xx. Use a Redis SET NX with 7-day TTL
-// so duplicate event IDs are short-circuited. Returns true if the caller should
-// process the event (first time), false if already processed.
-async function claimEvent(eventId) {
-  if (!eventId) return true; // can't dedupe without an id — process anyway
-  // SET NX returns OK on first write, null if key exists. TTL in seconds.
-  const res = await redisCmd('SET', 'stripe_event:' + eventId, '1', 'NX', 'EX', '604800');
+// Stripe delivers an event at least once and sends it again after any reply
+// that is not 2xx. Two keys per event id:
+//   stripe_event_lock:<id> — short lock held while one invocation works on it
+//   stripe_event:<id>      — written only AFTER the event has been applied
+// A delivery that finds the done marker replies 200 at once. A delivery that
+// finds the lock held replies 409, so Stripe sends it again later. If applying
+// the event throws, the lock is released and the reply is 500, so the event is
+// retried instead of lost. (Before Nov 2026 the marker was written first and a
+// failure still replied 200, which dropped the event for good.)
+const EVENT_DONE_TTL = 604800; // 7 days: well past Stripe's 3 days of retries
+const EVENT_LOCK_TTL = 120;    // seconds: longer than this function can run
+
+async function lockEvent(eventId) {
+  // SET NX returns OK on first write, null if the key exists.
+  const res = await redisCmd('SET', 'stripe_event_lock:' + eventId, '1', 'NX', 'EX', String(EVENT_LOCK_TTL));
   return res === 'OK';
 }
+async function unlockEvent(eventId) {
+  // Best effort: a lock that cannot be released expires by itself.
+  try { await redisCmd('DEL', 'stripe_event_lock:' + eventId); }
+  catch (e) { console.warn('[stripe] event lock not released, it expires in', EVENT_LOCK_TTL, 's:', e.message); }
+}
+async function isEventDone(eventId) {
+  return !!(await redisCmd('GET', 'stripe_event:' + eventId));
+}
+async function markEventDone(eventId) {
+  await redisCmd('SET', 'stripe_event:' + eventId, '1', 'EX', String(EVENT_DONE_TTL));
+}
 
-// When upgradePlan can't find the user (race condition or account deletion),
-// stash the full webhook for manual replay rather than losing it silently.
+// When an event can't be matched to a user (race condition or account
+// deletion), stash the full webhook for manual replay rather than losing it
+// silently. Throws if the write fails, so the event is retried.
 async function storeDeadLetter(event, reason) {
-  try {
-    const rec = { at: Date.now(), reason, event };
-    await redisCmd('LPUSH', 'stripe_deadletter', JSON.stringify(rec));
-    await redisCmd('LTRIM', 'stripe_deadletter', '0', '199'); // keep last 200
-    console.error('[stripe] DEAD-LETTER stored:', reason, '(event:', event && event.id, ')');
-  } catch (e) { console.error('[stripe] dead-letter write failed:', e.message); }
+  const rec = { at: Date.now(), reason, event };
+  await redisCmd('LPUSH', 'stripe_deadletter', JSON.stringify(rec));
+  try { await redisCmd('LTRIM', 'stripe_deadletter', '0', '199'); } catch (e) {} // keep last 200
+  console.error('[stripe] DEAD-LETTER stored:', reason, '(event:', event && event.id, ')');
+}
+
+// ── Out-of-order guard for subscription events ───────────────────────────────
+// Stripe does not promise delivery order, and a retried event can arrive
+// hours after a newer one. For each subscription id, remember the `created`
+// time of the newest event applied; an older event for the same subscription
+// is skipped. `created` has one-second resolution, so an event from the same
+// second is applied unless the subscription has already ended. The key is
+// only written after the event has been applied to a user.
+const SUB_STAMP_TTL = 3024000; // 35 days: Stripe keeps events for 30
+async function readSubStamp(subId) {
+  const raw = subId ? await redisCmd('GET', 'stripe_sub_applied:' + subId) : null;
+  if (!raw) return { created: 0, ended: false };
+  const s = String(raw);
+  return { created: parseInt(s, 10) || 0, ended: /:ended$/.test(s) };
+}
+async function writeSubStamp(subId, created, ended) {
+  await redisCmd('SET', 'stripe_sub_applied:' + subId, created + (ended ? ':ended' : ''), 'EX', String(SUB_STAMP_TTL));
+}
+
+// ── Payment-failure grace ─────────────────────────────────────────────────────
+// subscription_grace:<email> exists for 3 days after a payment first fails.
+// While it exists a past_due subscription keeps its plan. paymentFailedAt on
+// the user record marks the failure as still open; both are cleared by the
+// next successful payment.
+const GRACE_SECONDS = 259200; // 3 days
+function graceKey(email) { return 'subscription_grace:' + email; }
+
+// Start the grace window. It is dated from Stripe's event time, so a retried
+// delivery does not move it. Returns false, and writes nothing, if that
+// window is already over. `SET ... XX` only writes a record that still
+// exists, so an account deleted a moment ago is not recreated.
+async function startGrace(email, userData, eventCreatedSec, reason) {
+  const ttl = eventCreatedSec + GRACE_SECONDS - Math.floor(Date.now() / 1000);
+  if (ttl <= 0) return false;
+  userData.paymentFailedAt = eventCreatedSec * 1000;
+  userData.paymentFailureReason = reason || 'payment failed';
+  await redisPipe([
+    ['SET', 'user:' + email, JSON.stringify(userData), 'XX'],
+    ['SET', graceKey(email), String(eventCreatedSec * 1000), 'EX', String(ttl)],
+  ]);
+  return true;
+}
+
+// A successful payment ends the failure. A payment event that is older than
+// the recorded failure cannot have fixed it, so it clears nothing.
+async function clearPaymentFailure(email, userData, eventCreatedSec) {
+  if (userData.paymentFailedAt && eventCreatedSec * 1000 < userData.paymentFailedAt) return false;
+  const hadRecord = userData.paymentFailedAt != null || userData.paymentFailureReason != null;
+  delete userData.paymentFailedAt;
+  delete userData.paymentFailureReason;
+  const cmds = [['DEL', graceKey(email)]];
+  // Only rewrite the user record when there is something to remove from it.
+  if (hadRecord) cmds.unshift(['SET', 'user:' + email, JSON.stringify(userData), 'XX']);
+  await redisPipe(cmds);
+  return true;
 }
 
 // ── Upgrade user plan in Redis ────────────────────────────────────────────────
@@ -255,7 +346,7 @@ async function upgradePlan(email, plan, stripeCustomerId, stripeSubscriptionId, 
   else if (discountInfo === null) delete userData.stripeDiscountInfo; // explicitly cleared
   // Atomic: both the user record and the `cid:` reverse index land together
   // (or neither does). Previously a mid-flight Redis failure could leave the
-  // cid index stale, breaking downgradePlan lookups.
+  // cid index stale, breaking lookups by customer id.
   const cmds = [['SET', key, JSON.stringify(userData)]];
   if (stripeCustomerId) cmds.push(['SET', 'cid:' + stripeCustomerId, email.toLowerCase().trim()]);
   await redisPipe(cmds);
@@ -330,22 +421,198 @@ async function processReferralReward(newUserEmail) {
   }
 }
 
-// ── Downgrade user to free by customer ID ────────────────────────────────────
-async function downgradePlan(stripeCustomerId) {
-  const email = await emailByCustomerId(stripeCustomerId);
-  if (!email) {
-    console.warn('[stripe] downgradePlan: no user with customerId:', stripeCustomerId);
-    return false;
-  }
-  const userData = await rGet('user:' + email);
-  if (!userData) return false;
+// ── Downgrade a user to free ──────────────────────────────────────────────────
+// ended=true: Stripe says the subscription is over, so the payment-failure
+// record and grace flag go too. ended=false: the plan is removed because the
+// grace ran out on a past_due subscription; the failure record stays, since
+// the failure is still open until Stripe reports a payment or the end.
+async function downgradeUser(email, userData, stripeCustomerId, ended) {
   userData.plan = 'free';
   delete userData.stripeSubscriptionId;
   delete userData.stripeDiscountInfo;
-  await rSet('user:' + email, userData);
-  await logEvent(userData.id, 'plan_downgraded', { plan: 'free', stripeCustomerId });
-  console.log('[stripe] Downgraded', email, '→ free');
-  return true;
+  if (ended) {
+    delete userData.paymentFailedAt;
+    delete userData.paymentFailureReason;
+  }
+  const cmds = [['SET', 'user:' + email, JSON.stringify(userData), 'XX']];
+  if (ended) cmds.push(['DEL', graceKey(email)]);
+  const res = await redisPipe(cmds);
+  // SET ... XX answers null when the account was deleted in the meantime.
+  if (res[0] && res[0].result === 'OK') {
+    await logEvent(userData.id, 'plan_downgraded', { plan: 'free', stripeCustomerId });
+    console.log('[stripe] Downgraded', email, '→ free');
+  }
+}
+
+// ── Webhook event handlers ────────────────────────────────────────────────────
+// Each returns a short outcome for the log and throws on any failure, which
+// makes the webhook reply 5xx so Stripe sends the event again. Every handler
+// can safely run twice for the same event.
+const HANDLED_EVENTS = [
+  'checkout.session.completed',
+  'customer.subscription.deleted',
+  'customer.subscription.updated',
+  'invoice.payment_failed',
+  'invoice.paid',
+  'invoice.payment_succeeded',
+];
+// Statuses that mean the subscription no longer entitles the user to the plan.
+const ENDED_STATUSES = ['canceled', 'unpaid', 'incomplete_expired'];
+
+function eventTime(stripeEvent) {
+  return Number(stripeEvent.created) || Math.floor(Date.now() / 1000);
+}
+
+async function handleCheckoutCompleted(stripeEvent) {
+  const session = stripeEvent.data.object;
+  const email = (session.customer_email || session.customer_details?.email || '').toLowerCase().trim();
+  const meta  = session.metadata || {};
+  const plan  = meta.plan || 'pro';
+  if (!email) {
+    console.warn('[stripe] checkout.session.completed: no email in session');
+    await storeDeadLetter(stripeEvent, 'no_email_in_session');
+    return 'dead_letter';
+  }
+  // A checkout event that turns up after its subscription has already ended
+  // must not hand the plan back.
+  if (typeof session.subscription === 'string' && (await readSubStamp(session.subscription)).ended) {
+    log.warn('stripe.checkout_for_ended_subscription', { eventId: stripeEvent.id });
+    return 'stale';
+  }
+  // Extract discount from checkout session (total_details gives total discount in cents)
+  const baseAmount = session.amount_subtotal;
+  const currency   = session.currency;
+  const discountInfo = extractDiscountInfo(session.discount, baseAmount, currency);
+  const result = await upgradePlan(email, plan, session.customer, session.subscription, discountInfo);
+  if (!result || !result.ok) {
+    // User paid but we can't find their account — stash the full event
+    // for manual replay so the payment isn't silently lost.
+    await storeDeadLetter(stripeEvent, 'upgradePlan ' + (result && result.reason || 'unknown'));
+    return 'dead_letter';
+  }
+  // Reward referrer only on successful upgrade
+  await processReferralReward(email).catch(e => console.warn('[stripe] processReferralReward error:', e.message));
+  return 'upgraded';
+}
+
+// past_due: keep the plan while the grace flag exists. Without a flag, the
+// grace starts now if this event is the move into past_due (Stripe can send
+// it before invoice.payment_failed) or if no failure has been recorded yet.
+// Otherwise the grace has run out and the plan is removed.
+async function applyPastDue(stripeEvent, email, userData) {
+  const sub = stripeEvent.data.object;
+  if (await redisCmd('GET', graceKey(email))) return 'past_due_in_grace';
+  const previous = (stripeEvent.data.previous_attributes || {}).status;
+  const justFailed = !!previous && previous !== 'past_due';
+  if ((justFailed || !userData.paymentFailedAt) && await startGrace(email, userData, eventTime(stripeEvent), null)) {
+    return 'grace_started';
+  }
+  await downgradeUser(email, userData, sub.customer, false);
+  return 'grace_expired';
+}
+
+async function handleSubscriptionEvent(stripeEvent) {
+  const sub = stripeEvent.data.object;
+  const created = Number(stripeEvent.created) || 0;
+  const status = stripeEvent.type === 'customer.subscription.deleted' ? 'canceled' : sub.status;
+  const live  = status === 'active' || status === 'trialing';
+  const ended = ENDED_STATUSES.includes(status);
+  if (!live && !ended && status !== 'past_due') return 'no_change'; // incomplete, paused
+
+  // Out-of-order guard (see readSubStamp).
+  const last = await readSubStamp(sub.id);
+  if (created && (created < last.created || (created === last.created && last.ended && !ended))) {
+    log.info('stripe.webhook_stale', { eventId: stripeEvent.id, type: stripeEvent.type, created, lastApplied: last.created });
+    return 'stale';
+  }
+
+  const email = await emailByCustomerId(sub.customer);
+  const userData = email ? await rGet('user:' + email) : null;
+  if (!userData || typeof userData !== 'object') {
+    if (live && (sub.metadata || {}).plan && sub.customer) {
+      await storeDeadLetter(stripeEvent, email ? 'subscription_updated: user_record_missing' : 'subscription_updated: cid_not_mapped');
+      return 'dead_letter';
+    }
+    console.warn('[stripe] subscription event for a customer with no account:', sub.customer);
+    return 'no_user';
+  }
+
+  // The user record tracks one subscription. An event about a different one
+  // (a second subscription on the same customer) must not remove the plan
+  // that the tracked subscription pays for.
+  const ours = !userData.stripeSubscriptionId || userData.stripeSubscriptionId === sub.id;
+  let outcome;
+  if (live) {
+    // Back to active: the payment went through.
+    if (ours) await clearPaymentFailure(email, userData, eventTime(stripeEvent));
+    // Handle plan changes (e.g. pro → adviser or vice-versa)
+    const plan = (sub.metadata || {}).plan;
+    if (plan && sub.customer) {
+      const baseAmount   = sub.items && sub.items.data && sub.items.data[0] && sub.items.data[0].price ? sub.items.data[0].price.unit_amount : null;
+      const currency     = sub.currency || null;
+      const discountInfo = extractDiscountInfo(sub.discount, baseAmount, currency);
+      if (userData.plan !== plan || JSON.stringify(userData.stripeDiscountInfo) !== JSON.stringify(discountInfo)) {
+        await upgradePlan(userData.email, plan, sub.customer, sub.id, discountInfo);
+      }
+    }
+    outcome = 'active';
+  } else if (!ours) {
+    log.warn('stripe.event_for_other_subscription', { eventId: stripeEvent.id, status });
+    outcome = 'other_subscription';
+  } else if (ended) {
+    await downgradeUser(email, userData, sub.customer, true);
+    outcome = 'ended';
+  } else {
+    outcome = await applyPastDue(stripeEvent, email, userData);
+  }
+  if (sub.id && created) await writeSubStamp(sub.id, created, ended);
+  return outcome;
+}
+
+async function handlePaymentFailed(stripeEvent) {
+  // Don't downgrade here — Stripe retries over several days and a transient
+  // card decline shouldn't kick a paying user out mid-month. Start the 3-day
+  // grace instead (see applyPastDue for how it ends).
+  const invoice = stripeEvent.data.object;
+  console.warn('[stripe] Payment failed for customer:', invoice.customer);
+  const email = await emailByCustomerId(invoice.customer);
+  if (!email) {
+    await storeDeadLetter(stripeEvent, 'payment_failed: cid_not_mapped');
+    return 'dead_letter';
+  }
+  const userData = await rGet('user:' + email);
+  if (!userData || typeof userData !== 'object') {
+    await storeDeadLetter(stripeEvent, 'payment_failed: user_record_missing');
+    return 'dead_letter';
+  }
+  // One failure gets one grace window. Stripe sends this event again for
+  // every failed retry of the same invoice; those must not extend it.
+  if (userData.paymentFailedAt || await redisCmd('GET', graceKey(email))) return 'failure_already_recorded';
+  const reason = (invoice.last_payment_error && invoice.last_payment_error.message) || 'card declined';
+  return (await startGrace(email, userData, eventTime(stripeEvent), reason)) ? 'grace_started' : 'grace_already_over';
+}
+
+async function handleInvoicePaid(stripeEvent) {
+  const invoice = stripeEvent.data.object;
+  const email = await emailByCustomerId(invoice.customer);
+  const userData = email ? await rGet('user:' + email) : null;
+  if (!userData || typeof userData !== 'object') return 'no_user';
+  return (await clearPaymentFailure(email, userData, eventTime(stripeEvent))) ? 'failure_cleared' : 'stale';
+}
+
+async function processStripeEvent(stripeEvent) {
+  const type = stripeEvent.type;
+  if (type === 'checkout.session.completed') return handleCheckoutCompleted(stripeEvent);
+  if (type === 'customer.subscription.deleted' || type === 'customer.subscription.updated') return handleSubscriptionEvent(stripeEvent);
+  if (type === 'invoice.payment_failed') return handlePaymentFailed(stripeEvent);
+  if (type === 'invoice.paid' || type === 'invoice.payment_succeeded') return handleInvoicePaid(stripeEvent);
+  return 'ignored';
+}
+
+// Reply that makes Stripe send the event again. Nothing about the failure is
+// put in the body.
+function retryLater(code, reason) {
+  return { statusCode: code, headers: H, body: JSON.stringify({ received: false, retry: true, reason }) };
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -372,119 +639,50 @@ exports.handler = async function (event) {
     try { stripeEvent = JSON.parse(event.body || '{}'); }
     catch (e) { return fail('Invalid JSON', 400); }
 
-    const type = stripeEvent.type;
-    log.info('stripe.webhook_received', { type, eventId: stripeEvent.id });
+    const type = stripeEvent && stripeEvent.type;
+    const eventId = stripeEvent && stripeEvent.id;
+    // Every real Stripe event has an id, a type and data.object.
+    if (!stripeEvent || typeof stripeEvent !== 'object' || !eventId || !type || !stripeEvent.data || !stripeEvent.data.object) {
+      return fail('Invalid event', 400);
+    }
+    log.info('stripe.webhook_received', { type, eventId });
+    if (!HANDLED_EVENTS.includes(type)) return ok({ received: true, ignored: true });
 
-    // Idempotency — short-circuit if this event ID has been processed. Stripe
-    // retries on timeouts/5xx, so without this we'd run upgradePlan twice for
-    // the same checkout. 7-day TTL comfortably exceeds Stripe's retry window.
+    // 1. Take the processing lock, then look for the done marker. In that
+    //    order, a delivery that slips in just after another one finished
+    //    still sees the marker and stops.
+    let locked = false;
     try {
-      const claimed = await claimEvent(stripeEvent.id);
-      if (!claimed) {
-        log.info('stripe.webhook_duplicate', { eventId: stripeEvent.id, type });
+      locked = await lockEvent(eventId);
+      if (await isEventDone(eventId)) {
+        if (locked) await unlockEvent(eventId);
+        log.info('stripe.webhook_duplicate', { eventId, type });
         return ok({ received: true, duplicate: true });
       }
     } catch (e) {
-      // If Redis is down we'd rather process (possibly twice) than drop the
-      // event — upgradePlan writes are effectively idempotent anyway.
-      console.warn('[stripe] claimEvent failed, proceeding without dedupe:', e.message);
+      // The database can't be reached, so the event can't be applied either.
+      if (locked) await unlockEvent(eventId);
+      log.error('stripe.webhook_store_unavailable', { eventId, type, err: e.message });
+      return retryLater(503, 'temporarily_unavailable');
+    }
+    if (!locked) {
+      // Another invocation is working on this same event right now.
+      log.info('stripe.webhook_in_progress', { eventId, type });
+      return retryLater(409, 'in_progress');
     }
 
+    // 2. Apply the event. 3. Only then record it as handled. If either step
+    //    fails, release the lock and reply 500 so Stripe sends it again.
     try {
-      if (type === 'checkout.session.completed') {
-        const session = stripeEvent.data.object;
-        const email = (session.customer_email || session.customer_details?.email || '').toLowerCase().trim();
-        const meta  = session.metadata || {};
-        const plan  = meta.plan || 'pro';
-        if (email) {
-          // Extract discount from checkout session (total_details gives total discount in cents)
-          const baseAmount = session.amount_subtotal;
-          const currency   = session.currency;
-          const discountInfo = extractDiscountInfo(session.discount, baseAmount, currency);
-          const result = await upgradePlan(email, plan, session.customer, session.subscription, discountInfo);
-          if (!result || !result.ok) {
-            // User paid but we can't find their account — stash the full event
-            // for manual replay so the payment isn't silently lost.
-            await storeDeadLetter(stripeEvent, 'upgradePlan ' + (result && result.reason || 'unknown'));
-          } else {
-            // Reward referrer only on successful upgrade
-            await processReferralReward(email).catch(e => console.warn('[stripe] processReferralReward error:', e.message));
-          }
-        } else {
-          console.warn('[stripe] checkout.session.completed: no email in session');
-          await storeDeadLetter(stripeEvent, 'no_email_in_session');
-        }
-      }
-
-      if (type === 'customer.subscription.deleted') {
-        const sub = stripeEvent.data.object;
-        await downgradePlan(sub.customer);
-      }
-
-      if (type === 'customer.subscription.updated') {
-        const sub = stripeEvent.data.object;
-        // Handle plan changes (e.g. pro → adviser or vice-versa)
-        if (sub.status === 'active' || sub.status === 'trialing') {
-          const meta = sub.metadata || {};
-          const plan = meta.plan;
-          if (plan && sub.customer) {
-            const email = await emailByCustomerId(sub.customer);
-            if (email) {
-              const userData = await rGet('user:' + email);
-              if (userData) {
-                const baseAmount   = sub.items && sub.items.data && sub.items.data[0] && sub.items.data[0].price ? sub.items.data[0].price.unit_amount : null;
-                const currency     = sub.currency || null;
-                const discountInfo = extractDiscountInfo(sub.discount, baseAmount, currency);
-                if (userData.plan !== plan || JSON.stringify(userData.stripeDiscountInfo) !== JSON.stringify(discountInfo)) {
-                  await upgradePlan(userData.email, plan, sub.customer, sub.id, discountInfo);
-                }
-              } else {
-                await storeDeadLetter(stripeEvent, 'subscription_updated: user_record_missing');
-              }
-            } else {
-              await storeDeadLetter(stripeEvent, 'subscription_updated: cid_not_mapped');
-            }
-          }
-        } else if (sub.status === 'past_due' || sub.status === 'unpaid' || sub.status === 'canceled') {
-          await downgradePlan(sub.customer);
-        }
-      }
-
-      if (type === 'invoice.payment_failed') {
-        // Don't downgrade immediately — Stripe retries over several days and
-        // a transient card decline shouldn't kick a paying user out mid-month.
-        // Set a 3-day grace flag the client can read (on next verify) to show
-        // a "Payment failed — update your card" banner. If Stripe eventually
-        // hits `unpaid` / `canceled`, the customer.subscription.updated
-        // handler above downgrades properly.
-        const invoice = stripeEvent.data.object;
-        console.warn('[stripe] Payment failed for customer:', invoice.customer);
-        try {
-          const email = await emailByCustomerId(invoice.customer);
-          if (email) {
-            const userData = await rGet('user:' + email);
-            if (userData) {
-              userData.paymentFailedAt = Date.now();
-              userData.paymentFailureReason = (invoice.last_payment_error && invoice.last_payment_error.message) || 'card declined';
-              await rSet('user:' + email, userData);
-              // Separate TTL'd flag so downstream code can gate on presence
-              // without parsing the user record. 3-day window.
-              await redisCmd('SET', 'subscription_grace:' + email, String(Date.now()), 'EX', '259200');
-            } else {
-              await storeDeadLetter(stripeEvent, 'payment_failed: user_record_missing');
-            }
-          } else {
-            await storeDeadLetter(stripeEvent, 'payment_failed: cid_not_mapped');
-          }
-        } catch (e) { console.warn('[stripe] payment_failed flag error:', e.message); }
-      }
-
+      const outcome = await processStripeEvent(stripeEvent);
+      await markEventDone(eventId);
+      log.info('stripe.webhook_handled', { eventId, type, outcome });
     } catch (e) {
-      console.error('[stripe] Event handling error:', e.message);
-      // Return 200 to prevent Stripe from retrying (already handled or non-fatal)
-      return ok({ received: true, warning: e.message });
+      log.error('stripe.webhook_failed', { eventId, type, err: e.message });
+      await unlockEvent(eventId);
+      return retryLater(500, 'processing_failed');
     }
-
+    await unlockEvent(eventId);
     return ok({ received: true });
   }
 
@@ -523,30 +721,30 @@ exports.handler = async function (event) {
     }
     if (!priceId) return fail('priceId required');
 
-    // Fetch site config for URLs and to derive plan from priceId server-side
+    // Only the prices configured for this site can be bought: the four ids
+    // saved in site config (Admin → Integrations writes config:site) and the
+    // two post-launch Pro ids above. The plan always comes from this map,
+    // never from the request. Any other price id is refused. (It used to fall
+    // back to 'pro', so any price on the Stripe account, however cheap, bought
+    // the Pro plan.)
     let siteUrl = (process.env.SITE_URL || 'https://equitysight.app').replace(/\/$/, '');
-    let resolvedPlan = null;
-    try {
-      const cfg = await rGet('config:site') || {};
-      if (cfg.siteUrl) siteUrl = cfg.siteUrl.replace(/\/$/, '');
-      // Build server-side price→plan map — never trust the client's plan value
-      const priceMap = {};
-      if (cfg.stripeProMonthly) priceMap[cfg.stripeProMonthly] = 'pro';
-      if (cfg.stripeProAnnual)  priceMap[cfg.stripeProAnnual]  = 'pro';
-      if (cfg.stripeAdviserMonthly) priceMap[cfg.stripeAdviserMonthly] = 'adviser';
-      if (cfg.stripeAdviserAnnual)  priceMap[cfg.stripeAdviserAnnual]  = 'adviser';
-      // Known post-launch IDs always map to pro
-      priceMap[POST_PRO_MONTHLY] = 'pro';
-      priceMap[POST_PRO_ANNUAL]  = 'pro';
-      resolvedPlan = priceMap[priceId] || null;
-    } catch (e) {}
-
-    // If config has known prices, reject unknown priceIds to prevent plan spoofing.
-    // If config has no prices set yet (fresh install), fall back to 'pro' for any valid price_ ID.
-    if (resolvedPlan === null) {
-      if (!/^price_[A-Za-z0-9]+$/.test(priceId)) return fail('Invalid priceId format', 400);
-      resolvedPlan = 'pro'; // safe fallback: only one plan currently, so worst case user pays correct amount
+    let cfg;
+    try { cfg = await rGet('config:site') || {}; }
+    catch (e) {
+      console.error('[stripe] createCheckout: site config unavailable:', e.message);
+      return fail('Checkout is unavailable right now. Try again in a few minutes.', 503);
     }
+    if (cfg.siteUrl) siteUrl = cfg.siteUrl.replace(/\/$/, '');
+    const priceMap = Object.create(null);
+    if (cfg.stripeProMonthly) priceMap[cfg.stripeProMonthly] = 'pro';
+    if (cfg.stripeProAnnual)  priceMap[cfg.stripeProAnnual]  = 'pro';
+    if (cfg.stripeAdviserMonthly) priceMap[cfg.stripeAdviserMonthly] = 'adviser';
+    if (cfg.stripeAdviserAnnual)  priceMap[cfg.stripeAdviserAnnual]  = 'adviser';
+    // Known post-launch IDs always map to pro
+    priceMap[POST_PRO_MONTHLY] = 'pro';
+    priceMap[POST_PRO_ANNUAL]  = 'pro';
+    const resolvedPlan = typeof priceId === 'string' ? priceMap[priceId] : undefined;
+    if (!resolvedPlan) return fail('Unknown priceId. Checkout only accepts the prices configured for this site.', 400);
 
     try {
       const params = {
@@ -585,8 +783,9 @@ exports.handler = async function (event) {
       const session = await stripePost('/v1/checkout/sessions', params);
       return ok({ ok: true, url: session.url, sessionId: session.id });
     } catch (e) {
+      // Stripe's own error text stays in the log; it is not sent to the browser.
       console.error('[stripe] createCheckout error:', e.message);
-      return fail('Checkout error: ' + e.message);
+      return fail('Checkout could not be started. Try again, or email support@equitysight.app.', 502);
     }
   }
 
@@ -605,14 +804,34 @@ exports.handler = async function (event) {
     } catch (e) {}
 
     try {
-      const session = await stripePost('/v1/billing_portal/sessions', {
+      const params = {
         customer: userData.stripeCustomerId,
         return_url: returnUrl || siteUrl + '/account',
-      });
+      };
+      // flow:'cancel' opens the portal on its cancel page for the signed-in
+      // user's own subscription (the id comes from their record, never from
+      // the request). If Stripe refuses that (cancelling is switched off in
+      // the portal settings, or the subscription is already set to cancel),
+      // open the portal's home page instead.
+      let session = null;
+      if (body.flow === 'cancel' && userData.stripeSubscriptionId) {
+        try {
+          session = await stripePost('/v1/billing_portal/sessions', Object.assign({}, params, {
+            'flow_data[type]': 'subscription_cancel',
+            'flow_data[subscription_cancel][subscription]': userData.stripeSubscriptionId,
+            'flow_data[after_completion][type]': 'redirect',
+            'flow_data[after_completion][redirect][return_url]': params.return_url,
+          }));
+        } catch (e) {
+          console.warn('[stripe] portal cancel flow unavailable, opening the portal home:', e.message);
+        }
+      }
+      if (!session) session = await stripePost('/v1/billing_portal/sessions', params);
       return ok({ ok: true, url: session.url });
     } catch (e) {
+      // Stripe's own error text stays in the log; it is not sent to the browser.
       console.error('[stripe] createPortalSession error:', e.message);
-      return fail('Portal session error: ' + e.message);
+      return fail('The billing portal could not be opened. Try again, or email support@equitysight.app.', 502);
     }
   }
 
@@ -644,12 +863,36 @@ exports.handler = async function (event) {
       }
       const card = pm && pm.card ? pm.card : null;
 
+      // Newer Stripe API versions keep the period end on the subscription
+      // item, and a cancellation booked in the portal can arrive as cancel_at
+      // instead of cancel_at_period_end. Read both shapes.
+      const currentPeriodEnd = sub.current_period_end || (item && item.current_period_end) || null;
+      const cancelAt = sub.cancel_at || null;
+
+      // Payment-failed grace: only reported while Stripe says the
+      // subscription is past_due and the grace flag still exists.
+      let paymentFailedAt = null;
+      let graceEndsAt = null;
+      if (sub.status === 'past_due') {
+        try {
+          const email = String(user.email || '').toLowerCase().trim();
+          const startedMs = Number(await redisCmd('GET', graceKey(email)));
+          if (startedMs > 0) {
+            paymentFailedAt = startedMs;
+            graceEndsAt = startedMs + GRACE_SECONDS * 1000;
+          }
+        } catch (e) { /* the notice is optional; the rest of the status still returns */ }
+      }
+
       return ok({
         ok: true,
         status: sub.status,
         plan: userData.plan || 'free',
-        currentPeriodEnd: sub.current_period_end,
-        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        currentPeriodEnd,
+        cancelAtPeriodEnd: !!(sub.cancel_at_period_end || cancelAt),
+        cancelAt,
+        paymentFailedAt,
+        graceEndsAt,
         priceAmount,
         priceCurrency,
         priceInterval,
