@@ -102,6 +102,7 @@ async function verifyAdmin(event) {
 // ── Utilities ──────────────────────────────────────────────────────────
 function ok(b)   { return { statusCode: 200, headers: H, body: JSON.stringify(b) }; }
 function fail(msg, code) { return { statusCode: code || 200, headers: H, body: JSON.stringify({ ok: false, error: msg }) }; }
+function gone(msg) { return { statusCode: 404, headers: H, body: JSON.stringify({ ok: false, gone: true, error: msg }) }; }
 
 const STATE_MAX_BYTES = 32000; // journey blobs are ~2 KB; 32 KB is a generous ceiling
 
@@ -123,6 +124,11 @@ function validState(state) {
     if (state[k] != null && (!Array.isArray(state[k]) || state[k].length > 60 || state[k].some(r => !isObj(r)))) return false;
   }
   if (Array.isArray(state.inspections) && state.inspections.some(r => (r.st != null && typeof r.st !== 'string') || (r.addr != null && typeof r.addr !== 'string') || (r.note != null && typeof r.note !== 'string'))) return false;
+  // `at` is the time a place was added or a scenario was saved, in ms. The
+  // page prints it as a date, so it has to be a number when it is there.
+  for (const k of ['inspections', 'scenarios']) {
+    if (Array.isArray(state[k]) && state[k].some(r => r.at != null && (typeof r.at !== 'number' || !isFinite(r.at) || r.at < 0))) return false;
+  }
   return true;
 }
 function newShareToken() {
@@ -192,11 +198,17 @@ exports.handler = async function(event) {
     const token = String(body.token || '').slice(0, 64);
     if (!token) return fail('token required');
     try {
+      // gone:true tells the page the link itself is dead, as opposed to a
+      // request that failed. It forgets a remembered invite only on gone.
       const share = await rGet('journey:share:' + token);
-      if (!share) return fail('This share link is no longer active', 404);
+      if (!share) return gone('This share link is no longer active');
       const rec = await rGet('journey:' + share.email);
-      if (!rec) return fail('This journey has no saved data yet', 404);
-      return ok({ ok: true, mode: share.mode,
+      if (!rec) return gone('This journey has no saved data yet');
+      // mine: the signed-in caller owns this journey, so the page doesn't
+      // ask them to join it. Says nothing about the owner to anyone else.
+      let mine = false;
+      try { const me = await verifyToken(event); mine = !!(me && me.email && me.email === share.email); } catch (e) {}
+      return ok({ ok: true, mode: share.mode, mine,
                   ownerName: (rec.name || share.email.split('@')[0] || 'A buyer').split(' ')[0],
                   state: rec.state, updatedAt: rec.updatedAt || 0 });
     } catch (e) {

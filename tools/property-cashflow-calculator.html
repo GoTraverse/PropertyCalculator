@@ -80,7 +80,7 @@
 
       <div class="tool-field">
         <label class="tool-label" for="rate">Interest rate (% p.a.) <span id="rate-live-badge" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);padding:2px 7px;border-radius:3px;margin-left:4px;">Live</span></label>
-        <input class="tool-input" type="number" id="rate" value="6.50" placeholder="e.g. 6.50" step="0.05" min="0" max="20">
+        <input class="tool-input" type="number" id="rate" value="6.25" placeholder="e.g. 6.25" step="0.05" min="0" max="20">
         <div id="rate-live-hint" style="display:none;font-family:var(--font-mono);font-size:10px;color:var(--slate);margin-top:4px;letter-spacing:0.3px;"></div>
       </div>
 
@@ -260,7 +260,7 @@
     <div class="fhb-section">
       <div class="fhb-section-title">Assumptions</div>
       <p class="tool-field-hint">Tax uses FY2026-27 Australian resident rates ($0–$18,200 at 0%, to $45,000 at 15%, to $135,000 at 30%, to $190,000 at 37%, 45% above). It is worked out in full with and without the property, so a loss that crosses a bracket is handled correctly.</p>
-      <p class="tool-field-hint">The Medicare levy is applied as a flat 2% of taxable income. This ignores the low-income phase-in, tax offsets, and the Medicare levy surcharge.</p>
+      <p class="tool-field-hint">The Medicare levy is 2% of taxable income, phased in for low incomes: nil up to $28,011, then 10c per $1 over $28,011 until it reaches the full 2% at $35,013. These are the single thresholds for FY2025-26, the latest published. This ignores the family and seniors thresholds, tax offsets and the Medicare levy surcharge.</p>
       <p class="tool-field-hint">On P&amp;I loans, year-1 deductible interest is approximated as loan &times; rate. The deductible share falls slowly as principal is repaid; the cash repayment figure is exact.</p>
       <p class="tool-field-hint">Models one full year at a fixed rate and rent. Leaves out CGT on sale, LMI, borrowing-cost amortisation, and ownership through trusts or companies.</p>
     </div>
@@ -290,7 +290,7 @@
 
   <h2>Worked example</h2>
   <p>A $650,000 unit with a $520,000 interest-only loan at 5.5%. Rent is $570 a week with 2 weeks vacancy, which gives $28,500 of annual rent. Management at 7% costs $1,995. Add rates $2,000, water $1,200, insurance $1,800 and maintenance $1,500 for total cash expenses of $8,495. Interest at 5.5% on $520,000 is $28,600. Cash out is $37,095 against $28,500 in, a pre-tax cash flow of <strong>−$8,595, about −$165 a week</strong>.</p>
-  <p>On the tax side, with an $8,000 depreciation schedule, deductions total $8,495 + $28,600 + $8,000 = $45,095, so the taxable result is −$16,595. For an investor on $95,000, tax (including the flat 2% Medicare) falls from about $20,920 to about $15,610. That's a benefit of <strong>$5,310</strong>. After-tax cash flow is −$8,595 + $5,310 = <strong>−$3,285 a year, roughly −$63 a week</strong>.</p>
+  <p>On the tax side, with an $8,000 depreciation schedule, deductions total $8,495 + $28,600 + $8,000 = $45,095, so the taxable result is −$16,595. For an investor on $95,000, tax (including the 2% Medicare levy) falls from about $20,920 to about $15,610. That's a benefit of <strong>$5,310</strong>. After-tax cash flow is −$8,595 + $5,310 = <strong>−$3,285 a year, roughly −$63 a week</strong>.</p>
 
   <h2>The FY2026-27 tax rates used</h2>
   <p>The calculator uses the Australian resident rates that apply from 1 July 2026:</p>
@@ -301,7 +301,7 @@
     <li>$135,001 to $190,000: 37c per $1 over $135,000</li>
     <li>$190,001 and over: 45c per $1 over $190,000</li>
   </ul>
-  <p>The 15% rate is new this financial year (it was 16% in FY2025-26) and is legislated to fall to 14% from 1 July 2027, which will slightly reduce the value of deductions in that band. The Medicare levy is added as a flat 2% of taxable income. The real levy phases in from zero across a low-income band, and offsets and the Medicare levy surcharge can move your bill either way. For most full-time earners the flat 2% is accurate. Near the thresholds it slightly overstates tax.</p>
+  <p>The 15% rate is new this financial year (it was 16% in FY2025-26) and is legislated to fall to 14% from 1 July 2027, which will slightly reduce the value of deductions in that band. The Medicare levy is added on top. It is nil on a taxable income up to $28,011, then 10c per $1 over $28,011 until that reaches 2% of your income at $35,013, and 2% of taxable income above that. Those are the single thresholds for FY2025-26, the latest published. The family and seniors thresholds, tax offsets and the Medicare levy surcharge aren't modelled, and they can move your bill either way.</p>
 
   <h2>Depreciation</h2>
   <p>Division 43 capital works deductions let you claim 2.5% of the original construction cost a year for 40 years on residential buildings constructed after mid-September 1987. Division 40 plant and equipment covers items such as ovens, carpets, blinds and air-conditioners, each depreciated over its effective life. Since 9 May 2017, buyers of established homes generally can't claim Division 40 deductions on second-hand items that came with the property, only on items they buy new. New builds aren't affected. Enter the yearly figure from a quantity surveyor's schedule in the depreciation field. It lowers your taxable result without changing your cash flow.</p>
@@ -315,7 +315,7 @@
     <li>Capital gains tax when you sell, which the <a href="/tools/capital-gains-calculator">capital gains tax calculator</a> covers.</li>
     <li>LMI, loan establishment fees and other borrowing costs over $100. These are deducted over five years (or the loan term if shorter), not in year one.</li>
     <li>A PAYG withholding variation, which lets you reduce the tax taken from your salary during the year instead of waiting until July. The yearly total is the same.</li>
-    <li>The Medicare low-income phase-in, the levy surcharge and tax offsets (a flat 2% is used).</li>
+    <li>The family and seniors Medicare levy thresholds, the levy surcharge and tax offsets. The single low-income thresholds are used.</li>
     <li>Ownership through a trust or company. Company profits are taxed at company rates, and trust losses generally stay in the trust instead of reducing the tax on your salary. The calculator models individual ownership only.</li>
     <li>Later years. Rents rise, rates move and the interest share of a P&amp;I repayment falls each year, so re-run it when your numbers change.</li>
   </ul>

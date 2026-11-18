@@ -70,7 +70,7 @@ function bandLabel(taxable) {
   var x = Math.max(0, taxable);
   if (x <= 18200) return '0% (tax-free threshold), no Medicare levy';
   if (x <= MEDICARE_LOWER) return '15%, no Medicare levy ($18,201–$28,011)';
-  if (x <= MEDICARE_UPPER) return '15% + Medicare levy phasing in at 10% ($28,012–$35,013)';
+  if (x <= MEDICARE_UPPER) return '15% + 10% Medicare phase-in ($28,012–$35,013)';
   if (x <= 45000) return '15% + 2% Medicare ($35,014–$45,000)';
   if (x <= 135000) return '30% + 2% Medicare ($45,001–$135,000)';
   if (x <= 190000) return '37% + 2% Medicare ($135,001–$190,000)';
